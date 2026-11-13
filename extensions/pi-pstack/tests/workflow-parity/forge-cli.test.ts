@@ -1,6 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -85,6 +85,63 @@ test.skipIf(!engineAvailable())('a container reads every host forge comment in f
     const [code] = await exited;
     expect(code, stderr).toBe(0);
   }
+});
+
+test('a waiter cannot mutate forge state while another process holds the lock beyond eight seconds', async () => {
+  const { ctx, forge } = fixture();
+  const bin = join(ctx.sandbox, 'slow-git');
+  mkdirSync(bin);
+  const marker = join(ctx.sandbox, 'holding');
+  const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
+  const wrapper = join(bin, 'git');
+  writeFileSync(wrapper, `#!/bin/sh\nif mkdir '${marker}' 2>/dev/null; then sleep 11; fi\nexec '${realGit}' "$@"\n`);
+  chmodSync(wrapper, 0o755);
+  const holder = spawn(join(forge.bin, 'gh'), ['pr', 'comment', '71', '--body', 'holder'], {
+    cwd: ctx.repo,
+    env: { ...process.env, FORGE_GIT_DIR: forge.bare, PATH: `${bin}:${process.env['PATH']}` },
+    stdio: 'ignore',
+  });
+  const exited = once(holder, 'exit');
+  try {
+    await expect.poll(() => existsSync(marker)).toBe(true);
+    const state = readFileSync(join(forge.dir, 'state.json'), 'utf8');
+    const actions = readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8');
+    const waiter = call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'waiter');
+    expect(waiter.status, waiter.stderr).toBe(1);
+    expect(waiter.stderr).toContain('forge: lock acquisition timed out');
+    expect(readFileSync(join(forge.dir, 'state.json'), 'utf8')).toBe(state);
+    expect(readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8')).toBe(actions);
+    expect(existsSync(join(forge.dir, 'lock'))).toBe(true);
+  } finally {
+    const [code] = await exited;
+    expect(code).toBe(0);
+  }
+  expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'comments').stdout).comments.map((comment: { body: string }) => comment.body)).toEqual(['holder']);
+});
+
+test('uncertain abandoned ownership is not reclaimed by competing waiters', async () => {
+  const { ctx, forge } = fixture();
+  const lock = join(forge.dir, 'lock');
+  mkdirSync(lock);
+  const ownership = JSON.stringify({ pid: process.pid, namespace: 'another-namespace', start: 'unknown' });
+  writeFileSync(join(lock, 'owner.json'), ownership);
+  const state = readFileSync(join(forge.dir, 'state.json'), 'utf8');
+  const actions = readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8');
+  const waiters = ['first', 'second'].map((body) => {
+    const child = spawn(join(forge.bin, 'gh'), ['pr', 'comment', '71', '--body', body], { cwd: ctx.repo, env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
+    let stderr = '';
+    child.stderr.on('data', (data: Buffer) => {
+      stderr += data.toString();
+    });
+    return once(child, 'exit').then(([code]) => ({ code, stderr }));
+  });
+  for (const result of await Promise.all(waiters)) {
+    expect(result.code, result.stderr).toBe(1);
+    expect(result.stderr).toContain('forge: lock acquisition timed out');
+  }
+  expect(readFileSync(join(lock, 'owner.json'), 'utf8')).toBe(ownership);
+  expect(readFileSync(join(forge.dir, 'state.json'), 'utf8')).toBe(state);
+  expect(readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8')).toBe(actions);
 });
 
 test('help at any command depth leaves forge state and actions unchanged', () => {

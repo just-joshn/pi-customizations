@@ -45,8 +45,9 @@ function lock() {
     try {
       mkdirSync(path);
       return () => rmSync(path, { recursive: true, force: true });
-    } catch {
-      if (Date.now() > end) rmSync(path, { recursive: true, force: true });
+    } catch (error) {
+      if (error.code !== 'EEXIST') die(1, `forge: cannot acquire lock: ${error.message}`);
+      if (Date.now() > end) die(1, 'forge: lock acquisition timed out; ownership cannot be established safely, refusing to reclaim');
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
     }
   }
