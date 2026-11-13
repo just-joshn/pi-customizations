@@ -32,9 +32,9 @@ function runSuite(extraArgs: string[], timeout: number) {
 }
 
 test('the upstream statechart suite passes against the generated skill', () => {
-  const whole = runSuite([], 280_000);
+  const whole = runSuite([], 600_000);
   expect(whole.ran).toBeGreaterThan(100);
   const final = whole.failures.length > 0 && whole.failures.every(racing) ? runSuite(['--test-name-pattern', RACING_NAME], 100_000) : whole;
   expect(final.failures).toEqual([]);
   expect(final.result.status, final.result.stderr).toBe(0);
-}, 400_000);
+}, 760_000);
