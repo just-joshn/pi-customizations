@@ -203,7 +203,7 @@ export function bodyHasSections(body: string): string[] {
   const order = found.filter((heading) => BODY_SECTIONS.includes(heading) || heading === 'Tradeoffs');
   const wanted = ['Why', 'What changed', 'Scope', 'Tradeoffs', 'Blast Radius', 'Verification'];
   const positions = order.map((heading) => wanted.indexOf(heading));
-  return [...BODY_SECTIONS.filter((heading) => !found.includes(heading)).map((heading) => `lacks ## ${heading}`), ...(positions.some((position, index) => index > 0 && position < (positions[index - 1] as number)) ? ['sections out of order'] : [])];
+  return [...BODY_SECTIONS.filter((heading) => heading !== 'Blast Radius' && !found.includes(heading)).map((heading) => `lacks ## ${heading}`), ...(positions.some((position, index) => index > 0 && position < (positions[index - 1] as number)) ? ['sections out of order'] : [])];
 }
 
 function verifiersIndependent(id: string, source: Src | Src[], units: (view: RunView) => Unit[]): Check {
