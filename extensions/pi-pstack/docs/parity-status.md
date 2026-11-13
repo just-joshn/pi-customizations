@@ -43,7 +43,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Tests | Run |
 | --- | --- | --- | --- | --- |
-| 1 | darwin | `802e8ffd3b10` | 2573 passed, 0 failed, 93 skipped | local at 2026-11-13T01:33:20.772Z |
+| 1 | darwin | `d5c76f8d63ad` | 2573 passed, 0 failed, 93 skipped | local at 2026-11-13T02:36:42.352Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
