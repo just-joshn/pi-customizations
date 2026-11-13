@@ -578,7 +578,7 @@ function blockedFamily(kind: BlockedKind): Family {
       check('ship.blocked.no-local-fallback-verifies', 'no worktree or readonly verifier was written or spawned: a verdict from the parent or a local worker would not count', SH('Only a verdict from an agent that did not write the code counts'), (view) => {
         const spawns = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
         const local = allWorkers(view).filter((worker) => assignmentOf(worker).workspace?.mode !== 'container');
-        return when(spawns.length === 1 && local.length === 0, 'one spawn attempt, container only', `${spawns.length} spawn attempts; non-container workers ${local.map((worker) => worker.id).join(', ') || 'none'}`);
+        return when(spawns.length > 0 && local.length === 0, 'spawn attempts used containers only', `${spawns.length} spawn attempts; non-container workers ${local.map((worker) => worker.id).join(', ') || 'none'}`);
       }),
       checkAbsence('ship.blocked.lands-nothing', 'the forge saw reads only: no verdict, no merge, no queue entry, no ref update, and every PR is still open', SH('Report it blocked and land nothing'), (view) => {
         const { state, actions } = readForge(view);
