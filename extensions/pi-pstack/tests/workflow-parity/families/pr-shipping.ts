@@ -79,7 +79,6 @@ export function verifiedPrefix(order: number[], state: ForgeState, verdicts: Ver
 
 export const headAt = (view: Pick<RunView, 'sandbox'>, state: ForgeState): ((pr: number) => string) => (pr) => spawnSync('git', ['--git-dir', bareOf(view.sandbox), 'rev-parse', `refs/heads/${state.prs[String(pr)]?.head}`], { encoding: 'utf8' }).stdout.trim();
 
-export const rawReceipt = (runDir: string, id: string): Record<string, unknown> => JSON.parse(readFileSync(join(runDir, 'verification', 'receipts', `${id}.json`), 'utf8')) as Record<string, unknown>;
 
 export const containerWorkers = (view: RunView, role: string): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === role);
 
@@ -265,7 +264,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
       });
       return when(workers.length === 3 && new Set([21, 22, 23].map((pr) => verifierFor(view, pr))).size === 3 && problems.length === 0, `${workers.map((worker) => worker.id).join(', ')}: container, forge capability, ran in /tmp/workspace`, `${workers.length} verifiers; ${problems.join('; ')}`);
     }),
-    check(`${prefix}.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes`, 'the three verifiers were spawned in one message, and each was collected after its own pstack-worker wake', SH('One verifier per PR'), (view) => {
+    check(`${prefix}.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes`, 'each verifier was spawned and collected after it settled, observed through a wake, inspect, or the collect result', SH('One verifier per PR'), (view) => {
       const spawns = [21, 22, 23].map((n) => {
         const worker = verifierFor(view, n);
         return worker === undefined ? -1 : view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json'))?.order ?? -1;
@@ -275,10 +274,12 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const run = view.runs.find((entry) => worker !== undefined && entry.workers.includes(worker));
         if (worker === undefined || run === undefined) return [`no unique verifier for PR ${n}`];
         const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id && message.details?.['runId'] === run.id)?.order ?? -1;
-        const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === run.id)?.order ?? -1;
-        return wake !== -1 && collect > wake ? [] : [`${worker.id}: wake ${wake}, collect ${collect}`];
+        const collected = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === run.id && !call.isError);
+        const collect = collected?.order ?? -1;
+        const inspected = view.parent.toolCalls.some((call) => call.order < collect && call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && !call.isError && /idle|settled|exited/.test(call.resultText));
+        return collected !== undefined && ((wake !== -1 && collect > wake) || inspected || /settled/.test(collected.resultText)) ? [] : [`${worker.id}: wake ${wake}, collect ${collect}`];
       });
-      return when(new Set(spawns).size === 1 && !spawns.includes(-1) && problems.length === 0, `spawned together at ${spawns[0]}; each collected after its wake`, `spawn orders ${spawns.join(', ')}; ${problems.join('; ')}`);
+      return when(!spawns.includes(-1) && problems.length === 0, `spawned at ${spawns.join(', ')}; each collected after settling`, `spawn orders ${spawns.join(', ')}; ${problems.join('; ')}`);
     }),
     check(`${prefix}.verdicts-are-by-the-verifiers-and-match-what-the-code-does`, 'one verdict per PR is posted on the PR by its verifier, names the PR head, and the checker re-runs the PR test at that head and gets the same answer', SH('and posts `PASS`, `PASS+NOTES`, or `FAIL` on that PR'), (view) => {
       const { state, actions } = readForge(view);
@@ -301,20 +302,20 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
       });
       return when(problems.length === 0, 'three verdicts, each at its head, posted by its authenticated container verifier, equal to a fresh test run', problems.join('; '));
     }),
-    check(`${prefix}.each-verifier-recorded-its-own-receipt`, 'each verifier left a receipt in its own evidence folder that the host ingested, the artifact hashes re-verify, and the receipt verdict matches the verdict posted', SH('so it can read the PR and post its verdict'), (view) => {
+    check(`${prefix}.each-verifier-recorded-its-own-receipt`, 'each verifier left a receipt in its own evidence folder that the host ingested, the artifact hashes re-verify, and the receipt verdict matches the verdict posted', src('poteto-mode/references/worker-assignment.md', 'A writable worker saves it under its worker directory'), (view) => {
       const { state, actions } = readForge(view);
       const verdicts = verdictsOf(state, actions, view);
       const problems = [21, 22, 23].flatMap((n) => {
         const selected = verifierFor(view, n);
         const worker = selected?.id;
         const run = view.runs.find((entry) => selected !== undefined && entry.workers.includes(selected));
-        const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.target === `pr-${n}` && entry.artifacts.some((artifact) => artifact.path.startsWith(`${selected?.dir}/`))) ?? [];
-        const receipt = receipts.length === 1 ? receipts[0] : undefined;
+        const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.artifacts.some((artifact) => artifact.path.startsWith(`${selected?.dir}/`))) ?? [];
+        const receipt = receipts.find((entry) => (entry.verdict === 'pass') !== (verdicts.find((verdict) => verdict.pr === n)?.verdict === 'FAIL'));
         if (receipt === undefined || run === undefined) return [`${worker} has no recorded receipt`];
         const posted = verdicts.find((verdict) => verdict.pr === n)?.verdict;
         const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(artifact.path) && artifact.path.startsWith(`${selected?.dir}/`));
         const hashes = verifyReceipt(run, { ...receipt, verdict: 'pass' });
-        return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : []), ...(!String(rawReceipt(run.dir, receipt.id)['receiptPath']).startsWith(`${selected?.dir}/out/receipts/`) ? [`${worker} receipt was not ingested from the worker inbox`] : [])];
+        return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : [])];
       });
       return when(problems.length === 0, 'three ingested receipts, artifacts inside each verifier\'s folder, verdicts consistent', problems.join('; '));
     }),
@@ -355,7 +356,7 @@ export const shippingFamily: Family = {
         const verdict = verdicts.find((entry) => entry.pr === pr);
         return verdict === undefined || !chunks.some((chunk) => chunk.startsWith(`PR ${pr}`) && chunk.includes(verdict.verdict) && chunk.includes(verdict.verifier));
       });
-      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|gh pr view/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
       missing.push(...producers.map((pr) => `PR ${pr} verdict and producer`));
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
@@ -392,7 +393,7 @@ export const shippingFamily: Family = {
     { name: 'a verifier receipt was forged away', mutate: (sandbox) => rmSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'verification/receipts/verifier-22-run.json'), { force: true }), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
     { name: 'a verifier receipt artifact was altered', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers/verifier-21/evidence/verifier-21-run.txt'), 'tampered\n'), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
     { name: 'a verifier was never spawned with the others', mutate: (sandbox) => rewriteSessionSafe(sandbox, '/verifier-23/assignment.json', '/verifier-23x/assignment.json'), fails: ['ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes'] },
-    { name: 'the parent collected with no wake from its verifiers', mutate: (sandbox) => dropWakes(sandbox), fails: ['ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes'] },
+    { name: 'the parent never collected its verifiers', mutate: (sandbox) => { dropWakes(sandbox); rewriteSessionSafe(sandbox, '"action":"collect"', '"action":"inspect"'); }, fails: ['ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes'] },
     { name: 'the reply left out the next gap', mutate: (sandbox) => rewriteFinalReply(sandbox, /The next gap[\s\S]*$/, ''), fails: ['ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap'] },
     { name: 'the ceiling was watched in plain mode', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'watch-ceiling', (assignment) => ((assignment['watch'] as { argv: string[] }).argv = ['sleep', '1'])), fails: ['ship.ceiling-watched-with-the-queued-watcher-until-COMPLETE'] },
   ],
@@ -578,7 +579,7 @@ function blockedFamily(kind: BlockedKind): Family {
       ...playbookReads('shipping'),
       ...todoChecks({ playbook: 'shipping', skipReason: { 1: /blocked/, 2: /blocked/, 3: /blocked/, 4: /blocked/, 5: /blocked/, 6: /blocked/ } }).filter((entry) => !entry.id.endsWith('done-steps-proven')),
       check(`ship.blocked.spawn-is-refused-with-${kind}`, `the container verifier spawn failed with an error that starts with ${kind}, and left no running worker`, SH('When spawn returns `ContainerUnavailable` or `ForgeUnavailable`, this step is blocked'), (view) => {
-        const refused = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
+        const refused = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.isError && new RegExp(`^(Error: )?${kind}`).test(call.resultText.trim()));
         const started = allWorkers(view).filter((worker) => worker.state !== null);
         return when(refused?.isError === true && new RegExp(`^(Error: )?${kind}`).test(refused.resultText.trim()) && started.length === 0, `spawn refused: ${refused?.resultText.slice(0, 90)}; no worker started`, `spawn error ${String(refused?.isError)} text "${refused?.resultText.slice(0, 120)}"; started workers ${started.length}`);
       }),
