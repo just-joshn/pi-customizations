@@ -416,6 +416,51 @@ describe('subscribe_github_pr', () => {
     expect((await fake.call('list_subscriptions', {})).text).toContain('last event: 2026-');
   });
 
+  test.for([
+    {
+      name: 'a check with no workflow and an Actions job of the same name',
+      before: [{ __typename: 'CheckRun', name: 'lint', workflowName: '', status: 'COMPLETED', conclusion: 'SUCCESS' }],
+      after: [
+        { __typename: 'CheckRun', name: 'lint', workflowName: '', status: 'COMPLETED', conclusion: 'SUCCESS' },
+        { __typename: 'CheckRun', name: 'lint', workflowName: 'CI', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      ],
+      wake: 'check `CI / lint` success',
+    },
+    {
+      name: 'a workflow and a job whose names contain the separator',
+      before: [
+        { __typename: 'CheckRun', name: 'build', workflowName: 'CI / Linux', status: 'COMPLETED', conclusion: 'FAILURE' },
+        { __typename: 'CheckRun', name: 'Linux / build', workflowName: 'CI', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      ],
+      after: [
+        { __typename: 'CheckRun', name: 'build', workflowName: 'CI / Linux', status: 'COMPLETED', conclusion: 'SUCCESS' },
+        { __typename: 'CheckRun', name: 'Linux / build', workflowName: 'CI', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      ],
+      wake: 'check `CI / Linux / build` success',
+    },
+  ])('a check that concludes wakes even beside $name', async ({ before, after, wake }) => {
+    const item = pr(7);
+    item.statusCheckRollup = before;
+    const { gh } = fakeGh(new Map([[7, item]]));
+    const fake = setup({ gh, pollIntervalMs: 1_000 });
+    await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    item.statusCheckRollup = after;
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(fake)[0]).toContain(wake);
+  });
+
+  test('a check wakes when it concludes even while a same-named job in another workflow still runs', async () => {
+    const item = pr(7);
+    const run = (workflowName: string, status: string, conclusion: string) => ({ __typename: 'CheckRun', name: 'test', workflowName, status, conclusion });
+    item.statusCheckRollup = [run('unit', 'IN_PROGRESS', ''), run('integration', 'IN_PROGRESS', '')];
+    const { gh } = fakeGh(new Map([[7, item]]));
+    const fake = setup({ gh, pollIntervalMs: 1_000 });
+    await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    item.statusCheckRollup = [run('unit', 'COMPLETED', 'FAILURE'), run('integration', 'IN_PROGRESS', '')];
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(fake)[0]).toContain('check `unit / test` failure');
+  });
+
   test('a gh failure is recorded, does not wake, and polling continues', async () => {
     const prs = new Map([[7, pr(7)]]);
     const { gh, fail } = fakeGh(prs);
@@ -581,6 +626,41 @@ describe('subscribe_github_pr', () => {
     fake.emit('session_start');
     await vi.advanceTimersByTimeAsync(0);
     expect(wakes(fake)).toHaveLength(1);
+  });
+
+  test('a snapshot saved before checks were keyed by workflow does not wake for checks that did not change', async () => {
+    const item = pr(7);
+    item.statusCheckRollup = [
+      { __typename: 'CheckRun', name: 'test', workflowName: 'CI', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      { __typename: 'CheckRun', name: 'test', workflowName: 'Deploy', status: 'IN_PROGRESS', conclusion: '' },
+      { __typename: 'CheckRun', name: 'build', workflowName: 'CI / Linux', status: 'COMPLETED', conclusion: 'SUCCESS' },
+    ];
+    const { gh } = fakeGh(new Map([[7, item]]));
+    const fake = setup({ gh, pollIntervalMs: 1_000 });
+    const created = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    await vi.advanceTimersByTimeAsync(0);
+
+    for (const controller of fake.controllers) controller.shutdown();
+    const legacy = {
+      number: 7,
+      title: 'Fix 7',
+      url: 'https://github.com/o/r/pull/7',
+      state: 'OPEN',
+      headRefOid: 'abc1234aaaa',
+      mergeable: 'MERGEABLE',
+      reviewDecision: 'REVIEW_REQUIRED',
+      reviews: {},
+      comments: {},
+      checks: { test: 'pending', build: 'success' },
+    };
+    writeFileSync(snapshotFile(durableRuntimeDir(readRegistry(fake.cwd).workspaceCwd), String(created.details['id'])), JSON.stringify([legacy]));
+    fake.emit('session_start');
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(fake)).toEqual([]);
+
+    item.statusCheckRollup[1] = { __typename: 'CheckRun', name: 'test', workflowName: 'Deploy', status: 'COMPLETED', conclusion: 'FAILURE' };
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(fake)[0]).toContain('check `Deploy / test` failure');
   });
 
   test('an unreadable snapshot file becomes a new baseline and the watch keeps working', async () => {

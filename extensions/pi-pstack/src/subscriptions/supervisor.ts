@@ -23,7 +23,7 @@ import {
   writeRoutinesPort,
 } from './durable-store.ts';
 import type { DurableSubscription, EventAdmission, RunModel, StoredSubscription } from './durable-types.ts';
-import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, readSnapshots, snapshotFile, writeSnapshots } from './github.ts';
+import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, readBaseline, snapshotFile, writeBaseline } from './github.ts';
 import { withMemory } from './memories.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, type WebhookEvent, webhookEventBlock } from './webhook.ts';
 
@@ -205,14 +205,7 @@ export function createSupervisor(options: SupervisorOptions) {
       const after = await fetchPrs(gh, target);
       if (!owns(entry)) return;
       const file = snapshotFile(durableRuntimeDir(cwd), entry.sub.id);
-      let before = entry.baseline;
-      if (before === undefined) {
-        try {
-          before = readSnapshots(file);
-        } catch {
-          // An unreadable snapshot would fail every poll forever. Take a new baseline instead.
-        }
-      }
+      const before = entry.baseline ?? readBaseline(file);
       let blocked = false;
       if (before !== undefined) {
         const blocks = await pollChanges(gh, target, before, after);
@@ -226,7 +219,7 @@ export function createSupervisor(options: SupervisorOptions) {
         }
       }
       if (!blocked) {
-        writeSnapshots(file, after);
+        writeBaseline(file, after);
         entry.baseline = after;
         clearError(cwd, entry.sub.id);
       }
