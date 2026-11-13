@@ -4,11 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
-import { setupForge, type ForgeHandle } from './fixtures/forge.ts';
+import { type ForgeHandle, setupForge } from './fixtures/forge.ts';
 import type { Ctx } from './lib/driver.ts';
 
 const roots: string[] = [];
-afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
 
 function fixture(): { ctx: Ctx; forge: ForgeHandle } {
   const sandbox = mkdtempSync(join(tmpdir(), 'forge-cli-test-'));
@@ -22,7 +24,22 @@ function fixture(): { ctx: Ctx; forge: ForgeHandle } {
   git('commit', '-qm', 'init');
   const base = git('rev-parse', 'HEAD');
   const ctx: Ctx = { driver: 'scripted', sandbox, repo, pkg: '', base, commits: [base], runId: 'test', skill: (name) => name, playbook: (name) => name, agentDir: join(sandbox, 'agent'), sessionsDir: join(sandbox, 'sessions') };
-  const forge = setupForge(ctx, { owner: 'fixture', name: 'repo', originCli: true, branches: [], prs: [{ number: 71, title: 'Review', head: 'main', base: 'main', author: 'fixture', threads: [{ id: 'thread-1', comments: [{ id: '901', author: 'reviewer', body: 'Finding', path: 'README.md', line: 1, createdAt: '2026-11-13T00:00:00Z' }] }] }] });
+  const forge = setupForge(ctx, {
+    owner: 'fixture',
+    name: 'repo',
+    originCli: true,
+    branches: [],
+    prs: [
+      {
+        number: 71,
+        title: 'Review',
+        head: 'main',
+        base: 'main',
+        author: 'fixture',
+        threads: [{ id: 'thread-1', comments: [{ id: '901', author: 'reviewer', body: 'Finding', path: 'README.md', line: 1, createdAt: '2026-11-13T00:00:00Z' }] }],
+      },
+    ],
+  });
   return { ctx, forge };
 }
 

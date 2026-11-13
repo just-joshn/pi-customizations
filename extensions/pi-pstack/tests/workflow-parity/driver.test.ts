@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-import type { RunSpec } from './lib/driver.ts';
-import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 import { writeContainerScenario as writeFakeForgeScenario } from './fixtures/forge.ts';
 import { writeContainerScenario as writeRealForgeScenario } from './fixtures/real-forge.ts';
+import type { RunSpec } from './lib/driver.ts';
+import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
 const spec: RunSpec = { family: 'driver-test', runId: 'driver-test', history: [{ message: 'init', files: { 'README.md': 'x\n' } }], prompt: () => '/noop', scenario: () => ({ actors: {} }) };
@@ -20,14 +20,20 @@ test.for(['scripted', 'real'] as const)('%s sandboxes expose scripted scenarios 
   const seen: { container: boolean; parent: boolean }[] = [];
   process.env['FAKE_PI_MODE'] = 'crash';
   for (const writeScenario of [writeFakeForgeScenario, writeRealForgeScenario]) {
-    await expect(runWorkflow({
-      ...spec,
-      prepare: (ctx) => writeScenario(ctx, { actors: { parent: ['scripted secret'] } }),
-      env: (ctx) => {
-        seen.push({ container: existsSync(join(ctx.sandbox, 'sim-scenario/scenario.json')), parent: existsSync(join(ctx.sandbox, 'scenario.json')) });
-        return {};
-      },
-    }, driver, { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 })).rejects.toThrow(/pi exited/);
+    await expect(
+      runWorkflow(
+        {
+          ...spec,
+          prepare: (ctx) => writeScenario(ctx, { actors: { parent: ['scripted secret'] } }),
+          env: (ctx) => {
+            seen.push({ container: existsSync(join(ctx.sandbox, 'sim-scenario/scenario.json')), parent: existsSync(join(ctx.sandbox, 'scenario.json')) });
+            return {};
+          },
+        },
+        driver,
+        { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 },
+      ),
+    ).rejects.toThrow(/pi exited/);
   }
   expect(seen).toEqual(Array.from({ length: 2 }, () => ({ container: driver === 'scripted', parent: driver === 'scripted' })));
 });
