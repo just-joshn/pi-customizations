@@ -201,7 +201,7 @@ function parseFamilyDefault(spec) {
   const match = FAMILY_DEFAULT.exec(spec);
   return match === null ? undefined : { id: match[1], level: match[2], fast: match[3] !== undefined };
 }
-var MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>[:<level>]', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";
+var MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'; '<provider>/<id>' also accepts a ':<level>' suffix";
 
 // src/run-files.ts
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
