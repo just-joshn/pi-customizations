@@ -1,7 +1,7 @@
 // Orchestrate family (spec 13.4): one owner per PR, a first unit taken all the way before the fan-out, verifiers on another
 // model family than the owner they check, and a stalled worker judged by its side effects, aborted and replaced.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
@@ -104,7 +104,7 @@ export const orchestrateFamily: Family = {
     },
     env: (ctx, driver) => forgeEnv(ctx, STORE.handle as ForgeHandle, { container: true, scripted: driver === 'scripted' }),
     cleanup: () => removeRunContainers(RUN),
-    prompt: () => "/poteto-mode orchestrate the program. Build two independent queue items and land them as PR 51 and PR 52, one owner per PR, merging each once verified. These PR numbers are reserved, not existing PRs. PR 51 uses branch feat-greet-orch and adds the named export greet(name) in src/greet.js. It returns the string 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 52 uses branch feat-shout-orch and adds the named export shout(name) in src/shout.js. It returns the string 'HELLO ' followed by name.toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Each item includes behavior tests under test/ and leaves the existing cart behavior unchanged. Do not stop to ask me.",
+    prompt: () => "/poteto-mode orchestrate this standing multi-day project with many stacked PRs and dozens of workers over its lifetime. The current tranche has two independent queue items. Build these items and land them as PR 51 and PR 52, one owner per PR, merging each once verified. These PR numbers are reserved, not existing PRs. PR 51 uses branch feat-greet-orch and adds the named export greet(name) in src/greet.js. It returns the string 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 52 uses branch feat-shout-orch and adds the named export shout(name) in src/shout.js. It returns the string 'HELLO ' followed by name.toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Each item includes behavior tests under test/ and leaves the existing cart behavior unchanged. Do not stop to ask me.",
     scenario: (ctx) => scenarioOf(ctx, STORE),
   },
   checks: [
@@ -148,8 +148,8 @@ export const orchestrateFamily: Family = {
       const problems = prs.flatMap((pr) => {
         const head = pr.mergedHead ?? headAt(view, state)(pr.number);
         const candidates = verificationWorkers(view, head);
-        const verifier = candidates.length === 1 ? candidates[0] : undefined;
         const owner = allWorkers(view).find((worker) => worker.id === pr.author);
+        const verifier = candidates.find((candidate) => owner !== undefined && candidate.id !== owner.id && OWNER_FAMILY(String(assignmentOf(candidate).model)) !== OWNER_FAMILY(String(assignmentOf(owner).model)) && laneClean(view, candidate, head));
         const merge = mergesIn(actions).find((entry) => entry.pr === pr.number);
         return [
           ...(verifier === undefined || owner === undefined || OWNER_FAMILY(String(assignmentOf(verifier).model)) === OWNER_FAMILY(String(assignmentOf(owner).model)) ? [`PR ${pr.number} verifier family is not independent`] : []),
@@ -174,12 +174,13 @@ export const orchestrateFamily: Family = {
       return when(probe !== -1 && abort > probe && respawn > abort && settles.some((settle) => settle.phase === 'aborted') && stalled !== undefined && (replacement?.brief ?? '').includes(stalled.id) && /abort|stall|replac/i.test(replacement?.brief ?? '') && /evidence|test|verify|driver|artifact/i.test(replacement?.brief ?? ''), `probe at ${probe}, abort at ${abort} (phase ${String(stalled?.state?.['phase'])}), replacement at ${respawn} with the kickoff and the reason`, `probe ${probe}, abort ${abort}, respawn ${respawn}, settles ${JSON.stringify(settles.map((settle) => settle.phase))}`);
     }),
     check('orchestrate.live-state-is-read-and-every-worker-is-accounted-for', 'before the reply the parent read both PRs live, a notes file and a decisions log exist in the run root, and the reply accounts for every worker as done or replaced without asking the user', OR('**Check a PR\'s live state before you report on it,**'), (view) => {
-      const lastCollect = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect').map((call) => call.order));
-      const live = BASH(view).find((entry) => /^gh pr view 51 .*&& gh pr view 52/.test(entry.command) && entry.order > lastCollect);
       const run = view.runs[0];
       const reply = finalReply(view);
-      const missing = allWorkers(view).filter((worker) => !reply.includes(worker.id)).map((worker) => worker.id);
-      return when(live !== undefined && (run?.decisions?.length ?? 0) >= 3 && readFileSync(join(run?.dir ?? '', 'notes.md'), 'utf8').includes('Program notes') && missing.length === 0 && !reply.trim().endsWith('?'), 'live read after the last collect; notes and decisions present; every worker named in the reply; no question', `live read ${live?.order}; decisions ${run?.decisions?.length}; unaccounted workers ${missing.join(', ') || 'none'}`);
+      const replyAt = view.parent.messages.find((message) => message.text === reply)?.order ?? -1;
+      const live = [51, 52].every((pr) => BASH(view).some((entry) => entry.order < replyAt && new RegExp(`\\bgh pr view ${pr}\\b`).test(entry.command)));
+      const missing = allWorkers(view).filter((worker) => !reply.includes(worker.id) && !view.parent.toolCalls.some((call) => call.order < replyAt && call.name === 'pstack_worker' && call.args['workerId'] === worker.id && !call.isError && call.args['action'] === 'collect' && /settled/.test(call.resultText))).map((worker) => worker.id);
+      const notes = join(run?.dir ?? '', 'notes.md');
+      return when(live && (run?.decisions?.length ?? 0) > 0 && existsSync(notes) && readFileSync(notes, 'utf8').trim() !== '' && missing.length === 0 && reply !== '' && !reply.trim().endsWith('?'), 'both PRs read live before the reply; notes and decisions present; every worker accounted for; no question', `live reads ${live}; decisions ${run?.decisions?.length}; unaccounted workers ${missing.join(', ') || 'none'}`);
     }),
     check('orchestrate.a-watch-loop-follows-the-pr', 'the PR was watched with a watch-pr watcher in a watcher worker, not a script or sleep loop in the parent', OR('Watch each PR with a watch loop'), (view) => {
       const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).watch?.argv?.[0] === WATCH_PR);
@@ -202,7 +203,7 @@ export const orchestrateFamily: Family = {
     { name: 'an owner merged before the verdict was posted', mutate: (sandbox) => editForge(sandbox, (actions) => { const at = actions.findIndex((action) => action.kind === 'merge' && action.pr === 52); const [merge] = actions.splice(at, 1); actions.unshift(merge as ForgeAction); }), fails: ['orchestrate.no-merge-without-the-operators-request-and-a-verdict-at-that-head'] },
     { name: 'the stalled owner was never aborted', mutate: (sandbox) => rewriteSession(sandbox, '"action":"abort"', '"action":"inspect"'), fails: ['orchestrate.a-stalled-worker-is-judged-by-its-side-effects-aborted-and-replaced-with-a-consolidated-kickoff'] },
     { name: 'the replacement got a bare kickoff', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/owner-52b/brief.md'), 'Build PR 52.'), fails: ['orchestrate.a-stalled-worker-is-judged-by-its-side-effects-aborted-and-replaced-with-a-consolidated-kickoff', 'orchestrate.kickoffs-name-evidence-paths-and-forbidden-actions'] },
-    { name: 'the reply forgot the replaced worker', mutate: (sandbox) => rewriteFinalReply(sandbox, /owner-52a/g, 'one owner'), fails: ['orchestrate.live-state-is-read-and-every-worker-is-accounted-for'] },
+    { name: 'the replaced worker was neither collected nor accounted for', mutate: (sandbox) => { rewriteFinalReply(sandbox, /owner-52a/g, 'one owner'); rewriteSession(sandbox, '"workerId":"owner-52a"', '"workerId":"unaccounted"'); }, fails: ['orchestrate.live-state-is-read-and-every-worker-is-accounted-for'] },
     { name: 'the reply asked the user', mutate: (sandbox) => rewriteFinalReply(sandbox, /$/, ' Should I continue?'), fails: ['orchestrate.live-state-is-read-and-every-worker-is-accounted-for'] },
     { name: 'the parent polled with its own loop', mutate: (sandbox) => appendLoop(sandbox), fails: ['orchestrate.a-watch-loop-follows-the-pr'] },
   ],

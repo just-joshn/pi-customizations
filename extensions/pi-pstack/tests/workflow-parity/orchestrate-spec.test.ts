@@ -16,6 +16,8 @@ test('the autopilot request specifies new work and reserved PR numbers', () => {
 test('the real orchestrate request scopes two new modules instead of referring to nonexistent PRs', () => {
   const prompt = orchestrateFamily.spec.prompt({} as Ctx);
   expect(prompt).toContain('Build');
+  expect(prompt).toContain('standing multi-day project');
+  expect(prompt).toContain('current tranche');
   expect(prompt).toContain("greet('ada') === 'hello ada'");
   expect(prompt).toContain("shout('ada') === 'HELLO ADA'");
   expect(prompt).toContain('reserved');
