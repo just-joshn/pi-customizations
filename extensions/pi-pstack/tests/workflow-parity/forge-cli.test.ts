@@ -7,7 +7,7 @@ import { createInterface } from 'node:readline';
 
 import { afterEach, expect, test } from 'vitest';
 import { DEFAULT_IMAGE } from '../../src/container.ts';
-import { type ForgeHandle, setupForge } from './fixtures/forge.ts';
+import { FORGE_CLI, type ForgeHandle, setupForge } from './fixtures/forge.ts';
 import { engineAvailable } from './lib/container-lock.ts';
 import type { Ctx } from './lib/driver.ts';
 
@@ -53,10 +53,10 @@ function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
 
 test.skipIf(!engineAvailable())('a container reads every host forge comment in full', async () => {
   const { ctx, forge } = fixture();
-  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',['/sandbox/forge/bin/forge-cli.mjs','gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
+  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',[${JSON.stringify(FORGE_CLI)},'gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
   const child = spawn(
     'docker',
-    ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, DEFAULT_IMAGE, 'node', '-e', reader],
+    ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, '--mount', `type=bind,src=${FORGE_CLI},dst=${FORGE_CLI},readonly`, DEFAULT_IMAGE, 'node', '-e', reader],
     { stdio: 'pipe' },
   );
   const exited = once(child, 'exit');
@@ -159,6 +159,24 @@ test('help at any command depth leaves forge state and actions unchanged', () =>
   }
   expect(call(ctx, forge, 'gh', 'pr', 'create', '--title', 'Real PR').status).toBe(0);
   expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['72'].title).toBe('Real PR');
+});
+
+test.each([
+  ['query($number:Int!) { repository(owner:"fixture",name:"repo") { pullRequest(number:$number) { reviewThreads(first:100) { nodes { id isResolved } } } } }', ['-F', 'number=71']],
+  ['{ repository(owner:"fixture",name:"repo") { pullRequest(number:71) { reviewThreads(first:100) { nodes { id } } } }', []],
+  ['query ReviewThreads($pr:Int!) { repository(owner:"fixture",name:"repo") { pullRequest(number:$pr) { reviewThreads(first:100) { nodes { id } } } }', ['-F', 'pr=71']],
+])('review thread queries use their field arguments, not the operation or variable name: %s', (query, fields) => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${query}`, ...fields);
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout).data.repository.pullRequest.reviewThreads.nodes[0].id).toBe('thread-1');
+  const absent = query.replace('number:71', 'number:999').replace('number:$number', 'number:999').replace('number:$pr', 'number:999');
+  expect(call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${absent}`, ...fields).status).not.toBe(0);
+});
+
+test('forge implementation source is not staged in the sandbox', () => {
+  const { forge } = fixture();
+  expect(existsSync(join(forge.bin, 'forge-cli.mjs'))).toBe(false);
 });
 
 test('review comments expose reply ids and REST replies are readable in the same thread', () => {

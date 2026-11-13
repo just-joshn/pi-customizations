@@ -276,14 +276,16 @@ function chaos(step) {
 function graphql(state) {
   const stdin = flag('--input') ? (value('--input') === '-' ? readFileSync(0, 'utf8') : readFileSync(value('--input'), 'utf8')) : null;
   const fields = {};
-  for (let i = 0; i < argv.length; i += 1) if (['-f', '-F'].includes(argv[i])) {
+  for (let i = 0; i < argv.length; i += 1) if (['-f', '-F', '--raw-field', '--field'].includes(argv[i])) {
     const [key, ...rest] = argv[i + 1].split('=');
     fields[key] = rest.join('=');
   }
   const input = stdin === null ? { query: fields.query, variables: fields } : JSON.parse(stdin);
   const query = String(input.query ?? '');
-  const variables = input.variables ?? {};
-  const pr = state.prs[String(variables.pr ?? '')];
+  const variables = input.variables ?? fields;
+  const numberArgument = /\bpullRequest\s*\(\s*number\s*:\s*(\$[A-Za-z_]\w*|\d+)/.exec(query)?.[1];
+  const number = numberArgument?.startsWith('$') ? variables[numberArgument.slice(1)] : numberArgument;
+  const pr = state.prs[String(number ?? '')];
   if (/resolveReviewThread/.test(query)) {
     needToken(true);
     const found = Object.values(state.prs).find((item) => item.threads.some((thread) => thread.id === (variables.thread ?? variables.t ?? variables.threadId)));
@@ -301,7 +303,7 @@ function graphql(state) {
     return out({ data: { addPullRequestReviewThreadReply: { comment: { id: 'new' } } } });
   }
   if (pr === undefined) die(1, 'gh: unknown pull request');
-  if (/ReviewThreads/.test(query)) {
+  if (/\breviewThreads\s*\(/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
     const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });

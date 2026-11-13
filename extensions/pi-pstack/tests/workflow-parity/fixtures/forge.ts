@@ -2,7 +2,7 @@
 // reads and writes <origin.git>/forge/state.json, and an append-only action log the checkers read. Real git decides head
 // SHAs, conflicts and merges, so a rebase, a force-push or a merge is a fact in the bare repository, not a claim.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -152,7 +152,6 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
   mkdirSync(join(bare, 'hooks'), { recursive: true });
   writeFileSync(join(bare, 'hooks', 'pre-receive'), HOOK);
   chmodSync(join(bare, 'hooks', 'pre-receive'), 0o755);
-  copyFileSync(FORGE_CLI, join(bin, 'forge-cli.mjs'));
   writeFileSync(join(bin, 'package.json'), JSON.stringify({ name: 'workflow-parity-forge', private: true, pi: { extensions: ['./index.mjs'] } }));
   writeFileSync(join(bin, 'index.mjs'), `import { execFileSync } from 'node:child_process';
 export default function () {
@@ -168,7 +167,7 @@ export default function () {
   }
 }\n`);
   for (const name of def.originCli === true ? ['gh', 'origin'] : ['gh']) {
-    writeFileSync(join(bin, name), `#!/bin/sh\nexport FORGE_GIT_DIR='${bare}'\nexec node '${join(bin, 'forge-cli.mjs')}' ${name} "$@"\n`);
+    writeFileSync(join(bin, name), `#!/bin/sh\nexport FORGE_GIT_DIR='${bare}'\nexec node '${FORGE_CLI}' ${name} "$@"\n`);
     chmodSync(join(bin, name), 0o755);
   }
   return { bare, dir, bin, tip: (branch) => git(bare, 'rev-parse', `refs/heads/${branch}`) };
