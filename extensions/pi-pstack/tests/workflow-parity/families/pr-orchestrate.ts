@@ -66,6 +66,7 @@ function scenarioOf(ctx: Ctx, store: Store) {
   parent.wait('verifier-52').collect('verifier-52');
   parent.call('pstack_worker', { action: 'steer', runId: ctx.runId, workerId: second.id, message: `PR 52 is verified PASS at head ${second.sha}. Merge it now with --match-head-commit ${second.sha}.` });
   parent.wait(second.id, 2).collect(second.id);
+  parent.spawn('watch-51', { kind: 'watch', role: 'watcher', model: 'inherit-parent', workspace: parent.readonly(), watch: { argv: [WATCH_PR, '--owner', 'acme', '--repo', 'widgets', '--queued-stack', '--stack-prs', '51', '--interval', '0.3'], cwd: ctx.repo } }, '').wait('watch-51').collect('watch-51');
   parent.spawn('watch-52', { kind: 'watch', role: 'watcher', model: 'inherit-parent', workspace: parent.readonly(), watch: { argv: [WATCH_PR, '--owner', 'acme', '--repo', 'widgets', '--queued-stack', '--stack-prs', '52', '--interval', '0.3'], cwd: ctx.repo } }, '').wait('watch-52').collect('watch-52');
   parent.bash(`gh pr view 51 ${pr} --json state,baseRefName && gh pr view 52 ${pr} --json state,baseRefName`);
   parent.text('Landed against the goal: PR 51 (greet) and PR 52 (shout) are merged, each read back live as merged into main. PR 51: owner-51 built it, verifier-51 passed it at the head, owner-51 merged. PR 52: owner-52a stalled with no push and no PR, so I aborted it and replaced it with owner-52b, which built it; verifier-52 passed it at the head and owner-52b merged. Workers accounted for: owner-51 done, verifier-51 done, owner-52a replaced, owner-52b done, verifier-52 done, watch-52 done. Dropped: nothing. Decisions waiting on you: none.');
@@ -184,11 +185,14 @@ export const orchestrateFamily: Family = {
     }),
     check('orchestrate.a-watch-loop-follows-the-pr', 'the PR was watched with a watch-pr watcher in a watcher worker, not a script or sleep loop in the parent', OR('Watch each PR with a watch loop'), (view) => {
       const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).watch?.argv?.[0] === WATCH_PR);
-      if (candidates.length !== 1) throw new Error(`Expected one PR watcher, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
-      const watcher = candidates[0];
-      const argv = watcher ? assignmentOf(watcher).watch?.argv ?? [] : [];
+      const missing = [51, 52].filter((pr) => !candidates.some((worker) => {
+        const argv = assignmentOf(worker).watch?.argv ?? [];
+        const selected = argv[argv.indexOf('--pr') + 1];
+        const stack = argv.includes('--stack-prs') ? argv[argv.indexOf('--stack-prs') + 1]?.split(',') : [];
+        return assignmentOf(worker).kind === 'watch' && (selected === String(pr) || stack?.includes(String(pr))) && (worker.state?.['exit'] as { code: number } | undefined)?.code === 0;
+      }));
       const loops = BASH(view).filter((entry) => /while true|until |for i in/.test(entry.command));
-      return when(argv[0] === WATCH_PR && (watcher?.state?.['exit'] as { code: number } | undefined)?.code === 0 && loops.length === 0, 'watch-pr watcher exited COMPLETE, no loop in the parent', `argv ${JSON.stringify(argv)}; loops ${loops.length}`);
+      return when(missing.length === 0 && loops.length === 0, 'each PR has a successful watch-pr watcher, no loop in the parent', `missing watchers for ${missing.join(', ')}; loops ${loops.length}`);
     }),
     noToolErrors('orchestrate.no-tool-errors', OR('**Ask the user only for a real decision or a blocker,**')),
   ],
