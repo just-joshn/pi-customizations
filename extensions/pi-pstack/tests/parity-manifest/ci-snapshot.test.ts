@@ -14,7 +14,7 @@ beforeEach(() => {
   dest = mkdtempSync(join(tmpdir(), 'pstack-snapshot-'));
   buildSnapshot({ root: PKG, repoRoot, dest, commit: 'c'.repeat(40) });
   execFileSync('git', ['-C', dest, 'init', '-q']);
-  execFileSync('git', ['-C', dest, 'add', '-A']);
+  execFileSync('git', ['-C', dest, 'add', '--intent-to-add', '-A']);
 });
 afterEach(() => rmSync(dest, { recursive: true, force: true }));
 

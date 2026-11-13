@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { setTimeout as setTimeout2 } from "node:timers/promises";
 
 // src/redact.ts
 var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
@@ -180,11 +181,21 @@ async function removeWorkerContainers(docker, env, name) {
   const listed = await dockerCli(docker, ["ps", "--all", "--quiet", "--no-trunc", "--filter", `label=${CONTAINER_LABEL}=${name}`], env, 30000);
   const ids = listed.split(`
 `).filter(Boolean);
-  for (const id of ids)
+  for (const id of ids) {
+    const deadline = Date.now() + 60000;
     await dockerCli(docker, ["rm", "--force", id], env, 60000).catch((error) => {
       if (!/No such container|already in progress/i.test(error instanceof Error ? error.message : String(error)))
         throw error;
     });
+    for (;; ) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0)
+        throw new Error(`Container ${id} was not removed within 60000ms`);
+      if ((await dockerCli(docker, ["ps", "--all", "--quiet", "--no-trunc", "--filter", `id=${id}`], env, remaining)).trim() === "")
+        break;
+      await setTimeout2(50);
+    }
+  }
   return ids;
 }
 
