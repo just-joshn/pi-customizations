@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -31,5 +31,14 @@ describe('the Linux runner hashes the same inputs the local run does', () => {
   test('a snapshot whose workspace package.json differs has a different digest', () => {
     appendFileSync(join(dest, 'package.json'), '\n');
     expect(sourceDigest(join(dest, PACKAGE_DIR))).not.toBe(sourceDigest(PKG));
+  });
+
+  test('a snapshot whose biome.json differs has a different digest', () => {
+    appendFileSync(join(dest, 'biome.json'), '\n');
+    expect(sourceDigest(join(dest, PACKAGE_DIR))).not.toBe(sourceDigest(PKG));
+  });
+
+  test('the snapshot carries the checkout biome.json byte for byte', () => {
+    expect(readFileSync(join(dest, 'biome.json'))).toEqual(readFileSync(join(repoRoot, 'biome.json')));
   });
 });

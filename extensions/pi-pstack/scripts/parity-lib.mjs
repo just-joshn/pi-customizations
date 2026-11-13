@@ -268,7 +268,7 @@ export function evaluate(records, input, root) {
 const SELF_REFERENTIAL = [/^generated\/parity-manifest\.json$/, /^parity-results\//, /^ci-snapshot\.json$/];
 const STATUS_DOC = 'docs/parity-status.md';
 /** The lockfile and the workspace configuration above the package decide which dependencies the tests ran against. */
-const WORKSPACE_INPUTS = ['bun.lock', 'package.json', 'tsconfig.json'];
+const WORKSPACE_INPUTS = ['biome.json', 'bun.lock', 'package.json', 'tsconfig.json'];
 
 /**
  * Hash of everything the tests can depend on, so a result is tied to the code it ran against: every tracked file in the package
