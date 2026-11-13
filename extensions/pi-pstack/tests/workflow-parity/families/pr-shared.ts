@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Parent, shQuote } from '../fixtures/dsl.ts';
 import { byParent, type ForgeAction, isRefUpdate, readForge, WRITES } from '../fixtures/forge.ts';
-import { type Check, check, checkAbsence, fail, pass, src, type Src, when } from '../lib/check.ts';
+import { type Check, check, checkAbsence, fail, pass, type Src, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, skillRequest } from '../lib/checks.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 

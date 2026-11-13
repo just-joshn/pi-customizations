@@ -1,14 +1,16 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, expect, test } from 'vitest';
 
+import { afterEach, expect, test } from 'vitest';
 import { neverMutatesTopology } from './families/pr-shared.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
 const roots: string[] = [];
-afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
 const result = (command: string) => {
   const sandbox = mkdtempSync(join(tmpdir(), 'topology-contract-'));
   roots.push(sandbox);
