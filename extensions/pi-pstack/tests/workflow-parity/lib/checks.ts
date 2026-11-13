@@ -85,9 +85,11 @@ function isRedundantWakeTurn(view: RunView, assistant: { order: number; text: st
   const trigger = [...view.parent.messages].reverse().find((message) => message.order < assistant.order && (message.role === 'user' || message.role === 'custom'));
   if (trigger?.customType !== 'pstack-worker') return false;
   const workerId = trigger.details?.['workerId'];
-  const collectedBefore = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError && call.order < trigger.order && /settled/.test(call.resultText));
+  const lastSteer = Math.max(-1, ...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === workerId && call.order < trigger.order).map((call) => call.order));
+  const collectedBefore = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError && call.order > lastSteer && call.order < trigger.order && /settled/.test(call.resultText));
   const longerBefore = view.parent.messages.some((message) => message.role === 'assistant' && message.order < trigger.order && !isFiller(message) && message.text.trim().length > assistant.text.trim().length);
-  return collectedBefore || longerBefore;
+  const worked = view.parent.toolCalls.some((call) => call.order > trigger.order && call.order < assistant.order && !(call.name === 'pstack_worker' && ['collect', 'inspect'].includes(String(call.args['action']))));
+  return collectedBefore || (longerBefore && !worked);
 }
 
 export function finalReply(view: RunView): string {

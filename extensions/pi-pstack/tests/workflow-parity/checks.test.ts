@@ -111,6 +111,10 @@ describe('the reply the user reads', () => {
     const view = run([message(1, 'user', '/why'), message(5, 'assistant', 'The answer.'), message(6, 'user', 'thanks'), message(8, 'assistant', 'Welcome.')], [collectOf(4, 'w')]);
     expect(finalReply(view)).toBe('Welcome.');
   });
+  test('a shorter closing report after a new owner turn is not an old wake acknowledgement', () => {
+    const view = run([message(1, 'user', '/poteto-mode'), message(3, 'assistant', 'The initial queue plan is much longer than the eventual closing report.'), woken(6, 'w'), message(10, 'assistant', 'Both PRs merged.')], [collectOf(2, 'w'), { order: 4, name: 'pstack_worker', args: { action: 'steer', workerId: 'w' } }, collectOf(7, 'w'), { order: 8, name: 'bash', args: { command: 'gh pr view 1' } }]);
+    expect(finalReply(view)).toBe('Both PRs merged.');
+  });
   test('with only acknowledgements to choose from, the last one is the reply', () => {
     const view = run([woken(6, 'w'), message(8, 'assistant', 'Collected.')], [collectOf(4, 'w')]);
     expect(finalReply(view)).toBe('Collected.');
