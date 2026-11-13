@@ -1,9 +1,11 @@
 // Reusable contract checks. Each one reads only run artifacts and enforces a rule an upstream playbook or skill states.
+
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
-import { basename, isAbsolute, join, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
+import { skillBlock } from '../../../src/skill-block.ts';
 import { type Check, check, checkAbsence, fail, type Outcome, pass, type Src, src, when } from './check.ts';
 import { PKG } from './driver.ts';
 import { type Receipt, type RunDir, type RunView, type Session, STEP_LINE, type ToolCall, type WorkerView } from './view.ts';
@@ -17,11 +19,13 @@ export const FAMILY_OF = (model: string): string => model.slice(model.indexOf('/
 
 const READERS = /\b(cat|head|tail|sed|less|bat|nl)\b/;
 
-/** Order of the first tool call that opens the file, or -1. A read of the path or a shell reader naming it counts. */
+/** First full native skill expansion or tool call opening the file, or -1. */
 export function openedAt(session: Session | null, suffix: string): number {
   if (session === null) return -1;
+  const skill = /(?:^|\/)([a-z0-9-]+)\/SKILL\.md$/.exec(suffix)?.[1];
+  const expanded = skill === undefined ? undefined : session.messages.find((message) => message.role === 'user' && expandedSkill(message.text, skill) !== undefined);
   const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && shellCommands(String(entry.args['command'] ?? '')).some((command) => command.includes(suffix) || readsInDirectory(command, suffix))));
-  return call?.order ?? -1;
+  return expanded === undefined ? (call?.order ?? -1) : Math.min(expanded.order, call?.order ?? Number.POSITIVE_INFINITY);
 }
 
 /**
@@ -271,8 +275,30 @@ export function playbookReads(playbook: string, optional: string[] = [], conditi
   ];
 }
 
+function expandedSkill(prompt: string, skill: string): string | undefined {
+  const location = new RegExp(`<skill name="${skill}" location="([^"]+)">`).exec(prompt)?.[1];
+  if (location === undefined || !isAbsolute(location) || !location.endsWith(skillFile(skill))) return undefined;
+  const block = skillBlock(skill, join(GEN, skill, 'SKILL.md'))?.replaceAll(join(GEN, skill), dirname(location));
+  return block !== undefined && prompt.includes(block) ? block : undefined;
+}
+
+export function skillRequest(prompt: string): string {
+  let request = prompt;
+  for (;;) {
+    const name = /^<skill name="([a-z0-9-]+)" location=/.exec(request)?.[1];
+    const block = name === undefined ? undefined : expandedSkill(request, name);
+    if (block === undefined || !request.startsWith(block)) return request;
+    request = request.slice(block.length).trimStart();
+  }
+}
+
+export function promptHasSkill(prompt: string, skill: string, requestRequired = true): boolean {
+  const block = expandedSkill(prompt, skill);
+  return block !== undefined && prompt.startsWith(block) && (!requestRequired || skillRequest(prompt).trim().length > 0);
+}
+
 export const promptRoutes = (skill: string): Check =>
-  check(`slash.${skill}`, `/${skill} reaches Pi as the pstack ${skill} skill prompt with the request`, src(`${skill}/SKILL.md`, '# '), (view) => when(view.prompt.includes(`Use the pstack \`${skill}\` skill for this request.`) && view.prompt.includes(skillFile(skill)) && /Request: \S/.test(view.prompt), `first user message routes to ${skillFile(skill)}`, `first user message was: ${view.prompt.slice(0, 160)}`));
+  check(`slash.${skill}`, `/${skill} reaches Pi as the expanded pstack ${skill} skill with the request`, src(`${skill}/SKILL.md`, '# '), (view) => when(promptHasSkill(view.prompt, skill), `first user message expands ${skillFile(skill)} with its absolute location and request`, `first user message was: ${view.prompt.slice(0, 160)}`));
 
 // ---- workers
 

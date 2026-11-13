@@ -51,10 +51,14 @@ test('a leading /name keeps its own skill and later names attach after it, in or
   expect(text(await route('/skill:how\u0020/why'))).toBe(`/skill:how ${block('why')}\n\n/why`);
 });
 
-test('a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own', async () => {
-  for (const message of ['/how trace this', '/how', '/skill:how trace this', '/how again /how', '/skill:how and /how', 'no skills here', '']) {
+test('a leading package prompt uses native skill expansion even without a later reference', async () => {
+  for (const message of ['/how trace this', '/how', '/how again /how']) {
+    expect(await route(message)).toEqual({ action: 'transform', text: message.replace('/how', '/skill:how') });
+  }
+  for (const message of ['/skill:how trace this', '/skill:how and /how', 'no skills here', '']) {
     expect(await route(message)).toEqual({ action: 'continue' });
   }
+  expect(await route('/how trace this', { commands: packageCommands().filter((command) => command.name !== 'skill:how') })).toEqual({ action: 'continue' });
 });
 
 test('paths, other words, code, and an attached block name nothing', async () => {

@@ -5,6 +5,7 @@ import { MODELS_PATH, registerPstackCommand } from './commands.ts';
 import { registerEvidenceTool } from './evidence.ts';
 import { parseFamilyDefault } from './model-spec.ts';
 import { loadModelsConfig, type ModelsConfig, type ResolvedModel, type RoleResolution, resolveFamilyDefault, resolveRole } from './models.ts';
+import { PACKAGE_ROOT } from './paths.ts';
 import { registerSkillRouting } from './skill-routing.ts';
 import { registerStyle } from './style.ts';
 import { type ModelResolver, registerWorkerSideTools, registerWorkerTools } from './workers.ts';
@@ -47,6 +48,9 @@ export const roleModelResolver =
   };
 
 export default function pstack(pi: ExtensionAPI): void {
+  pi.on('before_agent_start', (event) => ({
+    systemPrompt: `${event.systemPrompt}\n\nThe installed pi-pstack package root (<pi-pstack>) is ${PACKAGE_ROOT}. Package-relative scripts and generated files resolve from this directory. The poteto-mode skill is ${PACKAGE_ROOT}/generated/skills/poteto-mode/SKILL.md. Use these absolute paths without searching for the package.`,
+  }));
   if (process.env['PSTACK_WORKER'] === '1') {
     registerWorkerSideTools(pi, process.env);
     return;

@@ -15,6 +15,7 @@ import {
   openedAt,
   playbookReads,
   primaryRun,
+  promptHasSkill,
   promptRoutes,
   receiptsFor,
   runAtCommit,
@@ -251,7 +252,7 @@ export const pauseFamily: Family = {
     },
   },
   checks: [
-    check('slash.pause', 'the pause arrives as the second user turn routed to poteto-mode', src('poteto-mode/playbooks/pause-safely.md', 'This is explicit only'), (view) => when(userTurns2(view) === 2 && /Request: .*pause/.test(view.parent.messages.filter((message) => message.role === 'user')[1]?.text ?? ''), 'turn 2 is the pause request', `user turns ${userTurns2(view)}`)),
+    check('slash.pause', 'the pause arrives as the second user turn routed to poteto-mode', src('poteto-mode/playbooks/pause-safely.md', 'This is explicit only'), (view) => when(userTurns2(view) === 2 && promptHasSkill(view.parent.messages.filter((message) => message.role === 'user')[1]?.text ?? '', 'poteto-mode') && /pause/.test(view.parent.messages.filter((message) => message.role === 'user')[1]?.text.split('</skill>').at(-1) ?? ''), 'turn 2 is the pause request', `user turns ${userTurns2(view)}`)),
     ...playbookReads('pause-safely'),
     ...todoChecks({ playbook: 'pause-safely' }),
     check('pause.nested-workers-cancelled', 'step 1: every live nested worker is aborted through pstack_worker and its host records the abort', src('poteto-mode/playbooks/pause-safely.md', 'cancel any nested subagents'), (view) => {

@@ -1,21 +1,20 @@
 // Shipping families (spec 13.3): one container verifier per PR with the forge capability, a verdict that covers the head and
 // the patch it examined, only the contiguous verified run from the root landing, bottom-up, never a merge from green CI.
 import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
-import { bareOf, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, patchIdOf, readForge, revParse, setupForge, WATCH_PR } from '../fixtures/forge.ts';
+import { bareOf, editForge, FORGE_CLI, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, forgeEnv, patchIdOf, readForge, revParse, setupForge, WATCH_PR, writeContainerScenario } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, checkAbsence, src, type Src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks, verifyReceipt } from '../lib/checks.ts';
+import { check, checkAbsence, type Src, src, when } from '../lib/check.ts';
+import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, skillRequest, todoChecks, verifyReceipt } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { deleteStep, dropWakes, parentSession, patchAssignment, rewriteFinalReply, setStep } from '../lib/mutate.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 import { BASH, forgeResolvedOnce, neverMutatesTopology, REPO_FLAGS, stepDone, watchers } from './pr-shared.ts';
 import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { writeContainerScenario } from '../fixtures/forge.ts';
 
 export const SH = (anchor: string): Src => src('poteto-mode/playbooks/shipping.md', anchor);
 
@@ -180,7 +179,7 @@ const shippingSpec = (id: string, runId: string, store: typeof SHIP_STORE, scena
 
 export const mergesIn = (actions: ForgeAction[]): ForgeAction[] => actions.filter((action) => action.kind === 'merge');
 
-const authorized = (view: RunView): boolean => /\b(land|ship|merge|autopilot)\b/i.test(view.prompt) && !/don't merge|do not merge/i.test(view.prompt);
+export const mergeRequested = (prompt: string): boolean => /\b(land|ship|merge|autopilot)\b/i.test(skillRequest(prompt)) && !/don't merge|do not merge/i.test(skillRequest(prompt));
 
 /** Every merge has the operator's request, a PASS verdict from a worker that did not write the PR at exactly the merged head, posted earlier. */
 export function mergesAreAuthorizedAndVerified(id: string, source: Src | Src[], by: 'head' | 'patch' = 'head'): Check {
@@ -200,7 +199,7 @@ export function mergesAreAuthorizedAndVerified(id: string, source: Src | Src[], 
         ...(merge['requested'] !== merge['head'] ? [`PR ${merge.pr} was merged without --match-head-commit ${String(merge['head']).slice(0, 8)}`] : []),
       ];
     });
-    return when(authorized(view) && merges.length > 0 && problems.length === 0, `${merges.length} merge(s), each authorized by the request and verified at its head by another worker`, `${authorized(view) ? '' : 'the request does not authorize a merge; '}${merges.length === 0 ? 'no merge at all; ' : ''}${problems.join('; ')}`);
+    return when(mergeRequested(view.prompt) && merges.length > 0 && problems.length === 0, `${merges.length} merge(s), each authorized by the request and verified at its head by another worker`, `${mergeRequested(view.prompt) ? '' : 'the request does not authorize a merge; '}${merges.length === 0 ? 'no merge at all; ' : ''}${problems.join('; ')}`);
   });
 }
 

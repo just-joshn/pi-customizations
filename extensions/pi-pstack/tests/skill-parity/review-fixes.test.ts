@@ -94,10 +94,11 @@ describe('A: poteto-mode workers and watches', () => {
     expect(fork).toContain('When the source has no pushed head, report the fork blocked.');
   });
 
-  test('A5: poteto-mode locates the package root by `pi list`, not by a directory count', () => {
+  test('A5: poteto-mode uses the absolute package root supplied by the extension', () => {
     const todo = line('skills/poteto-mode/SKILL.md', 127);
     expect(todo).not.toMatch(/directories above this file/);
-    expect(todo).toContain('`<pi-pstack>` is the pi-pstack package root (`pi list` names it)');
+    expect(todo).toContain('`<pi-pstack>` is the absolute pi-pstack package root supplied by the extension in the system prompt');
+    expect(todo).not.toContain('pi list');
   });
 
   test('A6: the multi-phase plan template has no relative path that breaks once copied to .pi/pstack/plans/', () => {

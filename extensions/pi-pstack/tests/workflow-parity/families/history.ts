@@ -1,4 +1,5 @@
 // Families: ketchup, recall, reflect, show-me-your-work (spec 12.5). History is Pi's own session files.
+
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,26 +12,26 @@ import {
   assignmentOf,
   callsInTurn,
   decisionLog,
+  expectedModels,
   finalReply,
   noToolErrors,
   parentReads,
   playbookReads,
   primaryRun,
+  promptHasSkill,
   promptRoutes,
-  expectedModels,
   replyOfTurn,
   repoUntouched,
   settledAndCollected,
-  spawnOrder,
   spawnedAfterCollect,
   spawnedTogether,
+  spawnOrder,
   userText,
   userTurns,
   workersCheck,
 } from '../lib/checks.ts';
-import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
+import { type Ctx, PI, SCRIPTED_ROLES } from '../lib/driver.ts';
 import { appendToolCall, dirtyRepo, parentSession, patchAssignment, removeWorker, rewriteFinalReply, rewriteSession } from '../lib/mutate.ts';
-import type { Ctx } from '../lib/driver.ts';
 import type { RunView } from '../lib/view.ts';
 import { worktreeOf } from './shared.ts';
 import type { Family } from './types.ts';
@@ -82,7 +83,7 @@ export const ketchupFamily: Family = {
   checks: [
     check('slash.ketchup', '/ketchup arrives as the second user turn and routes to the ketchup skill', src('ketchup/SKILL.md', '# Ketchup'), (view) => {
       const second = userText(view, 1);
-      return when(userTurns(view).length === 2 && second.includes('Use the pstack `ketchup` skill for this request.'), 'turn 2 routes to the ketchup skill', `user turns ${userTurns(view).length}; second: ${second.slice(0, 80)}`);
+      return when(userTurns(view).length === 2 && promptHasSkill(second, 'ketchup', false), 'turn 2 routes to the ketchup skill', `user turns ${userTurns(view).length}; second: ${second.slice(0, 80)}`);
     }),
     parentReads('ketchup.reads-skill-and-voice', "the parent opens ketchup and bro, whose voice it uses", src('ketchup/SKILL.md', "Use [`/bro`](../bro/SKILL.md)'s voice"), ['ketchup', 'bro']),
     check('ketchup.turn-is-read-only', 'the catch-up turn changes nothing: no write, no worker, only read-only shell commands, and the repository is untouched', src('ketchup/SKILL.md', 'Keep this turn read-only'), (view) => {

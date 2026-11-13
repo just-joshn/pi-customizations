@@ -124,6 +124,7 @@ export function referenceInput(
     first = native;
     rest = text.slice(`/skill:${native}`.length);
   } else if (leading !== undefined && names.has(leading) && !conflicts.has(leading)) {
+    if (!skills.has(leading)) return { action: 'continue' };
     first = leading;
     rest = text.slice(leading.length + 1);
   } else if (leading !== undefined && (PI_BUILTIN_COMMANDS.includes(leading) || commands.some((command) => command.source !== 'skill' && command.name === leading))) {
@@ -136,7 +137,7 @@ export function referenceInput(
     if (block !== undefined) blocks.set(name, block);
   }
   const [lead, ...others] = first === undefined ? [...blocks.keys()] : [first, ...blocks.keys()];
-  if (lead === undefined || blocks.size === 0) return { action: 'continue' };
+  if (lead === undefined || (blocks.size === 0 && (first === undefined || native !== undefined))) return { action: 'continue' };
   const args = [...others.flatMap((name) => blocks.get(name) ?? []), ...(first === undefined ? [text] : [rest.trim()])].filter((part) => part !== '').join('\n\n');
   return { action: 'transform', text: args === '' ? `/skill:${lead}` : `/skill:${lead} ${args}`, ...(event.images === undefined ? {} : { images: event.images }) };
 }

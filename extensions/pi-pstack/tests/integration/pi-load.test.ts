@@ -1,7 +1,7 @@
 // Spec 16.2 "Native package": the real Pi binary loads this package's extension, skills, and prompts, and exposes
 // exactly the native surface: the skills and their /name prompts, /pstack, and the two pstack tools.
 import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -152,6 +152,25 @@ async function command(pi: Rpc, message: string): Promise<{ message: string; not
 }
 
 describe('parent session', () => {
+  test('an installed /poteto-mode request reaches the model with its existing absolute skill location', async () => {
+    const pi = startPi({ install: true });
+    await ask(pi, '/poteto-mode inspect this request');
+    const messages = ((await pi.request({ type: 'get_messages' }))['data'] as { messages: { role: string; content: { type: string; text?: string }[] }[] }).messages;
+    const first = messages.find((message) => message.role === 'user');
+    const text = first?.content.map((part) => part.text ?? '').join('') ?? '';
+    const location = /<skill name="poteto-mode" location="([^"]+)">/.exec(text)?.[1];
+    expect(location).toBeDefined();
+    expect(location?.startsWith('/')).toBe(true);
+    expect(existsSync(location ?? '')).toBe(true);
+    expect(location).not.toContain(PKG);
+    expect(text).toContain('inspect this request');
+    expect(text).not.toContain('`pi list`');
+    const system = await ask(pi, '@@sys');
+    const packageRoot = location?.replace('/generated/skills/poteto-mode/SKILL.md', '') ?? '';
+    expect(system).toContain(`The installed pi-pstack package root (<pi-pstack>) is ${packageRoot}.`);
+    expect(existsSync(join(packageRoot, 'scripts/start-run.mjs'))).toBe(true);
+    await pi.close();
+  });
   test('Pi loads all 62 skills with their /name prompts, /pstack, and only the native pstack tools', async () => {
     const pi = startPi();
     const listed = await commands(pi);
@@ -191,9 +210,7 @@ describe('parent session', () => {
   test('/name expands the skill prompt with its arguments, and /pstack on puts poteto-mode in context once', async () => {
     const pi = startPi();
     const how = await ask(pi, '/how trace the "cache layer"');
-    expect(how).toContain('Use the pstack `how` skill for this request.');
-    expect(how).toContain('generated/skills/how/SKILL.md');
-    expect(how).toContain('Request: trace the cache layer');
+    expect(how).toBe(`ECHO: ${skillBlock('how', join(PKG, 'generated/skills/how/SKILL.md'))}\n\ntrace the "cache layer"`);
 
     expect((await command(pi, '/pstack on')).message).toMatch(/^pstack style on\./);
     await ask(pi, '@@say first task');
@@ -220,7 +237,7 @@ describe('parent session', () => {
     for (const untouched of ['read /usr/bin/env and /how/x', 'type `/how` or\n```\n/why\n```', '/model then /how']) {
       expect(await ask(pi, untouched)).toBe(`ECHO: ${untouched}`);
     }
-    expect(await ask(pi, '/how only')).toContain('Use the pstack `how` skill for this request.');
+    expect(await ask(pi, '/how only')).toBe(`ECHO: ${block('how')}\n\nonly`);
     await pi.close();
   });
 
@@ -244,7 +261,7 @@ test('a skill named mid-message attaches the same way in print mode, and a leadi
   const block = (name: string) => skillBlock(name, join(PKG, 'generated/skills', name, 'SKILL.md')) ?? '';
   expect(printPi('run /how on this').trim()).toBe(`ECHO: ${block('how')}\n\nrun /how on this`);
   expect(printPi('please /deslop it and /why').trim()).toBe(`ECHO: ${block('deslop')}\n\n${block('why')}\n\nplease /deslop it and /why`);
-  expect(printPi('/how plain').trim()).toContain('Request: plain');
+  expect(printPi('/how plain').trim()).toBe(`ECHO: ${block('how')}\n\nplain`);
   expect(printPi('see /usr/bin/env and `/how`').trim()).toBe('ECHO: see /usr/bin/env and `/how`');
 }, 120_000);
 
@@ -284,6 +301,7 @@ describe('worker session', () => {
     const tools = (await ask(pi, '@@tools-list')).split(',');
     console.log(`worker model-facing tools: ${tools.join(', ')}`);
     expect(tools.filter((name) => name.startsWith('pstack_'))).toEqual(['pstack_evidence']);
+    expect(await ask(pi, '@@sys')).toContain(`The installed pi-pstack package root (<pi-pstack>) is ${PKG}.`);
     expect(tools.filter((name) => OLD_TOOLS.includes(name))).toEqual([]);
     // bash_readonly for PSTACK_READONLY=1 arrives with U04a6, which has not landed on this branch.
     await pi.close();

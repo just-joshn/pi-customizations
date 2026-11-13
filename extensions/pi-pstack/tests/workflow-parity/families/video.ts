@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, scenario, shQuote } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
-import { callsInTurn, openedAt, parentReads, replyOfTurn, skillFile, userText, userTurns } from '../lib/checks.ts';
+import { callsInTurn, openedAt, parentReads, promptHasSkill, replyOfTurn, skillFile, userText, userTurns } from '../lib/checks.ts';
 import { PKG } from '../lib/driver.ts';
 import { dirtyRepo, parentSession, rewriteSession, setSessionCwd } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
@@ -186,7 +186,7 @@ function build(renders: boolean): Family {
       },
     },
     checks: [
-      check(`${id}.routes-and-follows-ketchup`, '/ketchup-video arrives as the second user turn, and the parent opens ketchup-video and ketchup', src('ketchup-video/SKILL.md', 'Follow [`/ketchup`](../ketchup/SKILL.md)'), (view) => when(userTurns(view).length === 2 && userText(view, 1).includes('Use the pstack `ketchup-video` skill for this request.') && openedAt(view.parent, skillFile('ketchup')) !== -1 && openedAt(view.parent, skillFile('ketchup-video')) !== -1, 'turn 2 routes to ketchup-video and both skills were opened', `user turns ${userTurns(view).length}; second: ${userText(view, 1).slice(0, 80)}`)),
+      check(`${id}.routes-and-follows-ketchup`, '/ketchup-video arrives as the second user turn, and the parent opens ketchup-video and ketchup', src('ketchup-video/SKILL.md', 'Follow [`/ketchup`](../ketchup/SKILL.md)'), (view) => when(userTurns(view).length === 2 && promptHasSkill(userText(view, 1), 'ketchup-video', false) && openedAt(view.parent, skillFile('ketchup')) !== -1 && openedAt(view.parent, skillFile('ketchup-video')) !== -1, 'turn 2 routes to ketchup-video and both skills were opened', `user turns ${userTurns(view).length}; second: ${userText(view, 1).slice(0, 80)}`)),
       check(`${id}.repository-untouched-video-outside`, 'the turn changed nothing in the repository: the only writes and the video are outside it', src('ketchup-video/SKILL.md', 'Writing and rendering the video, outside the repo, is the one exception to its read-only rule.'), (view) => {
         const writes = callsInTurn(view, 1).filter((call) => call.name === 'write' || call.name === 'edit').map((call) => String(call.args['path']));
         return when(view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0 && writes.every((path) => !path.startsWith(view.repo)), `${writes.length} writes, all outside the repo; checkout clean`, `dirty ${view.git.dirty.join(',')}; writes ${writes.join(',')}`);

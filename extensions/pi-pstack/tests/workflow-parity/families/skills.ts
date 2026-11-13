@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, openedAt, promptRoutes, repoUntouched, settledAndCollected, skillFile, workersCheck } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, finalReply, openedAt, promptHasSkill, promptRoutes, repoUntouched, settledAndCollected, skillFile, workersCheck } from '../lib/checks.ts';
 import { SCRIPTED_ROLES } from '../lib/driver.ts';
 import { appendToolCall, dirtyRepo, parentSession, patchAssignment, rewriteFinalReply, rewriteSession, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
@@ -29,7 +29,7 @@ export const inYourOwnWordsFamily: Family = {
     scenario: (ctx) => scenario(new Parent(ctx).readSkill('in-your-own-words').text('Your goal is to stop a coupon from ever paying a customer, before the sale on Friday. The problem is that a coupon percent above 100 makes the total negative, so the shop pays the customer to shop. I have not changed anything.')),
   },
   checks: [
-    check('slash.in-your-own-words', '/in-your-own-words reaches Pi as the pstack skill prompt with the request', src('in-your-own-words/SKILL.md', 'Restate in your own words'), (view) => when(view.prompt.includes('Use the pstack `in-your-own-words` skill for this request.') && view.prompt.includes(skillFile('in-your-own-words')) && view.prompt.includes(IYOW_REQUEST), 'first user message routes to the skill with the request', `first user message was: ${view.prompt.slice(0, 160)}`)),
+    check('slash.in-your-own-words', '/in-your-own-words reaches Pi as the pstack skill prompt with the request', src('in-your-own-words/SKILL.md', 'Restate in your own words'), (view) => when(promptHasSkill(view.prompt, 'in-your-own-words') && view.prompt.includes(IYOW_REQUEST), 'first user message routes to the skill with the request', `first user message was: ${view.prompt.slice(0, 160)}`)),
     check('in-your-own-words.states-goal-and-problem', 'the reply restates the user\'s goal and the problem they are solving, in its own words, using the request\'s own facts', src('in-your-own-words/SKILL.md', "Restate in your own words what you think the user's goals are"), (view) => {
       const reply = finalReply(view);
       const facts = [/coupon/i, /100/, /negative|pays?|paid/i, /friday/i].filter((pattern) => !pattern.test(reply));
@@ -43,6 +43,7 @@ export const inYourOwnWordsFamily: Family = {
     repoUntouched('in-your-own-words.no-writes', 'the repository is untouched', src('in-your-own-words/SKILL.md', "Restate in your own words")),
   ],
   negatives: [
+    { name: 'the skill location is relative and requires discovery', mutate: (sandbox) => rewriteSession(parentSession(sandbox), '<skill name=\\"in-your-own-words\\" location=\\"/', '<skill name=\\"in-your-own-words\\" location=\\"relative/'), fails: ['slash.in-your-own-words'] },
     { name: 'the reply parroted the request', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Your goal is', `${IYOW_REQUEST}. Your goal is`), fails: ['in-your-own-words.states-goal-and-problem'] },
     { name: 'it started editing', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['in-your-own-words.no-writes'] },
     { name: 'it ran a command', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'npm test' }), fails: ['in-your-own-words.starts-no-work'] },
