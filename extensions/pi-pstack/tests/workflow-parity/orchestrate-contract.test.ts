@@ -52,7 +52,13 @@ test('two passing verifier lanes satisfy one independent verifier requirement', 
   writeFileSync(join(forgeDirOf(value.sandbox), 'actions.jsonl'), prs.map((pr) => JSON.stringify({ kind: 'merge', pr: pr.number, worker: pr.author, head: pr.mergedHead })).join('\n'));
   for (const worker of value.runs[0]?.workers ?? []) worker.assignment['model'] = 'sim/claude-owner';
   const workers = value.runs[0]?.workers;
-  for (const pr of prs) for (const lane of ['gates', 'live']) workers?.push({ id: `v-${pr.number}-${lane}`, assignment: { role: 'verifier', model: 'sim/openai-verifier', workspace: { mode: 'container', inputCommit: pr.mergedHead } }, report: `VERDICT PASS ${pr.mergedHead}` } as unknown as RunView['runs'][number]['workers'][number]);
+  for (const pr of prs)
+    for (const lane of ['gates', 'live'])
+      workers?.push({
+        id: `v-${pr.number}-${lane}`,
+        assignment: { role: 'verifier', model: 'sim/openai-verifier', workspace: { mode: 'container', inputCommit: pr.mergedHead } },
+        report: `VERDICT PASS ${pr.mergedHead}`,
+      } as unknown as RunView['runs'][number]['workers'][number]);
   expect(run('each-pr-has-a-verifier-on-another-family-and-merges-follow-the-verdict', value)).toMatchObject({ ok: true });
   for (const worker of workers ?? []) if (worker.assignment['role'] === 'verifier') worker.assignment['model'] = 'sim/claude-owner';
   expect(run('each-pr-has-a-verifier-on-another-family-and-merges-follow-the-verdict', value)).toMatchObject({ ok: false });
@@ -96,6 +102,11 @@ test('separate live reads and collected workers need no scripted report template
     { order: index * 2, name: 'bash', args: { command: `gh pr view ${number} --json state; gh pr checks ${number}` }, resultText: 'MERGED', isError: false },
     { order: index * 2 + 1, name: 'pstack_worker', args: { action: 'collect', workerId: `owner-${number}` }, resultText: `Worker owner-${number} settled (idle).`, isError: false },
   ]);
+  expect(run('live-state-is-read-and-every-worker-is-accounted-for', value)).toMatchObject({ ok: true });
+  const last = value.parent.toolCalls.at(-1);
+  if (last === undefined) throw new Error('Missing collect');
+  last.args['action'] = 'abort';
+  last.resultText = 'Aborted worker owner-52.';
   expect(run('live-state-is-read-and-every-worker-is-accounted-for', value)).toMatchObject({ ok: true });
   value.parent.toolCalls.pop();
   expect(run('live-state-is-read-and-every-worker-is-accounted-for', value)).toMatchObject({ ok: false });

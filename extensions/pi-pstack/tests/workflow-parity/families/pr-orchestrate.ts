@@ -178,7 +178,7 @@ export const orchestrateFamily: Family = {
       const reply = finalReply(view);
       const replyAt = view.parent.messages.find((message) => message.text === reply)?.order ?? -1;
       const live = [51, 52].every((pr) => BASH(view).some((entry) => entry.order < replyAt && new RegExp(`\\bgh pr view ${pr}\\b`).test(entry.command)));
-      const missing = allWorkers(view).filter((worker) => !reply.includes(worker.id) && !view.parent.toolCalls.some((call) => call.order < replyAt && call.name === 'pstack_worker' && call.args['workerId'] === worker.id && !call.isError && call.args['action'] === 'collect' && /settled/.test(call.resultText))).map((worker) => worker.id);
+      const missing = allWorkers(view).filter((worker) => !reply.includes(worker.id) && !view.parent.toolCalls.some((call) => call.order < replyAt && call.name === 'pstack_worker' && call.args['workerId'] === worker.id && !call.isError && ((call.args['action'] === 'collect' && /settled/.test(call.resultText)) || (call.args['action'] === 'abort' && /Aborted worker/.test(call.resultText))))).map((worker) => worker.id);
       const notes = join(run?.dir ?? '', 'notes.md');
       return when(live && (run?.decisions?.length ?? 0) > 0 && existsSync(notes) && readFileSync(notes, 'utf8').trim() !== '' && missing.length === 0 && reply !== '' && !reply.trim().endsWith('?'), 'both PRs read live before the reply; notes and decisions present; every worker accounted for; no question', `live reads ${live}; decisions ${run?.decisions?.length}; unaccounted workers ${missing.join(', ') || 'none'}`);
     }),
