@@ -28,7 +28,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 - **`/loop` and the `Loop` tool**: only RPC/TUI sessions have it (JSON runs are one-shot). The vitest suites cover it.
 - **Subscriptions** (`subscribe_timer`, `subscribe_webhook`, `subscribe_github_pr`, `subscribe_slack`) and the `pstack-routines-supervisor` daemon they start. A drive would need to stop that daemon by PID; it is not built.
 - **Cloud agents, `/in-cloud`, Slack tools, `request_secret`, `visualize`, `AskQuestion`, `/project`.**
-- **`/mode` and the pstack command surface**: covered by `verify-pi-customizations` (`drive poteto-mode`, `drive pstack-commands`).
+- **`/mode` and the pstack command surface**: no drive covers them.
 - **Real-model behavior** of pstack skills: `extensions/pi-pstack/scripts/live-e2e.mjs` needs real credentials and bills them.
 
 ## Feature entry contract
