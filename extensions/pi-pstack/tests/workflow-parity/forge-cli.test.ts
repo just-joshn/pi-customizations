@@ -1,10 +1,14 @@
-import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
+import { createInterface } from 'node:readline';
 
 import { afterEach, expect, test } from 'vitest';
+import { DEFAULT_IMAGE } from '../../src/container.ts';
 import { type ForgeHandle, setupForge } from './fixtures/forge.ts';
+import { engineAvailable } from './lib/container-lock.ts';
 import type { Ctx } from './lib/driver.ts';
 
 const roots: string[] = [];
@@ -46,6 +50,44 @@ function fixture(): { ctx: Ctx; forge: ForgeHandle } {
 function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
 }
+
+test.skipIf(!engineAvailable())('a container reads the complete latest forge state after host replacement', async () => {
+  const { ctx, forge } = fixture();
+  const file = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(file, 'utf8'));
+  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',['/sandbox/forge/bin/forge-cli.mjs','gh','pr','view','71','--json','title'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
+  const child = spawn(
+    'docker',
+    ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, DEFAULT_IMAGE, 'node', '-e', reader],
+    { stdio: 'pipe' },
+  );
+  const exited = once(child, 'exit');
+  let stderr = '';
+  child.stderr.on('data', (data: Buffer) => {
+    stderr += data.toString();
+  });
+  const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+  try {
+    for (let index = 0; index < 16; index += 1) {
+      for (const title of [`old-${index}`, `new-${index}-${'x'.repeat(512)}`]) {
+        state.prs['71'].title = title;
+        const tmp = join(forge.dir, `host-state-${index}.tmp`);
+        writeFileSync(tmp, JSON.stringify(state, null, 2));
+        renameSync(tmp, file);
+        child.stdin.write('\n');
+        const line = await lines.next();
+        expect(line.done, stderr).toBe(false);
+        const result = JSON.parse(line.value ?? '{}') as { status: number | null; stdout: string; stderr: string };
+        expect(result.status, result.stderr).toBe(0);
+        expect(JSON.parse(result.stdout).title).toBe(title);
+      }
+    }
+  } finally {
+    child.stdin.end();
+    const [code] = await exited;
+    expect(code, stderr).toBe(0);
+  }
+});
 
 test('help at any command depth leaves forge state and actions unchanged', () => {
   const { ctx, forge } = fixture();
