@@ -33,10 +33,12 @@ test.each(['spawn-does-not-block', 'distinct-resolved-models', 'distinct-session
 );
 test('keep-working is behavioral rather than a race with worker completion', () => {
   const value = view();
-  const next = value.parent.toolCalls.at(-1)!;
+  const next = value.parent.toolCalls.at(-1);
+  if (next === undefined) throw new Error('Missing parent work');
   next.at = '2026-01-01T00:00:10Z';
   expect(run('spawn-does-not-block', value)).toMatchObject({ ok: true });
-  next.name = 'pstack_worker'; next.args = { action: 'collect', workerId: 'a' };
+  next.name = 'pstack_worker';
+  next.args = { action: 'collect', workerId: 'a' };
   next.at = '2026-01-01T00:00:01Z';
   expect(run('spawn-does-not-block', value)).toMatchObject({ ok: false });
 });

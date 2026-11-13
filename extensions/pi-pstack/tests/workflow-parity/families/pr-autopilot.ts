@@ -2,7 +2,7 @@
 // autopilot-stack that never merges, and an operator hold that reaches every owner in one message.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
 import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, type ForgeAction, type ForgeHandle, forgeEnv, predictCommit, predictCommits, readForge, revParse, setupForge, writeContainerScenario } from '../fixtures/forge.ts';
@@ -203,8 +203,8 @@ function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) =>
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
       const forced = pushes.filter((action) => action.kind === 'force-push' && (typeof action['old'] !== 'string' || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'bash' && new RegExp(`--force-with-lease=(?:refs/heads/)?${unit.branch}:${String(action['old'])}\\b`).test(String(call.args['command'])))));
       const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.tsv')).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
-      const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target.trim() !== '' && entry.commit === unit.sha && entry.artifacts.some((artifact) => artifact.path.startsWith(`${worker.dir}/`)));
-      const receipt = receipts.find((entry) => entry.verdict === 'pass' && entry.exitCode === 0 && entry.expectedFail !== true);
+      const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target.trim() !== '' && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${worker.dir}/`)));
+      const receipt = receipts.find((entry) => entry.verdict === 'pass' && (entry.exitCode === undefined || entry.exitCode === 0) && entry['expectedFail'] !== true);
       return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!trails.some((trail) => /^ts\tphase\tdecision\twhy\tevidence\tresult\r?\n[^\n]+/m.test(trail)) ? [`${unit.id} left no decision trail in its worker directory`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
     });
     return when(wanted.length > 0 && problems.length === 0, 'own branch only, safe leases, trail and self-proof recorded', problems.join('; ') || 'no PRs were observed');
@@ -283,7 +283,10 @@ const hourlyWatch = (id: string, source: Src | Src[], options: { aborted: boolea
     const pending = allWorkers(view).filter((worker) => worker !== watcher).filter((worker) => {
       const runId = view.runs.find((run) => run.workers.includes(worker))?.id;
       const lastWork = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && !call.isError && ((call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json')) || (call.args['action'] === 'steer' && call.args['workerId'] === worker.id && call.args['runId'] === runId))).map((call) => call.order));
-      return !view.parent.messages.some((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id && message.details?.['runId'] === runId && ['idle', 'exited', 'aborted', 'failed'].includes(String(message.details?.['phase'])) && message.order > lastWork && message.order < abort);
+      const abortCall = view.parent.toolCalls.find((call) => call.order === abort);
+      const lastCall = view.parent.toolCalls.find((call) => call.order === lastWork);
+      const settled = (worker.state?.['settles'] as { phase: string; at: string }[] | undefined)?.some((settle) => ['idle', 'exited', 'aborted', 'failed'].includes(settle.phase) && Date.parse(settle.at) > Date.parse(lastCall?.at ?? '') && Date.parse(settle.at) < Date.parse(abortCall?.at ?? '')) ?? false;
+      return !settled && !view.parent.messages.some((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id && message.details?.['runId'] === runId && ['idle', 'exited', 'aborted', 'failed'].includes(String(message.details?.['phase'])) && message.order > lastWork && message.order < abort);
     }).map((worker) => worker.id);
     return when(watcher !== undefined && assignmentOf(watcher).role === 'watcher' && argv[0] === 'sleep' && argv[1] === '3600' && assignmentOf(watcher).watch?.cwd === view.repo && watchSpawn > ownerSpawn && (!options.aborted || abort >= 0 && pending.length === 0), `sleep 3600 at ${view.repo}, armed at ${watchSpawn} after the owners (${ownerSpawn})${options.aborted ? `, aborted at ${abort}` : ''}`, `watcher ${JSON.stringify(argv)}, armed ${watchSpawn}, owners ${ownerSpawn}, abort ${abort}, pending ${pending.join(', ')}`);
   });

@@ -47,11 +47,13 @@ test('independent replay checks the full package suite when that is the verdict 
     expect(testAt({ sandbox }, failing, 'test/own.test.js')).toBe(true);
     expect(testAt({ sandbox }, failing, undefined)).toBe(false);
     writeFileSync(join(repo, 'test/own.test.js'), "require('node:assert/strict').equal(4, 4);\n");
-    git('add', '.'); git('commit', '-m', 'own change above inherited failure');
+    git('add', '.');
+    git('commit', '-m', 'own change above inherited failure');
     git('push', bareOf(sandbox), 'HEAD:refs/heads/main');
     expect(inheritedFailureOnly({ sandbox }, failing, git('rev-parse', 'HEAD'))).toBe(true);
     writeFileSync(join(repo, 'test/new.test.js'), "require('node:assert/strict').equal(4, 3);\n");
-    git('add', '.'); git('commit', '-m', 'new regression');
+    git('add', '.');
+    git('commit', '-m', 'new regression');
     git('push', bareOf(sandbox), 'HEAD:refs/heads/main');
     expect(inheritedFailureOnly({ sandbox }, failing, git('rev-parse', 'HEAD'))).toBe(false);
   } finally {
