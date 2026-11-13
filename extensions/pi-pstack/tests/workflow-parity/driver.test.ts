@@ -1,5 +1,6 @@
 // The driver reports a pi that cannot run as that, with pi's stderr, and never as the ENOENT of a file it then reads.
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -55,6 +56,28 @@ test('real-driver teardown records container credential probe coverage without a
     ),
   ).rejects.toThrow(/pi exited/);
   expect(probes).toEqual([]);
+});
+
+test('an already removed worker makes only its credential measurement inconclusive', async () => {
+  process.env['FAKE_PI_MODE'] = 'busy';
+  process.env['FAKE_PI_BUSY_MS'] = '0';
+  const container = `pstack-removed-${Date.now()}`;
+  expect(spawnSync('docker', ['run', '--rm', '--name', container, 'node:24-bookworm', 'true']).status).toBe(0);
+  const outcome = await runWorkflow({
+    ...spec,
+    prepare: (ctx) => {
+      const run = join(ctx.repo, '.pi/pstack/runs/removed');
+      mkdirSync(run, { recursive: true });
+      writeFileSync(join(run, 'events.jsonl'), JSON.stringify({ kind: 'spawn', workerId: 'gone', data: { container: { name: container } } }) + '\n');
+    },
+  }, 'real', { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 });
+  try {
+    expect(outcome.meta.containerCredentialProbes).toMatchObject([{ status: 'unavailable', present: [] }]);
+    expect(outcome.meta.crashed).toBeUndefined();
+    expect(outcome.meta.findings?.join('\n')).toContain('INCONCLUSIVE');
+  } finally {
+    outcome.cleanup();
+  }
 });
 
 test('a pi that crashes at start is reported with its exit and stderr', async () => {

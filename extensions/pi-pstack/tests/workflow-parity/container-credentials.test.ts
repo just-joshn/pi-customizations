@@ -3,18 +3,20 @@ import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 
 import { expect, test } from 'vitest';
-import { DEFAULT_IMAGE } from '../../src/container.ts';
+import { containerPreamble, DEFAULT_IMAGE } from '../../src/container.ts';
 import { CREDENTIAL_PROBE, probeContainerCredentials } from './lib/container-credentials.ts';
 import { engineAvailable } from './lib/container-lock.ts';
 
 test.skipIf(!engineAvailable())('a host probe fails when a live container has a credential variable', async () => {
   for (const contaminated of [false, true]) {
     const name = `pstack-env-probe-${randomUUID()}`;
-    const child = spawn('docker', ['run', '--rm', '--name', name, ...(contaminated ? ['--env', 'GH_TOKEN=synthetic-probe-token'] : []), DEFAULT_IMAGE, 'node', '-e', 'console.log("ready"); setTimeout(()=>{}, 1500)'], { stdio: 'pipe' });
+    const child = spawn('docker', ['run', '--rm', '-i', '--init', '--name', name, DEFAULT_IMAGE, 'sh', '-c', 'while IFS= read -r line; do [ -n "$line" ] || break; export "${line%%=*}=$(printf %s "${line#*=}" | base64 -d)"; done; exec node -e \'console.log("ready"); setTimeout(()=>{}, 1500)\''], { stdio: 'pipe' });
+    child.stdin.write(containerPreamble({ PSTACK_WORKER: '1', ...(contaminated ? { GH_TOKEN: 'synthetic-probe-token' } : {}) }));
     const exited = once(child, 'close');
     await once(child.stdout, 'data');
     const result = probeContainerCredentials('docker', process.env, name);
-    expect(result).toEqual({ status: contaminated ? 'fail' : 'pass', present: contaminated ? ['GH_TOKEN'] : [] });
+    expect(result).toMatchObject({ status: contaminated ? 'fail' : 'pass', present: contaminated ? ['GH_TOKEN'] : [] });
+    expect(JSON.stringify(result)).not.toContain('synthetic-probe-token');
     const [code] = await exited;
     expect(code).toBe(0);
   }
