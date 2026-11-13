@@ -26,10 +26,11 @@ export default function(pi) {
     try {
     const names=${JSON.stringify(FORGE_CREDENTIALS)};
     const initial=Object.fromEntries(readFileSync('/proc/self/environ','utf8').split('\\0').filter(Boolean).map(entry=>{const i=entry.indexOf('=');return [entry.slice(0,i),entry.slice(i+1)];}));
-    const fixturePresent=names.filter(name=>name==='GH_TOKEN' && initial[name]===${JSON.stringify(FORGE_TOKEN)});
+    const fixtureMatches=names.filter(name=>initial[name]===${JSON.stringify(FORGE_TOKEN)});
+    const fixturePresent=fixtureMatches.filter(name=>name==='GH_TOKEN');
     const present=names.filter(name=>Object.hasOwn(initial,name) && !fixturePresent.includes(name));
     const effectivePresent=names.filter(name=>Object.hasOwn(process.env,name));
-    const result={status:present.length===0 && effectivePresent.length===0?'pass':'fail',present,fixturePresent,effectivePresent,pid:process.pid,stage:'session_start'};
+    const result={status:present.length===0 && effectivePresent.length===0?'pass':'fail',present,fixturePresent,fixtureMatches,effectivePresent,pid:process.pid,stage:'session_start'};
     const file=join(process.env.PSTACK_RUN_ROOT,'workers',process.env.PSTACK_WORKER_ID,'credential-probe.json');
     writeFileSync(file+'.new',JSON.stringify(result));
     renameSync(file+'.new',file);
@@ -45,6 +46,7 @@ export interface ContainerCredentialProbe {
   status: 'pass' | 'fail' | 'unavailable';
   present: string[];
   fixturePresent?: string[];
+  fixtureMatches?: string[];
   effectivePresent?: string[];
   pid?: number;
   stage?: 'session_start';
@@ -73,7 +75,7 @@ export function recordContainerCredentials(repo: string, sandbox: string): Conta
       const container = event.kind === 'spawn' ? event.data?.container?.name : undefined;
       if (container === undefined) continue;
       const captured = join(root, runId, 'workers', event.workerId, 'out', 'credential-probe.json');
-      let result: Pick<ContainerCredentialProbe, 'status' | 'present' | 'fixturePresent' | 'effectivePresent' | 'pid' | 'stage'> = { status: 'unavailable', present: [] };
+      let result: Pick<ContainerCredentialProbe, 'status' | 'present' | 'fixturePresent' | 'fixtureMatches' | 'effectivePresent' | 'pid' | 'stage'> = { status: 'unavailable', present: [] };
       if (existsSync(captured)) {
         try {
           const parsed = JSON.parse(readFileSync(captured, 'utf8')) as ContainerCredentialProbe;
@@ -85,12 +87,14 @@ export function recordContainerCredentials(repo: string, sandbox: string): Conta
             validNames(parsed.present) &&
             validNames(parsed.fixturePresent) &&
             validNames(parsed.effectivePresent) &&
+            (parsed.fixtureMatches === undefined || (validNames(parsed.fixtureMatches) && parsed.fixtureMatches.every((name) => parsed.present.includes(name) || parsed.fixturePresent?.includes(name)))) &&
             parsed.fixturePresent.every((name) => name === 'GH_TOKEN')
           ) {
             result = {
               status: parsed.present.length === 0 && parsed.effectivePresent.length === 0 ? 'pass' : 'fail',
               present: parsed.present,
               fixturePresent: parsed.fixturePresent,
+              ...(parsed.fixtureMatches === undefined ? {} : { fixtureMatches: parsed.fixtureMatches }),
               effectivePresent: parsed.effectivePresent,
               pid: parsed.pid,
               stage: parsed.stage,
