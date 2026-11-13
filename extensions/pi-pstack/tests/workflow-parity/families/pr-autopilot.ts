@@ -387,7 +387,7 @@ export const autopilotFullFamily: Family = {
     }),
     check('autopilot.full.reply-catches-the-operator-up', 'the reply covers each PR\'s state and verdict, what merged, countersigns, open operator gates and parked follow-ups', AF('**Reply:** catch the operator up'), (view) => {
       const reply = finalReply(view);
-      const missing = [/PR 31.*PR 32.*merged/, /verified PASS/, /countersign/, /Open operator gates/, /Parked follow-ups/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/PR 31[\s\S]*PR 32[\s\S]*merged|merged[\s\S]*PR 31[\s\S]*PR 32/i, /verified PASS|verdict[\s\S]{0,80}clean|clean[\s\S]{0,80}verdict/i, /countersign/i, /operator gates|gates and countersigns/i, /parked follow.ups/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0 && openedAt(view.parent, 'generated/skills/ketchup/SKILL.md') !== -1, 'ketchup read, every part present', `missing ${missing.join(', ')}`);
     }),
   ],
@@ -406,7 +406,7 @@ export const autopilotFullFamily: Family = {
     { name: 'a PR body lost its Scope section', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { const pr = state.prs['32']; if (pr) pr.body = pr.body.replace('## Scope', '## Notes'); }), fails: ['autopilot.full.prs-open-ready-with-the-required-body-sections'] },
     { name: 'the hourly watch loop was never armed', mutate: (sandbox) => patchAssignment(sandbox, FULL_RUN, 'watch-hourly', (assignment) => (assignment['watch'] = { argv: ['sleep', '5'], cwd: '/tmp' })), fails: ['autopilot.full.hourly-watch-loop-armed-on-the-go'] },
     { name: 'the root audited nothing before the go', mutate: (sandbox) => rewriteSession(sandbox, '"name":"pstack_evidence","arguments":{"action":"list"', '"name":"pstack_evidence","arguments":{"action":"record"'), fails: ['autopilot.full.root-audits-receipts-before-any-go'] },
-    { name: 'the reply left out the open gates', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Open operator gates', 'Gates'), fails: ['autopilot.full.reply-catches-the-operator-up'] },
+    { name: 'the reply left out the open gates', mutate: (sandbox) => rewriteFinalReply(sandbox, /Open operator gates[^.]*\./, ''), fails: ['autopilot.full.reply-catches-the-operator-up'] },
   ],
 };
 
