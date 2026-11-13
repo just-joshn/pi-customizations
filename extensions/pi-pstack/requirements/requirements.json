@@ -2861,7 +2861,7 @@
     },
     "wf.opening-a-pr.open.twice": {
       "file": "tests/workflow-parity/pr-review.test.ts",
-      "name": "opening-a-pr negative: the forge was resolved twice"
+      "name": "opening-a-pr negative: the resolved forge choice was not kept"
     },
     "wf.opening-a-pr.open.draft": {
       "file": "tests/workflow-parity/pr-review.test.ts",
