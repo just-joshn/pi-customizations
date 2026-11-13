@@ -127,7 +127,7 @@ export function normalizedType(type: string): string {
     .trim()
     .toLowerCase()
     .replace(/[-_]/g, '')
-    .replace(/(?<=.)(subagenttype|subagent|agent|mode|type)$/, '');
+    .replace(/(?<=.)(subagenttype|subagent|agent|mode|type)+$/, '');
   return key === 'mediareview' ? 'videoreview' : key;
 }
 

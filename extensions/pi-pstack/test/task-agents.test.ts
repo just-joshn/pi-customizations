@@ -47,6 +47,7 @@ describe('subagent definitions match Cursor', () => {
     { input: 'shellmode', expected: 'shell' },
     { input: 'General-Purpose-Agent', expected: 'generalPurpose' },
     { input: 'POTETO_AGENT', expected: 'poteto-agent' },
+    { input: 'poteto-agent-mode', expected: 'poteto-agent' },
     { input: '', expected: 'generalPurpose' },
   ])('resolves $input to its canonical type (HOST-AGENT-TYPE-LOOKUP)', ({ input, expected }) => {
     expect(findAgent(loadAgentDefinitions(), input).type).toBe(expected);
