@@ -43,15 +43,21 @@ function invalid(value: string, available: readonly AvailableModel[], reason = '
   );
 }
 
-type Find = (reference: string) => AvailableModel | undefined;
+type Candidates = (reference: string) => AvailableModel[];
 
-/** A bare id that several providers offer means the parent chat's provider when it is one of them. */
-function findModel(reference: string, available: readonly AvailableModel[], parentProvider: string | undefined): AvailableModel | undefined {
-  const slash = reference.indexOf('/');
-  if (slash !== -1) return available.find((model) => model.provider === reference.slice(0, slash) && model.id === reference.slice(slash + 1));
-  const matches = available.filter((model) => model.id === reference);
-  if (matches.length > 1) return matches.find((model) => model.provider === parentProvider) ?? failAmbiguous(reference, matches);
-  return matches[0];
+function candidatesIn(available: readonly AvailableModel[], parentProvider: string | undefined): Candidates {
+  return (reference) => {
+    const slash = reference.indexOf('/');
+    if (slash !== -1) return available.filter((model) => model.provider === reference.slice(0, slash) && model.id === reference.slice(slash + 1));
+    const matches = available.filter((model) => model.id === reference);
+    const parents = matches.filter((model) => model.provider === parentProvider);
+    return parents.length > 0 ? parents : matches;
+  };
+}
+
+function only(reference: string, candidates: Candidates): AvailableModel | undefined {
+  const matches = candidates(reference);
+  return matches.length > 1 ? failAmbiguous(reference, matches) : matches[0];
 }
 
 function failAmbiguous(reference: string, matches: readonly AvailableModel[]): never {
@@ -68,25 +74,34 @@ function withThinking(model: AvailableModel, thinking: Effort | undefined): Mode
 }
 
 /** A whole reference first, since model ids such as llama3:8b contain a colon; then a trailing :<effort>. */
-function resolvePiSpec(value: string, find: Find): ModelSpec | undefined {
-  const whole = find(value);
+function resolvePiSpec(value: string, candidates: Candidates): ModelSpec | undefined {
+  const whole = only(value, candidates);
   if (whole !== undefined) return withThinking(whole, undefined);
   const colon = value.lastIndexOf(':');
   const level = colon === -1 ? undefined : asEffort(value.slice(colon + 1));
   if (level === undefined) return undefined;
-  const model = find(value.slice(0, colon));
+  const model = only(value.slice(0, colon), candidates);
   return model === undefined ? undefined : withThinking(model, level);
 }
 
 /** Legacy `<id>[-<effort>][-fast]` slugs: a Pi model whose own id ends in -fast wins, else the base id; the effort is the thinking level, and `none` is Pi's `off`. */
-function resolveDashSlug(value: string, find: Find): ModelSpec | undefined {
+function resolveDashSlug(value: string, candidates: Candidates): ModelSpec | undefined {
   const match = DASH_SLUG.exec(value);
   const base = match?.[1];
   const effort = match?.[2] === undefined ? undefined : asEffort(match[2] === 'none' ? 'off' : match[2]);
   const fast = match?.[3] !== undefined;
   if (base === undefined || (effort === undefined && !fast)) return undefined;
-  const model = (fast ? find(`${base}-fast`) : undefined) ?? find(base);
+  const model = fast ? fastOrStandard(base, candidates) : only(base, candidates);
   return model === undefined ? undefined : withThinking(model, effort);
+}
+
+function fastOrStandard(base: string, candidates: Candidates): AvailableModel | undefined {
+  const standards = candidates(base);
+  if (standards.length === 0) return only(`${base}-fast`, candidates);
+  const fasts = standards.flatMap((model) => candidates(`${model.provider}/${model.id}-fast`));
+  if (fasts.length === 1) return fasts[0];
+  if (standards.length === 1) return standards[0];
+  return failAmbiguous(base, standards);
 }
 
 interface ModelParameters {
@@ -115,12 +130,12 @@ function parseModelParameters(text: string): ModelParameters | undefined {
 }
 
 /** `<model>[effort=high,fast=false,context=300k]`, per-model parameters; `[]` is the standard variant. */
-function resolveBracketed(value: string, find: Find): ModelSpec | undefined {
+function resolveBracketed(value: string, candidates: Candidates): ModelSpec | undefined {
   const match = BRACKETED.exec(value);
   const base = match?.[1];
   const parameters = parseModelParameters(match?.[2] ?? '');
   if (base === undefined || parameters === undefined) return undefined;
-  const model = (parameters.fast === true ? find(`${base}-fast`) : undefined) ?? find(base);
+  const model = parameters.fast === true ? fastOrStandard(base, candidates) : only(base, candidates);
   return model === undefined ? undefined : withThinking(model, parameters.effort);
 }
 
@@ -143,8 +158,8 @@ export function resolveSubagentModel(value: string | undefined, available: reado
   if (requested === '') throw invalid(value, available, 'Model must be a non-empty string when provided.');
   if (OMITTED.has(requested.toLowerCase())) return fallback;
   try {
-    const find: Find = (reference) => findModel(reference, available, parent?.provider);
-    const resolved = resolveBracketed(requested, find) ?? resolvePiSpec(requested, find) ?? resolveDashSlug(requested, find);
+    const candidates = candidatesIn(available, parent?.provider);
+    const resolved = resolveBracketed(requested, candidates) ?? resolvePiSpec(requested, candidates) ?? resolveDashSlug(requested, candidates);
     if (resolved !== undefined) return resolved;
     // Cursor ignores a `fast` alias it cannot resolve, as if the call named no model.
     if (requested.toLowerCase() === 'fast') return fallback;

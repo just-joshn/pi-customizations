@@ -113,6 +113,33 @@ describe('resolveSubagentModel (TASK-007)', () => {
     ]);
   });
 
+  test.for(['model[fast=true,effort=high]', 'model-high-fast'])('%s keeps the provider the bare id resolved to, and runs its standard model when that provider has no -fast id', (value) => {
+    const models = [
+      { provider: 'alpha', id: 'model', reasoning: true, levels: ['high'] },
+      { provider: 'beta', id: 'model', reasoning: true, levels: ['high'] },
+      { provider: 'beta', id: 'model-fast', reasoning: true, levels: ['high'] },
+    ];
+    expect(resolveSubagentModel(value, models, { provider: 'alpha', id: 'model' })).toEqual({ provider: 'alpha', id: 'model', thinking: 'high' });
+  });
+
+  test('fast=true picks the one listed -fast id when the bare id is offered by several providers, none of them the parent', () => {
+    const models = [
+      { provider: 'a', id: 'm', reasoning: true, levels: ['high'] },
+      { provider: 'b', id: 'm', reasoning: true, levels: ['high'] },
+      { provider: 'b', id: 'm-fast', reasoning: true, levels: ['high'] },
+    ];
+    expect(resolveSubagentModel('m[fast=true]', models, { provider: 'claude-subscription', id: 'claude-opus-5-5' })).toEqual({ provider: 'b', id: 'm-fast' });
+  });
+
+  test('fast=true never takes a -fast id from a provider that does not offer the base model', () => {
+    const models = [
+      { provider: 'a', id: 'm', reasoning: true, levels: ['high'] },
+      { provider: 'b', id: 'm', reasoning: true, levels: ['high'] },
+      { provider: 'c', id: 'm-fast', reasoning: true, levels: ['high'] },
+    ];
+    expect(() => resolveSubagentModel('m[fast=true]', models, { provider: 'z', id: 'parent' })).toThrow('Model "m" matches more than one provider: a/m, b/m.');
+  });
+
   test('the documented code-delegate default resolves to the fast variant when the model lists one', () => {
     const fast = [...available, { provider: 'grok-build', id: 'grok-4.7-fast', reasoning: true, levels: ['low', 'xhigh'] }];
     expect(resolveSubagentModel('grok-4.7[effort=xhigh,fast=true]', fast, parent)).toEqual({ provider: 'grok-build', id: 'grok-4.7-fast', thinking: 'xhigh' });
