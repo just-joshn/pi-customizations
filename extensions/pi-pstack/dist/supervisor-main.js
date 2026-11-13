@@ -249,6 +249,8 @@ async function defaultBranch(remote, signal) {
 async function resolveCloudBase(cwd, baseBranch, signal) {
   const remote = remoteOf(cwd);
   if (baseBranch !== undefined) {
+    if (tryGit(cwd, ["check-ref-format", `refs/heads/${baseBranch}`]) === undefined)
+      throw new Error(`cloud_base_branch "${baseBranch}" is not a valid branch name.`);
     const commit = await remoteCommit(remote, baseBranch, signal);
     if (commit === undefined)
       throw new Error(`cloud_base_branch "${baseBranch}" is not on ${remote.name} (${remote.url}). A cloud agent sees only pushed code: push the branch first.`);
@@ -268,7 +270,7 @@ async function resolveCloudBase(cwd, baseBranch, signal) {
 }
 function mappedCwd(cwd, clone, commit) {
   const prefix = tryGit(cwd, ["rev-parse", "--show-prefix"])?.replace(/\/$/, "") ?? "";
-  return prefix !== "" && tryGit(clone, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined ? join3(clone, prefix) : clone;
+  return prefix !== "" && tryGit(clone, ["cat-file", "-t", `${commit}:${prefix}`]) === "tree" ? join3(clone, prefix) : clone;
 }
 async function cloneCheckout(cwd, base, dest, branch, signal) {
   const common = tryGit(cwd, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
@@ -960,7 +962,7 @@ class RoutineServer {
     this.listening = undefined;
   }
   handle(request, response) {
-    const slug = /^\/routines\/([a-z0-9-]+)\/?$/.exec(new URL(request.url ?? "/", "http://localhost").pathname)?.[1];
+    const slug = /^\/routines\/([a-z0-9-]+)\/?$/.exec(URL.parse(request.url ?? "/", "http://localhost")?.pathname ?? "")?.[1];
     const route = slug === undefined ? undefined : this.routes.get(slug);
     if (route === undefined) {
       reply(response, 404, "No such routine.");
@@ -1481,13 +1483,29 @@ async function slackCall(method, body, token = slackToken()) {
 var isTopLevel = (message) => message.thread_ts === undefined || message.thread_ts === message.ts;
 var HOUSEKEEPING = new Set(["channel_join", "channel_leave", "channel_topic", "channel_purpose", "channel_name", "channel_archive", "channel_unarchive", "pinned_item", "unpinned_item"]);
 var isReport = (message) => message.subtype === undefined || !HOUSEKEEPING.has(message.subtype);
-async function channelHistory(channel, oldest, limit = 100) {
-  const result = await slackCall("conversations.history", { channel, limit, ...oldest === undefined ? {} : { oldest, inclusive: false } });
-  return (result.messages ?? []).toSorted((left, right) => Number(left.ts) - Number(right.ts));
+var oldestFirst = (messages) => messages.toSorted((left, right) => Number(left.ts) - Number(right.ts));
+async function allPages(method, body) {
+  const messages = [];
+  const seen = new Set;
+  for (let cursor;; ) {
+    const page = await slackCall(method, { ...body, limit: 200, inclusive: false, ...cursor === undefined ? {} : { cursor } });
+    messages.push(...page.messages ?? []);
+    cursor = page.response_metadata?.next_cursor || undefined;
+    if (cursor === undefined)
+      return messages;
+    if (seen.has(cursor))
+      throw new SlackError(method, "repeated page cursor");
+    seen.add(cursor);
+  }
 }
-async function threadReplies(channel, ts, oldest) {
-  const result = await slackCall("conversations.replies", { channel, ts, limit: 200, ...oldest === undefined ? {} : { oldest, inclusive: false } });
-  return result.messages ?? [];
+async function recentMessages(channel, limit) {
+  return oldestFirst((await slackCall("conversations.history", { channel, limit })).messages ?? []);
+}
+async function messagesSince(channel, oldest) {
+  return oldestFirst(await allPages("conversations.history", { channel, oldest }));
+}
+async function repliesSince(channel, ts, oldest) {
+  return allPages("conversations.replies", { channel, ts, oldest });
 }
 
 // src/slack/trigger.ts
@@ -1519,16 +1537,16 @@ async function pollSlack(config, cursor) {
   const matches = (message) => pattern === undefined || pattern(message.text ?? "");
   const fires = [];
   let { ts, replyTs } = cursor;
-  for (const message of await channelHistory(config.channel, cursor.ts)) {
+  for (const message of await messagesSince(config.channel, cursor.ts)) {
     ts = later(ts, message.ts);
     if (!isReport(message) || !isTopLevel(message) || !matches(message))
       continue;
     fires.push({ eventId: `slack:${config.channel}:${message.ts}`, message });
   }
   if (pattern !== undefined) {
-    const parents = (await channelHistory(config.channel, undefined, RECENT_THREADS)).filter((message) => (message.reply_count ?? 0) > 0 && Number(message.latest_reply ?? "0") > Number(cursor.replyTs));
+    const parents = (await recentMessages(config.channel, RECENT_THREADS)).filter((message) => (message.reply_count ?? 0) > 0 && Number(message.latest_reply ?? "0") > Number(cursor.replyTs));
     for (const parent of parents)
-      for (const reply of await threadReplies(config.channel, parent.ts, cursor.replyTs)) {
+      for (const reply of await repliesSince(config.channel, parent.ts, cursor.replyTs)) {
         if (isTopLevel(reply) || Number(reply.ts) <= Number(cursor.replyTs))
           continue;
         replyTs = later(replyTs, reply.ts);
@@ -1556,7 +1574,7 @@ function slackEventText(name, prompt, channel, message) {
 
 // src/subscriptions/github.ts
 import { execFile as execFile4 } from "node:child_process";
-import { existsSync as existsSync7, mkdirSync as mkdirSync8, readFileSync as readFileSync8, renameSync as renameSync5, writeFileSync as writeFileSync7 } from "node:fs";
+import { mkdirSync as mkdirSync8, readFileSync as readFileSync8, renameSync as renameSync5, writeFileSync as writeFileSync7 } from "node:fs";
 import { join as join12 } from "node:path";
 var PR_FIELDS = "state,headRefOid,mergeable,reviewDecision,reviews,comments,statusCheckRollup,url,number,title";
 var GH_TIMEOUT_MS = 30000;
@@ -1568,6 +1586,7 @@ var defaultGhRunner = (args) => new Promise((resolve, reject) => {
       reject(new Error(String(stderr).trim() || error.message));
   });
 });
+var NO_WORKFLOW = "";
 var str = (input) => typeof input === "string" ? input : "";
 var login = (item) => str(item["author"]?.["login"]) || "unknown";
 var list = (input) => Array.isArray(input) ? input.filter((item) => typeof item === "object" && item !== null) : [];
@@ -1580,12 +1599,13 @@ function snapshotOf(raw) {
     comments[str(comment["id"]) || `${login(comment)}@${str(comment["createdAt"])}`] = login(comment);
   const checks = {};
   for (const check of list(raw["statusCheckRollup"])) {
-    const name = str(check["name"]) || str(check["context"]);
-    if (name === "")
+    const job = str(check["name"]) || str(check["context"]);
+    if (job === "")
       continue;
     const status = str(check["status"]);
     const result = "state" in check && !("status" in check) ? str(check["state"]) : status === "COMPLETED" ? str(check["conclusion"]) : "PENDING";
-    checks[name] = result === "EXPECTED" ? "pending" : result.toLowerCase();
+    const workflow = str(check["workflowName"]) || NO_WORKFLOW;
+    checks[workflow] = { ...checks[workflow], [job]: result === "EXPECTED" ? "pending" : result.toLowerCase() };
   }
   return {
     number: typeof raw["number"] === "number" ? raw["number"] : 0,
@@ -1619,9 +1639,10 @@ function diffPr(before, after) {
   for (const [key, author] of Object.entries(after.comments))
     if (!(key in before.comments))
       changes.push(`new comment by ${author}`);
-  for (const [name, result] of Object.entries(after.checks))
-    if (result !== "pending" && before.checks[name] !== result)
-      changes.push(`check \`${name}\` ${result}`);
+  for (const [workflow, jobs] of Object.entries(after.checks))
+    for (const [job, result] of Object.entries(jobs))
+      if (result !== "pending" && before.checks[workflow]?.[job] !== result)
+        changes.push(`check \`${workflow === NO_WORKFLOW ? job : `${workflow} / ${job}`}\` ${result}`);
   return changes;
 }
 var TITLE_LIMIT = 200;
@@ -1676,24 +1697,26 @@ async function pollChanges(gh, target, before, after) {
 function snapshotFile(runtimeDir, subscriptionId) {
   return join12(runtimeDir, `github-${subscriptionId}.json`);
 }
-var stringRecord = (value) => {
+function recordOf(value, item) {
   if (typeof value !== "object" || value === null || Array.isArray(value))
     return;
   const record = {};
-  for (const [key, item] of Object.entries(value)) {
-    if (typeof item !== "string")
+  for (const [key, entry] of Object.entries(value)) {
+    const parsed = item(entry);
+    if (parsed === undefined)
       return;
-    record[key] = item;
+    record[key] = parsed;
   }
   return record;
-};
+}
+var stringRecord = (value) => recordOf(value, (entry) => typeof entry === "string" ? entry : undefined);
 function parseSnapshot(value) {
   if (typeof value !== "object" || value === null)
     return;
   const item = value;
   const reviews = stringRecord(item["reviews"]);
   const comments = stringRecord(item["comments"]);
-  const checks = stringRecord(item["checks"]);
+  const checks = recordOf(item["checks"], stringRecord);
   if (typeof item["number"] !== "number" || !Number.isInteger(item["number"]))
     return;
   if (typeof item["title"] !== "string" || typeof item["url"] !== "string" || typeof item["state"] !== "string")
@@ -1715,25 +1738,24 @@ function parseSnapshot(value) {
     checks
   };
 }
-function readSnapshots(file) {
-  if (!existsSync7(file))
+var SNAPSHOT_VERSION = 2;
+function readBaseline(file) {
+  let saved;
+  try {
+    saved = JSON.parse(readFileSync8(file, "utf8"));
+  } catch {
     return;
-  const value = JSON.parse(readFileSync8(file, "utf8"));
-  if (!Array.isArray(value))
-    throw new Error("GitHub snapshot file is not a list of pull requests.");
-  const snapshots = new Map;
-  for (const item of value) {
-    const snapshot = parseSnapshot(item);
-    if (snapshot === undefined)
-      throw new Error("GitHub snapshot file has a pull request that is not a snapshot.");
-    snapshots.set(snapshot.number, snapshot);
   }
-  return snapshots;
+  const { version, prs } = typeof saved === "object" && saved !== null ? saved : {};
+  if (version !== SNAPSHOT_VERSION || !Array.isArray(prs))
+    return;
+  const snapshots = prs.map(parseSnapshot);
+  return snapshots.every((snapshot) => snapshot !== undefined) ? new Map(snapshots.map((snapshot) => [snapshot.number, snapshot])) : undefined;
 }
-function writeSnapshots(file, snapshots) {
+function writeBaseline(file, snapshots) {
   mkdirSync8(join12(file, ".."), { recursive: true, mode: 448 });
   const temporary = `${file}.${process.pid}.tmp`;
-  writeFileSync7(temporary, JSON.stringify([...snapshots.values()]), { mode: 384 });
+  writeFileSync7(temporary, JSON.stringify({ version: SNAPSHOT_VERSION, prs: [...snapshots.values()] }), { mode: 384 });
   renameSync5(temporary, file);
 }
 
@@ -1896,12 +1918,7 @@ ${config.prompt}` : config.prompt;
       if (!owns(entry))
         return;
       const file = snapshotFile(durableRuntimeDir(cwd), entry.sub.id);
-      let before = entry.baseline;
-      if (before === undefined) {
-        try {
-          before = readSnapshots(file);
-        } catch {}
-      }
+      const before = entry.baseline ?? readBaseline(file);
       let blocked = false;
       if (before !== undefined) {
         const blocks = await pollChanges(gh, target, before, after);
@@ -1919,7 +1936,7 @@ ${config.prompt}` : config.prompt;
         }
       }
       if (!blocked) {
-        writeSnapshots(file, after);
+        writeBaseline(file, after);
         entry.baseline = after;
         clearError(cwd, entry.sub.id);
       }
