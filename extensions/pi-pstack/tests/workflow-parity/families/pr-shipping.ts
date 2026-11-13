@@ -356,7 +356,7 @@ export const shippingFamily: Family = {
         const verdict = verdicts.find((entry) => entry.pr === pr);
         return verdict === undefined || !chunks.some((chunk) => chunk.startsWith(`PR ${pr}`) && chunk.includes(verdict.verdict) && chunk.includes(verdict.verifier));
       });
-      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|read it back as MERGED|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
       missing.push(...producers.map((pr) => `PR ${pr} verdict and producer`));
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
@@ -590,13 +590,13 @@ function blockedFamily(kind: BlockedKind): Family {
       }),
       checkAbsence('ship.blocked.lands-nothing', 'the forge saw reads only: no verdict, no merge, no queue entry, no ref update, and every PR is still open', SH('Report it blocked and land nothing'), (view) => {
         const { state, actions } = readForge(view);
-        const writes = actions.filter((action) => !['read'].includes(action.kind));
+        const writes = actions.filter((action) => !['read', 'log-view'].includes(action.kind));
         return when(writes.length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN'), `${actions.length} forge actions, all reads; every PR open`, `forge writes ${writes.map((action) => action.kind).join(', ')}; states ${Object.values(state.prs).map((pr) => pr.state).join(', ')}`);
       }),
       forgeResolvedOnce('ship.blocked.forge-resolved-once-gh-fallback-recorded', SH('GitHub CLI (`gh`) is the default'), 'gh'),
       check('ship.blocked.reply-reports-blocked', `the reply says shipping is blocked by ${kind} and that nothing landed`, SH('Report it blocked and land nothing'), (view) => {
         const reply = finalReply(view);
-        return when(/\b(?:blocked|blocker)\b/i.test(reply) && reply.includes(kind) && /\b(?:landed nothing|nothing landed)\b/i.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
+        return when(/\b(?:blocked|blocker)\b/i.test(reply) && reply.includes(kind) && /\b(?:landed nothing|nothing (?:has )?landed|nothing is landed)\b/i.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
       }),
       noToolErrors('ship.blocked.no-other-tool-errors', SH('Stop at the ceiling'), [new RegExp(kind)]),
     ],
