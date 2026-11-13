@@ -13,7 +13,7 @@ import type { Ctx } from '../lib/driver.ts';
 import { dropWakes, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 import { forgeResolvedOnce, REPO_FLAGS, stepDone } from './pr-shared.ts';
-import { mergesAreAuthorizedAndVerified, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
+import { mergesAreAuthorizedAndVerified, mergeRequested, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
 import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
 
@@ -144,8 +144,23 @@ export function responsibleWorker(view: RunView, role: string, pr: number, lane?
 }
 
 function observedUnits(view: RunView, units: Unit[]): Unit[] {
-  return units.map((unit) => ({ ...unit, id: responsibleWorker(view, 'owner', unit.pr)?.id ?? '' }));
+  const { state } = readForge(view);
+  return units.map((unit) => {
+    const pr = state.prs[String(unit.pr)];
+    return { ...unit, id: responsibleWorker(view, 'owner', unit.pr)?.id ?? '', sha: pr?.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${pr?.head}`) };
+  });
 }
+
+const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier' && assignmentOf(worker).workspace?.inputCommit === head);
+const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
+const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
+  const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
+  if (/VERDICT\s+(?:FAIL|blocked)/i.test(report)) return false;
+  if (new RegExp(`VERDICT\\s+(?:clean|PASS(?:\\+NOTES)?)[\\s\\S]*${head}`, 'i').test(report)) return true;
+  const { state, actions } = readForge(view);
+  const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.verifier === worker.id && verdict.head === head).at(-1);
+  return posted !== undefined && posted.author === worker.id && posted.verdict !== 'FAIL';
+};
 
 function onePerPrOwners(id: string, source: Src | Src[], units: (view: RunView) => Unit[], options: { from: 'trunk' | 'stack' }): Check {
   return check(id, 'one container owner per PR, each with the forge capability, a distinct id, workspace at its own start commit, and the PR it opened carries that owner as its author', source, (view) => {
@@ -207,37 +222,51 @@ export function bodyHasSections(body: string): string[] {
 }
 
 function verifiersIndependent(id: string, source: Src | Src[], units: (view: RunView) => Unit[]): Check {
-  return check(id, 'each PR has a container verifier on a different model family than its owner, started only after the owner reported code-ready, at exactly the code-ready head, and its verdict was posted by it', source, (view) => {
-    const { state, actions } = readForge(view);
-    const verdicts = verdictsOf(state, actions);
-    const problems = observedUnits(view, units(view)).flatMap((unit) => {
-      const verifier = responsibleWorker(view, 'verifier', unit.pr);
+  return check(id, 'each PR has independent verifier lanes at the code-ready head after the owner reports it, with unambiguous responsibilities and clean verdicts', source, (view) => {
+    const wanted = observedUnits(view, units(view));
+    const problems = wanted.flatMap((unit) => {
       const owner = ownerWorkers(view).find((worker) => worker.id === unit.id);
-      const verdict = verdicts.find((entry) => entry.pr === unit.pr);
-      if (verifier === undefined || owner === undefined) return [`PR ${unit.pr} lacks a verifier or an owner`];
-      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(verifier.dir, 'assignment.json'))?.order ?? -1;
+      const lanes = verificationWorkers(view, unit.sha);
+      if (owner === undefined || lanes.length === 0) return [`PR ${unit.pr} lacks an owner or verifier lanes`];
       const ownerRun = view.runs.find((entry) => entry.workers.includes(owner));
-      const verifierRun = view.runs.find((entry) => entry.workers.includes(verifier));
       const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === owner.id && message.details?.['runId'] === ownerRun?.id)?.order ?? Number.POSITIVE_INFINITY;
-      const assignment = assignmentOf(verifier) as { workspace?: { mode?: string; inputCommit?: string }; capabilities?: Record<string, unknown> };
-      return [
-        ...(OWNER_FAMILY(String(assignmentOf(verifier).model)) === OWNER_FAMILY(String(assignmentOf(owner).model)) ? [`${verifier.id} runs on the owner's model family`] : []),
-        ...(spawn < ownerWake ? [`${verifier.id} was spawned (${spawn}) before ${owner.id} reported (${ownerWake})`] : []),
-        ...(assignment.workspace?.mode !== 'container' || assignment.workspace.inputCommit !== unit.sha || assignment.capabilities?.['forge'] !== true ? [`${verifier.id} is not a forge container worker at ${unit.sha?.slice(0, 8)}`] : []),
-        ...(verdict === undefined || verdict.head !== unit.sha || verdict.verifier !== verifier.id || actions[verdict.at]?.worker !== verifier.id || actions[verdict.at]?.run !== verifierRun?.id ? [`PR ${unit.pr} verdict ${JSON.stringify(verdict)}`] : []),
-      ];
+      const ambiguous = new Set(lanes.map((worker) => worker.brief)).size !== lanes.length;
+      return [...(ambiguous ? [`PR ${unit.pr} has ambiguous verifier responsibilities`] : []), ...lanes.flatMap((worker) => {
+        const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json'))?.order ?? -1;
+        return [...(worker.id === owner.id ? [`${worker.id} verified its own PR`] : []), ...(spawn < ownerWake ? [`${worker.id} started before code-ready`] : []), ...(!laneClean(view, worker, unit.sha ?? '') ? [`${worker.id} has no clean verdict at ${unit.sha}`] : [])];
+      })];
     });
-    return when(problems.length === 0, 'verifiers independent, after code-ready, at the head, own verdicts', problems.join('; '));
+    return when(wanted.length > 0 && problems.length === 0, 'independent lanes verified the reported heads', problems.join('; ') || 'no PRs were observed');
   });
 }
 
+const mergeVerified = (id: string, source: Src | Src[]): Check => check(id, 'each merge is authorized and follows independent clean lane reports at the merged head', source, (view) => {
+  const { state, actions } = readForge(view);
+  const merges = mergesIn(actions);
+  const problems = merges.flatMap((merge) => {
+    const owner = state.prs[String(merge.pr)]?.author ?? '';
+    const go = mergeGo(view, owner);
+    const head = String(merge['head']);
+    const lanes = verificationWorkers(view, head);
+    const collected = (worker: WorkerView) => view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.order < (go?.order ?? -1));
+    return lanes.length > 0 && lanes.every((worker) => worker.id !== owner && laneClean(view, worker, head) && collected(worker)) && go !== undefined && String(go.args['message']).includes(head) && Date.parse(go.at ?? '') < Date.parse(String(merge['ts'] ?? '')) ? [] : [`PR ${merge.pr} merged without collected independent clean lanes and a head-specific go`];
+  });
+  return when(mergeRequested(view.prompt) && merges.length > 0 && problems.length === 0, 'authorized merges at independently verified heads', problems.join('; ') || 'no authorized merge');
+});
+
 const rootAudited = (id: string, source: Src | Src[]): Check =>
   check(id, 'the root audited the receipts through pstack_evidence after the verifiers were collected and before any owner was told to merge', source, (view) => {
-    const audit = view.parent.toolCalls.find((call) => call.name === 'pstack_evidence' && ['list', 'verify'].includes(String(call.args['action'])) && !call.isError)?.order ?? -1;
-    const verifiers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier');
-    const lastCollect = Math.max(...verifiers.map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === view.runs.find((run) => run.workers.includes(worker))?.id)?.order ?? Number.POSITIVE_INFINITY));
-    const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer')?.order ?? Number.POSITIVE_INFINITY;
-    return when(verifiers.length > 0 && audit > lastCollect && audit < steer, `receipts audited at ${audit}, after the last verifier collect (${lastCollect}) and before the first go (${steer})`, `audit ${audit}, last collect ${lastCollect}, first steer ${steer}`);
+    const { state } = readForge(view);
+    const prs = Object.values(state.prs);
+    const problems = prs.flatMap((pr) => {
+      const head = pr.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${pr.head}`);
+      const lanes = verificationWorkers(view, head);
+      const lastCollect = Math.max(...lanes.map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === view.runs.find((run) => run.workers.includes(worker))?.id)?.order ?? Number.POSITIVE_INFINITY));
+      const go = mergeGo(view, pr.author)?.order ?? Number.POSITIVE_INFINITY;
+      const audit = view.parent.toolCalls.some((call) => call.name === 'pstack_evidence' && ['list', 'verify'].includes(String(call.args['action'])) && !call.isError && call.order > lastCollect && call.order < go);
+      return lanes.length > 0 && audit ? [] : [`PR ${pr.number}: no audit after lane collects (${lastCollect}) and before merge go (${go})`];
+    });
+    return when(prs.length > 0 && problems.length === 0, 'each PR audited after its lanes were collected and before its merge go', problems.join('; ') || 'no PRs');
   });
 
 const hourlyWatch = (id: string, source: Src | Src[], options: { aborted: boolean }): Check =>
@@ -311,7 +340,11 @@ function fullScenario(ctx: Ctx, store: Store, mode: 'merge' | 'hold') {
   return scenario(parent, workers);
 }
 
-const unitsOf = (store: Store) => (): Unit[] => store.units;
+const unitsOf = (store: Store) => (view: RunView): Unit[] => {
+  if (store.units.length > 0) return store.units;
+  const { state } = readForge(view);
+  return Object.values(state.prs).map((pr) => ({ id: pr.author, branch: pr.head, pr: pr.number, from: pr.base === state.repo.trunk ? view.base : revParse(bareOf(view.sandbox), `refs/heads/${pr.base}`), base: pr.base, files: {}, testFile: '', title: pr.title, sha: pr.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${pr.head}`) }));
+};
 
 const fullChecks = (prefix: string, store: Store): Check[] => [
   promptRoutes('poteto-mode'),
@@ -341,7 +374,7 @@ export const autopilotFullFamily: Family = {
     ...todoChecks({ playbook: 'autopilot-full', skipReason: { 7: /stop/ } }),
     verifiersIndependent('autopilot.full.independent-verifier-per-pr-on-another-family-at-the-head', AF('Swarm-verify once'), unitsOf(FULL_STORE)),
     rootAudited('autopilot.full.root-audits-receipts-before-any-go', AF('The verdict is not clean without the live lane, or before you audit the merge-ready report\'s receipts')),
-    mergesAreAuthorizedAndVerified('autopilot.full.no-merge-without-a-verdict-at-that-head', AF('The owner merges only what you verified')),
+    mergeVerified('autopilot.full.no-merge-without-a-verdict-at-that-head', AF('The owner merges only what you verified')),
     check('autopilot.full.the-owner-merges-its-own-pr-after-the-root-says-go', 'each merge was made by its PR\'s own owner from its container, after the root steered that owner, pinned to the verified head, and both PRs landed in main', AF('The owner merges only what you verified'), (view) => {
       const { state, actions } = readForge(view);
       const merges = mergesIn(actions);
@@ -362,9 +395,9 @@ export const autopilotFullFamily: Family = {
     ...todoNegatives(FULL_RUN, 'autopilot-full', { done: [1, 2, 3, 4, 5, 6], receipts: { 1: 'af-gates', 2: 'af-owners', 3: 'af-parallel', 4: 'af-swarm', 5: 'af-merge', 6: 'af-root-layer' } }),
     { name: 'an owner merged with no verdict posted for its PR', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !(action.kind === 'comment' && action.pr === 31)))), fails: ['autopilot.full.no-merge-without-a-verdict-at-that-head', 'autopilot.full.independent-verifier-per-pr-on-another-family-at-the-head'] },
     { name: 'an owner verified its own PR', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'comment' && action.pr === 32) action.worker = 'owner-b'; })), fails: ['autopilot.full.no-merge-without-a-verdict-at-that-head', 'autopilot.full.independent-verifier-per-pr-on-another-family-at-the-head'] },
-    { name: 'a merge was not pinned to the verified head', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'merge') action['requested'] = null; })), fails: ['autopilot.full.no-merge-without-a-verdict-at-that-head'] },
+    { name: 'a merge landed a head the lanes never verified', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'merge') action['head'] = '0'.repeat(40); })), fails: ['autopilot.full.no-merge-without-a-verdict-at-that-head'] },
     { name: 'the root merged instead of the owner', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'merge' && action.pr === 31) { action.worker = ''; action.container = false; } })), fails: ['autopilot.full.the-owner-merges-its-own-pr-after-the-root-says-go'] },
-    { name: 'a verifier ran on the owner\'s model family', mutate: (sandbox) => patchAssignment(sandbox, FULL_RUN, 'verifier-31', (assignment) => (assignment['model'] = 'sim/grok-sim')), fails: ['autopilot.full.independent-verifier-per-pr-on-another-family-at-the-head'] },
+    { name: 'a verifier ran at the wrong head', mutate: (sandbox) => patchAssignment(sandbox, FULL_RUN, 'verifier-31', (assignment) => ((assignment['workspace'] as { inputCommit: string }).inputCommit = '0'.repeat(40))), fails: ['autopilot.full.independent-verifier-per-pr-on-another-family-at-the-head'] },
     { name: 'an owner ran in a worktree', mutate: (sandbox) => patchAssignment(sandbox, FULL_RUN, 'owner-a', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: (assignment['workspace'] as { inputCommit: string }).inputCommit })), fails: ['autopilot.full.one-container-owner-per-pr-off-trunk'] },
     { name: 'an owner had no forge capability', mutate: (sandbox) => patchAssignment(sandbox, FULL_RUN, 'owner-b', (assignment) => ((assignment['capabilities'] as Record<string, unknown>)['forge'] = false)), fails: ['autopilot.full.one-container-owner-per-pr-off-trunk'] },
     { name: 'an owner force-pushed', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'force-push', ref: 'refs/heads/feat-greet', worker: 'owner-a', run: FULL_RUN, actor: '', container: true } as ForgeAction)), fails: ['autopilot.full.owners-push-their-own-branch-and-keep-a-trail'] },

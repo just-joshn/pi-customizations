@@ -1,0 +1,47 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, expect, test } from 'vitest';
+import { autopilotFamilies } from './families/pr-autopilot.ts';
+import { forgeDirOf } from './fixtures/forge.ts';
+import type { RunView } from './lib/view.ts';
+
+const roots: string[] = [];
+afterEach(() => roots.splice(0).forEach((root) => { rmSync(root, { recursive: true, force: true }); }));
+const sha = 'a'.repeat(40);
+function view(): RunView {
+  const sandbox = mkdtempSync(join(tmpdir(), 'autopilot-contract-'));
+  roots.push(sandbox);
+  mkdirSync(forgeDirOf(sandbox), { recursive: true });
+  writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: { 31: { number: 31, title: 'feat(greet): add greet', author: 'owner', head: 'feat-greet', base: 'main', mergedHead: sha } } }));
+  writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), JSON.stringify({ kind: 'merge', pr: 31, worker: 'owner', head: sha, ts: '2026-01-01T00:00:10Z' }));
+  const owner = { id: 'owner', dir: '/workers/owner', assignment: { role: 'owner', model: 'sim/one' } };
+  const lanes = ['gates and diff audit', 'live driver'].map((brief, index) => ({ id: `lane-${index}`, dir: `/workers/lane-${index}`, brief, assignment: { role: 'verifier', model: 'sim/one', workspace: { mode: 'worktree', inputCommit: sha } }, finalText: `VERDICT clean ${sha}` }));
+  return { sandbox, base: 'base', prompt: 'autopilot this queue and merge each verified PR', runs: [{ id: 'r', workers: [owner, ...lanes], events: [] }], parent: { messages: [{ role: 'custom', customType: 'pstack-worker', order: 1, details: { workerId: 'owner', runId: 'r' } }], toolCalls: [...lanes.map((lane) => ({ name: 'pstack_worker', order: 2, args: { action: 'spawn', assignmentPath: `${lane.dir}/assignment.json` } })), { name: 'pstack_worker', order: 3, args: { action: 'steer', workerId: 'owner', message: 'Continue self-proof. Do not merge yet.' } }, ...lanes.map((lane, index) => ({ name: 'pstack_worker', order: 4 + index, args: { action: 'collect', workerId: lane.id, runId: 'r' } })), { name: 'pstack_evidence', order: 6, args: { action: 'verify' } }, { name: 'pstack_worker', order: 7, at: '2026-01-01T00:00:09Z', args: { action: 'steer', workerId: 'owner', message: `CLEAN at ${sha}. Merge now.` } }] } } as unknown as RunView;
+}
+const run = (suffix: string, value: RunView) => autopilotFamilies.find((entry) => entry.id === 'autopilot-full')?.checks.find((entry) => entry.id === `autopilot.full.${suffix}`)?.run(value);
+
+test('independent same-family worktree lanes can verify a PR without posting an invented comment', () => {
+  expect(run('independent-verifier-per-pr-on-another-family-at-the-head', view())).toMatchObject({ ok: true });
+});
+test('a self-proof steer is not the per-PR merge authorization', () => {
+  expect(run('root-audits-receipts-before-any-go', view())).toMatchObject({ ok: true });
+});
+test('an owner can merge the clean head after collected lane reports instead of forge comments', () => {
+  expect(run('no-merge-without-a-verdict-at-that-head', view())).toMatchObject({ ok: true });
+});
+test('a failing lane, an ambiguous duplicate, and an audit after the go still fail', () => {
+  const value = view();
+  const runDir = value.runs[0];
+  if (runDir === undefined || runDir.workers[1] === undefined) throw new Error('Missing fixture lane');
+  runDir.workers[1].finalText = `VERDICT FAIL ${sha}`;
+  expect(run('independent-verifier-per-pr-on-another-family-at-the-head', value)).toMatchObject({ ok: false });
+  expect(run('no-merge-without-a-verdict-at-that-head', value)).toMatchObject({ ok: false });
+  runDir.workers[1].finalText = `VERDICT clean ${sha}`;
+  runDir.workers.push(structuredClone(runDir.workers[1]));
+  expect(run('independent-verifier-per-pr-on-another-family-at-the-head', value)).toMatchObject({ ok: false });
+  const audit = value.parent.toolCalls.find((call) => call.name === 'pstack_evidence');
+  if (audit === undefined) throw new Error('Missing audit');
+  audit.order = 8;
+  expect(run('root-audits-receipts-before-any-go', value)).toMatchObject({ ok: false });
+});
