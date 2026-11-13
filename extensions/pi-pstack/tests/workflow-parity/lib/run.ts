@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import type { Family } from '../families/types.ts';
 import { type CheckResult, evaluate, failed, table, validateSources } from './check.ts';
+import type { ContainerCredentialProbe } from './container-credentials.ts';
 import { REAL_MODEL, runWorkflow } from './driver.ts';
 import { describe, type Inconclusive } from './integrity.ts';
 import { withCopy } from './mutate.ts';
@@ -19,6 +20,7 @@ export interface NegativeResult {
 }
 
 export interface FamilyRun {
+  containerCredentialProbes?: ContainerCredentialProbe[];
   family: string;
   driver: 'scripted' | 'real';
   results: CheckResult[];
@@ -48,7 +50,7 @@ export async function runFamily(family: Family, driver: 'scripted' | 'real'): Pr
   const negativesStarted = Date.now();
   const negatives = driver === 'scripted' && inconclusive === undefined ? family.negatives.map((negative) => runNegative(family, negative, outcome.sandbox)) : [];
   const negativesMs = Date.now() - negativesStarted;
-  return { family: family.id, driver, results, negatives, sandbox: outcome.sandbox, tmuxSocket: outcome.meta.tmuxSocket, timedOut: outcome.meta.timedOut, stopReason: outcome.meta.stopReason, piStderr: outcome.meta.piStderr, ...(inconclusive === undefined ? {} : { inconclusive }), findings: outcome.meta.findings ?? [], runMs, negativesMs, cleanup: outcome.cleanup, known: (family.knownDefects ?? []).map((entry) => entry.checkId) };
+  return { ...(outcome.meta.containerCredentialProbes === undefined ? {} : { containerCredentialProbes: outcome.meta.containerCredentialProbes }), family: family.id, driver, results, negatives, sandbox: outcome.sandbox, tmuxSocket: outcome.meta.tmuxSocket, timedOut: outcome.meta.timedOut, stopReason: outcome.meta.stopReason, piStderr: outcome.meta.piStderr, ...(inconclusive === undefined ? {} : { inconclusive }), findings: outcome.meta.findings ?? [], runMs, negativesMs, cleanup: outcome.cleanup, known: (family.knownDefects ?? []).map((entry) => entry.checkId) };
 }
 
 function runNegative(family: Family, negative: Family['negatives'][number], sandbox: string): NegativeResult {
