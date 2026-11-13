@@ -31,6 +31,15 @@ test.each(['spawn-does-not-block', 'distinct-resolved-models', 'distinct-session
     expect(run(suffix)).toMatchObject({ ok: true });
   },
 );
+test('assignment reasoning suffixes do not change model identity', () => {
+  const value = view();
+  for (const worker of value.runs[0]?.workers ?? []) worker.assignment['model'] = 'sim/one:low';
+  expect(run('distinct-resolved-models', value)).toMatchObject({ ok: true });
+  const first = value.runs[0]?.workers[0];
+  if (first !== undefined) first.assignment['model'] = 'sim/other:low';
+  expect(run('distinct-resolved-models', value)).toMatchObject({ ok: false });
+});
+
 test('missing pane environment evidence is inconclusive, not a fabricated failure or pass', () => {
   expect(run('workers-get-their-own-pane-env')).toHaveProperty('inconclusive');
 });
