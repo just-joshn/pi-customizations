@@ -1,8 +1,10 @@
 {
   "platform": "linux",
-  "commit": "9f8165f173a286001d540bede39a4e1b7e14cf9c",
-  "sourceDigest": "a302a2478b1fcfc331132fe01e125dde55e7d42568f77995e90ab475e9c3e659",
-  "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43356789068",
+  "commit": "c9b19f55963d22c82bc1392aa35e522b4c271988",
+  "sourceDigest": "cf763b93a99b2728dbe6800f8cc0f6720fdbb296847f1e9912c7cf025b027363",
+  "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43372561809",
+  "piPath": "/home/runner/pi-e2e/agent/bin/pi",
+  "piVersion": "1.5.0",
   "nodeVersion": "v22.21.0",
   "root": "/home/runner/work/pstack-parity-sandbox/pstack-parity-sandbox/extensions/pi-pstack"
 }
