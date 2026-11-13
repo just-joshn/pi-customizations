@@ -1091,9 +1091,21 @@
       "file": "tests/container/container.test.ts",
       "name": "a container worker that fails while it starts shows its error without the credentials it held: not in the spawn error, state.json, or events.jsonl"
     },
+    "cont.ambient.no-forge": {
+      "file": "tests/container/forge.test.ts",
+      "name": "minimal container drops ambient credentials with forge=false"
+    },
+    "cont.ambient.forge": {
+      "file": "tests/container/forge.test.ts",
+      "name": "minimal container drops ambient credentials with forge=true"
+    },
+    "cont.ambient.selected": {
+      "file": "tests/container/launch-environment.test.ts",
+      "name": "minimal container snapshots keep only the selected provider credential and explicit forge delivery"
+    },
     "cont.container.6": {
       "file": "tests/container/container.test.ts",
-      "name": "the environment a container worker holds is minimal by default: the host environment stays out, the PSTACK_ variables stay in"
+      "name": "the environment a container worker holds is minimal by default: host variables and ambient PSTACK_ variables stay out"
     },
     "cont.container.7": {
       "file": "tests/container/container.test.ts",
@@ -5031,6 +5043,9 @@
         "cont.container.4",
         "cont.container.5",
         "cont.container.6",
+        "cont.ambient.no-forge",
+        "cont.ambient.forge",
+        "cont.ambient.selected",
         "cont.container.7",
         "cont.container.8",
         "cont.container.9",
