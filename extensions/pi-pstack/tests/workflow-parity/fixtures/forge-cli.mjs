@@ -305,7 +305,7 @@ function graphql(state) {
   if (pr === undefined) die(1, 'gh: unknown pull request');
   if (/\breviewThreads\s*\(/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
-    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
+    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: entry.id, body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
   }
   if (/PrCheckRollup/.test(query)) {

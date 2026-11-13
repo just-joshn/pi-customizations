@@ -190,6 +190,16 @@ test.each([
   expect(call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${absent}`, ...fields).status).not.toBe(0);
 });
 
+test('generic review-thread reads expose the REST comment identifier', () => {
+  const { ctx, forge } = fixture();
+  const query = 'query($n:Int!){repository(owner:"fixture",name:"repo"){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved isOutdated path line comments(first:50){nodes{databaseId author{login} body createdAt}}}}}}}';
+  const result = call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${query}`, '-F', 'n=71');
+  expect(result.status, result.stderr).toBe(0);
+  const thread = JSON.parse(result.stdout).data.repository.pullRequest.reviewThreads.nodes[0];
+  expect(thread).toMatchObject({ isOutdated: false, path: 'README.md', line: 1 });
+  expect(String(thread.comments.nodes[0].databaseId)).toBe('901');
+});
+
 test('forge implementation source is not staged in the sandbox', () => {
   const { forge } = fixture();
   expect(existsSync(join(forge.bin, 'forge-cli.mjs'))).toBe(false);
