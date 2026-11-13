@@ -28,6 +28,7 @@ function snapshot(root: string): Snapshot {
     neverAsk: [],
     lastUserEntry: null,
     historyThrough: null,
+    resetAfter: null,
     physicalModel: null,
     editorModel: null,
     weakModel: null,

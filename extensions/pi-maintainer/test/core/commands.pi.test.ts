@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { restore } from '../../src/core/branch.ts';
-import { maintainerExtension } from '../support/maintainer.ts';
+import { maintainerExtension, textOf } from '../support/maintainer.ts';
 import { piSessionFixture, scriptedModel } from '../support/pi-session.ts';
 
 test('/add registers an editable file through pi.registerCommand', { meta: { aider: ['test_commands/TestCommands.test_cmd_add'] } }, async () => {
@@ -45,6 +45,23 @@ test('/reset drops files and advances historyThrough', { meta: { aider: ['test_c
   expect(snapshot?.files.editable).toEqual([]);
   expect(snapshot?.files.readOnly).toEqual([join(f.cwd, 'keep.txt')]);
   expect(snapshot?.historyThrough).not.toBeNull();
+  expect(f.errors).toEqual([]);
+});
+
+test('/reset removes earlier chat history from the next request', { meta: { aider: ['test_commands/TestCommands.test_cmd_reset'] } }, async () => {
+  const f = await piSessionFixture({ extension: maintainerExtension(), config: 'edit-format: whole\nyes-always: true\n' });
+  f.replies.push({ text: 'FIRST-REPLY' }, { text: 'SECOND-REPLY' }, { text: 'ok' });
+  const session = await f.open();
+  await session.prompt('FIRST-ASK');
+  await session.waitForIdle();
+  await session.prompt('SECOND-ASK');
+  await session.waitForIdle();
+  await session.prompt('/reset');
+  await session.prompt('THIRD-ASK');
+  await session.waitForIdle();
+  const sent = (f.requests.at(-1)?.messages ?? []).map(textOf).join('\n');
+  expect(sent).toContain('THIRD-ASK');
+  for (const cleared of ['FIRST-ASK', 'FIRST-REPLY', 'SECOND-ASK', 'SECOND-REPLY']) expect(sent).not.toContain(cleared);
   expect(f.errors).toEqual([]);
 });
 

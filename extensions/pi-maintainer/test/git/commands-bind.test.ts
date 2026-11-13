@@ -32,6 +32,7 @@ function commandEnv(root: string, host: ReturnType<typeof recordingHost>, git: R
     neverAsk: [] as string[],
     lastUserEntry: 'user-1',
     historyThrough: null,
+    resetAfter: null,
     physicalModel: { provider: 'test', id: 'scripted' },
     editorModel: null,
     weakModel: null,

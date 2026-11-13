@@ -28,6 +28,7 @@ function baseSnapshot(overrides: Partial<Snapshot> = {}): Snapshot {
     neverAsk: [],
     lastUserEntry: null,
     historyThrough: null,
+    resetAfter: null,
     physicalModel: { provider: 'p', id: 'gpt-3.5' },
     editorModel: null,
     weakModel: null,

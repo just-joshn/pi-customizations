@@ -109,6 +109,7 @@ export const editCommands: readonly CommandSpec[] = [
       env.save({
         ...applySelection(env.snapshot, dropped),
         historyThrough: leaf,
+        resetAfter: leaf,
         ignoredMentions: [],
       });
       env.host.output('All files dropped and chat history cleared.');

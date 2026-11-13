@@ -4578,7 +4578,7 @@
         "src/core/command.ts"
       ],
       "tests": [
-        "test/core/commands.pi.test.ts::/reset drops files and advances historyThrough"
+        "test/core/commands.pi.test.ts::/reset drops files and advances historyThrough", "test/core/commands.pi.test.ts::/reset removes earlier chat history from the next request"
       ]
     },
     {
