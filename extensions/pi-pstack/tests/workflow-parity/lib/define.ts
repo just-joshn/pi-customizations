@@ -18,7 +18,13 @@ export function defineFamilyTests(list: Family[]): void {
         console.log(report(run));
         writeEvidence(run);
       }, family.requires === 'container' ? 1_800_000 : 300_000);
-      afterAll(() => run?.cleanup());
+      afterAll(() => {
+        if (family.id.startsWith('autopilot-lanes') && run?.results.some((result) => result.verdict === 'FAIL')) {
+          console.error(`Failed ${family.id} sandbox retained at ${run.sandbox}`);
+          return;
+        }
+        run?.cleanup();
+      });
 
       test('every check cites a source span that resolves in the compiled skills', () => {
         expect(() => validateSources(family.checks)).not.toThrow();
