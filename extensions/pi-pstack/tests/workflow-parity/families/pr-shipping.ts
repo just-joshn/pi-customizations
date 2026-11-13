@@ -84,7 +84,7 @@ export function verifierScript(ctx: Ctx, parent: Parent, options: { id: string; 
   const worker = new Worker();
   const workerDir = parent.workerDir(options.id);
   const ws = '/tmp/workspace';
-  const forgeCli = `node ${FORGE_CLI} gh`;
+  const forgeCli = 'gh';
   worker.bash(`cd ${ws} && test "$(git rev-parse HEAD)" = ${options.head}`);
   worker.bash(`cd ${ws} && node --test ${options.testFile}; true`);
   proofSteps(worker, ctx, { id: `${options.id}-run`, target: `pr-${options.pr}`, command: `node --test ${options.testFile}`, cwd: ws, kind: 'test', gitDir: ws, dir: join(workerDir, 'evidence') }, join(workerDir, 'evidence'));
@@ -95,7 +95,7 @@ export function verifierScript(ctx: Ctx, parent: Parent, options: { id: string; 
 }
 
 export const verifierBrief = (pr: number, head: string, testFile: string): string =>
-  `You are the independent verifier for PR ${pr} at head ${head}. You did not write it. Your container clone is at that head. Run the change the way a user would: node --test ${testFile}, against the head and its parent. Record a receipt for the run with pstack_evidence. Then post exactly one verdict on the PR through the forge CLI, node ${FORGE_CLI} gh pr comment ${pr} ${REPO_FLAGS} --body "PSTACK-VERDICT: <PASS|PASS+NOTES|FAIL> head=<full sha> verifier=<your worker id> patch=<git show --format= -p HEAD | git patch-id --stable>". Green CI is not a verdict.`;
+  `You are the independent verifier for PR ${pr} at head ${head}. You did not write it. Your container clone is at that head. Run the change the way a user would: node --test ${testFile}, against the head and its parent. Record a receipt for the run with pstack_evidence. Then post exactly one verdict on the PR through the forge CLI, gh pr comment ${pr} ${REPO_FLAGS} --body "PSTACK-VERDICT: <PASS|PASS+NOTES|FAIL> head=<full sha> verifier=<your worker id> patch=<git show --format= -p HEAD | git patch-id --stable>". Green CI is not a verdict.`;
 
 export const stageVerifier = (parent: Parent, id: string, pr: number, head: string, testFile: string): { tool: string; args: Record<string, unknown> } =>
   parent.stage(id, { role: 'verifier', model: 'sim/claude-sim', workspace: { mode: 'container', inputCommit: head }, capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: false, forge: true } }, verifierBrief(pr, head, testFile));
