@@ -51,6 +51,17 @@ test('a healthy real program does not need an artificially stalled third owner',
   expect(run('kickoffs-name-evidence-paths-and-forbidden-actions', view())).toMatchObject({ ok: true });
   expect(run('a-stalled-worker-is-judged-by-its-side-effects-aborted-and-replaced-with-a-consolidated-kickoff', view())).toHaveProperty('skip');
 });
+test('copied assignments cannot create an ambiguous owner identity', () => {
+  const value = view();
+  const workers = value.runs[0]?.workers;
+  const owner = workers?.[0];
+  if (owner === undefined || workers === undefined) throw new Error('Missing owner');
+  owner.assignment['workerId'] = owner.id;
+  const duplicate = structuredClone(owner);
+  duplicate.id = 'copied-directory';
+  workers.push(duplicate);
+  expect(run('one-owner-per-pr-the-only-writer-of-its-branch', value)).toMatchObject({ ok: false });
+});
 test('a kickoff without evidence and path limits still fails', () => {
   const value = view();
   const owner = value.runs[0]?.workers[0];
