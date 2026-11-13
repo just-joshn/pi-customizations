@@ -34,6 +34,8 @@ export interface Session {
   models: string[];
   /** The text of every assistant message the provider ended with an error (stopReason "error" or an errorMessage), except a turn the harness itself aborted: a 429, an auth failure, an unknown model. */
   errors: string[];
+  /** The entry timestamp of each errors[i], or null when the entry carries none. */
+  errorTimes: (string | null)[];
 }
 
 const textOf = (content: unknown): string => {
@@ -59,6 +61,7 @@ export function loadSession(file: string): Session {
   const toolCalls: ToolCall[] = [];
   const models = new Set<string>();
   const errors: string[] = [];
+  const errorTimes: (string | null)[] = [];
   let cwd: string | null = null;
   let order = 0;
   for (const entry of entries) {
@@ -75,7 +78,10 @@ export function loadSession(file: string): Session {
     const role = String(message['role']);
     messages.push({ order: order++, role, text: textOf(message['content']) });
     if (role === 'assistant') {
-      if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
+      if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) {
+        errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
+        errorTimes.push(typeof entry['timestamp'] === 'string' ? entry['timestamp'] : null);
+      }
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
       for (const part of message['content'] as Json[]) {
         if (part['type'] !== 'toolCall') continue;
@@ -92,7 +98,7 @@ export function loadSession(file: string): Session {
       }
     }
   }
-  return { file, cwd, messages, toolCalls, models: [...models], errors };
+  return { file, cwd, messages, toolCalls, models: [...models], errors, errorTimes };
 }
 
 export interface Receipt {
@@ -234,13 +240,38 @@ const git = (repo: string, ...args: string[]): string => gitRaw(repo, ...args).t
 /** What Pi 1.5.0 records for a turn the parent aborted while the next provider call was starting: stopReason "error", where 1.5.2 records "aborted". */
 const ABORT_ERROR = 'This operation was aborted';
 
+const instant = (value: unknown): number => (typeof value === 'string' ? Date.parse(value) : Number.NaN);
+
+/**
+ * Drops the abort error each intentional cancellation produced, and only that one. A settle records the cancellation after the aborted turn
+ * ended, so its error is the last abort error whose entry time falls after the previous settle and at or before this one. An error with no
+ * time, or a settle with none, cannot be tied to a cancellation and stays, so the run is INCONCLUSIVE rather than quietly clean.
+ */
+function withoutCancellationErrors(session: Session, settles: Json[]): Session {
+  const drop = new Set<number>();
+  settles.forEach((settle, index) => {
+    if (settle['phase'] !== 'aborted') return;
+    const end = instant(settle['at']);
+    if (Number.isNaN(end)) return;
+    const start = index === 0 ? Number.NEGATIVE_INFINITY : instant(settles[index - 1]?.['at']);
+    if (Number.isNaN(start)) return;
+    const owned = session.errors.flatMap((error, position) => {
+      const at = instant(session.errorTimes[position]);
+      return error === ABORT_ERROR && !drop.has(position) && at > start && at <= end ? [{ position, at }] : [];
+    });
+    const last = owned.sort((a, b) => a.at - b.at || a.position - b.position).at(-1);
+    if (last !== undefined) drop.add(last.position);
+  });
+  return { ...session, errors: session.errors.filter((_, position) => !drop.has(position)), errorTimes: session.errorTimes.filter((_, position) => !drop.has(position)) };
+}
+
 function loadWorker(dir: string, id: string): WorkerView {
   const sessionDir = join(dir, 'session');
   const files = existsSync(sessionDir) ? readdirSync(sessionDir).filter((file) => file.endsWith('.jsonl')) : [];
   const state = readJson(join(dir, 'state.json'));
   const loaded = files.length === 0 ? null : loadSession(join(sessionDir, files[0] as string));
   const settles = Array.isArray(state?.['settles']) ? (state['settles'] as Json[]) : [];
-  const session = loaded !== null && settles.some((settle) => settle['phase'] === 'aborted') ? { ...loaded, errors: loaded.errors.filter((error) => error !== ABORT_ERROR) } : loaded;
+  const session = loaded === null ? null : withoutCancellationErrors(loaded, settles);
   const evidenceDir = join(dir, 'evidence');
   return {
     id,

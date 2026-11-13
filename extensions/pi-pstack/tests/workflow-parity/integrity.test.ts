@@ -10,7 +10,7 @@ import { type RunOutcome, type RunSpec, runWorkflow } from './lib/driver.ts';
 import type { Inconclusive } from './lib/integrity.ts';
 import { assess } from './lib/integrity.ts';
 import { report } from './lib/run.ts';
-import { loadRun } from './lib/view.ts';
+import { loadRun, type RunView } from './lib/view.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
 const SESSIONS = join(import.meta.dirname, 'fixtures/sessions');
@@ -88,7 +88,9 @@ test('a drive hook that throws records crashed in meta.json, keeps the sandbox, 
   expect(JSON.parse(readFileSync(join(outcome.sandbox, 'meta.json'), 'utf8')).crashed).toBe('timed out waiting for the watcher');
 });
 
-const abortedTurn = (stopReason: string, errorMessage: string) => `${JSON.stringify({ type: 'message', id: 'a1', message: { role: 'assistant', content: [], stopReason, errorMessage } })}\n`;
+const [T1, T2, T3, T4] = ['2026-11-12T10:00:01.000Z', '2026-11-12T10:00:02.000Z', '2026-11-12T10:00:03.000Z', '2026-11-12T10:00:04.000Z'];
+const abortedTurn = (stopReason: string, errorMessage: string, at?: string) =>
+  `${JSON.stringify({ type: 'message', id: 'a1', ...(at === undefined ? {} : { timestamp: at }), message: { role: 'assistant', content: [], stopReason, errorMessage } })}\n`;
 
 function workerErrors(settles: unknown[], turn: string): string[] {
   const project = mkdtempSync(join(tmpdir(), 'pstack-view-'));
@@ -104,12 +106,33 @@ function workerErrors(settles: unknown[], turn: string): string[] {
 }
 
 test('a turn the parent aborted is not a provider error on Pi 1.5.0, which records it as stopReason error', () => {
-  const aborted = [{ phase: 'aborted', reason: 'Stopped by request' }];
-  expect(workerErrors(aborted, abortedTurn('error', 'This operation was aborted'))).toEqual([]);
-  expect(workerErrors(aborted, abortedTurn('aborted', 'This operation was aborted'))).toEqual([]);
+  const aborted = [{ sequence: 1, phase: 'aborted', reason: 'Stopped by request', at: T2 }];
+  expect(workerErrors(aborted, abortedTurn('error', 'This operation was aborted', T1))).toEqual([]);
+  expect(workerErrors(aborted, abortedTurn('aborted', 'This operation was aborted', T1))).toEqual([]);
 });
 
 test('the same abort text on a worker nobody aborted, and any other error on an aborted worker, stay provider errors', () => {
   expect(workerErrors([{ phase: 'idle' }], abortedTurn('error', 'This operation was aborted'))).toEqual(['This operation was aborted']);
-  expect(workerErrors([{ phase: 'aborted' }], abortedTurn('error', '429 Usage limit reached'))).toEqual(['429 Usage limit reached']);
+  expect(workerErrors([{ sequence: 1, phase: 'aborted', at: T2 }], abortedTurn('error', '429 Usage limit reached', T1))).toEqual(['429 Usage limit reached']);
+});
+
+test('an unexpected abort error in turn 1 and an intentional cancellation in turn 2: only the second is dropped, and the run stays INCONCLUSIVE', () => {
+  const settles = [
+    { sequence: 1, phase: 'idle', reason: null, at: T2 },
+    { sequence: 2, phase: 'aborted', reason: 'Stopped by request', at: T4 },
+  ];
+  const turns = abortedTurn('error', 'This operation was aborted', T1) + abortedTurn('error', 'This operation was aborted', T3);
+  const errors = workerErrors(settles, turns);
+  expect(errors).toEqual(['This operation was aborted']);
+  expect(assess({ parent: { errors: [] }, runs: [{ workers: [{ session: { errors } }] }] } as unknown as RunView)?.kind).toBe('provider-error');
+});
+
+test('an abort error the records cannot tie to the cancellation (no timestamps) is kept', () => {
+  expect(workerErrors([{ sequence: 1, phase: 'aborted' }], abortedTurn('error', 'This operation was aborted'))).toEqual(['This operation was aborted']);
+  expect(workerErrors([{ sequence: 1, phase: 'aborted', at: T2 }], abortedTurn('error', 'This operation was aborted'))).toEqual(['This operation was aborted']);
+});
+
+test('one cancellation drops one error: of two abort errors in its window only the last is dropped', () => {
+  const settles = [{ sequence: 1, phase: 'aborted', at: T4 }];
+  expect(workerErrors(settles, abortedTurn('error', 'This operation was aborted', T1) + abortedTurn('error', 'This operation was aborted', T3))).toEqual(['This operation was aborted']);
 });

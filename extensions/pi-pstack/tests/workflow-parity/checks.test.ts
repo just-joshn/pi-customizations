@@ -136,7 +136,7 @@ describe('a brief that carries a worker\'s findings', () => {
 });
 
 describe('opening a file through a worktree directory', () => {
-  const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], errors: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
+  const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], errors: [], errorTimes: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
   const suffix = 'candidate-1/worktree/src/coupon.js';
 
   test('cd into the worktree and cat the file opens it', () => {

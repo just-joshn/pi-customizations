@@ -640,7 +640,7 @@ export function loadView(sandbox: string): RunView {
   const modelsPath = join(sandbox, 'home', '.pi', 'agent', 'pstack', 'models.json');
   const sessionFiles = readdirSync(join(sandbox, 'sessions')).filter((file) => file.endsWith('.jsonl'));
   const parentFile = meta.parentSessionFile !== null && existsSync(meta.parentSessionFile) ? meta.parentSessionFile : join(sandbox, 'sessions', sessionFiles[0] ?? 'missing.jsonl');
-  const parent: Session = existsSync(parentFile) ? loadSession(parentFile) : { file: parentFile, cwd: null, messages: [], toolCalls: [], models: [], errors: [] };
+  const parent: Session = existsSync(parentFile) ? loadSession(parentFile) : { file: parentFile, cwd: null, messages: [], toolCalls: [], models: [], errors: [], errorTimes: [] };
   return {
     family: meta.family,
     driver: meta.driver,
