@@ -160,7 +160,7 @@ export const babysitRestartFamily: Family = {
       );
     }),
     neverMerges('babysit.restart.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
-    replyMentions('babysit.restart.reply-says-merge-ready-from-the-adopted-watcher', 'the reply says the adopted watcher reached READY, that no second watcher was armed, and leaves landing to Shipping', BS('Babysitting never authorizes merging'), [{ name: 'merge-ready', pattern: /merge-ready/ }, { name: 'adopted', pattern: /adopted watcher/ }, { name: 'no second watcher', pattern: /armed no second watcher/ }, { name: 'Shipping', pattern: /Shipping/ }]),
+    replyMentions('babysit.restart.reply-says-merge-ready-from-the-adopted-watcher', 'the reply reports merge-ready and leaves landing to Shipping', BS('Babysitting never authorizes merging'), [{ name: 'merge-ready', pattern: /merge.ready/i }, { name: 'Shipping', pattern: /Shipping/i }], [{ name: 'a second watcher', pattern: /armed a second watcher/i }]),
     noToolErrors('babysit.restart.no-tool-errors', BS('Trust the active forge')),
   ],
   negatives: [

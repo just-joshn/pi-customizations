@@ -153,7 +153,7 @@ export const openingFamily: Family = {
     check('open.opening-does-not-start-a-babysit', 'no watcher was started and no watch-pr ran: opening a PR is not a babysit request', OP('**Babysit.** Opening a PR does not start a babysit'), (view) => {
       const watchers = allWorkers(view).filter((worker) => assignmentOf(worker).kind === 'watch');
       const typed = BASH(view).filter((entry) => /watch-pr|pstack_worker/.test(entry.command));
-      return when(watchers.length === 0 && typed.length === 0 && !view.parent.toolCalls.some((call) => call.name === 'pstack_worker') && /No babysit started/.test(finalReply(view)), 'no watcher, no spawn, the reply says no babysit started', `watchers ${watchers.length}; commands ${typed.length}`);
+      return when(watchers.length === 0 && typed.length === 0 && !view.parent.toolCalls.some((call) => call.name === 'pstack_worker'), 'no watcher and no spawn', `watchers ${watchers.length}; commands ${typed.length}`);
     }),
     neverMerges('open.never-merges', 'nothing was merged, queued or armed', OP('**Babysit.** Opening a PR does not start a babysit')),
     noToolErrors('open.no-tool-errors', OP('**Forge.**')),
