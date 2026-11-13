@@ -2,10 +2,9 @@
 import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
-
 import { budgetFor, stopReason } from './lib/budget.ts';
-import { budgetOf, runWorkflow } from './lib/driver.ts';
 import type { Meta, RunSpec } from './lib/driver.ts';
+import { budgetOf, runWorkflow } from './lib/driver.ts';
 import { assessHarnessStop } from './lib/integrity.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');

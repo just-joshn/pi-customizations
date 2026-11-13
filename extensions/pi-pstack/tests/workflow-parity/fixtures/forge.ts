@@ -6,9 +6,9 @@ import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import type { Ctx } from '../lib/driver.ts';
 import { PKG, REAL_MODEL, REAL_MODEL_B } from '../lib/driver.ts';
 import { packagesRegistering, providerOf } from '../lib/providers.ts';
-import type { Ctx } from '../lib/driver.ts';
 import type { RunView } from '../lib/view.ts';
 
 export const FORGE_CLI = join(PKG, 'tests/workflow-parity/fixtures/forge-cli.mjs');

@@ -1,11 +1,13 @@
+import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { afterEach, expect, test, vi } from 'vitest';
 
 vi.mock('node:child_process', async (original) => ({
-  ...await original<typeof import('node:child_process')>(),
+  ...(await original<typeof import('node:child_process')>()),
   spawnSync: vi.fn(() => ({ stdout: 'host ready operator receipt operator receipt', status: 0 })),
 }));
 
@@ -52,8 +54,12 @@ test('interaction operator discovers a different run and worker from persisted s
   vi.useFakeTimers();
   const { api, state } = setup();
   state({ phase: 'idle', tmuxSession: 'actual-pane', settles: [{ phase: 'idle' }] });
-  const drive = interactionFamily.spec.drive!(api);
-  const completed = drive.then(() => null, (error: unknown) => error);
+  assert(interactionFamily.spec.drive);
+  const drive = interactionFamily.spec.drive(api);
+  const completed = drive.then(
+    () => null,
+    (error: unknown) => error,
+  );
   await vi.advanceTimersByTimeAsync(0);
   state({ phase: 'running', tmuxSession: 'actual-pane', settles: [{ phase: 'idle' }] });
   await vi.advanceTimersByTimeAsync(100);
@@ -66,8 +72,12 @@ test('interaction operator discovers a different run and worker from persisted s
 test('restart hook discovers and inspects a differently named live watcher', async () => {
   vi.useFakeTimers();
   const { api, state } = setup();
-  const drive = babysitRestartFamily.spec.drive!(api);
-  const completed = drive.then(() => null, (error: unknown) => error);
+  assert(babysitRestartFamily.spec.drive);
+  const drive = babysitRestartFamily.spec.drive(api);
+  const completed = drive.then(
+    () => null,
+    (error: unknown) => error,
+  );
   await vi.advanceTimersByTimeAsync(100);
   expect(api.restart).not.toHaveBeenCalled();
   state({ kind: 'watch', phase: 'running', output: '{"kind":"check"}' });
@@ -81,7 +91,8 @@ for (const family of [interactionFamily, babysitRestartFamily]) {
   test(`${family.id} missing state fails without restarting`, async () => {
     vi.useFakeTimers();
     const { api } = setup();
-    const drive = family.spec.drive!(api);
+    assert(family.spec.drive);
+    const drive = family.spec.drive(api);
     const rejected = expect(drive).rejects.toThrow(/timed out/);
     await vi.runAllTimersAsync();
     await rejected;

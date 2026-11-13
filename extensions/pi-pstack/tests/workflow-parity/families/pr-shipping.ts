@@ -1,12 +1,13 @@
 // Shipping families (spec 13.3): one container verifier per PR with the forge capability, a verdict that covers the head and
 // the patch it examined, only the contiguous verified run from the root landing, bottom-up, never a merge from green CI.
 import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
-import { bareOf, editForge, forgeEnv, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, patchIdOf, readForge, revParse, setupForge, WATCH_PR } from '../fixtures/forge.ts';
+import { bareOf, editForge, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, forgeEnv, patchIdOf, readForge, revParse, setupForge, WATCH_PR, writeContainerScenario } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, checkAbsence, src, type Src, when } from '../lib/check.ts';
+import { check, checkAbsence, type Src, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks, verifyReceipt } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { deleteStep, dropWakes, parentSession, patchAssignment, rewriteFinalReply, setStep } from '../lib/mutate.ts';
@@ -14,8 +15,6 @@ import type { RunView, WorkerView } from '../lib/view.ts';
 import { BASH, forgeResolvedOnce, neverMutatesTopology, REPO_FLAGS, stepDone, watchers } from './pr-shared.ts';
 import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { writeContainerScenario } from '../fixtures/forge.ts';
 
 export const SH = (anchor: string): Src => src('poteto-mode/playbooks/shipping.md', anchor);
 

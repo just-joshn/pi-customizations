@@ -46,7 +46,7 @@ async function operator(api: DriveApi): Promise<void> {
     const candidate = persistedWorkers(api.ctx.repo).find((worker) => idleSettles(worker.state) >= 1 && typeof worker.state['tmuxSession'] === 'string');
     dir = candidate?.dir ?? '';
     return candidate !== undefined;
-  }, 180_000);
+  });
   const session = String(readState(dir)['tmuxSession']);
   const type = (line: string) => {
     tmux(api.socket, 'send-keys', '-t', session, line, 'Enter');
