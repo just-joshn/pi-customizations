@@ -170,7 +170,7 @@ export const openingFamily: Family = {
     { name: 'the child targets trunk', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { const pr = state.prs['2']; if (pr) pr.base = 'main'; }), fails: ['open.the-child-is-stacked-on-its-parent-branch'] },
     { name: 'the prose skills were never read', mutate: (sandbox) => rewriteSession(sandbox, 'skills/technical-writing/SKILL.md', 'skills/other/SKILL.md'), fails: ['open.prose-skills-were-read-before-the-first-create'] },
     { name: 'a babysit watcher was started after opening', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'pstack_worker', { action: 'spawn', runId: OPEN_RUN, assignmentPath: 'x' }), fails: ['open.opening-does-not-start-a-babysit'] },
-    { name: 'the forge was resolved twice', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'command -v origin' }), fails: ['open.forge-resolved-once-and-used-for-create-and-view'] },
+    { name: 'the resolved forge choice was not kept', mutate: (sandbox) => editForge(sandbox, (actions) => { const read = actions.find((action) => action.kind === 'read'); if (read) read.tool = 'origin'; }), fails: ['open.forge-resolved-once-and-used-for-create-and-view'] },
   ],
 };
 
