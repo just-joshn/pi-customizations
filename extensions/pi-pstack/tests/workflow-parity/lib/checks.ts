@@ -44,6 +44,13 @@ export function shellCommands(command: string): string[] {
  * form `<name>/worktree/<file>` is opened that way when one shell command names the worktree directory and the file under it, and reads.
  */
 function readsInDirectory(command: string, suffix: string): boolean {
+  let cwd = '';
+  for (const part of command.split(/&&|;|\n/)) {
+    const cd = /^\s*cd\s+["']?([^"'\s]+)["']?\s*$/.exec(part);
+    if (cd !== null) cwd = resolve(cwd || '/', cd[1] as string);
+    const read = /^\s*(?:cat|head|tail|sed|less|bat|nl)\s+(.+)$/.exec(part);
+    if (read !== null && cwd !== '' && (read[1] as string).split(/\s+/).some((word) => resolve(cwd, word.replace(/^["']|["']$/g, '')).endsWith(suffix))) return true;
+  }
   const at = suffix.indexOf('/worktree/');
   if (at === -1) return false;
   const directory = suffix.slice(0, at + '/worktree'.length);

@@ -139,6 +139,12 @@ describe('opening a file through a worktree directory', () => {
   const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], errors: [], errorTimes: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
   const suffix = 'candidate-1/worktree/src/coupon.js';
 
+  test('cd into the skill and cat its relative playbook opens it', () => {
+    const suffix = 'generated/skills/poteto-mode/playbooks/babysit.md';
+    expect(openedAt(bash('cd /p/generated/skills/poteto-mode && ls -R && cat playbooks/babysit.md'), suffix)).toBe(3);
+    expect(openedAt(bash('cd /p/generated/skills/poteto-mode && cat playbooks/shipping.md'), suffix)).toBe(-1);
+    expect(openedAt(bash('cd /p/generated/skills/other && cat playbooks/babysit.md'), suffix)).toBe(-1);
+  });
   test('cd into the worktree and cat the file opens it', () => {
     expect(openedAt(bash('cd /r/workers/candidate-1/worktree && cat src/coupon.js'), suffix)).toBe(3);
   });
