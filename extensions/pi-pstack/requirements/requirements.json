@@ -2897,7 +2897,7 @@
     },
     "wf.autopilot-full.full.family": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
-      "name": "autopilot-lanes negative: a lane ran on the owner's model family"
+      "name": "autopilot-full negative: a verifier ran on the owner's model family"
     },
     "wf.autopilot-stack": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
