@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
-import { bareOf, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, patchIdOf, readForge, revParse, setupForge, WATCH_PR } from '../fixtures/forge.ts';
+import { bareOf, editForge, forgeEnv, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, patchIdOf, readForge, revParse, setupForge, WATCH_PR } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks, verifyReceipt } from '../lib/checks.ts';
