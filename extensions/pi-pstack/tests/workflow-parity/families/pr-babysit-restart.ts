@@ -1,6 +1,6 @@
 // A parent that restarts mid-babysit (spec 13.2, worker lifecycle): the watcher outlives the first Pi, the restarted parent
 // adopts it instead of arming a second one, and its one exit is delivered to the restarted parent exactly once.
-import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Actor, Parent, scenario } from '../fixtures/dsl.ts';
@@ -10,6 +10,7 @@ import { check, src, when } from '../lib/check.ts';
 import { allWorkers, noToolErrors, playbookReads, promptRoutes } from '../lib/checks.ts';
 import type { Meta } from '../lib/driver.ts';
 import { sleep } from '../lib/driver.ts';
+import { persistedWorkers } from '../lib/live-workers.ts';
 import { parentSession, rewriteFinalReply } from '../lib/mutate.ts';
 import { exitCodeOf, forgeResolvedOnce, neverMerges, REPO_FLAGS, replyMentions, watchers } from './pr-shared.ts';
 import type { Family } from './types.ts';
@@ -40,14 +41,6 @@ const sessionText = (sessionsDir: string): string =>
     .join('\n');
 
 const LIVE_PHASES = new Set(['starting', 'running']);
-
-const readJson = (path: string): Record<string, unknown> | undefined => {
-  try {
-    return existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>) : undefined;
-  } catch {
-    return undefined;
-  }
-};
 
 const metaOf = (sandbox: string): Meta => JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as Meta;
 
@@ -107,19 +100,14 @@ export const babysitRestartFamily: Family = {
     },
     drive: async (api) => {
       const { ctx } = api;
-      const workerDir = join(ctx.repo, '.pi', 'pstack', 'runs', RUN, 'workers', WATCHER);
-      try {
-        await poll(() => {
-          const state = readJson(join(workerDir, 'state.json'));
-          const kind = state?.['kind'] ?? readJson(join(workerDir, 'assignment.json'))?.['kind'];
-          return kind === 'watch' && LIVE_PHASES.has(String(state?.['phase'])) && /"kind"/.test(String(state?.['output'] ?? '')) ? true : undefined;
-        }, 'the watcher to have a watch worker with a live phase and printed output in state.json and a live phase');
-      } catch (error) {
-        api.finding(error instanceof Error ? error.message : String(error));
-      }
+      const watcher = await poll(() => persistedWorkers(ctx.repo).find((worker) => {
+        const kind = worker.state['kind'] ?? worker.assignment['kind'];
+        return kind === 'watch' && LIVE_PHASES.has(String(worker.state['phase'])) && /"kind"/.test(String(worker.state['output'] ?? ''));
+      }), 'a live watcher with printed output in state.json');
       await api.restart();
+      const beforeInspect = sessionText(ctx.sessionsDir).length;
       await api.prompt(PROMPT_AFTER_RESTART);
-      await poll(() => (/Worker watch-restart: running/.test(sessionText(ctx.sessionsDir)) ? true : undefined), 'the restarted parent to inspect the live watcher');
+      await poll(() => (sessionText(ctx.sessionsDir).slice(beforeInspect).includes(`Worker ${watcher.id}: running`) ? true : undefined), 'the restarted parent to inspect the live watcher');
       settleChecks(ctx.sandbox, 71);
     },
   },
@@ -138,23 +126,25 @@ export const babysitRestartFamily: Family = {
       const spawns = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
       const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.order > second);
       const all = allWorkers(view);
-      const claims = view.claims.filter((claim) => claim.workerId === WATCHER);
+      const watcher = watchers(view)[0];
+      const claims = view.claims.filter((claim) => claim.workerId === watcher?.id);
       const armed = (view.runs[0]?.events ?? []).filter((event) => event['kind'] === 'spawn' || event['kind'] === 'claimed').length;
       return when(
-        spawns.length === 1 && spawns[0]!.order < second && inspect !== undefined && !inspect.isError && /running/.test(inspect.resultText) && /"kind"/.test(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
+        spawns.length === 1 && spawns[0]!.order < second && watcher !== undefined && watcher.state !== null && inspect !== undefined && inspect.args['workerId'] === watcher?.id && !inspect.isError && /running/.test(inspect.resultText) && /"kind"/.test(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
         `one spawn before the restart (${spawns[0]?.order}), the restarted parent's inspect at ${inspect?.order} read the running watcher's output, one watcher, one claim (host events ${armed})`,
         `spawns ${spawns.length}; inspect ${inspect?.resultText.slice(0, 100)}; workers ${all.map((worker) => worker.id).join(', ')}; claims ${claims.length}`,
       );
     }),
     check('babysit.restart.the-watcher-exit-woke-the-restarted-parent-once', 'the watcher exited READY (0) after the restart, and the restarted parent got exactly one pstack-worker wake for it, the host transition 1 of that instance, carrying the READY verdict', BS('**One babysitter per stack.**'), (view) => {
       const second = view.parent.messages.filter((message) => message.role === 'user')[1]?.order ?? Number.POSITIVE_INFINITY;
-      const watcher = allWorkers(view).find((worker) => worker.id === WATCHER);
-      const wakes = wakesOf(view, WATCHER);
+      const watcher = watchers(view)[0];
+      const watcherId = watcher?.id ?? '';
+      const wakes = wakesOf(view, watcherId);
       const instance = String(watcher?.state?.['instance']);
       const settles = (watcher?.state?.['settles'] as unknown[] | undefined) ?? [];
-      const collect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === WATCHER);
+      const collect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === watcherId);
       return when(
-        watcher !== undefined && exitCodeOf(watcher) === 0 && settles.length === 1 && wakes.length === 1 && wakes[0]!.order > second && wakes[0]!.details?.['transitionId'] === `${WATCHER}:${instance}:1` && wakes[0]!.details?.['phase'] === 'exited' && /READY/.test(wakes[0]!.text) && collect.length === 1 && collect[0]!.order > wakes[0]!.order,
+        watcher !== undefined && exitCodeOf(watcher) === 0 && settles.length === 1 && wakes.length === 1 && wakes[0]!.order > second && wakes[0]!.details?.['transitionId'] === `${watcherId}:${instance}:1` && wakes[0]!.details?.['phase'] === 'exited' && /READY/.test(wakes[0]!.text) && collect.length === 1 && collect[0]!.order > wakes[0]!.order,
         `one wake ${String(wakes[0]?.details?.['transitionId'])} at ${wakes[0]?.order}, after the restart (${second}), with the READY output; collected once after it`,
         `exit ${watcher === undefined ? 'none' : exitCodeOf(watcher)}; settles ${settles.length}; wakes ${wakes.length} ${JSON.stringify(wakes.map((wake) => [wake.order, wake.details?.['transitionId']]))}; collects ${collect.length}`,
       );

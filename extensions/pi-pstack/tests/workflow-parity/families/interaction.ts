@@ -8,6 +8,7 @@ import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
 import { allWorkers, settledAndCollected } from '../lib/checks.ts';
 import { type DriveApi, sleep } from '../lib/driver.ts';
+import { persistedWorkers } from '../lib/live-workers.ts';
 import { parentSession, rewriteSession, workerSessionFile } from '../lib/mutate.ts';
 import type { Json, RunView, Session } from '../lib/view.ts';
 import type { Family } from './types.ts';
@@ -19,7 +20,6 @@ const PANE_STEER = 'PANE-STEER-91bc';
 const PARENT_STEER = 'PARENT-STEER-55de';
 const RPC_STEER = 'RPC-STEER-0c2e';
 
-const workerDir = (ctx: { repo: string }) => join(ctx.repo, '.pi', 'pstack', 'runs', RUN, 'workers', 'live');
 const readState = (dir: string): Json => {
   try {
     return JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8')) as Json;
@@ -41,8 +41,12 @@ const tmux = (socket: string, ...args: string[]) => spawnSync('tmux', ['-L', soc
 
 /** The operator: types into the live worker's pane on the private tmux server, then steers the parent over RPC. */
 async function operator(api: DriveApi): Promise<void> {
-  const dir = workerDir(api.ctx);
-  await until('the worker to go idle once', () => idleSettles(readState(dir)) >= 1);
+  let dir = '';
+  await until('the worker to go idle once', () => {
+    const candidate = persistedWorkers(api.ctx.repo).find((worker) => idleSettles(worker.state) >= 1 && typeof worker.state['tmuxSession'] === 'string');
+    dir = candidate?.dir ?? '';
+    return candidate !== undefined;
+  }, 180_000);
   const session = String(readState(dir)['tmuxSession']);
   const type = (line: string) => {
     tmux(api.socket, 'send-keys', '-t', session, line, 'Enter');
@@ -57,7 +61,7 @@ async function operator(api: DriveApi): Promise<void> {
   writeFileSync(join(api.ctx.sandbox, 'pane-capture.txt'), tmux(api.socket, 'capture-pane', '-p', '-S', '-200', '-t', session).stdout);
 }
 
-const worker = (view: RunView): Session | null => allWorkers(view).find((entry) => entry.id === 'live')?.session ?? null;
+const worker = (view: RunView): Session | null => allWorkers(view).find((entry) => entry.state?.['tmuxSession'] !== undefined)?.session ?? null;
 const userMessages = (session: Session | null) => (session?.messages ?? []).filter((message) => message.role === 'user' || message.customType !== undefined);
 const userOrder = (session: Session | null, text: string) => userMessages(session).find((message) => message.text.includes(text))?.order ?? -1;
 const capture = (view: RunView) => (existsSync(join(view.sandbox, 'pane-capture.txt')) ? readFileSync(join(view.sandbox, 'pane-capture.txt'), 'utf8') : '');
@@ -84,7 +88,7 @@ export const interactionFamily: Family = {
   checks: [
     check('worker-interaction.spawn-returns-an-attach-command', 'the spawn result names the tmux session and an attach command, and returned while the worker was starting', SRC, (view) => {
       const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
-      const session = String(allWorkers(view).find((entry) => entry.id === 'live')?.state?.['tmuxSession'] ?? '?');
+      const session = String(allWorkers(view).find((entry) => entry.state?.['tmuxSession'] !== undefined)?.state?.['tmuxSession'] ?? '?');
       return spawn !== undefined && /attach/.test(spawn.resultText) && spawn.resultText.includes(session) ? when(true, `spawn result carries ${spawn.resultText.match(/tmux[^\n]*attach[^\n]*/)?.[0] ?? 'attach'}`, '') : fail(`spawn result: ${spawn?.resultText.slice(0, 200)}`);
     }),
     check('worker-interaction.pane-shows-the-worker', 'the live pane shows the host banner, the operator command echo and a receipt for each typed line', SRC, (view) => {
