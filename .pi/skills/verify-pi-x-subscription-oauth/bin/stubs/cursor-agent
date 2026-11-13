@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+// cursor-agent stub. Logs argv as one JSON line to $VERIFY_X_RUN_ROOT/cursor-agent.log.
+// `login` saves the session in keychain-after-login as keychain/cursor-access-token, like the real
+// CLI. Anything else is an ask: it prints a result line that says LOCAL_OK.
+import fs from 'node:fs';
+import path from 'node:path';
+
+const root = process.env.VERIFY_X_RUN_ROOT;
+if (!root) {
+  console.error('verify stub: VERIFY_X_RUN_ROOT is not set');
+  process.exit(2);
+}
+const argv = process.argv.slice(2);
+fs.appendFileSync(path.join(root, 'cursor-agent.log'), `${JSON.stringify(argv)}\n`);
+if (argv[0] === 'login') {
+  const session = path.join(root, 'keychain-after-login');
+  if (!fs.existsSync(session)) {
+    console.error('verify stub: no session to save');
+    process.exit(1);
+  }
+  fs.copyFileSync(session, path.join(root, 'keychain', 'cursor-access-token'));
+  console.log('verify stub: logged in');
+  process.exit(0);
+}
+process.stdout.write(`${JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'LOCAL_OK', usage: { inputTokens: 7, outputTokens: 2 } })}\n`);
