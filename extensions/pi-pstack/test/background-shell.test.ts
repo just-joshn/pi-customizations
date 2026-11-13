@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -197,6 +197,31 @@ describe('background jobs', () => {
       expect(jobs.output(job)).toContain(away);
       expect(jobs.output(job)).not.toContain('cwd:');
       expect(reported).toContain(away);
+    } finally {
+      jobs.shutdown();
+    }
+  });
+
+  shell("a bash job with no fd 3 keeps the command's own lines that start with cwd:", async ({ dir }) => {
+    const jobs = createShellJobs(
+      {
+        terminalsDir: () => join(dir, 'remote-terminals'),
+        shellPath: () => '/bin/bash',
+        spawner: {
+          spawn: (command, cwd) => {
+            const child = spawn('/bin/bash', ['-lc', command], { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+            return { child, end: () => child.kill('SIGTERM') };
+          },
+        },
+      },
+      () => undefined,
+    );
+    try {
+      const reported: string[] = [];
+      const job = jobs.start(ctx, { command: "printf 'cwd:/not/a/cwd\\n'", cwd: dir, title: 'remote cwd text', toolCallId: 'call-1', onCwd: (cwd) => reported.push(cwd) });
+      await job.done;
+      expect(jobs.output(job)).toBe('cwd:/not/a/cwd\n');
+      expect(reported).not.toContain('/not/a/cwd');
     } finally {
       jobs.shutdown();
     }
