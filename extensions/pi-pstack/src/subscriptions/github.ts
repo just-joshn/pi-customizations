@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export type GithubTarget = { scope: 'pr'; prUrl: string } | { scope: 'repo'; repo: string } | { scope: 'author'; author: string; repo: string };
@@ -18,6 +18,10 @@ export const defaultGhRunner: GhRunner = (args) =>
     });
   });
 
+type WorkflowName = string;
+type JobName = string;
+const NO_WORKFLOW: WorkflowName = '';
+
 export interface PrSnapshot {
   number: number;
   title: string;
@@ -30,8 +34,7 @@ export interface PrSnapshot {
   reviews: Record<string, string>;
   /** Comment key to author. */
   comments: Record<string, string>;
-  /** Check name to its conclusion (lowercase), or "pending" while it runs. */
-  checks: Record<string, string>;
+  checks: Record<WorkflowName, Record<JobName, string>>;
 }
 
 type Raw = Record<string, unknown>;
@@ -44,14 +47,15 @@ export function snapshotOf(raw: Raw): PrSnapshot {
   for (const review of list(raw['reviews'])) reviews[str(review['id']) || `${login(review)}@${str(review['submittedAt'])}`] = `${login(review)}: ${str(review['state'])}`;
   const comments: Record<string, string> = {};
   for (const comment of list(raw['comments'])) comments[str(comment['id']) || `${login(comment)}@${str(comment['createdAt'])}`] = login(comment);
-  const checks: Record<string, string> = {};
+  const checks: Record<string, Record<string, string>> = {};
   for (const check of list(raw['statusCheckRollup'])) {
-    const name = str(check['name']) || str(check['context']);
-    if (name === '') continue;
+    const job = str(check['name']) || str(check['context']);
+    if (job === '') continue;
     // A CheckRun has status and conclusion; a StatusContext has state.
     const status = str(check['status']);
     const result = 'state' in check && !('status' in check) ? str(check['state']) : status === 'COMPLETED' ? str(check['conclusion']) : 'PENDING';
-    checks[name] = result === 'EXPECTED' ? 'pending' : result.toLowerCase();
+    const workflow = str(check['workflowName']) || NO_WORKFLOW;
+    checks[workflow] = { ...checks[workflow], [job]: result === 'EXPECTED' ? 'pending' : result.toLowerCase() };
   }
   return {
     number: typeof raw['number'] === 'number' ? raw['number'] : 0,
@@ -83,7 +87,8 @@ export function diffPr(before: PrSnapshot, after: PrSnapshot): string[] {
   for (const [key, review] of Object.entries(after.reviews)) if (!(key in before.reviews)) changes.push(`new review by ${review}`);
   for (const [key, author] of Object.entries(after.comments)) if (!(key in before.comments)) changes.push(`new comment by ${author}`);
   // A check wakes when it concludes, or its conclusion changes; queued→in_progress churn does not.
-  for (const [name, result] of Object.entries(after.checks)) if (result !== 'pending' && before.checks[name] !== result) changes.push(`check \`${name}\` ${result}`);
+  for (const [workflow, jobs] of Object.entries(after.checks))
+    for (const [job, result] of Object.entries(jobs)) if (result !== 'pending' && before.checks[workflow]?.[job] !== result) changes.push(`check \`${workflow === NO_WORKFLOW ? job : `${workflow} / ${job}`}\` ${result}`);
   return changes;
 }
 
@@ -154,22 +159,25 @@ export function snapshotFile(runtimeDir: string, subscriptionId: string): string
   return join(runtimeDir, `github-${subscriptionId}.json`);
 }
 
-const stringRecord = (value: unknown): Record<string, string> | undefined => {
+function recordOf<T>(value: unknown, item: (entry: unknown) => T | undefined): Record<string, T> | undefined {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
-  const record: Record<string, string> = {};
-  for (const [key, item] of Object.entries(value)) {
-    if (typeof item !== 'string') return undefined;
-    record[key] = item;
+  const record: Record<string, T> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    const parsed = item(entry);
+    if (parsed === undefined) return undefined;
+    record[key] = parsed;
   }
   return record;
-};
+}
+
+const stringRecord = (value: unknown) => recordOf(value, (entry) => (typeof entry === 'string' ? entry : undefined));
 
 function parseSnapshot(value: unknown): PrSnapshot | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
   const item = value as Record<string, unknown>;
   const reviews = stringRecord(item['reviews']);
   const comments = stringRecord(item['comments']);
-  const checks = stringRecord(item['checks']);
+  const checks = recordOf(item['checks'], stringRecord);
   if (typeof item['number'] !== 'number' || !Number.isInteger(item['number'])) return undefined;
   if (typeof item['title'] !== 'string' || typeof item['url'] !== 'string' || typeof item['state'] !== 'string') return undefined;
   if (typeof item['headRefOid'] !== 'string' || typeof item['mergeable'] !== 'string' || typeof item['reviewDecision'] !== 'string') return undefined;
@@ -188,23 +196,24 @@ function parseSnapshot(value: unknown): PrSnapshot | undefined {
   };
 }
 
-/** A missing file means there is no baseline yet. Any other contents must be a snapshot list. */
-export function readSnapshots(file: string): Map<number, PrSnapshot> | undefined {
-  if (!existsSync(file)) return undefined;
-  const value: unknown = JSON.parse(readFileSync(file, 'utf8'));
-  if (!Array.isArray(value)) throw new Error('GitHub snapshot file is not a list of pull requests.');
-  const snapshots = new Map<number, PrSnapshot>();
-  for (const item of value) {
-    const snapshot = parseSnapshot(item);
-    if (snapshot === undefined) throw new Error('GitHub snapshot file has a pull request that is not a snapshot.');
-    snapshots.set(snapshot.number, snapshot);
+const SNAPSHOT_VERSION = 2;
+
+export function readBaseline(file: string): Map<number, PrSnapshot> | undefined {
+  let saved: unknown;
+  try {
+    saved = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return undefined;
   }
-  return snapshots;
+  const { version, prs } = typeof saved === 'object' && saved !== null ? (saved as Record<string, unknown>) : {};
+  if (version !== SNAPSHOT_VERSION || !Array.isArray(prs)) return undefined;
+  const snapshots = prs.map(parseSnapshot);
+  return snapshots.every((snapshot) => snapshot !== undefined) ? new Map(snapshots.map((snapshot) => [snapshot.number, snapshot])) : undefined;
 }
 
-export function writeSnapshots(file: string, snapshots: ReadonlyMap<number, PrSnapshot>): void {
+export function writeBaseline(file: string, snapshots: ReadonlyMap<number, PrSnapshot>): void {
   mkdirSync(join(file, '..'), { recursive: true, mode: 0o700 });
   const temporary = `${file}.${process.pid}.tmp`;
-  writeFileSync(temporary, JSON.stringify([...snapshots.values()]), { mode: 0o600 });
+  writeFileSync(temporary, JSON.stringify({ version: SNAPSHOT_VERSION, prs: [...snapshots.values()] }), { mode: 0o600 });
   renameSync(temporary, file);
 }

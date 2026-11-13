@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { migrateLegacyRule, modelsSection } from '../src/rule.ts';
+import { migrateLegacyRule, modelsSection, sessionRule } from '../src/rule.ts';
 
 const piRule = '/home/u/.pi/agent/pstack/pstack-models.md';
 
@@ -29,6 +29,11 @@ describe('models section (RULE-001)', () => {
     expect(section.length).toBeLessThan(8_300);
     expect(section.endsWith(`[truncated: the rule is 20000 characters; read ${piRule} for the rest]`)).toBe(true);
   });
+});
+
+test('a workspace whose folder name starts with two dots is still under home, and a sibling of home is not', () => {
+  expect(sessionRule('/home/user/..work', '/nonexistent/pstack-models.md', '/home/user')).toEqual({ inScope: true, text: undefined });
+  expect(sessionRule('/home/other', '/nonexistent/pstack-models.md', '/home/user')).toEqual({ inScope: false });
 });
 
 describe('legacy rule migration (RULE-003)', () => {

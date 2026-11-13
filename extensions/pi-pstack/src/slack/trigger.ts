@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join } from 'node:path';
 
 import { re2Test } from '../shell-output-watch.ts';
-import { channelHistory, isReport, isTopLevel, type SlackMessage, threadReplies } from './client.ts';
+import { isReport, isTopLevel, messagesSince, recentMessages, repliesSince, type SlackMessage } from './client.ts';
 
 export const SLACK_POLL_ENV = 'PSTACK_SLACK_POLL_MS';
 export const DEFAULT_SLACK_POLL_MS = 20_000;
@@ -62,15 +62,15 @@ export async function pollSlack(config: SlackTriggerConfig, cursor: SlackCursor)
   const matches = (message: SlackMessage) => pattern === undefined || pattern(message.text ?? '');
   const fires: SlackFire[] = [];
   let { ts, replyTs } = cursor;
-  for (const message of await channelHistory(config.channel, cursor.ts)) {
+  for (const message of await messagesSince(config.channel, cursor.ts)) {
     ts = later(ts, message.ts);
     if (!isReport(message) || !isTopLevel(message) || !matches(message)) continue;
     fires.push({ eventId: `slack:${config.channel}:${message.ts}`, message });
   }
   if (pattern !== undefined) {
-    const parents = (await channelHistory(config.channel, undefined, RECENT_THREADS)).filter((message) => (message.reply_count ?? 0) > 0 && Number(message.latest_reply ?? '0') > Number(cursor.replyTs));
+    const parents = (await recentMessages(config.channel, RECENT_THREADS)).filter((message) => (message.reply_count ?? 0) > 0 && Number(message.latest_reply ?? '0') > Number(cursor.replyTs));
     for (const parent of parents)
-      for (const reply of await threadReplies(config.channel, parent.ts, cursor.replyTs)) {
+      for (const reply of await repliesSince(config.channel, parent.ts, cursor.replyTs)) {
         if (isTopLevel(reply) || Number(reply.ts) <= Number(cursor.replyTs)) continue;
         replyTs = later(replyTs, reply.ts);
         if (isReport(reply) && matches(reply)) fires.push({ eventId: `slack:${config.channel}:${reply.ts}`, message: reply });

@@ -132,10 +132,13 @@ export function renderChartSvg(chart: Chart): string {
     max = Math.max(max, 0);
   }
   if (min === max) {
-    min -= 1;
-    max += 1;
+    // ±1 is lost to rounding on a large value, which would leave a zero range; pad by a tenth of it instead.
+    const pad = Math.max(1, Math.abs(min) / 10);
+    min = Math.max(-Number.MAX_VALUE, min - pad);
+    max = Math.min(Number.MAX_VALUE, max + pad);
   }
-  const y = (value: number) => round(margin.top + ((max - value) / (max - min)) * plotHeight);
+  // Halves, because max - min overflows to Infinity for a range wider than Number.MAX_VALUE.
+  const y = (value: number) => round(margin.top + ((max / 2 - value / 2) / (max / 2 - min / 2)) * plotHeight);
   const count = chart.labels.length;
   const band = plotWidth / count;
   const xCenter = (point: number) => round(margin.left + (chart.kind === 'bar' || count === 1 ? band * (point + 0.5) : (point / (count - 1)) * plotWidth));
@@ -144,7 +147,7 @@ export function renderChartSvg(chart: Chart): string {
   parts.push(`<text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="bold">${escapeXml(chart.title)}</text>`);
   const ticks = 5;
   for (let tick = 0; tick <= ticks; tick += 1) {
-    const value = min + ((max - min) * tick) / ticks;
+    const value = min * (1 - tick / ticks) + max * (tick / ticks);
     parts.push(`<line x1="${margin.left}" y1="${y(value)}" x2="${width - margin.right}" y2="${y(value)}" stroke="#e0e0e0"/>`);
     parts.push(`<text x="${margin.left - 8}" y="${y(value) + 4}" text-anchor="end" font-size="11">${escapeXml(formatValue(value, chart.unit))}</text>`);
   }

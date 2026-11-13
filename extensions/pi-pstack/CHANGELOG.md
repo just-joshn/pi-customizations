@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.36-pi.40] - 2026-11-13
+
+- A webhook routine answers 404 to a malformed request target instead of crashing the listener that owns the routines port.
+- GitHub pull request watches track checks per workflow, so a job that shares its name with a job in another workflow, or with a check outside any workflow, still wakes the chat when it concludes. The saved baseline now carries a format version. A baseline saved by an earlier version is replaced by a new one on the first poll, without a wake for checks that did not change.
+- A Slack subscription reads every page of channel history and thread replies since its read position, so more than one page of messages between polls is no longer dropped. A page cursor that repeats fails the poll instead of reading forever. Filtered replies are read from threads among the channel's 100 newest top-level messages, as `docs/host-limits.md` now records.
+- A cloud background shell keeps the command's own output lines that start with `cwd:`. The shell's working-directory reports carry a random prefix per job.
+- `[fast=true]` and legacy `-fast` model slugs take a `-fast` id only from a provider that offers the base model. When several providers offer the base id, the one that lists a `-fast` id is chosen.
+- A subagent type matches with any number of trailing `agent`, `subagent`, `mode`, or `type` suffixes, so `poteto-agent-mode` resolves to `poteto-agent`.
+- `cloud_base_branch` must be a valid branch name, so a pattern such as `feature-*` is refused. A cloud agent's working directory maps into the clone only when that path is a directory in the commit.
+- The model rule applies in a workspace whose folder name starts with two dots, such as `~/..work`.
+- `visualize` writes finite SVG coordinates for a flat series of a very large value and for a range wider than `Number.MAX_VALUE`.
+- The README and parity status say that building a plan imports phase todos after root todos, and that an omitted status is written once it changes.
+
 ## [0.15.36-pi.39] - 2026-11-10
 
 - Edit an automation's prompt without replacing its subscription ID, expiry, owner, or pending events. If re-arming fails, report that the prompt was saved.

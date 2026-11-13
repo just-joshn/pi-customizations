@@ -72,6 +72,18 @@ test('a flat or single-point line still draws', () => {
   expect(renderChartText({ title: 't', kind: 'line', labels: ['a', 'b'], series: [{ name: 's', values: [2, 2] }] })).toContain('●');
 });
 
+test.for(['line', 'bar'] as const)('a %s chart spanning the whole number range gets finite SVG coordinates', (kind) => {
+  const chart: Chart = { title: 'Extremes', kind, labels: ['a', 'b'], series: [{ name: 'n', values: [-Number.MAX_VALUE, Number.MAX_VALUE] }] };
+  expect(chartError(chart)).toBeUndefined();
+  expect(renderChartSvg(chart)).not.toMatch(/NaN|Infinity/);
+});
+
+test.for([1e16, Number.MAX_VALUE, -Number.MAX_VALUE])('a flat line of %d gets finite SVG coordinates', (value) => {
+  const chart: Chart = { title: 'Large counts', kind: 'line', labels: ['a', 'b'], series: [{ name: 'count', values: [value, value] }] };
+  expect(chartError(chart)).toBeUndefined();
+  expect(renderChartSvg(chart)).not.toMatch(/NaN|Infinity/);
+});
+
 test('the SVG is well formed with title, axes, legend, and escaped text', () => {
   for (const chart of [bar, line, { ...line, title: 'a < b & "c"', series: [{ name: '<x>', values: [-1, 2, 3, 4] }] }]) {
     const svg = renderChartSvg(chart);

@@ -74,6 +74,8 @@ async function defaultBranch(remote: Remote, signal: AbortSignal | undefined): P
 export async function resolveCloudBase(cwd: string, baseBranch: string | undefined, signal?: AbortSignal): Promise<CloudBase> {
   const remote = remoteOf(cwd);
   if (baseBranch !== undefined) {
+    // ls-remote reads a name as a pattern, so `feature-*` would pick whichever branch matched.
+    if (tryGit(cwd, ['check-ref-format', `refs/heads/${baseBranch}`]) === undefined) throw new Error(`cloud_base_branch "${baseBranch}" is not a valid branch name.`);
     const commit = await remoteCommit(remote, baseBranch, signal);
     if (commit === undefined) throw new Error(`cloud_base_branch "${baseBranch}" is not on ${remote.name} (${remote.url}). A cloud agent sees only pushed code: push the branch first.`);
     return { remote, branch: baseBranch, commit };
@@ -92,7 +94,7 @@ export async function resolveCloudBase(cwd: string, baseBranch: string | undefin
 /** The directory inside the clone that corresponds to the parent's place in its repository. */
 export function mappedCwd(cwd: string, clone: string, commit: string): string {
   const prefix = tryGit(cwd, ['rev-parse', '--show-prefix'])?.replace(/\/$/, '') ?? '';
-  return prefix !== '' && tryGit(clone, ['cat-file', '-e', `${commit}:${prefix}`]) !== undefined ? join(clone, prefix) : clone;
+  return prefix !== '' && tryGit(clone, ['cat-file', '-t', `${commit}:${prefix}`]) === 'tree' ? join(clone, prefix) : clone;
 }
 
 /**

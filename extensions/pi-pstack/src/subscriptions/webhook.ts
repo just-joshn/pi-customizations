@@ -201,7 +201,7 @@ export class RoutineServer {
   }
 
   private handle(request: IncomingMessage, response: ServerResponse): void {
-    const slug = /^\/routines\/([a-z0-9-]+)\/?$/.exec(new URL(request.url ?? '/', 'http://localhost').pathname)?.[1];
+    const slug = /^\/routines\/([a-z0-9-]+)\/?$/.exec(URL.parse(request.url ?? '/', 'http://localhost')?.pathname ?? '')?.[1];
     const route = slug === undefined ? undefined : this.routes.get(slug);
     if (route === undefined) {
       reply(response, 404, 'No such routine.');
