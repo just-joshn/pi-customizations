@@ -245,6 +245,17 @@ describe('each run records the Pi binary and the Node it executed against', () =
     }
   });
 
+  test('two runs on the same platform with different Pi versions are still reported', () => {
+    repo();
+    build({ report: complete(passing), pi: fakePi('7.8.9') }, '--save', saved());
+    const m = manifest();
+    m.runs.push({ ...m.runs[0], resultsSource: 'ci', runUrl: 'https://example.test/run/2', piVersion: '1.2.3' });
+    writeFileSync(manifestPath(), JSON.stringify(m));
+    const after = gate();
+    expect(after.status, after.stderr).toBe(0);
+    expect(after.stderr).toContain('Pi versions differ');
+  });
+
   test('local and CI runs on different Pi versions are reported by check-release, not failed', () => {
     repo();
     build({ report: complete(passing), pi: fakePi('7.8.9') }, '--save', saved());

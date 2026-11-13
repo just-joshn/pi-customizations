@@ -406,8 +406,10 @@ const recordedToolchain = (sidecar) => Object.fromEntries(TOOLCHAIN_FIELDS.filte
 /** Notes, not problems: the runs recorded different Pi versions, so a result on one is not evidence for the other. */
 export function toolchainNotes(runs) {
   const versions = new Map();
-  for (const run of runs) if (typeof run.piVersion === 'string' && run.piVersion) versions.set(run.platform ?? 'unknown', run.piVersion);
-  return new Set(versions.values()).size > 1 ? [`note: Pi versions differ between runs (${[...versions].map(([platform, version]) => `${platform} ${version}`).join(', ')})`] : [];
+  runs.forEach((run, index) => {
+    if (typeof run.piVersion === 'string' && run.piVersion) versions.set(`${run.platform ?? 'unknown'} ${run.resultsSource ?? `run ${index + 1}`}`, run.piVersion);
+  });
+  return new Set(versions.values()).size > 1 ? [`note: Pi versions differ between runs (${[...versions].map(([run, version]) => `${run} ${version}`).join(', ')})`] : [];
 }
 
 const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl', 'root'];
