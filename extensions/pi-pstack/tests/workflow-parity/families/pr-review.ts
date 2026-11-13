@@ -119,8 +119,8 @@ export const openingFamily: Family = {
     check('open.created-ready-through-the-forge-with-the-body-from-a-file', 'two PRs were created through gh with --body-file, neither as a draft, and each reads back open and not draft', OP('**Readiness.** Open every PR ready, never as a draft'), (view) => {
       const { state, actions } = readForge(view);
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
-      const typed = BASH(view).filter((entry) => /^gh pr create/.test(entry.command));
-      const readBack = BASH(view).some((entry) => /^gh pr view 1 .*--json isDraft,state,baseRefName/.test(entry.command) && /gh pr view 2/.test(entry.command));
+      const typed = BASH(view).filter((entry) => /\bgh pr create\b/.test(entry.command) && !/--help\b/.test(entry.command));
+      const readBack = creates.every((action) => BASH(view).some((entry) => new RegExp(`\\bgh pr view ${action.pr}\\b`).test(entry.command)));
       const drafts = typed.filter((entry) => /--draft/.test(entry.command));
       const bodyFlags = typed.filter((entry) => /--body-file \S+/.test(entry.command) && !/--body /.test(entry.command));
       return when(creates.length === 2 && typed.length === 2 && drafts.length === 0 && bodyFlags.length === 2 && Object.values(state.prs).every((pr) => pr.state === 'OPEN') && creates.every((action) => action['draft'] === false) && readBack, 'two creates through gh, no --draft, bodies from files, read back before the reply', `creates ${creates.length}, typed ${typed.length}, drafts ${drafts.length}, body files ${bodyFlags.length}, read back ${readBack}`);
@@ -143,10 +143,10 @@ export const openingFamily: Family = {
       const bare = bareOf(view.sandbox);
       const parentOfChild = revParse(bare, 'refs/heads/feat-shout^');
       const tip = revParse(bare, 'refs/heads/feat-greet');
-      return when(state.prs['1']?.base === 'main' && state.prs['2']?.base === 'feat-greet' && parentOfChild === tip, 'PR 1 on main; PR 2 on feat-greet, its commit on the parent tip', `bases ${state.prs['1']?.base}, ${state.prs['2']?.base}; parent of the child ${parentOfChild.slice(0, 8)} vs the parent tip ${tip.slice(0, 8)}`);
+      return when(Object.values(state.prs).find((pr) => pr.head === 'feat-greet')?.base === state.repo.trunk && Object.values(state.prs).find((pr) => pr.head === 'feat-shout')?.base === 'feat-greet' && parentOfChild === tip, 'PR 1 on main; PR 2 on feat-greet, its commit on the parent tip', `bases ${state.prs['1']?.base}, ${state.prs['2']?.base}; parent of the child ${parentOfChild.slice(0, 8)} vs the parent tip ${tip.slice(0, 8)}`);
     }),
     check('open.prose-skills-were-read-before-the-first-create', 'technical-writing and unslop were opened before the first PR was created', OP('**PRs.** Run `/deslop` over the diff before commit'), (view) => {
-      const create = view.parent.toolCalls.find((call) => call.name === 'bash' && /^gh pr create/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
+      const create = view.parent.toolCalls.find((call) => call.name === 'bash' && /\bgh pr create\b/.test(String(call.args['command'])) && !/--help\b/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
       const skills = ['technical-writing', 'unslop'].map((name) => openedAt(view.parent, `generated/skills/${name}/SKILL.md`));
       return when(skills.every((at) => at !== -1 && at < create), `skills opened at ${skills.join(', ')}, before the first create at ${create}`, `opened at ${skills.join(', ')}, first create at ${create}`);
     }),
