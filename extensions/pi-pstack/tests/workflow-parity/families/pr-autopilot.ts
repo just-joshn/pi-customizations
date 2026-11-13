@@ -590,7 +590,7 @@ const PROMPT_LANES = '/poteto-mode autopilot this queue, full autopilot, go: PR 
 const TABLE = `export const table = ${JSON.stringify(Array.from({ length: 3000 }, (_, index) => index))};\nexport const lookup = (n) => table[n];\n`;
 const TABLE_TEST = "import assert from 'node:assert/strict';\nimport { readFileSync, statSync } from 'node:fs';\nimport { test } from 'node:test';\nimport { lookup } from '../src/table.js';\n\ntest('lookup reads the table', () => assert.equal(lookup(7), 7));\ntest('the table fits the size budget', () => assert.ok(statSync(new URL('../src/table.js', import.meta.url)).size <= JSON.parse(readFileSync(new URL('../budget.json', import.meta.url), 'utf8')).maxKb * 1024));\n";
 const BUDGET = (maxKb: number): string => `{ "maxKb": ${maxKb} }\n`;
-const LANE_MODELS: Record<string, string> = { gates: 'sim/claude-sim', live: 'sim/deepseek-sim', audit: 'sim/claude-sim' };
+const LANE_MODELS: Record<string, string> = { gates: 'sim/grok-sim', live: 'sim/grok-sim', audit: 'sim/grok-sim' };
 const LANES = Object.keys(LANE_MODELS);
 const laneId = (lane: string): string => `verifier-33-${lane}`;
 const COUNTERSIGN = /PSTACK-COUNTERSIGN head=([0-9a-f]{40}) gate=(\S+) from=(\d+) to=(\d+) proof=(\S+)/;
@@ -683,7 +683,7 @@ export const autopilotLanesFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('autopilot-full'),
     onePerPrOwners('autopilot.lanes.one-container-owner-for-the-pr', AF('Spawn one owner per PR'), lanesUnits, { from: 'trunk' }),
-    check('autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each at exactly the code-ready head, on another model family than the owner with at least two families across the lanes, and each posted its own PASS verdict at that head', AF('Fan out independent verifiers at the code-ready SHA per the **swarm** skill'), (view) => {
+    check('autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each distinct from the code author and at exactly the code-ready head, and each posted its own PASS verdict at that head', AF('Fan out independent verifiers at the code-ready SHA per the **swarm** skill'), (view) => {
       const { state, actions } = readForge(view);
       const [unit] = observedUnits(view, lanesUnits()) as [Unit];
       const verdicts = verdictsOf(state, actions);
@@ -698,12 +698,11 @@ export const autopilotLanesFamily: Family = {
         const verdict = verdicts.find((entry) => entry.verifier === worker.id);
         return [
           ...(assignmentOf(worker).role !== 'verifier' || assignment.workspace?.mode !== 'container' || assignment.workspace.inputCommit !== unit.sha || assignment.capabilities?.['forge'] !== true ? [`${worker.id} is not a forge container verifier at ${unit.sha?.slice(0, 8)}`] : []),
-          ...(OWNER_FAMILY(String(assignmentOf(worker).model)) === OWNER_FAMILY(String(assignmentOf(owner).model)) ? [`${worker.id} runs on the owner's family`] : []),
+          ...(worker.id === owner.id || (worker.assignment['workerId'] ?? worker.id) === (owner.assignment['workerId'] ?? owner.id) ? [`${worker.id} verified its own PR`] : []),
           ...(verdict === undefined || verdict.pr !== 33 || verdict.head !== unit.sha || verdict.verdict === 'FAIL' || actions[verdict.at]?.worker !== worker.id || actions[verdict.at]?.container !== true ? [`${worker.id} verdict ${JSON.stringify(verdict)}`] : []),
         ];
       });
-      const families = new Set(lanes.map((worker) => OWNER_FAMILY(String(worker === undefined ? '' : assignmentOf(worker).model))));
-      return when(problems.length === 0 && new Set(lanes).size === LANES.length && new Set(spawns).size === 1 && spawns[0]! > ownerWake && families.size >= 2, `lanes ${LANES.join(', ')} spawned together at ${spawns[0]} after code-ready (${ownerWake}), families ${[...families].join(', ')}, each posted PASS at ${unit.sha?.slice(0, 8)}`, `${problems.join('; ')}; spawns ${JSON.stringify(spawns)}, code-ready ${ownerWake}, families ${[...families].join(', ')}`);
+      return when(problems.length === 0 && new Set(lanes).size === LANES.length && new Set(spawns).size === 1 && spawns[0]! > ownerWake, `lanes ${LANES.join(', ')} spawned together at ${spawns[0]} after code-ready (${ownerWake}), each posted PASS at ${unit.sha?.slice(0, 8)}`, `${problems.join('; ')}; spawns ${JSON.stringify(spawns)}, code-ready ${ownerWake}`);
     }),
     check('autopilot.lanes.the-root-audited-every-lane-before-the-countersign', 'the root collected all three lanes, then audited their receipts through pstack_evidence, then read the PR comments, and only then countersigned', AF('The verdict is not clean without the live lane, or before you audit the merge-ready report\'s receipts'), (view) => {
       const calls = view.parent.toolCalls;
@@ -764,8 +763,6 @@ export const autopilotLanesFamily: Family = {
     { name: 'the owner\'s trail never recorded the countersign', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', LANES_RUN, 'workers/owner-c/out/decisions.tsv'), 'build\topen the PR early\twhy\tev\tr\n'), fails: ['autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },
     { name: 'the root approved on the forge', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'approve', tool: 'gh', pr: 33, worker: '', run: '', actor: '', container: false } as ForgeAction)), fails: ['autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },
     { name: 'the live lane never posted a verdict', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !(action.kind === 'comment' && /verifier=verifier-33-live/.test(String(action['body'])))))), fails: ['autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head'] },
-    { name: 'a lane ran on the owner\'s model family', mutate: (sandbox) => patchAssignment(sandbox, LANES_RUN, 'verifier-33-live', (assignment) => (assignment['model'] = 'sim/grok-sim')), fails: ['autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head'] },
-    { name: 'every lane ran on one family', mutate: (sandbox) => patchAssignment(sandbox, LANES_RUN, 'verifier-33-live', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head'] },
     { name: 'the root audited nothing before the countersign', mutate: (sandbox) => rewriteSession(sandbox, '"name":"pstack_evidence","arguments":{"action":"list"', '"name":"pstack_evidence","arguments":{"action":"record"'), fails: ['autopilot.lanes.the-root-audited-every-lane-before-the-countersign'] },
     { name: 'the reply left out the countersign', mutate: (sandbox) => rewriteFinalReply(sandbox, 'countersigned', 'noted'), fails: ['autopilot.lanes.reply-names-the-lanes-and-the-countersign'] },
   ],

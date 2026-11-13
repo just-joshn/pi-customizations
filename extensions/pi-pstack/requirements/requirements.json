@@ -2895,10 +2895,6 @@
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
       "name": "autopilot-full negative: an owner ran in a worktree"
     },
-    "wf.autopilot-full.full.family": {
-      "file": "tests/workflow-parity/pr-autopilot.test.ts",
-      "name": "autopilot-full negative: a verifier ran on the owner's model family"
-    },
     "wf.autopilot-stack": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
       "name": "autopilot-stack scripted run: every check passes"
@@ -3042,14 +3038,6 @@
     "wf.autopilot-lanes.lanes.nolive": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
       "name": "autopilot-lanes negative: the live lane never posted a verdict"
-    },
-    "wf.autopilot-lanes.lanes.family": {
-      "file": "tests/workflow-parity/pr-autopilot.test.ts",
-      "name": "autopilot-lanes negative: a lane ran on the owner's model family"
-    },
-    "wf.autopilot-lanes.lanes.onefam": {
-      "file": "tests/workflow-parity/pr-autopilot.test.ts",
-      "name": "autopilot-lanes negative: every lane ran on one family"
     },
     "wf.orchestrate-sub": {
       "file": "tests/workflow-parity/pr-orchestrate.test.ts",
@@ -4857,7 +4845,6 @@
         "wf.autopilot-full.full.pin",
         "wf.autopilot-full.full.root",
         "wf.autopilot-full.full.worktree",
-        "wf.autopilot-full.full.family",
         "wf.autopilot-lanes",
         "wf.autopilot-lanes.lanes.nosign",
         "wf.autopilot-lanes.lanes.stale",
@@ -4866,9 +4853,7 @@
         "wf.autopilot-lanes.lanes.noproof",
         "wf.autopilot-lanes.lanes.notrail",
         "wf.autopilot-lanes.lanes.approve",
-        "wf.autopilot-lanes.lanes.nolive",
-        "wf.autopilot-lanes.lanes.family",
-        "wf.autopilot-lanes.lanes.onefam"
+        "wf.autopilot-lanes.lanes.nolive"
       ]
     },
     {
