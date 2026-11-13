@@ -2,7 +2,7 @@
 // reads and writes <origin.git>/forge/state.json, and an append-only action log the checkers read. Real git decides head
 // SHAs, conflicts and merges, so a rebase, a force-push or a merge is a fact in the bare repository, not a claim.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -258,8 +258,7 @@ export function settleChecks(sandbox: string, pr: number, to: 'SUCCESS' | 'FAILU
   try {
     const state = JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8')) as { prs: Record<string, { checks: { state: string; pendingReads?: number }[] }> };
     for (const check of state.prs[String(pr)]?.checks ?? []) Object.assign(check, { state: to, pendingReads: 0 });
-    writeFileSync(join(dir, 'state.tmp'), JSON.stringify(state, null, 2));
-    renameSync(join(dir, 'state.tmp'), join(dir, 'state.json'));
+    writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2));
   } finally {
     rmSync(lock, { recursive: true, force: true });
   }

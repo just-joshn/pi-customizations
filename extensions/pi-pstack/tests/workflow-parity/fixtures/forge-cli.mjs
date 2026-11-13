@@ -4,7 +4,7 @@
 // and every call plus every ref update (the bare repository's pre-receive hook) is appended to actions.jsonl in the same
 // directory. The bare repository is the one place a container worker and the host both reach, so both write there.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -54,16 +54,15 @@ function lock() {
 
 const load = () => {
   if (WHO.container && process.platform === 'linux') {
-    // Host renames can leave the bind mount caching both the old directory entry and the old file size.
+    // The bind mount can retain the previous file size after a host write.
     const refreshed = sh('stat', ['--cached=never', '--format=%s', DIR, join(DIR, 'state.json')]);
     if (refreshed.status !== 0) die(1, `forge: cannot refresh shared state metadata: ${refreshed.stderr || refreshed.error}`);
   }
   return JSON.parse(readFileSync(join(DIR, 'state.json'), 'utf8'));
 };
 function save(state) {
-  const tmp = join(DIR, `state.${process.pid}.tmp`);
-  writeFileSync(tmp, JSON.stringify(state, null, 2));
-  renameSync(tmp, join(DIR, 'state.json'));
+  // Readers hold the forge lock; keeping the inode avoids stale bind-mount directory entries after replacement.
+  writeFileSync(join(DIR, 'state.json'), JSON.stringify(state, null, 2));
 }
 
 // ---- derived facts: head, conflicts, checks
