@@ -51,6 +51,16 @@ const run = (suffix: string, value: RunView) =>
     ?.checks.find((entry) => entry.id === `autopilot.full.${suffix}`)
     ?.run(value);
 
+test('an empty forge cannot pass owner execution or owner evidence checks on rescore', () => {
+  const value = view();
+  writeFileSync(join(forgeDirOf(value.sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: {} }));
+  const current = value.runs[0];
+  if (current === undefined) throw new Error('Missing run');
+  current.workers = [];
+  expect(run('one-container-owner-per-pr-off-trunk', value)).toMatchObject({ ok: false });
+  expect(run('owners-push-their-own-branch-and-keep-a-trail', value)).toMatchObject({ ok: false });
+});
+
 test('independent same-family worktree lanes can verify a PR without posting an invented comment', () => {
   expect(run('independent-verifier-per-pr-on-another-family-at-the-head', view())).toMatchObject({ ok: true });
 });
