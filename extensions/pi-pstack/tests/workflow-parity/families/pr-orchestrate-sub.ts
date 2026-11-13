@@ -5,15 +5,15 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 
 import { Actor, Parent, scenario, Worker } from '../fixtures/dsl.ts';
-import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeHandle, predictCommit, readForge, setupForge } from '../fixtures/forge.ts';
+import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, type ForgeAction, type ForgeHandle, forgeEnv, predictCommit, readForge, setupForge } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, src, type Src, when } from '../lib/check.ts';
+import { check, type Src, src, when } from '../lib/check.ts';
 import { finalReply, noToolErrors, playbookReads, promptRoutes } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { parentSession, rewriteFinalReply } from '../lib/mutate.ts';
 import { loadRun, type RunDir, type RunView, type WorkerView } from '../lib/view.ts';
-import { PR_BODY, OWNER_FAMILY, type Unit } from './pr-autopilot.ts';
-import { forgeResolvedOnce, REPO_FLAGS } from './pr-shared.ts';
+import { OWNER_FAMILY, PR_BODY, type Unit } from './pr-autopilot.ts';
+import { REPO_FLAGS } from './pr-shared.ts';
 import { mergesAreAuthorizedAndVerified, mergesIn, verdictsOf } from './pr-shipping.ts';
 import type { Family } from './types.ts';
 
@@ -229,7 +229,6 @@ export const orchestrateSubFamily: Family = {
   checks: [
     promptRoutes('poteto-mode'),
     ...playbookReads('orchestrate'),
-    forgeResolvedOnce('orchestrate.sub.forge-resolved-once-gh-fallback-recorded', OR('Run it with your own tools'), 'gh'),
     check('orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns', 'the root spawned only the coordinator (the one worker with capabilities.spawn), the coordinator made every leaf spawn call from its own session into its own run, the leaves are owned by the coordinator\'s session and hold no spawn capability, a spawn of a fourth level was refused and left no claim, and the root got wakes for the coordinator only', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
       const rootSpawns = spawnsOf(view.parent).map(idFromPath);

@@ -13,7 +13,7 @@ import type { Ctx } from '../lib/driver.ts';
 import { dropWakes, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 import { forgeResolvedOnce, REPO_FLAGS, stepDone } from './pr-shared.ts';
-import { mergesAreAuthorizedAndVerified, mergeRequested, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
+import { mergeRequested, mergesAreAuthorizedAndVerified, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
 import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
 
@@ -151,9 +151,9 @@ function observedUnits(view: RunView, units: Unit[]): Unit[] {
   });
 }
 
-const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier' && assignmentOf(worker).workspace?.inputCommit === head);
+export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier' && assignmentOf(worker).workspace?.inputCommit === head);
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
-const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
+export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
   const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
   if (/VERDICT\s+(?:FAIL|blocked)/i.test(report)) return false;
   if (new RegExp(`VERDICT\\s+(?:clean|PASS(?:\\+NOTES)?)[\\s\\S]*${head}`, 'i').test(report)) return true;
@@ -240,7 +240,7 @@ function verifiersIndependent(id: string, source: Src | Src[], units: (view: Run
   });
 }
 
-const mergeVerified = (id: string, source: Src | Src[]): Check => check(id, 'each merge is authorized and follows independent clean lane reports at the merged head', source, (view) => {
+export const mergeVerified = (id: string, source: Src | Src[]): Check => check(id, 'each merge is authorized and follows independent clean lane reports at the merged head', source, (view) => {
   const { state, actions } = readForge(view);
   const merges = mergesIn(actions);
   const problems = merges.flatMap((merge) => {
@@ -248,8 +248,10 @@ const mergeVerified = (id: string, source: Src | Src[]): Check => check(id, 'eac
     const go = mergeGo(view, owner);
     const head = String(merge['head']);
     const lanes = verificationWorkers(view, head);
+    const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.head === head && lanes.some((worker) => worker.id === verdict.verifier));
+    const before = posted.every((verdict) => verdict.at < actions.indexOf(merge));
     const collected = (worker: WorkerView) => view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.order < (go?.order ?? -1));
-    return lanes.length > 0 && lanes.every((worker) => worker.id !== owner && laneClean(view, worker, head) && collected(worker)) && go !== undefined && String(go.args['message']).includes(head) && Date.parse(go.at ?? '') < Date.parse(String(merge['ts'] ?? '')) ? [] : [`PR ${merge.pr} merged without collected independent clean lanes and a head-specific go`];
+    return before && lanes.length > 0 && lanes.every((worker) => worker.id !== owner && laneClean(view, worker, head) && collected(worker)) && go !== undefined && String(go.args['message']).includes(head) && Date.parse(go.at ?? '') < Date.parse(String(merge['ts'] ?? '')) ? [] : [`PR ${merge.pr} merged without collected independent clean lanes and a head-specific go`];
   });
   return when(mergeRequested(view.prompt) && merges.length > 0 && problems.length === 0, 'authorized merges at independently verified heads', problems.join('; ') || 'no authorized merge');
 });
