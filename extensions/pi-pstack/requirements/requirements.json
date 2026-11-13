@@ -92,7 +92,7 @@
     },
     "slash.mid-pass": {
       "file": "tests/skill-parity/mid-message.test.ts",
-      "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own"
+      "name": "a leading package prompt uses native skill expansion even without a later reference"
     },
     "slash.mid-code": {
       "file": "tests/skill-parity/mid-message.test.ts",
