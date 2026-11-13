@@ -1,9 +1,9 @@
 {
   "resultsSource": "local",
   "platform": "darwin",
-  "commit": "ae43be9922ba939d68e91033bdb174fce3539e3d",
+  "commit": "e6c87ae85ad3a75ff9fa1501877898d06903ad89",
   "dirty": false,
-  "sourceDigest": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
+  "sourceDigest": "b8a5624a040cbf07b4ce0ec18401de09c07297f125466a6cbf6be778f9e94f16",
   "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
   "piVersion": "1.5.2",
   "nodeVersion": "v26.13.0"
