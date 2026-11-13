@@ -75,6 +75,7 @@ export class ExchangeController {
       cleaned.messages.filter((message) => message.role !== 'system'),
       cleaned.projection,
       this.#state.historyThrough,
+      this.#state.resetAfter,
     );
     const curMessageText = getCurMessageText(history.current);
     const contextMode = this.#state.mode === 'context';

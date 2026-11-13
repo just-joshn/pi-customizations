@@ -46,6 +46,8 @@ export const snapshotSchema = Type.Object({
   neverAsk: strings,
   lastUserEntry: Type.Union([Type.String(), Type.Null()]),
   historyThrough: Type.Union([Type.String(), Type.Null()]),
+  /** Last user entry before `/reset`; history through that exchange leaves the request. Optional for older snapshots. */
+  resetAfter: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   physicalModel: Type.Union([physicalModel, Type.Null()]),
   /** Editor model for architect reconstruction. Optional for older snapshots. */
   editorModel: Type.Optional(Type.Union([physicalModel, Type.Null()])),
@@ -57,8 +59,9 @@ export const snapshotSchema = Type.Object({
 });
 type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
 type ParsedSnapshot = Immutable<Static<typeof snapshotSchema>>;
-export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode' | 'editorModel' | 'weakModel' | 'assistantCommits'> & {
+export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode' | 'resetAfter' | 'editorModel' | 'weakModel' | 'assistantCommits'> & {
   readonly originalReadOnly: readonly string[];
+  readonly resetAfter: string | null;
   readonly returnMode: EditFormatName | null;
   readonly editorModel: Readonly<Static<typeof physicalModel>> | null;
   readonly weakModel: Readonly<Static<typeof physicalModel>> | null;
@@ -70,6 +73,7 @@ function normalizeSnapshot(data: ParsedSnapshot): Snapshot {
     ...data,
     originalReadOnly: data.originalReadOnly ?? [],
     returnMode: data.returnMode ?? null,
+    resetAfter: data.resetAfter ?? null,
     editorModel: data.editorModel ?? null,
     weakModel: data.weakModel ?? null,
     assistantCommits: data.assistantCommits ?? [],

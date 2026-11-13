@@ -43,6 +43,7 @@ function snapshot(root: string, editable: string[], mode: Snapshot['mode'] = 'wh
     neverAsk: [],
     lastUserEntry: 'user-1',
     historyThrough: null,
+    resetAfter: null,
     physicalModel: { provider: 'test', id: 'scripted' },
     editorModel: null,
     weakModel: null,

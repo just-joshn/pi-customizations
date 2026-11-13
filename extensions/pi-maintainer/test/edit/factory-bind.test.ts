@@ -59,6 +59,7 @@ function snapshot(root: string, files: Snapshot['files'], ignoredMentions: strin
     neverAsk: [],
     lastUserEntry: 'user-1',
     historyThrough: null,
+    resetAfter: null,
     physicalModel: { provider: 'test', id: 'scripted' },
     editorModel: null,
     weakModel: null,

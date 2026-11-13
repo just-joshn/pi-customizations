@@ -105,13 +105,20 @@ export function partitionHistory(
   incoming: readonly ContextMessage[],
   projected: readonly ProjectedSessionEntry[],
   cut: string | null,
+  resetAfter: string | null = null,
 ): { done: ContextMessage[]; current: ContextMessage[]; partition: 'position-preserving' | 'unpartitioned' } {
   const contributions = projected.flatMap((entry) => entry.messages.filter((message) => message.role !== 'system').map((message) => ({ id: entry.sourceEntry.id, message })));
   const sameShape = contributions.length === incoming.length && contributions.every((entry, index) => entry.message.role === incoming[index]?.role);
   if (!sameShape) return { done: [], current: [...incoming], partition: 'unpartitioned' };
   const index = cut === null ? -1 : contributions.findIndex((entry) => entry.id === cut);
   if (cut !== null && index < 0) return { done: [], current: [...incoming], partition: 'unpartitioned' };
-  return { done: incoming.slice(0, index + 1), current: incoming.slice(index + 1), partition: 'position-preserving' };
+  const reset = resetAfter === null ? -1 : contributions.findIndex((entry) => entry.id === resetAfter);
+  if (resetAfter !== null && reset < 0) return { done: [], current: [...incoming], partition: 'unpartitioned' };
+  // `/reset` clears Aider's done and current messages: keep only exchanges that start after the reset user entry.
+  const next = reset < 0 ? 0 : contributions.findIndex((entry, position) => position > reset && entry.message.role === 'user' && entry.id !== resetAfter);
+  const start = next < 0 ? incoming.length : next;
+  const split = Math.max(index + 1, start);
+  return { done: incoming.slice(start, split), current: incoming.slice(split), partition: 'position-preserving' };
 }
 
 function examples(prompts: PromptSet, policy: PromptPolicy): { main: string; examples: Dialogue[] } {
@@ -222,6 +229,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
         view.messages.filter((message) => message.role !== 'system'),
         view.projection,
         snapshot.historyThrough,
+        snapshot.resetAfter,
       );
   const readOnlyText = getFilesContent(snapshot.root, contents.readOnly, fence);
   const { filesText, filesAck } = editableFilesDialogue(input, contents, fence, prompts);
