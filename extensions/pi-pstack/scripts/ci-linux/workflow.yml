@@ -79,10 +79,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           node -e '
-          import("./scripts/parity-lib.mjs").then(({ sourceDigest }) => {
+          import("./scripts/parity-lib.mjs").then(({ sourceDigest, toolchain }) => {
             const fs = require("node:fs");
             const snap = JSON.parse(fs.readFileSync("ci-snapshot.json", "utf8"));
-            const identity = { platform: process.platform, commit: snap.commit, sourceDigest: sourceDigest("."), runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`, nodeVersion: process.version, root: process.cwd() };
+            const identity = { platform: process.platform, commit: snap.commit, sourceDigest: sourceDigest("."), runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`, ...toolchain(), root: process.cwd() };
             for (const name of ["linux-all"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
           });
           '

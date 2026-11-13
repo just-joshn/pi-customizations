@@ -1,5 +1,5 @@
 // Shared by build-parity-manifest.mjs, check-release.mjs and check-parity.mjs. Pure functions over files and a vitest JSON report.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
@@ -389,6 +389,27 @@ export function vitestRunOutcome({ status, signal, error }, reportText) {
   return { report };
 }
 
+/** The Pi binary the worker, driver and Pi-load tests run when PSTACK_E2E_PI is unset; those tests carry the same literal. */
+const DEFAULT_PI = '/Users/josh-desktop/.pi/agent/bin/pi';
+
+/** What a run executed against: the Pi binary the tests drive (its path and `--version`, null when it will not run) and the Node running them. */
+export function toolchain(env = process.env) {
+  const piPath = env.PSTACK_E2E_PI || DEFAULT_PI;
+  const ran = spawnSync(piPath, ['--version'], { encoding: 'utf8', timeout: 30_000 });
+  const reported = ran.status === 0 ? (ran.stdout.trim() || ran.stderr.trim()) : '';
+  return { piPath, piVersion: reported || null, nodeVersion: process.version };
+}
+
+const TOOLCHAIN_FIELDS = ['piPath', 'piVersion', 'nodeVersion'];
+const recordedToolchain = (sidecar) => Object.fromEntries(TOOLCHAIN_FIELDS.filter((f) => typeof sidecar?.[f] === 'string' && sidecar[f]).map((f) => [f, sidecar[f]]));
+
+/** Notes, not problems: the runs recorded different Pi versions, so a result on one is not evidence for the other. */
+export function toolchainNotes(runs) {
+  const versions = new Map();
+  for (const run of runs) if (typeof run.piVersion === 'string' && run.piVersion) versions.set(run.platform ?? 'unknown', run.piVersion);
+  return new Set(versions.values()).size > 1 ? [`note: Pi versions differ between runs (${[...versions].map(([platform, version]) => `${platform} ${version}`).join(', ')})`] : [];
+}
+
 const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl', 'root'];
 
 /** A result file recorded elsewhere (CI) must say what it is. Returns { identity } or { problem }.
@@ -399,11 +420,11 @@ export function sidecarIdentity(sidecar) {
     if (!/^[0-9a-f]{64}$/.test(sidecar.sourceDigest ?? '')) missing.push('sourceDigest');
     if (typeof sidecar.dirty !== 'boolean') missing.push('dirty');
     if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
-    return { identity: { resultsSource: 'local', platform: sidecar.platform, commit: sidecar.commit, dirty: sidecar.dirty, sourceDigest: sidecar.sourceDigest } };
+    return { identity: { resultsSource: 'local', platform: sidecar.platform, commit: sidecar.commit, dirty: sidecar.dirty, sourceDigest: sidecar.sourceDigest, ...recordedToolchain(sidecar) } };
   }
   const missing = SIDECAR_FIELDS.filter((f) => typeof sidecar?.[f] !== 'string' || !sidecar[f].trim());
   if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
-  return { identity: Object.fromEntries(SIDECAR_FIELDS.map((f) => [f, sidecar[f]])) };
+  return { identity: { ...Object.fromEntries(SIDECAR_FIELDS.map((f) => [f, sidecar[f]])), ...recordedToolchain(sidecar) } };
 }
 
 /** Problems that make a manifest's recorded runs untrustworthy: unattributed, or recorded against other code than the tree now holds. */
@@ -460,9 +481,9 @@ export function renderStatusSection(manifest) {
     '',
     `Computed from the Vitest result files below, by \`node scripts/build-parity-manifest.mjs\`. A requirement is PASS only when every linked test ran and passed on a platform it targets, and a failure on any platform is FAIL. A skipped, missing, or unlinked test is INCONCLUSIVE. \`node scripts/check-release.mjs\` exits non-zero until every mandatory requirement is PASS.`,
     '',
-    '| Result | Platform | Commit | Tests | Run |',
-    '| --- | --- | --- | --- | --- |',
-    ...(manifest.runs ?? [run]).map((r, i) => `| ${i + 1} | ${r.platform ?? 'unknown'} | \`${r.commit?.slice(0, 12) ?? 'unknown'}\`${r.dirty ? ' (dirty tree)' : ''} | ${r.passedTests ?? '?'} passed, ${r.failedTests ?? '?'} failed, ${r.skippedTests ?? '?'} skipped | ${r.runUrl ?? `${r.resultsSource ?? 'local'} at ${r.generatedAt}`} |`),
+    '| Result | Platform | Commit | Pi | Node | Tests | Run |',
+    '| --- | --- | --- | --- | --- | --- | --- |',
+    ...(manifest.runs ?? [run]).map((r, i) => `| ${i + 1} | ${r.platform ?? 'unknown'} | \`${r.commit?.slice(0, 12) ?? 'unknown'}\`${r.dirty ? ' (dirty tree)' : ''} | ${r.piVersion ?? 'unknown'} | ${r.nodeVersion ?? 'unknown'} | ${r.passedTests ?? '?'} passed, ${r.failedTests ?? '?'} failed, ${r.skippedTests ?? '?'} skipped | ${r.runUrl ?? `${r.resultsSource ?? 'local'} at ${r.generatedAt}`} |`),
     '',
     '| Kind | PASS | FAIL | INCONCLUSIVE | N/A |',
     '| --- | --- | --- | --- | --- |',

@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { buildRecords, checkRuns, deriveStatus, loadInputs, mergeOutcomes, requirementsDigest, sourceDigest, sourceLabel } from './parity-lib.mjs';
+import { buildRecords, checkRuns, deriveStatus, loadInputs, mergeOutcomes, requirementsDigest, sourceDigest, sourceLabel, toolchainNotes } from './parity-lib.mjs';
 
 const { values } = parseArgs({ options: { root: { type: 'string' }, manifest: { type: 'string' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -35,6 +35,7 @@ else {
 const open = (manifest?.requirements ?? []).filter((r) => r.applicability.mandatory && r.status !== 'PASS');
 const mandatory = (manifest?.requirements ?? []).filter((r) => r.applicability.mandatory);
 for (const p of problems) console.error(p);
+for (const note of toolchainNotes(manifest?.runs ?? [])) console.error(note);
 if (open.length) {
   console.error(`\n${open.length} mandatory requirement(s) are not PASS:`);
   for (const r of open) console.error(`  ${r.status.padEnd(12)} ${r.id}  [${sourceLabel(r)}]\n               ${r.reason}`);
