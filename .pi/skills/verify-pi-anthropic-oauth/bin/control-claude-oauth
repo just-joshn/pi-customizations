@@ -1,0 +1,602 @@
+#!/usr/bin/env node
+// Drives the pi-anthropic-oauth extension through the installed `pi` CLI (print, RPC, and
+// the interactive TUI in a private tmux server) against a local Anthropic Messages peer.
+// Every Pi process gets a disposable agent dir, a disposable CLAUDE_CONFIG_DIR, synthetic
+// tokens, and a PATH stub for `open`/`xdg-open`, so no run touches real credentials,
+// a real browser, or Anthropic.
+import assert from 'node:assert/strict';
+import { execFile, execFileSync, spawn } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, realpathSync, rmSync, statSync } from 'node:fs';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(HERE, '../../../..');
+const EXTENSION = join(REPO_ROOT, 'extensions/pi-anthropic-oauth');
+const REFERENCE = JSON.parse(readFileSync(join(EXTENSION, 'test/fixtures/claude-code-2.1.316.json'), 'utf8'));
+const EVIDENCE_ROOT = join(REPO_ROOT, 'artifacts/verify-pi-anthropic-oauth');
+const SCRATCH_PREFIX = 'verify-claude-oauth-';
+const PROVIDER = 'claude-subscription';
+const MODEL = REFERENCE.model;
+const PI_BASE_ARGS = ['--offline', '--no-session', '-ne', '-ns', '-np', '-nc', '-e', EXTENSION];
+const SCRUBBED_ENV = [
+  'ANTHROPIC_AUTH_TOKEN',
+  'CLAUDE_CODE_OAUTH_TOKEN',
+  'ANTHROPIC_OAUTH_TOKEN',
+  'ANTHROPIC_API_KEY',
+  'CLAUDE_CONFIG_DIR',
+  'CLAUDE_SECURESTORAGE_CONFIG_DIR',
+  'CLAUDE_CODE_CUSTOM_OAUTH_URL',
+  'CLAUDE_CODE_OAUTH_CLIENT_ID',
+  'PI_CODING_AGENT_DIR',
+  'PI_OFFLINE',
+];
+const TIMEOUT_MS = 60_000;
+const FAR_FUTURE = 4102444800000;
+
+const oauthToken = (label) => `sk-ant-oat01-verify-${label}-${randomUUID().slice(0, 8)}`;
+const mask = (value) => (typeof value === 'string' && value.length > 12 ? `${value.slice(0, 13)}…${value.slice(-6)}` : value);
+const log = (line) => process.stdout.write(`${line}\n`);
+
+// ---------- scratch run ----------
+
+async function createRun(feature) {
+  const root = await mkdtemp(join(tmpdir(), SCRATCH_PREFIX));
+  const run = { root, feature, agentDir: join(root, 'agent'), cwd: join(root, 'cwd'), claudeDir: join(root, 'claude'), binDir: join(root, 'bin'), openLog: join(root, 'open.log'), tmuxSocket: `${SCRATCH_PREFIX}${root.split('-').at(-1)}`, pids: [] };
+  await Promise.all([mkdir(run.agentDir), mkdir(run.cwd), mkdir(run.claudeDir), mkdir(run.binDir), writeFile(run.openLog, '')]);
+  for (const name of ['open', 'xdg-open']) {
+    const stub = join(run.binDir, name);
+    await writeFile(stub, `#!/bin/sh\nprintf '%s\\n' "$*" >> '${run.openLog}'\n`);
+    await chmod(stub, 0o755);
+  }
+  await saveRun(run);
+  return run;
+}
+
+const saveRun = (run) => writeFile(join(run.root, 'run.json'), JSON.stringify(run, null, 2));
+
+function killRun(run) {
+  try {
+    execFileSync('tmux', ['-L', run.tmuxSocket, 'kill-server'], { stdio: 'ignore' });
+  } catch {
+    // No server on this socket.
+  }
+  rmSync(join(process.env.TMUX_TMPDIR ?? '/tmp', `tmux-${process.getuid()}`, run.tmuxSocket), { force: true });
+  for (const pid of run.pids ?? []) {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {
+      // Already gone.
+    }
+  }
+}
+
+async function destroyRun(run) {
+  killRun(run);
+  await rm(run.root, { recursive: true, force: true });
+}
+
+function piEnv(run, extra = {}) {
+  const env = { ...process.env };
+  for (const name of SCRUBBED_ENV) delete env[name];
+  return { ...env, PATH: `${run.binDir}:${process.env.PATH}`, PI_CODING_AGENT_DIR: run.agentDir, PI_SKIP_VERSION_CHECK: '1', PI_TELEMETRY: '0', CLAUDE_CONFIG_DIR: run.claudeDir, ...extra };
+}
+
+async function writeAgentFiles(run, { baseUrl, headers, credential } = {}) {
+  if (baseUrl) await writeFile(join(run.agentDir, 'models.json'), JSON.stringify({ providers: { [PROVIDER]: { baseUrl, ...(headers ? { headers } : {}) } } }, null, 2));
+  if (credential) await writeFile(join(run.agentDir, 'auth.json'), JSON.stringify({ [PROVIDER]: credential }, null, 2), { mode: 0o600 });
+}
+
+async function readAuth(run) {
+  const path = join(run.agentDir, 'auth.json');
+  return existsSync(path) ? JSON.parse((await readFile(path, 'utf8')) || '{}') : {};
+}
+
+// ---------- local Anthropic Messages peer ----------
+
+const frame = (event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
+const USAGE = { input_tokens: 10, output_tokens: 0, cache_read_input_tokens: 4, cache_creation_input_tokens: 2 };
+const start = () => ({ type: 'message_start', message: { id: `msg_${randomUUID().slice(0, 8)}`, model: MODEL, usage: USAGE } });
+const finish = (stop) => [{ type: 'message_delta', delta: { stop_reason: stop }, usage: { output_tokens: 7 } }, { type: 'message_stop' }];
+
+function textReply(text) {
+  return [start(), { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }, { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } }, { type: 'content_block_stop', index: 0 }, ...finish('end_turn')];
+}
+
+function toolReply(id, name, input) {
+  return [
+    start(),
+    { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id, name, input: {} } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify(input) } },
+    { type: 'content_block_stop', index: 0 },
+    ...finish('tool_use'),
+  ];
+}
+
+async function startMessagesPeer() {
+  const requests = [];
+  const queue = [];
+  const server = createServer((req, res) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => {
+      let body = null;
+      try {
+        body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      } catch {
+        // Recorded as null.
+      }
+      requests.push({ method: req.method, url: req.url, headers: req.headers, body });
+      const events = queue.shift() ?? textReply('LOCAL_OK');
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      res.end(events.map(frame).join(''));
+    });
+  });
+  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  return {
+    baseUrl: `http://127.0.0.1:${server.address().port}`,
+    requests,
+    enqueue: (...replies) => queue.push(...replies),
+    close: () =>
+      new Promise((done) => {
+        server.close(() => done());
+        server.closeAllConnections();
+      }),
+  };
+}
+
+function describeRequest(request) {
+  const system = Array.isArray(request.body?.system) ? request.body.system.filter((block) => typeof block?.text === 'string').map((block) => block.text) : [];
+  const h = request.headers;
+  return {
+    path: request.url,
+    model: request.body?.model,
+    authorization: h.authorization ? `${h.authorization.split(' ')[0]} ${mask(h.authorization.split(' ')[1])}` : null,
+    'x-api-key': h['x-api-key'] ?? null,
+    'user-agent': h['user-agent'],
+    'x-app': h['x-app'],
+    'anthropic-beta': h['anthropic-beta'],
+    'x-claude-code-session-id': h['x-claude-code-session-id'] ?? null,
+    'x-claude-code-prompt-id': h['x-claude-code-prompt-id'] ?? null,
+    'x-claude-code-request-class': h['x-claude-code-request-class'] ?? null,
+    billing: system[0] ?? null,
+    systemPreamble: system[1]?.slice(0, 80) ?? null,
+    tools: Array.isArray(request.body?.tools) ? request.body.tools.map((tool) => tool.name) : [],
+    messageRoles: Array.isArray(request.body?.messages) ? request.body.messages.map((message) => message.role) : [],
+  };
+}
+
+const billingCore = (text) => (text ?? '').replace(/(cc_entrypoint=sdk-cli;).*$/, '$1');
+
+// ---------- Pi process drivers ----------
+
+function runPi(run, args, extraEnv = {}) {
+  return new Promise((done) => {
+    const child = execFile('pi', [...PI_BASE_ARGS, ...args], { cwd: run.cwd, env: piEnv(run, extraEnv), timeout: TIMEOUT_MS }, (error, stdout, stderr) => {
+      done({ args: ['pi', ...PI_BASE_ARGS, ...args].join(' '), exitCode: error ? (error.code ?? 1) : 0, stdout, stderr });
+    });
+    child.stdin.end();
+  });
+}
+
+function startRpc(run, args = []) {
+  const child = spawn('pi', [...PI_BASE_ARGS, '--mode', 'rpc', ...args], { cwd: run.cwd, env: piEnv(run), stdio: ['pipe', 'pipe', 'pipe'] });
+  run.pids.push(child.pid);
+  const pending = new Map();
+  const events = [];
+  const waiters = [];
+  let stderr = '';
+  let seq = 0;
+  let buffer = '';
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', (chunk) => {
+    buffer += chunk;
+    for (let at = buffer.indexOf('\n'); at >= 0; at = buffer.indexOf('\n')) {
+      const line = buffer.slice(0, at).trim();
+      buffer = buffer.slice(at + 1);
+      if (!line) continue;
+      let record;
+      try {
+        record = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (record.type === 'response' && pending.has(record.id)) {
+        const { resolve: ok, reject: fail } = pending.get(record.id);
+        pending.delete(record.id);
+        record.success ? ok(record.data) : fail(new Error(record.error ?? `${record.command} failed`));
+        continue;
+      }
+      events.push(record);
+      for (const waiter of [...waiters]) {
+        if (waiter.match(record)) {
+          waiters.splice(waiters.indexOf(waiter), 1);
+          waiter.done(record);
+        }
+      }
+    }
+  });
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk;
+  });
+  const exited = new Promise((done) => child.once('close', done));
+  const rpc = {
+    events,
+    send(command) {
+      seq += 1;
+      const id = `req-${seq}`;
+      return new Promise((ok, fail) => {
+        const timer = setTimeout(() => fail(new Error(`RPC ${command.type} timed out. stderr:\n${stderr}`)), TIMEOUT_MS);
+        pending.set(id, { resolve: (v) => (clearTimeout(timer), ok(v)), reject: (e) => (clearTimeout(timer), fail(e)) });
+        child.stdin.write(`${JSON.stringify({ id, ...command })}\n`);
+      });
+    },
+    waitFor(match) {
+      return new Promise((ok, fail) => {
+        const timer = setTimeout(() => fail(new Error(`RPC event wait timed out. stderr:\n${stderr}`)), TIMEOUT_MS);
+        waiters.push({ match, done: (record) => (clearTimeout(timer), ok(record)) });
+      });
+    },
+    async prompt(message) {
+      const settled = rpc.waitFor((record) => record.type === 'agent_settled');
+      const response = await rpc.send({ type: 'prompt', message });
+      if (response?.disposition !== 'handled') await settled;
+      return response;
+    },
+    async stop() {
+      child.stdin.end();
+      const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
+      await exited;
+      clearTimeout(timer);
+    },
+  };
+  return rpc;
+}
+
+// tmux on a private socket: kill-server only ever touches the server this run started.
+function tmux(run, ...args) {
+  return execFileSync('tmux', ['-L', run.tmuxSocket, ...args], { encoding: 'utf8' });
+}
+
+async function startTui(run) {
+  const env = piEnv(run);
+  const exports = Object.entries(env)
+    .filter(([name]) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
+    .map(([name, value]) => `export ${name}='${String(value).replaceAll("'", "'\\''")}'`);
+  const unsets = SCRUBBED_ENV.filter((name) => !(name in env)).map((name) => `unset ${name}`);
+  const script = join(run.root, 'tui.sh');
+  await writeFile(script, ['#!/bin/sh', ...unsets, ...exports, `cd '${run.cwd}'`, `exec pi ${PI_BASE_ARGS.map((arg) => `'${arg}'`).join(' ')}`, ''].join('\n'));
+  await chmod(script, 0o755);
+  tmux(run, 'new-session', '-d', '-s', 'pi', '-x', '220', '-y', '60', script);
+  run.pids.push(Number(tmux(run, 'display-message', '-p', '-t', 'pi', '#{pane_pid}').trim()));
+  await saveRun(run);
+  await waitForPane(run, 'v1.');
+}
+
+const pane = (run) => tmux(run, 'capture-pane', '-p', '-J', '-S', '-300', '-t', 'pi');
+
+async function waitForPane(run, needle, timeoutMs = 20_000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const text = pane(run);
+    if (text.includes(needle)) return text;
+    if (Date.now() > deadline) throw new Error(`TUI never showed ${JSON.stringify(needle)}. Last pane:\n${text}`);
+    await new Promise((done) => setTimeout(done, 200));
+  }
+}
+
+const keys = (run, ...names) => tmux(run, 'send-keys', '-t', 'pi', ...names);
+const type = (run, text) => tmux(run, 'send-keys', '-t', 'pi', '-l', text);
+
+async function openClaudeLogin(run, evidence, label) {
+  type(run, '/login');
+  keys(run, 'Enter');
+  await waitForPane(run, 'Select authentication method');
+  keys(run, 'Enter');
+  await waitForPane(run, 'Select provider to configure');
+  type(run, 'Claude subscription');
+  await waitForPane(run, 'Claude subscription • ');
+  keys(run, 'Enter');
+  await evidence.text(`${label}-methods.txt`, await waitForPane(run, 'Import from Claude Code'));
+}
+
+// ---------- evidence ----------
+
+async function evidenceDir(feature, out) {
+  const dir = resolve(out ?? join(EVIDENCE_ROOT, feature));
+  await rm(dir, { recursive: true, force: true });
+  await mkdir(dir, { recursive: true });
+  return {
+    dir,
+    json: (name, value) => writeFile(join(dir, name), `${JSON.stringify(value, null, 2)}\n`),
+    text: (name, value) => writeFile(join(dir, name), value),
+  };
+}
+
+// ---------- drives ----------
+
+const drives = {
+  async login(run, evidence) {
+    // Import from Claude Code: a synthetic .credentials.json in the scratch CLAUDE_CONFIG_DIR.
+    // CLAUDE_CONFIG_DIR also gives the Keychain lookup a hashed service name that no real item uses.
+    const imported = { accessToken: oauthToken('import'), refreshToken: `refresh-${randomUUID()}`, expiresAt: FAR_FUTURE, scopes: ['user:inference'] };
+    const claudeFile = join(run.claudeDir, '.credentials.json');
+    await writeFile(claudeFile, JSON.stringify({ claudeAiOauth: imported }), { mode: 0o600 });
+    const claudeHash = createHash('sha256').update(readFileSync(claudeFile)).digest('hex');
+    await startTui(run);
+    await openClaudeLogin(run, evidence, 'import');
+    keys(run, 'Down', 'Down', 'Enter');
+    await evidence.text('import-result.txt', await waitForPane(run, 'Logged in to Claude subscription'));
+    const auth = await readAuth(run);
+    const mode = (statSync(join(run.agentDir, 'auth.json')).mode & 0o777).toString(8);
+    assert.deepEqual(auth[PROVIDER], { type: 'oauth', access: imported.accessToken, refresh: imported.refreshToken, expires: imported.expiresAt });
+    assert.equal(createHash('sha256').update(readFileSync(claudeFile)).digest('hex'), claudeHash, 'Import must not rewrite Claude Code credentials.');
+    await evidence.json('import-auth.json', { authJsonMode: mode, credential: { ...auth[PROVIDER], access: mask(auth[PROVIDER].access), refresh: mask(auth[PROVIDER].refresh) }, claudeCredentialsUnchanged: true });
+
+    // Paste code: the authorize URL reaches the (stubbed) browser and the pane; a code
+    // from another sign-in is rejected locally before any token exchange.
+    keys(run, 'C-c');
+    killRun(run);
+    run.pids = [];
+    await rm(join(run.agentDir, 'auth.json'), { force: true });
+    await startTui(run);
+    await openClaudeLogin(run, evidence, 'paste');
+    keys(run, 'Enter');
+    await evidence.text('paste-authorize.txt', await waitForPane(run, 'claude.com/cai/oauth/authorize'));
+    // Pi spawns the browser opener detached, so its log can land after the pane renders.
+    for (let tries = 0; tries < 50 && !(await readFile(run.openLog, 'utf8')).trim(); tries++) await new Promise((done) => setTimeout(done, 100));
+    const opened = (await readFile(run.openLog, 'utf8')).trim().split('\n').filter(Boolean);
+    assert.equal(opened.length, 1, 'Paste code should open exactly one browser URL.');
+    const url = new URL(opened[0]);
+    const params = Object.fromEntries(url.searchParams);
+    assert.equal(`${url.origin}${url.pathname}`, 'https://claude.com/cai/oauth/authorize');
+    assert.equal(params.code, 'true');
+    assert.equal(params.response_type, 'code');
+    assert.equal(params.redirect_uri, 'https://platform.claude.com/oauth/code/callback');
+    assert.equal(params.code_challenge_method, 'S256');
+    assert.ok(params.scope.split(' ').includes('user:plugins'));
+    assert.ok(params.state && params.code_challenge && params.client_id);
+    await evidence.json('paste-authorize-url.json', { origin: url.origin, path: url.pathname, params: { ...params, state: mask(params.state), code_challenge: mask(params.code_challenge) } });
+    type(run, 'verify-code#not-this-sign-in');
+    keys(run, 'Enter');
+    await evidence.text('paste-wrong-state.txt', await waitForPane(run, 'That code is not from this sign-in.'));
+    assert.equal((await readAuth(run))[PROVIDER], undefined, 'A rejected paste must not store a credential.');
+    return { import: 'stored synthetic Claude Code credential in auth.json', paste: { authorizeUrl: `${url.origin}${url.pathname}`, wrongStateRejected: true } };
+  },
+
+  async 'ambient-auth'(run, evidence) {
+    const peer = await startMessagesPeer();
+    try {
+      await writeAgentFiles(run, { baseUrl: peer.baseUrl });
+      const args = ['--provider', PROVIDER, '--model', MODEL, '--thinking', 'off', '-p', REFERENCE.prompt];
+      const cases = [];
+      const attempt = async (name, env, expectBearer, expectError) => {
+        const before = peer.requests.length;
+        const result = await runPi(run, args, env);
+        const sent = peer.requests.slice(before);
+        const stored = (await readAuth(run))[PROVIDER];
+        cases.push({ name, env: Object.fromEntries(Object.entries(env).map(([k, v]) => [k, mask(v)])), ...result, requests: sent.map(describeRequest), storedCredential: stored ? mask(stored.access) : null });
+        if (expectBearer) {
+          assert.equal(result.exitCode, 0, `${name}: ${result.stderr}`);
+          assert.equal(result.stdout.trim(), 'LOCAL_OK', name);
+          assert.equal(sent.length, 1, name);
+          assert.equal(sent[0].headers.authorization, `Bearer ${expectBearer}`, name);
+          assert.equal(sent[0].headers['x-api-key'], undefined, name);
+        } else {
+          assert.notEqual(result.exitCode, 0, `${name} should fail`);
+          assert.equal(sent.length, 0, `${name} must not reach the Messages endpoint`);
+          assert.match(`${result.stdout}${result.stderr}`, expectError, name);
+        }
+        return result;
+      };
+      const oauthEnv = oauthToken('oauth-env');
+      const authEnv = oauthToken('auth-env');
+      await attempt('CLAUDE_CODE_OAUTH_TOKEN', { CLAUDE_CODE_OAUTH_TOKEN: oauthEnv }, oauthEnv);
+      await attempt('ANTHROPIC_AUTH_TOKEN wins over CLAUDE_CODE_OAUTH_TOKEN', { ANTHROPIC_AUTH_TOKEN: authEnv, CLAUDE_CODE_OAUTH_TOKEN: oauthEnv }, authEnv);
+      const noCredential = /No API key found for claude-subscription/;
+      await attempt('API key rejected', { CLAUDE_CODE_OAUTH_TOKEN: `sk-ant-api03-verify-${randomUUID()}` }, null, /CLAUDE_CODE_OAUTH_TOKEN must contain a Claude OAuth access token, not an API key/);
+      await attempt('ANTHROPIC_OAUTH_TOKEN ignored', { ANTHROPIC_OAUTH_TOKEN: oauthToken('ignored') }, null, noCredential);
+      await attempt('no credential', {}, null, noCredential);
+      assert.deepEqual(await readAuth(run), {}, 'Ambient tokens must never be written to auth.json.');
+      const stored = oauthToken('stored');
+      await writeAgentFiles(run, { credential: { type: 'oauth', access: stored, refresh: `refresh-${randomUUID()}`, expires: FAR_FUTURE } });
+      await attempt('stored credential wins over ambient', { CLAUDE_CODE_OAUTH_TOKEN: oauthEnv }, stored);
+      await evidence.json('cases.json', cases);
+      return cases.map((c) => `${c.name}: exit ${c.exitCode}, ${c.requests.length} request(s)${c.requests[0] ? `, ${c.requests[0].authorization}` : ''}`);
+    } finally {
+      await peer.close();
+    }
+  },
+
+  async 'request-identity'(run, evidence) {
+    const results = {};
+    for (const scenario of [{ name: 'default' }, { name: 'models-json-override', headers: { 'user-agent': 'claude-cli/9.9.9 (verify)' } }]) {
+      const peer = await startMessagesPeer();
+      const access = oauthToken(scenario.name);
+      await writeAgentFiles(run, { baseUrl: peer.baseUrl, headers: scenario.headers, credential: { type: 'oauth', access, refresh: `refresh-${randomUUID()}`, expires: FAR_FUTURE } });
+      const rpc = startRpc(run, ['--provider', PROVIDER, '--model', MODEL, '--thinking', 'off']);
+      try {
+        await rpc.send({ type: 'get_state' });
+        await rpc.prompt(REFERENCE.prompt);
+        await rpc.prompt('second prompt in the same session');
+        const { sessionId } = await rpc.send({ type: 'get_state' });
+        const requests = peer.requests.map(describeRequest);
+        results[scenario.name] = { sessionId, requests };
+        assert.equal(requests.length, 2, scenario.name);
+        const expectedAgent = scenario.headers?.['user-agent'] ?? REFERENCE.headers['user-agent'];
+        for (const request of requests) {
+          assert.equal(request['user-agent'], expectedAgent, scenario.name);
+          assert.equal(request['x-app'], 'cli');
+          assert.equal(request['x-api-key'], null);
+          assert.equal(request.authorization, `Bearer ${mask(access)}`);
+          assert.equal(request['x-claude-code-session-id'], sessionId);
+          assert.equal(request['x-claude-code-request-class'], 'main');
+          assert.match(request.billing, /^x-anthropic-billing-header: cc_version=2\.1\.316\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;/);
+          for (const beta of ['claude-code-20250219', 'oauth-2025-04-20']) assert.ok(request['anthropic-beta']?.split(',').includes(beta), `${beta} missing`);
+        }
+        assert.equal(billingCore(requests[0].billing), REFERENCE.billing, 'The first prompt must carry the captured Claude Code fingerprint.');
+        assert.notEqual(requests[0]['x-claude-code-prompt-id'], requests[1]['x-claude-code-prompt-id']);
+      } finally {
+        await rpc.stop();
+        await peer.close();
+      }
+    }
+    await evidence.json('requests.json', results);
+    return { userAgents: Object.fromEntries(Object.entries(results).map(([k, v]) => [k, v.requests[0]['user-agent']])), firstBilling: billingCore(results.default.requests[0].billing) };
+  },
+
+  async 'tool-calls'(run, evidence) {
+    const peer = await startMessagesPeer();
+    await writeAgentFiles(run, { baseUrl: peer.baseUrl, credential: { type: 'oauth', access: oauthToken('tools'), refresh: `refresh-${randomUUID()}`, expires: FAR_FUTURE } });
+    await writeFile(join(run.cwd, 'probe.txt'), 'LOCAL_FILE\n');
+    const rpc = startRpc(run, ['--provider', PROVIDER, '--model', MODEL, '--thinking', 'off']);
+    try {
+      peer.enqueue(toolReply('toolu_read_probe', 'Read', { path: 'probe.txt' }), textReply('LOCAL_OK'));
+      await rpc.prompt('Read probe.txt.');
+      peer.enqueue(toolReply('toolu_bash_probe', 'Bash', { command: 'printf BASH_OK' }), textReply('LOCAL_OK'));
+      await rpc.prompt('Run the bash probe.');
+      const messages = await rpc.send({ type: 'get_messages' });
+      const toolResults = (messages.messages ?? messages).filter((message) => message.role === 'toolResult').map((message) => ({ toolName: message.toolName, isError: message.isError, text: message.content.filter((b) => b.type === 'text').map((b) => b.text).join('') }));
+      const requests = peer.requests.map(describeRequest);
+      const resultBlocks = peer.requests.map((request) => (request.body?.messages ?? []).flatMap((message) => (Array.isArray(message.content) ? message.content.filter((block) => block.type === 'tool_result').map((block) => block.tool_use_id) : [])));
+      await evidence.json('tool-calls.json', { toolResults, requests, toolResultIdsPerRequest: resultBlocks });
+      assert.equal(requests.length, 4);
+      for (const name of ['Read', 'Bash']) assert.ok(requests[0].tools.includes(name), `request tools should use Claude casing: ${requests[0].tools}`);
+      assert.deepEqual(toolResults.map((r) => [r.toolName, r.isError]), [['read', false], ['bash', false]]);
+      assert.ok(toolResults[0].text.includes('LOCAL_FILE'));
+      assert.ok(toolResults[1].text.includes('BASH_OK'));
+      assert.ok(resultBlocks[1].includes('toolu_read_probe') && resultBlocks[3].includes('toolu_bash_probe'));
+      return { tools: requests[0].tools, toolResults: toolResults.map((r) => `${r.toolName}: ${r.text.trim()}`) };
+    } finally {
+      await rpc.stop();
+      await peer.close();
+    }
+  },
+
+  async 'context-guard'(run, evidence) {
+    const cliPath = installedCliJs();
+    const result = await new Promise((done) => {
+      const child = execFile(process.execPath, ['--experimental-strip-types', 'scripts/prove-context-guard.ts', '--expect', 'green'], { cwd: EXTENSION, env: { ...piEnv(run), PI_OAUTH_CLI_PATH: cliPath }, timeout: 5 * TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) =>
+        done({ exitCode: error ? (error.code ?? 1) : 0, stdout, stderr }),
+      );
+      run.pids.push(child.pid);
+    });
+    await evidence.text('prove-context-guard.txt', `cli ${cliPath}\nexit ${result.exitCode}\n\n${result.stdout}\n--- stderr ---\n${result.stderr}`);
+    assert.equal(result.exitCode, 0, 'prove-context-guard --expect green failed; see prove-context-guard.txt');
+    return result.stdout.split('\n').filter((line) => line.startsWith('PASS') || line.startsWith('=== VERDICT'));
+  },
+};
+
+function installedCliJs() {
+  const launcher = realpathSync(execFileSync('sh', ['-c', 'command -v pi'], { encoding: 'utf8' }).trim());
+  const agentDir = dirname(dirname(launcher));
+  const versionFile = join(agentDir, 'install/current-version');
+  if (existsSync(versionFile)) {
+    const cli = join(agentDir, 'install/releases', readFileSync(versionFile, 'utf8').trim(), 'node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
+    if (existsSync(cli)) return cli;
+  }
+  const sibling = resolve(dirname(launcher), '../@earendil-works/pi-coding-agent/dist/bundle/cli.js');
+  if (existsSync(sibling)) return sibling;
+  throw new Error(`Cannot find the installed pi cli.js from ${launcher}. Set PI_OAUTH_CLI_PATH and run scripts/prove-context-guard.ts directly.`);
+}
+
+// ---------- commands ----------
+
+async function doctor() {
+  const checks = [];
+  const check = async (name, fn) => {
+    try {
+      checks.push({ name, ok: true, detail: await fn() });
+    } catch (error) {
+      checks.push({ name, ok: false, detail: error.message.split('\n')[0] });
+    }
+  };
+  await check('node >= 22.19.0', () => {
+    const [major, minor] = process.versions.node.split('.').map(Number);
+    assert.ok(major > 22 || (major === 22 && minor >= 19), process.version);
+    return process.version;
+  });
+  await check('pi on PATH', () => execFileSync('pi', ['--version'], { encoding: 'utf8' }).trim());
+  await check('tmux on PATH (login drive)', () => execFileSync('tmux', ['-V'], { encoding: 'utf8' }).trim());
+  await check('extension source present', () => {
+    assert.ok(existsSync(join(EXTENSION, 'src/index.ts')));
+    assert.ok(existsSync(join(EXTENSION, 'node_modules')), 'run `bun install --frozen-lockfile` at the repo root');
+    return EXTENSION;
+  });
+  await check('installed pi cli.js (context-guard drive)', installedCliJs);
+  await check('extension registers claude-subscription', async () => {
+    const run = await createRun('doctor');
+    try {
+      await writeAgentFiles(run, { credential: { type: 'oauth', access: oauthToken('doctor'), refresh: 'refresh-doctor', expires: FAR_FUTURE } });
+      const result = await runPi(run, ['--list-models', PROVIDER]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.match(result.stdout, new RegExp(`${PROVIDER}\\s+${MODEL}`), result.stdout);
+      return `${result.stdout.trim().split('\n').length - 1} models listed`;
+    } finally {
+      await destroyRun(run);
+    }
+  });
+  const leftovers = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  checks.push({ name: 'no leftover scratch runs', ok: leftovers.length === 0, detail: leftovers.length ? `${leftovers.length} found; run \`control-claude-oauth cleanup\`` : 'none' });
+  const ambient = SCRUBBED_ENV.filter((name) => process.env[name]);
+  checks.push({ name: 'ambient Claude/Pi env (scrubbed from drives)', ok: true, detail: ambient.length ? ambient.join(', ') : 'none' });
+  for (const { name, ok, detail } of checks) log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${detail}`);
+  if (checks.some((c) => !c.ok)) process.exitCode = 1;
+}
+
+async function drive(feature, out, keep) {
+  const fn = drives[feature];
+  if (!fn) throw new Error(`Unknown feature ${feature}. Known: ${Object.keys(drives).join(', ')}`);
+  const evidence = await evidenceDir(feature, out);
+  const run = await createRun(feature);
+  const startedAt = new Date().toISOString();
+  let summary;
+  let failure;
+  try {
+    summary = await fn(run, evidence);
+  } catch (error) {
+    failure = error;
+    try {
+      if (existsSync(join(run.root, 'tui.sh'))) await evidence.text('failure-pane.txt', pane(run));
+    } catch {
+      // No pane to capture.
+    }
+  } finally {
+    const piVersion = execFileSync('pi', ['--version'], { encoding: 'utf8' }).trim();
+    await evidence.json('run.json', { feature, startedAt, finishedAt: new Date().toISOString(), piVersion, extension: EXTENSION, status: failure ? 'FAIL' : 'PASS', error: failure?.message, summary, scratch: keep ? run.root : '(removed)' });
+    if (keep) killRun(run);
+    else await destroyRun(run);
+  }
+  log(JSON.stringify({ feature, status: failure ? 'FAIL' : 'PASS', evidence: evidence.dir, summary, error: failure?.message }, null, 2));
+  if (failure) process.exitCode = 1;
+}
+
+async function cleanup() {
+  const runs = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  for (const name of runs) {
+    const root = join(tmpdir(), name);
+    const file = join(root, 'run.json');
+    if (existsSync(file)) killRun(JSON.parse(readFileSync(file, 'utf8')));
+    await rm(root, { recursive: true, force: true });
+    log(`removed ${root}`);
+  }
+  if (runs.length === 0) log('nothing to clean');
+}
+
+const [command, feature, ...rest] = process.argv.slice(2);
+const flag = (name) => {
+  const at = rest.indexOf(`--${name}`);
+  const value = rest[at + 1];
+  return at < 0 ? undefined : value && !value.startsWith('--') ? value : true;
+};
+if (command === 'doctor') await doctor();
+else if (command === 'drive') await drive(feature, flag('out'), rest.includes('--keep'));
+else if (command === 'cleanup') await cleanup();
+else {
+  log(`usage: control-claude-oauth doctor | drive <${Object.keys(drives).join('|')}> [--out <dir>] [--keep] | cleanup`);
+  process.exitCode = command ? 1 : 0;
+}
