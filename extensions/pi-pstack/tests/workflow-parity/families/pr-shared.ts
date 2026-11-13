@@ -108,7 +108,7 @@ export function forgeResolvedOnce(id: string, source: Src | Src[], backend: 'gh'
   return check(id, `the forge is resolved with \`command -v origin\` before the first forge call and every forge call after it uses ${backend} alone`, source, (view) => {
     const { actions } = readForge(view);
     const commands = BASH(view);
-    const lookup = /\bcommand\s+-v\s+(?:gh\s+)?origin\b/;
+    const lookup = /(?:^|[;&|\n]|\bif)\s*command\s+-v\s+(?:gh\s+)?origin\b/;
     const operation = /\b(?:gh|origin)\s+(?:pr|api|run)\b|watch-pr/;
     const resolution = commands.find((entry) => lookup.test(entry.command));
     const first = commands.find((entry) => operation.test(entry.command));
