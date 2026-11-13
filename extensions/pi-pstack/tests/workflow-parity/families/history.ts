@@ -229,10 +229,14 @@ export const recallFamily: Family = {
       const said = view.parent.messages.find((message) => message.role === 'assistant' && message.order <= spawn && /7 days/.test(message.text) && message.text.includes(view.repo));
       return when(said !== undefined, `scope said at message ${said?.order}, before the first spawn at ${spawn}`, 'no assistant text with the window and the workspace before the first spawn');
     }),
-    workersCheck('recall.history-miners', 'the chat history is mined by parallel readonly workers, one slice each', src('recall/SKILL.md', 'Fan out across your chat history'), { role: 'general', min: 2, mode: 'readonly', rootPath: true, id: /miner/ }),
+    check('recall.history-miners', 'the chat history is mined by parallel readonly workers, one slice each', src('recall/SKILL.md', 'Fan out across your chat history'), (view) => {
+      const miners = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'general');
+      const bad = miners.filter((worker) => assignmentOf(worker).workspace?.mode !== 'readonly' || assignmentOf(worker).workspace?.path !== view.repo || !/chat|history/i.test(worker.brief ?? '') || !/\.jsonl\b/.test(worker.brief ?? ''));
+      return when(miners.length >= 2 && bad.length === 0, `${miners.length} readonly history slices with assigned transcripts`, `unbound or invalid miners: ${bad.map((worker) => worker.id).join(',')}; count ${miners.length}`);
+    }),
     spawnedTogether('recall.miners-and-record-in-parallel', src('recall/SKILL.md', 'run the investigators in parallel with the chat-history mining'), ['general', 'investigator']),
     check('recall.miner-briefs-carry-the-rules', 'each miner brief orders by modification time, greps the topic first, skips the current chat, and asks for the chat UUID', src('recall/SKILL.md', 'Tell every subagent to order candidates by real modification time'), (view) => {
-      const miners = allWorkers(view).filter((worker) => /miner/.test(worker.id));
+      const miners = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'general');
       const bad = miners.filter((worker) => !/ls -t/.test(worker.brief ?? '') || !/Grep the topic first/i.test(worker.brief ?? '') || !/Skip the current chat/i.test(worker.brief ?? '') || !/chat UUID/.test(worker.brief ?? ''));
       return when(miners.length >= 2 && bad.length === 0, `${miners.length} briefs carry the four rules`, `incomplete: ${bad.map((worker) => worker.id).join(', ')}`);
     }),
@@ -359,7 +363,11 @@ export const reflectFamily: Family = {
     workersCheck('reflect.three-reviewers', 'three reviewers, role reviewer, readonly on the repository root, MCP inherited, on the judgment, tooling and divergent role lines', [src('reflect/SKILL.md', 'Three `pstack_worker` spawns, one after another without waiting'), src('reflect/SKILL.md', 'A readonly Pi worker keeps the MCP tools the operator authorized')], { role: 'reviewer', min: 3, max: 3, mode: 'readonly', rootPath: true, mcpInherit: true }),
     spawnedTogether('reflect.reviewers-in-parallel', src('reflect/SKILL.md', '## 2. Spawn three reviewers in parallel'), ['reviewer']),
     check('reflect.lenses-use-the-role-lines', 'the tooling reviewer is on the "reflect tooling" line and the judgment and divergent reviewers on the judgment line', src('reflect/SKILL.md', '| Tooling | `reflect tooling`'), (view) => {
-      const by = (id: string) => String(assignmentOf(allWorkers(view).find((worker) => worker.id === id) as never).model);
+      const reviewers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'reviewer');
+      const lenses = ['tooling', 'judgment', 'divergent'];
+      const matches = lenses.map((lens) => reviewers.filter((worker) => new RegExp(`\\b(?:Lens:\\s*${lens}|applying the ${lens} lens)\\b`, 'i').test(worker.brief ?? '')));
+      if (reviewers.length !== 3 || matches.some((workers) => workers.length !== 1) || new Set(matches.flat()).size !== 3) return fail('expected exactly one reviewer for each tooling, judgment and divergent lens');
+      const by = (lens: string) => String(assignmentOf(matches[lenses.indexOf(lens)]![0]!).model);
       // The lines are the run's own models.json (the scripted roles for a scripted run, the real model for a real one); a spec may carry a level.
       const on = (id: string, line: string) => expectedModels(view, line).includes(by(id));
       return when(on('tooling', 'reflect tooling') && on('judgment', 'reflect judgment, divergent, synthesizer') && on('divergent', 'reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')} (line ${expectedModels(view, 'reflect tooling').join('|')}), judgment ${by('judgment')}, divergent ${by('divergent')} (line ${expectedModels(view, 'reflect judgment, divergent, synthesizer').join('|')})`);

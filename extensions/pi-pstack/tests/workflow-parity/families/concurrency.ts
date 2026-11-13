@@ -50,7 +50,8 @@ export const concurrencyFamily: Family = {
   checks: [
     spawnedTogether('worker-concurrency.spawned-in-one-message', SRC, ['general']),
     check('worker-concurrency.spawn-does-not-block', 'spawn returned before any worker settled: the parent kept running while all four were live, and the four live intervals share one instant', src('swarm/SKILL.md', 'without waiting'), (view) => {
-      const ids = Object.keys(MODELS);
+      const ids = allWorkers(view).map((worker) => worker.id);
+      if (ids.length !== 4) return fail(`expected four workers, got ${ids.length}`);
       const spawned = ids.map((id) => eventAt(view, id, 'spawn'));
       const settled = statesOf(view).map(({ state }) => Date.parse(state.settles?.find((settle) => settle.phase === 'idle')?.at ?? ''));
       if ([...spawned, ...settled].some(Number.isNaN)) return fail(`missing spawn or idle times: spawned ${spawned.join()}, settled ${settled.join()}`);
@@ -63,7 +64,7 @@ export const concurrencyFamily: Family = {
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session', SRC, (view) => {
       const states = statesOf(view);
       const problems = states.flatMap(({ id, state }) => {
-        const want = (MODELS[id] as { model: string }).model;
+        const want = String(assignmentOf(allWorkers(view).find((worker) => worker.id === id)!).model);
         const got = state.model === undefined ? '' : `${state.model.provider}/${state.model.id}`;
         const sessionModels = allWorkers(view).find((worker) => worker.id === id)?.session?.models ?? [];
         return [...(got === want ? [] : [`${id}: host recorded ${got}, assignment says ${want}`]), ...(sessionModels.length === 1 && sessionModels[0] === want ? [] : [`${id}: session answered with ${sessionModels.join() || 'nothing'}`])];
@@ -91,7 +92,7 @@ export const concurrencyFamily: Family = {
       return when(problems.length === 0 && new Set(trees).size === 4, `4 worktrees, 4 branches, one commit each, sessions started in their own tree`, problems.join('; ') || `distinct worktrees: ${new Set(trees).size}`);
     }),
     check('worker-concurrency.no-worker-saw-anothers-files', 'each worktree holds its own helper file and none of the other three', SRC, (view) => {
-      const problems = Object.keys(MODELS).flatMap((id) => {
+      const problems = allWorkers(view).map((worker) => worker.id).flatMap((id) => {
         const tree = view.runs[0]?.workers.find((worker) => worker.id === id)?.worktree;
         const dirty = tree === null || tree === undefined ? [] : (view.git.worktreeDirty[tree] ?? []);
         return dirty.length === 0 ? [] : [`${id} worktree has uncommitted ${dirty.join(',')}`];
