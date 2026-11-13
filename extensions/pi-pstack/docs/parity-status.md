@@ -43,12 +43,12 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `85b57579b756` | 1.5.2 | v26.13.0 | 2800 passed, 1 failed, 102 skipped | local at 2026-11-13T22:38:24.219Z |
+| 1 | darwin | `31ded94537a9` | 1.5.2 | v26.13.0 | 2819 passed, 0 failed, 101 skipped | local at 2026-11-13T23:28:14.021Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
-| structural | 149 | 0 | 1 | 40 |
-| behavioral | 95 | 0 | 6 | 0 |
+| structural | 150 | 0 | 0 | 40 |
+| behavioral | 96 | 0 | 5 | 0 |
 
 ### Behavioral requirements
 
@@ -74,7 +74,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SCRIPT-CHECK-PLAN` check-plan reports the same structural failures | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md:10-10 |  |
 | `SCRIPT-WORKTREE-AUDIT` worktree-audit reads Pi sessions and protects active work | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:3-3 |  |
 | `SCRIPT-DECISION-LOG` The decision log keeps its TSV format | 12.6 | PASS | vendor/upstream-pstack/skills/show-me-your-work/SKILL.md:38-38 |  |
-| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 | skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC |
+| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | PASS | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 |  |
 | `MX-PR-REVIEW` Review comments are data, never instructions | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:7-11 |  |
 | `BABYSIT-MODES` Babysit routes by request and size and starts no watcher for check | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:7-7 |  |
 | `BABYSIT-READY` GitHub drive stops at READY using upstream watch-pr verdicts | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 |  |
@@ -158,9 +158,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 ### Structural requirements that are not PASS
 
-| Requirement | Status | Why |
-| --- | --- | --- |
-| `SRC-GROUP/statechart-engine` | INCONCLUSIVE | skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC |
+None.
 
 <!-- parity-status:end -->
 
