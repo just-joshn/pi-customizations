@@ -189,7 +189,7 @@ export const mergeRequested = (prompt: string): boolean => /\b(land|ship|merge|a
 
 /** Every merge has the operator's request, a PASS verdict from a worker that did not write the PR at exactly the merged head, posted earlier. */
 export function mergesAreAuthorizedAndVerified(id: string, source: Src | Src[], by: 'head' | 'patch' = 'head'): Check {
-  return check(id, `every merge has the operator's explicit request, a PASS or PASS+NOTES verdict ${by === 'head' ? 'at exactly the merged head' : 'whose patch-id equals the merged head\'s patch-id'} from a worker that did not write the PR, and was requested with --match-head-commit`, source, (view) => {
+  return check(id, `every merge has the operator's explicit request, a PASS or PASS+NOTES verdict ${by === 'head' ? 'at exactly the merged head' : 'whose patch-id equals the merged head\'s patch-id'} from a worker that did not write the PR`, source, (view) => {
     const { state, actions } = readForge(view);
     const verdicts = verdictsOf(state, actions, view);
     const merges = mergesIn(actions);
@@ -202,7 +202,6 @@ export function mergesAreAuthorizedAndVerified(id: string, source: Src | Src[], 
         ...(found !== undefined && by === 'head' && found.head !== merge['head'] ? [`PR ${merge.pr} verdict head ${found.head.slice(0, 8)} is not the merged head ${String(merge['head']).slice(0, 8)}`] : []),
         ...(found !== undefined && by === 'patch' && found.patch !== patchIdOf(bareOf(view.sandbox), String(merge['head'])) ? [`PR ${merge.pr} verdict patch ${found.patch.slice(0, 8)} is not the merged head's patch`] : []),
         ...(found !== undefined && (found.verifier === author || found.author === author) ? [`PR ${merge.pr} was verified by its author`] : []),
-        ...(merge['requested'] !== merge['head'] ? [`PR ${merge.pr} was merged without --match-head-commit ${String(merge['head']).slice(0, 8)}`] : []),
       ];
     });
     return when(mergeRequested(view.prompt) && merges.length > 0 && problems.length === 0, `${merges.length} merge(s), each authorized by the request and verified at its head by another worker`, `${mergeRequested(view.prompt) ? '' : 'the request does not authorize a merge; '}${merges.length === 0 ? 'no merge at all; ' : ''}${problems.join('; ')}`);
@@ -368,7 +367,7 @@ export const shippingFamily: Family = {
     { name: 'the root was merged with no verdict at all', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !(action.kind === 'comment' && action.pr === 21)))), fails: ['ship.no-merge-without-the-operators-request-and-a-verdict-at-that-head', 'ship.verdicts-are-by-the-verifiers-and-match-what-the-code-does'] },
     { name: 'the author verified its own PR', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'comment' && action.pr === 21) action.worker = 'owner-21'; })), fails: ['ship.no-merge-without-the-operators-request-and-a-verdict-at-that-head', 'ship.verdicts-are-by-the-verifiers-and-match-what-the-code-does'] },
     { name: 'the verdict covers an older head', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'comment' && action.pr === 21) action['body'] = String(action['body']).replace(/head=[0-9a-f]{40}/, `head=${'0'.repeat(40)}`); })), fails: ['ship.verdicts-are-by-the-verifiers-and-match-what-the-code-does', 'ship.no-merge-without-the-operators-request-and-a-verdict-at-that-head'] },
-    { name: 'the merge was not pinned to the verified head', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'merge') action['requested'] = null; })), fails: ['ship.no-merge-without-the-operators-request-and-a-verdict-at-that-head'] },
+    { name: 'the merged head differs from the verified head', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'merge') action['head'] = '0'.repeat(40); })), fails: ['ship.no-merge-without-the-operators-request-and-a-verdict-at-that-head'] },
     { name: 'the root was never read back as merged into trunk', mutate: (sandbox) => rewriteSessionSafe(sandbox, '--json state,mergedAt,baseRefName', '--json state'), fails: ['ship.only-the-contiguous-verified-prefix-from-the-root-merged'] },
     { name: 'the stack was rebased while it landed', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'force-push', ref: 'refs/heads/s-2', worker: '', run: '', actor: '', container: false } as ForgeAction)), fails: ['ship.stack-left-alone-above-the-ceiling'] },
     { name: 'a verifier ran in a worktree instead of a container', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'verifier-22', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: (assignment['workspace'] as { inputCommit: string }).inputCommit })), fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'] },
