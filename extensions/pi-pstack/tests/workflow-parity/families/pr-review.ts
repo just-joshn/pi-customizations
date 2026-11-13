@@ -8,7 +8,7 @@ import { Parent, scenario } from '../fixtures/dsl.ts';
 import { bareOf, editForge, type ForgeHandle, forgeEnv, readForge, revParse, setupForge } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, type Src, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, openedAt, playbookReads, primaryRun, promptRoutes, todoChecks, userTurns } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, openedAt, playbookReads, primaryRun, promptRoutes, shellCommands, todoChecks, userTurns } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { appendToolCall, parentSession, patchGit, rewriteFinalReply } from '../lib/mutate.ts';
 import { cleanupFamily } from './ops.ts';
@@ -120,7 +120,7 @@ export const openingFamily: Family = {
       const { state, actions } = readForge(view);
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
       const typed = BASH(view).filter((entry) => /\bgh pr create\b/.test(entry.command) && !/--help\b/.test(entry.command));
-      const readBack = creates.every((action) => BASH(view).some((entry) => new RegExp(`\\bgh pr view ${action.pr}\\b`).test(entry.command)));
+      const readBack = creates.every((action) => BASH(view).some((entry) => shellCommands(entry.command).some((command) => new RegExp(`\\bgh pr view ${action.pr}\\b`).test(command))));
       const drafts = typed.filter((entry) => /--draft/.test(entry.command));
       const bodyFlags = typed.filter((entry) => /--body-file \S+/.test(entry.command) && !/--body /.test(entry.command));
       return when(creates.length === 2 && typed.length === 2 && drafts.length === 0 && bodyFlags.length === 2 && Object.values(state.prs).every((pr) => pr.state === 'OPEN') && creates.every((action) => action['draft'] === false) && readBack, 'two creates through gh, no --draft, bodies from files, read back before the reply', `creates ${creates.length}, typed ${typed.length}, drafts ${drafts.length}, body files ${bodyFlags.length}, read back ${readBack}`);

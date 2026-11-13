@@ -108,7 +108,7 @@ export function forgeResolvedOnce(id: string, source: Src | Src[], backend: 'gh'
   return check(id, `the forge is resolved with \`command -v origin\` before the first forge call and every forge call after it uses ${backend} alone`, source, (view) => {
     const { actions } = readForge(view);
     const commands = BASH(view);
-    const lookup = /(?:^|[;&|\n]|\bif)\s*command\s+-v\s+(?:gh\s+)?origin\b/;
+    const lookup = /(?:^|[;&|\n]|\$\(|\bif)\s*command\s+-v\s+(?:gh\s+)?origin\b/;
     const operation = /\b(?:gh|origin)\s+(?:pr|api|run)\b|watch-pr/;
     const resolution = commands.find((entry) => lookup.test(entry.command));
     const first = commands.find((entry) => operation.test(entry.command));
@@ -118,7 +118,7 @@ export function forgeResolvedOnce(id: string, source: Src | Src[], backend: 'gh'
     const tools = [...new Set(actions.filter((action) => action.tool !== undefined).map((action) => action.tool))];
     const resolutions = commands.filter((entry) => lookup.test(entry.command)).length;
     const notes = [...view.runs.map((run) => run.todoText?.split('## Task-specific work')[1] ?? ''), ...view.runs.flatMap((run) => (run.decisions ?? []).map((row) => row.join(' '))), ...view.parent.messages.filter((message) => message.role === 'assistant').map((message) => message.text)].join('\n');
-    const recorded = new RegExp(`(?:forge|fallback)[^\\n]{0,80}\\b${backend}\\b`, 'i').test(notes) ? backend : undefined;
+    const recorded = new RegExp(`(?:forge|fallback|origin[^\\n]{0,40}(?:absent|unavailable|not (?:on|found)))[^\\n]{0,80}\\b${backend}\\b`, 'i').test(notes) ? backend : undefined;
     return when(resolvedAt !== -1 && before && resolutions === 1 && tools.every((tool) => tool === backend) && tools.length > 0 && recorded === backend, `resolved once at ${resolvedAt} before the first forge call at ${firstForge}; the choice (${recorded}) is recorded; forge tools used: ${tools.join(', ')}`, `resolved at ${resolvedAt}, first forge call ${firstForge}, resolutions ${resolutions}; tools used ${tools.join(', ')}; recorded ${String(recorded)}; want ${backend}`);
   });
 }
