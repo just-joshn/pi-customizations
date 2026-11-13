@@ -40,7 +40,7 @@ Steps:
 
 ## Gotchas
 
-- After a successful import, Pi 1.5.2 also shows `Error: Logged in to Google Antigravity, but no default model is configured for provider "google-antigravity". Use /model to select a model.` The credential is still saved. Pi's `defaultModelPerProvider` table is built in, and an extension cannot add to it, so the drive does not count this message as a failure.
+- After a successful import, Pi 1.5.2 also shows `Error: Logged in to Google Antigravity, but no default model is configured for provider "google-antigravity". Use /model to select a model.` The credential is still saved. Pi shows this only when no model was selected before login, and only for providers missing from its built-in `defaultModelPerProvider` table. Extensions cannot add to that table, so the drive does not count this message as a failure.
 - Without the `security` stub on `PATH`, keychain import on a Mac reads the real `gemini/antigravity` item. If `agy` is signed in, that item holds a real Google token.
 - Without the egress sink, the paste step sends the code, the agy client secret, and the PKCE verifier to Google. That fails harmlessly with a fake code, but it is real network traffic. A real code would complete a live login.
 - Keychain import treats an `invalid_token`/`invalid_grant` failure from Cloud Code as a reason to call Google's `tokeninfo`. The drive's peer never returns those errors, so this path is covered only by `keychain.test.ts`.

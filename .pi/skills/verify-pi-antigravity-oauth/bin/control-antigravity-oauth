@@ -609,7 +609,17 @@ const drives = {
       assert.match(selector, /gemini-9-flash \(Gemini 9 Flash \(Antigravity\)\) \[google-antigravity\]/);
       assert.doesNotMatch(selector, /claude-opus-5-5|gemini-3\.1-pro|gpt-oss-120b/, 'Snapshot models the account lacks must disappear.');
       assert.ok(!egress.hosts().some((host) => /google/.test(host)), 'The catalog refresh must not contact Google directly.');
-      return { offline: offlineIds, live: ['claude-sonnet-5-5', 'gemini-9-flash'], otherEgress: [...new Set(egress.hosts())] };
+
+      // Pi saves the last live list and uses it offline and in print/RPC mode (docs/providers.md).
+      await stopTui(run);
+      const fetchesBefore = peer.requests.length;
+      const relisted = await runPi(run, ['--offline', '--list-models', PROVIDER]);
+      const savedIds = relisted.stdout.split('\n').filter((line) => line.startsWith(PROVIDER)).map((line) => line.split(/\s+/)[1]);
+      await evidence.text('list-models-after-refresh.txt', `${relisted.args}\nexit ${relisted.exitCode}\n\n${relisted.stdout}\n--- stderr ---\n${relisted.stderr}`);
+      assert.equal(relisted.exitCode, 0, relisted.stderr);
+      assert.deepEqual(savedIds, ['claude-sonnet-5-5', 'gemini-9-flash'], 'Offline listing after a live refresh shows the saved live catalog.');
+      assert.equal(peer.requests.length, fetchesBefore, 'The saved catalog is used without a new fetch.');
+      return { offline: offlineIds, live: ['claude-sonnet-5-5', 'gemini-9-flash'], savedOffline: savedIds, otherEgress: [...new Set(egress.hosts())] };
     } finally {
       await stopTui(run);
       await peer.close();

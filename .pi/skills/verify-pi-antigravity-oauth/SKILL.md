@@ -61,7 +61,7 @@ B=./.pi/skills/verify-pi-antigravity-oauth/bin/control-antigravity-oauth
 $B drive login            # TUI: /login → Google Antigravity → keychain import, keychain + onboardUser, browser authorize URL + paste
 $B drive chat             # print mode: envelope, agy user agent, effort → Cloud Code model id, no-credential error
 $B drive tool-calls       # RPC: read (Gemini, result in model turn) and bash (Claude, result in user turn)
-$B drive model-catalog    # --list-models snapshot offline; TUI /model shows the live fetchAvailableModels catalog
+$B drive model-catalog    # --list-models snapshot; TUI /model shows the live catalog; offline listing then reuses the saved list
 $B drive account-command  # /antigravity in print mode and TUI: not logged in, summary, quota error
 ```
 

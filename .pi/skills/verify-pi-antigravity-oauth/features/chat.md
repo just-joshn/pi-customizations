@@ -35,6 +35,6 @@ Steps:
 ## Gotchas
 
 - Claude variants send `thinkingBudget: 0` with a `thinkingLevel`. The snapshot has no budget for them, and `variantOf` defaults the budget to 0. Gemini variants send only a budget.
-- `--thinking medium` on a model with only `low` and `high` moves up to `high`. This comes from Pi's `clampThinkingLevel`, not from the extension. The README's "nearest" is a tie in this case.
+- `--thinking medium` on a model with only `low` and `high` moves up to `high`. This comes from Pi's `clampThinkingLevel`, which the extension relies on by declaring only the efforts each model has. The README states the same rule.
 - `CLOUD_CODE_URL` is read when the extension module loads, so set it in the Pi process environment. Setting it after startup does nothing, except in the provider-scoped `env` that Pi passes per request.
 - The prompt-retry and empty-stream retry paths (429/5xx, a stream that closes early) are covered only by `stream.test.ts` and `provider-retry.test.ts`. No drive covers them.
