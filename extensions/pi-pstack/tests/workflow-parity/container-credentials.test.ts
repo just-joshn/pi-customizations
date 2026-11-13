@@ -134,6 +134,7 @@ test.skipIf(!engineAvailable())('live worker capture distinguishes startup prove
         expect(existsSync(join(dir, 'credential-probe.json'))).toBe(false);
         continue;
       }
+      expect(existsSync(join(dir, 'credential-probe.json'))).toBe(false);
       const evidence = readFileSync(join(dir, 'credential-probe.json'), 'utf8');
       const captured = JSON.parse(evidence);
       expect(captured).toMatchObject({
