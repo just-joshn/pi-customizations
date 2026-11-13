@@ -339,6 +339,12 @@ function graphql(state) {
 function gh(state) {
   const [group, verb, ...rest] = argv;
   void rest;
+  if (group === 'repo' && verb === 'view') {
+    const repo = { name: state.repo.name, owner: { login: state.repo.owner }, nameWithOwner: repoName(state.repo), url: `https://github.com/${repoName(state.repo)}`, defaultBranchRef: { name: state.repo.trunk } };
+    log({ kind: 'read', what: 'repo' });
+    const fields = (value('--json') ?? '').split(',').filter(Boolean);
+    return out(fields.length === 0 ? `${repo.nameWithOwner}\n` : pick(repo, fields));
+  }
   if (group === 'auth') {
     if (WHO.container && value('--hostname') === 'github.com') die(1, 'fake forge has no github.com credentials');
     if (verb === 'token') {

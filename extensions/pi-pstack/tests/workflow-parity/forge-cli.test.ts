@@ -219,8 +219,33 @@ test.each(['--jq', '-q'])('forge applies %s and rejects invalid queries', (flag)
 test('forge version and PR diff are read-only supported commands', () => {
   const { ctx, forge } = fixture();
   expect(call(ctx, forge, 'gh', '--version').stdout).toMatch(/^gh version /);
-  expect(call(ctx, forge, 'gh', 'pr', 'diff', '71').status).toBe(0);
+  const git = (...args: string[]) => execFileSync('git', ['-C', ctx.repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', ...args], { stdio: 'pipe' });
+  git('checkout', '-b', 'feature');
+  writeFileSync(join(ctx.repo, 'README.md'), 'changed fixture\n');
+  git('add', '.');
+  git('commit', '-m', 'change');
+  git('push', 'origin', 'feature');
+  const statePath = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(statePath, 'utf8'));
+  state.prs['71'].head = 'feature';
+  writeFileSync(statePath, JSON.stringify(state));
+  expect(call(ctx, forge, 'gh', 'pr', 'diff', '71').stdout).toContain('+changed fixture');
+  expect(call(ctx, forge, 'gh', 'pr', 'diff', '71', '--name-only').stdout.trim()).toBe('README.md');
   expect(call(ctx, forge, 'gh', 'pr', 'diff', '999').status).not.toBe(0);
+});
+
+test('resolveReviewThread accepts an input object variable', () => {
+  const { ctx, forge } = fixture();
+  const payload = join(ctx.sandbox, 'mutation.json');
+  writeFileSync(payload, JSON.stringify({ query: 'mutation($data:ResolveReviewThreadInput!){resolveReviewThread(input:$data){thread{id}}}', variables: { data: { threadId: 'thread-1' } } }));
+  expect(call(ctx, forge, 'gh', 'api', 'graphql', '--input', payload).status).toBe(0);
+});
+
+test('repository identity reads honor selected JSON fields', () => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner');
+  expect(result.status, result.stderr).toBe(0);
+  expect(result.stdout.trim()).toBe('fixture/repo');
 });
 
 test('forge implementation source is not staged in the sandbox', () => {
