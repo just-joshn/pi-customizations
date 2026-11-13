@@ -30,12 +30,32 @@ test('a self-proof steer is not the per-PR merge authorization', () => {
 test('an owner can merge the clean head after collected lane reports instead of forge comments', () => {
   expect(run('no-merge-without-a-verdict-at-that-head', view())).toMatchObject({ ok: true });
 });
+test('an owner can force-push its own branch with a lease pinned to its last pushed SHA', () => {
+  const value = view();
+  const runDir = value.runs[0];
+  const owner = runDir?.workers[0];
+  if (runDir === undefined || owner === undefined) throw new Error('Missing owner');
+  owner.dir = join(value.sandbox, 'owner');
+  mkdirSync(join(owner.dir, 'out'), { recursive: true });
+  writeFileSync(join(owner.dir, 'out/decisions.tsv'), 'ts\tphase\tdecision\twhy\tevidence\tresult\nnow\tbuild\topen the PR early\tCI\tPR 31\topen\n');
+  const old = 'b'.repeat(40);
+  owner.session = { toolCalls: [{ name: 'bash', args: { command: `git push --force-with-lease=feat-greet:${old} origin HEAD:feat-greet` } }] } as unknown as RunView['parent'];
+  runDir.receipts = [{ id: 'proof', runId: 'r', target: 'pr-31', kind: 'test', verdict: 'pass', commit: sha, artifacts: [{ path: join(owner.dir, 'proof.txt'), sha256: '' }] }];
+  writeFileSync(join(forgeDirOf(value.sandbox), 'actions.jsonl'), JSON.stringify({ kind: 'force-push', worker: 'owner', run: 'r', ref: 'refs/heads/feat-greet', old, new: sha }));
+  expect(run('owners-push-their-own-branch-and-keep-a-trail', value)).toMatchObject({ ok: true });
+  const push = owner.session.toolCalls[0];
+  if (push === undefined) throw new Error('Missing push');
+  push.args['command'] = 'git push --force origin HEAD:feat-greet';
+  expect(run('owners-push-their-own-branch-and-keep-a-trail', value)).toMatchObject({ ok: false });
+});
 test('the operator catch-up can say clean and combine gates with countersigns', () => {
   const value = view();
   value.parent.messages = [{ order: 20, role: 'assistant', text: 'PR 31 and PR 32 are merged. Both verdicts are clean. Gates and countersigns: none. Parked follow-ups: docs.' }];
   value.parent.toolCalls.push({ order: 0, name: 'read', args: { path: '/generated/skills/ketchup/SKILL.md' }, resultText: '', isError: false });
   expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: true });
-  value.parent.messages[0].text = 'PR 31 and PR 32 are merged. Both verdicts are clean. Parked follow-ups: docs.';
+  const reply = value.parent.messages[0];
+  if (reply === undefined) throw new Error('Missing reply');
+  reply.text = 'PR 31 and PR 32 are merged. Both verdicts are clean. Parked follow-ups: docs.';
   expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: false });
 });
 test('a failing lane, an ambiguous duplicate, and an audit after the go still fail', () => {

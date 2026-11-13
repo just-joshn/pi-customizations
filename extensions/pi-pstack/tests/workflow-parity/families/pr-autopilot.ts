@@ -192,7 +192,7 @@ type Check = ReturnType<typeof check>;
 
 /** Each owner pushed only its own branch, never forced, and left a decision trail and a self-proof receipt. */
 function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) => Unit[]): Check {
-  return check(id, 'each owner pushed its own branch as a plain push (no force), wrote a decision trail in its worker directory, and recorded its self-proof receipt', source, (view) => {
+  return check(id, 'each owner pushed only its own branch, pinned any force-with-lease to the last pushed SHA, kept a decision trail in its worker directory, and recorded self-proof', source, (view) => {
     const { actions } = readForge(view);
     const problems = observedUnits(view, units(view)).flatMap((unit) => {
       const worker = responsibleWorker(view, 'owner', unit.pr);
@@ -200,13 +200,13 @@ function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) =>
       if (worker === undefined || run === undefined) return [`PR ${unit.pr} has no unique owner`];
       const pushes = actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action.worker === unit.id && action.run === run.id);
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
-      const forced = pushes.filter((action) => action.kind === 'force-push');
-      const trail = readFileSync(join(run?.dir ?? '', 'workers', unit.id, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
+      const forced = pushes.filter((action) => action.kind === 'force-push' && (typeof action['old'] !== 'string' || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'bash' && new RegExp(`--force-with-lease=(?:refs/heads/)?${unit.branch}:${String(action['old'])}\\b`).test(String(call.args['command'])))));
+      const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.tsv')).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
       const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target === `pr-${unit.pr}` && entry.artifacts.some((artifact) => artifact.path.startsWith(`${worker.dir}/`)));
       const receipt = receipts.length === 1 ? receipts[0] : undefined;
-      return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!/open the PR early/.test(trail) ? [`${unit.id} left no decision trail`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
+      return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!trails.some((trail) => /^ts\tphase\tdecision\twhy\tevidence\tresult\r?\n[^\n]+/m.test(trail)) ? [`${unit.id} left no decision trail in its worker directory`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
     });
-    return when(problems.length === 0, 'own branch only, no force-push, trail and self-proof recorded', problems.join('; '));
+    return when(problems.length === 0, 'own branch only, safe leases, trail and self-proof recorded', problems.join('; '));
   });
 }
 
