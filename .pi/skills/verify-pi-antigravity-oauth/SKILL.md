@@ -34,7 +34,7 @@ Ready means:
 - RPC mode: it answers `get_state`. Prompts wait for `agent_settled`.
 - TUI: the pane shows the `v1.` startup banner. `/login`, `/model`, and the `/antigravity` notification are only available in the TUI.
 
-Each drive tears down in its `finally`: it kills its own tmux server (`tmux -L verify-agy-oauth-<id> kill-server`), deletes that socket file, SIGKILLs only the PIDs recorded in `run.json`, closes both listeners, and removes the scratch directory.
+Each drive tears down in its `finally`, before it writes the final `run.json`: it kills its own tmux server (`tmux -L verify-agy-oauth-<id> kill-server`), deletes that socket file, SIGKILLs a PID recorded in `run.json` only when that process's working directory is still the run's `cwd`, closes both listeners, and removes the scratch directory.
 
 ## Doctor
 
@@ -49,6 +49,7 @@ The doctor checks:
 - Node `>= 22.19.0`.
 - `pi --version`. The drives pass on 1.5.2.
 - `tmux -V`.
+- `lsof` and `ps`, which teardown and `cleanup` use to check process ownership.
 - The extension source and its `node_modules`.
 - That `pi --offline --list-models google-antigravity` lists `claude-sonnet-5-5` from a fixture credential.
 
@@ -63,15 +64,16 @@ $B drive chat             # print mode: envelope, agy user agent, effort → Clo
 $B drive tool-calls       # RPC: read (Gemini, result in model turn) and bash (Claude, result in user turn)
 $B drive model-catalog    # --list-models snapshot; TUI /model shows the live catalog; offline listing then reuses the saved list
 $B drive account-command  # /antigravity in print mode and TUI: not logged in, summary, quota error
+$B drive all              # every drive above, in order
 ```
 
-Flags: `--out <dir>` writes the evidence to another directory. `--keep` keeps the scratch dir for inspection but still kills the processes. Remove a kept dir with `cleanup`.
+Flags: `--out <dir>` writes the evidence to another directory (`<dir>/<feature>` with `drive all`). `--keep` keeps the scratch dir for inspection but still kills the processes. Remove a kept dir with `cleanup`. An evidence dir is cleared only when it is empty or holds nothing but files this harness wrote (listed in `.verify-evidence.json`), and never while another live drive is writing it.
 
 Each drive prints a JSON report and exits `0` or `1`. The report holds `status` (`PASS`/`FAIL`), the evidence directory, a summary, and the first failed assertion. To drive the TUI by hand, use the keystrokes from `features/login.md` with a scratch `PI_CODING_AGENT_DIR`, `CLOUD_CODE_URL` pointing at a local peer, and a stub `security` on `PATH`. Never point a manual run at `~/.pi/agent`, and never run keychain import without the stub. On a Mac that has `agy` signed in, the real `security` call returns your real token.
 
 ## Evidence
 
-Each drive replaces `artifacts/verify-pi-antigravity-oauth/<feature>/` (gitignored). It always writes `run.json` there, with the Pi version, platform, status, error, and summary. Each feature file lists its other evidence files. A TUI failure also writes `failure-pane.txt`.
+Each drive replaces `artifacts/verify-pi-antigravity-oauth/<feature>/` (gitignored). It writes `run.json` there at the start (`RUNNING`) and rewrites it at the end, with the Pi version, platform, status, error, and summary. Each feature file lists its other evidence files. A TUI failure also writes `failure-pane.txt`.
 
 Proof standards:
 
@@ -89,11 +91,11 @@ Drives clean up after themselves even when they fail. For a kept or interrupted 
 ./.pi/skills/verify-pi-antigravity-oauth/bin/control-antigravity-oauth cleanup
 ```
 
-`cleanup` reads each `$TMPDIR/verify-agy-oauth-*/run.json`, kills that run's tmux server and recorded PIDs, deletes its tmux socket file, and removes the directory. It never kills by process name and never touches `artifacts/verify-pi-antigravity-oauth/`. The peer and sink live inside the drive process, so they end with it.
+`cleanup` reads each `$TMPDIR/verify-agy-oauth-*/run.json`. It skips a directory with no `run.json` naming it, and a run whose owning drive is still running. For every other run, it kills the tmux server and the recorded PIDs whose working directory is still the run's `cwd`, deletes its tmux socket file, and removes the directory. It never kills by process name and never touches `artifacts/verify-pi-antigravity-oauth/`. The peer and sink live inside the drive process, so they end with it.
 
 ## Helpers
 
-- `bin/control-antigravity-oauth` is an executable Node script that needs only Node, `pi`, and `tmux`. Subcommands: `doctor`, `drive <login|chat|tool-calls|model-catalog|account-command> [--out <dir>] [--keep]`, and `cleanup`.
+- `bin/control-antigravity-oauth` is an executable Node script that needs only Node, `pi`, `tmux`, and the system `lsof` and `ps`. Its run lifecycle, Pi drivers, evidence, and command line come from `../_shared/verify-harness.mjs`, shared with `verify-pi-x-subscription-oauth`; the script holds the Cloud Code peer, the egress sink, the stubs, and the drives. Subcommands: `doctor`, `drive <login|chat|tool-calls|model-catalog|account-command> [--out <dir>] [--keep]`, and `cleanup`.
 - The constants at the top of the script must track the extension:
   - `USER_AGENT` mirrors `userAgent()` in `src/cloudcode.ts`.
   - `SNAPSHOT_MODELS` mirrors the base ids in `src/catalog-snapshot.ts`.
