@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-import { testAt, verdictsOf } from './families/pr-shipping.ts';
+import { inheritedFailureOnly, testAt, verdictsOf } from './families/pr-shipping.ts';
 import type { ForgeAction, ForgeState } from './fixtures/forge.ts';
 import { bareOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
@@ -46,6 +46,14 @@ test('independent replay checks the full package suite when that is the verdict 
     const failing = git('rev-parse', 'HEAD');
     expect(testAt({ sandbox }, failing, 'test/own.test.js')).toBe(true);
     expect(testAt({ sandbox }, failing, undefined)).toBe(false);
+    writeFileSync(join(repo, 'test/own.test.js'), "require('node:assert/strict').equal(4, 4);\n");
+    git('add', '.'); git('commit', '-m', 'own change above inherited failure');
+    git('push', bareOf(sandbox), 'HEAD:refs/heads/main');
+    expect(inheritedFailureOnly({ sandbox }, failing, git('rev-parse', 'HEAD'))).toBe(true);
+    writeFileSync(join(repo, 'test/new.test.js'), "require('node:assert/strict').equal(4, 3);\n");
+    git('add', '.'); git('commit', '-m', 'new regression');
+    git('push', bareOf(sandbox), 'HEAD:refs/heads/main');
+    expect(inheritedFailureOnly({ sandbox }, failing, git('rev-parse', 'HEAD'))).toBe(false);
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
   }
