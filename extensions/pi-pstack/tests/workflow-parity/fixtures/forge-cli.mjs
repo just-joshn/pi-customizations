@@ -8,6 +8,8 @@ import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { assignReviewIds } from './review-ids.ts';
+
 const [tool, ...argv] = process.argv.slice(2);
 if (argv.includes('--help') || argv.includes('-h')) {
   process.stdout.write(`Usage: ${tool} <command> [flags]\nUse --help for command help.\n`);
@@ -199,6 +201,22 @@ const bodyOf = () => {
   return '';
 };
 
+function editPr(pr) {
+  needToken(true);
+  if (value('--body', '-b') !== undefined && value('--body-file', '-F') !== undefined) die(1, 'gh: --body and --body-file are mutually exclusive');
+  const base = value('--base', '-B');
+  const title = value('--title', '-t');
+  const hasBody = value('--body', '-b', '--body-file', '-F') !== undefined;
+  const body = hasBody ? (value('--body', '-b') ?? (value('--body-file', '-F') === '-' ? readFileSync(0, 'utf8') : readFileSync(value('--body-file', '-F'), 'utf8'))) : undefined;
+  if (base !== undefined) {
+    log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
+    pr.base = base;
+  }
+  if (title !== undefined) pr.title = title;
+  if (hasBody) pr.body = body;
+  log({ kind: 'edit', pr: pr.number, ...(title === undefined ? {} : { title }), ...(hasBody ? { body } : {}) });
+}
+
 function needToken(write) {
   if (write && WHO.container && !WHO.authenticated) die(4, 'gh: To use GitHub CLI in an automated workflow, set the GH_TOKEN environment variable (the worker has no forge capability).');
 }
@@ -215,12 +233,13 @@ function threadsOf(pr) {
   return pr.threads.map((thread) => ({ ...thread, comments: thread.comments }));
 }
 
-const databaseIdOf = (pr, entry) => /^\d+$/.test(String(entry.id)) ? Number(entry.id) : pr.number * 100000 + pr.threads.flatMap((thread) => thread.comments).indexOf(entry) + 1;
+const databaseIdOf = (entry) => entry.databaseId;
 
-function replyTo(pr, commentId, body) {
-  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(pr, entry)) === String(commentId)) || item.id === commentId);
+function replyTo(state, pr, commentId, body) {
+  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(entry)) === String(commentId)) || item.id === commentId);
   if (thread === undefined) die(1, `gh: no review comment ${commentId}`);
   thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, in_reply_to_id: thread.comments[0].id, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
+  assignReviewIds(state);
   return thread;
 }
 
@@ -325,14 +344,14 @@ function graphql(state) {
     needToken(true);
     const found = Object.values(state.prs).find((item) => item.threads.some((thread) => thread.id === variables.thread));
     if (found === undefined) die(1, 'gh: thread not found');
-    replyTo(found, variables.thread, String(variables.body));
+    replyTo(state, found, variables.thread, String(variables.body));
     log({ kind: 'reply', pr: found.number, thread: variables.thread, body: String(variables.body) });
     return out({ data: { addPullRequestReviewThreadReply: { comment: { id: 'new' } } } });
   }
   if (pr === undefined) die(1, 'gh: unknown pull request');
   if (/\breviewThreads\s*\(/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
-    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: databaseIdOf(pr, entry), body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
+    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: databaseIdOf(entry), body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
   }
   if (/PrCheckRollup/.test(query)) {
@@ -375,12 +394,31 @@ function gh(state) {
       log({ kind: 'read', what: 'action-secrets' });
       return out({ total_count: 0, secrets: [] });
     }
+    const compare = /^repos\/[^/]+\/[^/]+\/compare\/(.+)\.\.\.(.+)$/.exec(target ?? '');
+    if (compare !== null) {
+      if ((value('--method', '-X') ?? 'GET').toUpperCase() !== 'GET') die(1, 'gh: compare only supports GET');
+      const resolve = (ref) => {
+        const result = git('rev-parse', '--verify', '--end-of-options', `${decodeURIComponent(ref)}^{commit}`);
+        if (result.status !== 0) die(1, `gh: unknown compare ref ${ref}`);
+        return result.stdout.trim();
+      };
+      const base = resolve(compare[1]);
+      const head = resolve(compare[2]);
+      const ancestor = git('merge-base', base, head);
+      if (ancestor.status !== 0) die(1, 'gh: compare refs have no common ancestor');
+      const ahead = Number(git('rev-list', '--count', `${base}..${head}`).stdout.trim());
+      const behind = Number(git('rev-list', '--count', `${head}..${base}`).stdout.trim());
+      const commits = git('log', '--reverse', '--format=%H', `${base}..${head}`).stdout.trim().split('\n').filter(Boolean).map((sha) => ({ sha }));
+      const files = git('diff', '--name-only', '-z', ancestor.stdout.trim(), head).stdout.split('\0').filter(Boolean).map((filename) => ({ filename }));
+      log({ kind: 'read', what: 'compare', base, head });
+      return out({ status: ahead === 0 ? (behind === 0 ? 'identical' : 'behind') : behind === 0 ? 'ahead' : 'diverged', ahead_by: ahead, behind_by: behind, commits, files });
+    }
     const comments = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments$/.exec(target ?? '');
     if (comments !== null && (value('--method', '-X') ?? 'GET').toUpperCase() === 'GET') {
       const pr = state.prs[comments[1]];
       if (pr === undefined) die(1, 'gh: unknown pull request');
       log({ kind: 'read', what: 'review-comments', pr: pr.number });
-      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: databaseIdOf(pr, entry), body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: databaseIdOf(pr, pr.threads.flatMap((item) => item.comments).find((item) => item.id === entry.in_reply_to_id)) }) }))));
+      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: databaseIdOf(entry), body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: databaseIdOf(pr.threads.flatMap((item) => item.comments).find((item) => String(item.id) === String(entry.in_reply_to_id) || String(item.databaseId) === String(entry.in_reply_to_id))) }) }))));
     }
     const reply = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments\/([^/]+)\/replies$/.exec(target ?? '');
     if (reply !== null && String(value('--method', '-X')).toUpperCase() === 'POST') {
@@ -388,9 +426,9 @@ function gh(state) {
       const pr = state.prs[reply[1]];
       if (pr === undefined) die(1, 'gh: unknown pull request');
       const payload = JSON.parse(readFileSync(value('--input') === '-' ? 0 : value('--input'), 'utf8'));
-      const thread = replyTo(pr, reply[2], String(payload.body));
+      const thread = replyTo(state, pr, reply[2], String(payload.body));
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: String(payload.body) });
-      return out({ id: databaseIdOf(pr, thread.comments.at(-1)), body: payload.body });
+      return out({ id: databaseIdOf(thread.comments.at(-1)), body: payload.body });
     }
     die(1, `gh: unsupported api call ${target}`);
   }
@@ -479,15 +517,7 @@ function gh(state) {
     log({ kind: 'comment', pr: pr.number, body });
     return runEvents(state, 'comment', pr.number, body);
   }
-  if (verb === 'edit') {
-    needToken(true);
-    const base = value('--base', '-B');
-    if (base !== undefined) {
-      log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
-      pr.base = base;
-    }
-    return undefined;
-  }
+  if (verb === 'edit') return editPr(pr);
   if (verb === 'ready') {
     needToken(true);
     pr.isDraft = false;
@@ -551,7 +581,7 @@ function origin(state) {
       const thread = pr.threads.find((item) => item.id === threadId);
       if (thread === undefined) die(1, `origin: no thread ${threadId}`);
       const reply = readFileSync(value('--body-file'), 'utf8');
-      thread.comments.push({ id: `${thread.id}-r`, body: reply, author: WHO.worker || 'operator', createdAt: new Date().toISOString() });
+      replyTo(state, pr, threadId, reply);
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: reply });
       return undefined;
     }
@@ -586,13 +616,7 @@ function origin(state) {
     save(state);
     process.exit(checks.some((check) => check.bucket === 'fail') ? 1 : 0);
   }
-  if (verb === 'edit') {
-    needToken(true);
-    const base = value('--base');
-    log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
-    pr.base = base;
-    return undefined;
-  }
+  if (verb === 'edit') return editPr(pr);
   if (verb === 'ready') {
     needToken(true);
     pr.isDraft = false;
@@ -617,10 +641,22 @@ function origin(state) {
 
 if (!['gh', 'origin'].includes(tool)) die(2, 'usage: forge-cli.mjs gh|origin <args>');
 if (!existsSync(join(DIR, 'state.json'))) die(1, `forge: no state under ${DIR}`);
+if (argv[0] === 'pr' && argv[1] === 'edit') {
+  const allowed = ['--base', '-B', '--title', '-t', '--body', '-b', '--body-file', '-F', '--repo', '-R'];
+  for (let i = 2; i < argv.length; i += 1) {
+    if (!argv[i].startsWith('-')) continue;
+    const equal = argv[i].indexOf('=');
+    if (equal !== -1) argv.splice(i, 1, argv[i].slice(0, equal), argv[i].slice(equal + 1));
+    if (!allowed.includes(argv[i])) die(1, `${tool}: unknown or unsupported flag ${argv[i]}`);
+    if (argv[i + 1] === undefined) die(1, `${tool}: ${argv[i]} requires a value`);
+    i += 1;
+  }
+}
 const release = lock();
 process.on('exit', release);
 try {
   const state = load();
+  assignReviewIds(state);
   sync(state);
   const before = JSON.stringify(state);
   (tool === 'gh' ? gh : origin)(state);

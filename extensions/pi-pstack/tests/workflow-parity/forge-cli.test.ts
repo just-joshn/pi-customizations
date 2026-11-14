@@ -2,7 +2,7 @@ import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 import { afterEach, expect, test } from 'vitest';
@@ -72,6 +72,29 @@ test('PR list honors state and selected JSON fields', () => {
   expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'list', '--state', 'open', '--json', 'number').stdout)).toEqual([]);
 });
 
+test('PR edit persists title and body from inline, file, and stdin flags', () => {
+  const { ctx, forge } = fixture();
+  expect(call(ctx, forge, 'gh', 'pr', 'edit', '71', '--title', 'Updated', '--body', 'Inline').status).toBe(0);
+  const view = () => JSON.parse(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'title,body').stdout);
+  expect(view()).toEqual({ title: 'Updated', body: 'Inline' });
+  const file = join(ctx.sandbox, 'body.txt');
+  writeFileSync(file, 'File body\n');
+  expect(call(ctx, forge, 'gh', 'pr', 'edit', '71', '-F', file).status).toBe(0);
+  expect(view().body).toBe('File body\n');
+  const stdin = spawnSync(join(forge.bin, 'gh'), ['pr', 'edit', '71', '--body-file', '-', '-t', 'Stdin'], { cwd: ctx.repo, encoding: 'utf8', input: 'Stdin body\n', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
+  expect(stdin.status, stdin.stderr).toBe(0);
+  expect(view()).toEqual({ title: 'Stdin', body: 'Stdin body\n' });
+  expect(readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8')).toContain('"kind":"edit"');
+});
+
+test.each([['--unknown', 'value'], ['--title'], ['--body', 'one', '--body-file', '-']])('PR edit rejects unsupported or invalid flags %j', (...flags) => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'pr', 'edit', '71', ...flags);
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toMatch(/unknown|requires|mutually exclusive/);
+  expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'title,body').stdout)).toEqual({ title: 'Review', body: '' });
+});
+
 test('PR comments expose author objects without changing recorded actor identity', () => {
   const { ctx, forge } = fixture();
   expect(call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'PASS').status).toBe(0);
@@ -102,6 +125,32 @@ test('repository configuration and empty action secrets have API-shaped response
   expect(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/unknown').status).toBe(1);
 });
 
+test('compare API reports git ancestry, commits, and changed filenames', () => {
+  const { ctx, forge } = fixture();
+  const git = (...args: string[]) => execFileSync('git', ['-C', ctx.repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8' }).trim();
+  git('checkout', '-qb', 'topic');
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'topic\n');
+  git('add', '.');
+  git('commit', '-qm', 'topic');
+  const head = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'topic');
+  const compare = (base: string, headRef: string) => {
+    const result = call(ctx, forge, 'gh', 'api', `repos/fixture/repo/compare/${base}...${headRef}`);
+    expect(result.status, result.stderr).toBe(0);
+    return JSON.parse(result.stdout);
+  };
+  expect(compare('main', 'topic')).toMatchObject({ status: 'ahead', ahead_by: 1, behind_by: 0, commits: [{ sha: head }], files: [{ filename: 'topic.txt' }] });
+  expect(compare('topic', 'main')).toMatchObject({ status: 'behind', ahead_by: 0, behind_by: 1, commits: [], files: [] });
+  expect(compare(head, head)).toMatchObject({ status: 'identical', ahead_by: 0, behind_by: 0, commits: [], files: [] });
+  git('checkout', '-qb', 'other', ctx.base);
+  writeFileSync(join(ctx.repo, 'other.txt'), 'other\n');
+  git('add', '.');
+  git('commit', '-qm', 'other');
+  git('push', '-q', 'origin', 'other');
+  expect(compare('other', 'topic')).toMatchObject({ status: 'diverged', ahead_by: 1, behind_by: 1, commits: [{ sha: head }], files: [{ filename: 'topic.txt' }] });
+  expect(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/compare/missing...topic').status).not.toBe(0);
+});
+
 test('review comment database IDs are numeric and address the same comment through REST', () => {
   const { ctx, forge } = fixture();
   const path = join(forge.dir, 'state.json');
@@ -120,6 +169,33 @@ test('review comment database IDs are numeric and address the same comment throu
   expect(reply.status, reply.stderr).toBe(0);
   const updated = JSON.parse(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/pulls/71/comments').stdout);
   expect(updated[1]).toMatchObject({ in_reply_to_id: id, body: 'Reproduced and fixed.' });
+});
+
+test('review IDs survive replies to earlier threads and still route to the original thread', () => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].threads[0].comments[0].id = 'first';
+  delete state.prs['71'].threads[0].comments[0].databaseId;
+  state.prs['71'].threads.push({ id: 'thread-2', resolved: false, comments: [{ ...state.prs['71'].threads[0].comments[0], id: 'second' }] });
+  writeFileSync(path, JSON.stringify(state));
+  const list = () => JSON.parse(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/pulls/71/comments').stdout);
+  const before = list();
+  const payload = join(ctx.sandbox, 'reply.json');
+  writeFileSync(payload, JSON.stringify({ body: 'reply' }));
+  const reply = (id: number) => call(ctx, forge, 'gh', 'api', `repos/fixture/repo/pulls/71/comments/${id}/replies`, '-X', 'POST', '--input', payload);
+  expect(reply(before[0].id).status).toBe(0);
+  expect(list().find((entry: { body: string; id: number }) => entry.body === 'Finding' && entry.id === before[1].id)).toBeDefined();
+  expect(
+    list()
+      .filter((entry: { body: string }) => entry.body === 'Finding')
+      .map((entry: { id: number }) => entry.id),
+  ).toEqual(before.map((entry: { id: number }) => entry.id));
+  expect(reply(before[1].id).status).toBe(0);
+  const updated = JSON.parse(readFileSync(path, 'utf8'));
+  expect(updated.prs['71'].threads.map((thread: { comments: unknown[] }) => thread.comments.length)).toEqual([2, 2]);
+  expect(new Set(list().map((entry: { id: number }) => entry.id)).size).toBe(4);
+  expect(updated.prs['71'].threads[1].comments[0].databaseId).toBe(before[1].id);
 });
 
 test('the identity jq expression works without an external jq executable', () => {
@@ -193,6 +269,8 @@ test.skipIf(!engineAvailable())('a container reads every host forge comment in f
       `type=bind,src=${ctx.sandbox},dst=/sandbox`,
       '--mount',
       `type=bind,src=${FORGE_CLI},dst=${FORGE_CLI},readonly`,
+      '--mount',
+      `type=bind,src=${join(dirname(FORGE_CLI), 'review-ids.ts')},dst=${join(dirname(FORGE_CLI), 'review-ids.ts')},readonly`,
       DEFAULT_IMAGE,
       'node',
       '-e',
