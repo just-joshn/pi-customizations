@@ -64,7 +64,8 @@ export function verdictsOf(state: ForgeState, actions: ForgeAction[], view?: Run
     const worker = workers.length === 1 ? workers[0] : undefined;
     const assignedHead = worker === undefined ? undefined : assignmentOf(worker).workspace?.inputCommit;
     if (plain === null || assignedHead === undefined || view === undefined) return [];
-    const statedHead = /\b(?:at|head(?:\s+verified)?\s*:?)\s+([0-9a-f]{7,40})\b/i.exec(body)?.[1];
+    const statedHead = /\bhead(?:\s+verified)?(?:\s+[^\s,()]+\s+(?:at|@)|\s*[:=@]?)\s+([0-9a-f]{7,40})\b/i.exec(body)?.[1]
+      ?? /\b(?:verified|verdict)\s+at\s+([0-9a-f]{7,40})\b/i.exec(body)?.[1];
     const head = statedHead === undefined || assignedHead.startsWith(statedHead) ? assignedHead : statedHead;
     return [{ pr: action.pr, verdict: /ISSUES|BLOCKED/i.test(plain[2] ?? '') ? 'FAIL' : plain[2]?.toUpperCase() as Verdict['verdict'], head, author: action.worker, verifier: action.worker, patch: patchIdOf(bareOf(view.sandbox), head), at }];
   }).filter((verdict) => state.prs[String(verdict.pr)] !== undefined).map((verdict) => view === undefined ? verdict : { ...verdict, head: canonicalCommit(view, verdict.head) });
