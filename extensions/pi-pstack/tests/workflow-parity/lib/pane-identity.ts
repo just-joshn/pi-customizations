@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+
 import { persistedWorkers } from './live-workers.ts';
 
 export interface PaneIdentity {
@@ -23,7 +24,10 @@ export function paneCapture(repo: string, sandbox: string, socket: string): () =
       if (seen.has(key)) continue;
       seen.add(key);
       const panes = spawnSync('tmux', ['-L', socket, 'list-panes', '-a', '-F', '#{session_name} #{pane_pid} #{pane_id}'], { encoding: 'utf8' });
-      const row = panes.stdout?.split('\n').map((line) => line.split(' ')).find(([session, pid]) => session === tmuxSession && pid === String(hostPid));
+      const row = panes.stdout
+        ?.split('\n')
+        .map((line) => line.split(' '))
+        .find(([session, pid]) => session === tmuxSession && pid === String(hostPid));
       const process = spawnSync('ps', ['eww', '-p', String(childPid), '-o', 'ppid=,command='], { encoding: 'utf8' });
       const parent = /^\s*(\d+)\s/.exec(process.stdout ?? '')?.[1];
       const envPane = /(?:^|\s)TMUX_PANE=(%\d+)(?:\s|$)/.exec(process.stdout ?? '')?.[1];

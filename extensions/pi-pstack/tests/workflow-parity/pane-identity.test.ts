@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { paneCapture } from './lib/pane-identity.ts';
 
@@ -12,7 +13,10 @@ test('host measurement reads the real child environment and tmux pane without a 
   mkdirSync(worker, { recursive: true });
   writeFileSync(join(worker, 'assignment.json'), '{}');
   const script = join(sandbox, 'host.cjs');
-  writeFileSync(script, `const {spawn,spawnSync}=require('node:child_process');const fs=require('node:fs');const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{env:process.env});child.once('spawn',()=>{fs.writeFileSync(${JSON.stringify(join(worker, 'state.json'))},JSON.stringify({hostPid:process.pid,childPid:child.pid,tmuxSession:'worker',instance:'test'}));spawnSync('tmux',['-L',${JSON.stringify(socket)},'wait-for','-S','ready']);});`);
+  writeFileSync(
+    script,
+    `const {spawn,spawnSync}=require('node:child_process');const fs=require('node:fs');const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{env:process.env});child.once('spawn',()=>{fs.writeFileSync(${JSON.stringify(join(worker, 'state.json'))},JSON.stringify({hostPid:process.pid,childPid:child.pid,tmuxSession:'worker',instance:'test'}));spawnSync('tmux',['-L',${JSON.stringify(socket)},'wait-for','-S','ready']);});`,
+  );
   try {
     execFileSync('tmux', ['-L', socket, 'new-session', '-d', '-s', 'worker', `exec ${JSON.stringify(process.execPath)} ${JSON.stringify(script)}`]);
     execFileSync('tmux', ['-L', socket, 'wait-for', 'ready']);

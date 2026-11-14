@@ -26,7 +26,8 @@ test('registered receipt verification is adaptation evidence while TODO behavior
   const receipts = [...checks.values()].filter((entry) => /^todo\..*\.done-steps-proven$/.test(entry.id));
   expect(receipts).toHaveLength(21);
   for (const entry of receipts) expect(entry.scope, entry.id).toBe('adaptation');
-  for (const id of ['investigation.receipts-recorded', 'ship.fresh.each-verifier-recorded-its-own-receipt', 'worker-concurrency.workers-get-their-own-pane-env', 'why-mcp.readonly-holds-beside-mcp', 'why-no-mcp.readonly-holds-beside-mcp']) expect(checks.get(id)?.scope, id).toBe('adaptation');
+  for (const id of ['investigation.receipts-recorded', 'ship.fresh.each-verifier-recorded-its-own-receipt', 'worker-concurrency.workers-get-their-own-pane-env', 'why-mcp.readonly-holds-beside-mcp', 'why-no-mcp.readonly-holds-beside-mcp'])
+    expect(checks.get(id)?.scope, id).toBe('adaptation');
   for (const entry of checks.values()) {
     if (/^todo\./.test(entry.id) && !entry.id.endsWith('.done-steps-proven')) expect(entry.scope, entry.id).toBe('upstream');
   }

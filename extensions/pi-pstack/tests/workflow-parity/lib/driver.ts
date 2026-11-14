@@ -10,8 +10,8 @@ import { dirname, join, resolve } from 'node:path';
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
 import { type ContainerCredentialProbe, type CredentialCapture, recordContainerCredentials, startCredentialCapture } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
-import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { paneCapture } from './pane-identity.ts';
+import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');

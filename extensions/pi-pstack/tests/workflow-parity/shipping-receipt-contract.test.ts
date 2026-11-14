@@ -2,13 +2,16 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { afterEach, expect, test } from 'vitest';
 import { shippingFamily } from './families/pr-shipping.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
 const roots: string[] = [];
-afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
 
 test('run-relative verifier artifacts re-verify, but missing or altered evidence still fails', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'shipping-receipts-'));

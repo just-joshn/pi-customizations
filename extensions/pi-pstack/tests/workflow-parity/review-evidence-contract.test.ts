@@ -63,7 +63,10 @@ test('forge replies classify resolved findings even when the final reply omits t
   const actions = ['thread-stale', 'thread-invalid', 'thread-real'].map((thread) => ({ kind: 'reply', thread, body: thread === 'thread-real' ? `Fixed in ${old}.` : 'Dismissing. src/cart.js proves this claim false.' }));
   const forge = forgeDirOf(value.sandbox);
   const save = () => writeFileSync(join(forge, 'actions.jsonl'), [...actions, { kind: 'push', ref: 'refs/heads/feat-clamp-percent', old }].map((action) => JSON.stringify(action)).join('\n'));
-  writeFileSync(join(forge, 'state.json'), JSON.stringify({ prs: { 71: { threads: ['stale', 'invalid', 'real', 'inject'].map((id) => ({ id: `thread-${id}`, resolved: id !== 'inject', comments: [{ id: id === 'inject' ? 'c-902' : id }] })) } } }));
+  writeFileSync(
+    join(forge, 'state.json'),
+    JSON.stringify({ prs: { 71: { threads: ['stale', 'invalid', 'real', 'inject'].map((id) => ({ id: `thread-${id}`, resolved: id !== 'inject', comments: [{ id: id === 'inject' ? 'c-902' : id }] })) } } }),
+  );
   save();
   const message = value.parent.messages[0];
   if (message === undefined) throw new Error('Missing reply');
