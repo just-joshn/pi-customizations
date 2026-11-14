@@ -61,6 +61,13 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     expect(check('the-chain-rebase-moved-every-head-and-changed-one-patch')).toMatchObject({ ok: true });
     expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: fresh });
     expect(check('a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged')).toMatchObject({ ok: fresh });
+    const comparison = { name: 'bash', order: -1, args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' }, resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'), isError: false };
+    view.parent.toolCalls.unshift(comparison);
+    expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });
+    comparison.resultText = 'PR 21 verdict-sha=old head=new same-patch\nPR 22 verdict-sha=old head=new same-patch\nPR 23 verdict-sha=old head=new changed-patch';
+    expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });
+    comparison.resultText = '';
+    expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: false });
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
   }

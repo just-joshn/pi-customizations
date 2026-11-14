@@ -507,12 +507,24 @@ export const shippingFreshnessFamily: Family = {
       return when(afterVerdicts && forced.length === 3 && sameSha.length === 0 && JSON.stringify(patchSame) === JSON.stringify([true, true, false]), 'three force-pushes by the operator after the verdicts; no head kept its SHA; patch-ids: 21 same, 22 same, 23 changed', `forced ${forced.join(', ')}, after the verdicts ${afterVerdicts}, heads unchanged for ${sameSha.join(', ') || 'none'}, patch unchanged ${JSON.stringify(patchSame)}`);
     }),
     check('ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict', 'before any merge the parent compared git patch-id at each verdict SHA with the current head, and its own output matches the independent computation', SH('Compare `git patch-id` at the verdict SHA with the current head'), (view) => {
-      const compare = view.parent.toolCalls.find((call) => call.name === 'bash' && /^bash \S+compare-verdicts\.sh$/.test(String(call.args['command'])));
-      const firstMerge = view.parent.toolCalls.find((call) => call.name === 'bash' && /gh pr merge/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
-      const out = compare?.resultText ?? '';
-      const want = ['PR 21 .* same-patch', 'PR 22 .* same-patch', 'PR 23 .* changed-patch'];
-      const missing = want.filter((pattern) => !new RegExp(pattern).test(out));
-      return when(compare !== undefined && compare.order < firstMerge && missing.length === 0, `compared at ${compare?.order}, before the first merge at ${firstMerge}: 21 same-patch, 22 same-patch, 23 changed-patch`, `compare at ${compare?.order}, first merge ${firstMerge}; missing ${missing.join(', ')}; output ${out.slice(0, 200)}`);
+      const { state, actions } = readForge(view);
+      const verdicts = verdictsOf(state, actions, view);
+      const firstMerge = view.parent.toolCalls.find((call) => call.name === 'bash' && /(?:gh|origin) pr merge/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
+      const scripts = view.parent.toolCalls.filter((call) => call.name === 'write' && /\bgit\s+patch-id\b/.test(String(call.args['content']))).map((call) => String(call.args['path']));
+      const compared = view.parent.toolCalls.filter((call) => call.name === 'bash' && !call.isError && call.order < firstMerge && (/\bgit\s+patch-id\b/.test(String(call.args['command'])) || scripts.some((path) => String(call.args['command']).includes(path))));
+      const out = compared.map((call) => call.resultText).join('\n');
+      const missing = stackOrder(state).filter((pr) => {
+        const original = verdicts.find((verdict) => verdict.pr === pr);
+        if (original === undefined) return true;
+        const current = state.prs[String(pr)]?.mergedHead ?? headAt(view, state)(pr);
+        const patch = patchIdOf(bareOf(view.sandbox), current);
+        if (patch === '' || original.patch === '') return true;
+        const status = original.patch === patch ? 'same-patch' : 'changed-patch';
+        const reported = new RegExp(`PR ${pr} [^\\n]*\\b${status}\\b`).test(out);
+        const hashes = original.patch === patch ? out.split(patch).length >= 3 : out.includes(original.patch) && out.includes(patch);
+        return !reported && !hashes;
+      });
+      return when(compared.length > 0 && missing.length === 0, `patch comparisons for every PR before merge at ${firstMerge}`, `missing comparisons for ${missing.join(', ')}; first merge ${firstMerge}; output ${out.slice(0, 200)}`);
     }),
     landsOnlyTheVerifiedPrefix('ship.fresh.only-the-patches-a-verdict-covers-merged', SH('A verdict covers a patch'), undefined, 'patch'),
     mergesAreAuthorizedAndVerified('ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', SH('Only a verdict from an agent that did not write the code counts'), 'patch'),
@@ -557,7 +569,7 @@ export const shippingFreshnessFamily: Family = {
     ...todoNegatives(FRESH_RUN, 'shipping', { done: [1, 2, 3, 4, 5, 6], receipts: { 1: 'sf-verifiers', 2: 'sf-prefix', 3: 'sf-fresh', 4: 'sf-landed', 5: 'sf-hands-off', 6: 'sf-ceiling' } }),
     { name: 'PR 23 was merged on its old verdict though its patch changed', mutate: (sandbox) => editForge(sandbox, (actions, state) => { const head = revParse(bareOf(sandbox), 'refs/heads/s-3'); actions.push({ kind: 'merge', tool: 'gh', pr: 23, head, requested: head, worker: '', run: '', actor: '', container: false }); (state.prs['23'] as { state: string }).state = 'MERGED'; (state.prs['23'] as { mergedHead?: string }).mergedHead = head; }), fails: ['ship.fresh.only-the-patches-a-verdict-covers-merged', 'ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', 'ship.fresh.a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged'] },
     { name: 'PR 22 was merged with a verdict of a different patch', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'comment' && action.pr === 22) action['body'] = String(action['body']).replace(/patch=\S+/, 'patch=0123456789abcdef'); })), fails: ['ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', 'ship.fresh.only-the-patches-a-verdict-covers-merged'] },
-    { name: 'the shipper never compared patch-ids', mutate: (sandbox) => rewriteSessionSafe(sandbox, 'compare-verdicts.sh', 'compare-other.sh'), fails: ['ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict'] },
+    { name: 'the shipper never compared patch-ids', mutate: (sandbox) => rewriteSessionSafe(sandbox, 'PR 21 verdict-sha=', 'comparison removed '), fails: ['ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict'] },
     { name: 'the shipper force-pushed without the lease on a second branch', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'force-push', ref: 'refs/heads/s-3', worker: '', run: '', actor: '', container: false } as ForgeAction)), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },
     { name: 'the shipper retargeted PR 23 as well', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'edit-base', tool: 'gh', pr: 23, from: 's-2', to: 'main', worker: '', run: '', actor: '', container: false })), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },
     { name: 'PR 22 was merged before it moved onto the merge result', mutate: (sandbox) => editForge(sandbox, (actions) => { const at = actions.findIndex((action) => action.kind === 'merge' && action.pr === 22); const [merge] = actions.splice(at, 1); actions.splice(actions.findIndex((action) => action.kind === 'edit-base'), 0, merge as ForgeAction); }), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },
