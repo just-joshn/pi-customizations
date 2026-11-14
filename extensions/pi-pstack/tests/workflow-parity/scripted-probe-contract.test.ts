@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-
 import { codemodeFamily } from './families/codemode.ts';
 import { mcpFamilies } from './families/mcp.ts';
 import { evaluate } from './lib/check.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 const empty = { driver: 'real', sandbox: '/absent', repo: '/absent/repo', parent: { messages: [], toolCalls: [] }, runs: [] } as unknown as RunView;
@@ -12,6 +12,9 @@ test('real codemode runs do not fail for unrequested scripted slot and large-out
   expect(evaluate(checks, empty).map((result) => [result.scope, result.verdict])).toEqual(Array.from({ length: 6 }, () => ['adaptation', 'INCONCLUSIVE']));
 });
 test('real why runs do not claim control-worker and write-refusal probes were exercised', () => {
-  const checks = mcpFamilies.find((family) => family.id === 'why-no-mcp')!.checks.filter((check) => /worker-discovers-and-calls|readonly-holds-beside-mcp/.test(check.id));
-  expect(evaluate(checks, empty).map((result) => [result.scope, result.verdict])).toEqual([['adaptation', 'INCONCLUSIVE'], ['adaptation', 'INCONCLUSIVE']]);
+  const checks = required(mcpFamilies.find((family) => family.id === 'why-no-mcp')).checks.filter((check) => /worker-discovers-and-calls|readonly-holds-beside-mcp/.test(check.id));
+  expect(evaluate(checks, empty).map((result) => [result.scope, result.verdict])).toEqual([
+    ['adaptation', 'INCONCLUSIVE'],
+    ['adaptation', 'INCONCLUSIVE'],
+  ]);
 });

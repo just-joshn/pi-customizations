@@ -2,6 +2,8 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
+import { cartHistory, lineOf } from '../fixtures/repos.ts';
 import { type Check, check, fail, type Outcome, pass, type Src, src, when } from '../lib/check.ts';
 import {
   allWorkers,
@@ -9,10 +11,10 @@ import {
   briefCarries,
   citationsResolve,
   collectOrder,
-  fileReferencesResolve,
   expectedModels,
-  modelIdentity,
+  fileReferencesResolve,
   finalReply,
+  modelIdentity,
   noInventedSources,
   noToolErrors,
   openedAt,
@@ -24,21 +26,19 @@ import {
   promptRoutes,
   readonlyEnforced,
   receiptsFor,
-  repoUntouched,
   replyLacks,
   replySections,
+  repoUntouched,
   settledAndCollected,
   skillFile,
-  spawnOrder,
   spawnedAfterCollect,
   spawnedTogether,
+  spawnOrder,
   todoChecks,
   workersCheck,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToBrief, appendToolCall, cloneWorker, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory, overwrite } from '../lib/mutate.ts';
-import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
-import { cartHistory, lineOf } from '../fixtures/repos.ts';
+import { appendToBrief, appendToolCall, cloneWorker, corruptArtifact, deleteReceipt, deleteStep, dirtyRepo, dropWakes, overwrite, parentSession, patchAssignment, removeWorker, reorderHistory, rewriteFinalReply, rewriteSession, setStep, stripEvidence, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
 import type { Family } from './types.ts';
 

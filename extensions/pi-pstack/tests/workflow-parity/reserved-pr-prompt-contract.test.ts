@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-
 import { autopilotFamilies } from './families/pr-autopilot.ts';
 import { orchestrateSubFamily } from './families/pr-orchestrate-sub.ts';
 import type { Ctx } from './lib/driver.ts';
+import { required } from './lib/required.ts';
 
-const prompt = (id: string) => [...autopilotFamilies, orchestrateSubFamily].find((family) => family.id === id)!.spec.prompt({} as Ctx);
+const prompt = (id: string) => required([...autopilotFamilies, orchestrateSubFamily].find((family) => family.id === id)).spec.prompt({} as Ctx);
 
 test('lane task names the reserved PR, branch and observable lookup contract', () => {
   const text = prompt('autopilot-lanes');

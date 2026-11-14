@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-
 import { evaluate } from './lib/check.ts';
 import { panelCheck, workersCheck } from './lib/checks.ts';
 import type { RunView } from './lib/view.ts';

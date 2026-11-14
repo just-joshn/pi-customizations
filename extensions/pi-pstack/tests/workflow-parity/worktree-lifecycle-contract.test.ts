@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-
 import { evaluate } from './lib/check.ts';
 import { worktreeIsolation } from './lib/checks.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 const source = { file: 'arena/SKILL.md', anchor: 'Give each candidate its own output location' };
@@ -14,7 +14,7 @@ test('cleaned worktrees retain session cwd and branch evidence of isolation', ()
 });
 test('a shared session cwd still fails after cleanup', () => {
   const value = view();
-  value.runs[0]!.workers[1]!.session!.cwd = workers[0]!.session.cwd;
+  required(required(required(value.runs[0]).workers[1]).session).cwd = required(workers[0]).session.cwd;
   expect(verdict(value)).toBe('FAIL');
 });
 test('a missing worktree and no branch evidence cannot establish isolation', () => {

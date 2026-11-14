@@ -75,7 +75,11 @@ test('PR JSON fields expose actual commits, changed files and checks', () => {
   writeFileSync(path, JSON.stringify(state));
   const result = call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'commits,files,statusCheckRollup');
   expect(result.status, result.stderr).toBe(0);
-  expect(JSON.parse(result.stdout)).toMatchObject({ commits: [{ messageHeadline: 'add behavior', oid: execFileSync('git', ['-C', ctx.repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() }], files: [{ path: 'change.txt', additions: 1, deletions: 0 }], statusCheckRollup: [{ name: 'build', status: 'COMPLETED', conclusion: 'SUCCESS' }] });
+  expect(JSON.parse(result.stdout)).toMatchObject({
+    commits: [{ messageHeadline: 'add behavior', oid: execFileSync('git', ['-C', ctx.repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() }],
+    files: [{ path: 'change.txt', additions: 1, deletions: 0 }],
+    statusCheckRollup: [{ name: 'build', status: 'COMPLETED', conclusion: 'SUCCESS' }],
+  });
 });
 
 test('freshness events accept upstream verdicts but not prose mentioning PASS', () => {

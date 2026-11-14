@@ -1,11 +1,20 @@
 import { expect, test } from 'vitest';
-
 import { historyFamilies } from './families/history.ts';
 import { evaluate } from './lib/check.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
-const audit = historyFamilies.find((family) => family.id === 'show-me-your-work')!.checks.filter((check) => check.id === 'trail.audited-against-the-transcript');
-const verdict = (name: string, args: Record<string, unknown>, isError = false) => evaluate(audit, { parent: { file: '/sessions/own.jsonl', toolCalls: [{ order: 1, name, args, isError }, { order: 2, name: 'bash', args: { command: 'sh log.sh audit corrected evidence' } }] } } as unknown as RunView)[0]?.verdict;
+const audit = required(historyFamilies.find((family) => family.id === 'show-me-your-work')).checks.filter((check) => check.id === 'trail.audited-against-the-transcript');
+const verdict = (name: string, args: Record<string, unknown>, isError = false) =>
+  evaluate(audit, {
+    parent: {
+      file: '/sessions/own.jsonl',
+      toolCalls: [
+        { order: 1, name, args, isError },
+        { order: 2, name: 'bash', args: { command: 'sh log.sh audit corrected evidence' } },
+      ],
+    },
+  } as unknown as RunView)[0]?.verdict;
 
 test('echoing the session path is not a transcript audit', () => {
   expect(verdict('bash', { command: 'echo "$PI_SESSION_FILE"' })).toBe('FAIL');

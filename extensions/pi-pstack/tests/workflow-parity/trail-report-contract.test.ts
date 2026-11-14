@@ -1,11 +1,15 @@
 import { expect, test } from 'vitest';
-
 import { historyFamilies } from './families/history.ts';
 import { evaluate } from './lib/check.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
-const checks = historyFamilies.find((family) => family.id === 'show-me-your-work')!.checks;
-const verdict = (id: string, view: Partial<RunView>) => evaluate(checks.filter((check) => check.id === id), view as RunView)[0]?.verdict;
+const checks = required(historyFamilies.find((family) => family.id === 'show-me-your-work')).checks;
+const verdict = (id: string, view: Partial<RunView>) =>
+  evaluate(
+    checks.filter((check) => check.id === id),
+    view as RunView,
+  )[0]?.verdict;
 const reply = (text: string) => ({ parent: { messages: [{ role: 'assistant', text, order: 1 }], toolCalls: [] } }) as unknown as Partial<RunView>;
 
 test('formula-free logs need no invented formula cell', () => {

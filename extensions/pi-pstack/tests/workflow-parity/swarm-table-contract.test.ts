@@ -1,11 +1,25 @@
 import { expect, test } from 'vitest';
-
 import { swarmFamily } from './families/design.ts';
 import { evaluate } from './lib/check.ts';
 import type { RunView } from './lib/view.ts';
 
 const rows = ['cart', 'money', 'checkout'].map((name) => `| audit-${name} | \`src/${name}.js\` | ISSUES | rounding discrepancy |`);
-const run = (reply: string, invalid = false) => ({ base: 'a'.repeat(40), parent: { messages: [{ order: 1, role: 'assistant', text: reply }], toolCalls: [] }, runs: [{ workers: ['cart', 'money', 'checkout'].map((name) => ({ id: `audit-${name}`, assignment: {}, brief: `src/${name}.js`, finalText: invalid && name === 'cart' ? 'ISSUES' : `ISSUES at ${'a'.repeat(40)}, method node --test`, state: { settles: [{ phase: 'idle' }] } })) }] }) as unknown as RunView;
+const run = (reply: string, invalid = false) =>
+  ({
+    base: 'a'.repeat(40),
+    parent: { messages: [{ order: 1, role: 'assistant', text: reply }], toolCalls: [] },
+    runs: [
+      {
+        workers: ['cart', 'money', 'checkout'].map((name) => ({
+          id: `audit-${name}`,
+          assignment: {},
+          brief: `src/${name}.js`,
+          finalText: invalid && name === 'cart' ? 'ISSUES' : `ISSUES at ${'a'.repeat(40)}, method node --test`,
+          state: { settles: [{ phase: 'idle' }] },
+        })),
+      },
+    ],
+  }) as unknown as RunView;
 const checks = swarmFamily.checks.filter((check) => ['swarm.results-record-sha-and-method', 'swarm.pass-lanes-have-receipts', 'swarm.report-keeps-outcome-distinctions'].includes(check.id));
 const verdicts = (reply: string, invalid = false) => evaluate(checks, run(reply, invalid)).map((result) => result.verdict);
 const report = `${rows.join('\n')}\nNo dropouts, no gaps.`;

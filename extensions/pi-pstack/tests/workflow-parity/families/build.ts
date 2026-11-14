@@ -8,36 +8,36 @@ import { cartHistory, lineOf } from '../fixtures/repos.ts';
 import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
-  assignmentOf,
   artifactText,
+  assignmentOf,
   branchCommits,
-  redFirst,
   delegateCommits,
   delegateOf,
   everyCommitGreen,
-  namesCommit,
-  ranBefore,
-  recordOrder,
-  spawnOrder,
-  stepReceipts,
   filesChanged,
   finalReply,
+  namesCommit,
   noToolErrors,
+  openedAt,
   parentReads,
   parentWritesOnlyScratch,
   playbookReads,
   primaryRun,
   promptRoutes,
+  ranBefore,
+  recordOrder,
+  redFirst,
   runAtCommit,
   settledAndCollected,
   skillFile,
-  openedAt,
+  spawnOrder,
+  stepReceipts,
   todoChecks,
   workersCheck,
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, overwrite, rewriteSession, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
+import { appendToolCall, dirtyRepo, overwrite, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, rewriteSession, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
 import type { RunView, ToolCall } from '../lib/view.ts';
 import { taskItems, todoNegatives, worktreeOf, writer } from './shared.ts';
 import type { Family } from './types.ts';
