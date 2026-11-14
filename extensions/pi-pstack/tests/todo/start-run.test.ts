@@ -89,6 +89,17 @@ test.for(names)('CLI preserves pinned source bytes and a separate pending ledger
   });
 });
 
+test.for(['opening-a-pr', 'orchestrate'])('a playbook without numbered steps says so and points at its rules (%s)', (name) => {
+  const cwd = project();
+  const result = run(cwd, name);
+  expect(result.status, result.stderr).toBe(0);
+  const todo = readFileSync(todoPath(cwd));
+  expect(rawBlock(todo).equals(Buffer.alloc(0))).toBe(true);
+  expect(ledger(todo)).toEqual([]);
+  expect(todo.toString('utf8')).toContain('This playbook has no numbered steps. Read its rules in full.');
+  expect(todo.toString('utf8')).toContain(`https://github.com/cursor/plugins/blob/${revision}/pstack/skills/poteto-mode/playbooks/${name}.md`);
+});
+
 test('ledger edits retain skipped and blocked steps without changing the raw source', () => {
   const cwd = project();
   expect(run(cwd, 'feature').status).toBe(0);

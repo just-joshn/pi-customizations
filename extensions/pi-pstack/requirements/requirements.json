@@ -156,11 +156,11 @@
     },
     "todo.step": {
       "file": "tests/todo/start-run.test.ts",
-      "name": "copies every complete source step from {name}.md into TODO.md"
+      "name": "CLI preserves pinned source bytes and a separate pending ledger for {name}.md"
     },
     "todo.stepall": {
       "file": "tests/todo/start-run.test.ts",
-      "name": "copies every complete source step from {name}.md into TODO.md",
+      "name": "CLI preserves pinned source bytes and a separate pending ledger for {name}.md",
       "expand": "playbooks"
     },
     "todo.inventory": {
@@ -168,8 +168,8 @@
       "name": "the source inventory contains all 23 playbooks"
     },
     "todo.nested": {
-      "file": "tests/todo/start-run.test.ts",
-      "name": "keeps nested lines and continuation paragraphs without treating code as numbered steps"
+      "file": "tests/todo/source.test.ts",
+      "name": "source span retains Unicode, whitespace, continuations and fenced examples (\"\\n\")"
     },
     "todo.nosteps-pr": {
       "file": "tests/todo/start-run.test.ts",
@@ -185,7 +185,7 @@
     },
     "todo.overwrite": {
       "file": "tests/todo/start-run.test.ts",
-      "name": "refuses to overwrite an existing run"
+      "name": "keeps a single active run and refuses to overwrite an existing run"
     },
     "ext.entry": {
       "file": "tests/integration/extension.test.ts",
