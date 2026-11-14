@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased] - 2026-11-14
+
+- Run Pi workers in containers against a clone of the pushed remote. Give each worker its selected provider credential and provider package, with a minimal environment by default and no ambient `PSTACK_*` inheritance. `capabilities.forge` supplies a forge token. Abort waits for confirmed container removal. OAuth access tokens are not refreshed during a worker's life. Providers registered by a `git:` package or only in Pi's `models.json` are not discovered automatically.
+- Enable `bash_readonly` for local readonly workers. The shell denies filesystem writes and Unix sockets, but the worker's Pi process retains same-user file access. Use container mode for untrusted input.
+- Limit readonly MCP access to the operator's exact tool allowlist. Non-GitHub Benny trackers use project-owned adapter skills and a separate operator-authorized MCP write-tool list.
+- Deliver worker wakes when the parent is idle or reaches `agent_before_settle`. Do not wake for a result the parent already collected. Return a readonly worker's final reply as its report, and expose a watch worker's redacted output tail through inspect and its exit wake.
+- Record container verifier receipts in worker inboxes and import them into the run without following output symlinks. Explain run-global receipt ids and host-visible artifact paths. Verify that expected-fail output confirms each named test and its stated failure reason.
+- Accept family-default model names and thinking-level suffixes in assignments. Report model substitutions and unavailable choices. Resolve nested worker models before claiming a worker id. Keep `models.json` as the only pstack model configuration file.
+- Attach loaded skills named mid-message inside active pstack workflows. Expand installed skills with absolute package paths. Send `/pstack` command output to stdout in print mode and to the JSON event stream.
+- Compile the Benny automation pack from the pinned upstream. Add parent-owned operations status, tracker deduplication, evidence attachments with configurable limits, deadline enforcement, and repro rejection windows. Require timestamped proof of two reproductions, keep fixes behind the parent's go-ahead, and restrict pull requests to drafts.
+- Bundle the installed statechart helper for Node. Make worktree-audit honor Pi session-directory configuration. Record workflow decisions in the run's `decisions.tsv` and document worker branch names in the compiled skills.
+- Correct documentation about isolation, trackers, wakes, and receipts. Generate the untrusted-input recommendation from the requirements source and remove two obsolete lint-baseline entries. `docs/parity-status.md` retains the manifest's measured statuses and known gaps.
+
 ## [0.15.36-pi.40] - 2026-11-11
 
 This release rebuilds the package on Pi's own mechanisms. `docs/architecture.md` explains the design, and `docs/parity-status.md` lists what is proven.
@@ -10,9 +23,9 @@ This release rebuilds the package on Pi's own mechanisms. `docs/architecture.md`
 - Keep runs as files under `<project>/.pi/pstack/runs/<runId>/`. `TODO.md` replaces `TodoWrite`, and a plan file under `.pi/pstack/plans/` replaces plan mode.
 - Read per-role models from `~/.pi/agent/pstack/models.json`, which `/setup-pstack` writes.
 - Remove `Task`, `agent_status`, `stop_agent`, `TodoWrite`, `/plan`, `CreatePlan`, `SwitchMode`, `AskQuestion`, `/mode`, `/loop`, `bash_background`, `AwaitShell`, subscriptions, the routines supervisor and its `pstack-routines-supervisor` bin, the Slack tools, cloud agents and `/in-cloud`, Projects, `request_secret`, `GenerateImage`, and `visualize`.
-- A `/name` later in a message no longer attaches its skill. Start the message with the `/name`.
+- At the initial native rebuild, a `/name` later in a message did not attach its skill. The updates above restore attachment inside active pstack workflows.
 - Drop the `re2js` dependency.
-- Known gaps: container workers are not implemented, workers share the operator's uid, `bash_readonly` is not wired to readonly workers yet, and the statechart skill cannot run on Node from an npm install.
+- Initial gaps included missing container workers, an unwired `bash_readonly`, and a statechart helper that could not run on Node from an npm install. The updates above address those gaps. Local workers still share the operator's uid.
 
 ## [0.15.36-pi.39] - 2026-11-10
 
