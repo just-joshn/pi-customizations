@@ -26,11 +26,15 @@ function result(text: string) {
     [21, 22, 23].map((pr) => JSON.stringify({ kind: 'comment', pr, worker: `v${pr}`, body: `PSTACK-VERDICT: ${pr === 22 ? 'FAIL' : 'PASS'} head=${'a'.repeat(40)} verifier=v${pr} patch=p` })).join('\n'),
   );
   const check = shippingFamily.checks.find((entry) => entry.id === 'ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap');
-  return check?.run({ sandbox, parent: { messages: [{ order: 1, role: 'assistant', text }], toolCalls: [] } } as unknown as RunView);
+  return check?.run({ sandbox, runs: [], parent: { messages: [{ order: 1, role: 'assistant', text }], toolCalls: [] } } as unknown as RunView);
 }
 test('shipping accepts the required facts in ordinary prose', () => {
   expect(result(reply)).toMatchObject({ ok: true });
   expect(result(reply.replace('I confirmed the merge by reading the PR back.', 'The PR now reads MERGED with base main.'))).toMatchObject({ ok: true });
+});
+test('a markdown MERGED read-back confirms the landing, but OPEN does not', () => {
+  expect(result(reply.replace('I confirmed the merge by reading the PR back.', 'Read back as `MERGED`.'))).toMatchObject({ ok: true });
+  expect(result(reply.replace('I confirmed the merge by reading the PR back.', 'Read back as `OPEN`.'))).toMatchObject({ ok: false });
 });
 test('omitting a producer or the next gap is still a failure', () => {
   expect(result(reply.replace('from v22', ''))).toMatchObject({ ok: false });

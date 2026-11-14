@@ -2,11 +2,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { expect, test } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { autopilotFullFamily } from './families/pr-autopilot.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
+const roots: string[] = [];
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
 const check = (id: string, view: unknown) => autopilotFullFamily.checks.find((entry) => entry.id === id)?.run(view as RunView);
 test('self-proof permits multiple step receipts and run-relative worker artifacts', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'owner-proof-'));
@@ -30,6 +34,11 @@ test('self-proof permits multiple step receipts and run-relative worker artifact
 });
 
 test('hourly watch ignores re-collects of idle workers but not newly steered work', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'hourly-watch-'));
+  roots.push(sandbox);
+  mkdirSync(forgeDirOf(sandbox), { recursive: true });
+  writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ prs: {} }));
+  writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), '');
   const dir = '/repo/workers/tick';
   const owner = { id: 'owner', dir: '/repo/workers/owner', assignment: { role: 'owner' } };
   const watcher = { id: 'tick', dir, assignment: { role: 'watcher', kind: 'watch', watch: { argv: ['sleep', '3600'], cwd: '/repo' } } };
@@ -39,7 +48,7 @@ test('hourly watch ignores re-collects of idle workers but not newly steered wor
     { order: 4, name: 'pstack_worker', args: { action: 'abort', runId: 'r', workerId: 'tick' } },
     { order: 5, name: 'pstack_worker', args: { action: 'collect', runId: 'r', workerId: 'owner' } },
   ];
-  const view = { repo: '/repo', runs: [{ id: 'r', workers: [owner, watcher] }], parent: { toolCalls: calls, messages: [{ order: 3, customType: 'pstack-worker', details: { runId: 'r', workerId: 'owner', phase: 'idle' } }] } };
+  const view = { sandbox, repo: '/repo', runs: [{ id: 'r', workers: [owner, watcher] }], parent: { toolCalls: calls, messages: [{ order: 3, customType: 'pstack-worker', details: { runId: 'r', workerId: 'owner', phase: 'idle' } }] } };
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: true });
   calls.push({ order: 3.5, name: 'pstack_worker', args: { action: 'steer', runId: 'r', workerId: 'owner' } });
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: false });

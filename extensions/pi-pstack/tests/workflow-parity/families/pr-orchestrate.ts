@@ -177,7 +177,7 @@ export const orchestrateFamily: Family = {
     check('orchestrate.live-state-is-read-and-every-worker-is-accounted-for', 'before the reply the parent read both PRs live, a notes file and a decisions log exist in the run root, and the reply accounts for every worker as done or replaced without asking the user', OR('**Check a PR\'s live state before you report on it,**'), (view) => {
       const run = view.runs[0];
       const reply = finalReply(view);
-      const replyAt = view.parent.messages.find((message) => message.text === reply)?.order ?? -1;
+      const replyAt = [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text !== '' && reply.endsWith(message.text))?.order ?? -1;
       const live = [51, 52].every((pr) => BASH(view).some((entry) => entry.order < replyAt && new RegExp(`\\bgh pr view ${pr}\\b`).test(entry.command)));
       const missing = allWorkers(view).filter((worker) => !reply.includes(worker.id) && !view.parent.toolCalls.some((call) => call.order < replyAt && call.name === 'pstack_worker' && call.args['workerId'] === worker.id && !call.isError && ((call.args['action'] === 'collect' && /settled/.test(call.resultText)) || (call.args['action'] === 'abort' && /Aborted worker/.test(call.resultText))))).map((worker) => worker.id);
       const notes = join(run?.dir ?? '', 'notes.md');

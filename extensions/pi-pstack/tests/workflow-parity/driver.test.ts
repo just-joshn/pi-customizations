@@ -1,5 +1,5 @@
 // The driver reports a pi that cannot run as that, with pi's stderr, and never as the ENOENT of a file it then reads.
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -16,6 +16,64 @@ const withPi = (mode: string) => {
   process.env['FAKE_PI_MODE'] = mode;
   return runWorkflow(spec, 'scripted', { pi: FAKE_PI, rpcTimeoutMs: 1_500 });
 };
+
+test('an idle parent and coordinator do not end a run while a nested worker is running', async () => {
+  process.env['FAKE_PI_MODE'] = 'nested-worker';
+  let nestedState = '';
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      prepare: (ctx) => {
+        const coordinator = join(ctx.repo, '.pi/pstack/runs/root/workers/coordinator');
+        const leaf = join(coordinator, 'worktree/.pi/pstack/runs/area/workers/leaf');
+        mkdirSync(leaf, { recursive: true });
+        writeFileSync(join(coordinator, 'state.json'), JSON.stringify({ phase: 'idle' }));
+        nestedState = join(leaf, 'state.json');
+        writeFileSync(nestedState, JSON.stringify({ phase: 'running' }));
+      },
+      env: () => ({ FAKE_PI_NESTED_STATE: nestedState }),
+    },
+    'scripted',
+    { pi: FAKE_PI },
+  );
+  try {
+    expect(outcome.meta.timedOut).toBe(false);
+    expect(JSON.parse(readFileSync(nestedState, 'utf8'))).toEqual({ phase: 'idle' });
+  } finally {
+    outcome.cleanup();
+  }
+});
+
+test.for([false, true])('commits since start exclude fixture setup commits and retain new work (%s)', async (addWork) => {
+  process.env['FAKE_PI_MODE'] = 'busy';
+  process.env['FAKE_PI_BUSY_MS'] = '0';
+  let created = '';
+  const commit = (repo: string, name: string) => {
+    writeFileSync(join(repo, name), name);
+    const git = (...args: string[]) => execFileSync('git', ['-C', repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.test', ...args], { encoding: 'utf8' }).trim();
+    git('add', name);
+    git('commit', '-qm', name);
+    return git('rev-parse', 'HEAD');
+  };
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      prepare: (ctx) => {
+        commit(ctx.repo, 'inherited.txt');
+      },
+      drive: async ({ ctx }) => {
+        if (addWork) created = commit(ctx.repo, 'new.txt');
+      },
+    },
+    'scripted',
+    { pi: FAKE_PI },
+  );
+  try {
+    expect(outcome.view.git.commitsSinceBase).toEqual(addWork ? [created] : []);
+  } finally {
+    outcome.cleanup();
+  }
+});
 
 test('an event-triggered hold reaches the parent while work is in flight', async () => {
   process.env['FAKE_PI_MODE'] = 'interrupt';

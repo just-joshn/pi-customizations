@@ -1,7 +1,7 @@
 // Families: arena, architect, swarm, interrogate (spec 12.2).
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, finalFile, lineOf } from '../fixtures/repos.ts';
@@ -168,8 +168,15 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
   }),
   whenJudged(check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
-    // The skill sets the rubric's size (3 to 6 criteria) and no list syntax: a dash, a star, or a number each counts; a candidate's path label does not.
-    const criteria = (judge?.brief ?? '').split('\n').filter((line) => /^\s*(?:[-*]|\d+[.)])\s+\S/.test(line) && !/^\s*[-*]\s+\W*candidate/i.test(line) && !/worktree/i.test(line)).map((line) => line.replace(/^\s*(?:[-*]|\d+[.)])\s+/, ''));
+    const lines = (judge?.brief ?? '').split('\n');
+    const start = lines.findIndex((line) => /\brubric\b/i.test(line));
+    if (start === -1) return fail('no rubric section in the judge brief');
+    const criteria: string[] = [];
+    for (const line of lines.slice(start + 1)) {
+      const item = /^\s*(?:[-*]|\d+[.)])\s+(\S.*)/.exec(line);
+      if (item !== null) criteria.push(item[1] as string);
+      else if (line.trim() !== '' && criteria.length > 0) break;
+    }
     if (criteria.length < 3 || criteria.length > 6) return fail(`the judge brief carries ${criteria.length} rubric criteria, want 3 to 6`);
     const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && criteria.some((criterion) => (worker.brief ?? '').includes(criterion)));
     return when(leaked.length === 0, `${criteria.length} criteria in the judge brief, none in ${allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').length} candidate briefs`, `rubric leaked to ${leaked.map((worker) => worker.id).join(', ')}`);
@@ -193,8 +200,18 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
     const brief = judge?.brief ?? '';
     const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate');
-    // A label then its path on one line, in any list or bold style: "- cand-1: /x/worktree", "- **candidate-A** worktree: `/x/worktree`".
-    const unlabelled = candidates.filter((worker) => !brief.split('\n').some((line) => new RegExp(`^[\\s\\-*>\\x60]*[A-Za-z][^/\\n]*\\/[^\\n]*/${worker.id}/worktree`).test(line)));
+    const copies = [...brief.matchAll(/`([^`\n]+\/)`/g)].map((match) => resolve(view.repo, match[1] as string));
+    const used = new Set<string>();
+    const unlabelled = candidates.filter((worker) => {
+      if (brief.split('\n').some((line) => new RegExp(`^[\\s\\-*>\\x60]*[A-Za-z][^/\\n]*\\/[^\\n]*/${worker.id}/worktree`).test(line))) return false;
+      const copy = copies.find((path) => !used.has(path) && ['src/coupon.js', 'test/coupon.test.js'].every((file) => {
+        const original = join(worker.worktree ?? join(worker.dir, 'worktree'), file);
+        return existsSync(original) && existsSync(join(path, file)) && readFileSync(original).equals(readFileSync(join(path, file)));
+      }));
+      if (copy === undefined) return true;
+      used.add(copy);
+      return false;
+    });
     const missing = [...(/Rubric/i.test(brief) ? [] : ['the rubric']), ...unlabelled.map((worker) => `a labelled path for ${worker.id}`)];
     return when(judge !== undefined && candidates.length > 0 && missing.length === 0, `the judge brief has the rubric and a labelled worktree path for ${candidates.length} candidates`, judge === undefined ? 'no judge' : `judge brief lacks ${missing.join(', ')}`);
   })),
@@ -609,9 +626,9 @@ Gaps and dropouts
 Race rule: none, this was a coverage partition.`;
 
 /** Phase D asks for a result table without prescribing its column order. */
-const LANE_ROW = /^\|.*\|?\s*`?src\/[\w.-]+\.js`?\s*\|/;
+const LANE_ROW = /^\|.*\|?\s*`?(?:src\/)?[\w.-]+\.js`?\s*\|/;
 const laneRows = (reply: string) => reply.split('\n').filter((line) => LANE_ROW.test(line));
-const SLICE_FILE = /src\/[\w.-]+\.js/;
+const SLICE_FILE = /(?:src\/)?[\w.-]+\.js/;
 const settledIdle = (worker: WorkerView) => ((worker.state?.['settles'] as { phase: string }[] | undefined) ?? []).some((settle) => settle.phase === 'idle');
 
 /**
@@ -623,8 +640,9 @@ function laneWorker(view: RunView, row: string): WorkerView | undefined {
   const cited = /receipt ([\w-]+?)-check/.exec(row)?.[1];
   const named = [...workers].sort((a, b) => b.id.length - a.id.length).find((worker) => worker.id === cited || row.includes(worker.id));
   if (named !== undefined) return named;
-  const file = SLICE_FILE.exec(row)?.[0];
-  const forFile = workers.filter((worker) => worker.brief?.match(SLICE_FILE)?.[0] === file);
+  const file = SLICE_FILE.exec(row)?.[0].replace(/^src\//, '');
+  if (file === undefined) return undefined;
+  const forFile = workers.filter((worker) => worker.brief?.match(SLICE_FILE)?.[0].replace(/^src\//, '') === file);
   return [...forFile].reverse().find(settledIdle) ?? forFile.at(-1);
 }
 

@@ -10,6 +10,7 @@ export interface ToolCall {
   /** Position of the assistant message in the session, for ordering across tools. */
   order: number;
   name: string;
+  contentIndex?: number;
   args: Json;
   resultText: string;
   isError: boolean;
@@ -21,6 +22,7 @@ export interface Message {
   order: number;
   role: string;
   text: string;
+  parts?: Json[];
   customType?: string;
   details?: Json;
 }
@@ -70,22 +72,36 @@ export function loadSession(file: string): Session {
       continue;
     }
     if (entry['type'] === 'custom_message') {
-      messages.push({ order: order++, role: 'custom', text: textOf(entry['content']), customType: String(entry['customType']), ...(typeof entry['details'] === 'object' && entry['details'] !== null ? { details: entry['details'] as Json } : {}) });
+      messages.push({
+        order: order++,
+        role: 'custom',
+        text: textOf(entry['content']),
+        customType: String(entry['customType']),
+        ...(typeof entry['details'] === 'object' && entry['details'] !== null ? { details: entry['details'] as Json } : {}),
+      });
       continue;
     }
     if (entry['type'] !== 'message') continue;
     const message = entry['message'] as Json;
     const role = String(message['role']);
-    messages.push({ order: order++, role, text: textOf(message['content']) });
+    messages.push({ order: order++, role, text: textOf(message['content']), ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}) });
     if (role === 'assistant') {
       if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) {
         errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
         errorTimes.push(typeof entry['timestamp'] === 'string' ? entry['timestamp'] : null);
       }
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
-      for (const part of message['content'] as Json[]) {
+      for (const [contentIndex, part] of (message['content'] as Json[]).entries()) {
         if (part['type'] !== 'toolCall') continue;
-        const call: ToolCall = { order: order - 1, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}) };
+        const call: ToolCall = {
+          order: order - 1,
+          contentIndex,
+          name: String(part['name']),
+          args: (part['arguments'] ?? {}) as Json,
+          resultText: '',
+          isError: false,
+          ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}),
+        };
         calls.set(String(part['id']), call);
         toolCalls.push(call);
       }
@@ -187,6 +203,7 @@ export interface RunView {
   parent: Session;
   runs: RunDir[];
   plans: { path: string; text: string }[];
+  decisions?: string[][] | null;
   /** Distinct TODO.md contents the driver saw, per run id, oldest first. */
   todoHistory: Record<string, Snapshot[]>;
   /** When the driver first saw each worker's claim directory, in the same sequence as todoHistory. */
@@ -287,13 +304,30 @@ function loadWorker(dir: string, id: string): WorkerView {
   };
 }
 
+export function loadDecisions(project: string, dir = project): string[][] | null {
+  const audit = join(project, '.audit');
+  const path = [
+    join(dir, 'decisions.tsv'),
+    join(project, 'decisions.tsv'),
+    ...(existsSync(audit)
+      ? readdirSync(audit)
+          .filter((file) => file.endsWith('.tsv'))
+          .sort()
+          .map((file) => join(audit, file))
+      : []),
+  ].find((candidate) => existsSync(candidate));
+  return path === undefined
+    ? null
+    : readFileSync(path, 'utf8')
+        .split('\n')
+        .filter((line) => line !== '')
+        .map((line) => line.split('\t'));
+}
+
 export function loadRun(project: string, id: string): RunDir {
   const dir = join(project, '.pi', 'pstack', 'runs', id);
   const todoPath = join(dir, 'TODO.md');
   const todoText = existsSync(todoPath) ? readFileSync(todoPath, 'utf8') : null;
-  // The trail's default home is the run directory (show-me-your-work, compiled); with no run it is decisions.tsv in the work dir, or .audit/<task-slug>.tsv.
-  const audit = join(project, '.audit');
-  const decisionsPath = [join(dir, 'decisions.tsv'), join(project, 'decisions.tsv'), ...(existsSync(audit) ? readdirSync(audit).filter((file) => file.endsWith('.tsv')).sort().map((file) => join(audit, file)) : [])].find((candidate) => existsSync(candidate)) ?? join(dir, 'decisions.tsv');
   const eventsPath = join(dir, 'events.jsonl');
   const receiptsDir = join(dir, 'verification', 'receipts');
   const workersDir = join(dir, 'workers');
@@ -303,12 +337,7 @@ export function loadRun(project: string, id: string): RunDir {
     runJson: readJson(join(dir, 'run.json')),
     todoText,
     steps: todoText === null ? [] : parseTodoSteps(todoText),
-    decisions: existsSync(decisionsPath)
-      ? readFileSync(decisionsPath, 'utf8')
-          .split('\n')
-          .filter((line) => line !== '')
-          .map((line) => line.split('\t'))
-      : null,
+    decisions: loadDecisions(project, dir),
     events: existsSync(eventsPath) ? readJsonl(eventsPath) : [],
     receipts: existsSync(receiptsDir)
       ? readdirSync(receiptsDir)
@@ -327,7 +356,7 @@ export function loadRun(project: string, id: string): RunDir {
   };
 }
 
-export function loadGit(repo: string, base: string): GitState {
+export function loadGit(repo: string, base: string, inputHead = base): GitState {
   const status = gitRaw(repo, 'status', '--porcelain', '--untracked-files=all')
     .split('\n')
     .filter((line) => line !== '')
@@ -348,7 +377,7 @@ export function loadGit(repo: string, base: string): GitState {
     worktreeDirty: Object.fromEntries(worktrees.map((tree) => [tree.path, lines(gitRaw(tree.path, 'status', '--porcelain', '--untracked-files=all')).map((line) => line.slice(3))])),
     head: git(repo, 'rev-parse', 'HEAD'),
     dirty: status,
-    commitsSinceBase: git(repo, 'rev-list', `${base}..HEAD`)
+    commitsSinceBase: git(repo, 'rev-list', `${inputHead}..HEAD`)
       .split('\n')
       .filter((line) => line !== ''),
     branches,

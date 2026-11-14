@@ -150,6 +150,10 @@ describe('the reply the user reads', () => {
     const view = run([message(1, 'user', '/why'), message(3, 'assistant', 'Spawned two workers.'), woken(6, 'w'), message(8, 'assistant', 'The answer, with its eight sections, now that the workers are in.')], [collectOf(7, 'w')]);
     expect(finalReply(view)).toBe('The answer, with its eight sections, now that the workers are in.');
   });
+  test('a closing report can span consecutive assistant messages after the final tool call', () => {
+    const value = run([message(1, 'user', '/poteto-mode'), message(3, 'assistant', 'Initial plan.'), message(5, 'assistant', 'PR 21 merged.'), message(6, 'assistant', 'PR 22 remains open for verification.')], [collectOf(4, 'w')]);
+    expect(finalReply(value)).toBe('PR 21 merged.\n\nPR 22 remains open for verification.');
+  });
   test('a user turn after the answer is the last reply even when it is short', () => {
     const view = run([message(1, 'user', '/why'), message(5, 'assistant', 'The answer.'), message(6, 'user', 'thanks'), message(8, 'assistant', 'Welcome.')], [collectOf(4, 'w')]);
     expect(finalReply(view)).toBe('Welcome.');

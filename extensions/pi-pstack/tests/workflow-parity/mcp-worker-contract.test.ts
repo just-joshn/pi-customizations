@@ -6,7 +6,12 @@ import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 const worker = { id: 'git', assignment: { role: 'investigator', workspace: { mode: 'readonly', path: '/repo' } }, session: { toolCalls: [] } };
-const view = { repo: '/repo', parent: { models: [] }, models: {}, runs: [{ workers: [worker], events: [{ kind: 'launch', workerId: 'git', data: { command: ['pi', '--tools', 'read,bash_readonly'] } }] }] } as unknown as RunView;
+const view = {
+  repo: '/repo',
+  parent: { models: [], toolCalls: [] },
+  models: {},
+  runs: [{ workers: [worker], events: [{ kind: 'launch', workerId: 'git', data: { command: ['pi', '--tools', 'read,bash_readonly'] } }] }],
+} as unknown as RunView;
 const family = required(mcpFamilies.find((family) => family.id === 'why-no-mcp'));
 const check = (suffix: string, value = view) =>
   evaluate(

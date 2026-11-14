@@ -196,7 +196,13 @@ function howChecks(): Check[] {
     }),
     fileReferencesResolve('how.references-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3, from: presentedHow }),
     noToolErrors('how.no-tool-errors', src('how/SKILL.md', '## 4. Present')),
-  ];
+  ].map((inner): Check => ({ ...inner, run: (view) => {
+    const workers = allWorkers(view);
+    const missingExplainer = !workers.some((worker) => assignmentOf(worker).role === 'general');
+    const needsExplainer = ['how.explainer-after-explorers', 'how.explainer-brief-has-findings', 'how.output-sections'].includes(inner.id);
+    const needsWorkers = ['how.readonly-enforced', 'how.settled-and-collected'].includes(inner.id);
+    return missingExplainer && (needsExplainer || (needsWorkers && workers.length === 0)) ? { inconclusive: 'derived from how.explainer: no explainer ran, so its ordering, output, and execution cannot be assessed' } : inner.run(view);
+  } }));
 }
 
 const HOW_QUESTION = 'how does checkout compute the total, and where do coupons apply?';

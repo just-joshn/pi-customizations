@@ -12,7 +12,7 @@ import { type ContainerCredentialProbe, type CredentialCapture, recordContainerC
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { paneCapture } from './pane-identity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
-import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
+import { type Claim, type GitState, type Json, loadDecisions, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
@@ -318,13 +318,14 @@ function workerPhases(repo: string, hold?: RegExp): string[] {
       const assignment = join(workers, id, 'assignment.json');
       // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
       if (isWatch(assignment) && !hold?.test(id)) return [];
+      const nested = workerPhases(join(workers, id, 'worktree'), hold);
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
-      if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
+      if (!existsSync(statePath)) return [...nested, existsSync(claim) ? 'starting' : 'unspawned'];
       try {
-        return [String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase'])];
+        return [...nested, String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase'])];
       } catch {
-        return ['starting'];
+        return [...nested, 'starting'];
       }
     });
   });
@@ -424,6 +425,7 @@ export interface Meta {
   driver: 'scripted' | 'real';
   base: string;
   parentSessionFile: string | null;
+  inputHead?: string;
   prompt: string;
   timedOut: boolean;
   /** Effective limits, so a stopped run can be distinguished from an older fixture-budget abort. */
@@ -478,6 +480,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real', op
 }
 
 async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions, { ctx, socket }: { ctx: Ctx; socket: string }, capture?: CredentialCapture): Promise<RunOutcome> {
+  const inputHead = git(ctx.repo, 'rev-parse', 'HEAD');
   const scenarioPath = join(ctx.sandbox, 'scenario.json');
   if (driver === 'scripted') writeFileSync(scenarioPath, JSON.stringify(spec.scenario(ctx), null, 2));
   const prompt = spec.prompt(ctx);
@@ -653,11 +656,11 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   if (driver !== 'real') await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { ...(containerCredentialProbes === undefined ? {} : { containerCredentialProbes }), family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
+  const meta: Meta = { ...(containerCredentialProbes === undefined ? {} : { containerCredentialProbes }), family: spec.family, driver, base: ctx.base, inputHead, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
-  writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base), null, 2));
+  writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base, inputHead), null, 2));
   const view = loadView(ctx.sandbox);
   const inconclusive = assessHarnessStop(meta, spec) ?? assess(view, crashed);
   if (inconclusive !== undefined) {
@@ -708,6 +711,7 @@ export function loadView(sandbox: string): RunView {
           .map((id) => loadRun(repo, id))
       : [],
     plans: loadPlans(repo),
+    decisions: loadDecisions(repo),
     todoHistory: existsSync(join(sandbox, 'todo-history.json')) ? (JSON.parse(readFileSync(join(sandbox, 'todo-history.json'), 'utf8')) as Record<string, Snapshot[]>) : {},
     claims: existsSync(join(sandbox, 'claims.json')) ? (JSON.parse(readFileSync(join(sandbox, 'claims.json'), 'utf8')) as Claim[]) : [],
     git: JSON.parse(readFileSync(join(sandbox, 'git.json'), 'utf8')) as GitState,

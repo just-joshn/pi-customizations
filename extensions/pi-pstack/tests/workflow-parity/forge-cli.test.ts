@@ -51,6 +51,88 @@ function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
 }
 
+test('PR view accepts an explicit branch rather than silently using the current branch', () => {
+  const { ctx, forge } = fixture();
+  execFileSync('git', ['-C', ctx.repo, 'checkout', '-qb', 'unrelated']);
+  const result = call(ctx, forge, 'gh', 'pr', 'view', 'main', '--json', 'number,author');
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual({ number: 71, author: { login: 'fixture' } });
+  expect(call(ctx, forge, 'gh', 'pr', 'view', 'missing', '--json', 'number').status).toBe(1);
+});
+
+test('PR list honors state and selected JSON fields', () => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].state = 'MERGED';
+  writeFileSync(path, JSON.stringify(state));
+  const result = call(ctx, forge, 'gh', 'pr', 'list', '--state', 'merged', '--json', 'number,title,state');
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual([{ number: 71, title: 'Review', state: 'MERGED' }]);
+  expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'list', '--state', 'open', '--json', 'number').stdout)).toEqual([]);
+});
+
+test('PR comments expose author objects without changing recorded actor identity', () => {
+  const { ctx, forge } = fixture();
+  expect(call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'PASS').status).toBe(0);
+  const result = call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'comments');
+  expect(JSON.parse(result.stdout).comments[0]).toMatchObject({ body: 'PASS', author: { login: 'operator' } });
+});
+
+test('workflow JSON exposes run attempts and logs remain separately readable', () => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'run', 'view', '9071', '--json', 'databaseId,attempt,headBranch,status,conclusion');
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual({ databaseId: 9071, attempt: 1, headBranch: 'main', status: 'completed', conclusion: 'success' });
+  expect(call(ctx, forge, 'gh', 'run', 'rerun', '9071').status).toBe(0);
+  expect(JSON.parse(call(ctx, forge, 'gh', 'run', 'list', '--json', 'attempt').stdout)).toEqual([{ attempt: 2 }]);
+  expect(call(ctx, forge, 'gh', 'run', 'view', '99999', '--json', 'attempt').status).toBe(1);
+});
+
+test('repository configuration and empty action secrets have API-shaped responses', () => {
+  const { ctx, forge } = fixture();
+  const repo = call(ctx, forge, 'gh', 'repo', 'view', '--json', 'squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed');
+  expect(JSON.parse(repo.stdout)).toEqual({ squashMergeAllowed: true, mergeCommitAllowed: true, rebaseMergeAllowed: true });
+  const api = call(ctx, forge, 'gh', 'api', 'repos/fixture/repo');
+  expect(api.status, api.stderr).toBe(0);
+  expect(JSON.parse(api.stdout)).toMatchObject({ full_name: 'fixture/repo', allow_squash_merge: true, allow_merge_commit: true, allow_rebase_merge: true });
+  const secrets = call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/actions/secrets');
+  expect(secrets.status, secrets.stderr).toBe(0);
+  expect(JSON.parse(secrets.stdout)).toEqual({ total_count: 0, secrets: [] });
+  expect(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/unknown').status).toBe(1);
+});
+
+test('review comment database IDs are numeric and address the same comment through REST', () => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].threads[0].comments[0].id = 'c-501';
+  writeFileSync(path, JSON.stringify(state));
+  const query = 'query { repository(owner:"fixture",name:"repo") { pullRequest(number:71) { reviewThreads(first:100) { nodes { comments(first:100) { nodes { databaseId } } } } } } }';
+  const result = call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${query}`);
+  const id = JSON.parse(result.stdout).data.repository.pullRequest.reviewThreads.nodes[0].comments.nodes[0].databaseId;
+  expect(typeof id).toBe('number');
+  const comments = call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/pulls/71/comments');
+  expect(JSON.parse(comments.stdout)[0].id).toBe(id);
+  const payload = join(ctx.sandbox, 'reply.json');
+  writeFileSync(payload, JSON.stringify({ body: 'Reproduced and fixed.' }));
+  const reply = call(ctx, forge, 'gh', 'api', `repos/fixture/repo/pulls/71/comments/${id}/replies`, '--method', 'POST', '--input', payload);
+  expect(reply.status, reply.stderr).toBe(0);
+  const updated = JSON.parse(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/pulls/71/comments').stdout);
+  expect(updated[1]).toMatchObject({ in_reply_to_id: id, body: 'Reproduced and fixed.' });
+});
+
+test('the identity jq expression works without an external jq executable', () => {
+  const { ctx, forge } = fixture();
+  const bin = join(ctx.sandbox, 'no-jq');
+  mkdirSync(bin);
+  writeFileSync(join(bin, 'jq'), '#!/bin/sh\nexit 99\n');
+  chmodSync(join(bin, 'jq'), 0o755);
+  const result = spawnSync(process.execPath, [FORGE_CLI, 'gh', 'repo', 'view', '--json', 'name', '-q', '.'], { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare, PATH: `${bin}:${process.env['PATH']}` } });
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual({ name: 'repo' });
+});
+
 test('run list filters the real head branch and omits unrelated runs', () => {
   const { ctx, forge } = fixture();
   const listed = call(ctx, forge, 'gh', 'run', 'list', '--branch', 'main', '--json', 'databaseId,headBranch,headSha,status,conclusion');
@@ -301,14 +383,14 @@ test('review comments expose reply ids and REST replies are readable in the same
   const endpoint = 'repos/fixture/repo/pulls/71/comments';
   const result = call(ctx, forge, 'gh', 'api', endpoint);
   expect(result.status, result.stderr).toBe(0);
-  expect(JSON.parse(result.stdout)).toEqual([expect.objectContaining({ id: '901', body: 'Finding', user: { login: 'reviewer' }, path: 'README.md', line: 1 })]);
+  expect(JSON.parse(result.stdout)).toEqual([expect.objectContaining({ id: 901, body: 'Finding', user: { login: 'reviewer' }, path: 'README.md', line: 1 })]);
   const payload = join(ctx.sandbox, 'reply.json');
   writeFileSync(payload, JSON.stringify({ body: 'Reply as data $(not a command)' }));
   const reply = call(ctx, forge, 'gh', 'api', `${endpoint}/901/replies`, '--method', 'POST', '--input', payload);
   expect(reply.status, reply.stderr).toBe(0);
   const comments = JSON.parse(call(ctx, forge, 'gh', 'api', endpoint).stdout);
   expect(comments).toHaveLength(2);
-  expect(comments[1]).toMatchObject({ id: JSON.parse(reply.stdout).id, in_reply_to_id: '901', body: 'Reply as data $(not a command)' });
+  expect(comments[1]).toMatchObject({ id: JSON.parse(reply.stdout).id, in_reply_to_id: 901, body: 'Reply as data $(not a command)' });
   expect(call(ctx, forge, 'gh', 'api', `${endpoint}/missing/replies`, '--method', 'POST', '--input', payload).status).not.toBe(0);
   expect(JSON.parse(call(ctx, forge, 'gh', 'api', endpoint).stdout)).toHaveLength(2);
 });

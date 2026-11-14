@@ -26,6 +26,10 @@ test('an explicit verdict for another PR or head is not silently assigned to thi
   expect(verdictsOf(state, [action('PASS at bbbbbbb')], view)[0]?.head).not.toBe(head);
 });
 
+test.each(['ISSUES', 'BLOCKED'])('a swarm %s verdict is not a clean shipping verdict', (verdict) => {
+  expect(verdictsOf(state, [action(`${verdict} at ${head}`)], view)).toMatchObject([{ verdict: 'FAIL', head }]);
+});
+
 test('a stray mention or an unidentified reviewer does not establish a verdict at a head', () => {
   expect(verdictsOf(state, [action('CI says PASS, not a user verdict')], view)).toEqual([]);
   expect(verdictsOf(state, [action('PASS: works', 'unknown')], view)).toEqual([]);
@@ -47,6 +51,10 @@ test('independent replay checks the full package suite when that is the verdict 
     mkdirSync(join(sandbox, 'forge'));
     execFileSync('git', ['clone', '--bare', repo, bareOf(sandbox)], { stdio: 'pipe' });
     expect(testAt({ sandbox }, git('rev-parse', 'HEAD'), undefined)).toBe(true);
+    const full = git('rev-parse', 'HEAD');
+    const shortView = { sandbox, runs: [{ workers: [{ id: 'v', assignment: { role: 'verifier', workspace: { inputCommit: full.slice(0, 7) } } }] }] } as unknown as RunView;
+    expect(verdictsOf(state, [action('PASS: ran the flow')], shortView)[0]?.head).toBe(full);
+    expect(verdictsOf(state, [action('PASS at fffffff')], shortView)[0]?.head).not.toBe(full);
 
     writeFileSync(join(repo, 'test/inherited.test.js'), "require('node:assert/strict').equal(3, 2);\n");
     git('add', '.');

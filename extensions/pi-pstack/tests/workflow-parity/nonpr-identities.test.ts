@@ -70,7 +70,10 @@ test('race model declarations and ranking accept actual worker names', () => {
   const run = {
     runs: [{ id: 'race', workers }],
     todoHistory: { race: [{ text: `Race rule: rank all. ${workers.map((entry) => `${entry.id} on ${entry.assignment.model}`).join(', ')}` }] },
-    parent: { messages: [{ role: 'assistant', text: 'Ranking: 1. east (7), 2. west (6).' }], toolCalls: workers.map((entry, order) => ({ order, name: 'pstack_worker', args: { action: 'collect', workerId: entry.id }, isError: false })) },
+    parent: {
+      messages: [{ role: 'assistant', order: 3, text: 'Ranking: 1. east (7), 2. west (6).' }],
+      toolCalls: workers.map((entry, order) => ({ order, name: 'pstack_worker', args: { action: 'collect', workerId: entry.id }, isError: false })),
+    },
   };
   expect(verdict(family, 'swarm-race-rank-all.identical-briefs-and-named-models', run)).toBe('PASS');
   expect(verdict(family, 'swarm-race-rank-all.selection-follows-the-declared-rule', run)).toBe('PASS');
