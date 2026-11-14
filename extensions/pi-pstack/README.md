@@ -43,7 +43,7 @@ Type a skill name with your task:
 
 Every skill has a `/name` prompt and Pi's own `/skill:<name>` form. If another command already owns a name, use `/pstack:<name>`. `/pstack doctor` lists those conflicts (`tests/skill-parity/slash-routing.test.ts`).
 
-A `/name` only works at the start of a message. Inside an active pstack workflow, a `/name` later in the message attaches a loaded skill through Pi's `/skill:<name>` form. Outside a pstack workflow, Pi keeps its native behavior.
+A `/name` prompt expands only at the start of a message. Inside an active pstack workflow, a `/name` later in the message attaches a loaded skill through Pi's `/skill:<name>` form. Outside a pstack workflow, Pi keeps its native behavior.
 
 ## Use /pstack
 
