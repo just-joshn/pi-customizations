@@ -6,7 +6,7 @@ export const RECEIPT_VERDICTS = ['pass', 'fail', 'inconclusive'] as const;
 /** What each receipt field must be, keyed by field name. Validation errors quote the entry of the field they reject. */
 export const RECEIPT_FIELD_HINTS: Readonly<Record<string, string>> = {
   schemaVersion: 'the number 1',
-  id: 'letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters',
+  id: 'letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters; unique within the run, including replacement workers; prefix with your worker id, for example verify-pr22-r2-tests; an identical re-record is a no-op, different content cannot replace a recorded id',
   runId: "the run's id, the folder name under .pi/pstack/runs",
   target: 'a TODO step id, worker id, or commit; non-empty',
   kind: `one of ${RECEIPT_KINDS.join(', ')}`,

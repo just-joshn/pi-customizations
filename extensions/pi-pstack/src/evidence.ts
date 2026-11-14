@@ -138,7 +138,7 @@ function storeReceipt(scope: EvidenceScope, runId: RunId, receipt: Receipt, sour
     if (code !== undefined && NO_HARD_LINK.includes(code)) throw new Error(`Recording receipt ${receipt.id} needs a filesystem with hard links under ${dir} (link failed with ${code}); move the project to one that supports them`);
     if (code !== 'EEXIST') throw error;
     const existing = readRecorded(scope, runId, `${receipt.id}.json`);
-    if (!isDeepStrictEqual(existing.receipt, receipt)) throw new Error(`Receipt id ${receipt.id} is already recorded with different content`);
+    if (!isDeepStrictEqual(existing.receipt, receipt)) throw new Error(`Receipt id ${receipt.id} is already recorded with different content from ${existing.receiptPath}; ids must be unique within the run. Use a new id prefixed with this worker's id and record it again`);
     return existing;
   } finally {
     rmSync(temporary, { force: true });
@@ -300,7 +300,8 @@ function readArtifactsText(base: string, receipt: Receipt): string {
 export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, target: string): EvidenceVerdict {
   const { base, root } = scopeOf(runRoot);
   const { receipts, rejected } = readAll(runRoot, runId);
-  const matching = receipts.filter((entry) => entry.receipt.target === target);
+  const workers = join(base, 'workers');
+  const matching = receipts.filter((entry) => entry.receipt.target === target || (isInside(workers, entry.receiptPath) && relative(workers, entry.receiptPath).split(/[\\/]/)[0] === target));
   const ids = matching.map((entry) => entry.receipt.id);
   if (matching.length === 0) return { kind: 'inconclusive', reason: `No receipt recorded for ${target}${rejected.length === 0 ? '' : `; container receipts rejected: ${describeRejected(rejected)}`}`, receipts: [] };
   const defects: string[] = [];

@@ -137,7 +137,7 @@ An event watch runs the watcher's command by absolute path. Here `<pi-pstack>`, 
 A receipt is one JSON file for one check you ran. A writable worker saves it under its worker directory's `evidence/` and registers it with `pstack_evidence` `record` (`{ action: "record", runId, receiptPath }`). The parent saves its own under the run directory. `record` rejects a field not listed here and names the field it rejects.
 
 - `schemaVersion`: the number 1.
-- `id`: letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters.
+- `id`: letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters; unique within the run, including replacement workers; prefix with your worker id, for example verify-pr22-r2-tests; an identical re-record is a no-op, different content cannot replace a recorded id.
 - `runId`: the run's id, the folder name under .pi/pstack/runs.
 - `target`: a TODO step id, worker id, or commit; non-empty.
 - `kind`: one of test, command, screenshot, trace, review, measurement, other.
