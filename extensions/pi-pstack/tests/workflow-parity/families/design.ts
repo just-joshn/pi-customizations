@@ -13,6 +13,7 @@ import {
   briefsContain,
   collectOrder,
   expectedModels,
+  modelIdentity,
   fanOutBeforeCollect,
   finalReply,
   noToolErrors,
@@ -708,7 +709,7 @@ export const swarmFamily: Family = {
     }),
     check('swarm.workers-use-the-swarm-model-line', 'workers are role general on the run\'s "swarm workers" model line', src('swarm/SKILL.md', 'Pick the worker model from the `swarm workers` line'), (view) => {
       const allowed = [...expectedModels(view, 'swarm workers'), 'inherit-parent'];
-      const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role !== 'general' || !allowed.includes(String(assignmentOf(worker).model)));
+      const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role !== 'general' || !allowed.includes(modelIdentity(String(assignmentOf(worker).model))));
       return when(allWorkers(view).length > 0 && bad.length === 0, `${allWorkers(view).length} workers, role general, on ${allowed.join(' | ')}`, `off-contract workers: ${bad.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}:${String(assignmentOf(worker).model)}`).join(', ')}; the line is ${allowed.join(' | ')}`);
     }),
     check('swarm.fan-out-without-waiting', 'the workers are spawned together before the parent collects any; only replacements for a dropped result come later', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {

@@ -13,6 +13,7 @@ import {
   callsInTurn,
   decisionLog,
   expectedModels,
+  modelIdentity,
   finalReply,
   noToolErrors,
   parentReads,
@@ -373,7 +374,7 @@ export const reflectFamily: Family = {
         return worker === undefined ? '' : String(assignmentOf(worker).model);
       };
       // The lines are the run's own models.json (the scripted roles for a scripted run, the real model for a real one); a spec may carry a level.
-      const on = (id: string, line: string) => expectedModels(view, line).includes(by(id));
+      const on = (id: string, line: string) => expectedModels(view, line).includes(modelIdentity(by(id)));
       return when(on('tooling', 'reflect tooling') && on('judgment', 'reflect judgment, divergent, synthesizer') && on('divergent', 'reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')} (line ${expectedModels(view, 'reflect tooling').join('|')}), judgment ${by('judgment')}, divergent ${by('divergent')} (line ${expectedModels(view, 'reflect judgment, divergent, synthesizer').join('|')})`);
     }),
     check('reflect.reviewers-get-the-real-transcript', "each reviewer brief names this conversation's own Pi session file, which exists", src('reflect/SKILL.md', "find this conversation's Pi session file"), (view) => {

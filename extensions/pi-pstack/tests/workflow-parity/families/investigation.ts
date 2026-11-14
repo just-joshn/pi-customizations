@@ -11,6 +11,7 @@ import {
   collectOrder,
   fileReferencesResolve,
   expectedModels,
+  modelIdentity,
   finalReply,
   noInventedSources,
   noToolErrors,
@@ -525,7 +526,7 @@ export const teachFamily: Family = {
         const allowed = expectedModels(view, line);
         return [
           ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
-          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not the "${line}" line`]),
+          ...(allowed.length === 0 || allowed.includes(modelIdentity(String(assignment.model))) ? [] : [`${worker.id} model ${String(assignment.model)} is not the "${line}" line`]),
         ];
       });
       return when(problems.length === 0, `${how.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', ')}`, problems.join('; '));
@@ -541,7 +542,7 @@ export const teachFamily: Family = {
         const allowed = expectedModels(view, assignment.role === 'investigator' ? 'why investigators' : 'why synthesizer');
         if (assignment.workspace?.mode !== 'readonly' || assignment.workspace.path !== view.repo) problems.push(`${worker.id} is not readonly on the repository root`);
         if (assignment.capabilities?.mcp === 'none') problems.push(`${worker.id} sets capabilities.mcp none`);
-        if (allowed.length > 0 && !allowed.includes(String(assignment.model))) problems.push(`${worker.id} model ${String(assignment.model)} is off its why line`);
+        if (allowed.length > 0 && !allowed.includes(modelIdentity(String(assignment.model)))) problems.push(`${worker.id} model ${String(assignment.model)} is off its why line`);
       }
       const firstSynth = Math.min(...sides.synth.map((worker) => spawnOrder(view, worker.id)));
       const lastCollect = Math.max(...sides.investigators.map((worker) => collectOrder(view, worker.id)));
@@ -684,7 +685,7 @@ export const investigationFamily: Family = {
         const allowed = expectedModels(view, assignment.role === 'explorer' ? 'how explorer' : 'how explainer');
         return [
           ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
-          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not its how line`]),
+          ...(allowed.length === 0 || allowed.includes(modelIdentity(String(assignment.model))) ? [] : [`${worker.id} model ${String(assignment.model)} is not its how line`]),
         ];
       });
       return when(problems.length === 0, workers.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', '), problems.join('; '));

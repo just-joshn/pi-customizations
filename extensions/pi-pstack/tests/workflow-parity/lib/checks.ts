@@ -333,12 +333,13 @@ export interface WorkerSpec {
   id?: RegExp;
 }
 
+export const modelIdentity = (spec: string): string => spec.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, '');
+
 export function expectedModels(view: RunView, line: string): string[] {
   const value = view.models?.[line];
   const parent = view.parent.models[0] ?? '';
-  const stripLevel = (spec: string) => spec.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, '');
   if (value === undefined) return [];
-  const list = (Array.isArray(value) ? value : [value]).map(stripLevel);
+  const list = (Array.isArray(value) ? value : [value]).map(modelIdentity);
   return list.flatMap((entry) => (entry === 'auto' || entry === 'inherit-parent' ? ['inherit-parent', parent] : entry === parent ? [entry, 'inherit-parent'] : [entry]));
 }
 
@@ -361,7 +362,7 @@ export function workersCheck(id: string, title: string, source: Src | Src[], spe
       if (spec.mcpInherit === true && assignment.capabilities?.mcp === 'none') problems.push(`${worker.id} sets capabilities.mcp none`);
       if (spec.modelLine !== undefined) {
         const allowed = expectedModels(view, spec.modelLine);
-        if (allowed.length > 0 && !allowed.includes(String(assignment.model))) problems.push(`${worker.id} model ${String(assignment.model)} is not the "${spec.modelLine}" line (${allowed.join(' | ')})`);
+        if (allowed.length > 0 && !allowed.includes(modelIdentity(String(assignment.model)))) problems.push(`${worker.id} model ${String(assignment.model)} is not the "${spec.modelLine}" line (${allowed.join(' | ')})`);
       }
     }
     return when(problems.length === 0, `${found.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}:${String(assignmentOf(worker).workspace?.mode)}:${String(assignmentOf(worker).model)}`).join(', ')}`, problems.join('; '));
@@ -686,11 +687,11 @@ export function panelCheck(id: string, title: string, source: Src | Src[], optio
   return check(id, title, source, (view) => {
     const workers = allWorkers(view).filter((worker) => assignmentOf(worker).role === options.role);
     const configured = view.models?.[options.line];
-    const entries = (Array.isArray(configured) ? configured : configured === undefined ? [] : [configured]).map((entry) => entry.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, ''));
+    const entries = (Array.isArray(configured) ? configured : configured === undefined ? [] : [configured]).map(modelIdentity);
     const parent = view.parent.models[0] ?? '';
     const used = workers.map((worker) => {
       const model = String(assignmentOf(worker).model);
-      return model === 'inherit-parent' ? parent : model;
+      return modelIdentity(model === 'inherit-parent' ? parent : model);
     });
     const problems: string[] = [];
     if (workers.length < Math.max(2, entries.length === 0 ? 2 : Math.min(entries.length, 2))) problems.push(`${workers.length} ${options.role} workers`);
