@@ -101,7 +101,10 @@ function isRedundantWakeTurn(view: RunView, assistant: { order: number; text: st
 
 export function finalReply(view: RunView): string {
   const replies = [...view.parent.messages].reverse().filter((message) => message.role === 'assistant' && !isFiller(message));
-  return (replies.find((message) => !isRedundantWakeTurn(view, message)) ?? replies[0])?.text ?? '';
+  const answer = replies.find((message) => !isRedundantWakeTurn(view, message)) ?? replies[0];
+  if (answer === undefined) return '';
+  const boundary = Math.max(-1, ...view.parent.toolCalls.filter((call) => call.order < answer.order).map((call) => call.order), ...view.parent.messages.filter((message) => message.order < answer.order && (message.role === 'user' || message.role === 'custom')).map((message) => message.order));
+  return view.parent.messages.filter((message) => message.role === 'assistant' && message.order > boundary && message.order <= answer.order && !isFiller(message)).map((message) => message.text).join('\n\n');
 }
 
 /**
