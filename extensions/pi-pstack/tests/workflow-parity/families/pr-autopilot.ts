@@ -721,7 +721,8 @@ export const autopilotLanesFamily: Family = {
     onePerPrOwners('autopilot.lanes.one-container-owner-for-the-pr', AF('Spawn one owner per PR'), lanesUnits, { from: 'trunk' }),
     check('autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each distinct from the code author and at exactly the code-ready head, and each posted its own PASS verdict at that head', AF('Fan out independent verifiers at the code-ready SHA per the **swarm** skill'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
+      const unit = observedUnits(view, lanesUnits())[0];
+      if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const verdicts = verdictsOf(state, actions);
       const owner = responsibleWorker(view, 'owner', 33);
       const lanes = LANES.map((lane) => responsibleWorker(view, 'verifier', 33, lane));
@@ -749,7 +750,8 @@ export const autopilotLanesFamily: Family = {
     }),
     check('autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign', 'the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces', AF('Anything that loosens a gate, such as a raised budget or an allowlist entry'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
+      const unit = observedUnits(view, lanesUnits())[0];
+      if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const bare = bareOf(view.sandbox);
       const verdicts = verdictsOf(state, actions);
       const from = budgetAt(bare, `${unit.sha}^`);
