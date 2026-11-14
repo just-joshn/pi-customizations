@@ -96,11 +96,11 @@ describe('audited ZIP release contract', () => {
     }
   });
 
-  test('never derives ZIP PASS from the legacy suite and retains known pin, TODO and container gaps', () => {
+  test('never derives ZIP PASS from legacy totals or integration alone without fresh exact experiment receipts', () => {
     const result = evaluateZip(PKG, loadInputs(PKG), null, 'fixture-pi');
     expect(result.status).toBe('NOT RELEASED');
-    expect(result.requirements.find((r: { id: string }) => r.id === 'SRC-01')?.status).toBe('FAIL');
-    expect(result.requirements.find((r: { id: string }) => r.id === 'TODO-01')?.status).toBe('FAIL');
+    expect(result.requirements.find((r: { id: string }) => r.id === 'SRC-01')?.status).toBe('INCONCLUSIVE');
+    expect(result.requirements.find((r: { id: string }) => r.id === 'TODO-01')?.status).toBe('INCONCLUSIVE');
     expect(result.requirements.find((r: { id: string }) => r.id === 'SANDBOX-01')?.status).toBe('BLOCKED');
   });
 

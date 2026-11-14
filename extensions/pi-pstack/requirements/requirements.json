@@ -7216,8 +7216,8 @@
         "stimulus": "Load pinned guide/23 playbooks/24 principle files; check hashes and all referenced files",
         "evidence": "Exact source revision and file inventory",
         "unresolved": {
-          "verdict": "FAIL",
-          "reason": "The audited source crosswalk records a literal ZIP source-pin mismatch. Source-unit integration and fresh ZIP inventory evidence are pending."
+          "verdict": "INCONCLUSIVE",
+          "reason": "The exact audited pin and fetched inventory are integrated. A reviewed, current-source-bound ZIP inventory receipt is still required."
         }
       },
       {
@@ -7252,8 +7252,8 @@
         "stimulus": "On task start, `TODO.md` preserves a **byte-identical upstream step block** plus a separate status ledger; skipped items are retained",
         "evidence": "Compare extracted immutable step block to pinned source bytes; validate linked status and `skip: <reason>`",
         "unresolved": {
-          "verdict": "FAIL",
-          "reason": "The audited TODO crosswalk records non-byte-identical numbered steps and missing separate immutable status contract. TODO-unit integration and fresh byte comparison are pending."
+          "verdict": "INCONCLUSIVE",
+          "reason": "The immutable source block and separate status ledger are integrated. A reviewed, current-source-bound ZIP byte-comparison receipt is still required."
         }
       },
       {
