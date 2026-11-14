@@ -433,7 +433,7 @@ export const RULES: readonly Rule[] = [
     'project-tracker',
     PB('autopilot-full'),
     "start a decision trail in the root agent's store (path in the system prompt) per",
-    "start a decision trail in your worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names) per",
+    "start a decision trail at `<workerDir>/decisions.tsv` in your own worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names). Worktree owners write there outside their git worktree. Container owners write to the same absolute path through their existing output mount, backed by `<workerDir>/out/decisions.tsv` on the host. Never commit the trail into the PR branch or write to the root's shared log. Follow",
   ),
   rule('autopilot-full.trail-records', 'project-tracker', PB('autopilot-full'), 'in that store, so the root can probe it', 'in that worker directory, so the root can probe it'),
   rule('autopilot-full.vm-dies', 'cloud-environment', PB('autopilot-full'), 'Assume the VM dies.', 'Assume the container dies.'),
@@ -1028,7 +1028,7 @@ A bot UI needs a routine with these fields:`,
     'project-tracker',
     SK('show-me-your-work/SKILL.md'),
     'Keep it at `decisions.tsv` in the work dir, or',
-    'Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or',
+    'As a writable worker, keep it at `<workerDir>/decisions.tsv`, using the absolute worker directory from your brief. Worktree owners write outside their git worktree. Container owners write through the existing output mount; the parent sees the same path backed by `<workerDir>/out/decisions.tsv` on the host, even after the container ends. Do not commit the trail into the PR branch or write another owner\'s trail. For the root agent, the default follows. Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or',
   ),
   rule('swarm.parent-model', 'task-tool', SK('swarm/SKILL.md'), 'omit `model` so the workers run on the parent model.', 'set `model: "inherit-parent"` so the workers run on the parent model.'),
   rule(
@@ -1084,6 +1084,10 @@ export const WORKER_ASSIGNMENT_REFERENCE = `# Worker assignment examples
 Each block below is a complete \`assignment.json\` for one workspace mode or kind. Write the file to \`.pi/pstack/runs/<runId>/workers/<workerId>/assignment.json\`, where \`runId\` and \`workerId\` name those two directories, then call \`pstack_worker\` with \`{ action: "spawn", runId, assignmentPath }\`. Start from the closest example and change only the values.
 
 Every assignment has every field these examples show. \`skills\` is \`[]\` when the brief names no skill. \`thinkingLevel\` is \`null\` when the model runs at its default level, or one of \`off\`, \`minimal\`, \`low\`, \`medium\`, \`high\`, \`xhigh\`, \`max\`. \`model\` is \`inherit-parent\`, \`<provider>/<id>\`, \`<provider>/<id>:<level>\`, or a family default such as \`grok-4.7-xhigh-fast\`. A suffix sets the thinking level. A non-null \`thinkingLevel\` that conflicts with the suffix is rejected. A \`readonly\` path and a \`watch.cwd\` are absolute, and so is every script path in \`watch.argv\`. \`capabilities\` is optional. Leave it out to keep the role's default, as these examples do.
+
+## Decision trail
+
+Each writable owner keeps its decision trail at \`<workerDir>/decisions.tsv\`, where the brief names the absolute worker directory. For a worktree owner this is outside \`worktree/\`. For a container owner the existing output mount exposes that same path inside the container, backed by \`<workerDir>/out/decisions.tsv\` on the host. The parent's \`<workerDir>/decisions.tsv\` link survives container termination. \`collect\` returns the trail as \`decisions\` through the symlink-safe output reader. Each owner writes only its own trail, never a run-root log shared with other owners, and never commits the trail into the PR branch. Use the TSV format in \`show-me-your-work\`.
 
 ## Writable worker (\`worktree\`)
 

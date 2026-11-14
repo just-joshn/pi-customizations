@@ -149,13 +149,21 @@ describe('pstack_worker on real tmux and Pi', () => {
 
   test('collect returns report.md and the final text of a settled worktree worker', async () => {
     const report = join(workerDir(project, 'run1', 'w4'), 'report.md');
-    await spawn('w4', `@@script [{"tool":"write","args":{"path":${JSON.stringify(report)},"content":"REPORT BODY"}}]`, { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    const decisions = join(workerDir(project, 'run1', 'w4'), 'decisions.tsv');
+    await spawn(
+      'w4',
+      `@@script ${JSON.stringify([
+        { tool: 'write', args: { path: report, content: 'REPORT BODY' } },
+        { tool: 'write', args: { path: decisions, content: 'LOCAL TRAIL' } },
+      ])}`,
+      { workspace: { mode: 'worktree', inputCommit: project.commit } },
+    );
     await until(
       () => settleCount('w4'),
       (count) => count === 1,
     );
     const done = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w4' });
-    expect(done.details).toMatchObject({ settled: true, available: true, phase: 'idle', lastSettle: { phase: 'idle' }, report: 'REPORT BODY' });
+    expect(done.details).toMatchObject({ settled: true, available: true, phase: 'idle', lastSettle: { phase: 'idle' }, report: 'REPORT BODY', decisions: 'LOCAL TRAIL' });
     expect(done.details.finalText).toMatch(/^RESULTS:\n\[write\]/);
 
     const worktree = join(workerDir(project, 'run1', 'w4'), 'worktree');

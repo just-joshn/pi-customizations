@@ -43,14 +43,14 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T08:20:34.230Z |
+| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T09:16:01.454Z |
 | 2 | linux | `e684506542e7` | 1.5.0 | v22.21.0 | 2859 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43550639380 |
-| 3 | unknown | `unknown` | unknown | unknown | 1 passed, 0 failed, 40 skipped | file at 2026-11-14T08:20:34.376Z |
+| 3 | unknown | `unknown` | unknown | unknown | 664 passed, 0 failed, 7 skipped | file at 2026-11-14T09:16:01.611Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 150 | 0 | 0 | 40 |
-| behavioral | 95 | 0 | 7 | 1 |
+| behavioral | 97 | 0 | 5 | 1 |
 
 ### Behavioral requirements
 
@@ -117,11 +117,11 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `WF-MAINTAIN-VERIFICATION-SKILL` maintain-verification-skill always performs a live pass | 12.4 | PASS | vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md:33-33 |  |
 | `WF-FORMAL-VERIFICATION` Formal verification states its model, assumptions and counterexamples | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/create-formal-verification-skill/SKILL.md:21-28 | skipped: tests/workflow-parity/maintain.test.ts::maintain-formal-verification-skill scripted run: every check passes |
 | `WF-RECALL` recall validates reconstructed history against current state | 12.5 | PASS | vendor/upstream-pstack/skills/recall/SKILL.md:21-21 |  |
-| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 | skipped: tests/skill-parity/review-fixes.test.ts::C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message |
+| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 |  |
 | `WF-REFLECT-APPROVAL` reflect waits for explicit approval before editing a skill | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:47-47 |  |
 | `WF-AUTOMATE-ME` automate-me derives preferences from history into a skill | 12.5 | PASS | vendor/upstream-pstack/skills/automate-me/SKILL.md:29-31 |  |
 | `WF-KETCHUP` ketchup gives a concise recap of what changed since the last message | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup/SKILL.md:3-3 |  |
-| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 | skipped: tests/workflow-parity/video.test.ts::ketchup-video scripted run: every check passes |
+| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 |  |
 | `WF-MAKE-BOT-UI` make-bot-ui uses a local receiver and never asks for the sender key | 14.4 | PASS | vendor/upstream-pstack/skills/make-bot-ui/SKILL.md:41-41 |  |
 | `WF-LEAF-READ` A principle is cited only after its leaf skill was read | 4.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:15-15 |  |
 | `WF-SETUP-PSTACK` setup-pstack detects Pi models and validates choices against the ladder | 10.3 | PASS | vendor/upstream-pstack/skills/setup-pstack/SKILL.md:14-14 |  |

@@ -43,7 +43,7 @@ A run is one agent conversation, including its later turns and any summary of it
 
 ## Where it lives
 
-By default the log is a working artifact, not committed. Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or `.audit/<task-slug>.tsv` when several efforts run at once, and leave it out of git.
+By default the log is a working artifact, not committed. As a writable worker, keep it at `<workerDir>/decisions.tsv`, using the absolute worker directory from your brief. Worktree owners write outside their git worktree. Container owners write through the existing output mount; the parent sees the same path backed by `<workerDir>/out/decisions.tsv` on the host, even after the container ends. Do not commit the trail into the PR branch or write another owner's trail. For the root agent, the default follows. Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or `.audit/<task-slug>.tsv` when several efforts run at once, and leave it out of git.
 
 Commit it only when the work is ambitious enough that a reviewer needs the trail to trust the result.
 

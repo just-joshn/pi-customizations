@@ -151,14 +151,31 @@ describe('a container worker', () => {
     image = await docker('inspect', '--format', '{{.Image}}', sessionOf('a'));
   }, 240_000);
 
+  test('a container decision trail survives termination outside the PR branch', async () => {
+    const dir = workerDir(project, RUN_ID, 'trail');
+    const trail = 'ts\tphase\tdecision\twhy\tevidence\tresult\n';
+    const command = `printf '${trail}' > ${dir}/decisions.tsv && test -z "$(git status --porcelain -- decisions.tsv trail.md)" && test "$(git rev-parse HEAD)" = ${project.commit} && echo TRAIL-OUTSIDE-BRANCH`;
+    await spawn('trail', `@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`);
+    await settled('trail');
+    expect(existsSync(join(dir, 'decisions.tsv'))).toBe(true);
+    const result = await collect('trail');
+    expect(result.details.decisions).toBe(trail);
+    expect(result.text).toContain(`decisions.tsv:\n${trail}`);
+    expect(result.details.finalText).toContain('TRAIL-OUTSIDE-BRANCH');
+    await abort('trail');
+    expect(await containersOf('trail')).toEqual([]);
+    expect(readFileSync(join(dir, 'decisions.tsv'), 'utf8')).toBe(trail);
+    expect((await collect('trail')).details.decisions).toBe(trail);
+  }, 120_000);
+
   test('runs a scripted prompt through the real host and settles, collectable with its report and evidence', async () => {
     await until(
-      () => wakes(parent).map((wake) => wake?.phase),
+      () => wakes(parent).filter((wake) => wake?.workerId === 'a').map((wake) => wake?.phase),
       (phases) => phases.length === 1,
       10_000,
       'settle wake',
     );
-    expect(wakes(parent).map((wake) => wake?.phase)).toEqual(['idle']);
+    expect(wakes(parent).filter((wake) => wake?.workerId === 'a').map((wake) => wake?.phase)).toEqual(['idle']);
     const result = await collect('a');
 
     expect(result.details).toMatchObject({ settled: true, available: true, phase: 'idle', lastSettle: { phase: 'idle' } });
@@ -386,7 +403,7 @@ describe('a container worker that points its outputs at host files', () => {
   test('collect refuses a report, evidence directory, or session path that leaves its output directory', async () => {
     const dir = workerDir(project, RUN_ID, 'd');
     // The links are made in the container, where the target path is only a string; the host would follow it to the real file.
-    const command = [`ln -sf ${project.dir}/README.md ${dir}/report.md`, `rm -rf ${dir}/evidence`, `ln -s ${project.dir} ${dir}/evidence`].join(' && ');
+    const command = [`ln -sf ${project.dir}/README.md ${dir}/report.md`, `ln -sf ${project.dir}/README.md ${dir}/decisions.tsv`, `rm -rf ${dir}/evidence`, `ln -s ${project.dir} ${dir}/evidence`].join(' && ');
     writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
     await spawn('d', `@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`);
     await settled('d');
@@ -394,6 +411,7 @@ describe('a container worker that points its outputs at host files', () => {
     const result = await collect('d');
 
     expect(result.details.report).toBe('(refused: report.md leaves the worker output directory)');
+    expect(result.details.decisions).toBe('(refused: decisions.tsv leaves the worker output directory)');
     expect(result.details.evidence).toEqual([]);
     expect(result.text).not.toContain('fixture');
     await abort('d');

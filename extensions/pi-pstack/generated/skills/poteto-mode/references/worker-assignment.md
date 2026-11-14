@@ -4,6 +4,10 @@ Each block below is a complete `assignment.json` for one workspace mode or kind.
 
 Every assignment has every field these examples show. `skills` is `[]` when the brief names no skill. `thinkingLevel` is `null` when the model runs at its default level, or one of `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. `model` is `inherit-parent`, `<provider>/<id>`, `<provider>/<id>:<level>`, or a family default such as `grok-4.7-xhigh-fast`. A suffix sets the thinking level. A non-null `thinkingLevel` that conflicts with the suffix is rejected. A `readonly` path and a `watch.cwd` are absolute, and so is every script path in `watch.argv`. `capabilities` is optional. Leave it out to keep the role's default, as these examples do.
 
+## Decision trail
+
+Each writable owner keeps its decision trail at `<workerDir>/decisions.tsv`, where the brief names the absolute worker directory. For a worktree owner this is outside `worktree/`. For a container owner the existing output mount exposes that same path inside the container, backed by `<workerDir>/out/decisions.tsv` on the host. The parent's `<workerDir>/decisions.tsv` link survives container termination. `collect` returns the trail as `decisions` through the symlink-safe output reader. Each owner writes only its own trail, never a run-root log shared with other owners, and never commits the trail into the PR branch. Use the TSV format in `show-me-your-work`.
+
 ## Writable worker (`worktree`)
 
 The extension creates the worker's git worktree at `inputCommit`, a full or abbreviated commit SHA. `brief` is relative to the worker directory.

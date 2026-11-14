@@ -212,7 +212,7 @@ function workspaceDir(loaded: LoadedAssignment): string {
 function prepareOutput(workerDir: string): void {
   const out = outDirOf(workerDir);
   for (const name of ['session', 'evidence', 'receipts']) mkdirSync(join(out, name), { recursive: true, mode: 0o700 });
-  for (const name of ['session', 'evidence', 'report.md']) if (lstatSync(join(workerDir, name), { throwIfNoEntry: false }) === undefined) symlinkSync(join('out', name), join(workerDir, name));
+  for (const name of ['session', 'evidence', 'report.md', 'decisions.tsv']) if (lstatSync(join(workerDir, name), { throwIfNoEntry: false }) === undefined) symlinkSync(join('out', name), join(workerDir, name));
 }
 
 /** The environment inside the container: the worker's own, less what describes the host, with its own home. */
