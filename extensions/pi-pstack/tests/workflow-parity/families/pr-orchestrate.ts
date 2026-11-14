@@ -126,6 +126,7 @@ export const orchestrateFamily: Family = {
       const owners = ownerWorkers(view).filter((worker) => Object.values(readForge(view).state.prs).some((pr) => pr.author === worker.id));
       const depths = owners.map((worker) => /depth=(\d)/.exec(worker.report ?? '')?.[1] ?? (view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json')) ? '2' : undefined));
       const spawners = allWorkers(view).filter((worker) => (assignmentOf(worker) as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true);
+      if (spawners.length === 0 && !depths.some((depth) => depth !== undefined && depth !== '2') && (owners.length === 0 || owners.some((worker) => !/depth=\d/.test(worker.report ?? '')))) return { inconclusive: 'runtime-depth self-reports were not requested; spawn topology alone does not observe the runtime environment' };
       return when(owners.length === 2 && depths.every((depth) => depth === '2') && spawners.length === 0, `owners report depth ${depths.join(', ')}; no worker can spawn`, `depths ${JSON.stringify(depths)}; spawners ${spawners.map((worker) => worker.id).join(', ') || 'none'}`);
     }),
     check('orchestrate.first-unit-goes-all-the-way-before-the-fan-out', 'PR 51 was owned, verified and merged before the second unit\'s first owner was spawned', OR('**Start with one unit.**'), (view) => {

@@ -24,7 +24,7 @@ export function openedAt(session: Session | null, suffix: string): number {
   if (session === null) return -1;
   const skill = /(?:^|\/)([a-z0-9-]+)\/SKILL\.md$/.exec(suffix)?.[1];
   const expanded = skill === undefined ? undefined : session.messages.find((message) => message.role === 'user' && expandedSkill(message.text, skill) !== undefined);
-  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && shellCommands(String(entry.args['command'] ?? '')).some((command) => command.includes(suffix) || readsInDirectory(command, suffix))));
+  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && shellCommands(String(entry.args['command'] ?? ''), entry.isError ? '' : entry.resultText).some((command) => command.includes(suffix) || readsInDirectory(command, suffix))));
   return expanded === undefined ? (call?.order ?? -1) : Math.min(expanded.order, call?.order ?? Number.POSITIVE_INFINITY);
 }
 
@@ -32,9 +32,11 @@ export function openedAt(session: Session | null, suffix: string): number {
  * The command, plus its body once per word of each `for VAR in WORDS; do BODY; done` it holds, with the variable replaced:
  * `for s in how why; do cat generated/skills/$s/SKILL.md; done` opens both SKILL.md files without writing either path out.
  */
-export function shellCommands(command: string): string[] {
+export function shellCommands(command: string, output = ''): string[] {
   const expanded = [...command.matchAll(/\bfor\s+(\w+)\s+in\s+([^;\n]+?)\s*[;\n]\s*do\b([\s\S]*?)(?:;\s*done\b|\bdone\b|$)/g)].flatMap((loop) =>
-    (loop[2] as string).split(/\s+/).filter(Boolean).map((word) => (loop[3] as string).replace(new RegExp(`\\$\\{${loop[1]}\\}|\\$${loop[1]}\\b`, 'g'), word.replace(/^["']|["']$/g, ''))),
+    (/\$\(\s*git\s+worktree\s+list\b/.test(loop[2] as string)
+      ? [...output.matchAll(/\/[^\s"'`]+\/worktree\b/g)].map((match) => match[0])
+      : (loop[2] as string).split(/\s+/).filter(Boolean)).map((word) => (loop[3] as string).replace(new RegExp(`\\$\\{${loop[1]}\\}|\\$${loop[1]}\\b`, 'g'), word.replace(/^["']|["']$/g, ''))),
   );
   return [command, ...expanded];
 }

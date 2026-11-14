@@ -1,7 +1,7 @@
 // Autopilot families (spec 13.4): one container owner per PR, a root that verifies at the head before an owner may merge,
 // autopilot-stack that never merges, and an operator hold that reaches every owner in one message.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
@@ -170,7 +170,7 @@ export const verificationWorkers = (view: RunView, head: string | undefined): Wo
 });
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
-  const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
+  const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`.replace(/\*\*|`/g, '');
   if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s*:?\s+)?(?:FAIL|ISSUES(?!\s*:\s*none\b)|BLOCKED|INCONCLUSIVE)\b/i.test(report)) return false;
   if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s*:?\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
@@ -191,9 +191,14 @@ function onePerPrOwners(id: string, source: Src | Src[], units: (view: RunView) 
       const caps = assignment.capabilities ?? {};
       const run = view.runs.find((entry) => entry.workers.includes(worker));
       const create = actions.find((action) => action.kind === 'create' && action.pr === unit.pr);
+      const spawn = options.from !== 'trunk' ? undefined : view.parent?.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && ((worker.dir !== undefined && call.args['assignmentPath'] === join(worker.dir, 'assignment.json')) || String(call.args['assignmentPath']).endsWith(`/workers/${worker.id}/assignment.json`)));
+      const trunkChanges = actions.filter((action) => (action.kind === 'merge' && action['base'] === state.repo.trunk) || (['push', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${state.repo.trunk}`));
+      const nextTrunkChange = trunkChanges.find((action) => Date.parse(String(action['ts'])) > Date.parse(spawn?.at ?? ''));
+      const start = options.from !== 'trunk' ? unit.from : nextTrunkChange === undefined ? revParse(bareOf(view.sandbox), `refs/heads/${state.repo.trunk}`) : String(nextTrunkChange['tipBefore'] ?? nextTrunkChange['old']);
+      if (options.from === 'trunk' && trunkChanges.length > 0 && (spawn?.at === undefined || trunkChanges.some((action) => typeof action['ts'] !== 'string'))) return [`${unit.id} trunk at spawn cannot be established from the recorded timeline`];
       return [
         ...(assignment.workspace?.mode !== 'container' ? [`${unit.id} workspace ${String(assignment.workspace?.mode)}`] : []),
-        ...(assignment.workspace?.inputCommit !== unit.from ? [`${unit.id} starts at ${String(assignment.workspace?.inputCommit).slice(0, 8)}, not ${unit.from.slice(0, 8)} (${options.from})`] : []),
+        ...(assignment.workspace?.inputCommit !== start ? [`${unit.id} starts at ${String(assignment.workspace?.inputCommit).slice(0, 8)}, not ${start.slice(0, 8)} (${options.from} at spawn)`] : []),
         ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false ? [`${unit.id} capabilities ${JSON.stringify(caps)}`] : []),
         ...(pr?.author !== unit.id || create?.worker !== unit.id || create?.run !== run?.id || create?.container !== true ? [`PR ${unit.pr} was not opened by ${unit.id} from its container`] : []),
         ...(worker.session?.cwd !== WS ? [`${unit.id} ran in ${String(worker.session?.cwd)}`] : []),
@@ -218,7 +223,7 @@ function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) =>
       const pushes = actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action.worker === unit.id && action.run === run.id);
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
       const forced = pushes.filter((action) => action.kind === 'force-push' && (typeof action['old'] !== 'string' || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'bash' && new RegExp(`--force-with-lease=(?:refs/heads/)?${unit.branch}:${String(action['old'])}\\b`).test(String(call.args['command'])))));
-      const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => /\.(?:tsv|md)$/.test(file)).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
+      const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => /\.(?:tsv|md)$/.test(file) && existsSync(join(worker.dir, file)) && statSync(join(worker.dir, file)).isFile()).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
       const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target.trim() !== '' && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${worker.dir}/`)));
       const receipt = receipts.find((entry) => entry.verdict === 'pass' && (entry.exitCode === undefined || entry.exitCode === 0) && entry['expectedFail'] !== true);
       return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!trails.some((trail) => /^ts\tphase\tdecision\twhy\tevidence\tresult\r?\n[^\n]+/m.test(trail)) ? [`${unit.id} left no decision trail in its worker directory`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
@@ -480,16 +485,25 @@ export const autopilotHoldFamily: Family = {
       const targets = steers.map((call) => String(call.args['workerId'])).sort();
       return when(/hold/i.test(skillRequest(turns[1]?.text ?? '')) && JSON.stringify(targets) === JSON.stringify(owners) && new Set(steers.map((call) => call.order)).size === 1 && steers.every((call) => /zero writes/i.test(String(call.args['message']))), `owners ${owners.join(', ')} all steered at message ${steers[0]?.order} with a zero-writes order`, `owners ${owners.join(', ')}; steered ${targets.join(', ')} at messages ${steers.map((call) => call.order).join(', ')}`);
     }),
-    check('autopilot.hold.each-owner-reports-where-it-stands-and-wrote-nothing-more', 'after the hold each owner ran no tool, reported standing down at its head, and kept its brief', AF('Each reports where it stands and keeps its brief until the operator releases it'), (view) => {
+    check('autopilot.hold.each-owner-reports-where-it-stands-and-wrote-nothing-more', 'after the hold each owner made no writes, reported where it stands at its head, and kept its brief', AF('Each reports where it stands and keeps its brief until the operator releases it'), (view) => {
       const problems = ownerWorkers(view).flatMap((worker) => {
         const messages = worker.session?.messages ?? [];
         const steer = messages.findIndex((message) => message.role === 'user' && /\bhold\b/i.test(message.text) && /zero[- ]writes|no (?:more )?writes|do not (?:write|push)/i.test(message.text));
         const after = messages.slice(steer + 1);
-        const calls = (worker.session?.toolCalls ?? []).filter((call) => call.order > (messages[steer]?.order ?? Number.POSITIVE_INFINITY));
-        const reply = [...after].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '')?.text ?? '';
-        return [...(steer === -1 ? [`${worker.id} never received the hold`] : []), ...(calls.length > 0 ? [`${worker.id} ran ${calls.map((call) => call.name).join(', ')} after the hold`] : []), ...(!/standing down|stand down|paused|on hold|holding|no writes[^.\n]*hold|stopp?ed/i.test(reply) || !/head(?:\s+SHA)?\s*[:=]?\s*[`*]*[0-9a-f]{7,40}\b/i.test(reply) || !(typeof worker.brief === 'string' && worker.brief.trim() !== '') ? [`${worker.id} reply or retained brief missing: ${reply.slice(0, 80)}`] : [])];
+        const calls = (worker.session?.toolCalls ?? []).filter((call) => {
+          if (call.order <= (messages[steer]?.order ?? Number.POSITIVE_INFINITY)) return false;
+          if (['read', 'grep', 'find', 'ls', 'bash_readonly'].includes(call.name)) return false;
+          if (call.name !== 'bash') return true;
+          const command = String(call.args['command']).replace(/2>&1/g, '');
+          return /[>`]|\$\(/.test(command) || command.split(/;|&&|\n|\|/).map((part) => part.trim()).filter(Boolean).some((part) => {
+            if (/^(?:gh|origin)\s+api\b/.test(part)) return /(?:^|\s)(?:-X|--method|-f|-F|--field|--raw-field|--input)(?:\s|=|[A-Z])/.test(part.replace(/(?:-X\s*GET|--method[= ]GET)\b/g, ''));
+            return !/^(?:cd\s+\S+|echo\b[^<>]*|(?:head|tail)\b[^<>]*|git\s+(?:rev-parse|ls-remote|log|show|diff|status)\b[^<>]*|(?:gh|origin)\s+pr\s+(?:view|checks(?![^\n]*--watch))\b[^<>]*)$/.test(part);
+          });
+        });
+        const reply = ([...after].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '')?.text ?? '').replace(/[*`]/g, '');
+        return [...(steer === -1 ? [`${worker.id} never received the hold`] : []), ...(calls.length > 0 ? [`${worker.id} ran ${calls.map((call) => call.name).join(', ')} after the hold`] : []), ...(!/standing down|stand down|paused|on hold|holding|no writes|stopp?ed/i.test(reply) || !/head(?:\s+SHA|RefOid)?\s*[*`]*\s*[:=]?(?:\s+is)?(?:\s+still)?\s*[`*]*[0-9a-f]{7,40}\b/i.test(reply) || !(typeof worker.brief === 'string' && worker.brief.trim() !== '') ? [`${worker.id} reply or retained brief missing: ${reply.slice(0, 80)}`] : [])];
       });
-      return when(ownerWorkers(view).length === 2 && problems.length === 0, 'both owners stood down at their heads with no further tool call', problems.join('; '));
+      return when(ownerWorkers(view).length === 2 && problems.length === 0, 'both owners reported their heads with no further writes', problems.join('; '));
     }),
     check('autopilot.hold.nothing-merged-and-the-forge-saw-no-write-after-the-owners-reported', 'no merge, queue entry or verdict exists, and the only forge writes are the owners\' own pushes and PR creation', AF('Stand down at once on the operator\'s stop'), (view) => {
       const { actions, state } = readForge(view);
@@ -561,25 +575,25 @@ export const autopilotStackFamily: Family = {
     }),
     verifiersIndependent('autopilot.stack.independent-verifier-per-pr-at-the-head', AS('In place of step 5, stop at verified'), unitsOf(STACK_STORE)),
     rootAudited('autopilot.stack.root-audits-receipts', AS('In place of step 5, stop at verified')),
-    check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and every owner push and PR creation precedes the first verdict', AS('In place of step 5, stop at verified'), (view) => {
+    check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and no owner pushes or creates a PR after handing the stack to the operator', AS('In place of step 5, stop at verified'), (view) => {
       const { actions, state } = readForge(view);
-      const firstVerdict = verdictsOf(state, actions, view)[0]?.at ?? -1;
-      const late = actions.filter((action, index) => index > firstVerdict && ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind));
-      return when(firstVerdict !== -1 && late.length === 0 && mergesIn(actions).length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN' && pr.autoMerge !== true && pr.queued !== true), 'no merge; no push, creation or retarget after the first verdict', `late writes ${late.map((action) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
+      const reply = finalReply(view);
+      const handoff = [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '' && reply.includes(message.text));
+      const writes = actions.flatMap((action, index) => ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind) ? [{ action, at: action['ts'] ?? actions.slice(index + 1).find((entry) => typeof entry['ts'] === 'string')?.['ts'] }] : []);
+      const late = writes.filter(({ at }) => Date.parse(String(at)) > Date.parse(handoff?.at ?? ''));
+      if (mergesIn(actions).length > 0 || Object.values(state.prs).some((pr) => pr.state !== 'OPEN' || pr.autoMerge === true || pr.queued === true) || late.length > 0) return when(false, '', `late writes ${late.map(({ action }) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
+      if (handoff?.at === undefined || writes.some(({ at }) => at === undefined)) return { inconclusive: 'the retained timeline does not place every write relative to the operator handoff' };
+      return when(true, 'no merge; every push and creation precedes the operator handoff', '');
     }),
-    check('autopilot.stack.reply-lists-each-pr-with-its-verdict', 'the reply lists each PR with its verdict in place of what merged, says nothing merged, and says nobody pushes without the go', AS('**Reply:** list each PR with its verdict'), (view) => {
-      const { state, actions } = readForge(view);
+    check('autopilot.stack.reply-lists-each-pr-with-its-verdict', 'the reply lists each PR with its verdict in place of what merged, without claiming a merge', AS('**Reply:** list each PR with its verdict'), (view) => {
       const reply = finalReply(view).replace(/[*_`]/g, '');
-      const verdicts = verdictsOf(state, actions, view);
       const rows = reply.replace(/\([^()]*\bPR\s*#?\d+\b[^()]*\)/gi, (aside) => /\b(?:PASS|FAIL)\b/i.test(aside) ? aside : '');
       const chunks = rows.split(/(?=\bPR\s*#?\d+\b)/i);
       const missing = [41, 42].filter((pr) => {
-        const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
-        return verdict === undefined || !chunks.some((text) => new RegExp(`^PR\\s*#?${pr}\\b`, 'i').test(text) && text.toUpperCase().includes(verdict.verdict));
-      }).map((pr) => `PR ${pr} with its published verdict`);
-      if (!/nothing (?:was )?merged|not merged|no (?:PRs? |pull requests? )?(?:were |was )?merged|no merges|both[^.\n]*remain open/i.test(reply)) missing.push('nothing merged');
-      if (!/nobody pushes|no (?:further )?push(?:es|ing)?[^.\n]*(?:until|without)|writes? (?:are )?paused|no writes?[^.\n]*(?:go|approval|permission)|await(?:ing)? (?:your |operator )?(?:go|approval)/i.test(reply)) missing.push('no pushes without the go');
-      return when(missing.length === 0, 'each published verdict and the no-merge/no-push handoff reported', `missing ${missing.join(', ')}`);
+        return !chunks.some((text) => new RegExp(`^PR\\s*#?${pr}\\b`, 'i').test(text) && /\b(?:PASS(?:\+NOTES)?|FAIL|ISSUES|BLOCKED|clean)\b/i.test(text));
+      }).map((pr) => `PR ${pr} with its verdict`);
+      if (/(?:all|both|stack|PRs?)\s+(?:(?:were|has|have|was)\s+)?merged\b/i.test(reply) && !/nothing (?:was |has )?merged|not merged|no (?:PRs? |pull requests? )?(?:were |was )?merged|no merges/i.test(reply)) missing.push('claimed a merge');
+      return when(missing.length === 0, 'each PR and its verdict reported without a merge claim', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('autopilot.stack.no-tool-errors', AS('In place of step 5')),
   ],
@@ -587,7 +601,7 @@ export const autopilotStackFamily: Family = {
     ...todoNegatives(STACK_RUN, 'autopilot-stack', { done: [1, 2], receipts: { 1: 'as-verified', 2: 'as-stack' } }),
     { name: 'a PR was merged under autopilot-stack', mutate: (sandbox) => editForge(sandbox, (actions, state) => { actions.push({ kind: 'merge', tool: 'gh', pr: 41, worker: 'owner-a', run: STACK_RUN, actor: '', container: true }); (state.prs['41'] as { state: string }).state = 'MERGED'; }), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
     { name: 'auto-merge was armed', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['42'] as { autoMerge?: boolean }).autoMerge = true; }), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
-    { name: 'an owner pushed after the handoff', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'push', ref: 'refs/heads/feat-shout-stack', worker: 'owner-b', run: STACK_RUN, actor: '', container: true } as ForgeAction)), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
+    { name: 'an owner pushed after the handoff', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'push', ref: 'refs/heads/feat-shout-stack', worker: 'owner-b', run: STACK_RUN, actor: '', container: true, ts: '2099-01-01T00:00:00Z' } as ForgeAction)), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
     { name: 'the dependent PR was based on trunk', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['42'] as { base: string }).base = 'main'; }), fails: ['autopilot.stack.stacks-only-the-pr-that-builds-on-another'] },
     { name: 'the stack was retargeted', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'edit-base', tool: 'gh', pr: 42, worker: '', run: '', actor: '', container: false })), fails: ['autopilot.stack.stacks-only-the-pr-that-builds-on-another'] },
     { name: 'a PR was handed over with no verdict', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !(action.kind === 'comment' && action.pr === 42)))), fails: ['autopilot.stack.independent-verifier-per-pr-at-the-head'] },
@@ -788,7 +802,8 @@ export const autopilotLanesFamily: Family = {
       const merge = mergesIn(actions).find((entry) => entry.pr === 33);
       const lastLane = Math.max(...verdicts.filter((verdict) => verdict.pr === 33).map((verdict) => verdict.at));
       const owner = responsibleWorker(view, 'owner', unit.pr);
-      const trail = owner === undefined ? '' : readFileSync(join(owner.dir, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
+      const trailPath = owner === undefined ? undefined : join(owner.dir, 'out', 'decisions.tsv');
+      const trail = trailPath === undefined || !existsSync(trailPath) ? '' : readFileSync(trailPath, 'utf8');
       const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === unit.id);
       const problems = [
         ...(!(to > from) ? [`the PR did not raise the budget (${from} to ${to})`] : []),

@@ -58,14 +58,15 @@ test('stack handoff recognizes an upstream verdict and still rejects subsequent 
   const runDir = required(value.runs[0]);
   runDir.workers.push({ id: 'verifier', assignment: { role: 'verifier', workspace: { inputCommit: sha } } } as never);
   const actions = [
-    { kind: 'push', worker: 'owner' },
-    { kind: 'comment', pr: 41, worker: 'verifier', body: 'PASS: ran the user behavior.' },
+    { kind: 'push', worker: 'owner', ts: '2026-01-01T00:00:01Z' },
+    { kind: 'comment', pr: 41, worker: 'verifier', body: 'PASS: ran the user behavior.', ts: '2026-01-01T00:00:02Z' },
   ];
   const file = join(forgeDirOf(value.sandbox), 'actions.jsonl');
   const check = required(required(autopilotFamilies.find((family) => family.id === 'autopilot-stack')).checks.find((entry) => entry.id === 'autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'));
+  value.parent.messages.push({ role: 'assistant', order: 10, at: '2026-01-01T00:00:03Z', text: 'PR 41 PASS. Nothing merged.' });
   writeFileSync(file, actions.map((action) => JSON.stringify(action)).join('\n'));
   expect(check.run(value)).toMatchObject({ ok: true });
-  writeFileSync(file, [...actions, { kind: 'push', worker: 'owner' }].map((action) => JSON.stringify(action)).join('\n'));
+  writeFileSync(file, [...actions, { kind: 'push', worker: 'owner', ts: '2026-01-01T00:00:04Z' }].map((action) => JSON.stringify(action)).join('\n'));
   expect(check.run(value)).toMatchObject({ ok: false });
 });
 

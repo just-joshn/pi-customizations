@@ -168,7 +168,11 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
   }),
   whenJudged(check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
-    const lines = (judge?.brief ?? '').split('\n');
+    const brief = judge?.brief ?? '';
+    const rubricRef = /\brubric\b[^\n]*?((?:\/|\.{1,2}\/)[^\s`]+\.md)\b/i.exec(brief)?.[1];
+    const rubricPath = rubricRef === undefined ? undefined : resolve(view.repo, rubricRef);
+    if (rubricPath !== undefined && (!existsSync(rubricPath) || openedAt(judge?.session ?? null, rubricPath) === -1)) return fail('the judge did not open its referenced rubric file');
+    const lines = (rubricPath === undefined ? brief : `Rubric\n${readFileSync(rubricPath, 'utf8')}`).split('\n');
     const start = lines.findIndex((line) => /\brubric\b/i.test(line));
     if (start === -1) return fail('no rubric section in the judge brief');
     const criteria: string[] = [];
@@ -178,7 +182,7 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
       else if (line.trim() !== '' && criteria.length > 0) break;
     }
     if (criteria.length < 3 || criteria.length > 6) return fail(`the judge brief carries ${criteria.length} rubric criteria, want 3 to 6`);
-    const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && criteria.some((criterion) => (worker.brief ?? '').includes(criterion)));
+    const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && ((rubricRef !== undefined && (worker.brief ?? '').includes(rubricRef)) || criteria.some((criterion) => (worker.brief ?? '').includes(criterion))));
     return when(leaked.length === 0, `${criteria.length} criteria in the judge brief, none in ${allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').length} candidate briefs`, `rubric leaked to ${leaked.map((worker) => worker.id).join(', ')}`);
   })),
   writableWorkerRecords(`${prefix}.candidate-records`, src('arena/SKILL.md', 'instructions to produce the artifact and a short rationale'), ['candidate']),
