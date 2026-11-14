@@ -318,13 +318,14 @@ function workerPhases(repo: string, hold?: RegExp): string[] {
       const assignment = join(workers, id, 'assignment.json');
       // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
       if (isWatch(assignment) && !hold?.test(id)) return [];
+      const nested = workerPhases(join(workers, id, 'worktree'), hold);
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
-      if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
+      if (!existsSync(statePath)) return [...nested, existsSync(claim) ? 'starting' : 'unspawned'];
       try {
-        return [String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase'])];
+        return [...nested, String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase'])];
       } catch {
-        return ['starting'];
+        return [...nested, 'starting'];
       }
     });
   });

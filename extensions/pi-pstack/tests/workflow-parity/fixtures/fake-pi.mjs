@@ -9,6 +9,7 @@ import { createInterface } from 'node:readline';
 const mode = process.env.FAKE_PI_MODE;
 const sandbox = dirname(process.cwd());
 let streaming = false;
+let stateReads = 0;
 if (mode === 'crash') {
   console.error('fatal: provider auth missing');
   process.exit(3);
@@ -59,6 +60,11 @@ createInterface({ input: process.stdin }).on('line', (line) => {
     return;
   }
   if (command.type === 'get_state') {
+    if (mode === 'nested-worker') {
+      stateReads += 1;
+      writeFileSync(`${sandbox}/sessions/never-written.jsonl`, `${JSON.stringify({ type: 'session', id: 'x', cwd: process.cwd() })}\n`);
+      if (stateReads >= 3) writeFileSync(process.env.FAKE_PI_NESTED_STATE, JSON.stringify({ phase: 'idle' }));
+    }
     if (mode === 'sandbox-removed') rmSync(sandbox, { recursive: true, force: true });
     return answer({ sessionFile: `${sandbox}/sessions/never-written.jsonl`, isStreaming: streaming, pendingMessageCount: 0 });
   }

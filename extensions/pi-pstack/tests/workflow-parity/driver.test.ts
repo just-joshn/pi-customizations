@@ -17,6 +17,29 @@ const withPi = (mode: string) => {
   return runWorkflow(spec, 'scripted', { pi: FAKE_PI, rpcTimeoutMs: 1_500 });
 };
 
+test('an idle parent and coordinator do not end a run while a nested worker is running', async () => {
+  process.env['FAKE_PI_MODE'] = 'nested-worker';
+  let nestedState = '';
+  const outcome = await runWorkflow({
+    ...spec,
+    prepare: (ctx) => {
+      const coordinator = join(ctx.repo, '.pi/pstack/runs/root/workers/coordinator');
+      const leaf = join(coordinator, 'worktree/.pi/pstack/runs/area/workers/leaf');
+      mkdirSync(leaf, { recursive: true });
+      writeFileSync(join(coordinator, 'state.json'), JSON.stringify({ phase: 'idle' }));
+      nestedState = join(leaf, 'state.json');
+      writeFileSync(nestedState, JSON.stringify({ phase: 'running' }));
+    },
+    env: () => ({ FAKE_PI_NESTED_STATE: nestedState }),
+  }, 'scripted', { pi: FAKE_PI });
+  try {
+    expect(outcome.meta.timedOut).toBe(false);
+    expect(JSON.parse(readFileSync(nestedState, 'utf8'))).toEqual({ phase: 'idle' });
+  } finally {
+    outcome.cleanup();
+  }
+});
+
 test('an event-triggered hold reaches the parent while work is in flight', async () => {
   process.env['FAKE_PI_MODE'] = 'interrupt';
   let evidence: unknown;
