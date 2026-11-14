@@ -1,9 +1,13 @@
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
+import { processStartTime } from '../../src/run-files.ts';
 import { babysitSingleWatcherFamily } from './families/pr-babysit.ts';
+import type { WatcherObservation } from './families/pr-watcher-observation.ts';
 import { evaluate } from './lib/check.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -14,7 +18,7 @@ const required = <T>(value: T | undefined): T => {
 const ids = ['babysit.single.the-second-request-armed-no-second-watcher', 'babysit.single.only-one-watcher-ever-polled-the-pr'];
 const observation = (id = 'w', phase = 'running') => ({ runId: 'r', id, instance: id, phase, childPid: id === 'w' ? 101 : 102, childStarted: 'process-start', before: 'process-start', after: 'process-start' });
 
-function fixture(use: (view: RunView, save: (workers: ReturnType<typeof observation>[], spawns?: ReturnType<typeof observation>[][]) => void) => void): void {
+function fixture(use: (view: RunView, save: (workers: WatcherObservation[], spawns?: WatcherObservation[][]) => void) => void): void {
   const sandbox = mkdtempSync(join(tmpdir(), 'single-watcher-temporal-'));
   mkdirSync(join(sandbox, 'forge', 'origin.git', 'forge'), { recursive: true });
   writeFileSync(join(sandbox, 'forge', 'origin.git', 'forge', 'state.json'), JSON.stringify({ prs: {} }));
@@ -105,6 +109,40 @@ test('an unobserved additional watcher is ambiguous, not a proved duplicate', ()
     const run = required(view.runs[0]);
     run.workers.push({ ...required(run.workers[0]), id: 'unknown', dir: '/workers/unknown' });
     save([observation()]);
+    expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
+  }));
+
+test.for(['exited', 'aborted', 'starting'])('matching identities of simultaneous real children fail overlap despite an old %s phase', async (phase) => {
+  const children = Array.from({ length: 2 }, () => spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' }));
+  const exits = children.map((child) => once(child, 'exit'));
+  try {
+    await Promise.all(children.map((child) => once(child, 'spawn')));
+    const samples = children.map((child, index) => {
+      const pid = required(child.pid);
+      const started = required(processStartTime(pid));
+      return { ...observation(index === 0 ? 'w' : 'replacement'), childPid: pid, childStarted: started, before: started, after: started };
+    });
+    const delivery = { ...required(samples[0]) };
+    required(samples[0]).phase = phase;
+    const group = samples.map((worker) => ({ ...worker, before: required(processStartTime(worker.childPid)) }));
+    for (const worker of group) worker.after = required(processStartTime(worker.childPid));
+    fixture((view, save) => {
+      const run = required(view.runs[0]);
+      run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
+      save([delivery], [group]);
+      expect(results(view)).toEqual(['FAIL', 'FAIL']);
+    });
+  } finally {
+    for (const child of children) if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
+    await Promise.allSettled(exits);
+  }
+});
+
+test('a terminal phase with unreadable process starts cannot prove a sequential replacement', () =>
+  fixture((view, save) => {
+    const run = required(view.runs[0]);
+    run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
+    save([observation()], [[{ ...observation('w', 'exited'), before: null, after: null }, observation('replacement')]]);
     expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
   }));
 
