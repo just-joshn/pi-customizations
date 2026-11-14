@@ -77,11 +77,7 @@ for (const family of target === 'all' ? families : [familyById(target)]) {
   credentialLeak ||= run.containerCredentialProbes?.some((probe) => probe.status === 'fail') === true;
   if (run.inconclusive !== undefined) {
     inconclusive += 1;
-    if (run.inconclusive.kind === 'crash') {
-      console.log(`sandbox kept: ${run.sandbox}`);
-      continue;
-    }
-    run.cleanup();
+    console.log(`sandbox kept: ${run.sandbox}`);
     if (run.inconclusive.kind === 'provider-error' && flags.includes('--stop-on-provider-error')) break;
     continue;
   }
@@ -92,7 +88,7 @@ for (const family of target === 'all' ? families : [familyById(target)]) {
   if (exit === 4) adaptationBad = true;
   if (exit === 3) inconclusive += 1;
   if (exit === 1 || run.negatives.some((negative) => !negative.detected)) bad += 1;
-  if (!flags.includes('--keep')) run.cleanup();
+  if (!flags.includes('--keep') && exit !== EXIT_INCONCLUSIVE) run.cleanup();
   else console.log(`sandbox kept: ${run.sandbox}`);
 }
 process.exit(credentialLeak || bad > 0 ? 1 : inconclusive > 0 ? EXIT_INCONCLUSIVE : adaptationBad ? 4 : 0);
