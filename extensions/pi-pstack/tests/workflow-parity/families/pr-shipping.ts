@@ -321,7 +321,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : [])];
       });
       return when(problems.length === 0, 'three ingested receipts, artifacts inside each verifier\'s folder, verdicts consistent', problems.join('; '));
-    }, prefix === 'ship' ? 'adaptation' : 'upstream'),
+    }, 'adaptation'),
   ];
 }
 

@@ -196,7 +196,7 @@ export function todoChecks(options: TodoOptions): Check[] {
         });
       const done = found.steps.filter((step) => step.state === 'done').length;
       return when(problems.length === 0 && done > 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; ') || 'no step is done');
-    }),
+    }, 'adaptation'),
     check(`todo.${playbook}.skips-explained`, 'a skipped step names its reason, and no mandatory step is skipped', [SKIP_SRC, book], (view) => {
       const found = run(view);
       if (found === undefined) return fail('no run');
