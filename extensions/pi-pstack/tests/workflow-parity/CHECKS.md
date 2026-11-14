@@ -2260,8 +2260,8 @@ babysit one watcher per stack: a second babysit request while the first watcher 
 | `todo.babysit.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
 | `babysit.single.mode-declared-from-the-request` | the mode is declared before any forge call or watcher spawn, and equals the table's answer for the request (drive) | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
 | `babysit.single.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
-| `babysit.single.the-second-request-armed-no-second-watcher` | two babysit requests arrived, the second found the existing watcher live through the assignments and an inspect, and made no pstack_worker spawn | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
-| `babysit.single.only-one-watcher-ever-polled-the-pr` | one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
+| `babysit.single.the-second-request-armed-no-second-watcher` | the repeat request arrived while the original watcher was live, the parent inspected it, and no overlapping watcher was proved | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.single.only-one-watcher-ever-polled-the-pr` | the original watcher was live at repeat delivery and read PR 16; observed overlap fails, and additional lifetimes without causal ordering remain inconclusive | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
 | `babysit.single.never-merges` | nothing merged, queued or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
 | `babysit.single.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
 

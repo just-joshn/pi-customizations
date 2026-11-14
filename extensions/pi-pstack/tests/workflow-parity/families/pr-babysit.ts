@@ -885,7 +885,7 @@ export const babysitSingleWatcherFamily: Family = {
       const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && !call.isError && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
       return when(inspect !== undefined, `repeat delivery observed ${worker.runId}/${worker.id} live, and the parent inspected it; later exit is allowed`, `the repeat request never successfully inspected ${worker.runId}/${worker.id}`);
     }),
-    check('babysit.single.only-one-watcher-ever-polled-the-pr', 'the original watcher was live at repeat delivery and read PR 16; no active watcher overlap occurred, while proved sequential replacements are allowed', BS('Never add a second sleep loop'), (view) => {
+    check('babysit.single.only-one-watcher-ever-polled-the-pr', 'the original watcher was live at repeat delivery and read PR 16; observed overlap fails, and additional lifetimes without causal ordering remain inconclusive', BS('Never add a second sleep loop'), (view) => {
       const premise = repeatPremise(view);
       if (!('worker' in premise)) return premise;
       const { worker } = premise;
