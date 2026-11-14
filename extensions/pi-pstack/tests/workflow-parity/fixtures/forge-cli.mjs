@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { assignReviewIds } from './review-ids.ts';
 
 const [tool, ...argv] = process.argv.slice(2);
@@ -232,10 +233,10 @@ function threadsOf(pr) {
   return pr.threads.map((thread) => ({ ...thread, comments: thread.comments }));
 }
 
-const databaseIdOf = (pr, entry) => entry.databaseId;
+const databaseIdOf = (entry) => entry.databaseId;
 
 function replyTo(state, pr, commentId, body) {
-  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(pr, entry)) === String(commentId)) || item.id === commentId);
+  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(entry)) === String(commentId)) || item.id === commentId);
   if (thread === undefined) die(1, `gh: no review comment ${commentId}`);
   thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, in_reply_to_id: thread.comments[0].id, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
   assignReviewIds(state);
@@ -350,7 +351,7 @@ function graphql(state) {
   if (pr === undefined) die(1, 'gh: unknown pull request');
   if (/\breviewThreads\s*\(/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
-    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: databaseIdOf(pr, entry), body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
+    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: databaseIdOf(entry), body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
   }
   if (/PrCheckRollup/.test(query)) {
@@ -417,7 +418,7 @@ function gh(state) {
       const pr = state.prs[comments[1]];
       if (pr === undefined) die(1, 'gh: unknown pull request');
       log({ kind: 'read', what: 'review-comments', pr: pr.number });
-      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: databaseIdOf(pr, entry), body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: databaseIdOf(pr, pr.threads.flatMap((item) => item.comments).find((item) => item.id === entry.in_reply_to_id)) }) }))));
+      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: databaseIdOf(entry), body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: databaseIdOf(pr.threads.flatMap((item) => item.comments).find((item) => String(item.id) === String(entry.in_reply_to_id) || String(item.databaseId) === String(entry.in_reply_to_id))) }) }))));
     }
     const reply = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments\/([^/]+)\/replies$/.exec(target ?? '');
     if (reply !== null && String(value('--method', '-X')).toUpperCase() === 'POST') {
@@ -427,7 +428,7 @@ function gh(state) {
       const payload = JSON.parse(readFileSync(value('--input') === '-' ? 0 : value('--input'), 'utf8'));
       const thread = replyTo(state, pr, reply[2], String(payload.body));
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: String(payload.body) });
-      return out({ id: databaseIdOf(pr, thread.comments.at(-1)), body: payload.body });
+      return out({ id: databaseIdOf(thread.comments.at(-1)), body: payload.body });
     }
     die(1, `gh: unsupported api call ${target}`);
   }

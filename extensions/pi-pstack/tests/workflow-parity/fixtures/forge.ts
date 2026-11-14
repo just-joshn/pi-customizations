@@ -6,12 +6,12 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, wr
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { assignReviewIds } from './review-ids.ts';
 import { FORGE_TOKEN } from '../lib/container-credentials.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { PKG, REAL_MODEL, REAL_MODEL_B } from '../lib/driver.ts';
 import { packagesRegistering, providerOf } from '../lib/providers.ts';
 import type { RunView } from '../lib/view.ts';
+import { assignReviewIds } from './review-ids.ts';
 
 export const FORGE_CLI = join(PKG, 'tests/workflow-parity/fixtures/forge-cli.mjs');
 export const WATCH_PR = join(PKG, 'generated/skills/poteto-mode/scripts/watch-pr/watch-pr');

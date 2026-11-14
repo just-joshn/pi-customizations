@@ -2,7 +2,7 @@ import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 import { afterEach, expect, test } from 'vitest';
@@ -186,7 +186,11 @@ test('review IDs survive replies to earlier threads and still route to the origi
   const reply = (id: number) => call(ctx, forge, 'gh', 'api', `repos/fixture/repo/pulls/71/comments/${id}/replies`, '-X', 'POST', '--input', payload);
   expect(reply(before[0].id).status).toBe(0);
   expect(list().find((entry: { body: string; id: number }) => entry.body === 'Finding' && entry.id === before[1].id)).toBeDefined();
-  expect(list().filter((entry: { body: string }) => entry.body === 'Finding').map((entry: { id: number }) => entry.id)).toEqual(before.map((entry: { id: number }) => entry.id));
+  expect(
+    list()
+      .filter((entry: { body: string }) => entry.body === 'Finding')
+      .map((entry: { id: number }) => entry.id),
+  ).toEqual(before.map((entry: { id: number }) => entry.id));
   expect(reply(before[1].id).status).toBe(0);
   const updated = JSON.parse(readFileSync(path, 'utf8'));
   expect(updated.prs['71'].threads.map((thread: { comments: unknown[] }) => thread.comments.length)).toEqual([2, 2]);
@@ -265,6 +269,8 @@ test.skipIf(!engineAvailable())('a container reads every host forge comment in f
       `type=bind,src=${ctx.sandbox},dst=/sandbox`,
       '--mount',
       `type=bind,src=${FORGE_CLI},dst=${FORGE_CLI},readonly`,
+      '--mount',
+      `type=bind,src=${join(dirname(FORGE_CLI), 'review-ids.ts')},dst=${join(dirname(FORGE_CLI), 'review-ids.ts')},readonly`,
       DEFAULT_IMAGE,
       'node',
       '-e',
