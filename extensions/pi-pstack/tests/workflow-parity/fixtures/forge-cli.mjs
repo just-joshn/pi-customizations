@@ -230,7 +230,7 @@ function runEvents(state, op, pr, text) {
   for (const event of state.events ?? []) {
     if (event.done || event.when.op !== op || (event.when.pr !== undefined && event.when.pr !== pr)) continue;
     if (event.when.match !== undefined && !new RegExp(event.when.match).test(text ?? '')) continue;
-    if (event.when.verdictsFor !== undefined && !event.when.verdictsFor.every((n) => state.prs[String(n)].comments.some((entry) => /PSTACK-VERDICT/.test(entry.body)))) continue;
+    if (event.when.verdictsFor !== undefined && !event.when.verdictsFor.every((n) => state.prs[String(n)].comments.some((entry) => /^\s*(?:PSTACK-VERDICT:\s*)?(?:PASS\+NOTES|PASS|FAIL)\b/.test(entry.body)))) continue;
     event.done = true;
     for (const step of event.do) chaos(step);
   }
