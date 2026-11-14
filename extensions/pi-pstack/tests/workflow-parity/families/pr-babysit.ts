@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { Parent, scenario } from '../fixtures/dsl.ts';
 import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, type ForgeState, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
-import { check, checkAbsence, src, when } from '../lib/check.ts';
+import { check, checkAbsence, fail, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { appendToolCall, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
@@ -884,6 +884,7 @@ export const babysitSingleWatcherFamily: Family = {
     forgeResolvedOnce('babysit.single.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found the existing watcher live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
       if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so reuse on a second request was not exercised' };
+      if (watchers(view).length !== 1) return fail(`expected one watcher for PR 16, observed ${watchers(view).map((worker) => worker.id).join(', ')}`);
       const turns = view.parent.messages.filter((message) => message.role === 'user').length;
       const second = callsInTurn(view, 1);
       const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
@@ -893,6 +894,7 @@ export const babysitSingleWatcherFamily: Family = {
     }),
     check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
       if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so duplicate polling was not exercised' };
+      if (watchers(view).length !== 1) return fail(`expected one watcher for PR 16, observed ${watchers(view).map((worker) => worker.id).join(', ')}`);
       const { actions } = readForge(view);
       const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.pr === 16 && action.worker !== '').map((action) => action.worker))];
       const worker = observedWatcher(view, '16');

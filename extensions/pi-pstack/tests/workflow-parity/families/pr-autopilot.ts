@@ -1,7 +1,7 @@
 // Autopilot families (spec 13.4): one container owner per PR, a root that verifies at the head before an owner may merge,
 // autopilot-stack that never merges, and an operator hold that reaches every owner in one message.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
@@ -218,7 +218,7 @@ function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) =>
       const pushes = actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action.worker === unit.id && action.run === run.id);
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
       const forced = pushes.filter((action) => action.kind === 'force-push' && (typeof action['old'] !== 'string' || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'bash' && new RegExp(`--force-with-lease=(?:refs/heads/)?${unit.branch}:${String(action['old'])}\\b`).test(String(call.args['command'])))));
-      const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => /\.(?:tsv|md)$/.test(file)).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
+      const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => /\.(?:tsv|md)$/.test(file) && existsSync(join(worker.dir, file)) && statSync(join(worker.dir, file)).isFile()).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
       const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target.trim() !== '' && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${worker.dir}/`)));
       const receipt = receipts.find((entry) => entry.verdict === 'pass' && (entry.exitCode === undefined || entry.exitCode === 0) && entry['expectedFail'] !== true);
       return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!trails.some((trail) => /^ts\tphase\tdecision\twhy\tevidence\tresult\r?\n[^\n]+/m.test(trail)) ? [`${unit.id} left no decision trail in its worker directory`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
@@ -794,7 +794,8 @@ export const autopilotLanesFamily: Family = {
       const merge = mergesIn(actions).find((entry) => entry.pr === 33);
       const lastLane = Math.max(...verdicts.filter((verdict) => verdict.pr === 33).map((verdict) => verdict.at));
       const owner = responsibleWorker(view, 'owner', unit.pr);
-      const trail = owner === undefined ? '' : readFileSync(join(owner.dir, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
+      const trailPath = owner === undefined ? undefined : join(owner.dir, 'out', 'decisions.tsv');
+      const trail = trailPath === undefined || !existsSync(trailPath) ? '' : readFileSync(trailPath, 'utf8');
       const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === unit.id);
       const problems = [
         ...(!(to > from) ? [`the PR did not raise the budget (${from} to ${to})`] : []),
