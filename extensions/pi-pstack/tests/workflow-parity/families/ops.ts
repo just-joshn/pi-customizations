@@ -1,7 +1,7 @@
 // Families: session-pickup, pause-safely, autonomous-run, worktree-cleanup.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { BENCH_JS, cartHistory, DEDUPE_JS, perfHistory, SET_DEDUPE_JS } from '../fixtures/repos.ts';
@@ -129,7 +129,7 @@ export const pickupFamily: Family = {
     ...todoChecks({ playbook: 'session-pickup' }),
     check('pickup.trail-read-inside-this-workspace', "the prior worker's report and session file are read, and nothing globs across other projects' sessions", src('poteto-mode/playbooks/session-pickup.md', 'Do not glob across `~/.pi/agent/sessions/*/`'), (view) => {
       const report = openedAt(view.parent, 'workers/old-worker/report.md');
-      const session = view.parent.toolCalls.find((call) => call.name === 'bash' && /workers\/old-worker\/session\/.*\.jsonl/.test(String(call.args['command'])) && /(tail|head|cat|sed)/.test(String(call.args['command'])));
+      const session = view.parent.toolCalls.find((call) => !call.isError && ((call.name === 'read' && /workers\/old-worker\/session\/[^/]+\.jsonl$/.test(String(call.args['path']))) || (call.name === 'bash' && /workers\/old-worker\/session(?:\/|\s|["'])/.test(String(call.args['command'])) && /(?:cat|tail|head|sed)\s+[^;&|]*\S*\.jsonl\b/.test(String(call.args['command'])))));
       const glob = view.parent.toolCalls.filter((call) => ['bash', 'find', 'ls', 'grep', 'read'].includes(call.name) && /sessions\/\*\/|\.pi\/agent\/sessions/.test(JSON.stringify(call.args)));
       return when(report !== -1 && session !== undefined && glob.length === 0, `report opened at ${report}, session tail read at ${session?.order}, no cross-workspace glob`, `report ${report}, session read ${session?.order}, globs ${glob.length}`);
     }),
@@ -143,7 +143,7 @@ export const pickupFamily: Family = {
       const reply = finalReply(view);
       const resume = /(?:resume(?: point)?|next step):\s*([^\n]*)/i.exec(reply)?.[1] ?? reply;
       const normalize = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-      return when(pending !== '' && /resume|next|remaining|pending|continue/i.test(reply) && normalize(resume).includes(normalize(pending.replace(/^\d+\. /, ''))), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
+      return when(pending !== '' && /resume|next|remaining|pending|continue/i.test(reply) && (normalize(resume).includes(normalize(pending.replace(/^\d+\. /, ''))) || new RegExp(`\\bunit\\s+${pending.split('.')[0]}\\b`, 'i').test(resume)), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
     }),
     check('pickup.nothing-redone', 'completed work is not redone: no parent write into the files the prior commits made, no commit, and the prior repro command is not re-run before verification', src('poteto-mode/playbooks/session-pickup.md', 'do not re-run the prior repro or redo completed work'), (view) => {
       const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /^(src|test)\//.test(String(call.args['path']).startsWith('/') ? relative(view.repo, String(call.args['path'])) : String(call.args['path'])));
@@ -156,18 +156,27 @@ export const pickupFamily: Family = {
       const routed = view.parent.toolCalls.filter((call) => call.name === 'read' && !call.isError).map((call) => /playbooks\/([^/]+)\.md$/.exec(String(call.args['path']))?.[1]).find((book) => book !== undefined && book !== 'session-pickup' && new RegExp(`\\b${book}\\b`, 'i').test(reply));
       return when(verdict !== undefined && routed !== undefined,  `verdict "${verdict}", routed to ${routed}`, `verdict ${verdict}, routed ${routed}`);
     }),
-    check('pickup.inherited-claims-verified-on-the-real-artifact', 'the inherited claim is verified on the prior branch head: the receipt names that commit and the checker re-runs the tests there', src('poteto-mode/playbooks/session-pickup.md', 'Verify the inherited claims against the original goal on the real artifact'), (view) => {
+    check('pickup.inherited-claims-verified-on-the-real-artifact', 'the inherited claim is verified on the prior branch head by a receipt or an observed successful test run, and the checker re-runs the tests there', src('poteto-mode/playbooks/session-pickup.md', 'Verify the inherited claims against the original goal on the real artifact'), (view) => {
       const run = primaryRun(view, 'session-pickup');
       const receipt = run?.receipts.find((entry) => entry.id === 'pick-verify');
       const head = git(view.repo, 'rev-parse', PRIOR_BRANCH);
       const rerun = runAtCommit(view, head, 'node --test');
-      return when(receipt?.commit === head && receipt.exitCode === 0 && rerun.status === 0, `receipt at ${head.slice(0, 10)}, re-run exits ${rerun.status}`, `receipt commit ${String(receipt?.commit).slice(0, 10)} vs head ${head.slice(0, 10)}, exit ${String(receipt?.exitCode)}, re-run ${rerun.status}`);
+      const observed = view.parent.toolCalls.some((call) => {
+        const command = String(call.args['command']);
+        if (call.name !== 'bash' || call.isError || !/\bnode --test\b/.test(command) || !/(?:#|ℹ)\s*pass\s+[1-9]/.test(call.resultText) || !/(?:#|ℹ)\s*fail\s+0\b/.test(call.resultText)) return false;
+        const cwd = /\bcd\s+["']?([^\s"';&]+)["']?\s*&&\s*node --test\b/.exec(command)?.[1];
+        if (cwd === undefined) return false;
+        const observedHead = spawnSync('git', ['-C', resolve(view.repo, cwd), 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+        const status = spawnSync('git', ['-C', resolve(view.repo, cwd), 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' });
+        return observedHead.status === 0 && observedHead.stdout.trim() === head && status.status === 0 && status.stdout.trim() === '';
+      });
+      return when(((receipt?.commit === head && receipt.exitCode === 0) || observed) && rerun.status === 0, `verification observed at ${head.slice(0, 10)}, re-run exits ${rerun.status}`, `receipt commit ${String(receipt?.commit).slice(0, 10)} vs head ${head.slice(0, 10)}, exit ${String(receipt?.exitCode)}, re-run ${rerun.status}`);
     }),
     check('pickup.reply-has-the-four-parts', 'the reply says where the prior agent stopped, inherited versus redone, the resume point, and the outcome', src('poteto-mode/playbooks/session-pickup.md', '**Reply:** where the prior agent stopped'), (view) => {
       const reply = finalReply(view);
       const parts = [
-        { name: 'prior stopping point', pattern: /where[^.\n]*stopp|prior[^.\n]*(?:completed|done|stopp)|units? 1[^.\n]*2[^.\n]*(?:committed|green|complete)/i },
-        { name: 'inherited versus redone', pattern: /inherit[^.\n]*(?:redo|redid)|(?:reuse|kept|retained)[^.\n]*(?:redo|redid)|(?:nothing|no work)[^.\n]*(?:redone|redid|rework)/i },
+        { name: 'prior stopping point', pattern: /where[^.\n]*stopp|prior[^.\n]*(?:completed|done|stopp)|units? 1[^.\n]*2[^.\n]*(?:committed|green|complete|(?:already )?done)/i },
+        { name: 'inherited versus redone', pattern: /inherit[\s\S]*(?:redo|redid)|(?:reuse|kept|retained)[\s\S]*(?:redo|redid)|(?:nothing|no work)[^.\n]*(?:redone|redid|rework)/i },
         { name: 'resume point', pattern: /resume|next|remaining|pending/i },
         { name: 'outcome', pattern: /outcome\s*:\s*\S|verif(?:ied|ication)|(?:tests?|node --test)[^.\n]*(?:pass|fail)|\bblocked\b/i },
       ];

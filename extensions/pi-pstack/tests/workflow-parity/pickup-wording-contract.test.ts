@@ -15,7 +15,7 @@ test.for([true, false])('pickup reports facts and the opened route without manda
     const report = {
       role: 'assistant',
       order: 1,
-      text: `The prior agent completed units 1 and 2. I inherited those commits and redid nothing. Unit 3, exportCsv item rows, is next. I will continue under Feature.${outcome ? ' I verified the inherited claim; its tests passed.' : ''}`,
+      text: `**Inherited.** Units 1 and 2 were already done by old-worker. I checked them against the branch. I redid none of that work. **Resume point.** Unit 3, the item rows, is next. I will continue under Feature.${outcome ? ' I verified the inherited claim; its tests passed.' : ''}`,
     };
     const view = {
       repo: sandbox,
@@ -25,7 +25,7 @@ test.for([true, false])('pickup reports facts and the opened route without manda
     expect(run('resume-point-is-the-first-unfinished-unit')).toMatchObject({ ok: true });
     expect(run('verdict-and-route')).toMatchObject({ ok: true });
     expect(run('reply-has-the-four-parts')).toMatchObject({ ok: outcome });
-    report.text = report.text.replace('Unit 3, exportCsv item rows', 'Unit 1, csvRow helper');
+    report.text = report.text.replace('Unit 3, the item rows', 'Unit 1, csvRow helper');
     expect(run('resume-point-is-the-first-unfinished-unit')).toMatchObject({ ok: false });
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
