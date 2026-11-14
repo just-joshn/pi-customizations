@@ -131,7 +131,7 @@ export function forgeResolvedOnce(id: string, source: Src | Src[], backend: 'gh'
     const resolutions = commands.filter((entry) => lookup.test(entry.command)).length;
     const notes = [...view.runs.map((run) => run.todoText?.split('## Task-specific work')[1] ?? ''), ...view.runs.flatMap((run) => (run.decisions ?? []).map((row) => row.join(' '))), ...view.parent.messages.filter((message) => message.role === 'assistant').map((message) => message.text)].join('\n');
     const recordedName = backend === 'gh' ? '(?:gh|GitHub)' : backend;
-    const recorded = new RegExp(`(?:forge|fallback|no[^\\n]{0,10}origin[^\\n]{0,20}present|origin[^\\n]{0,40}(?:absent|unavailable|not (?:on|found)))[^\\n]{0,80}\\b${recordedName}\\b`, 'i').test(notes) ? backend : undefined;
+    const recorded = new RegExp(`(?:forge|fallback|no[^\\n]{0,10}origin[^\\n]{0,20}present|origin[^\\n]{0,40}(?:absent|unavailable|not (?:on|found|installed)|isn't installed))[^\\n]{0,80}\\b${recordedName}\\b`, 'i').test(notes) ? backend : undefined;
     return when(resolvedAt !== -1 && before && tools.every((tool) => tool === backend) && tools.length > 0 && recorded === backend, `resolved at ${resolvedAt} before the first forge call at ${firstForge}; the choice (${recorded}) is recorded; forge tools used: ${tools.join(', ')}`, `resolved at ${resolvedAt}, first forge call ${firstForge}, resolutions ${resolutions}; tools used ${tools.join(', ')}; recorded ${String(recorded)}; want ${backend}`);
   });
 }
