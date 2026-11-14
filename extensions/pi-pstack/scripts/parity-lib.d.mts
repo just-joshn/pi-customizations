@@ -40,7 +40,7 @@ export interface Evaluated extends Requirement {
 }
 export interface Inputs {
   requirementsText: string;
-  requirements: { structural: unknown[]; behavioral: unknown[]; tests: Record<string, unknown> };
+  requirements: { structural: unknown[]; behavioral: unknown[]; tests: Record<string, unknown>; zip?: import('./zip-contract.mjs').ZipRegister };
   lock: { revision: string; files: Record<string, string> };
   dependencies: unknown;
 }

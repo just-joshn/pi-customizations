@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Source of the parity manifest. Structural rules classify every upstream file; behavioral records cite an upstream span. Status is never written here: scripts/build-parity-manifest.mjs derives it from a Vitest run.",
+  "description": "Source of the parity manifest. Structural and behavioral legacy records derive status from Vitest. The authoritative ZIP register separately requires explicit source-bound acceptance evidence; unresolved verdicts are not PASS.",
   "tests": {
     "inv.count": {
       "file": "tests/skill-parity/inventory.test.ts",
@@ -7172,5 +7172,990 @@
         "bn.settle-container.3"
       ]
     }
-  ]
+  ],
+  "zip": {
+    "schemaVersion": 1,
+    "upstreamRevision": "3dbd22ff12742fb28c9700b9760baa29ed41dc13",
+    "authority": {
+      "description": "All five audited ZIP files govern. The native specification and legacy parity records are subordinate on conflict.",
+      "files": [
+        {
+          "file": "pstack_pi_end_to_end_map.html",
+          "sha256": "397e1c26a789cb3e933fc5846ff681ca0bb9f7f8dbcd7d81613cb4a86e6ad985"
+        },
+        {
+          "file": "pstack_pi_end_to_end_map.md",
+          "sha256": "6a223ce88a1ab87e67f2a3d546606e91f1e3ea7ac09f416fde565e37bc934474"
+        },
+        {
+          "file": "pstack_pi_playbooks.svg",
+          "sha256": "a8fc75a9f7549948dadd72b09895cbf69875ef0b9077cd8c217a2dfafd761f8c"
+        },
+        {
+          "file": "pstack_pi_system.svg",
+          "sha256": "798a4dc37d1dee3ea3aaebe6c9782d3920e595506ae860a46554ad755bdbc980"
+        },
+        {
+          "file": "pstack_pi_verification_report.md",
+          "sha256": "1c9f670a506c6ed945bbe4ebb044f1700c72989818ee94504eb3def6d005de34"
+        }
+      ]
+    },
+    "requirements": [
+      {
+        "id": "SRC-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            594,
+            594
+          ]
+        },
+        "stimulus": "Load pinned guide/23 playbooks/24 principle files; check hashes and all referenced files",
+        "evidence": "Exact source revision and file inventory",
+        "unresolved": {
+          "verdict": "FAIL",
+          "reason": "The audited source crosswalk records a literal ZIP source-pin mismatch. Source-unit integration and fresh ZIP inventory evidence are pending."
+        }
+      },
+      {
+        "id": "ROUTE-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            595,
+            595
+          ]
+        },
+        "stimulus": "23 distinct prompts each route to intended upstream playbook; ambiguous large/unattended overrides are correct",
+        "evidence": "Recorded router decision and path",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "TODO-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            596,
+            596
+          ]
+        },
+        "stimulus": "On task start, `TODO.md` preserves a **byte-identical upstream step block** plus a separate status ledger; skipped items are retained",
+        "evidence": "Compare extracted immutable step block to pinned source bytes; validate linked status and `skip: <reason>`",
+        "unresolved": {
+          "verdict": "FAIL",
+          "reason": "The audited TODO crosswalk records non-byte-identical numbered steps and missing separate immutable status contract. TODO-unit integration and fresh byte comparison are pending."
+        }
+      },
+      {
+        "id": "ROLE-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            597,
+            597
+          ]
+        },
+        "stimulus": "Pi role model names come from actual `pi --list-models`; rejected roles not silently substituted",
+        "evidence": "Per-role validated config and downgrade notes",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "PROC-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            598,
+            598
+          ]
+        },
+        "stimulus": "Two tmux Pi workers produce isolated worktrees, result files, event logs and exit status; no shared-write collision",
+        "evidence": "SHA/path/session records, divergent outputs",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "PROC-02",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            599,
+            599
+          ]
+        },
+        "stimulus": "Kill a worker mid-run; coordinator detects missing exit report and retries idempotently or records BLOCKED",
+        "evidence": "No duplicate writes, correct missing-coverage verdict",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "MCP-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            600,
+            600
+          ]
+        },
+        "stimulus": "Real configured MCP action can be called through Codemode; missing MCP category is disclosed",
+        "evidence": "Tool-call evidence and explicit gap",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "SANDBOX-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            601,
+            601
+          ]
+        },
+        "stimulus": "Worker cannot read an unmounted host secret, change an unmounted host path, or contact an unapproved service",
+        "evidence": "Negative access checks performed inside worker container",
+        "unresolved": {
+          "verdict": "BLOCKED",
+          "reason": "Whole-process container negative-access experiments are deferred. Tool-only sandbox checks do not prove the ZIP container contract."
+        }
+      },
+      {
+        "id": "TRUST-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            602,
+            602
+          ]
+        },
+        "stimulus": "No per-tool UI prompts, but unapproved project extensions remain unloaded; protected external action is gated",
+        "evidence": "Project trust evidence and denied external action",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "PLAN-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            603,
+            603
+          ]
+        },
+        "stimulus": "Multi-phase plan writes prescribed file and passes validated Pi-compatible checks without implementation",
+        "evidence": "Validator output + unchanged product worktree",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "VERIFY-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            604,
+            604
+          ]
+        },
+        "stimulus": "A generated app-verification skill launches, doctors, drives, captures, cleans and retains evidence",
+        "evidence": "Recorded complete smoke execution",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "FORMAL-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            605,
+            605
+          ]
+        },
+        "stimulus": "A scoped property checker detects a deliberately broken variant; bounds and real-code correspondence stated",
+        "evidence": "Failed seeded variant and valid checked version",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "ARENA-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            606,
+            606
+          ]
+        },
+        "stimulus": "Separate candidates run same prompt; judge uses different family where available and sees neutral labels; result graft passes",
+        "evidence": "Candidate artifacts, models, judge result, final check",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "SWARM-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            607,
+            607
+          ]
+        },
+        "stimulus": "Coverage misses one slice or invalid SHA; aggregator reports gap, not PASS",
+        "evidence": "Consolidated coverage table",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "INTERROGATE-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            608,
+            608
+          ]
+        },
+        "stimulus": "Adversary reports false-positive and real repro; coordinator reruns both, drops only unverified claim",
+        "evidence": "Exact commands and observed outputs",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "BENCH-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            609,
+            609
+          ]
+        },
+        "stimulus": "Warm-cache-only artificial speedup is rejected by fixed workload and repeat-run vetting",
+        "evidence": "Median/range/limiter and INCONCLUSIVE verdict",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "BABYSIT-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            610,
+            610
+          ]
+        },
+        "stimulus": "PR has conflict, review finding, red CI; order is conflict→review→CI, PR not merged",
+        "evidence": "Timeline and forge state",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "SHIP-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            611,
+            611
+          ]
+        },
+        "stimulus": "Three PRs where middle lacks independent PASS; only root verified run may land",
+        "evidence": "Per-PR exact patch verdicts and merge readback",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "AUTOPILOT-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            612,
+            612
+          ]
+        },
+        "stimulus": "Full queue can land only within signed/granted scope; stack queue never merges",
+        "evidence": "Permission gate, final PR states",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "RECALL-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            613,
+            613
+          ]
+        },
+        "stimulus": "Active scoped Pi transcript and issue/MCP records reconstruct factual state without crossing unrelated workspaces",
+        "evidence": "Source pointers, current SHA and live PR state",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "PAUSE-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            614,
+            614
+          ]
+        },
+        "stimulus": "Forced coordinator restart preserves state, retains WIP, resumes at first incomplete task",
+        "evidence": "WIP SHA, resume file, resumed proof",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "CLEANUP-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            615,
+            615
+          ]
+        },
+        "stimulus": "Worktree contains WIP/pinned active worker; cleanup declines deletion",
+        "evidence": "Audit classification and retained path",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "REPORT-01",
+        "kind": "acceptance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            616,
+            616
+          ]
+        },
+        "stimulus": "Final report distinguishes PASS, ISSUES, BLOCKED, INCONCLUSIVE, and names applicable principle decisions",
+        "evidence": "Source-backed final synthesis",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence."
+        }
+      },
+      {
+        "id": "ZIP-INV-01",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            69,
+            69
+          ]
+        },
+        "stimulus": "**One playbook per routed task** unless a named playbook delegates to another. Start the next task with explicit re-routing. All mandatory upstream steps are copied from the upstream playbook file; skipped steps remain listed with their reason.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-02",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            70,
+            70
+          ]
+        },
+        "stimulus": "**Evidence precedes assertion.** A build or green unit test alone never proves a real UI, CLI, persistence, performance, or migration claim.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-03",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            71,
+            71
+          ]
+        },
+        "stimulus": "**No unreviewed shared writer.** Independent workers must not mutate the same worktree, branch, file, port, benchmark fixture, or baseline concurrently. Split ownership first.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-04",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            72,
+            72
+          ]
+        },
+        "stimulus": "**The judge did not write the change.** Preserve independent verdicts for review, verification swarms, and shipping. Do not collapse unavailable multi-model comparison into a claimed cross-family verdict.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-05",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            73,
+            73
+          ]
+        },
+        "stimulus": "**Every autonomy loop has a predicate, evidence, bounded damage, and a durable decision row.** A timer is only a wake mechanism, never a finish condition.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-06",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            74,
+            74
+          ]
+        },
+        "stimulus": "**A plan is a deliverable when the plan playbook says so.** It is not permission to implement. An explicit human checkpoint remains a checkpoint when requested.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-07",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            75,
+            75
+          ]
+        },
+        "stimulus": "**A babysitter cannot merge.** Shipping is distinct, verifies each PR, checks patch identity and base state, and lands only a contiguous verified run from the bottom.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-08",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            76,
+            76
+          ]
+        },
+        "stimulus": "**Failure must be honest.** `INCONCLUSIVE`, `BLOCKED`, missing worker, missing source, unsupported model, or mismatched baseline is not success.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-09",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            77,
+            77
+          ]
+        },
+        "stimulus": "**Whole-process isolation matters.** Neither Codemode's JS sandbox nor tmux creates an OS security boundary. The Pi process, its extensions, MCP integrations, tools, worktrees, and child workers must respect the container policy.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-INV-10",
+        "kind": "invariant",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            78,
+            78
+          ]
+        },
+        "stimulus": "**Principles affect decisions.** The coordinator reads applicable leaf skills, records the choice each changed, and avoids superficial principle name-dropping.",
+        "evidence": "Source-backed run artifacts and independent observation demonstrating this invariant, including its failure path.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-MCP",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            359,
+            366
+          ]
+        },
+        "stimulus": "### 8.1 MCP built in, with Codemode\n\n**PI-NATIVE**: Pi supports MCP stdio/HTTP server configuration under `.pi/mcp.json` or `~/.pi/agent/mcp.json`, server discovery and tool exposure (`codemode`, `deferred`, `direct`, `hidden`). With Codemode, agents can call registered tools through `tools.*` and compose calls with JavaScript, including concurrent `Promise.allSettled`, filtering large results and emitting `text()` summaries. The Codemode JS VM itself has no Node, filesystem, network, or timers. Real actions still happen through registered tools. The source pages are [Pi MCP](https://docs.pi.dev/latest/mcp) and [Pi Codemode](https://docs.pi.dev/latest/codemode).\n\n**Use for** `why` evidence fan-out, Git/issue/pr metadata where MCPs exist, checks, independent result reads, audit correlation, and tool composition. Keep tool-result content untrusted. A missing MCP category is reported as absent, not silently replaced with a guess. Tool discovery enumerates connected actions; it does not invent missing actions. For tasks with only built-in tools, `\"defaultTools\": [\"+codemode\"]` in Pi settings can explicitly enable Codemode.\n\n**Constraint:** Codemode runs *tool calls*, not independent LLM chat agents. It cannot replace Arena's N independent candidates or the independent Shipping verifier. Those need process isolation.",
+        "evidence": "Registered tools, Codemode execution output, unavailable-category disclosure, and proof that independent model attempts use separate processes.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PROCESSES",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            367,
+            388
+          ]
+        },
+        "stimulus": "### 8.2 No subagents: tmux Pi-instance process model\n\n**ADAPTER**: Each independent model participant is a separate `pi` CLI process in its own `tmux` session, not a Pi-native subagent invocation. The parent `poteto-mode` process is the sole coordinator and owns the active `TODO.md`. Workers get a complete immutable brief, a role and verified Pi model, an assigned worktree, source pointers, and a writable result directory. Use `pi --print` for one-off textual work; use `pi --mode json` for machine-readable one-shot runs; use `pi --mode rpc` for a genuinely long-lived controlled process. The Pi CLI documentation supports those modes; orchestrating them via tmux is **our implementation**, not a documented built-in Pi multi-agent service.\n\nRequired worker process contract:\n\n| Field | Required semantics |\n|---|---|\n| `run_id`, `worker_id`, `attempt` | Unique and idempotent ownership, no accidental reuse |\n| `role`, `task`, `scope` | Original goal and all later user constraints consolidated into one brief |\n| `source_sha` | Pinned pstack docs revision used to form the brief |\n| `base_sha`, `head_sha` | Exact patch identity when comparing/reviewing or committing code |\n| `worktree`, `write_allowlist` | Disjoint write location; read-only for judges and critics |\n| `model`, `model_family`, `thinking` | **Verified** Pi model available to the installed CLI; none guessed from Cursor slugs |\n| `method`, `checks` | Matching-surface repro/benchmark/verification commands with expected outputs |\n| `results` | Explicit machine-readable verdict, commands, actual outputs, evidence paths, gaps |\n| `exit_code`, `session` | Distinguish completed process, failure, abort, timeout, and still-active run |\n\n**Lifecycle:** allocate worktree → write and checksum immutable brief → start detached tmux session → observe process/events → read artifacts and exit code → verify output and SHA → update TODO/decision log → terminate or retain session by explicit purpose → clean up worker checkout only when safe. For fresh work, start a fresh Pi process with consolidated context. Reuse a process only if it owns critical unsaved runtime state and the upstream rule permits it.\n\n**Do not confuse tmux with the worktree:** tmux isolates terminal lifetimes; **Git worktrees and container/OS boundaries** isolate files and processes. A session with an identical shared directory is not safe for parallel code writes. Likewise, read-only agent prompts are not filesystem permissions; supply read-only filesystems, restricted tools, and narrowly scoped MCP identities for judges.",
+        "evidence": "Worker field, immutable brief checksum, lifecycle, separate write ownership, read-only enforcement, event and exact exit-status evidence.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-SECURITY",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            389,
+            396
+          ]
+        },
+        "stimulus": "### 8.3 No permission popups: whole Pi process in container\n\n**PI-NATIVE boundary, ADAPTER packaging.** Pi itself generally does not prompt for each tool call; its security documentation says the program and extensions run with the OS user's privileges. Run the **entire coordinator and all independent Pi workers**, not only bash commands, in constrained containers. Limit mounts, process permissions, network egress, secrets, and MCP identity. A read/write bind mount exposes host files to modification; a workspace folder alone is not a security sandbox.\n\nProject trust is **distinct** from per-tool permission prompts. In scripted startup Pi accepts `--approve`/`--no-approve` for project trust; pre-audit the source and explicitly determine trust instead of configuring an invisible unrestricted load of unknown project extensions. Pi's own docs favor narrowing exposure and short-lived credentials.\n\n**Authorization stays intact:** promptlessness does not authorize protected external side effects. Treat deletion of user data, deployment, force-push, customer messages, and merges outside a granted scope as gated actions. For `autopilot-full`, an operator's explicit merge grant can cover its named queue, but must not spread to unrelated PRs.",
+        "evidence": "Whole coordinator and worker container execution, denied filesystem and network access, narrow credentials and MCP identities, project trust and protected-action denial.",
+        "unresolved": {
+          "verdict": "BLOCKED",
+          "reason": "Whole-process container and least-privilege security work is deferred, not waived."
+        }
+      },
+      {
+        "id": "ZIP-PLANS",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            397,
+            402
+          ]
+        },
+        "stimulus": "### 8.4 No plan mode: filesystem plans\n\n**ADAPTER**: There is no Cursor Plan-mode switch in the port. Create a Markdown document only when pstack says a plan is warranted. Keep a checkable title, constraints, options tested by prototypes, PR-by-PR slices, dependencies, acceptance and verification commands, authority gate, risk and recovery instructions. For the **Multi-phase plan** playbook, generate the exact upstream prescribed skeleton as a reference, then run a tested Pi-compatible variant of the included `check-plan.mjs` validator because the upstream script hardcodes Cursor `/loop 1h`. The plan-producing run **stops after handing back the verified file**, unless the original user explicitly granted subsequent execution.\n\n**Not every task needs a plan.** The guide explicitly prefers prototypes and running code to polishing abstract plans. Respect the small-change skip rule. A design checkpoint is opt-in under Architect; explicit operator checkpoints are binding.",
+        "evidence": "Prescribed source skeleton, Pi-compatible validator output, explicit validator delta, unchanged product tree and stopped plan run.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-TODOS",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            403,
+            408
+          ]
+        },
+        "stimulus": "### 8.5 No built-in to-dos: TODO.md\n\n**ADAPTER**: The active task has a coordinator-owned `TODO.md`. Its first section contains the playbook's numbered steps **copied verbatim** from the pinned upstream file, with original order and whitespace preserved. The status ledger follows this immutable section and links to each step by stable number. Record a status for each (`pending`, `running`, `passed`, `blocked`, `skipped`), the required proof, source pointer and one-line `skip: <reason>` when omitted. Do **not** prefix status checkboxes inside the raw numbered steps, since that would violate the byte-identical requirement. Task-specific work follows the status ledger. Commit or archive the run's TODO snapshot as part of durable handoff.\n\nIf two tasks need concurrent TODOs, only one is the active root `TODO.md` for each worktree; each independent worker uses its own `TODO.md` or result file inside its worktree. No parallel worker edits the coordinator's TODO. Updates should be atomic so a crash does not leave half of a checklist written.",
+        "evidence": "Byte-exact pinned numbered step block, separate source-linked ledger with retained skips, coordinator ownership and atomic crash-safe updates.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-SUPERVISION",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            409,
+            416
+          ]
+        },
+        "stimulus": "### 8.6 No background bash: tmux-managed sessions\n\n**ADAPTER**: No `bash &`, orphaned child processes, opaque shell job tables, or claim of Cursor's built-in `/loop`. A tmux supervisor owns each persistent watcher, verifier, long-running dev server, benchmark, and autonomous loop. Session records include command, environment, process identity, heartbeat, log paths, and stop policy. Callers use `tmux` to inspect or terminate; they do not assume a detached session's presence proves a task is making progress.\n\n**Event/predicate loop:** inspect one named event or scheduled heartbeat → refresh evidence/branch SHAs → if predicate true, finish; else choose smallest justified next change → execute, test same surface, retain or revert → log decision → re-evaluate. A genuine dead end produces a blocked report with evidence. A plateau does not relax the predicate.\n\nPi's official [tmux guide](https://docs.pi.dev/latest/tmux) discusses terminal integration and keys; it does **not** supply the above orchestration. The above is a required proposed local implementation.",
+        "evidence": "Persistent jobs and predicate loops have tmux supervision, process identity, environment, heartbeat, logs and stop policy; no orphan bash jobs or fictitious Cursor loop.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-NATIVE",
+        "kind": "restriction",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            417,
+            425
+          ]
+        },
+        "stimulus": "### 8.7 Use Pi's native primitives rather than inventing redundant frameworks\n\n- Install the original **read-only upstream reference** separately from the adapted Pi skill package. Do not mutate pstack's own guide/playbooks in place. Preserve licensed attribution and snapshot SHA.\n- Expose adapted entrypoints as Pi Agent Skills under `.pi/skills/<name>/SKILL.md` or a Pi package. Pi's manual invocation form is **`/skill:poteto-mode`**, not Cursor's `/poteto-mode`. A custom alias is optional and must be tested before claiming parity.\n- The source Cursor model mapping is a **role preference**, not a set of Pi-valid model identifiers. Detect with `pi --list-models`, then map family, role, reasoning, panel diversity and budget. Pi accepts `--model` and `--thinking`; use an actually available identifier. If no cross-family candidate exists, report the missing independent judgment.\n- Keep original CLI output/event interfaces intact: `--print` is one-shot final text; `--mode json` emits JSONL events; `--mode rpc` supports long-lived control. Never parse screen text as if it were a stable structured API when JSON mode is available.\n- Use Pi's session trees/JSONL to rebuild current context, rather than assuming Cursor's `agent-transcripts` layout. Restrict reads to the active workspace and run family. For `recall`, also refresh actual PR/issue state through configured MCPs.\n- Agent Skills only load their full content on demand. In delegation briefs explicitly provide the file paths for `poteto-mode/SKILL.md`, the selected playbook and referenced leaf skills. Make the child read them before working; do not assume the parent process's prompt was automatically inherited.",
+        "evidence": "Pinned immutable source, native skill invocation, verified role models, JSON/RPC supervision, workspace-scoped session-tree history and explicit child skill reads.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No complete current ZIP obligation receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-01",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            432,
+            432
+          ]
+        },
+        "stimulus": "One agent loop across TUI, print, JSON, RPC and SDK: Keep the pstack router as instructions or an explicitly registered extension operating on the documented agent/session model",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Incompatible duplicate agent loop that bypasses Pi context or events",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-02",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            433,
+            433
+          ]
+        },
+        "stimulus": "Session history is a parent-linked JSONL **tree**: Store Pi session IDs, branch lineage, prompts and tool evidence; scope recall/pickup to the correct active branch and workspace",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Assuming a flat, Cursor `agent-transcripts` structure exists in Pi",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-03",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            434,
+            434
+          ]
+        },
+        "stimulus": "On-demand Agent Skills loading: Install genuine `SKILL.md` resources; load needed source and leaf references explicitly; avoid stuffing all 61 files into every turn",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Assuming the parent loaded a skill for a separate worker process",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-04",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            435,
+            435
+          ]
+        },
+        "stimulus": "TypeScript extensions execute **inside the Pi process**: Audit extensions and registered tools before loading, especially with secrets and MCP write scopes",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Treating extension code as isolated by Codemode's JS sandbox",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-05",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            436,
+            436
+          ]
+        },
+        "stimulus": "Native MCP over stdio/HTTP with exposure modes: Discover real tools and keep source/tool data separate from instructions; gate destructive MCP operations explicitly",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Tool invented or falsely reported connected; hidden tool treated as permitted",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-06",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            437,
+            437
+          ]
+        },
+        "stimulus": "Codemode is a **QuickJS** tool-composition environment: Use JS for tool composition and compact results, not filesystem/network or independent chat-model spawning",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Attempting to execute chat models, `require()`, `fs`, timers or direct sockets in Codemode",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-07",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            438,
+            438
+          ]
+        },
+        "stimulus": "CLI has distinct `--print`, JSONL, RPC interfaces: Use structured JSON/RPC for supervision; treat TUI text only as a human-facing interface",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Inferring completion from a terminal screen or an open tmux pane",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-08",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            439,
+            439
+          ]
+        },
+        "stimulus": "Settings, skills, packages and MCPs are trust-gated project resources: Pin and review `.pi/settings.json`, `.pi/mcp.json`, packages and extensions; use verified real model IDs",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Auto-trusting unknown project executable resources",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-09",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            440,
+            440
+          ]
+        },
+        "stimulus": "Tools and extensions inherit OS process permissions: Contain coordinator and workers as **whole processes** with narrow filesystem, network, credential and MCP access",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Tool-only sandbox mistaken for full host security",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-10",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            441,
+            441
+          ]
+        },
+        "stimulus": "Pi can run **inside tmux**, but its tmux guide is about terminal input: Implement lifecycle, heartbeat, event loop, exit status and shutdown in a separate audited supervisor",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Assuming tmux or Pi supplies native multi-agent orchestration",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-PI-11",
+        "kind": "conformance",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            442,
+            442
+          ]
+        },
+        "stimulus": "Project prompts, skills and packages are distinct resource types: Choose the smallest supported Pi mechanism; store plans in ordinary files and tasks in `TODO.md` as requested",
+        "evidence": "Installed Pi mechanism evidence and negative check for the documented failure condition: Recreating forbidden Plan mode, built-in todos, background bash or `Task` subagents",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-DONE",
+        "kind": "definition-of-done",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            618,
+            618
+          ]
+        },
+        "stimulus": "**Definition of done for a real port:** relevant tests pass on the installed Pi version; every intended plugin skill either functions on the target or is explicitly marked unavailable; no unsupported Cursor-native API is invoked; and the requested six prohibitions are enforced by OS/configuration policy rather than only by a written prompt. In the absence of those runs, the status is **architecture specified; runtime parity unverified**.",
+        "evidence": "All 23 relevant experiments pass on the pinned installed Pi version; every intended skill is functional or explicitly unavailable; unsupported Cursor APIs are absent; all six prohibitions have OS/configuration enforcement evidence.",
+        "unresolved": {
+          "verdict": "INCONCLUSIVE",
+          "reason": "No current source-bound ZIP acceptance experiment receipt has been recorded."
+        }
+      },
+      {
+        "id": "ZIP-BENNY",
+        "kind": "availability",
+        "mandatory": true,
+        "source": {
+          "document": "pstack_pi_end_to_end_map.md",
+          "lines": [
+            179,
+            179
+          ]
+        },
+        "stimulus": "The pack also contains `FOR_AGENTS.md`, `README.md`, configuration and automation prompt templates, plus dedicated control/routing/verification references. The **upstream** implementation is dormant and depends on **Cursor Automations**, a configured Slack source channel, a tracker integration and operator setup. **No native Pi scheduler or Slack identity is implied.** A Pi port must either implement and test that complete chain or mark Benny **unavailable**. Do not represent its three files as three additional automatic Pi skills merely because they exist in the repository.",
+        "evidence": "Explicit unavailable status for all three dormant Benny skills, or complete scheduler, Slack/tracker source-thread identity, idempotency and same-surface fix-chain evidence. File presence alone is not availability.",
+        "unresolved": {
+          "verdict": "BLOCKED",
+          "reason": "Benny integration is deferred. A reviewed explicit unavailability record or complete tested chain remains required."
+        }
+      }
+    ]
+  }
 }

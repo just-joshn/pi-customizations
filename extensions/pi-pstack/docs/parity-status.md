@@ -43,14 +43,14 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T09:16:01.454Z |
+| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T11:11:00.191Z |
 | 2 | linux | `e684506542e7` | 1.5.0 | v22.21.0 | 2859 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43550639380 |
-| 3 | unknown | `unknown` | unknown | unknown | 664 passed, 0 failed, 7 skipped | file at 2026-11-14T09:16:01.611Z |
+| 3 | unknown | `unknown` | unknown | unknown | 1 passed, 0 failed, 85 skipped | file at 2026-11-14T11:11:00.453Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 150 | 0 | 0 | 40 |
-| behavioral | 97 | 0 | 5 | 1 |
+| behavioral | 94 | 0 | 8 | 1 |
 
 ### Behavioral requirements
 
@@ -99,7 +99,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
 | `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` Every worker's Pi tools, MCP and launch environment are limited by its assignment, not its host file access | 15.1 | PASS | specification 15.1 |  |
-| `CONTAINER-FILE-ISOLATION` A container worker cannot read unmounted host files or write its read-only package mount | 15.1 | PASS | specification 15.1 |  |
+| `CONTAINER-FILE-ISOLATION` A container worker cannot read unmounted host files or write its read-only package mount | 15.1 | INCONCLUSIVE | specification 15.1 | skipped: tests/container/container.test.ts::a container worker isolates unmounted host files while the workspace and read-only package remain readable |
 | `LOCAL-WORKER-FILE-ACCESS-LIMITATION` Local workers retain the operator's filesystem authority. Use container mode for untrusted input | 15.1 | N/A | specification 15.1 |  |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
@@ -117,11 +117,11 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `WF-MAINTAIN-VERIFICATION-SKILL` maintain-verification-skill always performs a live pass | 12.4 | PASS | vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md:33-33 |  |
 | `WF-FORMAL-VERIFICATION` Formal verification states its model, assumptions and counterexamples | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/create-formal-verification-skill/SKILL.md:21-28 | skipped: tests/workflow-parity/maintain.test.ts::maintain-formal-verification-skill scripted run: every check passes |
 | `WF-RECALL` recall validates reconstructed history against current state | 12.5 | PASS | vendor/upstream-pstack/skills/recall/SKILL.md:21-21 |  |
-| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 |  |
+| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 | skipped: tests/skill-parity/review-fixes.test.ts::C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message |
 | `WF-REFLECT-APPROVAL` reflect waits for explicit approval before editing a skill | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:47-47 |  |
 | `WF-AUTOMATE-ME` automate-me derives preferences from history into a skill | 12.5 | PASS | vendor/upstream-pstack/skills/automate-me/SKILL.md:29-31 |  |
 | `WF-KETCHUP` ketchup gives a concise recap of what changed since the last message | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup/SKILL.md:3-3 |  |
-| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 |  |
+| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 | skipped: tests/workflow-parity/video.test.ts::ketchup-video scripted run: every check passes |
 | `WF-MAKE-BOT-UI` make-bot-ui uses a local receiver and never asks for the sender key | 14.4 | PASS | vendor/upstream-pstack/skills/make-bot-ui/SKILL.md:41-41 |  |
 | `WF-LEAF-READ` A principle is cited only after its leaf skill was read | 4.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:15-15 |  |
 | `WF-SETUP-PSTACK` setup-pstack detects Pi models and validates choices against the ladder | 10.3 | PASS | vendor/upstream-pstack/skills/setup-pstack/SKILL.md:14-14 |  |
@@ -163,6 +163,68 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 ### Structural requirements that are not PASS
 
 None.
+
+### Audited ZIP acceptance
+
+ZIP acceptance is NOT RELEASED. Legacy test counts do not establish ZIP acceptance. Each mandatory experiment and obligation needs current explicit evidence.
+
+| ZIP requirement | Status | Source | Evidence or unresolved gap |
+| --- | --- | --- | --- |
+| `SRC-01` | FAIL | pstack_pi_end_to_end_map.md:594-594 | The audited source crosswalk records a literal ZIP source-pin mismatch. Source-unit integration and fresh ZIP inventory evidence are pending. |
+| `ROUTE-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:595-595 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `TODO-01` | FAIL | pstack_pi_end_to_end_map.md:596-596 | The audited TODO crosswalk records non-byte-identical numbered steps and missing separate immutable status contract. TODO-unit integration and fresh byte comparison are pending. |
+| `ROLE-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:597-597 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `PROC-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:598-598 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `PROC-02` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:599-599 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `MCP-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:600-600 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `SANDBOX-01` | BLOCKED | pstack_pi_end_to_end_map.md:601-601 | Whole-process container negative-access experiments are deferred. Tool-only sandbox checks do not prove the ZIP container contract. |
+| `TRUST-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:602-602 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `PLAN-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:603-603 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `VERIFY-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:604-604 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `FORMAL-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:605-605 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `ARENA-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:606-606 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `SWARM-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:607-607 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `INTERROGATE-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:608-608 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `BENCH-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:609-609 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `BABYSIT-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:610-610 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `SHIP-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:611-611 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `AUTOPILOT-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:612-612 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `RECALL-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:613-613 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `PAUSE-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:614-614 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `CLEANUP-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:615-615 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `REPORT-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:616-616 | No current source-bound ZIP acceptance experiment receipt has been recorded. Existing suite counts and incidental test names are not acceptance evidence. |
+| `ZIP-INV-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:69-69 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-02` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:70-70 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-03` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:71-71 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-04` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:72-72 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-05` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:73-73 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-06` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:74-74 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-07` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:75-75 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-08` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:76-76 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-09` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:77-77 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-INV-10` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:78-78 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-MCP` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:359-366 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-PROCESSES` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:367-388 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-SECURITY` | BLOCKED | pstack_pi_end_to_end_map.md:389-396 | Whole-process container and least-privilege security work is deferred, not waived. |
+| `ZIP-PLANS` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:397-402 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-TODOS` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:403-408 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-SUPERVISION` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:409-416 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-NATIVE` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:417-425 | No complete current ZIP obligation receipt has been recorded. |
+| `ZIP-PI-01` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:432-432 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-02` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:433-433 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-03` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:434-434 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-04` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:435-435 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-05` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:436-436 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-06` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:437-437 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-07` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:438-438 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-08` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:439-439 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-09` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:440-440 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-10` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:441-441 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-PI-11` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:442-442 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-DONE` | INCONCLUSIVE | pstack_pi_end_to_end_map.md:618-618 | No current source-bound ZIP acceptance experiment receipt has been recorded. |
+| `ZIP-BENNY` | BLOCKED | pstack_pi_end_to_end_map.md:179-179 | Benny integration is deferred. A reviewed explicit unavailability record or complete tested chain remains required. |
+
+ZIP integrity problem: ZIP: upstream lock a5539b15a3d56e04992565aafee2b37051329ce3 differs from audited 3dbd22ff12742fb28c9700b9760baa29ed41dc13
 
 <!-- parity-status:end -->
 
