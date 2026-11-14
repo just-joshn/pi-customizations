@@ -13,7 +13,7 @@ afterEach(() =>
     rmSync(root, { recursive: true, force: true });
   }),
 );
-function result(draft = false, loop = false, readBack = true) {
+function result(draft = false, loop = false, readBack = true, combined = false) {
   const sandbox = mkdtempSync(join(tmpdir(), 'opening-command-'));
   roots.push(sandbox);
   const dir = forgeDirOf(sandbox);
@@ -23,6 +23,7 @@ function result(draft = false, loop = false, readBack = true) {
   const commands = ['cd /repo && gh pr create --body-file a.md', 'cd /repo && gh pr create --body-file b.md', 'cd /repo && gh pr view 11 --json isDraft,state,baseRefName', 'cd /repo && gh pr view 12 --json state,isDraft'];
   if (loop) commands.splice(2, 2, 'for n in 11 12; do gh pr view $n --json state,isDraft; done');
   if (!readBack) commands.splice(2);
+  if (combined) commands.splice(0, 2, commands.slice(0, 2).join('\necho ---\n'));
   return openingFamily.checks
     .find((entry) => entry.id === 'open.created-ready-through-the-forge-with-the-body-from-a-file')
     ?.run({ sandbox, parent: { toolCalls: commands.map((command, order) => ({ name: 'bash', order, args: { command } })) } } as unknown as RunView);
@@ -33,6 +34,11 @@ test('creation and readback can use compound commands and forge-assigned numbers
 test('a readback loop observes both PRs and a missing readback still fails', () => {
   expect(result(false, true)).toMatchObject({ ok: true });
   expect(result(false, false, false)).toMatchObject({ ok: false });
+});
+
+test('two creates in one shell call are two commands, not one create', () => {
+  expect(result(false, false, true, true)).toMatchObject({ ok: true });
+  expect(result(true, false, true, true)).toMatchObject({ ok: false });
 });
 
 test('an observed draft still fails regardless of the command layout', () => {

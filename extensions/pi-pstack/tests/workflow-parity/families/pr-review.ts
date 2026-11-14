@@ -119,10 +119,10 @@ export const openingFamily: Family = {
     check('open.created-ready-through-the-forge-with-the-body-from-a-file', 'two PRs were created through gh with --body-file, neither as a draft, and each reads back open and not draft', OP('**Readiness.** Open every PR ready, never as a draft'), (view) => {
       const { state, actions } = readForge(view);
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
-      const typed = BASH(view).filter((entry) => /\bgh pr create\b/.test(entry.command) && !/--help\b/.test(entry.command));
+      const typed = BASH(view).flatMap((entry) => entry.command.split(/&&|;|\n/)).filter((command) => /\bgh pr create\b/.test(command) && !/--help\b/.test(command));
       const readBack = creates.every((action) => BASH(view).some((entry) => shellCommands(entry.command).some((command) => new RegExp(`\\bgh pr view ${action.pr}\\b`).test(command))));
-      const drafts = typed.filter((entry) => /--draft/.test(entry.command));
-      const bodyFlags = typed.filter((entry) => /--body-file \S+/.test(entry.command) && !/--body /.test(entry.command));
+      const drafts = typed.filter((command) => /--draft/.test(command));
+      const bodyFlags = typed.filter((command) => /--body-file \S+/.test(command) && !/--body /.test(command));
       return when(creates.length === 2 && typed.length === 2 && drafts.length === 0 && bodyFlags.length === 2 && Object.values(state.prs).every((pr) => pr.state === 'OPEN') && creates.every((action) => action['draft'] === false) && readBack, 'two creates through gh, no --draft, bodies from files, read back before the reply', `creates ${creates.length}, typed ${typed.length}, drafts ${drafts.length}, body files ${bodyFlags.length}, read back ${readBack}`);
     }),
     check('open.titles-are-conventional-commits', 'each title is type(scope): subject with a known type and no trailing period', OP('**Titles.** Conventional Commits'), (view) => {
