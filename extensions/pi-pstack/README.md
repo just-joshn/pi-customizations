@@ -78,7 +78,7 @@ Each run lives in `<project>/.pi/pstack/runs/<runId>/`:
 | File | Contents |
 | --- | --- |
 | `run.json` | The run's identity, playbook, upstream revision, and owning session. |
-| `TODO.md` | The playbook's steps, copied in order by `scripts/start-run.mjs`, then the task's own steps (`tests/todo/start-run.test.ts`). |
+| `TODO.md` | The pinned vendor playbook's immutable source bytes, a separate source-linked status ledger, then task-specific work. `scripts/start-run.mjs` updates the ledger atomically and archives `TODO.archived.md` at handoff (`tests/todo/start-run.test.ts`). |
 | `decisions.tsv` | The decision log. |
 | `events.jsonl` | An append-only record of spawns, settles, pauses, and aborts. |
 | `workers/<workerId>/` | The worker's assignment, brief, state, report, evidence, Pi session, and worktree. |

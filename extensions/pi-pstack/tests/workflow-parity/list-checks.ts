@@ -14,4 +14,4 @@ for (const family of families) {
   for (const negative of family.negatives) lines.push(`- ${negative.name} → ${negative.fails.map((id) => `\`${id}\``).join(', ')}`);
   lines.push('');
 }
-console.log(lines.join('\n'));
+console.log(lines.map((line) => line.trimEnd()).join('\n'));

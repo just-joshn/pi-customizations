@@ -156,7 +156,7 @@ export const featureFamily: Family = {
       const step = primaryRun(view, 'feature')?.steps.find((entry) => entry.n === 2);
       if (step === undefined) return fail('no step 2');
       if (step.state === 'skipped') return when((step.skip ?? '').trim() !== '', `skipped: ${step.skip}`, 'skipped with no reason');
-      return when(step.state === 'done' && openedAt(view.parent, skillFile('architect')) !== -1, 'done and the architect skill was opened', `state ${step.state}, architect opened: ${openedAt(view.parent, skillFile('architect')) !== -1}`);
+      return when(step.state === 'passed' && openedAt(view.parent, skillFile('architect')) !== -1, 'done and the architect skill was opened', `state ${step.state}, architect opened: ${openedAt(view.parent, skillFile('architect')) !== -1}`);
     }),
     check('feature.throughput-checkpoint-four-items', 'step 3: the throughput checkpoint is four todo items, none dropped', src('poteto-mode/playbooks/feature.md', 'Write the throughput checkpoint as four todo items'), (view) => {
       const items = taskItems(primaryRun(view, 'feature')).map((item) => item.text);
@@ -195,7 +195,7 @@ export const featureFamily: Family = {
   ],
   negatives: [
     ...todoNegatives('feature-export', 'feature', { done: [1, 3, 4, 5, 6], receipts: { 1: 'feat-grounded', 3: 'feat-checkpoint', 4: 'impl-check', 5: 'feat-surface', 6: 'feat-units' } }),
-    { name: 'the mandatory delegation step was skipped with a reason', mutate: (sandbox) => setStep(sandbox, 'feature-export', 4, '~', (line) => `${stripEvidence(line)} (skip: faster to write it myself)`), fails: ['todo.feature.skips-explained'] },
+    { name: 'the mandatory delegation step was skipped with a reason', mutate: (sandbox) => setStep(sandbox, 'feature-export', 4, 'skipped', (entry) => ({ ...stripEvidence(entry), skip: 'skip: faster to write it myself' })), fails: ['todo.feature.skips-explained'] },
     { name: 'the parent wrote production code itself', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/src/export.js`, content: 'x' }), fails: ['feature.parent-stays-in-the-lead'] },
     { name: 'the main checkout was edited', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['feature.parent-stays-in-the-lead'] },
     { name: 'the delegate ran on the wrong model line', mutate: (sandbox) => patchAssignment(sandbox, 'feature-export', 'impl', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['feature.delegated-to-one-writer'] },

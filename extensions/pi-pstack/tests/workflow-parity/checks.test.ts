@@ -73,14 +73,14 @@ describe('collect needs a wake or an inspect that shows the worker settled', () 
 
 test('receipt adaptation is inconclusive when no playbook step was marked done', () => {
   const checks = todoChecks({ playbook: 'feature' });
-  const step = { n: 1, state: 'open', evidence: [] };
+  const step = { n: 1, state: 'pending', evidence: [] };
   const run = { id: 'r', steps: [step], receipts: [] };
   const results = evaluate(
     checks.filter((entry) => /every-step-resolved|done-steps-proven/.test(entry.id)),
     { runs: [run] } as unknown as RunView,
   );
   expect(results.map((entry) => entry.verdict)).toEqual(['FAIL', 'INCONCLUSIVE']);
-  step.state = 'done';
+  step.state = 'passed';
   expect(
     evaluate(
       checks.filter((entry) => entry.id.endsWith('done-steps-proven')),

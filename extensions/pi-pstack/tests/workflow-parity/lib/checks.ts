@@ -6,12 +6,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
 import { skillBlock } from '../../../src/skill-block.ts';
+import { immutableTodoBlock, upstreamSteps, validateTodoSource } from '../../../src/todo.ts';
 import { type Check, check, checkAbsence, fail, type Outcome, pass, type Src, src, when } from './check.ts';
 import { PKG } from './driver.ts';
-import { type Receipt, type RunDir, type RunView, type Session, STEP_LINE, type ToolCall, type WorkerView } from './view.ts';
+import { parseTodoSteps, type Receipt, type RunDir, type RunView, type Session, type ToolCall, type WorkerView } from './view.ts';
 
 export const GEN = join(PKG, 'generated', 'skills');
-export const PINNED_REVISION = (JSON.parse(readFileSync(join(PKG, 'generated', 'upstream-lock.json'), 'utf8')) as { revision: string }).revision;
+export const PINNED_REVISION = '3dbd22ff12742fb28c9700b9760baa29ed41dc13';
 export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'pstack_evidence'];
 export const FAMILY_OF = (model: string): string => model.slice(model.indexOf('/') + 1).split(/[-.]/)[0] as string;
 
@@ -76,8 +77,7 @@ export function playbookSource(name: string): string[] {
   return [...prose.matchAll(/^\d+\. .*$(?:\n(?:[ \t].*|$))*/gm)].map((match) => match[0].trimEnd());
 }
 
-const MARKER = /\s*\((?:evidence|skip): [^)]*\)/g;
-const normalize = (text: string) => text.replace(MARKER, '').replace(/[ \t]+$/gm, '').trimEnd();
+const pinnedPlaybook = (name: string) => readFileSync(join(PKG, 'vendor/upstream-pstack/skills/poteto-mode/playbooks', `${name}.md`));
 
 export function primaryRun(view: RunView, playbook?: string): RunDir | undefined {
   return (playbook === undefined ? undefined : view.runs.find((run) => run.runJson?.['playbook'] === playbook)) ?? view.runs[0];
@@ -166,53 +166,71 @@ export function todoChecks(options: TodoOptions): Check[] {
       const okJson = json['schemaVersion'] === 1 && json['playbook'] === playbook && json['upstreamRevision'] === PINNED_REVISION && typeof json['title'] === 'string';
       return when(okJson && found.todoText.includes(`Source playbook: ${playbook}.md`) && found.todoText.includes(`Upstream revision: ${PINNED_REVISION}`), `run ${found.id}: playbook=${String(json['playbook'])} revision=${String(json['upstreamRevision']).slice(0, 12)}`, `run.json ${JSON.stringify(json)} or the TODO.md header does not name ${playbook}.md at ${PINNED_REVISION.slice(0, 12)}`);
     }),
-    check(`todo.${playbook}.steps-verbatim-in-order`, 'the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text', [TODO_SRC, book], (view) => {
+    check(`todo.${playbook}.steps-verbatim-in-order`, 'the immutable TODO block equals the pinned vendor source bytes, including whitespace and order', [TODO_SRC, book], (view) => {
       const found = run(view);
       if (found?.todoText == null) return fail('no TODO.md');
-      const expected = playbookSource(playbook);
-      if (expected.length === 0) return found.todoText.includes('has no numbered steps') ? pass(`${playbook}.md has no numbered steps and TODO.md says so`) : fail('playbook has no numbered steps but TODO.md does not say so');
-      const wrong = expected.flatMap((step, index) => {
-        const actual = found.steps[index];
-        if (actual === undefined) return [`step ${index + 1} is missing`];
-        const want = normalize(step.replace(/^\d+\. /, ''));
-        return actual.n === index + 1 && normalize(actual.text) === want ? [] : [`step ${index + 1} differs (${normalize(actual.text).slice(0, 50)} vs ${want.slice(0, 50)})`];
-      });
-      if (found.steps.length > expected.length) wrong.push(`${found.steps.length - expected.length} extra step(s) under Original playbook steps`);
-      return when(wrong.length === 0, `${expected.length} steps match the playbook text in order`, wrong.join('; '));
+      const expected = upstreamSteps(pinnedPlaybook(playbook));
+      try {
+        return when(immutableTodoBlock(Buffer.from(found.todoText)).equals(expected.block), `${expected.steps.length} source steps match pinned bytes exactly`, 'immutable upstream block differs in bytes, whitespace, or order');
+      } catch (error) {
+        return fail((error as Error).message);
+      }
     }),
-    check(`todo.${playbook}.initial-states-open`, 'the first TODO.md the run wrote has every original step open', TODO_SRC, (view) => {
+    check(`todo.${playbook}.ledger-schema`, 'a separate ledger links every source step to its status, required proof and pinned source pointer', [TODO_SRC, book], (view) => {
+      const found = run(view);
+      if (found?.todoText == null) return fail('no TODO.md');
+      try {
+        const ledger = validateTodoSource(Buffer.from(found.todoText), pinnedPlaybook(playbook), playbook, PINNED_REVISION);
+        return pass(`${ledger.length} source-linked ledger entries`);
+      } catch (error) {
+        return fail((error as Error).message);
+      }
+    }),
+    check(`todo.${playbook}.initial-states-open`, 'the first TODO.md has every original step pending in its separate ledger', TODO_SRC, (view) => {
       const first = view.todoHistory[run(view)?.id ?? '']?.[0];
       if (first === undefined) return fail('the driver never saw a TODO.md');
-      const states = first.text.split('\n').filter((line) => STEP_LINE.test(line)).map((line) => STEP_LINE.exec(line)?.[1]);
-      return when(states.length > 0 && states.every((state) => state === ' '), `${states.length} steps open in the first snapshot`, `first snapshot has states ${JSON.stringify(states)}`);
+      const steps = parseTodoSteps(first.text);
+      const expected = upstreamSteps(pinnedPlaybook(playbook)).steps;
+      return when(steps.length === expected.length && steps.every((step) => step.state === 'pending'), `${steps.length} steps pending in the first snapshot`, `first snapshot has states ${JSON.stringify(steps.map((step) => step.state))}`);
     }),
-    check(`todo.${playbook}.every-step-resolved`, 'every original step ends done with evidence or skipped with a reason, none open', [TODO_SRC, SKIP_SRC], (view) => {
+    check(`todo.${playbook}.every-step-resolved`, 'every original step ends passed with evidence or skipped with a reason, never pending, running, or blocked', [TODO_SRC, SKIP_SRC], (view) => {
       const found = run(view);
       if (found === undefined) return fail('no run');
-      const open = found.steps.filter((step) => step.state === 'open').map((step) => step.n);
+      const open = found.steps.filter((step) => !['passed', 'skipped'].includes(step.state)).map((step) => step.n);
       return when(found.steps.length > 0 && open.length === 0, `${found.steps.length} steps, all resolved`, `open steps: ${open.join(', ') || '(no steps parsed)'}`);
     }),
-    check(`todo.${playbook}.done-steps-proven`, 'each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass)', TODO_SRC, (view) => {
-      const found = run(view);
-      if (found === undefined) return fail('no run');
-      const problems = found.steps
-        .filter((step) => step.state === 'done')
-        .flatMap((step) => {
-          if (step.evidence.length === 0) return [`step ${step.n} is done with no (evidence: <receipt id>)`];
-          return step.evidence.flatMap((id) => {
-            const receipt = found.receipts.find((entry) => entry.id === id);
-            if (receipt === undefined) return [`step ${step.n} cites ${id}, which is not recorded under verification/receipts`];
-            const problem = verifyReceipt(found, receipt);
-            return problem === null ? [] : [`step ${step.n}: ${problem}`];
+    check(
+      `todo.${playbook}.done-steps-proven`,
+      'each passed step cites recorded receipts that re-verify (files exist, sha256 match, verdict pass)',
+      TODO_SRC,
+      (view) => {
+        const found = run(view);
+        if (found === undefined) return fail('no run');
+        const problems = found.steps
+          .filter((step) => step.state === 'passed')
+          .flatMap((step) => {
+            if (step.evidence.length === 0) return [`step ${step.n} is done with no (evidence: <receipt id>)`];
+            return step.evidence.flatMap((id) => {
+              const receipt = found.receipts.find((entry) => entry.id === id);
+              if (receipt === undefined) return [`step ${step.n} cites ${id}, which is not recorded under verification/receipts`];
+              const problem = verifyReceipt(found, receipt);
+              return problem === null ? [] : [`step ${step.n}: ${problem}`];
+            });
           });
-        });
-      const done = found.steps.filter((step) => step.state === 'done').length;
-      if (done === 0) return { inconclusive: 'no step is done, so no completion claim requires a receipt; every-step-resolved scores unfinished steps' };
-      return when(problems.length === 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; '));
-    }, 'adaptation'),
+        const done = found.steps.filter((step) => step.state === 'passed').length;
+        if (done === 0) return { inconclusive: 'no step is done, so no completion claim requires a receipt; every-step-resolved scores unfinished steps' };
+        return when(problems.length === 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; '));
+      },
+      'adaptation',
+    ),
     check(`todo.${playbook}.skips-explained`, 'a skipped step names its reason, and no mandatory step is skipped', [SKIP_SRC, book], (view) => {
       const found = run(view);
       if (found === undefined) return fail('no run');
+      try {
+        validateTodoSource(Buffer.from(found.todoText ?? ''), pinnedPlaybook(playbook), playbook, PINNED_REVISION);
+      } catch (error) {
+        return fail((error as Error).message);
+      }
       const problems = found.steps
         .filter((step) => step.state === 'skipped')
         .flatMap((step) => {
@@ -229,9 +247,8 @@ export function todoChecks(options: TodoOptions): Check[] {
       if (snapshots.length === 0) return fail('the driver never saw a TODO.md');
       const resolvedAt = new Map<number, number>();
       snapshots.forEach((snapshot, index) => {
-        for (const line of snapshot.text.split('\n')) {
-          const match = STEP_LINE.exec(line);
-          if (match !== null && match[1] !== ' ' && !resolvedAt.has(Number(match[2]))) resolvedAt.set(Number(match[2]), index);
+        for (const step of parseTodoSteps(snapshot.text)) {
+          if (['passed', 'skipped'].includes(step.state) && !resolvedAt.has(step.n)) resolvedAt.set(step.n, index);
         }
       });
       const numbers = [...resolvedAt.keys()].sort((a, b) => a - b);

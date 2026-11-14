@@ -10,7 +10,7 @@ When the task matches no playbook, design one. The deliverable before any code i
 
 ## Start
 
-Open the run's `TODO.md` list (the Playbooks section of the **poteto-mode** skill) with a first item to read the Principles section of the **poteto-mode** skill. Then add the phases below as todos.
+Add a first task-specific item in the run's `TODO.md` (the Playbooks section of the **poteto-mode** skill) to read the Principles section of the **poteto-mode** skill. Then add the phases below as todos.
 
 ## Phase A: Frame
 
@@ -31,7 +31,7 @@ Decompose into atomic, independently-landable units. Sequence riskiest-unknown-f
 - Decide what fans out. Parallelize only across seams, and give each worker its own worktree or branch (the **separate-before-serializing-shared-state** principle skill). Don't over-fan. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
 - Write the designed phase list down. That list is what the human reviews.
 
-Then execute the design. Add its steps to `TODO.md` as concrete items between the Phase C and Phase D entries. Run each under the Phase C loop discipline, and weave the Phase D log through them, a row as each step lands, rather than saving the whole trail for the end.
+Then execute the design. Add its steps under Task-specific work in `TODO.md` as concrete items between the Phase C and Phase D entries. Run each under the Phase C loop discipline, and weave the Phase D log through them, a row as each step lands, rather than saving the whole trail for the end.
 
 ## Phase C: Run the loop
 

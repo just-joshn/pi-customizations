@@ -675,7 +675,7 @@ export const investigationFamily: Family = {
       const task = run?.todoText?.split('## Task-specific work')[1] ?? '';
       if (task.includes(line)) return pass('TODO.md carries the checkpoint line under Task-specific work');
       const step = run?.steps.find((entry) => entry.text.includes(line));
-      return when(step?.state === 'done', `playbook step ${step?.n} carries the line and is done`, `Task-specific work lacks \`${line}\` and ${step === undefined ? 'no playbook step carries it' : `step ${step.n} is ${step.state}`}`);
+      return when(step?.state === 'passed', `playbook step ${step?.n} carries the line and is done`, `Task-specific work lacks \`${line}\` and ${step === undefined ? 'no playbook step carries it' : `step ${step.n} is ${step.state}`}`);
     }),
     check('investigation.routed-through-how', 'the question was routed through how: an explainer, or explorers then an explainer, readonly on the root, each on its own how model line', src('poteto-mode/playbooks/investigation.md', 'Route through the **how** skill'), (view) => {
       const workers = allWorkers(view).filter((worker) => ['explorer', 'general'].includes(String(assignmentOf(worker).role)));
@@ -706,17 +706,17 @@ export const investigationFamily: Family = {
     citationsResolve('investigation.citations-resolve', src('poteto-mode/playbooks/investigation.md', 'cited explanation'), { min: 2 }),
     parentReads('investigation.applies-unslop', 'the parent opened the unslop skill for the reply', src('poteto-mode/playbooks/investigation.md', 'Apply the **unslop** skill to the reply'), ['unslop']),
     settledAndCollected('investigation.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
-    { ...receiptsFor('investigation.receipts-recorded', 'four receipts are recorded under verification/receipts and re-verify', src('poteto-mode/SKILL.md', 'once `pstack_evidence` `verify` passes for it'), () => true, 4), scope: 'adaptation' },
+    { ...receiptsFor('investigation.receipts-recorded', 'four receipts are recorded under verification/receipts and re-verify', src('poteto-mode/SKILL.md', 'only once `pstack_evidence` `verify` passes'), () => true, 4), scope: 'adaptation' },
     noToolErrors('investigation.no-tool-errors', src('poteto-mode/playbooks/investigation.md', '**Reply:** the investigation output')),
   ],
   negatives: [
     { name: 'the checkpoint is carried by playbook step 2 done, with no task-specific line', mutate: (sandbox) => dropCheckpointLine(sandbox), fails: [], passes: ['investigation.throughput-checkpoint-line'] },
-    { name: 'no checkpoint line and playbook step 2 left open', mutate: (sandbox) => { dropCheckpointLine(sandbox); setStep(sandbox, 'investigate-checkout', 2, ' ', stripEvidence); }, fails: ['investigation.throughput-checkpoint-line'] },
-    { name: 'a step was skipped and left open', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 2, ' ', stripEvidence), fails: ['todo.investigation.every-step-resolved'] },
-    { name: 'a step was marked done with no receipt id', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 3, 'x', stripEvidence), fails: ['todo.investigation.done-steps-proven'] },
+    { name: 'no checkpoint line and playbook step 2 left open', mutate: (sandbox) => { dropCheckpointLine(sandbox); setStep(sandbox, 'investigate-checkout', 2, 'pending', stripEvidence); }, fails: ['investigation.throughput-checkpoint-line'] },
+    { name: 'a step was skipped and left open', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 2, 'pending', stripEvidence), fails: ['todo.investigation.every-step-resolved'] },
+    { name: 'a step was marked done with no receipt id', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 3, 'passed', stripEvidence), fails: ['todo.investigation.done-steps-proven'] },
     { name: 'a step cites a receipt that was never recorded', mutate: (sandbox) => deleteReceipt(sandbox, 'investigate-checkout', 'inv-shape'), fails: ['todo.investigation.done-steps-proven'] },
     { name: 'the artifact changed after the receipt hashed it', mutate: (sandbox) => corruptArtifact(sandbox, 'investigate-checkout', 'inv-unslop'), fails: ['todo.investigation.done-steps-proven'] },
-    { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 4, '~', (line) => stripEvidence(line)), fails: ['todo.investigation.skips-explained'] },
+    { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 4, 'skipped', (line) => stripEvidence(line)), fails: ['todo.investigation.skips-explained'] },
     { name: 'steps were resolved out of order', mutate: (sandbox) => reorderHistory(sandbox, 'investigate-checkout', 4), fails: ['todo.investigation.resolved-in-order'] },
     { name: 'a step in the middle was deleted from the list', mutate: (sandbox) => deleteStep(sandbox, 'investigate-checkout', 2), fails: ['todo.investigation.steps-verbatim-in-order'] },
     { name: 'the main checkout was edited during a read-only investigation', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['investigation.no-code-change'] },

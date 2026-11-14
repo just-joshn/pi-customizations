@@ -10,6 +10,7 @@ import { auditRun, hardLinkCheck, modelLines, parsePstackArgs, parseTodo, regist
 import { recordReceipt } from '../../src/evidence.ts';
 import { type RunId, readHostState } from '../../src/run-files.ts';
 import { registerStyle } from '../../src/style.ts';
+import { createTodo, readTodoLedger, replaceTodoLedger } from '../../src/todo.ts';
 import { spawnAssignment, workerSocket } from '../../src/workers.ts';
 import { type FakePi, fakePi, stopWorkers } from './fake-pi.ts';
 
@@ -191,16 +192,31 @@ describe('audit', () => {
     recordReceipt(runRoot, 'audit-run' as RunId, path);
   }
 
-  test('parseTodo reads states, evidence on nested lines, and skip reasons', () => {
-    expect(parseTodo('# T\n\n## Original playbook steps\n- [x] 1. Do it.\n   nested (evidence: r1)\n- [ ] 2. Next.\n- [~] 3. Maybe. (skip: not needed)\n\n## Task-specific work\n- [X] Own step (evidence: a, b)\n')).toEqual([
-      { state: 'done', title: '1. Do it.', evidence: ['r1'], skip: null },
-      { state: 'open', title: '2. Next.', evidence: [], skip: null },
-      { state: 'skipped', title: '3. Maybe. (skip: not needed)', evidence: [], skip: 'not needed' },
-      { state: 'done', title: 'Own step (evidence: a, b)', evidence: ['a', 'b'], skip: null },
+  test('parseTodo reads the separate ledger and task-specific evidence, never inline source checkboxes', () => {
+    const source = Buffer.from('1. Do it.\n2. Next.\n3. Maybe.\n');
+    const initial = createTodo('T', 'feature', 'pin', source);
+    const ledger = readTodoLedger(initial);
+    for (const entry of ledger) {
+      if (entry.n === 1) {
+        entry.status = 'passed';
+        entry.evidence = ['r1'];
+      }
+      if (entry.n === 3) {
+        entry.status = 'skipped';
+        entry.skip = 'skip: not needed';
+      }
+    }
+    const text = `${replaceTodoLedger(initial, ledger)}- [X] Own step (evidence: a, b)\n`;
+    expect(parseTodo(text)).toEqual([
+      { state: 'passed', title: '1. Do it.', evidence: ['r1'], skip: null },
+      { state: 'pending', title: '2. Next.', evidence: [], skip: null },
+      { state: 'skipped', title: '3. Maybe.', evidence: [], skip: 'not needed' },
+      { state: 'passed', title: 'Own step (evidence: a, b)', evidence: ['a', 'b'], skip: null },
     ]);
+    expect(() => parseTodo('## Original playbook steps\n- [x] 1. Claimed. (evidence: r1)\n')).toThrow('immutable');
   });
 
-  test('audit checks each done step against its receipts with pstack_evidence verify', async () => {
+  test('audit checks ledger receipts and reports blocked separately from skipped or completed', async () => {
     const fake = withCommand();
     const runRoot = makeRun('audit-run', fake.session.getSessionFile() ?? null);
     mkdirSync(join(runRoot, 'evidence'));
@@ -209,26 +225,47 @@ describe('audit', () => {
     receipt(runRoot, 'r-ok', 'step-1', 'evidence/ok.txt', sha('ok'));
     receipt(runRoot, 'r-bad', 'step-2', 'evidence/changed.txt', sha('before'));
     writeFileSync(join(runRoot, 'evidence', 'changed.txt'), 'after');
-    writeFileSync(
-      join(runRoot, 'TODO.md'),
-      '# T\n\n## Original playbook steps\n- [x] 1. Proven. (evidence: r-ok)\n- [x] 2. Tampered. (evidence: r-bad)\n- [x] 3. Claimed. (evidence: r-none)\n- [x] 4. Asserted.\n- [ ] 5. Open.\n- [~] 6. Skipped. (skip: no UI)\n',
-    );
-    expect(auditRun(runRoot, 'audit-run' as RunId).map((line) => line.verdict)).toEqual(['pass', 'fail', 'inconclusive', 'inconclusive', 'open', 'skipped']);
+    const source = readFileSync(join(import.meta.dirname, '../../vendor/upstream-pstack/skills/poteto-mode/playbooks/feature.md'));
+    const initial = createTodo('T', 'feature', 'x', source);
+    const titles = parseTodo(initial).map((item) => item.title);
+    const ledger = readTodoLedger(initial);
+    for (const entry of ledger) {
+      if (entry.n <= 4) entry.status = 'passed';
+      if (entry.n === 1) entry.evidence = ['r-ok'];
+      if (entry.n === 2) entry.evidence = ['r-bad'];
+      if (entry.n === 3) entry.evidence = ['r-none'];
+      if (entry.n === 6) {
+        entry.status = 'skipped';
+        entry.skip = 'skip: no UI';
+      }
+      if (entry.n === 7) entry.status = 'blocked';
+      if (entry.n === 8) entry.status = 'running';
+    }
+    writeFileSync(join(runRoot, 'TODO.md'), replaceTodoLedger(initial, ledger));
+    expect(auditRun(runRoot, 'audit-run' as RunId).map((line) => line.verdict)).toEqual(['pass', 'fail', 'inconclusive', 'inconclusive', 'open', 'skipped', 'blocked', 'open']);
     const { text } = await fake.pstack('audit audit-run');
     expect(text.split('\n')).toEqual([
-      'Audit of run audit-run: 1 proven, 1 failed, 2 unproven, 1 open, 1 skipped.',
-      '[x] pass 1. Proven. (evidence: r-ok)',
+      'Audit of run audit-run: 1 proven, 1 failed, 2 unproven, 2 open, 1 blocked, 1 skipped.',
+      `passed ${titles[0]}`,
       '    r-ok -> step-1: pass',
-      '[x] FAIL 2. Tampered. (evidence: r-bad)',
+      `FAIL ${titles[1]}`,
       '    r-bad -> step-2: fail (r-bad: artifact evidence/changed.txt does not match its sha256)',
-      '[x] UNPROVEN 3. Claimed. (evidence: r-none)',
+      `UNPROVEN ${titles[2]}`,
       '    receipt r-none is not recorded',
-      '[x] UNPROVEN 4. Asserted.',
+      `UNPROVEN ${titles[3]}`,
       '    marked done with no evidence receipt',
-      '[ ] 5. Open.',
-      '[~] 6. Skipped. (skip: no UI)',
+      `pending/running ${titles[4]}`,
+      '    pending',
+      `skipped ${titles[5]}`,
       '    skip: no UI',
+      `BLOCKED ${titles[6]}`,
+      '    blocked, not completed or skipped',
+      `pending/running ${titles[7]}`,
+      '    running',
     ]);
+    const path = join(runRoot, 'TODO.md');
+    writeFileSync(path, readFileSync(path, 'utf8').replace('1. `how`', '1.  `how`'));
+    expect(() => auditRun(runRoot, 'audit-run' as RunId)).toThrow('immutable');
   });
 });
 
