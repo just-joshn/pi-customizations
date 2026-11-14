@@ -223,7 +223,7 @@ export const orchestrateSubFamily: Family = {
       STORE.units = [first, second];
     },
     env: (ctx, driver) => forgeEnv(ctx, STORE.handle as ForgeHandle, { scripted: driver === 'scripted' }),
-    prompt: () => '/poteto-mode orchestrate the program: land PR 61 (greet) and PR 62 (shout) through one sub-coordinator, one owner per PR, and merge each once it is verified. Do not stop to ask me.',
+    prompt: () => "/poteto-mode orchestrate the program: land PR 61 (greet) and PR 62 (shout) through one sub-coordinator, one owner per PR, and merge each once it is verified. Do not stop to ask me. PR numbers 61 and 62 are reserved, not existing PRs. Both tasks are independent. PR 61 uses branch feat-greet-sub and adds the named export greet(name) in src/greet.js, returning 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 62 uses branch feat-shout-sub and adds the named export shout(name) in src/shout.js, returning 'HELLO ' followed by name.toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Each item includes behavior tests under test/ and preserves existing cart behavior.",
     scenario: (ctx) => scenarioOf(ctx, STORE),
   },
   checks: [

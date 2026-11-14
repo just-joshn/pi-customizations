@@ -514,7 +514,7 @@ export const autopilotStackFamily: Family = {
   id: 'autopilot-stack',
   requires: 'container',
   title: 'autopilot-stack: autopilot-full without the merge: a PR stacks only on the PR it builds on, every PR is verified at its head, nothing merges, nobody pushes after the handoff (spec 13.4)',
-  spec: specOf('autopilot-stack', STACK_RUN, STACK_STORE, (ctx) => stackScenario(ctx, STACK_STORE), stackedUnits, { 'feat-greet-stack': 41, 'feat-shout-stack': 42 }, '/poteto-mode autopilot-stack: build PR 41 (greet) and PR 42 (shout, which builds on greet), verify them, and do not merge, I will land them'),
+  spec: specOf('autopilot-stack', STACK_RUN, STACK_STORE, (ctx) => stackScenario(ctx, STACK_STORE), stackedUnits, { 'feat-greet-stack': 41, 'feat-shout-stack': 42 }, "/poteto-mode autopilot-stack: build PR 41 (greet) and PR 42 (shout, which builds on greet), verify them, and do not merge, I will land them. PR numbers 41 and 42 are reserved, not existing PRs. PR 41 uses branch feat-greet-stack and adds the named export greet(name) in src/greet.js, returning 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 42 uses branch feat-shout-stack and adds the named export shout(name) in src/shout.js, importing greet and returning greet(name).toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Include behavior tests under test/ and preserve existing cart behavior."),
   checks: [
     promptRoutes('poteto-mode'),
     ...playbookReads('autopilot-stack'),
@@ -605,7 +605,7 @@ function appendOwnerCall(sandbox: string, runId: string, workerId: string): void
 
 const LANES_RUN = 'autopilot-lanes-countersign';
 const LANES_STORE: Store = { units: [] };
-const PROMPT_LANES = '/poteto-mode autopilot this queue, full autopilot, go: PR 33 adds the lookup table and raises the size budget it needs. Merge it once it is verified.';
+const PROMPT_LANES = '/poteto-mode autopilot this queue, full autopilot, go. PR 33 is reserved, not an existing PR. Use branch feat-table. Add src/table.js with named exports table, an explicit array of the integers 0 through 2999 (3000 entries), and lookup(n), which returns table[n]. The serialized table must be present in the file, not generated at runtime. Include behavior tests under test/ and a size check against budget.json maxKb * 1024. Raise the size budget to fit the required table and preserve existing cart behavior. Merge it once it is verified.';
 const TABLE = `export const table = ${JSON.stringify(Array.from({ length: 3000 }, (_, index) => index))};\nexport const lookup = (n) => table[n];\n`;
 const TABLE_TEST = "import assert from 'node:assert/strict';\nimport { readFileSync, statSync } from 'node:fs';\nimport { test } from 'node:test';\nimport { lookup } from '../src/table.js';\n\ntest('lookup reads the table', () => assert.equal(lookup(7), 7));\ntest('the table fits the size budget', () => assert.ok(statSync(new URL('../src/table.js', import.meta.url)).size <= JSON.parse(readFileSync(new URL('../budget.json', import.meta.url), 'utf8')).maxKb * 1024));\n";
 const BUDGET = (maxKb: number): string => `{ "maxKb": ${maxKb} }\n`;
