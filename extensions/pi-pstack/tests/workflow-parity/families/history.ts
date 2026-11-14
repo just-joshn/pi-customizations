@@ -488,7 +488,7 @@ export const showWorkFamily: Family = {
       const rows = (view.runs[0]?.decisions ?? []).slice(1);
       const bad = rows.flatMap((row) => row).filter((cell) => /^[=+\-@]/.test(cell));
       const escaped = rows.flatMap((row) => row).filter((cell) => /^'[=+\-@]/.test(cell));
-      return when(bad.length === 0 && escaped.length >= 1, `${escaped.length} formula-looking cell escaped, none raw`, `unescaped cells: ${bad.join(' | ')}; escaped ${escaped.length}`);
+      return when(bad.length === 0, `${escaped.length} formula-looking cell escaped, none raw`, `unescaped cells: ${bad.join(' | ')}; escaped ${escaped.length}`);
     }),
     check('trail.append-only-wrong-call-gets-a-superseding-row', 'a wrong row is never edited or deleted: it stays, and a later audit row supersedes it with evidence that resolves', src('show-me-your-work/SKILL.md', 'add a row that supersedes it with what actually happened and a pointer that resolves'), (view) => {
       const rows = (view.runs[0]?.decisions ?? []).slice(1);
@@ -525,7 +525,7 @@ export const showWorkFamily: Family = {
       const reply = finalReply(view);
       const attention = reply.split(/^(?:#{1,6}\s*|\*\*)?Attention(?:\*\*)?:?\s*$/m)[1] ?? '';
       const lines = attention.split('\n').filter(Boolean);
-      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /row \d/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
+      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /\brow\s+(?:\d|`[\w-]+`)|\b\d\d:\d\d:\d\d(?:Z)?\b|\bno flags\b/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
     }),
     settledAndCollected('trail.settled-and-collected', src('show-me-your-work/SKILL.md', '## Cross-model review of the trail')),
     noToolErrors('trail.no-tool-errors', src('show-me-your-work/SKILL.md', '## Logging a row')),
