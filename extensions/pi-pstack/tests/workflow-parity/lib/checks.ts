@@ -454,7 +454,7 @@ export function settledAndCollected(id: string, source: Src | Src[], roles?: str
       const settles = (worker.state?.['settles'] as { phase: string }[] | undefined) ?? [];
       if (settles.length === 0 || !settles.some((settle) => settle.phase === 'idle')) return [`${worker.id} never recorded an idle settle (${JSON.stringify(settles.map((settle) => settle.phase))})`];
       const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id);
-      const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|settled/.test(call.resultText));
+      const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|\bWorker \S+ settled \(/.test(call.resultText));
       if (collect === undefined) return [wake === undefined ? `${worker.id}: no pstack-worker wake in the parent session, and the parent never collected a settled result` : `${worker.id}: parent never collected a settled result`];
       // The collect span allows an inspect that shows the worker settled in place of a wake, and a settle the parent already collected is sent no wake.
       return collectedOnEvidence(view, worker.id, collect, wake?.order ?? Number.POSITIVE_INFINITY) ? [] : [`${worker.id}: collected before ${wake === undefined ? 'any wake' : 'its wake'}, and no inspect had shown it settled`];

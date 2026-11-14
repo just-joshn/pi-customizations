@@ -23,6 +23,10 @@ const collect = (order: number) => call(order, { action: 'collect', workerId: 'w
 const inspect = (order: number, phase: string) => call(order, { action: 'inspect', workerId: 'w' }, `Worker w: ${phase}`);
 
 describe('collect needs a wake or an inspect that shows the worker settled', () => {
+  test('a not-settled collect is not a collected result even after a wake', () => {
+    expect(verdict(view([call(5, { action: 'collect', workerId: 'w' }, 'Worker w has not settled (running).')], [wake(4)]))?.verdict).toBe('FAIL');
+    expect(verdict(view([call(5, { action: 'collect', workerId: 'w' }, '{"settled":false}')], [wake(4)]))?.verdict).toBe('FAIL');
+  });
   test('a collect after the wake is allowed', () => {
     expect(verdict(view([collect(5)], [wake(4)]))?.verdict).toBe('PASS');
   });
