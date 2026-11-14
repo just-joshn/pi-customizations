@@ -55,6 +55,7 @@ export function renderStatusSection(manifest: unknown): string;
 export function spliceStatusSection(doc: string, section: string): string;
 export function mergeOutcomes(record: Pick<Requirement, 'platforms'>, byRun: RunOutcome[]): string;
 export function sourceDigest(root: string): string | null;
+export function sourceState(root: string): { commit: string | null; dirty: boolean; changes: string[] | null; sourceDigest: string | null };
 export function sidecarIdentity(sidecar: unknown): { identity?: { platform: string; commit: string; sourceDigest: string; runUrl: string; root: string }; problem?: string };
 export function checkRuns(manifest: { runs?: Record<string, unknown>[] }, currentDigest: string | null): string[];
 export function toolchain(env?: Record<string, string | undefined>): { piPath: string; piVersion: string | null; nodeVersion: string };
