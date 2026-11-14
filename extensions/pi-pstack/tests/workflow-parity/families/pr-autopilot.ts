@@ -763,7 +763,8 @@ export const autopilotLanesFamily: Family = {
       if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const bare = bareOf(view.sandbox);
       const verdicts = verdictsOf(state, actions, view);
-      const from = budgetAt(bare, `${unit.sha}^`);
+      const baseline = spawnSyncGit(bare, `merge-base ${unit.sha} refs/heads/${unit.base}`);
+      const from = budgetAt(bare, baseline);
       const to = budgetAt(bare, unit.sha as string);
       const comments = actions.map((action, at) => ({ action, at })).filter(({ action }) => action.kind === 'comment' && action.pr === 33);
       const gate = comments.find(({ action }) => /loosen|rais(?:e|ed|ing)/i.test(String(action['body'])) && String(action['body']).includes('budget.json'));

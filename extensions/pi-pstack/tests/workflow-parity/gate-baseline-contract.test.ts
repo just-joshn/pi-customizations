@@ -8,7 +8,7 @@ import { autopilotLanesFamily } from './families/pr-autopilot.ts';
 import { bareOf, forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
-test.for([false])('a gate raise is measured across the PR, including a later follow-up commit (%s)', (followUp) => {
+test.for([false, true])('a gate raise is measured across the PR, including a later follow-up commit (%s)', (followUp) => {
   const sandbox = mkdtempSync(join(tmpdir(), 'gate-baseline-'));
   const repo = join(sandbox, 'repo');
   mkdirSync(repo);
