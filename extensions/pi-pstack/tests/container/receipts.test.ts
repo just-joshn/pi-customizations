@@ -5,8 +5,8 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { evidenceScope, ingestContainerReceipts, listReceipts, recordReceipt, verifyTarget } from '../../src/evidence.ts';
-import type { RunId } from '../../src/run-files.ts';
-import { makeProject, makeRun, type Project } from '../worker-lifecycle/harness.ts';
+import type { HostState, RunId, WorkerId } from '../../src/run-files.ts';
+import { makeParent, makeProject, makeRun, type Project, writeAssignment } from '../worker-lifecycle/harness.ts';
 
 const RUN = 'run1' as RunId;
 const digest = (text: string) => createHash('sha256').update(text).digest('hex');
@@ -122,6 +122,24 @@ describe('a receipt recorded inside a container worker', () => {
     expect(verifyTarget(runRoot, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['r1'] });
   });
 
+  test('a replacement verifier gets actionable id conflicts and verifies its own re-recorded commit receipts', () => {
+    const original = inContainer('verify-pr22');
+    original.record('pr22-test', project.commit);
+    ingestContainerReceipts(runRoot, RUN);
+    const replacement = inContainer('verify-pr22-r2');
+    replacement.record('pr22-test', project.commit, 'replacement result\n');
+
+    const conflict = ingestContainerReceipts(runRoot, RUN).rejected;
+    expect.soft(conflict).toEqual([{ workerId: 'verify-pr22-r2', file: 'pr22-test.json', reason: expect.stringMatching(/unique.*run.*worker/i) }]);
+    replacement.record('verify-pr22-r2-test', project.commit, 'replacement result\n');
+    expect(verifyTarget(runRoot, RUN, 'verify-pr22-r2')).toEqual({ kind: 'pass', receipts: ['verify-pr22-r2-test'] });
+    expect(verifyTarget(runRoot, RUN, 'verify-pr22')).toEqual({ kind: 'pass', receipts: ['pr22-test'] });
+    expect(listReceipts(runRoot, RUN).find((entry) => entry.receipt.id === 'pr22-test')?.receiptPath).toContain('/verify-pr22/');
+    writeFileSync(join(replacement.out, 'evidence', 'verify-pr22-r2-test.log'), 'changed\n');
+    expect(verifyTarget(runRoot, RUN, 'verify-pr22-r2').kind).toBe('fail');
+    expect(verifyTarget(runRoot, RUN, 'verify-pr22').kind).toBe('pass');
+  });
+
   test('rejects an inbox entry that is a symlink, names a file outside the worker, or is not a receipt', () => {
     const worker = inContainer('v1');
     writeFileSync(join(runRoot, 'host-file'), 'host\n');
@@ -137,6 +155,41 @@ describe('a receipt recorded inside a container worker', () => {
     expect(recorded).toEqual([]);
     expect(rejected.map(({ file }) => file).sort()).toEqual(['junk.json', 'linked.json', 'outside.json']);
     expect(rejected.find(({ file }) => file === 'outside.json')?.reason).toMatch(/not in the worker's own directory/);
+  });
+
+  test('collect reports only its own invalid receipts, names the defect, and clears a corrected receipt', async () => {
+    const broken = inContainer('broken');
+    const other = inContainer('other');
+    for (const worker of [broken, other]) {
+      const workerId = worker === broken ? 'broken' : 'other';
+      writeAssignment(project, RUN, workerId, '@@say DONE', { workspace: { mode: 'container', inputCommit: project.commit } });
+      const state: HostState = {
+        schemaVersion: 1, runId: RUN, workerId: workerId as WorkerId, kind: 'pi', digest: '', instance: workerId,
+        hostPid: 0, childPid: null, tmuxSession: '', socketPath: '', phase: 'stopped', reason: null, model: null,
+        sessionFile: null, briefSent: true, generation: 1,
+        settles: [{ sequence: 1, generation: 1, phase: 'idle', reason: null, at: 'now' }], exit: null, updatedAt: 'now',
+      };
+      writeFileSync(join(worker.workerDir, 'state.json'), JSON.stringify(state));
+    }
+    writeFileSync(join(broken.out, 'receipts', 'check.json'), JSON.stringify({ schemaVersion: 1, id: 'check' }));
+    const parent = makeParent(project, []);
+    const collect = (workerId: string) => parent.call('pstack_worker', { action: 'collect', runId: RUN, workerId });
+    try {
+      const own = await collect('broken');
+      expect(own.text).toContain('broken/check.json');
+      expect.soft(own.text).toMatch(/missing.*receipt.*field/i);
+      const unrelated = await collect('other');
+      expect.soft(unrelated.text).not.toContain('Container receipts rejected');
+      expect.soft(unrelated.details.receipts.rejected).toEqual([]);
+      expect((await collect('broken')).text).toContain('broken/check.json');
+
+      rmSync(join(broken.out, 'receipts', 'check.json'));
+      broken.record('check');
+      expect((await collect('broken')).text).not.toContain('Container receipts rejected');
+      expect(verifyTarget(runRoot, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['check'] });
+    } finally {
+      await parent.stop();
+    }
   });
 
   test('an artifact the worker swapped for a symlink fails verification instead of being read', () => {

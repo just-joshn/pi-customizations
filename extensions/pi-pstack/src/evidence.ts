@@ -49,7 +49,7 @@ const COMMIT = /^[0-9a-f]{7,64}$/;
 
 /** The fields a receipt got wrong, one line each: what was wrong, and what the field must be. Each field is checked alone, so every bad field is named in one pass. */
 function describeSchemaErrors(raw: unknown): string {
-  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return `(receipt): must be a JSON object with the fields ${RECEIPT_FIELDS.join(', ')}`;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return `(receipt): received ${raw === null ? 'null' : Array.isArray(raw) ? 'an array' : typeof raw}; must be a JSON object with the fields ${RECEIPT_FIELDS.join(', ')}`;
   const lines: string[] = [];
   const record = raw as Record<string, unknown>;
   const hint = (field: string) => (RECEIPT_FIELD_HINTS[field] === undefined ? '' : ` (must be ${RECEIPT_FIELD_HINTS[field]})`);
@@ -138,7 +138,7 @@ function storeReceipt(scope: EvidenceScope, runId: RunId, receipt: Receipt, sour
     if (code !== undefined && NO_HARD_LINK.includes(code)) throw new Error(`Recording receipt ${receipt.id} needs a filesystem with hard links under ${dir} (link failed with ${code}); move the project to one that supports them`);
     if (code !== 'EEXIST') throw error;
     const existing = readRecorded(scope, runId, `${receipt.id}.json`);
-    if (!isDeepStrictEqual(existing.receipt, receipt)) throw new Error(`Receipt id ${receipt.id} is already recorded with different content`);
+    if (!isDeepStrictEqual(existing.receipt, receipt)) throw new Error(`Receipt id ${receipt.id} is already recorded with different content from ${existing.receiptPath}; ids must be unique within the run. Use a new id prefixed with this worker's id and record it again`);
     return existing;
   } finally {
     rmSync(temporary, { force: true });
@@ -197,7 +197,9 @@ export function ingestContainerReceipts(runRoot: string, runId: RunId): Ingested
           reject(read.kind === 'missing' ? 'the file disappeared' : read.reason);
           continue;
         }
-        const raw = JSON.parse(read.bytes.toString('utf8')) as { receipt?: unknown };
+        const raw: unknown = JSON.parse(read.bytes.toString('utf8'));
+        if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) throw new Error(`Invalid receipt ${join(inbox, file)}: expected a recorded receipt object, received ${raw === null ? 'null' : Array.isArray(raw) ? 'an array' : typeof raw}`);
+        if (!('receipt' in raw)) throw new Error(`Invalid receipt ${join(inbox, file)}: missing "receipt" field in the recorded receipt; save the source under evidence/ and use pstack_evidence record to create the inbox entry`);
         const receipt = parseReceipt(raw.receipt, runId, join(inbox, file));
         if (`${receipt.id}.json` !== file) throw new Error(`receipt id ${receipt.id} does not match its file name`);
         for (const artifact of receipt.artifacts) {
@@ -298,7 +300,8 @@ function readArtifactsText(base: string, receipt: Receipt): string {
 export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, target: string): EvidenceVerdict {
   const { base, root } = scopeOf(runRoot);
   const { receipts, rejected } = readAll(runRoot, runId);
-  const matching = receipts.filter((entry) => entry.receipt.target === target);
+  const workers = join(base, 'workers');
+  const matching = receipts.filter((entry) => entry.receipt.target === target || (isInside(workers, entry.receiptPath) && relative(workers, entry.receiptPath).split(/[\\/]/)[0] === target));
   const ids = matching.map((entry) => entry.receipt.id);
   if (matching.length === 0) return { kind: 'inconclusive', reason: `No receipt recorded for ${target}${rejected.length === 0 ? '' : `; container receipts rejected: ${describeRejected(rejected)}`}`, receipts: [] };
   const defects: string[] = [];

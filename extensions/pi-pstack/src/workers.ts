@@ -857,7 +857,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   let polling: Promise<void> | undefined;
 
   /** One pass; false when the branch changed while it waited on tmux, so its view is stale and nothing was sent. */
-  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<boolean> => {
+  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }, beforeSettle: boolean): Promise<boolean> => {
     const version = branchVersion;
     const sessionFile = ctx.sessionManager.getSessionFile();
     if (sessionFile === undefined) return true;
@@ -878,6 +878,8 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         }
         for (const transition of transitions) {
           if (delivered.has(transition.transitionId) || sent.has(transition.transitionId) || isCollected(workerDir, transition.transitionId)) continue;
+          // Pi cannot retract queued follow-ups. Deliver at final settlement or while idle, after any in-turn collect.
+          if (!beforeSettle && !ctx.isIdle()) continue;
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
           // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
@@ -888,10 +890,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return true;
   };
 
-  const poll = (): Promise<void> => {
+  const poll = (beforeSettle = false): Promise<void> => {
     if (polling !== undefined || current === undefined) return polling ?? Promise.resolve();
     polling = (async () => {
-      while (current !== undefined && !(await reconcile(current))) {
+      while (current !== undefined && !(await reconcile(current, beforeSettle))) {
         // The branch changed mid-pass; run again against the current one.
       }
     })()
@@ -920,6 +922,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     branchVersion += 1;
     sent.clear();
     await poll();
+  });
+  pi.on('agent_before_settle', async () => {
+    await polling;
+    await poll(true);
   });
   pi.on('session_shutdown', async () => {
     clearInterval(timer);
@@ -1041,6 +1047,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       markCollected(loaded.workerDir, workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined));
       // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
       const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
+      if (receipts !== undefined) receipts.rejected = receipts.rejected.filter((entry) => entry.workerId === workerId);
       const result = {
         settled: true,
         available: inspected.available,
