@@ -84,6 +84,7 @@
     "@vitest/coverage-v8": "^5.0.2",
     "commander": "14.0.0",
     "jsdom": "26.1.0",
+    "jq-web": "0.6.2",
     "mermaid": "11.16.0",
     "pele": "1.9.0",
     "fast-check": "4.5.3",

@@ -1,6 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -247,7 +247,15 @@ test.each(['absent', 'poisoned'])('jq queries use real offline semantics when th
   } else {
     expect(spawnSync('jq', ['--version'], { env: { PATH: bin } }).error).toMatchObject({ code: 'ENOENT' });
   }
-  const query = (...args: string[]) => spawnSync(process.execPath, [FORGE_CLI, 'gh', ...args], { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare, PATH: bin } });
+  const isolated = join(ctx.sandbox, 'isolated-cli');
+  mkdirSync(isolated);
+  const cli = join(isolated, 'forge-cli.mjs');
+  copyFileSync(FORGE_CLI, cli);
+  copyFileSync(join(dirname(FORGE_CLI), 'review-ids.ts'), join(isolated, 'review-ids.ts'));
+  const dependency = spawnSync(process.execPath, ['--input-type=module', '-e', 'import("jq-web")'], { cwd: isolated, encoding: 'utf8' });
+  expect(dependency.status).not.toBe(0);
+  expect(dependency.stderr).toContain('ERR_MODULE_NOT_FOUND');
+  const query = (...args: string[]) => spawnSync(process.execPath, [cli, 'gh', ...args], { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare, PATH: bin } });
   const filtered = query('pr', 'list', '--json', 'number,title,author', '--jq', 'map(select(.number > 70)) | map({id: .number, login: .author.login, label: (.title | ascii_upcase)})');
   expect(filtered.status, filtered.stderr).toBe(0);
   expect(JSON.parse(filtered.stdout)).toEqual([{ id: 71, login: 'fixture', label: 'REVIEW' }]);
@@ -281,6 +289,7 @@ test('commit check runs report pending and settled conclusions only for the requ
   const path = join(forge.dir, 'state.json');
   const state = JSON.parse(readFileSync(path, 'utf8'));
   state.prs['71'].ci.waves = [[{ name: 'old build', runId: 801, state: 'SUCCESS' }], [{ name: 'new build', runId: 802, state: 'PENDING', pendingReads: 1 }]];
+  state.prs['72'] = { ...state.prs['71'], number: 72, head: 'main', ci: { ...state.prs['71'].ci, waves: [[{ name: 'unrelated build', runId: 803, state: 'FAILURE' }]] } };
   git('push', '-q', '--force', 'origin', `${first}:refs/heads/topic`);
   writeFileSync(path, JSON.stringify(state));
   const runs = (ref: string) => {
@@ -354,6 +363,21 @@ test.each([{ flags: ['--merge', '--squash'] }, { flags: ['--merge', '--rebase'] 
     expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['71'].state).toBe('OPEN');
   },
 );
+
+test.each(['--merge', '--squash', '--rebase'])('PR merge %s rejects real conflicts without changing the base or marking the PR merged', (strategy) => {
+  const { ctx, forge, git } = topicFixture();
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'conflicting trunk content\n');
+  git('add', '.');
+  git('commit', '-qm', 'conflict with topic');
+  const base = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'main');
+  const result = call(ctx, forge, 'gh', 'pr', 'merge', '71', strategy);
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toMatch(/conflict|cannot be rebased/i);
+  expect(forge.tip('main')).toBe(base);
+  expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['71'].state).toBe('OPEN');
+  expect(existsSync(join(forge.dir, 'lock'))).toBe(false);
+});
 
 test('run list filters the real head branch and omits unrelated runs', () => {
   const { ctx, forge } = fixture();

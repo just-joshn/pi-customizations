@@ -2,7 +2,7 @@
 // reads and writes <origin.git>/forge/state.json, and an append-only action log the checkers read. Real git decides head
 // SHAs, conflicts and merges, so a rebase, a force-push or a merge is a fact in the bare repository, not a claim.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -141,6 +141,11 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
   git(ctx.repo, 'fetch', '-q', 'origin');
   const dir = join(bare, 'forge');
   mkdirSync(dir, { recursive: true });
+  const jq = join(dir, 'jq');
+  mkdirSync(jq);
+  const source = new URL(import.meta.resolve('jq-web'));
+  for (const file of ['jq.js', 'jq.wasm']) copyFileSync(new URL(file, source), join(jq, file));
+  writeFileSync(join(jq, 'package.json'), JSON.stringify({ type: 'commonjs' }));
   writeFileSync(join(dir, 'actions.jsonl'), '');
   const state = {
     repo: { owner: def.owner, name: def.name, trunk: 'main' },
