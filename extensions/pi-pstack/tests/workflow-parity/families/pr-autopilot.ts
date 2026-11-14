@@ -191,9 +191,14 @@ function onePerPrOwners(id: string, source: Src | Src[], units: (view: RunView) 
       const caps = assignment.capabilities ?? {};
       const run = view.runs.find((entry) => entry.workers.includes(worker));
       const create = actions.find((action) => action.kind === 'create' && action.pr === unit.pr);
+      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && (call.args['assignmentPath'] === join(worker.dir, 'assignment.json') || String(call.args['assignmentPath']).endsWith(`/workers/${worker.id}/assignment.json`)));
+      const trunkChanges = actions.filter((action) => (action.kind === 'merge' && action['base'] === state.repo.trunk) || (['push', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${state.repo.trunk}`));
+      const nextTrunkChange = trunkChanges.find((action) => Date.parse(String(action['ts'])) > Date.parse(spawn?.at ?? ''));
+      const start = options.from !== 'trunk' ? unit.from : nextTrunkChange === undefined ? revParse(bareOf(view.sandbox), `refs/heads/${state.repo.trunk}`) : String(nextTrunkChange['tipBefore'] ?? nextTrunkChange['old']);
+      if (options.from === 'trunk' && trunkChanges.length > 0 && (spawn?.at === undefined || trunkChanges.some((action) => typeof action['ts'] !== 'string'))) return [`${unit.id} trunk at spawn cannot be established from the recorded timeline`];
       return [
         ...(assignment.workspace?.mode !== 'container' ? [`${unit.id} workspace ${String(assignment.workspace?.mode)}`] : []),
-        ...(assignment.workspace?.inputCommit !== unit.from ? [`${unit.id} starts at ${String(assignment.workspace?.inputCommit).slice(0, 8)}, not ${unit.from.slice(0, 8)} (${options.from})`] : []),
+        ...(assignment.workspace?.inputCommit !== start ? [`${unit.id} starts at ${String(assignment.workspace?.inputCommit).slice(0, 8)}, not ${start.slice(0, 8)} (${options.from} at spawn)`] : []),
         ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false ? [`${unit.id} capabilities ${JSON.stringify(caps)}`] : []),
         ...(pr?.author !== unit.id || create?.worker !== unit.id || create?.run !== run?.id || create?.container !== true ? [`PR ${unit.pr} was not opened by ${unit.id} from its container`] : []),
         ...(worker.session?.cwd !== WS ? [`${unit.id} ran in ${String(worker.session?.cwd)}`] : []),
