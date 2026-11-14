@@ -1,0 +1,6 @@
+{
+  "observedNativeWarning": [
+    " Error: Failed to load theme \"claude-default-dark\": Theme not found: claude-default-dark",
+    " Fell back to the system theme."
+  ]
+}

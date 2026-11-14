@@ -1,0 +1,12 @@
+{
+  "theme": "dark",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-5",
+  "defaultThinkingLevel": "medium",
+  "cacheWarming": "off",
+  "defaultProjectTrust": "never",
+  "packages": [
+    "../../../../../../../../Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark"
+  ],
+  "lastChangelogVersion": "1.5.2"
+}

@@ -1,0 +1,40 @@
+ [38;2;126;136;142moption+enter[38;2;157;165;169m to queue follow-up[39m        
+ [38;2;126;136;142moption+up[38;2;157;165;169m to edit all queued messages[39m  
+ [38;2;126;136;142mctrl+v[38;2;157;165;169m to paste files on macOS,        
+[39m [38;2;157;165;169mimages, or text[39m    
+ [38;2;126;136;142mdrop files[38;2;157;165;169m to attach[39m                   
+
+ [38;2;126;136;142mPi can explain its own features and    
+[39m [38;2;126;136;142mlook up its docs. Ask it how to use or 
+[39m [38;2;126;136;142mextend Pi.[39m         
+
+[38;2;205;154;34m[Extensions][39m        
+  [38;2;167;152;215muser[39m    
+[38;2;126;136;142m                                        
+/Users/josh-desktop/src/personal/pi-cust
+omizations/extensions/pi-claude-default-
+dark/extensions[39m     
+
+
+
+ [38;2;167;152;215m✓ New session started[39m                  
+
+
+[48;2;33;59;73m                                        
+ [38;2;222;224;225mSCENE:api-error[39m                        
+                                        
+
+[49m [38;2;234;127;129mError: 400                             
+[39m [38;2;234;127;129m{"type":"error","error":{"type":"inval 
+[39m [38;2;234;127;129mid_request_error","message":"Synthetic 
+[39m [38;2;234;127;129mcapture error for SCENE api-error"}}[39m   
+ [38;2;157;165;169mIf this looks like a pi bug, /bug      
+[39m [38;2;157;165;169msends a report to the developers.[39m      
+
+ [38;2;126;136;142mTool output: expanded[39m                  
+
+[38;2;97;133;204m────────────────────────────────────────
+[7m[39m [0m         
+[38;2;97;133;204m────────────────────────────────────────
+[38;2;126;136;142m/private/var/folders/11/m_kwnqr97632l...
+0.7%/200k (auto)  claude-opus-4-5 • medi

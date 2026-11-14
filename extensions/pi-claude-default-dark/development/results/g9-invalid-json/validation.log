@@ -1,0 +1,10 @@
+
+<anonymous_script>:1
+{"name":"claude-default-dark", broken
+                               ^
+
+SyntaxError: Expected double-quoted property name in JSON at position 31 (line 1 column 32)
+    at JSON.parse (<anonymous>)
+    at file:///Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/scripts/validate-theme.mjs:12:19
+
+Node.js v24.22.1

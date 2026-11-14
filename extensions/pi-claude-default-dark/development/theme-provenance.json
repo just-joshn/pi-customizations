@@ -1,0 +1,479 @@
+{
+  "accent": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#b1b9f9",
+    "evidence": [
+      "login-picker@29:3",
+      "login-picker@35:3",
+      "login-picker@35:8"
+    ]
+  },
+  "border": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#b1b9f9",
+    "evidence": [
+      "login-picker@28:0",
+      "model-picker@24:0"
+    ]
+  },
+  "borderAccent": {
+    "class": "pi-only",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(295 53% 64%)",
+    "evidence": []
+  },
+  "borderMuted": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(229 8% 53%)",
+    "evidence": []
+  },
+  "success": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#4eba65",
+    "evidence": [
+      "model-picker@29:30"
+    ]
+  },
+  "error": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#ffc107",
+    "evidence": [
+      "api-error@14:2",
+      "api-error-expanded@11:2"
+    ]
+  },
+  "warning": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(83 88% 67%)",
+    "evidence": []
+  },
+  "muted": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#999999",
+    "evidence": [
+      "model-picker@29:33",
+      "login-picker@35:43",
+      "model-picker@26:3",
+      "login-picker@39:3"
+    ]
+  },
+  "dim": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#999999",
+    "evidence": [
+      "idle@1:23",
+      "idle@3:11",
+      "idle@35:100",
+      "assistant-text@35:90"
+    ]
+  },
+  "text": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "login-picker@36:8",
+      "login-picker@37:8",
+      "model-picker@30:8",
+      "assistant-text@14:2"
+    ]
+  },
+  "thinkingText": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(226 7% 65%)",
+    "evidence": []
+  },
+  "selectedBg": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(233 41% 24%)",
+    "evidence": []
+  },
+  "scrollbarTrack": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(237 7% 33%)",
+    "evidence": []
+  },
+  "scrollbarThumb": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(232 7% 65%)",
+    "evidence": []
+  },
+  "searchMatchBg": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(53 51% 24%)",
+    "evidence": []
+  },
+  "searchMatchText": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": 3,
+    "evidence": [
+      "fullscreen-search@34:35"
+    ]
+  },
+  "userMessageBg": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#373737",
+    "evidence": [
+      "assistant-text@12:0",
+      "assistant-text@12:2",
+      "compaction@33:2",
+      "unicode@12:2"
+    ]
+  },
+  "userMessageText": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#ffffff",
+    "evidence": [
+      "assistant-text@12:2",
+      "compaction@33:2",
+      "unicode@12:2",
+      "api-error-expanded@8:2"
+    ]
+  },
+  "customMessageBg": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "compaction-expanded@5:0",
+      "compaction@34:5",
+      "compaction-expanded@0:5"
+    ]
+  },
+  "customMessageText": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "compaction@34:5",
+      "compaction-expanded@0:5"
+    ]
+  },
+  "customMessageLabel": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(295 50% 67%)",
+    "evidence": []
+  },
+  "toolPendingBg": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "tool-pending@11:0",
+      "tool-pending@10:1",
+      "tool-pending@11:9"
+    ]
+  },
+  "toolSuccessBg": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "tool-bash-ok-expanded@10:2",
+      "tool-read-expanded@10:2",
+      "tool-edit@10:2",
+      "tool-edit@12:5"
+    ]
+  },
+  "toolErrorBg": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "tool-bash-fail-expanded@10:2",
+      "tool-bash-fail-expanded@11:5",
+      "tool-bash-fail@10:2",
+      "tool-bash-fail-expanded@12:5"
+    ]
+  },
+  "toolTitle": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "tool-bash-ok-expanded@10:2",
+      "tool-edit@10:2",
+      "tool-read-expanded@10:2"
+    ]
+  },
+  "toolOutput": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "tool-bash-ok-expanded@11:5",
+      "tool-read-expanded@11:5",
+      "tool-read-expanded@11:10"
+    ]
+  },
+  "mdHeading": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@9:2"
+    ]
+  },
+  "mdLink": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@11:59"
+    ]
+  },
+  "mdLinkUrl": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@11:64"
+    ]
+  },
+  "mdCode": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#b1b9f9",
+    "evidence": [
+      "markdown@13:25"
+    ]
+  },
+  "mdCodeBlock": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#b1b9f9",
+    "evidence": [
+      "code-tokens@18:2"
+    ]
+  },
+  "mdCodeBlockBorder": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(229 6% 67%)",
+    "evidence": []
+  },
+  "mdQuote": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@19:4"
+    ]
+  },
+  "mdQuoteBorder": {
+    "class": "unmappable",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(229 6% 67%)",
+    "evidence": []
+  },
+  "mdHr": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@26:2"
+    ]
+  },
+  "mdListBullet": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "markdown@13:2",
+      "markdown@14:2",
+      "markdown@16:2",
+      "markdown@17:2"
+    ]
+  },
+  "toolDiffAdded": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#50c850",
+    "evidence": [
+      "tool-edit@15:8"
+    ]
+  },
+  "toolDiffRemoved": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#dc5a5a",
+    "evidence": [
+      "tool-edit@13:8"
+    ]
+  },
+  "toolDiffContext": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#f8f8f2",
+    "evidence": [
+      "tool-edit@12:38"
+    ]
+  },
+  "syntaxComment": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": 2,
+    "evidence": [
+      "markdown@22:24"
+    ]
+  },
+  "syntaxKeyword": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": 4,
+    "evidence": [
+      "code-tokens@10:2",
+      "code-tokens@14:2",
+      "code-tokens@16:3",
+      "markdown@21:2"
+    ]
+  },
+  "syntaxFunction": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": 3,
+    "evidence": [
+      "markdown@21:24",
+      "markdown@23:21"
+    ]
+  },
+  "syntaxVariable": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": 6,
+    "evidence": [
+      "code-tokens@16:11",
+      "markdown@21:32"
+    ]
+  },
+  "syntaxString": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": 1,
+    "evidence": [
+      "code-tokens@10:16",
+      "code-tokens@16:17"
+    ]
+  },
+  "syntaxNumber": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": 2,
+    "evidence": [
+      "code-tokens@11:17",
+      "code-tokens@14:43",
+      "markdown@22:21",
+      "code-tokens@11:21"
+    ]
+  },
+  "syntaxType": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "code-tokens@12:2"
+    ]
+  },
+  "syntaxOperator": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "",
+    "evidence": [
+      "code-tokens@14:40",
+      "code-tokens@14:55"
+    ]
+  },
+  "syntaxPunctuation": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": 8,
+    "evidence": [
+      "code-tokens@16:2",
+      "code-tokens@16:16",
+      "code-tokens@16:26",
+      "code-tokens@16:40"
+    ]
+  },
+  "thinkingOff": {
+    "class": "pi-only",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(229 8% 49%)",
+    "evidence": []
+  },
+  "thinkingMinimal": {
+    "class": "pi-only",
+    "source": "pi-1.5.2-dark",
+    "value": "okhsl(232 20% 52%)",
+    "evidence": []
+  },
+  "thinkingLow": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#888888",
+    "evidence": [
+      "effort-low@36:0",
+      "effort-low@38:0"
+    ]
+  },
+  "thinkingMedium": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#888888",
+    "evidence": [
+      "effort-medium@36:0",
+      "idle@36:0"
+    ]
+  },
+  "thinkingHigh": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#888888",
+    "evidence": [
+      "effort-high@36:0",
+      "effort-high@38:0"
+    ]
+  },
+  "thinkingXhigh": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#888888",
+    "evidence": [
+      "effort-xhigh@36:0",
+      "effort-xhigh@38:0"
+    ]
+  },
+  "thinkingMax": {
+    "class": "measured",
+    "source": "claude-capture",
+    "value": "#888888",
+    "evidence": [
+      "effort-max@36:0",
+      "effort-max@38:0"
+    ]
+  },
+  "bashMode": {
+    "class": "renderer-required",
+    "source": "claude-capture",
+    "value": "#fd5db1",
+    "evidence": [
+      "shell-run@8:0"
+    ]
+  }
+}

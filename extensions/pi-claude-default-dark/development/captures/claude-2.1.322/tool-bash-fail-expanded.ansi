@@ -1,0 +1,40 @@
+
+[38;2;215;119;87m ▐[48;2;0;0;0m▛███▛█[39m[49m   [1mClaude Code[0m [38;2;153;153;153mv2.1.322[39m
+[38;2;215;119;87m▝▜[48;2;0;0;0m█████[49m█▀[39m  [38;2;153;153;153mOpus 5.5 · API Usage Billing[39m
+[38;2;215;119;87m ▝▝   ▝▝ [39m  [38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-capture-KaGGe5/work[39m
+
+
+[38;2;153;153;153m[48;2;55;55;55m❯[39m [38;2;255;255;255m/clear[39m
+
+[38;2;153;153;153m❯ [38;2;255;255;255mSCENE:tool-bash-fail[39m
+
+[38;2;255;107;128m[49m⏺[39m [1mBash[0m(printf 'FAIL tests/client.test.ts\n' && false)
+[38;2;153;153;153m  ⎿  [38;2;255;107;128mError: Exit code 1[39m
+     [38;2;255;107;128mFAIL tests/client.test.ts
+[39m
+                                                                                        [38;2;153;153;153m04:53 AM[39m [38;2;153;153;153mclaude-opus-5-5[39m
+[38;2;255;255;255m⏺[39m The test run failed.
+
+[38;2;153;153;153m✻[39m [38;2;153;153;153mCooked for 0s · done 4:53 AM
+
+[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[2m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[0m  [38;2;153;153;153mShowing detailed transcript · ctrl+o to toggle · ↑↓ scroll · v to open in vi · ? for shortcuts[39m                [38;2;153;153;153mverbose

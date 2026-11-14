@@ -36,7 +36,11 @@
       "!!extensions/pi-pstack/upstream.lock.json",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
-      "!!extensions/pi-maintainer/test/fixtures/watch"
+      "!!extensions/pi-maintainer/test/fixtures/watch",
+      "!!extensions/pi-claude-default-dark/development/results",
+      "!!extensions/pi-claude-default-dark/development/captures",
+      "!!extensions/pi-claude-default-dark/development/theme-provenance.json",
+      "!!extensions/pi-claude-default-dark/development/reference-lock.json"
     ]
   },
   "formatter": {
@@ -119,6 +123,39 @@
         "rules": {
           "suspicious": {
             "noControlCharactersInRegex": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["extensions/pi-claude-default-dark/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "error"
+          },
+          "style": {
+            "noNonNullAssertion": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["extensions/pi-claude-default-dark/development/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noControlCharactersInRegex": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["extensions/pi-claude-default-dark/development/lib/schemas.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
           }
         }
       }

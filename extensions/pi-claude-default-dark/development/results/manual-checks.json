@@ -1,0 +1,60 @@
+{
+  "checks": [
+    {
+      "name": "IME",
+      "verdict": "PASS",
+      "note": "User typed Japanese with the macOS input method in Alacritty under claude-default-dark (2026-11-13). The composed text 気と使徒のまま幕間 renders inline in the editor with the cursor at its end; no misplaced cursor or garbled cells. The candidate window is not in the screenshot. Carried forward to package 31059881853a: package changes since the check touch only the tool-row adapters, the working indicator, and where /claude-theme verify reads the shipped colors; none runs on the editor.",
+      "packageSha256": "31059881853a3c7396ee8fc1006bc88c231fc5146a2de61c326293513e3a7ede",
+      "evidence": [
+        {
+          "file": "results/manual/ime-japanese-composition.jpg",
+          "sha256": "a248ac6ab08fef5bd0825054ea5d0de7dfa71d7848d3a2f32873dbc64a607832"
+        }
+      ]
+    },
+    {
+      "name": "live-resize",
+      "verdict": "PASS",
+      "packageSha256": "31059881853a3c7396ee8fc1006bc88c231fc5146a2de61c326293513e3a7ede",
+      "note": "tmux-driven resize (SIGWINCH redraw, not a GUI drag) of a session with a 4-change edit diff: 120 -> 40 -> 60 -> 160 -> 120 columns, captured with capture-pane -N, with the package loaded by -e extensions/index.ts and --theme themes/claude-default-dark.json. scripts/resize-check.ts: at every width each diff row (9, or 11 when wrapped at 40) is painted from column 1 to width-2 with no gaps and nothing painted outside the rows; the frame after returning to 120 is byte-identical to the first. Earlier (2026-11-13) the user resized Alacritty itself across three widths with a Markdown diff and saw no leftover colored cells. Not covered: Alacritty reflowing its own scrollback.",
+      "evidence": [
+        {
+          "file": "results/manual/resize/a-120.ans",
+          "sha256": "fc47494cb817d48cd507b75b0ea4b04d467594ce57274a5f826a3a99ee061c56"
+        },
+        {
+          "file": "results/manual/resize/b-40.ans",
+          "sha256": "7689eec9da68c757c0c221284a5fa6c1a3bc1fd07143216e2d183f36f4a36dc7"
+        },
+        {
+          "file": "results/manual/resize/b-60.ans",
+          "sha256": "e6a471ccceb7cd72890ff8a5dd2ea9105fd3e4d997809df0167f69d60cc95ed6"
+        },
+        {
+          "file": "results/manual/resize/b-160.ans",
+          "sha256": "7826ba5b252e7758d9087b44c1abcd33776a78cfba811e40863c990ee2059beb"
+        },
+        {
+          "file": "results/manual/resize/b-120.ans",
+          "sha256": "fc47494cb817d48cd507b75b0ea4b04d467594ce57274a5f826a3a99ee061c56"
+        },
+        {
+          "file": "results/manual/resize/check.json",
+          "sha256": "fc892dab127833b34d24f215e4447f20c5b9d30404390de84bef88dc3c3296c4"
+        },
+        {
+          "file": "results/manual/resize-wide.jpg",
+          "sha256": "47d368615112e8e070381c84fa8251b6ba736dcc4bc3eb27731474b5a680e6bb"
+        },
+        {
+          "file": "results/manual/resize-narrow.jpg",
+          "sha256": "f8b08e27c9f9526687eb4444353d340e5c67b5f103abab34522196f040a62650"
+        },
+        {
+          "file": "results/manual/resize-widest.jpg",
+          "sha256": "de728379576e0990914f9ceebb40a3fad8dfba182cf2b8a9ee6c6934c88395a6"
+        }
+      ]
+    }
+  ]
+}

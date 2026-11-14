@@ -1,0 +1,285 @@
+{
+  "$comment": "Surface correspondences that a role probe cannot pair, because the adapters only run under claude-default-dark. Each pairs one Claude cell with the Pi cell found by text in the same scene of the themed capture.",
+  "surfaces": [
+    {
+      "role": "toolDiffRemoved",
+      "direction": "bg",
+      "claude": "tool-edit@13:11",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 3;",
+        "char": "c"
+      },
+      "surface": "removed line background"
+    },
+    {
+      "role": "toolDiffRemoved",
+      "direction": "bg",
+      "claude": "tool-edit@13:31",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "maxAttempts = 3;",
+        "char": "3"
+      },
+      "surface": "removed changed-word background"
+    },
+    {
+      "role": "toolDiffRemoved",
+      "direction": "fg",
+      "claude": "tool-edit@13:8",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "2 -",
+        "char": "-"
+      },
+      "surface": "removed gutter sign"
+    },
+    {
+      "role": "toolDiffRemoved",
+      "direction": "fg",
+      "claude": "tool-edit@13:11",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 3;",
+        "char": "c"
+      },
+      "surface": "removed line text"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "bg",
+      "claude": "tool-edit@15:11",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 5;",
+        "char": "c"
+      },
+      "surface": "added line background"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "bg",
+      "claude": "tool-edit@15:31",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "maxAttempts = 5;",
+        "char": "5"
+      },
+      "surface": "added changed-word background"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "fg",
+      "claude": "tool-edit@15:8",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "2 +",
+        "char": "+"
+      },
+      "surface": "added gutter sign"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "fg",
+      "claude": "tool-edit@15:11",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 5;",
+        "char": "c"
+      },
+      "surface": "added line text (Claude syntax-highlights it)"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@12:6",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "1  export",
+        "char": "1"
+      },
+      "surface": "context line number"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@12:9",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "1  export",
+        "char": "e"
+      },
+      "surface": "context line text (Claude syntax-highlights it)"
+    },
+    {
+      "role": "accent",
+      "direction": "fg",
+      "claude": "tool-edit@10:9",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "src/client.ts",
+        "char": "s"
+      },
+      "surface": "edit path argument"
+    },
+    {
+      "role": "accent",
+      "direction": "fg",
+      "claude": "tool-read-expanded@10:91",
+      "pi": {
+        "scene": "tool-read",
+        "find": "notes.txt",
+        "char": "n"
+      },
+      "surface": "read path argument"
+    },
+    {
+      "role": "toolTitle",
+      "direction": "fg",
+      "claude": "tool-read@10:2",
+      "pi": {
+        "scene": "tool-read",
+        "find": "read notes.txt",
+        "char": "r"
+      },
+      "differentText": "Claude says 'Read 1 file' where Pi says 'read notes.txt'; this compares the color and weight of the collapsed title only.",
+      "surface": "collapsed read title"
+    },
+    {
+      "role": "toolTitle",
+      "direction": "fg",
+      "claude": "tool-bash-ok@10:2",
+      "pi": {
+        "scene": "tool-bash-ok",
+        "find": "$ printf",
+        "char": "$"
+      },
+      "differentText": "Claude says 'Ran 1 shell command' where Pi shows the command; color and weight only.",
+      "surface": "collapsed bash title"
+    },
+    {
+      "role": "toolOutput",
+      "direction": "fg",
+      "claude": "tool-bash-fail-expanded@12:5",
+      "pi": {
+        "scene": "tool-bash-fail-expanded",
+        "find": " FAIL tests/client.test.ts",
+        "char": "F"
+      },
+      "surface": "failed bash output"
+    },
+    {
+      "role": "toolOutput",
+      "direction": "fg",
+      "claude": "tool-bash-fail-expanded@11:5",
+      "pi": {
+        "scene": "tool-bash-fail-expanded",
+        "find": "Command exited with code 1",
+        "char": "C"
+      },
+      "differentText": "Claude says 'Error: Exit code 1' where Pi says 'Command exited with code 1'; color only.",
+      "surface": "failed bash exit line"
+    },
+    {
+      "role": "toolDiffRemoved",
+      "direction": "bg",
+      "claude": "tool-edit@13:60",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 3;",
+        "char": " ",
+        "after": 20
+      },
+      "surface": "removed line background past the end of the text"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "bg",
+      "claude": "tool-edit@15:60",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "const maxAttempts = 5;",
+        "char": " ",
+        "after": 20
+      },
+      "surface": "added line background past the end of the text"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@12:31",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "request(url",
+        "char": "r"
+      },
+      "surface": "diff syntax: function name"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@12:38",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "request(url",
+        "char": "("
+      },
+      "surface": "diff syntax: punctuation"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@12:39",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "request(url",
+        "char": "u"
+      },
+      "surface": "diff syntax: parameter"
+    },
+    {
+      "role": "toolDiffAdded",
+      "direction": "fg",
+      "claude": "tool-edit@15:31",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "maxAttempts = 5;",
+        "char": "5"
+      },
+      "surface": "diff syntax: number on an added line"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@17:13",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "try {",
+        "char": "t"
+      },
+      "surface": "diff syntax: keyword"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@18:15",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "return await",
+        "char": "r"
+      },
+      "surface": "diff syntax: keyword"
+    },
+    {
+      "role": "toolDiffContext",
+      "direction": "fg",
+      "claude": "tool-edit@18:28",
+      "pi": {
+        "scene": "tool-edit",
+        "find": "fetchWithTimeout",
+        "char": "f"
+      },
+      "surface": "diff syntax: called function"
+    }
+  ]
+}

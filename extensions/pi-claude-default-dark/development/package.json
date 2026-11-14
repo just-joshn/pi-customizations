@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tools.json && node scripts/type-discipline.ts",
+    "test": "vitest run",
+    "verify:alignment": "vitest run tests/align.property.test.ts"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.5.2",
+    "@earendil-works/pi-tui": "1.5.2",
+    "@types/node": "22.19.0",
+    "fast-check": "4.5.3",
+    "typebox": "1.3.27",
+    "typescript": "5.9.3",
+    "vitest": "5.0.2"
+  }
+}

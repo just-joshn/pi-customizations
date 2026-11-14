@@ -1,0 +1,263 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { cleanEnv, keys, pane, runCli, runPi, sleep, startTui, stopTui, tmux, type, waitForPane, waitUntil } from '../../_shared/verify-harness.mjs';
+
+const SKILL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = resolve(SKILL_DIR, '../../..');
+const PACKAGE = join(REPO_ROOT, 'extensions/pi-claude-default-dark');
+const THEME = JSON.parse(readFileSync(join(PACKAGE, 'themes/claude-default-dark.json'), 'utf8'));
+const sgr = (hex) => `\x1b[38;2;${[1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)).join(';')}m`;
+const THEME_MUTED = sgr(THEME.colors.muted);
+const STATUS_INSTALLED = 'claude-default-dark: installed; parity requires separate verification';
+const STATUS_MISSING = 'claude-default-dark: theme resource not found';
+const ROLE_COUNT = Object.keys(THEME.colors).length;
+const USAGE = 'Usage: /claude-theme [status|use|verify]';
+const PARITY_DISCLAIMER = /Parity\s+is\s+certified\s+only\s+by\s+development\/PARITY_REPORT\.md/;
+const SCRUBBED_ENV = ['PI_CODING_AGENT_DIR', 'PI_OFFLINE', 'PI_MODEL', 'PI_PROVIDER', 'PI_REASONING_LEVEL', 'NODE_OPTIONS', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY'];
+
+const ansiPane = (run) => tmux(run, 'capture-pane', '-p', '-e', '-J', '-S', '-300', '-t', 'pi');
+const settingsPath = (ctx) => join(ctx.run.agentDir, 'settings.json');
+const readSettings = (ctx) => JSON.parse(readFileSync(settingsPath(ctx), 'utf8'));
+const writeSettings = (ctx, patch) => writeFileSync(settingsPath(ctx), JSON.stringify({ ...readSettings(ctx), ...patch }, null, 2));
+
+async function setup({ run, evidence }) {
+  const home = join(run.root, 'home');
+  mkdirSync(home);
+  const env = (agentDir = run.agentDir) => cleanEnv(SCRUBBED_ENV, { HOME: home, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', COLORTERM: 'truecolor', TERM: 'xterm-256color' });
+  const pi = (args, agentDir) => runPi(run, { env: env(agentDir), args });
+  const install = async (source, agentDir = run.agentDir) => {
+    const result = await pi(['install', source], agentDir);
+    assert.equal(result.exitCode, 0, `pi install failed: ${result.stderr}`);
+    return result;
+  };
+  const tui = async (args = [], agentDir) => {
+    await startTui(run, { env: env(agentDir), args, unset: SCRUBBED_ENV });
+    await sleep(800);
+    return ansiPane(run);
+  };
+  const command = async (text, needle) => {
+    type(run, text);
+    keys(run, 'Enter');
+    if (needle) await waitForPane(run, needle);
+    await sleep(600);
+    return ansiPane(run);
+  };
+  return { run, evidence, env, pi, install, tui, command, stop: () => stopTui(run) };
+}
+
+async function driveInstall(ctx) {
+  await ctx.evidence.step('pi install <package>', async () => {
+    const result = await ctx.install(PACKAGE);
+    await ctx.evidence.text('install.txt', `${result.args}\n${result.stdout}${result.stderr}`);
+    assert.ok(readSettings(ctx).packages?.some((p) => resolve(ctx.run.agentDir, typeof p === 'string' ? p : p.source) === PACKAGE), 'settings.json packages lists the package');
+    await ctx.evidence.json('settings.after-install.json', readSettings(ctx));
+    return { summary: 'settings.json packages lists the package' };
+  });
+  await ctx.evidence.step('pi list shows it', async () => {
+    const listed = await ctx.pi(['list']);
+    await ctx.evidence.text('list.txt', listed.stdout + listed.stderr);
+    assert.ok(listed.stdout.includes('pi-claude-default-dark'), listed.stdout);
+    return { summary: 'listed' };
+  });
+  await ctx.evidence.step('theme offered in /settings', async () => {
+    await ctx.tui();
+    await ctx.command('/settings', 'Type to search');
+    type(ctx.run, 'theme');
+    await waitForPane(ctx.run, /→ Theme/);
+    keys(ctx.run, 'Enter');
+    await waitForPane(ctx.run, /^\s*(→\s*)?claude-default-dark\s*$/m);
+    const screen = tmux(ctx.run, 'capture-pane', '-p', '-e', '-J', '-S', '-300', '-t', 'pi');
+    await ctx.evidence.text('theme-picker.ansi', screen);
+    keys(ctx.run, 'Escape');
+    await ctx.stop();
+    return { summary: 'claude-default-dark listed in the /settings theme picker' };
+  });
+}
+
+async function driveSelect(ctx) {
+  await ctx.install(PACKAGE);
+  await ctx.evidence.step('--use-theme renders the theme without saving it', async () => {
+    const screen = await ctx.tui(['--use-theme', 'claude-default-dark']);
+    await ctx.evidence.text('use-theme-flag.ansi', screen);
+    assert.ok(screen.includes(THEME_MUTED), `muted ${THEME.colors.muted} not on screen`);
+    assert.equal(readSettings(ctx).theme, undefined, 'the flag must not persist a theme');
+    await ctx.stop();
+    return { summary: `muted ${THEME.colors.muted} rendered; settings.json theme unset` };
+  });
+  await ctx.evidence.step('/settings theme picker selects and saves the theme', async () => {
+    writeSettings(ctx, { theme: 'dark' });
+    await ctx.tui();
+    await ctx.command('/settings', 'Type to search');
+    type(ctx.run, 'theme');
+    await waitForPane(ctx.run, /→ Theme/);
+    keys(ctx.run, 'Enter');
+    await waitForPane(ctx.run, /^\s*(→\s*)?(✓\s*)?claude-default-dark\s*$/m);
+    for (let i = 0; i < 8 && !/→\s*(✓\s*)?claude-default-dark\s*$/m.test(tmux(ctx.run, 'capture-pane', '-p', '-t', 'pi')); i++) {
+      keys(ctx.run, 'Down');
+      await sleep(200);
+    }
+    await waitForPane(ctx.run, /→\s*(✓\s*)?claude-default-dark\s*$/m);
+    keys(ctx.run, 'Enter');
+    await sleep(800);
+    const picked = ansiPane(ctx.run);
+    await ctx.evidence.text('picker-selected.ansi', picked);
+    assert.ok(picked.includes(THEME_MUTED), `muted ${THEME.colors.muted} not on screen after picking`);
+    await ctx.stop();
+    assert.equal(readSettings(ctx).theme, 'claude-default-dark', 'the picker saves the choice');
+    const restarted = await ctx.tui();
+    await ctx.evidence.text('picker-restarted.ansi', restarted);
+    assert.ok(restarted.includes(THEME_MUTED), 'the saved choice renders after restart');
+    await ctx.stop();
+    return { summary: 'picked from dark; saved to settings.json; rendered after restart' };
+  });
+  await ctx.evidence.step('settings.json theme renders the theme', async () => {
+    writeSettings(ctx, { theme: 'claude-default-dark' });
+    const screen = await ctx.tui();
+    await ctx.evidence.text('settings-theme.ansi', screen);
+    assert.ok(screen.includes(THEME_MUTED), `muted ${THEME.colors.muted} not on screen`);
+    await ctx.stop();
+    return { summary: `muted ${THEME.colors.muted} rendered from settings.json` };
+  });
+}
+
+async function driveStatus(ctx) {
+  await ctx.install(PACKAGE);
+  await ctx.evidence.step('/claude-theme status with the theme installed', async () => {
+    await ctx.tui(['--use-theme', 'dark']);
+    const screen = await ctx.command('/claude-theme status', STATUS_INSTALLED);
+    await ctx.evidence.text('status-installed.ansi', screen);
+    assert.doesNotMatch(screen, /parity (PASS|passed|certified)/i);
+    await ctx.stop();
+    return { summary: 'installed message, no parity claim' };
+  });
+  await ctx.evidence.step('bare /claude-theme reports status in a fresh session', async () => {
+    const start = await ctx.tui(['--use-theme', 'dark']);
+    assert.ok(!start.includes(STATUS_INSTALLED), 'no status message before the command');
+    type(ctx.run, '/claude-theme');
+    await waitForPane(ctx.run, /→ claude-theme/);
+    keys(ctx.run, 'Enter');
+    await sleep(300);
+    const screen = await ctx.command('', STATUS_INSTALLED);
+    await ctx.evidence.text('status-bare.ansi', screen);
+    await ctx.stop();
+    return { summary: 'autocomplete accepted, Enter, installed message' };
+  });
+  await ctx.evidence.step('/claude-theme status with the theme file removed', async () => {
+    const broken = join(ctx.run.root, 'package-without-theme');
+    cpSync(PACKAGE, broken, { recursive: true, filter: (src) => !src.includes(`${PACKAGE}/development`) });
+    rmSync(join(broken, 'themes'), { recursive: true });
+    const agentDir = join(ctx.run.root, 'agent-missing');
+    mkdirSync(agentDir);
+    await ctx.install(broken, agentDir);
+    await ctx.tui(['--use-theme', 'dark'], agentDir);
+    const screen = await ctx.command('/claude-theme status', STATUS_MISSING);
+    await ctx.evidence.text('status-missing.ansi', screen);
+    await ctx.stop();
+    return { summary: 'theme resource not found' };
+  });
+}
+
+async function driveUse(ctx) {
+  await ctx.install(PACKAGE);
+  writeSettings(ctx, { theme: 'dark' });
+  await ctx.evidence.step('/claude-theme use switches a dark session', async () => {
+    const before = await ctx.tui();
+    await ctx.evidence.text('before-use.ansi', before);
+    assert.ok(!before.includes(THEME_MUTED), 'session started on dark');
+    type(ctx.run, '/claude-theme use');
+    keys(ctx.run, 'Enter');
+    await sleep(1500);
+    const after = tmux(ctx.run, 'capture-pane', '-p', '-e', '-J', '-S', '-300', '-t', 'pi');
+    await ctx.evidence.text('after-use.ansi', after);
+    assert.ok(after.includes(THEME_MUTED), `muted ${THEME.colors.muted} not on screen after use`);
+    await ctx.stop();
+    await ctx.evidence.json('settings.after-use.json', readSettings(ctx));
+    assert.equal(readSettings(ctx).theme, 'claude-default-dark', 'the choice is saved');
+    return { summary: 'switched; settings.json theme saved as claude-default-dark' };
+  });
+}
+
+async function driveRespect(ctx) {
+  await ctx.install(PACKAGE);
+  writeSettings(ctx, { theme: 'dark' });
+  await ctx.evidence.step('an explicit dark choice survives startup and three reloads', async () => {
+    const start = await ctx.tui();
+    assert.ok(!start.includes(THEME_MUTED), 'startup must not switch the theme');
+    const reloaded = 'Reloaded keybindings, extensions, skills, prompts, themes, and context files';
+    for (let i = 1; i <= 3; i++) {
+      await ctx.command('/claude-theme status', STATUS_INSTALLED);
+      type(ctx.run, '/reload');
+      keys(ctx.run, 'Enter');
+      await waitUntil(`reload ${i} to finish`, () => {
+        const current = pane(ctx.run);
+        return current.includes(reloaded) && !current.includes(STATUS_INSTALLED);
+      });
+    }
+    const screen = await ctx.command('/claude-theme status', STATUS_INSTALLED);
+    await ctx.evidence.text('after-reloads.ansi', screen);
+    assert.ok(!screen.includes(THEME_MUTED), 'reloads must not switch the theme');
+    assert.equal(readSettings(ctx).theme, 'dark');
+    await ctx.stop();
+    return { summary: 'dark kept at startup and after three reloads; /claude-theme still answers' };
+  });
+}
+
+async function driveVerify(ctx) {
+  await ctx.install(PACKAGE);
+  await ctx.evidence.step('/claude-theme verify with the theme active', async () => {
+    await ctx.tui(['--use-theme', 'claude-default-dark']);
+    type(ctx.run, '/claude-theme verify');
+    keys(ctx.run, 'Enter');
+    const screen = await waitForPane(ctx.run, /Different\s+roles\s+\(\d+\):/);
+    await ctx.evidence.text('verify-active.ansi', ansiPane(ctx.run));
+    assert.match(screen, /Active\s+theme\s+claude-default-dark\./);
+    assert.match(screen, new RegExp(`Matching\\s+roles\\s+\\(${ROLE_COUNT}\\):`));
+    assert.match(screen, /Different\s+roles\s+\(0\):\s+none\./);
+    assert.match(screen, PARITY_DISCLAIMER);
+    await ctx.stop();
+    return { summary: `all ${ROLE_COUNT} roles match the shipped colors; parity disclaimer shown` };
+  });
+  await ctx.evidence.step('/claude-theme verify on dark lists differences', async () => {
+    await ctx.tui(['--use-theme', 'dark']);
+    type(ctx.run, '/claude-theme verify');
+    keys(ctx.run, 'Enter');
+    const screen = await waitForPane(ctx.run, /Different\s+roles\s+\(\d+\):/);
+    await ctx.evidence.text('verify-dark.ansi', ansiPane(ctx.run));
+    assert.match(screen, /Active\s+theme\s+dark\./);
+    assert.match(screen, /Different\s+roles\s+\([1-9]\d*\):\s+\w/);
+    assert.equal(readSettings(ctx).theme, undefined, 'verify must not save a theme');
+    await ctx.stop();
+    return { summary: 'dark reported with a non-empty difference list; nothing saved' };
+  });
+  await ctx.evidence.step('an unknown subcommand shows usage', async () => {
+    await ctx.tui(['--use-theme', 'dark']);
+    const screen = await ctx.command('/claude-theme bogus', USAGE);
+    await ctx.evidence.text('usage.ansi', screen);
+    await ctx.stop();
+    return { summary: USAGE };
+  });
+}
+
+async function doctor(check) {
+  await check('package present', () => {
+    for (const file of ['package.json', 'extensions/index.ts', 'themes/claude-default-dark.json']) assert.ok(existsSync(join(PACKAGE, file)), file);
+    return PACKAGE;
+  });
+  await check('theme muted color is a hex value', () => {
+    assert.match(THEME.colors.muted, /^#[0-9a-f]{6}$/);
+    return THEME.colors.muted;
+  });
+}
+
+await runCli({
+  scriptName: 'control-claude-default-dark',
+  prefix: 'verify-pi-cdd-',
+  evidenceRoot: join(REPO_ROOT, 'artifacts/verify-pi-claude-default-dark'),
+  scrubbedEnv: SCRUBBED_ENV,
+  drives: { install: driveInstall, select: driveSelect, status: driveStatus, use: driveUse, respect: driveRespect, verify: driveVerify },
+  setup,
+  doctor,
+});

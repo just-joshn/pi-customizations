@@ -1,0 +1,3853 @@
+{
+  "gate": "G4",
+  "verdict": "FAIL",
+  "width": 200,
+  "reason": "Unique text anchors are re-paired at this width. The original 120-column role-probe coordinates are not reused; full role coverage remains unproven.",
+  "pairs": [
+    {
+      "key": "api-error-expanded/userMessageText/fg/SCENE:api-error",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        27,
+        1
+      ]
+    },
+    {
+      "key": "api-error-expanded/userMessageBg/bg/SCENE:api-error",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        27,
+        1
+      ]
+    },
+    {
+      "key": "api-error-expanded/error/fg/Error:",
+      "expected": [
+        "#ffc107 none"
+      ],
+      "actual": [
+        "#ffc107 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        6
+      ],
+      "piAt": [
+        30,
+        1
+      ]
+    },
+    {
+      "key": "api-error-expanded/error/fg/400",
+      "expected": [
+        "#ffc107 none"
+      ],
+      "actual": [
+        "#ffc107 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        13
+      ],
+      "piAt": [
+        30,
+        8
+      ]
+    },
+    {
+      "key": "api-error-expanded/error/fg/capture",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error-expanded/error/fg/error",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        12
+      ],
+      "piAt": [
+        27,
+        11
+      ]
+    },
+    {
+      "key": "api-error-expanded/error/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error-expanded/error/fg/SCENE",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error-expanded/muted/fg/the",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/userMessageText/fg/SCENE:api-error",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "api-error/userMessageBg/bg/SCENE:api-error",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "api-error/error/fg/Error:",
+      "expected": [
+        "#ffc107 none"
+      ],
+      "actual": [
+        "#ffc107 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        6
+      ],
+      "piAt": [
+        19,
+        1
+      ]
+    },
+    {
+      "key": "api-error/error/fg/400",
+      "expected": [
+        "#ffc107 none"
+      ],
+      "actual": [
+        "#ffc107 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        13
+      ],
+      "piAt": [
+        19,
+        8
+      ]
+    },
+    {
+      "key": "api-error/error/fg/capture",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/error/fg/error",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        12
+      ],
+      "piAt": [
+        16,
+        11
+      ]
+    },
+    {
+      "key": "api-error/error/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/error/fg/SCENE",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/muted/fg/the",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "api-error/dim/fg/medium",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "assistant-text/userMessageText/fg/SCENE:assistant-text",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "assistant-text/userMessageBg/bg/SCENE:assistant-text",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "assistant-text/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/userMessageText/fg/SCENE:code-tokens",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        14,
+        1
+      ]
+    },
+    {
+      "key": "code-tokens/userMessageBg/bg/SCENE:code-tokens",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        14,
+        1
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/syntaxString/fg/\"capture\"",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/syntaxType/fg/console",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        20,
+        3
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/SELECT",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        2
+      ],
+      "piAt": [
+        24,
+        3
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/FROM",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        14
+      ],
+      "piAt": [
+        24,
+        15
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/WHERE",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        28
+      ],
+      "piAt": [
+        24,
+        29
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/AND",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        45
+      ],
+      "piAt": [
+        24,
+        46
+      ]
+    },
+    {
+      "key": "code-tokens/syntaxKeyword/fg/section",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/syntaxVariable/fg/class",
+      "expected": [
+        "#75b5aa none"
+      ],
+      "actual": [
+        "#75b5aa none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        16,
+        11
+      ],
+      "piAt": [
+        28,
+        12
+      ]
+    },
+    {
+      "key": "code-tokens/mdCodeBlock/fg/plain",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/mdCodeBlock/fg/code",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "code-tokens/mdCodeBlock/fg/without",
+      "expected": [
+        "#b1b9f9 none"
+      ],
+      "actual": [
+        "#b1b9f9 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        13
+      ],
+      "piAt": [
+        32,
+        14
+      ]
+    },
+    {
+      "key": "code-tokens/mdCodeBlock/fg/language",
+      "expected": [
+        "#b1b9f9 none"
+      ],
+      "actual": [
+        "#b1b9f9 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        23
+      ],
+      "piAt": [
+        32,
+        24
+      ]
+    },
+    {
+      "key": "code-tokens/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/conversation",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/about",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/bounded",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/retries",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/and",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        27,
+        60
+      ],
+      "piAt": [
+        33,
+        17
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/shared",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/helper.",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/synthetic",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/conversation",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/about",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/bounded",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/retries",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/and",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        27,
+        60
+      ],
+      "piAt": [
+        33,
+        17
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/shared",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/helper.",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/synthetic",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/Compaction",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        5
+      ],
+      "piAt": [
+        30,
+        1
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/input",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        16
+      ],
+      "piAt": [
+        30,
+        12
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageText/fg/complete.",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        22
+      ],
+      "piAt": [
+        30,
+        18
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/Compaction",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        5
+      ],
+      "piAt": [
+        30,
+        1
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/input",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        16
+      ],
+      "piAt": [
+        30,
+        12
+      ]
+    },
+    {
+      "key": "compaction-expanded/customMessageBg/bg/complete.",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        22
+      ],
+      "piAt": [
+        30,
+        18
+      ]
+    },
+    {
+      "key": "compaction-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "compaction/customMessageText/fg/Compacted",
+      "expected": [
+        "#d8d8d8 dim"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        34,
+        5
+      ],
+      "piAt": [
+        32,
+        1
+      ]
+    },
+    {
+      "key": "compaction/customMessageBg/bg/Compacted",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        34,
+        5
+      ],
+      "piAt": [
+        32,
+        1
+      ]
+    },
+    {
+      "key": "compaction/dim/fg/ctrl+o",
+      "expected": [
+        "#d8d8d8 dim"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        34,
+        16
+      ],
+      "piAt": [
+        32,
+        27
+      ]
+    },
+    {
+      "key": "compaction/customMessageBg/bg/ctrl+o",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        34,
+        16
+      ],
+      "piAt": [
+        32,
+        27
+      ]
+    },
+    {
+      "key": "compaction/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "fullscreen-search/searchMatchText/fg/bounded",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "fullscreen-search/searchMatchBg/bg/bounded",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "fullscreen-search/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "idle/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "idle/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "login-picker/accent/fg/Select",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#b1b9f9 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        33,
+        3
+      ],
+      "piAt": [
+        29,
+        1
+      ]
+    },
+    {
+      "key": "login-picker/accent/fg/method:",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#b1b9f9 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        33,
+        16
+      ],
+      "piAt": [
+        29,
+        23
+      ]
+    },
+    {
+      "key": "login-picker/accent/fg/with",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "login-picker/accent/fg/account",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "login-picker/text/fg/with",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "login-picker/text/fg/API",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "login-picker/muted/fg/cancel",
+      "expected": [
+        "#999999 italic"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        39,
+        10
+      ],
+      "piAt": [
+        35,
+        42
+      ]
+    },
+    {
+      "key": "login-picker/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        28,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "markdown/userMessageText/fg/SCENE:markdown",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        7,
+        2
+      ],
+      "piAt": [
+        5,
+        1
+      ]
+    },
+    {
+      "key": "markdown/userMessageBg/bg/SCENE:markdown",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        7,
+        2
+      ],
+      "piAt": [
+        5,
+        1
+      ]
+    },
+    {
+      "key": "markdown/mdHeading/fg/Implementation",
+      "expected": [
+        "#d8d8d8 bold"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        9,
+        2
+      ],
+      "piAt": [
+        8,
+        1
+      ]
+    },
+    {
+      "key": "markdown/mdLink/fg/link",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 underline"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        11,
+        59
+      ],
+      "piAt": [
+        10,
+        58
+      ]
+    },
+    {
+      "key": "markdown/mdLinkUrl/fg/(https://example.com)",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        64
+      ],
+      "piAt": [
+        10,
+        63
+      ]
+    },
+    {
+      "key": "markdown/mdCode/fg/request()",
+      "expected": [
+        "#b1b9f9 none"
+      ],
+      "actual": [
+        "#b1b9f9 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        13,
+        25
+      ],
+      "piAt": [
+        12,
+        24
+      ]
+    },
+    {
+      "key": "markdown/mdQuote/fg/the",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "markdown/syntaxKeyword/fg/export",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        21,
+        2
+      ],
+      "piAt": [
+        21,
+        3
+      ]
+    },
+    {
+      "key": "markdown/syntaxKeyword/fg/async",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        21,
+        9
+      ],
+      "piAt": [
+        21,
+        10
+      ]
+    },
+    {
+      "key": "markdown/syntaxKeyword/fg/function",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        21,
+        15
+      ],
+      "piAt": [
+        21,
+        16
+      ]
+    },
+    {
+      "key": "markdown/syntaxFunction/fg/request(",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "markdown/syntaxType/fg/string",
+      "expected": [
+        "#75b5aa none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        21,
+        37
+      ],
+      "piAt": [
+        21,
+        38
+      ]
+    },
+    {
+      "key": "markdown/syntaxKeyword/fg/const",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        22,
+        4
+      ],
+      "piAt": [
+        22,
+        5
+      ]
+    },
+    {
+      "key": "markdown/syntaxComment/fg/retries",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "markdown/syntaxKeyword/fg/return",
+      "expected": [
+        "#6a9fb5 none"
+      ],
+      "actual": [
+        "#6a9fb5 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        23,
+        4
+      ],
+      "piAt": [
+        23,
+        5
+      ]
+    },
+    {
+      "key": "markdown/mdHr/fg/────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "markdown/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "markdown/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "mermaid/userMessageText/fg/SCENE:mermaid",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "mermaid/userMessageBg/bg/SCENE:mermaid",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "mermaid/text/fg/Start",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        6
+      ],
+      "piAt": [
+        20,
+        4
+      ]
+    },
+    {
+      "key": "mermaid/text/fg/Finish",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        19
+      ],
+      "piAt": [
+        25,
+        3
+      ]
+    },
+    {
+      "key": "mermaid/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "mermaid/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "model-picker/warning/fg/models",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#cd9a22 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        29,
+        25
+      ],
+      "piAt": [
+        16,
+        13
+      ]
+    },
+    {
+      "key": "model-picker/warning/fg/Use",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#cd9a22 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        31,
+        33
+      ],
+      "piAt": [
+        16,
+        47
+      ]
+    },
+    {
+      "key": "model-picker/muted/fg/Opus",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "model-picker/muted/fg/default",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "model-picker/muted/fg/Haiku",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "model-picker/muted/fg/Claude",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "model-picker/dim/fg/Enter",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        39,
+        3
+      ],
+      "piAt": [
+        36,
+        2
+      ]
+    },
+    {
+      "key": "model-picker/dim/fg/set",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        39,
+        12
+      ],
+      "piAt": [
+        36,
+        30
+      ]
+    },
+    {
+      "key": "model-picker/dim/fg/default",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "model-picker/dim/fg/cancel",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        39,
+        65
+      ],
+      "piAt": [
+        36,
+        64
+      ]
+    },
+    {
+      "key": "model-picker/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        27,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "prompt-typed/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "prompt-typed/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "shell-mode/bashMode/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "shell-run/bashMode/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "shell-run/muted/fg/notes.txt",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        9,
+        5
+      ],
+      "piAt": [
+        18,
+        1
+      ]
+    },
+    {
+      "key": "shell-run/muted/fg/src",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        5
+      ],
+      "piAt": [
+        19,
+        1
+      ]
+    },
+    {
+      "key": "shell-run/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "shell-run/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "slash-autocomplete/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "thinking/userMessageText/fg/SCENE:thinking",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "thinking/userMessageBg/bg/SCENE:thinking",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "thinking/thinkingText/fg/share",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "thinking/thinkingText/fg/one",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "thinking/thinkingText/fg/helper.",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "thinking/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "thinking/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/userMessageText/fg/SCENE:tool-bash-fail",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        17,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/userMessageBg/bg/SCENE:tool-bash-fail",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        17,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolTitle/fg/printf",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        7
+      ],
+      "piAt": [
+        21,
+        3
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolTitle/fg/'FAIL",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        14
+      ],
+      "piAt": [
+        21,
+        10
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolTitle/fg/tests/client.test.ts\\n'",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        20
+      ],
+      "piAt": [
+        21,
+        16
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolTitle/fg/false",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        47
+      ],
+      "piAt": [
+        21,
+        43
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/printf",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        7
+      ],
+      "piAt": [
+        21,
+        3
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/'FAIL",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        14
+      ],
+      "piAt": [
+        21,
+        10
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/tests/client.test.ts\\n'",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        20
+      ],
+      "piAt": [
+        21,
+        16
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/false",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        47
+      ],
+      "piAt": [
+        21,
+        43
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolOutput/fg/FAIL",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolOutput/fg/tests/client.test.ts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/FAIL",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/tests/client.test.ts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolOutput/fg/code",
+      "expected": [
+        "#ff6b80 none"
+      ],
+      "actual": [
+        "#ff6b80 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        17
+      ],
+      "piAt": [
+        26,
+        21
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/toolErrorBg/bg/code",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        17
+      ],
+      "piAt": [
+        26,
+        21
+      ]
+    },
+    {
+      "key": "tool-bash-fail-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail/userMessageText/fg/SCENE:tool-bash-fail",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-fail/userMessageBg/bg/SCENE:tool-bash-fail",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-fail/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-fail/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/userMessageText/fg/SCENE:tool-bash-ok",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        20,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/userMessageBg/bg/SCENE:tool-bash-ok",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        20,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolTitle/fg/printf",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        7
+      ],
+      "piAt": [
+        24,
+        3
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolTitle/fg/'42",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        14
+      ],
+      "piAt": [
+        24,
+        10
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolTitle/fg/passed\\n'",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 bold"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        10,
+        18
+      ],
+      "piAt": [
+        24,
+        14
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolSuccessBg/bg/printf",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        7
+      ],
+      "piAt": [
+        24,
+        3
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolSuccessBg/bg/'42",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        14
+      ],
+      "piAt": [
+        24,
+        10
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolSuccessBg/bg/passed\\n'",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        18
+      ],
+      "piAt": [
+        24,
+        14
+      ]
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolOutput/fg/passed",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok-expanded/toolSuccessBg/bg/passed",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok/userMessageText/fg/SCENE:tool-bash-ok",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-ok/userMessageBg/bg/SCENE:tool-bash-ok",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-bash-ok/toolOutput/fg/passed",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok/toolSuccessBg/bg/passed",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-bash-ok/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/userMessageText/fg/SCENE:tool-edit",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        13,
+        1
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/userMessageBg/bg/SCENE:tool-edit",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        13,
+        1
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolTitle/fg/edit",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/edit",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/accent/fg/src/client.ts",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        93
+      ],
+      "piAt": [
+        17,
+        6
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/src/client.ts",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        93
+      ],
+      "piAt": [
+        17,
+        6
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/export",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        9
+      ],
+      "piAt": [
+        19,
+        5
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/async",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        16
+      ],
+      "piAt": [
+        19,
+        12
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/function",
+      "expected": [
+        "#66d9ef none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        12,
+        22
+      ],
+      "piAt": [
+        19,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/export",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        9
+      ],
+      "piAt": [
+        19,
+        5
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/async",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        16
+      ],
+      "piAt": [
+        19,
+        12
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/function",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        22
+      ],
+      "piAt": [
+        19,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/request(url:",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        31
+      ],
+      "piAt": [
+        19,
+        27
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/string)",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        44
+      ],
+      "piAt": [
+        19,
+        40
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffRemoved/fg/i++)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        44
+      ],
+      "piAt": [
+        21,
+        40
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/attempt",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffAdded/fg/attempt++)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        16,
+        56
+      ],
+      "piAt": [
+        23,
+        52
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/attempt",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/try",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/try",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/return",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        15
+      ],
+      "piAt": [
+        25,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/await",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        22
+      ],
+      "piAt": [
+        25,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/return",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        15
+      ],
+      "piAt": [
+        25,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/await",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        22
+      ],
+      "piAt": [
+        25,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/fetchWithTimeout(url);",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        28
+      ],
+      "piAt": [
+        25,
+        24
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/catch",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        15
+      ],
+      "piAt": [
+        26,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/(error)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        21
+      ],
+      "piAt": [
+        26,
+        17
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/catch",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        15
+      ],
+      "piAt": [
+        26,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolSuccessBg/bg/(error)",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        21
+      ],
+      "piAt": [
+        26,
+        17
+      ]
+    },
+    {
+      "key": "tool-edit-expanded/toolDiffContext/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/userMessageText/fg/SCENE:tool-edit",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        15,
+        1
+      ]
+    },
+    {
+      "key": "tool-edit/userMessageBg/bg/SCENE:tool-edit",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        15,
+        1
+      ]
+    },
+    {
+      "key": "tool-edit/toolTitle/fg/edit",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/edit",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/accent/fg/src/client.ts",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        9
+      ],
+      "piAt": [
+        19,
+        6
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/src/client.ts",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        9
+      ],
+      "piAt": [
+        19,
+        6
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/export",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        9
+      ],
+      "piAt": [
+        21,
+        5
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/async",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        16
+      ],
+      "piAt": [
+        21,
+        12
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/function",
+      "expected": [
+        "#66d9ef none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "FAIL",
+      "claudeAt": [
+        12,
+        22
+      ],
+      "piAt": [
+        21,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/export",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        9
+      ],
+      "piAt": [
+        21,
+        5
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/async",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        16
+      ],
+      "piAt": [
+        21,
+        12
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/function",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        22
+      ],
+      "piAt": [
+        21,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/request(url:",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        31
+      ],
+      "piAt": [
+        21,
+        27
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/string)",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        44
+      ],
+      "piAt": [
+        21,
+        40
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffRemoved/fg/i++)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        14,
+        44
+      ],
+      "piAt": [
+        23,
+        40
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/const",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/for",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/(let",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/attempt",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/maxAttempts;",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffAdded/fg/attempt++)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        16,
+        56
+      ],
+      "piAt": [
+        25,
+        52
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/attempt",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/try",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/try",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/return",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        15
+      ],
+      "piAt": [
+        27,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/await",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        22
+      ],
+      "piAt": [
+        27,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/return",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        15
+      ],
+      "piAt": [
+        27,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/await",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        22
+      ],
+      "piAt": [
+        27,
+        18
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/fetchWithTimeout(url);",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        18,
+        28
+      ],
+      "piAt": [
+        27,
+        24
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/catch",
+      "expected": [
+        "#f92672 none"
+      ],
+      "actual": [
+        "#f92672 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        15
+      ],
+      "piAt": [
+        28,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/(error)",
+      "expected": [
+        "#f8f8f2 none"
+      ],
+      "actual": [
+        "#f8f8f2 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        21
+      ],
+      "piAt": [
+        28,
+        17
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/catch",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        15
+      ],
+      "piAt": [
+        28,
+        11
+      ]
+    },
+    {
+      "key": "tool-edit/toolSuccessBg/bg/(error)",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        19,
+        21
+      ],
+      "piAt": [
+        28,
+        17
+      ]
+    },
+    {
+      "key": "tool-edit/toolDiffContext/fg/maxAttempts",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-edit/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "tool-pending/userMessageText/fg/SCENE:tool-pending",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-pending/userMessageBg/bg/SCENE:tool-pending",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-pending/toolTitle/fg/sleep",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        7
+      ],
+      "piAt": [
+        20,
+        3
+      ]
+    },
+    {
+      "key": "tool-pending/toolTitle/fg/printf",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        16
+      ],
+      "piAt": [
+        20,
+        12
+      ]
+    },
+    {
+      "key": "tool-pending/toolTitle/fg/'pending",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        23
+      ],
+      "piAt": [
+        20,
+        19
+      ]
+    },
+    {
+      "key": "tool-pending/toolTitle/fg/tool",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-pending/toolTitle/fg/finished\\n'",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        37
+      ],
+      "piAt": [
+        20,
+        33
+      ]
+    },
+    {
+      "key": "tool-pending/toolPendingBg/bg/sleep",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        7
+      ],
+      "piAt": [
+        20,
+        3
+      ]
+    },
+    {
+      "key": "tool-pending/toolPendingBg/bg/printf",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        16
+      ],
+      "piAt": [
+        20,
+        12
+      ]
+    },
+    {
+      "key": "tool-pending/toolPendingBg/bg/'pending",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        23
+      ],
+      "piAt": [
+        20,
+        19
+      ]
+    },
+    {
+      "key": "tool-pending/toolPendingBg/bg/tool",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-pending/toolPendingBg/bg/finished\\n'",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        11,
+        37
+      ],
+      "piAt": [
+        20,
+        33
+      ]
+    },
+    {
+      "key": "tool-pending/thinkingMedium/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-pending/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read-expanded/userMessageText/fg/SCENE:tool-read",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        20,
+        1
+      ]
+    },
+    {
+      "key": "tool-read-expanded/userMessageBg/bg/SCENE:tool-read",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        20,
+        1
+      ]
+    },
+    {
+      "key": "tool-read-expanded/toolTitle/fg/read",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read-expanded/toolSuccessBg/bg/read",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read-expanded/accent/fg/notes.txt",
+      "expected": [
+        "#d8d8d8 none"
+      ],
+      "actual": [
+        "#d8d8d8 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        91
+      ],
+      "piAt": [
+        24,
+        6
+      ]
+    },
+    {
+      "key": "tool-read-expanded/toolSuccessBg/bg/notes.txt",
+      "expected": [
+        "#181818"
+      ],
+      "actual": [
+        "#181818"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        10,
+        91
+      ],
+      "piAt": [
+        24,
+        6
+      ]
+    },
+    {
+      "key": "tool-read-expanded/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read/userMessageText/fg/SCENE:tool-read",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-read/userMessageBg/bg/SCENE:tool-read",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "tool-read/toolTitle/fg/read",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read/toolSuccessBg/bg/read",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "tool-read/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "unicode/userMessageText/fg/SCENE:unicode",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "unicode/userMessageBg/bg/SCENE:unicode",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        12,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "unicode/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "unicode/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "working-1600ms/userMessageText/fg/SCENE:working",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-1600ms/userMessageBg/bg/SCENE:working",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-1600ms/thinkingMedium/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-1600ms/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-1600ms/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "working-2400ms/userMessageText/fg/SCENE:working",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-2400ms/userMessageBg/bg/SCENE:working",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-2400ms/thinkingMedium/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-2400ms/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-2400ms/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "working-3200ms/userMessageText/fg/SCENE:working",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-3200ms/userMessageBg/bg/SCENE:working",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-3200ms/thinkingMedium/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-3200ms/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-3200ms/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    },
+    {
+      "key": "working-800ms/userMessageText/fg/SCENE:working",
+      "expected": [
+        "#ffffff none"
+      ],
+      "actual": [
+        "#ffffff none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-800ms/userMessageBg/bg/SCENE:working",
+      "expected": [
+        "#373737"
+      ],
+      "actual": [
+        "#373737"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        8,
+        2
+      ],
+      "piAt": [
+        16,
+        1
+      ]
+    },
+    {
+      "key": "working-800ms/thinkingMedium/fg/───────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-800ms/thinkingMedium/fg/────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────",
+      "verdict": "INCONCLUSIVE",
+      "reason": "Text anchor is absent or not unique at this width."
+    },
+    {
+      "key": "working-800ms/dim/fg/medium",
+      "expected": [
+        "#999999 none"
+      ],
+      "actual": [
+        "#999999 none"
+      ],
+      "verdict": "PASS",
+      "claudeAt": [
+        35,
+        182
+      ],
+      "piAt": [
+        39,
+        194
+      ]
+    }
+  ]
+}

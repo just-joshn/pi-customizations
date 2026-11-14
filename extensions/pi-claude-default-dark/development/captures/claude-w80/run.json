@@ -1,0 +1,49 @@
+{
+  "product": "claude",
+  "theme": "dark",
+  "width": 80,
+  "scenes": {
+    "idle": "comparable",
+    "prompt-typed": "comparable",
+    "assistant-text": "comparable",
+    "markdown": "comparable",
+    "unicode": "comparable",
+    "thinking": "comparable",
+    "api-error": "comparable",
+    "tool-read": "comparable",
+    "tool-bash-ok": "comparable",
+    "tool-bash-fail": "comparable",
+    "tool-edit": "comparable",
+    "working": "comparable",
+    "code-tokens": "comparable",
+    "tool-pending": "comparable",
+    "compaction": "comparable",
+    "mermaid": "comparable",
+    "login-picker": "comparable",
+    "fullscreen-search": "comparable",
+    "slash-autocomplete": "comparable",
+    "shell-mode": "comparable",
+    "shell-run": "comparable",
+    "model-picker": "comparable",
+    "effort-low": "comparable",
+    "effort-medium": "comparable",
+    "effort-high": "comparable",
+    "effort-xhigh": "comparable",
+    "effort-max": "comparable"
+  },
+  "failures": {},
+  "requests": 30,
+  "requestUrls": [
+    "/v1/messages?beta=true"
+  ],
+  "auth": [
+    "synthetic"
+  ],
+  "refusedEgress": [
+    "CONNECT downloads.claude.ai:443",
+    "CONNECT github.com:443",
+    "ssh -T -o BatchMode=yes -o ConnectTimeout=2 -o StrictHostKeyChecking=yes git@github.com",
+    "ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o SendEnv=GIT_PROTOCOL git@github.com git-upload-pack 'anthropics/claude-plugins-official.git'"
+  ],
+  "nonLoopbackConnections": []
+}

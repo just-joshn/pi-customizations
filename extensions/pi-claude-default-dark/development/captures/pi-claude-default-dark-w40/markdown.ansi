@@ -1,0 +1,40 @@
+[48;2;55;55;55m                                        
+
+[49m [1mImplementation[0m     
+
+ Here is the [1msmallest safe[0m refactor     
+ with [3mone[0m helper and a [4mlink[0m             
+ (https://example.com).                 
+
+ 1. Preserve the public [38;2;177;185;249mrequest()[39m       
+    signature.      
+ 2. Share retry logic through a private 
+    helper.         
+
+ - bounded retries  
+ - current backoff  
+
+ [38;2;157;165;169m│ [3m[39mKeep the API stable.[0m                 
+
+ [38;2;157;165;169m```ts[39m    
+   [38;5;4mexport[39m [38;5;4masync[39m [38;5;4mfunction[38;5;3m request([38;5;6murl:   
+[39m string[38;5;3m): Promise<Response> [39m{           
+     [38;5;4mconst[39m attempts = [38;5;2m3[39m; [38;5;2m// retries[39m     
+     [38;5;4mreturn[39m withRetry([38;5;3m() =>[39m fetch(url), 
+ attempts);         
+   }      
+ [38;2;157;165;169m```[39m      
+
+ ────────────────────────────────────── 
+
+ ┌───────────────┬──────────┐           
+ │ [1mfile         [0m │ [1mchange  [0m │           
+ ├───────────────┼──────────┤           
+ │ src/client.ts │ refactor │           
+ └───────────────┴──────────┘           
+
+[38;2;136;136;136m────────────────────────────────────────
+[7m[39m [0m         
+[38;2;136;136;136m────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l...
+↑10 ↓7 $0.000 0.0%/200k (auto)  claude-o

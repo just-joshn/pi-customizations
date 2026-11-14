@@ -1,0 +1,1232 @@
+{
+  "roles": {
+    "accent": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["login-picker@29:3", "login-picker@35:3", "model-picker@29:30", "tool-read-expanded@10:6", "tool-edit@10:8"],
+      "contexts": [
+        {
+          "at": "login-picker@29:3",
+          "value": "#b1b9f9",
+          "attrs": "bold",
+          "surface": "dialog title"
+        },
+        {
+          "at": "login-picker@35:3",
+          "value": "#b1b9f9",
+          "attrs": "none",
+          "surface": "selected option cursor/label (35:8 label too)"
+        },
+        {
+          "at": "model-picker@29:30",
+          "value": "#4eba65",
+          "attrs": "none",
+          "surface": "current-model check mark ✔ (Pi paints its ✓ with accent)"
+        },
+        {
+          "at": "tool-read-expanded@10:6",
+          "value": "default",
+          "attrs": "none",
+          "surface": "tool-call path argument (Pi paints path with accent)"
+        },
+        {
+          "at": "tool-edit@10:8",
+          "value": "default",
+          "attrs": "none",
+          "surface": "tool-call path argument (collapsed edit)"
+        }
+      ],
+      "piSurface": "dialog titles, selected list row (→), current-model ✓, tool header path argument, mermaid edges, \"✓ New session started\", tree markers",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Claude uses #b1b9f9 for dialog title/cursor/selected label, #4eba65 for the current-model check, and plain default for tool path args. Pi \"✓ New session started\" and mermaid edges have no Claude referent."
+    },
+    "border": {
+      "class": "measured",
+      "value": "#b1b9f9",
+      "attrs": "none",
+      "evidence": ["login-picker@28:0", "model-picker@24:0"],
+      "piSurface": "DynamicBorder rules framing dialogs/selectors (login, model picker)",
+      "claudeSurface": "Pane top rule ▔▔▔ above picker dialogs",
+      "note": "Same color in both pickers. Glyph differs (▔ top only vs Pi ─ top+bottom) = geometry axis. Tree/session selector borders are Pi-only scenes."
+    },
+    "borderAccent": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "tree-selector \"[compaction: Nk tokens]\" label (session tree)",
+      "claudeSurface": "none",
+      "note": "Only painted in compaction-tree/session-tree, which are Pi-only (/tree has no Claude scene)."
+    },
+    "borderMuted": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "mermaid diagram box borders (┌─┐│└┘)",
+      "claudeSurface": "none",
+      "note": "Pi renders mermaid as a Unicode diagram; Claude prints the source text, so no border exists. (Pi editor borderColor=borderMuted is always overridden by thinking-level/bashMode.)"
+    },
+    "success": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "model-selector refresh status, oauth \"✓ configured\", tree \"assistant:\" label, config [x]",
+      "claudeSurface": "none",
+      "note": "No comparable-scene Pi success surface has a Claude counterpart. Claude has #4eba65 (tool success bullet, current-model ✔) but those are painted by Pi tool/accent surfaces, so a name match is not evidence. Candidate surfaces: model-picker@29:8, tool-read-expanded@10:0."
+    },
+    "error": {
+      "class": "measured",
+      "value": "#ffc107",
+      "attrs": "none",
+      "evidence": ["api-error@14:2", "api-error-expanded@11:2"],
+      "piSurface": "assistant-message error line \"Error: 400 {…}\"",
+      "claudeSurface": "\"⏺ API Error: 400 …\" line (text and bullet)",
+      "note": "Claude paints API errors with #ffc107 (not its #ff6b80 error color). Flag: Pi also uses error for edit-tool failures, \"(exit N)\", footer context % — not captured in Claude, so not covered. Claude #ff6b80 appears on bash-failure text/bullet which Pi paints via toolOutput."
+    },
+    "warning": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "model-selector notice, bash \"(cancelled)\"/truncated, retry spinner, footer context %, update banner",
+      "claudeSurface": "none",
+      "note": "In the comparable model-picker scene the Pi surface is the top notice \"Only showing models from configured providers…\", which has no Claude analog (Claude subtitle #999999 is a different element). Claude #ffc107 appears on API errors and the auto-mode status line, neither of which Pi paints with warning."
+    },
+    "muted": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["idle@39:17", "model-picker@29:33", "login-picker@35:43", "shell-run@9:5"],
+      "contexts": [
+        {
+          "at": "idle@39:17",
+          "value": "#999999",
+          "attrs": "none",
+          "surface": "status-line hint \"(shift+tab to cycle) · …\""
+        },
+        {
+          "at": "model-picker@29:33",
+          "value": "#999999",
+          "attrs": "none",
+          "surface": "picker option description"
+        },
+        {
+          "at": "login-picker@35:43",
+          "value": "#999999",
+          "attrs": "none",
+          "surface": "picker option description"
+        },
+        {
+          "at": "shell-run@9:5",
+          "value": "default",
+          "attrs": "none",
+          "surface": "user \"!\" command output (Pi paints bash output with muted)"
+        }
+      ],
+      "piSurface": "key-hint descriptions, picker descriptions, scroll info, \"!\" bash output lines, Elapsed/Took timers",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Hints/descriptions are #999999, but Pi paints user-bash output with muted while Claude renders it in default fg."
+    },
+    "dim": {
+      "class": "measured",
+      "value": "#999999",
+      "attrs": "none",
+      "evidence": ["idle@1:23", "idle@3:11", "idle@35:100", "assistant-text@35:90"],
+      "piSurface": "footer pwd/stats, startup version/hint text, key names in hint rows",
+      "claudeSurface": "banner version, banner cwd, effort indicator \"◐ medium · /effort\", right-aligned hint",
+      "note": "Claude has a single secondary-text color #999999 (no muted/dim split). Italic variant on login-picker@39:3 and the default+dim-attribute style (compaction line, divider, quote bar) are separate surfaces not painted by Pi dim."
+    },
+    "text": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["login-picker@36:8", "login-picker@37:8"],
+      "piSurface": "unselected list option text (login picker), mermaid labels, jump-pill label",
+      "claudeSurface": "unselected picker option label",
+      "note": "Default fg in Claude. Mermaid labels and jump-to-latest pill are Pi-only surfaces."
+    },
+    "thinkingText": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["thinking@14:2", "thinking@14:14"],
+      "piSurface": "thinking block content (italic, collapsed/expanded)",
+      "claudeSurface": "\"Thought for 1s\" summary (#999999, count bold)",
+      "note": "Claude hides thinking content and shows a summary label; Pi shows content italic (italic is hardcoded by Pi, Claude label is not italic). Structure and attributes differ; expanded Claude thinking content is not captured. Candidate #999999 at thinking@14:2/14:14 is not a same-surface match."
+    },
+    "selectedBg": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "tree/session selector selected row background, fullscreen \"↓ Jump to latest\" pill",
+      "claudeSurface": "none",
+      "note": "Claude pickers indicate selection with foreground (❯ + #b1b9f9) and no background (see accent). Claude mouse selection (selectionBg) is not captured."
+    },
+    "scrollbarTrack": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "fullscreen scrollbar track │",
+      "claudeSurface": "none",
+      "note": "Claude fullscreen captures (fullscreen-scrollbar, fullscreen-search) draw no scrollbar glyphs at the right edge."
+    },
+    "scrollbarThumb": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "fullscreen scrollbar thumb ┃",
+      "claudeSurface": "none",
+      "note": "Same as scrollbarTrack: no Claude scrollbar rendered."
+    },
+    "searchMatchBg": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-search@6:35", "fullscreen-search@34:35"],
+      "piSurface": "fullscreen search match background (ordinary: underline + fg/bg; current: bold+inverse of fg/bg)",
+      "claudeSurface": "search match = SGR inverse with default fg/bg (ordinary) / ansi:3 + bold+underline+inverse (current)",
+      "note": "Claude highlights by inverse video with default colors; Pi ordinary match is underline+colors without inverse, current is bold+inverse. Attributes are fixed by Pi, so the Claude look cannot be reproduced by role values."
+    },
+    "searchMatchText": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-search@6:35", "fullscreen-search@34:35"],
+      "contexts": [
+        {
+          "at": "fullscreen-search@6:35",
+          "value": "default",
+          "attrs": "inverse",
+          "surface": "ordinary match"
+        },
+        {
+          "at": "fullscreen-search@34:35",
+          "value": "ansi:3",
+          "attrs": "bold+underline+inverse",
+          "surface": "current match"
+        }
+      ],
+      "piSurface": "fullscreen search match foreground (shared by ordinary and current match)",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi uses one role for both states; Claude differs (default vs ansi:3, and attrs inverse vs bold+underline+inverse)."
+    },
+    "userMessageBg": {
+      "class": "measured",
+      "value": "#373737",
+      "attrs": "none",
+      "evidence": ["assistant-text@12:0", "assistant-text@12:2", "compaction@33:2", "unicode@12:2"],
+      "piSurface": "user message panel background",
+      "claudeSurface": "submitted prompt row background",
+      "note": "All user echoes (SCENE:*, /clear, /compact) use #373737. The \"!\" bash echo uses #413c41 (listed in claudeOnly). Hover variant not captured."
+    },
+    "userMessageText": {
+      "class": "measured",
+      "value": "#ffffff",
+      "attrs": "none",
+      "evidence": ["assistant-text@12:2", "compaction@33:2", "unicode@12:2"],
+      "piSurface": "user message text",
+      "claudeSurface": "submitted prompt text",
+      "note": "The leading ❯ glyph is #999999 (claudeOnly)."
+    },
+    "customMessageBg": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["compaction-expanded@5:0", "compaction@34:5"],
+      "piSurface": "compaction/branch/custom message panel bg",
+      "claudeSurface": "compaction summary rows",
+      "note": "Claude draws no panel behind compaction text in either collapsed or expanded form."
+    },
+    "customMessageText": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["compaction-expanded@5:0", "compaction@34:5"],
+      "contexts": [
+        {
+          "at": "compaction-expanded@5:0",
+          "value": "default",
+          "attrs": "none",
+          "surface": "expanded summary body"
+        },
+        {
+          "at": "compaction@34:5",
+          "value": "default",
+          "attrs": "dim",
+          "surface": "collapsed \"Compacted (ctrl+o to see full summary)\""
+        }
+      ],
+      "piSurface": "compaction/skill/branch summary text, collapsed and expanded",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Same color, but Claude dims the collapsed line via SGR dim and not the expanded body; a theme cannot toggle dim per context."
+    },
+    "customMessageLabel": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "bold \"[compaction]\"/\"[skill]\"/\"[branch]\" label",
+      "claudeSurface": "none",
+      "note": "Claude has no label before compaction text; collapsed row is just \"⎿  Compacted (…)\" (gutter is claudeOnly)."
+    },
+    "toolPendingBg": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["tool-pending@11:0", "tool-pending@10:1"],
+      "piSurface": "pending tool panel background",
+      "claudeSurface": "tool in-progress rows",
+      "note": "Claude tool rows have no background in any state."
+    },
+    "toolSuccessBg": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["tool-bash-ok-expanded@10:2", "tool-read-expanded@10:2", "tool-edit@10:2", "tool-edit@12:5"],
+      "piSurface": "successful tool panel background",
+      "claudeSurface": "tool call/result rows",
+      "note": "Edit context lines are default bg too; added/removed line backgrounds are a separate Claude-only surface (no Pi role)."
+    },
+    "toolErrorBg": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["tool-bash-fail-expanded@10:2", "tool-bash-fail-expanded@11:5", "tool-bash-fail@10:2"],
+      "piSurface": "failed tool panel background",
+      "claudeSurface": "failed tool call/result rows",
+      "note": "Claude marks failure with foreground #ff6b80 (see toolOutput), not a background."
+    },
+    "toolTitle": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["tool-read@10:2", "tool-bash-ok@10:2", "tool-bash-ok-expanded@10:2", "tool-edit@10:2"],
+      "contexts": [
+        {
+          "at": "tool-read@10:2",
+          "value": "#999999",
+          "attrs": "none",
+          "surface": "collapsed summary \"Read 1 file\" (count bold)"
+        },
+        {
+          "at": "tool-bash-ok@10:2",
+          "value": "#999999",
+          "attrs": "none",
+          "surface": "collapsed summary \"Ran 1 shell command\""
+        },
+        {
+          "at": "tool-bash-ok-expanded@10:2",
+          "value": "default",
+          "attrs": "bold",
+          "surface": "expanded tool name \"Bash\""
+        },
+        {
+          "at": "tool-edit@10:2",
+          "value": "default",
+          "attrs": "bold",
+          "surface": "edit header \"Update\" (both collapsed and expanded)"
+        }
+      ],
+      "piSurface": "tool header (\"$ cmd\", \"read\", \"edit\"; bold hardcoded by Pi)",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Claude collapsed summaries are #999999 non-bold; expanded/edit headers are default bold. Pi paints both with one role and always bold."
+    },
+    "toolOutput": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["tool-bash-ok-expanded@11:5", "tool-bash-fail-expanded@11:5", "tool-bash-fail-expanded@12:5", "tool-read-expanded@11:5"],
+      "contexts": [
+        {
+          "at": "tool-bash-ok-expanded@11:5",
+          "value": "default",
+          "attrs": "none",
+          "surface": "successful bash output \"42 passed\""
+        },
+        {
+          "at": "tool-bash-fail-expanded@11:5",
+          "value": "#ff6b80",
+          "attrs": "none",
+          "surface": "failed bash \"Error: Exit code 1\""
+        },
+        {
+          "at": "tool-bash-fail-expanded@12:5",
+          "value": "#ff6b80",
+          "attrs": "none",
+          "surface": "failed bash output line"
+        },
+        {
+          "at": "tool-read-expanded@11:5",
+          "value": "default",
+          "attrs": "none",
+          "surface": "read result summary \"Read 4 lines\""
+        }
+      ],
+      "piSurface": "tool output text for success and failure alike",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi has no separate failure text role; Claude colors failure output #ff6b80, success default."
+    },
+    "mdHeading": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "bold",
+      "evidence": ["markdown@9:2"],
+      "piSurface": "markdown heading text (bold hardcoded)",
+      "claudeSurface": "\"## Implementation\" heading",
+      "note": "Only an h2 was captured; Claude h1/h3 styles unobserved."
+    },
+    "mdLink": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["markdown@11:59"],
+      "piSurface": "markdown link text (underline hardcoded by Pi)",
+      "claudeSurface": "link text \"link\" before \"(url)\"",
+      "note": "Claude renders link text in default fg with no underline; Pi forces underline on link text, which a color role cannot remove. Color alone would be default."
+    },
+    "mdLinkUrl": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@11:64"],
+      "piSurface": "link URL in parentheses",
+      "claudeSurface": "\"(https://example.com)\" after link text",
+      "note": "Pi adds a leading space inside the colored span; geometry only."
+    },
+    "mdCode": {
+      "class": "measured",
+      "value": "#b1b9f9",
+      "attrs": "none",
+      "evidence": ["markdown@13:25"],
+      "piSurface": "inline code span",
+      "claudeSurface": "`request()` inline code",
+      "note": "Pi also wraps mermaid diagram padding spaces in mdCode (invisible; no Claude analog)."
+    },
+    "mdCodeBlock": {
+      "class": "measured",
+      "value": "#b1b9f9",
+      "attrs": "none",
+      "evidence": ["code-tokens@18:2"],
+      "piSurface": "fenced code text without a valid language",
+      "claudeSurface": "```-fence with no language",
+      "note": "Flag: Claude unsupported-language block (\"mermaid\") renders default fg (mermaid@11:0) and Pi routes unknown languages here too; Pi renders mermaid as a diagram so that path was not captured. Language-tagged blocks leave non-token text unstyled in both."
+    },
+    "mdCodeBlockBorder": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "fence lines ```ts / ```",
+      "claudeSurface": "none",
+      "note": "Claude draws no fence lines. Its dim \"mermaid\" language label for an unsupported language is listed in claudeOnly."
+    },
+    "mdQuote": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "italic",
+      "evidence": ["markdown@19:4"],
+      "piSurface": "blockquote text (italic hardcoded)",
+      "claudeSurface": "\"Keep the API stable.\" quote text",
+      "note": ""
+    },
+    "mdQuoteBorder": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["markdown@19:2"],
+      "piSurface": "quote bar \"│ \" drawn with fg color",
+      "claudeSurface": "quote bar \"▎\" = default fg with SGR dim",
+      "note": "Claude expresses the bar as dim attribute on default color with a different glyph; Pi role is color only."
+    },
+    "mdHr": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@26:0"],
+      "piSurface": "horizontal rule (Pi ─ line)",
+      "claudeSurface": "literal \"---\" text",
+      "note": "Glyph/width differ (geometry axis); color is default."
+    },
+    "mdListBullet": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@13:0", "markdown@14:0", "markdown@16:0", "markdown@17:0"],
+      "piSurface": "list markers \"1. \" and \"- \"",
+      "claudeSurface": "list markers",
+      "note": "Ordered and unordered both default."
+    },
+    "toolDiffAdded": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["tool-edit@15:5", "tool-edit@15:9", "tool-edit@15:11", "tool-edit@15:31"],
+      "contexts": [
+        {
+          "at": "tool-edit@15:5",
+          "value": "#50c850",
+          "attrs": "none",
+          "surface": "added gutter sign+number \" 2 +\" on bg #022800"
+        },
+        {
+          "at": "tool-edit@15:9",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "surface": "added code plain text on bg #022800"
+        },
+        {
+          "at": "tool-edit@15:11",
+          "value": "#66d9ef",
+          "attrs": "none",
+          "surface": "added code keyword token on bg #022800"
+        },
+        {
+          "at": "tool-edit@15:31",
+          "value": "#be84ff",
+          "attrs": "none",
+          "surface": "added number token on intra-line bg #044700"
+        }
+      ],
+      "piSurface": "whole added diff line, one fg",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi paints the entire line with one fg and no bg; Claude splits gutter/text/syntax tokens and paints bg #022800/#044700 (claudeOnly)."
+    },
+    "toolDiffRemoved": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["tool-edit@13:5", "tool-edit@13:9", "tool-edit@13:31"],
+      "contexts": [
+        {
+          "at": "tool-edit@13:5",
+          "value": "#dc5a5a",
+          "attrs": "none",
+          "surface": "removed gutter sign+number \" 2 -\" on bg #3d0100"
+        },
+        {
+          "at": "tool-edit@13:9",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "surface": "removed code text on bg #3d0100"
+        },
+        {
+          "at": "tool-edit@13:31",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "surface": "removed intra-line segment on bg #5c0200"
+        }
+      ],
+      "piSurface": "whole removed diff line, one fg",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Same structure mismatch as toolDiffAdded."
+    },
+    "toolDiffContext": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["tool-edit@12:5", "tool-edit@12:9", "tool-edit@12:38", "tool-edit@12:31"],
+      "contexts": [
+        {
+          "at": "tool-edit@12:5",
+          "value": "#f8f8f2",
+          "attrs": "dim",
+          "surface": "context line number"
+        },
+        {
+          "at": "tool-edit@12:9",
+          "value": "#f92672",
+          "attrs": "none",
+          "surface": "context keyword token"
+        },
+        {
+          "at": "tool-edit@12:38",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "surface": "context punctuation"
+        },
+        {
+          "at": "tool-edit@12:31",
+          "value": "#a6e22e",
+          "attrs": "none",
+          "surface": "context function-name token"
+        }
+      ],
+      "piSurface": "whole context diff line, one fg",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Claude syntax-highlights context lines with a Monokai palette and dims line numbers."
+    },
+    "syntaxComment": {
+      "class": "measured",
+      "value": "ansi:2",
+      "attrs": "none",
+      "evidence": ["markdown@22:24"],
+      "piSurface": "code comment",
+      "claudeSurface": "\"// retries\" in ts fence",
+      "note": "One capture only; ansi:2 equals the number color."
+    },
+    "syntaxKeyword": {
+      "class": "measured",
+      "value": "ansi:4",
+      "attrs": "none",
+      "evidence": ["code-tokens@10:2", "code-tokens@14:2", "code-tokens@16:3", "markdown@21:2"],
+      "piSurface": "keywords incl. SQL words and html tag names",
+      "claudeSurface": "const / SELECT FROM WHERE AND / section / export async function / return",
+      "note": "Consistent ansi:4 across js, sql, html, ts."
+    },
+    "syntaxFunction": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["markdown@21:24", "markdown@21:31", "markdown@21:46", "markdown@23:21"],
+      "contexts": [
+        {
+          "at": "markdown@21:24",
+          "value": "ansi:3",
+          "attrs": "none",
+          "surface": "function name \"request\""
+        },
+        {
+          "at": "markdown@21:31",
+          "value": "default",
+          "attrs": "none",
+          "surface": "\"(\" inside Pi function span"
+        },
+        {
+          "at": "markdown@21:46",
+          "value": "ansi:4",
+          "attrs": "none",
+          "surface": "\"Promise\" inside Pi function span"
+        },
+        {
+          "at": "markdown@23:21",
+          "value": "ansi:3",
+          "attrs": "none",
+          "surface": "arrow \"() =>\""
+        }
+      ],
+      "piSurface": "highlight.js function/title spans (cover \" request(\" and \"): Promise<Response> \")",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi span covers cells Claude renders ansi:3, default and ansi:4. Claude also colors call identifiers Pi leaves unstyled (claudeOnly)."
+    },
+    "syntaxVariable": {
+      "class": "measured",
+      "value": "ansi:6",
+      "attrs": "none",
+      "evidence": ["code-tokens@16:11", "markdown@21:32"],
+      "piSurface": "attr/params/variable identifiers",
+      "claudeSurface": "html attribute \"class\", param \"url\"",
+      "note": "Flag: Pi params span also covers \": \" which Claude leaves default (markdown@21:35); identifier cells match."
+    },
+    "syntaxString": {
+      "class": "measured",
+      "value": "ansi:1",
+      "attrs": "none",
+      "evidence": ["code-tokens@10:16", "code-tokens@16:17"],
+      "piSurface": "string literals",
+      "claudeSurface": "\"capture\" in js and html",
+      "note": "Consistent ansi:1."
+    },
+    "syntaxNumber": {
+      "class": "measured",
+      "value": "ansi:2",
+      "attrs": "none",
+      "evidence": ["code-tokens@11:17", "code-tokens@14:43", "markdown@22:21"],
+      "piSurface": "number/literal tokens",
+      "claudeSurface": "1 2 3 / 3 0 / 3",
+      "note": "Consistent ansi:2."
+    },
+    "syntaxType": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["code-tokens@12:0", "markdown@21:37"],
+      "contexts": [
+        {
+          "at": "code-tokens@12:0",
+          "value": "default",
+          "attrs": "none",
+          "surface": "built_in \"console\" (Claude leaves unstyled)"
+        },
+        {
+          "at": "markdown@21:37",
+          "value": "ansi:6",
+          "attrs": "none",
+          "surface": "type \"string\""
+        }
+      ],
+      "piSurface": "built_in/type/class tokens",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi colors \"console\" and \"string\" with this role; Claude gives default and ansi:6."
+    },
+    "syntaxOperator": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["code-tokens@14:33"],
+      "piSurface": "operators \">=\" \"!=\"",
+      "claudeSurface": "SQL operators in default run \" count >= \"",
+      "note": "Claude never colors operators (also \"===\" and \"+\" in code-tokens@11:18)."
+    },
+    "syntaxPunctuation": {
+      "class": "measured",
+      "value": "ansi:8",
+      "attrs": "none",
+      "evidence": ["code-tokens@16:2", "code-tokens@16:16", "code-tokens@16:26", "code-tokens@16:40"],
+      "piSurface": "html tag punctuation < = > </",
+      "claudeSurface": "\"<\" \"=\" \">\" \"</\" in html fence",
+      "note": "Pi paints only html punctuation; JS/SQL punctuation is default in both."
+    },
+    "thinkingOff": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level off",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "thinkingMinimal": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level minimal",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "thinkingLow": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level low",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "thinkingMedium": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["idle@36:0", "working-800ms@34:0", "working-1600ms@34:11"],
+      "contexts": [
+        {
+          "at": "idle@36:0",
+          "value": "#888888",
+          "attrs": "none",
+          "surface": "prompt border (both rules, idle/typed/after-run)"
+        },
+        {
+          "at": "working-800ms@34:0",
+          "value": "#d77757",
+          "attrs": "none",
+          "surface": "spinner glyph/verb while working"
+        },
+        {
+          "at": "working-1600ms@34:11",
+          "value": "#eb9f7f",
+          "attrs": "none",
+          "surface": "spinner shimmer cells"
+        }
+      ],
+      "piSurface": "editor border and the \"── ⠋ Working ──\" row, both colored by thinking level",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Pi paints the border and its working indicator with one role; Claude uses #888888 for the border and #d77757/#eb9f7f on a separate spinner row."
+    },
+    "thinkingHigh": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level high",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "thinkingXhigh": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level xhigh",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "thinkingMax": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "editor border and \"Working\" row at thinking level max",
+      "claudeSurface": "prompt border #888888 at medium only",
+      "note": "Scene is pi-only in run.json. UNOBSERVED in Claude: its prompt border is #888888 at medium effort (idle@36:0); effort levels other than medium were not captured, so whether the border varies is unknown. Recommend capturing Claude /effort variants."
+    },
+    "bashMode": {
+      "class": "renderer-required",
+      "value": null,
+      "attrs": null,
+      "evidence": ["shell-run@8:0", "shell-run@8:2", "shell-run@8:0"],
+      "contexts": [
+        {
+          "at": "shell-run@8:0",
+          "value": "#fd5db1",
+          "attrs": "none",
+          "surface": "\"!\" prefix glyph of user bash echo"
+        },
+        {
+          "at": "shell-run@8:2",
+          "value": "#ffffff",
+          "attrs": "none",
+          "surface": "bash command text"
+        },
+        {
+          "at": "shell-run@8:0",
+          "value": "bg #413c41",
+          "attrs": "none",
+          "surface": "bash echo row background"
+        }
+      ],
+      "piSurface": "bash exec top/bottom borders, \"$ cmd\" header (bold), editor border in shell mode",
+      "claudeSurface": "multiple (see contexts)",
+      "note": "Claude shows only a pink \"!\" glyph and white command on a #413c41 row; no borders. Claude prompt border in shell mode is NOT captured (shell-mode scene is transcript view, dim divider only)."
+    }
+  },
+  "claudeOnly": [
+    {
+      "scene": "idle",
+      "at": "1:2",
+      "value": "#d77757 on #000000",
+      "attrs": "none",
+      "surface": "logo glyph cells",
+      "closestPi": "none (Pi logo ▀█ #e48a7a)"
+    },
+    {
+      "scene": "idle",
+      "at": "1:11",
+      "value": "default",
+      "attrs": "bold",
+      "surface": "banner title \"Claude Code\"",
+      "closestPi": "Pi startup header"
+    },
+    {
+      "scene": "idle",
+      "at": "5:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "notice bar ▎ (rows 5-8)",
+      "closestPi": "none"
+    },
+    {
+      "scene": "idle",
+      "at": "5:2",
+      "value": "default",
+      "attrs": "bold",
+      "surface": "notice title \"Auto mode is now…\"",
+      "closestPi": "none"
+    },
+    {
+      "scene": "idle",
+      "at": "6:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "notice body",
+      "closestPi": "dim/muted"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "14:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "assistant ⏺ bullet",
+      "closestPi": "none (Pi has no bullet)"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "10:0",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "success tool ⏺ bullet",
+      "closestPi": "toolSuccessBg (bg only)"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "10:0",
+      "value": "#ff6b80",
+      "attrs": "none",
+      "surface": "failed tool ⏺ bullet",
+      "closestPi": "toolErrorBg"
+    },
+    {
+      "scene": "api-error",
+      "at": "14:0",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "API error ⏺ bullet",
+      "closestPi": "error"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "tool result gutter \"  ⎿  \"",
+      "closestPi": "toolOutput"
+    },
+    {
+      "scene": "tool-read",
+      "at": "10:7",
+      "value": "#999999",
+      "attrs": "bold",
+      "surface": "collapsed summary count \"1\"",
+      "closestPi": "toolTitle"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "11:11",
+      "value": "default",
+      "attrs": "bold",
+      "surface": "edit summary counts \"Added 2 lines…\"",
+      "closestPi": "toolTitle"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "done line \"✻ Crunched for 0s · done 4:52 AM\"",
+      "closestPi": "dim"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "spinner glyph + verb \"Inferring…\"",
+      "closestPi": "thinkingMedium (Working row)"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "34:11",
+      "value": "#eb9f7f",
+      "attrs": "none",
+      "surface": "spinner shimmer color",
+      "closestPi": "thinkingMedium"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "34:11",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "spinner stats \"(0s · ↓ 7 tokens)\"",
+      "closestPi": "muted"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "pending tool line \"⎿  $ sleep 4; …\"",
+      "closestPi": "toolPendingBg/toolTitle"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "10:0",
+      "value": "#999999 on #373737",
+      "attrs": "none",
+      "surface": "user message ❯ glyph",
+      "closestPi": "userMessageText"
+    },
+    {
+      "scene": "shell-run",
+      "at": "8:0",
+      "value": "#fd5db1 on #413c41",
+      "attrs": "none",
+      "surface": "bash echo \"!\" glyph and row bg",
+      "closestPi": "bashMode"
+    },
+    {
+      "scene": "shell-run",
+      "at": "8:2",
+      "value": "#ffffff on #413c41",
+      "attrs": "none",
+      "surface": "bash echo command text",
+      "closestPi": "userMessageText"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "prompt ❯ dims while busy (default when idle: idle@37:0)",
+      "closestPi": "editor text"
+    },
+    {
+      "scene": "idle",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "mode line \"⏵⏵ auto mode on\"",
+      "closestPi": "footer dim"
+    },
+    {
+      "scene": "idle",
+      "at": "39:17",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "mode hint \"(shift+tab to cycle) · …\"",
+      "closestPi": "muted"
+    },
+    {
+      "scene": "idle",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "effort indicator \"◐ medium · /effort\"",
+      "closestPi": "footer thinking level"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "35:90",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "paste hint \"Ctrl+Y to paste deleted text\"",
+      "closestPi": "dim"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "13:5",
+      "value": "#dc5a5a on #3d0100",
+      "attrs": "none",
+      "surface": "removed line gutter + line bg",
+      "closestPi": "toolDiffRemoved (fg only)"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "13:31",
+      "value": "#f8f8f2 on #5c0200",
+      "attrs": "none",
+      "surface": "removed intra-line segment bg",
+      "closestPi": "Pi inverse intra-line"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:5",
+      "value": "#50c850 on #022800",
+      "attrs": "none",
+      "surface": "added line gutter + line bg",
+      "closestPi": "toolDiffAdded (fg only)"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:31",
+      "value": "#be84ff on #044700",
+      "attrs": "none",
+      "surface": "added intra-line segment bg",
+      "closestPi": "Pi inverse intra-line"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:5",
+      "value": "#f8f8f2",
+      "attrs": "dim",
+      "surface": "context line number",
+      "closestPi": "toolDiffContext"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:9",
+      "value": "#f92672",
+      "attrs": "none",
+      "surface": "diff Monokai keyword",
+      "closestPi": "toolDiffContext (no tokens)"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:22",
+      "value": "#66d9ef",
+      "attrs": "none",
+      "surface": "diff Monokai storage/type token",
+      "closestPi": "toolDiffContext"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:31",
+      "value": "#a6e22e",
+      "attrs": "none",
+      "surface": "diff Monokai function/name token",
+      "closestPi": "toolDiffContext"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:42",
+      "value": "#fd971f",
+      "attrs": "none",
+      "surface": "diff Monokai param/punct token",
+      "closestPi": "toolDiffContext"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:31",
+      "value": "#be84ff",
+      "attrs": "none",
+      "surface": "diff Monokai number token",
+      "closestPi": "toolDiffContext"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "12:10",
+      "value": "ansi:3",
+      "attrs": "none",
+      "surface": "function call identifier \"log\" (also withRetry, fetch)",
+      "closestPi": "syntaxFunction (Pi leaves unstyled)"
+    },
+    {
+      "scene": "markdown",
+      "at": "21:46",
+      "value": "ansi:4",
+      "attrs": "none",
+      "surface": "\"Promise\"/\"Response\" type identifiers",
+      "closestPi": "syntaxType"
+    },
+    {
+      "scene": "mermaid",
+      "at": "10:2",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "unsupported-language label \"mermaid\"",
+      "closestPi": "mdCodeBlockBorder"
+    },
+    {
+      "scene": "markdown",
+      "at": "19:2",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "quote bar ▎",
+      "closestPi": "mdQuoteBorder"
+    },
+    {
+      "scene": "markdown",
+      "at": "28:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "table box-drawing borders",
+      "closestPi": "none (Pi table border unstyled)"
+    },
+    {
+      "scene": "login-picker",
+      "at": "35:5",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "option numbers \"1. \"",
+      "closestPi": "muted"
+    },
+    {
+      "scene": "login-picker",
+      "at": "39:3",
+      "value": "#999999",
+      "attrs": "italic",
+      "surface": "dialog hint \"Esc to cancel\"",
+      "closestPi": "dim"
+    },
+    {
+      "scene": "model-picker",
+      "at": "29:8",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "current model label (selected+checked)",
+      "closestPi": "accent/success"
+    },
+    {
+      "scene": "model-picker",
+      "at": "31:33",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "highlighted model name \"Fable 5.2\"",
+      "closestPi": "none"
+    },
+    {
+      "scene": "model-picker",
+      "at": "37:3",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "effort slider glyph ◐",
+      "closestPi": "none"
+    },
+    {
+      "scene": "model-picker",
+      "at": "26:3",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "dialog subtitle",
+      "closestPi": "warning notice"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "39:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "search prompt \"  /bounded\"",
+      "closestPi": "editor"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "39:113",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "match counter \"90/90\"",
+      "closestPi": "muted"
+    },
+    {
+      "scene": "fullscreen-scrollbar",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "transcript footer \"Showing detailed transcript · …\"",
+      "closestPi": "footer"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "10:92",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "transcript meta timestamp/model \"04:52 AM <synthetic>\"",
+      "closestPi": "none"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "transcript divider rule",
+      "closestPi": "border"
+    },
+    {
+      "scene": "compaction",
+      "at": "34:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "compaction gutter \"  ⎿  \"",
+      "closestPi": "customMessageLabel"
+    },
+    {
+      "scene": "compaction",
+      "at": "34:5",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "collapsed compaction text",
+      "closestPi": "customMessageText"
+    },
+    {
+      "scene": "thinking",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "\"Thought for 1s\" summary (count bold at 14:14)",
+      "closestPi": "thinkingText"
+    }
+  ]
+}

@@ -1,0 +1,477 @@
+{
+  "roles": {
+    "accent": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#b1b9f9",
+      "direction": "fg",
+      "evidence": ["login-picker@29:3", "login-picker@35:3", "login-picker@35:8"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ tool-read-expanded@10:6", "#4eba65 @ model-picker@29:30"]
+    },
+    "border": {
+      "class": "measured",
+      "source": "capture",
+      "value": "#b1b9f9",
+      "direction": "fg",
+      "evidence": ["login-picker@28:0", "model-picker@24:0"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "borderAccent": {
+      "class": "pi-only",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "borderMuted": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "success": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#4eba65",
+      "direction": "fg",
+      "evidence": ["model-picker@29:30"],
+      "agreedBy": ["gpt"],
+      "otherContexts": []
+    },
+    "error": {
+      "class": "measured",
+      "source": "capture",
+      "value": "#ffc107",
+      "direction": "fg",
+      "evidence": ["api-error@14:2", "api-error-expanded@11:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "warning": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "muted": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#999999",
+      "direction": "fg",
+      "evidence": ["model-picker@29:33", "login-picker@35:43", "model-picker@26:3", "login-picker@39:3"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ shell-run@9:5"]
+    },
+    "dim": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#999999",
+      "direction": "fg",
+      "evidence": ["idle@1:23", "idle@3:11", "idle@35:100", "assistant-text@35:90"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ compaction@34:16"]
+    },
+    "text": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["login-picker@36:8", "login-picker@37:8", "model-picker@30:8", "assistant-text@14:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "thinkingText": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "selectedBg": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "bg"
+    },
+    "scrollbarTrack": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "bg"
+    },
+    "scrollbarThumb": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "bg"
+    },
+    "searchMatchBg": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "bg"
+    },
+    "searchMatchText": {
+      "class": "renderer-required",
+      "value": "ansi:3",
+      "direction": "fg",
+      "evidence": ["fullscreen-search@34:35"],
+      "rationale": "Claude's current search match color, ANSI yellow (index 3), with bold, underline, and inverse. Pi's own attributes differ; color only.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "userMessageBg": {
+      "class": "measured",
+      "source": "capture",
+      "value": "#373737",
+      "direction": "bg",
+      "evidence": ["assistant-text@12:0", "assistant-text@12:2", "compaction@33:2", "unicode@12:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "userMessageText": {
+      "class": "measured",
+      "source": "capture",
+      "value": "#ffffff",
+      "direction": "fg",
+      "evidence": ["assistant-text@12:2", "compaction@33:2", "unicode@12:2", "api-error-expanded@8:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "customMessageBg": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "bg",
+      "evidence": ["compaction-expanded@5:0", "compaction@34:5", "compaction-expanded@0:5"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "customMessageText": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["compaction@34:5", "compaction-expanded@0:5"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "customMessageLabel": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "toolPendingBg": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "bg",
+      "evidence": ["tool-pending@11:0", "tool-pending@10:1", "tool-pending@11:9"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "toolSuccessBg": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "bg",
+      "evidence": ["tool-bash-ok-expanded@10:2", "tool-read-expanded@10:2", "tool-edit@10:2", "tool-edit@12:5"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["#3d0100 @ tool-edit@13:9", "#5c0200 @ tool-edit@13:31", "#022800 @ tool-edit@15:11", "#044700 @ tool-edit@15:31"]
+    },
+    "toolErrorBg": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "bg",
+      "evidence": ["tool-bash-fail-expanded@10:2", "tool-bash-fail-expanded@11:5", "tool-bash-fail@10:2", "tool-bash-fail-expanded@12:5"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "toolTitle": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["tool-bash-ok-expanded@10:2", "tool-edit@10:2", "tool-read-expanded@10:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["#999999 @ tool-read@10:2"]
+    },
+    "toolOutput": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["tool-bash-ok-expanded@11:5", "tool-read-expanded@11:5", "tool-read-expanded@11:10"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["#ff6b80 @ tool-bash-fail-expanded@11:5"]
+    },
+    "mdHeading": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@9:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "mdLink": {
+      "class": "renderer-required",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@11:59"],
+      "rationale": "Claude draws link text in the terminal default color. Pi's forced underline stays; no public hook removes it.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "mdLinkUrl": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@11:64"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "mdCode": {
+      "class": "measured",
+      "source": "capture",
+      "value": "#b1b9f9",
+      "direction": "fg",
+      "evidence": ["markdown@13:25"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "mdCodeBlock": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#b1b9f9",
+      "direction": "fg",
+      "evidence": ["code-tokens@18:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ mermaid@11:2"]
+    },
+    "mdCodeBlockBorder": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "mdQuote": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@19:4"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "mdQuoteBorder": {
+      "class": "unmappable",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "mdHr": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@26:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "mdListBullet": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@13:2", "markdown@14:2", "markdown@16:2", "markdown@17:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "toolDiffAdded": {
+      "class": "renderer-required",
+      "value": "#50c850",
+      "direction": "fg",
+      "evidence": ["tool-edit@15:8"],
+      "rationale": "Claude's added-line gutter sign; the diff adapter recolors line content to #f8f8f2 and paints the line background.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "toolDiffRemoved": {
+      "class": "renderer-required",
+      "value": "#dc5a5a",
+      "direction": "fg",
+      "evidence": ["tool-edit@13:8"],
+      "rationale": "Claude's removed-line gutter sign; the diff adapter recolors line content to #f8f8f2 and paints the line background.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "toolDiffContext": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "#f8f8f2",
+      "direction": "fg",
+      "evidence": ["tool-edit@12:38"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["#f92672 @ tool-edit@12:9", "#a6e22e @ tool-edit@12:31", "#66d9ef @ tool-edit@12:22", "#fd971f @ tool-edit@12:42"]
+    },
+    "syntaxComment": {
+      "class": "measured",
+      "source": "capture",
+      "value": "ansi:2",
+      "direction": "fg",
+      "evidence": ["markdown@22:24"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "syntaxKeyword": {
+      "class": "measured",
+      "source": "capture",
+      "value": "ansi:4",
+      "direction": "fg",
+      "evidence": ["code-tokens@10:2", "code-tokens@14:2", "code-tokens@16:3", "markdown@21:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "syntaxFunction": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "ansi:3",
+      "direction": "fg",
+      "evidence": ["markdown@21:24", "markdown@23:21"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ markdown@21:31", "ansi:4 @ markdown@21:46"]
+    },
+    "syntaxVariable": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "ansi:6",
+      "direction": "fg",
+      "evidence": ["code-tokens@16:11", "markdown@21:32"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["default @ markdown@21:35"]
+    },
+    "syntaxString": {
+      "class": "measured",
+      "source": "capture",
+      "value": "ansi:1",
+      "direction": "fg",
+      "evidence": ["code-tokens@10:16", "code-tokens@16:17"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "syntaxNumber": {
+      "class": "measured",
+      "source": "capture",
+      "value": "ansi:2",
+      "direction": "fg",
+      "evidence": ["code-tokens@11:17", "code-tokens@14:43", "markdown@22:21", "code-tokens@11:21"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "syntaxType": {
+      "class": "renderer-required",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["code-tokens@12:2"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": ["ansi:6 @ markdown@21:37"]
+    },
+    "syntaxOperator": {
+      "class": "measured",
+      "source": "capture",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["code-tokens@14:40", "code-tokens@14:55"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "syntaxPunctuation": {
+      "class": "measured",
+      "source": "capture",
+      "value": "ansi:8",
+      "direction": "fg",
+      "evidence": ["code-tokens@16:2", "code-tokens@16:16", "code-tokens@16:26", "code-tokens@16:40"],
+      "agreedBy": ["claude", "gpt"],
+      "otherContexts": []
+    },
+    "thinkingOff": {
+      "class": "pi-only",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "thinkingMinimal": {
+      "class": "pi-only",
+      "source": "stock-pi",
+      "direction": "fg"
+    },
+    "thinkingLow": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-low@36:0", "effort-low@38:0"],
+      "rationale": "Pi paints its editor border with the thinking-level role; Claude's prompt border at /effort low is #888888.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "thinkingMedium": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-medium@36:0", "idle@36:0"],
+      "rationale": "Claude's prompt border at /effort medium (the default) is #888888. The spinner shares this role in Pi; the working-indicator adapter recolors the spinner.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "thinkingHigh": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-high@36:0", "effort-high@38:0"],
+      "rationale": "Claude's prompt border at /effort high is #888888.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "thinkingXhigh": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-xhigh@36:0", "effort-xhigh@38:0"],
+      "rationale": "Claude's prompt border at /effort xhigh is #888888.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "thinkingMax": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-max@36:0", "effort-max@38:0"],
+      "rationale": "Claude's prompt border at /effort max is #888888.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    },
+    "bashMode": {
+      "class": "renderer-required",
+      "value": "#fd5db1",
+      "direction": "fg",
+      "evidence": ["shell-run@8:0"],
+      "rationale": "Claude's shell-mode marker color. Pi also uses the role for the bash-mode editor border, which Claude does not show in a capture.",
+      "source": "capture",
+      "agreedBy": ["coordinator"]
+    }
+  },
+  "disagreements": [
+    "borderMuted: claude=pi-only gpt=unmappable -> unmappable",
+    "success: claude=pi-only gpt=measured #4eba65 -> renderer-required",
+    "warning: claude=pi-only gpt=unmappable -> unmappable",
+    "dim: claude=measured #999999 gpt=renderer-required context-dependent -> renderer-required",
+    "selectedBg: claude=pi-only gpt=unmappable -> unmappable",
+    "scrollbarTrack: claude=pi-only gpt=unmappable -> unmappable",
+    "scrollbarThumb: claude=pi-only gpt=unmappable -> unmappable",
+    "searchMatchText: claude=renderer-required gpt=unmappable -> unmappable",
+    "customMessageBg: claude=measured default gpt=renderer-required context-dependent -> renderer-required",
+    "customMessageLabel: claude=pi-only gpt=unmappable -> unmappable",
+    "toolSuccessBg: claude=measured default gpt=renderer-required context-dependent -> renderer-required",
+    "toolErrorBg: claude=measured default gpt=renderer-required context-dependent -> renderer-required",
+    "mdLink: claude=unmappable gpt=measured default -> unmappable",
+    "mdCodeBlock: claude=measured #b1b9f9 gpt=renderer-required context-dependent -> renderer-required",
+    "mdCodeBlockBorder: claude=pi-only gpt=unmappable -> unmappable",
+    "mdQuoteBorder: claude=unmappable gpt=measured default -> unmappable",
+    "syntaxVariable: claude=measured ansi:6 gpt=renderer-required context-dependent -> renderer-required",
+    "thinkingMedium: claude=renderer-required gpt=pi-only -> renderer-required",
+    "bashMode: claude=renderer-required gpt=unmappable -> unmappable"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "verdict": "PASS",
+  "results": [
+    {
+      "file": "a-120.ans",
+      "width": 120,
+      "diffRows": 9,
+      "rowsNotFilledFromColumn1ToWidthMinus2": []
+    },
+    {
+      "file": "b-40.ans",
+      "width": 40,
+      "diffRows": 11,
+      "rowsNotFilledFromColumn1ToWidthMinus2": []
+    },
+    {
+      "file": "b-60.ans",
+      "width": 60,
+      "diffRows": 9,
+      "rowsNotFilledFromColumn1ToWidthMinus2": []
+    },
+    {
+      "file": "b-160.ans",
+      "width": 160,
+      "diffRows": 9,
+      "rowsNotFilledFromColumn1ToWidthMinus2": []
+    },
+    {
+      "file": "b-120.ans",
+      "width": 120,
+      "diffRows": 9,
+      "rowsNotFilledFromColumn1ToWidthMinus2": []
+    }
+  ]
+}

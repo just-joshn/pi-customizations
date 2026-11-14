@@ -1,0 +1,56 @@
+{
+  "roles": {
+    "thinkingLow": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-low@36:0", "effort-low@38:0"],
+      "rationale": "Pi paints its editor border with the thinking-level role; Claude's prompt border at /effort low is #888888."
+    },
+    "thinkingMedium": {
+      "class": "measured",
+      "value": "#888888",
+      "direction": "fg",
+      "evidence": ["effort-medium@36:0", "idle@36:0"],
+      "rationale": "Claude's prompt border at /effort medium (the default) is #888888. The spinner shares this role in Pi; the working-indicator adapter recolors the spinner."
+    },
+    "thinkingHigh": { "class": "measured", "value": "#888888", "direction": "fg", "evidence": ["effort-high@36:0", "effort-high@38:0"], "rationale": "Claude's prompt border at /effort high is #888888." },
+    "thinkingXhigh": { "class": "measured", "value": "#888888", "direction": "fg", "evidence": ["effort-xhigh@36:0", "effort-xhigh@38:0"], "rationale": "Claude's prompt border at /effort xhigh is #888888." },
+    "thinkingMax": { "class": "measured", "value": "#888888", "direction": "fg", "evidence": ["effort-max@36:0", "effort-max@38:0"], "rationale": "Claude's prompt border at /effort max is #888888." },
+    "toolDiffAdded": {
+      "class": "renderer-required",
+      "value": "#50c850",
+      "direction": "fg",
+      "evidence": ["tool-edit@15:8"],
+      "rationale": "Claude's added-line gutter sign; the diff adapter recolors line content to #f8f8f2 and paints the line background."
+    },
+    "toolDiffRemoved": {
+      "class": "renderer-required",
+      "value": "#dc5a5a",
+      "direction": "fg",
+      "evidence": ["tool-edit@13:8"],
+      "rationale": "Claude's removed-line gutter sign; the diff adapter recolors line content to #f8f8f2 and paints the line background."
+    },
+    "bashMode": {
+      "class": "renderer-required",
+      "value": "#fd5db1",
+      "direction": "fg",
+      "evidence": ["shell-run@8:0"],
+      "rationale": "Claude's shell-mode marker color. Pi also uses the role for the bash-mode editor border, which Claude does not show in a capture."
+    },
+    "mdLink": {
+      "class": "renderer-required",
+      "value": "default",
+      "direction": "fg",
+      "evidence": ["markdown@11:59"],
+      "rationale": "Claude draws link text in the terminal default color. Pi's forced underline stays; no public hook removes it."
+    },
+    "searchMatchText": {
+      "class": "renderer-required",
+      "value": "ansi:3",
+      "direction": "fg",
+      "evidence": ["fullscreen-search@34:35"],
+      "rationale": "Claude's current search match color, ANSI yellow (index 3), with bold, underline, and inverse. Pi's own attributes differ; color only."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "ready": true,
+  "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-collision/screen.ansi",
+  "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-collision/screens.json",
+  "refusedEgress": [],
+  "nonLoopbackConnections": [],
+  "term": "xterm-256color",
+  "COLORTERM": "truecolor",
+  "selected": "claude-default-dark",
+  "installed": true
+}

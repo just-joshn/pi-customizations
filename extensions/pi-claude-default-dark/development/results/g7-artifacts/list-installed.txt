@@ -1,0 +1,3 @@
+User packages:
+  ../../../../../../../../Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark
+    /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark

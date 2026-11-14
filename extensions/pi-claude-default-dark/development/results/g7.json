@@ -1,0 +1,128 @@
+{
+  "gate": "G7",
+  "verdict": "PASS",
+  "inputs": {
+    "package": "31059881853a3c7396ee8fc1006bc88c231fc5146a2de61c326293513e3a7ede"
+  },
+  "checks": [
+    {
+      "name": "local path install appears in pi list",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/install.txt",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/list-installed.txt"
+      ]
+    },
+    {
+      "name": "status prints installed notification in TUI",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/installed-status.ansi"
+      ]
+    },
+    {
+      "name": "installed theme listed by native settings picker",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/theme-list.ansi"
+      ]
+    },
+    {
+      "name": "explicit dark is not overridden on fresh start",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/dark-before-switch.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/explicit-dark-settings.json"
+      ]
+    },
+    {
+      "name": "claude-theme use switches from dark to themed userMessageBg",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/dark-before-switch.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/command-use.ansi"
+      ]
+    },
+    {
+      "name": "five reloads leave exactly one status notification",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/status-after-five-reloads.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/reload-1.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/reload-2.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/reload-3.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/reload-4.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/reload-5.ansi"
+      ]
+    },
+    {
+      "name": "settings.json selection renders userMessageBg #373737",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/settings-theme-message.ansi"
+      ]
+    },
+    {
+      "name": "--use-theme overrides dark for this invocation",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/cli-theme-message.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/cli-theme-settings.json"
+      ]
+    },
+    {
+      "name": "--continue restores history and accepts another themed turn",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/continued-message.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/continued-session.jsonl"
+      ]
+    },
+    {
+      "name": "--fork restores history and accepts another themed turn in a new session",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/forked-message.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/fork-session-0.jsonl"
+      ]
+    },
+    {
+      "name": "pi remove removes local source",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/remove.txt",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/list-removed.txt"
+      ]
+    },
+    {
+      "name": "saved missing-theme warning is recorded without extension load errors",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/removed-saved-theme-startup.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/uninstall-warning.json"
+      ]
+    },
+    {
+      "name": "removed package starts on native dark and handles a turn",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/removed-dark-message.ansi",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/removed-saved-theme-startup.ansi"
+      ]
+    },
+    {
+      "name": "removed command no longer prints installed status",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/removed-command.ansi"
+      ]
+    },
+    {
+      "name": "zero non-loopback connections or attempted egress",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g7-artifacts/network.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+                                                                                                                                                                                                        
+[38;2;215;119;87m ▐[48;2;0;0;0m▛███▛█[39m[49m   [1mClaude Code[0m [38;2;153;153;153mv2.1.323[39m                   
+[38;2;215;119;87m▝▜[48;2;0;0;0m█████[49m█▀[39m  [38;2;153;153;153mOpus 5.5 · API Usage Billing[39m                                                                                                                                                                 
+[38;2;215;119;87m ▝▝   ▝▝ [39m  [38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-capture-pANiSZ/work[39m      
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+[38;2;153;153;153m[48;2;55;55;55m❯[39m [38;2;255;255;255m/clear[39m                                                                                                                                                                                                
+[49m                                                                                                                                                                                                        
+
+
+                                                                                                    
+                                                                                                                                                                                                        
+
+                                                                                                                                                                                                        
+
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+                                                                                                                                                                                                        
+[38;2;177;185;249m▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔[39m [38;2;153;153;153m◐ medium · /effort[38;2;177;185;249m ▔
+[39m   [1m[38;2;177;185;249mSelect model[0m                                                                                     
+   [38;2;153;153;153mSwitch between Claude models. Your pick becomes the default for new sessions. For other/previous model names, specify with --model.[39m                                                                  
+                                                                                                                                                                                                        
+   [38;2;177;185;249m❯[39m [38;2;153;153;153m1. [38;2;78;186;101mDefault (recommended)[39m [38;2;78;186;101m✔[39m  [38;2;153;153;153mUse the default model (currently Opus 5.5) · $4/$20 per Mtok[39m                                                                                                           
+     [38;2;153;153;153m2. [39mOpus                     [38;2;153;153;153mOpus 5.5 · Best for everyday, complex tasks · $4/$20 per Mtok[39m                                                                                                          
+     [38;2;153;153;153m3. [39mFable                    [38;2;215;119;87mFable 5.2[38;2;153;153;153m · Most capable for your hardest and longest-running tasks · $8/$40 per Mtok[39m                                                                                  
+     [38;2;153;153;153m4. [39mSonnet                   [38;2;153;153;153mSonnet 5.5 · Efficient for routine tasks · $2/$10 per Mtok[39m         
+     [38;2;153;153;153m5. [39mHaiku                    [38;2;153;153;153mHaiku 5.5 · Fastest for quick answers · $0.10/$0.50 per Mtok ($0.50/$2.50 for prompts over 100k)[39m                                                                       
+
+   [38;2;215;119;87m◐[38;2;153;153;153m Medium effort (default) ←/→ to adjust[39m        
+
+   [38;2;153;153;153mEnter to set as default · s to use this session only · Esc to cancel[39m                                                                                                                                 

@@ -1,0 +1,12 @@
+[
+  {
+    "path": "$.session.5.message.durationMs",
+    "stock": 43,
+    "package": 45
+  },
+  {
+    "path": "$.session.7.message.durationMs",
+    "stock": 5,
+    "package": 6
+  }
+]

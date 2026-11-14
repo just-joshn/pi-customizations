@@ -1,0 +1,49 @@
+{
+  "product": "pi",
+  "theme": "role-probe",
+  "themeSha256": "92ba6abd369d688fe78e899e582a250df3315c07fa632f2a432bbea18eadae7b",
+  "packageSha256": "f9f1b91d7e5c4be2207d63357a230c3649f7653dd833ca2412c7a37d8a665092",
+  "width": 120,
+  "scenes": {
+    "idle": "comparable",
+    "prompt-typed": "comparable",
+    "assistant-text": "comparable",
+    "markdown": "comparable",
+    "unicode": "comparable",
+    "thinking": "comparable",
+    "api-error": "comparable",
+    "tool-read": "comparable",
+    "tool-bash-ok": "comparable",
+    "tool-bash-fail": "comparable",
+    "tool-edit": "comparable",
+    "working": "comparable",
+    "code-tokens": "comparable",
+    "tool-pending": "comparable",
+    "thinking-level-off": "pi-only",
+    "thinking-level-minimal": "pi-only",
+    "thinking-level-low": "pi-only",
+    "thinking-level-medium": "pi-only",
+    "thinking-level-high": "pi-only",
+    "thinking-level-xhigh": "pi-only",
+    "thinking-level-max": "pi-only",
+    "compaction": "comparable",
+    "session-tree": "pi-only",
+    "mermaid": "comparable",
+    "login-picker": "comparable",
+    "fullscreen-search": "comparable",
+    "slash-autocomplete": "comparable",
+    "shell-mode": "comparable",
+    "shell-run": "comparable",
+    "model-picker": "comparable"
+  },
+  "failures": {},
+  "requests": 22,
+  "requestUrls": [
+    "/v1/messages?beta=true"
+  ],
+  "auth": [
+    "synthetic"
+  ],
+  "refusedEgress": [],
+  "nonLoopbackConnections": []
+}
