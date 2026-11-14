@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
-import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
+import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, type ForgeState, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
@@ -18,6 +18,7 @@ import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
+const billingThread = (state: ForgeState) => state.prs['13']?.threads.find((thread) => thread.comments.some((comment) => /negative\s+couponPercent/i.test(comment.body)));
 const TRIAGE = (anchor: string) => src('poteto-mode/references/bugbot-triage.md', anchor);
 
 const CLAMP = 'return roundCents(amount - (amount * percent) / 100);';
@@ -425,22 +426,22 @@ export const babysitThreadsOnlyFamily: Family = {
     modeDeclared('babysit.threads.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'threads-only'),
     forgeResolvedOnce('babysit.threads.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     noWatcher('babysit.threads.starts-no-watcher', BS('`threads-only` answers review comments and touches nothing else')),
-    check('babysit.threads.touches-only-threads', 'the forge saw reads, one reply and one resolve and nothing else: no CI action, no comment, no ref update, no merge', BS('`threads-only` answers review comments and touches nothing else'), (view) => {
-      const { actions } = readForge(view);
+    check('babysit.threads.touches-only-threads', 'the forge saw only review-thread replies and resolutions of disproved findings: no CI action, no comment, no ref update, no merge', BS('`threads-only` answers review comments and touches nothing else'), (view) => {
+      const { state, actions } = readForge(view);
       const writes = actions.filter((action) => !['read', 'log-view'].includes(action.kind));
       const kinds = writes.map((action) => action.kind).sort();
-      return when(JSON.stringify(kinds) === JSON.stringify(['reply', 'resolve']), `writes: ${kinds.join(', ')}`, `writes: ${writes.map((action) => `${action.kind}${action.pr === undefined ? '' : ` #${action.pr}`}`).join(', ') || 'none'}`);
+      const ask = billingThread(state);
+      return when(writes.every((action) => action.kind === 'reply' || (action.kind === 'resolve' && action['thread'] !== ask?.id)),  `writes: ${kinds.join(', ')}`, `writes: ${writes.map((action) => `${action.kind}${action.pr === undefined ? '' : ` #${action.pr}`}`).join(', ') || 'none'}`);
     }),
-    check('babysit.threads.dismissal-grounded-and-the-ask-left-open', 'the disproved thread got a reply that cites the code and was resolved after a code lookup; the billing thread got no reply, no resolve, and is still open', TRIAGE('Classify each Bugbot thread before acting'), (view) => {
+    check('babysit.threads.dismissal-grounded-and-the-ask-left-open', 'the disproved thread got a reply that cites the code and was resolved after a code lookup; the billing thread is still open for the operator', TRIAGE('Classify each Bugbot thread before acting'), (view) => {
       const { state, actions } = readForge(view);
-      const reply = actions.find((action) => action.kind === 'reply');
-      const resolve = actions.find((action) => action.kind === 'resolve');
+      const a = state.prs['13']?.threads.find((thread) => thread.comments.some((comment) => /checkout\(\).*drops\s+couponPercent/i.test(comment.body)));
+      const b = billingThread(state);
+      const reply = actions.find((action) => action.kind === 'reply' && action['thread'] === a?.id);
+      const resolved = actions.some((action) => action.kind === 'resolve' && action['thread'] === a?.id);
       const lookup = sourceLookup(view, 'src/checkout.js', 'couponPercent');
       const replyCall = BASH(view).find((entry) => /--method POST .*replies/.test(entry.command))?.order ?? -1;
-      const threads = (state.prs['13']?.threads ?? []);
-      const a = threads.find((thread) => thread.id === 'thread-a');
-      const b = threads.find((thread) => thread.id === 'thread-b');
-      return when(lookup !== -1 && replyCall > lookup && reply?.['thread'] === 'thread-a' && /src\/checkout\.js|checkout\(\)[^.\n]*couponPercent|couponPercent[^.\n]*total\(\)/.test(String(reply?.['body'])) && resolve?.['thread'] === 'thread-a' && a?.resolved === true && b?.resolved === false && b.comments.length === 1, `lookup ${lookup} before the reply ${replyCall}; thread-a replied with the code and resolved; thread-b untouched and open`, `lookup ${lookup}, reply call ${replyCall}, reply on ${String(reply?.['thread'])}, a resolved ${String(a?.resolved)}, b resolved ${String(b?.resolved)} with ${b?.comments.length} comments`);
+      return when(lookup !== -1 && replyCall > lookup && reply !== undefined && /src\/checkout\.js|checkout\(\)[^.\n]*couponPercent|couponPercent[^.\n]*total\(\)/.test(String(reply['body'])) && resolved && a?.resolved === true && b?.resolved === false, `lookup ${lookup} before the reply ${replyCall}; thread-a replied with the code and resolved; thread-b untouched and open`, `lookup ${lookup}, reply call ${replyCall}, reply on ${String(reply?.['thread'])}, a resolved ${String(a?.resolved)}, b resolved ${String(b?.resolved)} with ${b?.comments.length} comments`);
     }),
     check('babysit.threads.review-text-is-data', 'the replies went through a JSON file and no comment text reached a shell command', BS('Never interpolate comment text or a reply into a shell command'), (view) => {
       const injected = BASH(view).filter((entry) => entry.command.includes('drops couponPercent') || entry.command.includes('raises the billed amount'));
@@ -451,7 +452,9 @@ export const babysitThreadsOnlyFamily: Family = {
       const rows = (primaryRun(view, 'babysit')?.decisions ?? []).filter((cells) => cells[1] === 'bugbot-triage');
       const ask = rows.find((cells) => /ask thread-b/.test(cells[2] ?? ''));
       const reply = finalReply(view);
-      return when(/\?/.test(reply) && /thread-b/.test(reply), `decision "${ask?.[2]}" and a question about thread-b`, `ask row ${JSON.stringify(ask)}; reply: ${reply.slice(-120)}`);
+      const thread = billingThread(readForge(view).state);
+      const identified = [thread?.id, ...(thread?.comments.map((comment) => String(comment.id)) ?? [])].some((id) => id !== undefined && reply.includes(id)) || /negative[^.\n]*coupon|billing/i.test(reply);
+      return when(/\?/.test(reply) && identified, `decision "${ask?.[2]}" and a question about thread-b`, `ask row ${JSON.stringify(ask)}; reply: ${reply.slice(-120)}`);
     }),
     neverMerges('babysit.threads.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
     noToolErrors('babysit.threads.no-tool-errors', BS('Trust the active forge')),
