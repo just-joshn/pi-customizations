@@ -7,18 +7,20 @@
   "requirementsDigest": "28ab9ae982f15138ec7d213b8901eaca34ae6e65993c0b739febe0431089734d",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-14T02:25:25.652Z",
-    "generatedAt": "2026-11-14T02:33:09.254Z",
-    "commit": "49185a7331a3f59d77bf5e5845cc6547c2219ba9",
+    "startedAt": "2026-11-14T02:43:20.865Z",
+    "generatedAt": "2026-11-14T02:51:18.165Z",
+    "commit": "839739155e6c100d125289edca46cb1d40619537",
     "dirty": false,
     "changes": [],
-    "sourceDigest": "93e6a80f48bbd6377bc1405b809acd8fe19f25b354e84082e87495fa89edaf31",
+    "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
     "resultsSource": "local",
-    "totalTests": 2995,
-    "passedTests": 2894,
+    "totalTests": 3002,
+    "passedTests": 2887,
     "failedTests": 0,
-    "failures": [],
-    "skippedTests": 101,
+    "failures": [
+      "tests/workflow-parity/verification.test.ts::(suite failed)"
+    ],
+    "skippedTests": 115,
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
     "piVersion": "1.5.2",
     "nodeVersion": "v26.13.0"
@@ -26,18 +28,20 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-14T02:25:25.652Z",
-      "generatedAt": "2026-11-14T02:33:09.254Z",
-      "commit": "49185a7331a3f59d77bf5e5845cc6547c2219ba9",
+      "startedAt": "2026-11-14T02:43:20.865Z",
+      "generatedAt": "2026-11-14T02:51:18.165Z",
+      "commit": "839739155e6c100d125289edca46cb1d40619537",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "93e6a80f48bbd6377bc1405b809acd8fe19f25b354e84082e87495fa89edaf31",
+      "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
       "resultsSource": "local",
-      "totalTests": 2995,
-      "passedTests": 2894,
+      "totalTests": 3002,
+      "passedTests": 2887,
       "failedTests": 0,
-      "failures": [],
-      "skippedTests": 101,
+      "failures": [
+        "tests/workflow-parity/verification.test.ts::(suite failed)"
+      ],
+      "skippedTests": 115,
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
       "piVersion": "1.5.2",
       "nodeVersion": "v26.13.0"
@@ -51,9 +55,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 96,
+      "PASS": 95,
       "FAIL": 0,
-      "INCONCLUSIVE": 5,
+      "INCONCLUSIVE": 6,
       "N/A": 0
     }
   },
@@ -30906,17 +30910,17 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "statechart scripted run: every check passes",
-          "outcome": "passed",
+          "outcome": "skipped",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "passed"
+              "outcome": "skipped"
             }
           ]
         }
       ],
-      "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "skipped: tests/workflow-parity/verification.test.ts::statechart scripted run: every check passes"
     },
     {
       "id": "MX-PR-REVIEW",
