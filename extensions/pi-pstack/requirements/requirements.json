@@ -933,7 +933,7 @@
     },
     "sem.nocomments": {
       "file": "tests/skill-parity/semantics.test.ts",
-      "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work"
+      "name": "no-comments read-only critic (ZIP section 3.3) gives the critic the scoped diff read-only and leaves accepted edits to the coordinator"
     },
     "sem.watch-rearm": {
       "file": "tests/skill-parity/semantics.test.ts",
@@ -5962,7 +5962,7 @@
       "invariants": [
         "Caller work is never committed by the worker."
       ],
-      "piMechanism": "generated/agents/comment-sicko.md and the no-comments scope transfer.",
+      "piMechanism": "generated/agents/comment-sicko.md and the no-comments read-only scoped proposal flow.",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
