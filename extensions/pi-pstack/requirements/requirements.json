@@ -7342,8 +7342,8 @@
         "stimulus": "Worker cannot read an unmounted host secret, change an unmounted host path, or contact an unapproved service",
         "evidence": "Negative access checks performed inside worker container",
         "unresolved": {
-          "verdict": "BLOCKED",
-          "reason": "Whole-process container negative-access experiments are deferred. Tool-only sandbox checks do not prove the ZIP container contract."
+          "verdict": "FAIL",
+          "reason": "Unrestricted worker network destinations directly contradict the required unapproved-service denial. The container acceptance experiment and remaining boundary implementation are still required."
         }
       },
       {
@@ -7846,8 +7846,8 @@
         "stimulus": "### 8.3 No permission popups: whole Pi process in container\n\n**PI-NATIVE boundary, ADAPTER packaging.** Pi itself generally does not prompt for each tool call; its security documentation says the program and extensions run with the OS user's privileges. Run the **entire coordinator and all independent Pi workers**, not only bash commands, in constrained containers. Limit mounts, process permissions, network egress, secrets, and MCP identity. A read/write bind mount exposes host files to modification; a workspace folder alone is not a security sandbox.\n\nProject trust is **distinct** from per-tool permission prompts. In scripted startup Pi accepts `--approve`/`--no-approve` for project trust; pre-audit the source and explicitly determine trust instead of configuring an invisible unrestricted load of unknown project extensions. Pi's own docs favor narrowing exposure and short-lived credentials.\n\n**Authorization stays intact:** promptlessness does not authorize protected external side effects. Treat deletion of user data, deployment, force-push, customer messages, and merges outside a granted scope as gated actions. For `autopilot-full`, an operator's explicit merge grant can cover its named queue, but must not spread to unrelated PRs.",
         "evidence": "Whole coordinator and worker container execution, denied filesystem and network access, narrow credentials and MCP identities, project trust and protected-action denial.",
         "unresolved": {
-          "verdict": "BLOCKED",
-          "reason": "Whole-process container and least-privilege security work is deferred, not waived."
+          "verdict": "FAIL",
+          "reason": "Whole-process coordinator containment, restricted egress, least-privilege credentials and protected-action authorization are not implemented to the ZIP boundary. Deferring this work does not turn a known implementation contradiction into an unavailable external prerequisite."
         }
       },
       {
@@ -8152,8 +8152,8 @@
         "stimulus": "The pack also contains `FOR_AGENTS.md`, `README.md`, configuration and automation prompt templates, plus dedicated control/routing/verification references. The **upstream** implementation is dormant and depends on **Cursor Automations**, a configured Slack source channel, a tracker integration and operator setup. **No native Pi scheduler or Slack identity is implied.** A Pi port must either implement and test that complete chain or mark Benny **unavailable**. Do not represent its three files as three additional automatic Pi skills merely because they exist in the repository.",
         "evidence": "Explicit unavailable status for all three dormant Benny skills, or complete scheduler, Slack/tracker source-thread identity, idempotency and same-surface fix-chain evidence. File presence alone is not availability.",
         "unresolved": {
-          "verdict": "BLOCKED",
-          "reason": "Benny integration is deferred. A reviewed explicit unavailability record or complete tested chain remains required."
+          "verdict": "INCONCLUSIVE",
+          "reason": "A reviewed explicit unavailability record for all three dormant Benny skills, or a complete tested integration chain, remains required. Missing live credentials do not prevent satisfying the permitted unavailable alternative."
         }
       }
     ]

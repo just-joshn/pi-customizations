@@ -82,7 +82,7 @@ describe('audited ZIP release contract', () => {
     expect(zip.requirements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: 'ZIP-DONE', mandatory: true }),
-        expect.objectContaining({ id: 'ZIP-SECURITY', mandatory: true, unresolved: expect.objectContaining({ verdict: 'BLOCKED' }) }),
+        expect.objectContaining({ id: 'ZIP-SECURITY', mandatory: true, unresolved: expect.objectContaining({ verdict: 'FAIL' }) }),
         expect.objectContaining({ id: 'ZIP-BENNY', mandatory: true }),
       ]),
     );
@@ -101,7 +101,7 @@ describe('audited ZIP release contract', () => {
     expect(result.status).toBe('NOT RELEASED');
     expect(result.requirements.find((r: { id: string }) => r.id === 'SRC-01')?.status).toBe('INCONCLUSIVE');
     expect(result.requirements.find((r: { id: string }) => r.id === 'TODO-01')?.status).toBe('INCONCLUSIVE');
-    expect(result.requirements.find((r: { id: string }) => r.id === 'SANDBOX-01')?.status).toBe('BLOCKED');
+    expect(result.requirements.find((r: { id: string }) => r.id === 'SANDBOX-01')?.status).toBe('FAIL');
   });
 
   test('accepts only complete current explicit experiment receipts', () => {

@@ -4,7 +4,7 @@
 
 The register contains the exact stimuli and required observations for all 23 acceptance IDs in map section 11. It also retains ten core invariants, the section 8 restrictions, eleven Pi conformance obligations, the definition of done, and Benny availability. Each entry has a source document and line span. No entry starts as PASS.
 
-`SRC-01` and `TODO-01` retain the audited failures until current experiment evidence resolves them. `SANDBOX-01`, `ZIP-SECURITY`, and `ZIP-BENNY` remain BLOCKED. Deferring container or Benny work does not remove its release obligation. Benny may satisfy its availability obligation through a reviewed record that explicitly marks all three dormant skills unavailable. A claim of functioning Benny needs the complete tested integration chain.
+`SRC-01` and `TODO-01` remain INCONCLUSIVE after integration until reviewed current-source-bound experiment receipts establish PASS. `SANDBOX-01` and `ZIP-SECURITY` retain FAIL for known boundary contradictions, not BLOCKED merely because the work is deferred. `ZIP-BENNY` remains INCONCLUSIVE until its permitted explicit-unavailable alternative or complete integration chain is verified. Deferral does not remove a release obligation. Benny may satisfy its availability obligation through a reviewed record that explicitly marks all three dormant skills unavailable. A claim of functioning Benny needs the complete tested integration chain.
 
 ## Evidence receipt
 
