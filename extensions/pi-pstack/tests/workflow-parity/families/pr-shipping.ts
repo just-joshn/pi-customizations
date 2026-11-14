@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
+import { parseRunId, parseWorkerId, tmuxSessionName } from '../../../src/run-files.ts';
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { bareOf, editForge, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, forgeEnv, patchIdOf, readForge, revParse, setupForge, WATCH_PR, writeContainerScenario } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
@@ -20,10 +21,16 @@ export const SH = (anchor: string): Src => src('poteto-mode/playbooks/shipping.m
 
 export const containerRunLabel = (runId: string): string => `pstack.run=${runId}`;
 
-/** Removes any container of the run the host left behind. */
-export function removeRunContainers(runId: string): void {
-  const listed = spawnSync('docker', ['ps', '--all', '--quiet', '--filter', `label=${containerRunLabel(runId)}`], { encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
-  if (listed.length > 0) spawnSync('docker', ['rm', '--force', ...listed], { stdio: 'ignore' });
+/** Removes only containers claimed by this sandbox. */
+export function removeRunContainers(runId: string, repo: string): void {
+  const workers = join(repo, '.pi/pstack/runs', runId, 'workers');
+  if (!existsSync(workers)) return;
+  for (const worker of readdirSync(workers)) {
+    if (!existsSync(join(workers, worker, 'claim'))) continue;
+    const name = tmuxSessionName(repo, parseRunId(runId), parseWorkerId(worker));
+    const listed = spawnSync('docker', ['ps', '--all', '--quiet', '--filter', `label=${containerRunLabel(runId)}`, '--filter', `label=pstack.worker=${name}`], { encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
+    if (listed.length > 0) spawnSync('docker', ['rm', '--force', ...listed], { stdio: 'ignore' });
+  }
 }
 
 const VERDICT = /PSTACK-VERDICT: (PASS\+NOTES|PASS|FAIL) head=([0-9a-f]{40}) verifier=(\S+) patch=(\S+)/;
@@ -179,7 +186,7 @@ const shippingSpec = (id: string, runId: string, store: typeof SHIP_STORE, scena
   holdWatchers: /.*/,
   prepare: (ctx) => prepareStack(ctx, store, (c) => scenarioOf(c, store), extra),
   env: (ctx, driver) => forgeEnv(ctx, store.handle as ForgeHandle, { container: true, scripted: driver === 'scripted' }),
-  cleanup: () => removeRunContainers(runId),
+  cleanup: (ctx) => removeRunContainers(runId, ctx.repo),
   prompt: () => prompt,
   scenario: (ctx) => scenarioOf(ctx, store),
 });
@@ -577,7 +584,7 @@ function blockedFamily(kind: BlockedKind): Family {
         writeContainerScenario(ctx, scenarioOf(ctx));
       },
       env: (ctx, driver) => forgeEnv(ctx, store.handle as ForgeHandle, { container: true, scripted: driver === 'scripted', ...(kind === 'ContainerUnavailable' ? { engine: false } : { token: false }) }),
-      cleanup: () => removeRunContainers(runId),
+      cleanup: (ctx) => removeRunContainers(runId, ctx.repo),
       prompt: () => '/poteto-mode ship the stack: land PR 21, PR 22 and PR 23',
       scenario: scenarioOf,
     },

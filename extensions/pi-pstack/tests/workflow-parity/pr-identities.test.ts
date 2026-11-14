@@ -17,7 +17,7 @@ const families = [shippingFamily, shippingFreshnessFamily, ...autopilotFamilies]
   spec: {
     ...family.spec,
     runId: `${family.spec.runId}-observed`,
-    cleanup: () => removeRunContainers(`${family.spec.runId}-observed`),
+    cleanup: (ctx: Parameters<NonNullable<typeof family.spec.cleanup>>[0]) => removeRunContainers(`${family.spec.runId}-observed`, ctx.repo),
     prepare: (ctx: Parameters<NonNullable<typeof family.spec.prepare>>[0]) => {
       family.spec.prepare?.(ctx);
       const file = join(ctx.sandbox, 'sim-scenario/scenario.json');

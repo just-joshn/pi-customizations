@@ -99,7 +99,7 @@ const specOf = (id: string, runId: string, store: Store, scenarioOf: (ctx: Ctx) 
   timeoutMs: 480_000,
   prepare: (ctx) => prepare(ctx, store, scenarioOf, units, reserve),
   env: (ctx, driver) => forgeEnv(ctx, store.handle as ForgeHandle, { container: true, scripted: driver === 'scripted' }),
-  cleanup: () => removeRunContainers(runId),
+  cleanup: (ctx) => removeRunContainers(runId, ctx.repo),
   prompt: () => prompt,
   ...(followUps.length === 0 ? {} : { followUps: () => followUps }),
   scenario: scenarioOf,

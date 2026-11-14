@@ -104,7 +104,7 @@ export const orchestrateFamily: Family = {
       writeContainerScenario(ctx, scenarioOf(ctx, STORE));
     },
     env: (ctx, driver) => forgeEnv(ctx, STORE.handle as ForgeHandle, { container: true, scripted: driver === 'scripted' }),
-    cleanup: () => removeRunContainers(RUN),
+    cleanup: (ctx) => removeRunContainers(RUN, ctx.repo),
     prompt: () => "/poteto-mode orchestrate this standing multi-day project with many stacked PRs and dozens of workers over its lifetime. The current tranche has two independent queue items. Build these items and land them as PR 51 and PR 52, one owner per PR, merging each once verified. These PR numbers are reserved, not existing PRs. PR 51 uses branch feat-greet-orch and adds the named export greet(name) in src/greet.js. It returns the string 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 52 uses branch feat-shout-orch and adds the named export shout(name) in src/shout.js. It returns the string 'HELLO ' followed by name.toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Each item includes behavior tests under test/ and leaves the existing cart behavior unchanged. Do not stop to ask me.",
     scenario: (ctx) => scenarioOf(ctx, STORE),
   },

@@ -448,8 +448,8 @@ export const shippingRealFamily: RealFamily = {
       writeContainerScenario(ctx, shipScenario(ctx));
     },
     env: (ctx, driver) => realForgeEnv(ctx, { container: true, scripted: driver === 'scripted' }),
-    cleanup: () => {
-      removeRunContainers(SHIP_RUN);
+    cleanup: (ctx) => {
+      removeRunContainers(SHIP_RUN, ctx.repo);
       shipForge.cleanup();
     },
     prompt: () => `/poteto-mode ship the stack: land PR ${ship.numbers[0]}, PR ${ship.numbers[1]} and PR ${ship.numbers[2]}`,
