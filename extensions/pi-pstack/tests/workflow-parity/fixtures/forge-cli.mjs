@@ -200,6 +200,22 @@ const bodyOf = () => {
   return '';
 };
 
+function editPr(pr) {
+  needToken(true);
+  if (value('--body', '-b') !== undefined && value('--body-file', '-F') !== undefined) die(1, 'gh: --body and --body-file are mutually exclusive');
+  const base = value('--base', '-B');
+  const title = value('--title', '-t');
+  const hasBody = value('--body', '-b', '--body-file', '-F') !== undefined;
+  const body = hasBody ? (value('--body', '-b') ?? (value('--body-file', '-F') === '-' ? readFileSync(0, 'utf8') : readFileSync(value('--body-file', '-F'), 'utf8'))) : undefined;
+  if (base !== undefined) {
+    log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
+    pr.base = base;
+  }
+  if (title !== undefined) pr.title = title;
+  if (hasBody) pr.body = body;
+  log({ kind: 'edit', pr: pr.number, ...(title === undefined ? {} : { title }), ...(hasBody ? { body } : {}) });
+}
+
 function needToken(write) {
   if (write && WHO.container && !WHO.authenticated) die(4, 'gh: To use GitHub CLI in an automated workflow, set the GH_TOKEN environment variable (the worker has no forge capability).');
 }
@@ -481,15 +497,7 @@ function gh(state) {
     log({ kind: 'comment', pr: pr.number, body });
     return runEvents(state, 'comment', pr.number, body);
   }
-  if (verb === 'edit') {
-    needToken(true);
-    const base = value('--base', '-B');
-    if (base !== undefined) {
-      log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
-      pr.base = base;
-    }
-    return undefined;
-  }
+  if (verb === 'edit') return editPr(pr);
   if (verb === 'ready') {
     needToken(true);
     pr.isDraft = false;
@@ -588,13 +596,7 @@ function origin(state) {
     save(state);
     process.exit(checks.some((check) => check.bucket === 'fail') ? 1 : 0);
   }
-  if (verb === 'edit') {
-    needToken(true);
-    const base = value('--base');
-    log({ kind: 'edit-base', pr: pr.number, from: pr.base, to: base });
-    pr.base = base;
-    return undefined;
-  }
+  if (verb === 'edit') return editPr(pr);
   if (verb === 'ready') {
     needToken(true);
     pr.isDraft = false;
@@ -619,6 +621,17 @@ function origin(state) {
 
 if (!['gh', 'origin'].includes(tool)) die(2, 'usage: forge-cli.mjs gh|origin <args>');
 if (!existsSync(join(DIR, 'state.json'))) die(1, `forge: no state under ${DIR}`);
+if (argv[0] === 'pr' && argv[1] === 'edit') {
+  const allowed = ['--base', '-B', '--title', '-t', '--body', '-b', '--body-file', '-F', '--repo', '-R'];
+  for (let i = 2; i < argv.length; i += 1) {
+    if (!argv[i].startsWith('-')) continue;
+    const equal = argv[i].indexOf('=');
+    if (equal !== -1) argv.splice(i, 1, argv[i].slice(0, equal), argv[i].slice(equal + 1));
+    if (!allowed.includes(argv[i])) die(1, `${tool}: unknown or unsupported flag ${argv[i]}`);
+    if (argv[i + 1] === undefined) die(1, `${tool}: ${argv[i]} requires a value`);
+    i += 1;
+  }
+}
 const release = lock();
 process.on('exit', release);
 try {

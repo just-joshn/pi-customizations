@@ -72,6 +72,29 @@ test('PR list honors state and selected JSON fields', () => {
   expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'list', '--state', 'open', '--json', 'number').stdout)).toEqual([]);
 });
 
+test('PR edit persists title and body from inline, file, and stdin flags', () => {
+  const { ctx, forge } = fixture();
+  expect(call(ctx, forge, 'gh', 'pr', 'edit', '71', '--title', 'Updated', '--body', 'Inline').status).toBe(0);
+  const view = () => JSON.parse(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'title,body').stdout);
+  expect(view()).toEqual({ title: 'Updated', body: 'Inline' });
+  const file = join(ctx.sandbox, 'body.txt');
+  writeFileSync(file, 'File body\n');
+  expect(call(ctx, forge, 'gh', 'pr', 'edit', '71', '-F', file).status).toBe(0);
+  expect(view().body).toBe('File body\n');
+  const stdin = spawnSync(join(forge.bin, 'gh'), ['pr', 'edit', '71', '--body-file', '-', '-t', 'Stdin'], { cwd: ctx.repo, encoding: 'utf8', input: 'Stdin body\n', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
+  expect(stdin.status, stdin.stderr).toBe(0);
+  expect(view()).toEqual({ title: 'Stdin', body: 'Stdin body\n' });
+  expect(readFileSync(join(forge.dir, 'actions.jsonl'), 'utf8')).toContain('"kind":"edit"');
+});
+
+test.each([['--unknown', 'value'], ['--title'], ['--body', 'one', '--body-file', '-']])('PR edit rejects unsupported or invalid flags %j', (...flags) => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'pr', 'edit', '71', ...flags);
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toMatch(/unknown|requires|mutually exclusive/);
+  expect(JSON.parse(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'title,body').stdout)).toEqual({ title: 'Review', body: '' });
+});
+
 test('PR comments expose author objects without changing recorded actor identity', () => {
   const { ctx, forge } = fixture();
   expect(call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'PASS').status).toBe(0);
