@@ -1,7 +1,7 @@
 // Families: arena, architect, swarm, interrogate (spec 12.2).
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, finalFile, lineOf } from '../fixtures/repos.ts';
@@ -200,8 +200,18 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
     const brief = judge?.brief ?? '';
     const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate');
-    // A label then its path on one line, in any list or bold style: "- cand-1: /x/worktree", "- **candidate-A** worktree: `/x/worktree`".
-    const unlabelled = candidates.filter((worker) => !brief.split('\n').some((line) => new RegExp(`^[\\s\\-*>\\x60]*[A-Za-z][^/\\n]*\\/[^\\n]*/${worker.id}/worktree`).test(line)));
+    const copies = [...brief.matchAll(/`([^`\n]+\/)`/g)].map((match) => resolve(view.repo, match[1] as string));
+    const used = new Set<string>();
+    const unlabelled = candidates.filter((worker) => {
+      if (brief.split('\n').some((line) => new RegExp(`^[\\s\\-*>\\x60]*[A-Za-z][^/\\n]*\\/[^\\n]*/${worker.id}/worktree`).test(line))) return false;
+      const copy = copies.find((path) => !used.has(path) && ['src/coupon.js', 'test/coupon.test.js'].every((file) => {
+        const original = join(worker.worktree ?? join(worker.dir, 'worktree'), file);
+        return existsSync(original) && existsSync(join(path, file)) && readFileSync(original).equals(readFileSync(join(path, file)));
+      }));
+      if (copy === undefined) return true;
+      used.add(copy);
+      return false;
+    });
     const missing = [...(/Rubric/i.test(brief) ? [] : ['the rubric']), ...unlabelled.map((worker) => `a labelled path for ${worker.id}`)];
     return when(judge !== undefined && candidates.length > 0 && missing.length === 0, `the judge brief has the rubric and a labelled worktree path for ${candidates.length} candidates`, judge === undefined ? 'no judge' : `judge brief lacks ${missing.join(', ')}`);
   })),
