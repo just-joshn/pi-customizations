@@ -3,7 +3,7 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, readlinkSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
@@ -206,7 +206,13 @@ function workspaceDir(loaded: LoadedAssignment): string {
 function prepareOutput(workerDir: string): void {
   const out = outDirOf(workerDir);
   for (const name of ['session', 'evidence', 'receipts']) mkdirSync(join(out, name), { recursive: true, mode: 0o700 });
-  for (const name of ['session', 'evidence', 'report.md', 'decisions.tsv']) if (lstatSync(join(workerDir, name), { throwIfNoEntry: false }) === undefined) symlinkSync(join('out', name), join(workerDir, name));
+  for (const name of ['session', 'evidence', 'report.md', 'decisions.tsv']) {
+    const path = join(workerDir, name);
+    const entry = lstatSync(path, { throwIfNoEntry: false });
+    if (entry === undefined) symlinkSync(join('out', name), path);
+    else if (!entry.isSymbolicLink() || resolve(workerDir, readlinkSync(path)) !== join(out, name))
+      throw new Error(`Output projection ${path} must be a symlink to ${join('out', name)}. Existing entry was preserved. Move any data you need to keep, then spawn a fresh worker id.`);
+  }
 }
 
 /** The environment inside the container: the worker's own, less what describes the host, with its own home. */
