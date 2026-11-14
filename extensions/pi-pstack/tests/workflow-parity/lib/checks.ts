@@ -231,7 +231,7 @@ export function todoChecks(options: TodoOptions): Check[] {
         (worker.session?.toolCalls ?? []).some((call) => {
           const args = JSON.stringify(call.args);
           if (!args.includes(`${found?.id ?? '?'}/TODO.md`)) return false;
-          return call.name === 'write' || call.name === 'edit' || (call.name === 'bash' && /(>|sed -i|tee |mv |cp )/.test(String(call.args['command'])));
+          return call.name === 'write' || call.name === 'edit' || (call.name === 'bash' && /(>|sed -i|tee |mv |cp )/.test(String(call.args['command']).replace(/\d*[<>]&(?:\d+|-)/g, '')));
         }),
       );
       return when(writers.length === 0, `${allWorkers(view).length} workers, none touched TODO.md`, `workers that wrote TODO.md: ${writers.map((worker) => worker.id).join(', ')}`);
