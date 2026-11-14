@@ -5,9 +5,27 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterAll, describe, expect, test } from 'vitest';
-
 import { evaluate } from './lib/check.ts';
-import { todoChecks, carries, commitsNotFromWorkers, delegateCommits, everyCommitGreen, parentSpawnCommits, ranBefore, redFirst, workflowCommits, shellCommands, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
+import {
+  carries,
+  commitsNotFromWorkers,
+  delegateCommits,
+  everyCommitGreen,
+  fileReferencesResolve,
+  finalReply,
+  noToolErrors,
+  openedAt,
+  parentProductionWrites,
+  parentSpawnCommits,
+  ranBefore,
+  redFirst,
+  settledAndCollected,
+  shellCommands,
+  todoChecks,
+  withoutOwnIdentity,
+  workflowCommits,
+  writableWorkerRecords,
+} from './lib/checks.ts';
 import type { RunView, Session, WorkerView } from './lib/view.ts';
 
 const call = (order: number, args: Record<string, unknown>, resultText: string) => ({ order, name: 'pstack_worker', args, resultText, isError: false });
@@ -55,11 +73,20 @@ describe('collect needs a wake or an inspect that shows the worker settled', () 
 
 test('receipt adaptation is inconclusive when no playbook step was marked done', () => {
   const checks = todoChecks({ playbook: 'feature' });
-  const run = { id: 'r', steps: [{ n: 1, state: 'open', evidence: [] }], receipts: [] };
-  const results = evaluate(checks.filter((entry) => /every-step-resolved|done-steps-proven/.test(entry.id)), { runs: [run] } as unknown as RunView);
+  const step = { n: 1, state: 'open', evidence: [] };
+  const run = { id: 'r', steps: [step], receipts: [] };
+  const results = evaluate(
+    checks.filter((entry) => /every-step-resolved|done-steps-proven/.test(entry.id)),
+    { runs: [run] } as unknown as RunView,
+  );
   expect(results.map((entry) => entry.verdict)).toEqual(['FAIL', 'INCONCLUSIVE']);
-  run.steps[0]!.state = 'done';
-  expect(evaluate(checks.filter((entry) => entry.id.endsWith('done-steps-proven')), { runs: [run] } as unknown as RunView)[0]?.verdict).toBe('FAIL');
+  step.state = 'done';
+  expect(
+    evaluate(
+      checks.filter((entry) => entry.id.endsWith('done-steps-proven')),
+      { runs: [run] } as unknown as RunView,
+    )[0]?.verdict,
+  ).toBe('FAIL');
 });
 
 describe('file references', () => {
