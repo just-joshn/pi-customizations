@@ -23,7 +23,16 @@ test('general swarm verifiers report PASS at their assigned head without an inve
     expect(verificationWorkers(view, 'b'.repeat(40))).toEqual([]);
     worker.report = `**PASS** at ${head}\nISSUES: none provable.`;
     expect(laneClean(view, worker, head)).toBe(true);
-    for (const report of [`Verdict: INCONCLUSIVE at ${head}\nPASS at ${head}`, `VERDICT: ISSUES at ${head}\nPASS at ${head}`, `Checked head ${head}`, `ISSUES at ${head}`, `PASS at ${head}\nISSUES: unsafe merge.`, `PASS at ${head}\nISSUES: none provable.\nISSUES: tests fail.`,  `BLOCKED at ${head}`, `PASS at ${'b'.repeat(40)}`]) {
+    for (const report of [
+      `Verdict: INCONCLUSIVE at ${head}\nPASS at ${head}`,
+      `VERDICT: ISSUES at ${head}\nPASS at ${head}`,
+      `Checked head ${head}`,
+      `ISSUES at ${head}`,
+      `PASS at ${head}\nISSUES: unsafe merge.`,
+      `PASS at ${head}\nISSUES: none provable.\nISSUES: tests fail.`,
+      `BLOCKED at ${head}`,
+      `PASS at ${'b'.repeat(40)}`,
+    ]) {
       worker.report = report;
       expect(laneClean(view, worker, head), report).toBe(false);
     }

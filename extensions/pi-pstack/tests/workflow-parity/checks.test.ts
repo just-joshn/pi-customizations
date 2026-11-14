@@ -168,7 +168,7 @@ describe('opening a file through a worktree directory', () => {
   test('a playbook path under an assigned shell variable opens that playbook', () => {
     const suffix = 'generated/skills/poteto-mode/playbooks/orchestrate.md';
     expect(openedAt(bash('P=/p/generated/skills/poteto-mode; cat $P/playbooks/orchestrate.md'), suffix)).toBe(3);
-    expect(openedAt(bash('P=/p/generated/skills/other; cat ${P}/playbooks/orchestrate.md'), suffix)).toBe(-1);
+    expect(openedAt(bash(`P=/p/generated/skills/other; cat \${P}/playbooks/orchestrate.md`), suffix)).toBe(-1);
     expect(openedAt(bash('P=/p/generated/skills/poteto-mode; echo $P/playbooks/orchestrate.md'), suffix)).toBe(-1);
   });
   test('cd into the worktree and cat the file opens it', () => {
