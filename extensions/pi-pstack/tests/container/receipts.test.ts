@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { evidenceScope, ingestContainerReceipts, listReceipts, recordReceipt, verifyTarget } from '../../src/evidence.ts';
 import type { HostState, RunId, WorkerId } from '../../src/run-files.ts';
 import { makeParent, makeProject, makeRun, type Project, writeAssignment } from '../worker-lifecycle/harness.ts';
@@ -18,7 +18,10 @@ beforeEach(() => {
   project = makeProject();
   runRoot = makeRun(project, RUN);
 });
-afterEach(() => project.dispose());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  project.dispose();
+});
 
 /** What a container worker's evidence tool sees: the run root's name, and only its own directory behind it. */
 function inContainer(workerId: string) {
@@ -121,6 +124,41 @@ describe('a receipt recorded inside a container worker', () => {
     const inbox = join(worker.out, 'receipts', 'r1.json');
     expect(statSync(stored).ino).not.toBe(statSync(inbox).ino);
     expect(statSync(stored).nlink).toBe(1);
+  });
+
+  test.each([true, false])('host verification stays failed and hints at an unexported artifact only when it exists in out (%s)', (inOutput) => {
+    const worker = inContainer('v1');
+    worker.record('seed');
+    const path = join(worker.workerDir, 'comment.md');
+    const source = join(worker.out, 'evidence', 'root.json');
+    const raw = JSON.parse(readFileSync(join(worker.out, 'evidence', 'seed.json'), 'utf8'));
+    writeFileSync(source, JSON.stringify({ ...raw, id: 'root', target: 'root-step', artifacts: [{ path, sha256: digest('all green\n') }] }));
+    if (inOutput) writeFileSync(join(worker.out, 'comment.md'), 'all green\n');
+    recordReceipt(worker.scope, RUN, source);
+
+    const verdict = verifyTarget(runRoot, RUN, 'root-step');
+
+    expect(verdict).toMatchObject({ kind: 'fail', receipts: ['root'] });
+    if (inOutput) {
+      expect(verdict).toMatchObject({ defects: [expect.stringContaining(join(worker.out, 'comment.md'))] });
+      expect(verdict).toMatchObject({ defects: [expect.stringMatching(/save artifacts under evidence\/.*host.*record/i)] });
+    } else expect(verdict).toEqual({ kind: 'fail', receipts: ['root'], defects: [`root: artifact ${path} is missing`] });
+  });
+
+  test('the container record reply names the host-visible paths', async () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    vi.stubEnv('PSTACK_CONTAINER', '1');
+    vi.stubEnv('PSTACK_WORKER_ID', 'v1');
+    vi.stubEnv('PSTACK_RUN_ROOT', runRoot);
+    const parent = makeParent(project, []);
+    try {
+      const result = await parent.call('pstack_evidence', { action: 'record', runId: RUN, receiptPath: join(worker.workerDir, 'evidence', 'r1.json') });
+      expect(result.text).toMatch(/only evidence\/, session\/ and report\.md are visible to the host/i);
+      expect(result.details.receipt.id).toBe('r1');
+    } finally {
+      await parent.stop();
+    }
   });
 
   test('ingesting twice stores nothing new, and a later rewrite of the inbox file does not change the recorded receipt', () => {
