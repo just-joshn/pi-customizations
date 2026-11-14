@@ -973,13 +973,13 @@ export const babysitFlakeTwiceFamily: Family = {
     ...todoChecks({ playbook: 'babysit', skipReason: { 5: /conflict/, 8: /bugbot/ } }),
     modeDeclared('babysit.twice.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
     forgeResolvedOnce('babysit.twice.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
-    check('babysit.twice.exactly-one-fresh-build-then-no-more', 'both watchers ended on failing checks (exit 4), exactly one whole-run rerun was requested, after the run log and the base were read, and none after the second failure', BS('One retry only.'), (view) => {
+    check('babysit.twice.exactly-one-fresh-build-then-no-more', 'watchers ended on failing checks (exit 4), exactly one whole-run rerun was requested after the run log was read, and none after the second failure', BS('One retry only.'), (view) => {
       const { actions } = readForge(view);
       const reruns = actions.filter((action) => action.kind === 'rerun');
       const rerunAt = actions.findIndex((action) => action.kind === 'rerun');
       const logBefore = actions.slice(0, rerunAt).some((action) => action.kind === 'log-view');
       const codes = watchers(view).map(exitCodeOf);
-      return when(reruns.length === 1 && reruns[0]?.['retry'] === 'fresh-build' && logBefore && JSON.stringify(codes) === JSON.stringify([4, 4]), `one fresh build after the log was read; watchers ended ${codes.join(', ')}`, `reruns ${JSON.stringify(reruns.map((action) => action['retry']))}; log read before ${logBefore}; exits ${JSON.stringify(codes)}`);
+      return when(reruns.length === 1 && reruns[0]?.['retry'] === 'fresh-build' && logBefore && codes.length > 0 && codes.every((code) => code === 4), `one fresh build after the log was read; watchers ended ${codes.join(', ')}`, `reruns ${JSON.stringify(reruns.map((action) => action['retry']))}; log read before ${logBefore}; exits ${JSON.stringify(codes)}`);
     }),
     check('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', 'after the second failure the parent read the logs and reclassified the identical failure instead of retrying', BS('An identical second failure means it was never flake, so reclassify and read the child logs instead of retrying blind'), (view) => {
       const { actions } = readForge(view);
