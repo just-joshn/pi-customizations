@@ -72,7 +72,7 @@ test.for([true, false])('a changed patch can land only after fresh verification 
           resultText:
             index === 1
               ? JSON.stringify({ state: 'MERGED', baseRefName: 'main' })
-              : `Merged pull request\n${JSON.stringify({ state: 'MERGED', baseRefName: 'main', mergeCommit: { oid: heads[index] } }, null, 2)}\n{"state":"OPEN","baseRefName":"side"}\n`,
+              : `Merged pull request\n${JSON.stringify({ state: 'MERGED', baseRefName: 'main', mergeCommit: { oid: heads[index] } }, null, 2)}\n{"state":"OPEN","baseRefName":"main"}\n`,
           isError: false,
         })),
       },
