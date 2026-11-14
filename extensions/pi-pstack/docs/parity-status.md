@@ -43,13 +43,12 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T03:32:24.081Z |
-| 2 | linux | `e684506542e7` | 1.5.0 | v22.21.0 | 2859 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43550639380 |
+| 1 | darwin | `b36bd98c702c` | 1.5.2 | v26.13.1 | 2891 passed, 2 failed, 101 skipped | local at 2026-11-14T04:05:26.038Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 150 | 0 | 0 | 40 |
-| behavioral | 97 | 0 | 4 | 0 |
+| behavioral | 96 | 2 | 3 | 0 |
 
 ### Behavioral requirements
 
@@ -59,7 +58,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `MX-SLASH` Every original skill is invocable by its name | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:1-5 |  |
 | `MX-PLAN-ONLY` A multi-PR plan is written with no implementation side effects | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md:3-3 |  |
 | `MX-TODO-PARITY` A playbook start writes every original step, in order, to TODO.md | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:124-124 |  |
-| `MX-WORKER-CONCURRENCY` Concurrent workers get distinct sessions and worktrees | 16.2 | PASS | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 |  |
+| `MX-WORKER-CONCURRENCY` Concurrent workers get distinct sessions and worktrees | 16.2 | FAIL | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | 1 linked test(s) failed: pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions |
 | `MX-DIRECT-INTERACTION` A live worker can be steered and its pane attached | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:12-12 |  |
 | `MX-WORKER-CRASH` A crashed or killed worker is a failure, never a pass | 16.2 | PASS | vendor/upstream-pstack/skills/swarm/SKILL.md:33-33 |  |
 | `MX-PARENT-RESTART` Workers outlive the parent and wake the restarted parent once | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:22-22 |  |
@@ -96,7 +95,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
@@ -130,8 +129,8 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `BENNY-NO-SLACK-CREDENTIALS` Workers never receive Slack credentials | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:30-30 |  |
 | `BENNY-DUPLICATE-TICKET` A redelivery or crash never creates a second ticket | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:11-11 |  |
 | `BENNY-FAIL-CLOSED` Missing or uncertain prerequisites block the case | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:35-35 |  |
-| `BENNY-REPRODUCE-TWICE` A symptom is reproduced twice through the real UI before any fix | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:25-25 | declared coverage gap: The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs. |
-| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 | declared coverage gap: The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs. |
+| `BENNY-REPRODUCE-TWICE` A symptom is reproduced twice through the real UI before any fix | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:25-25 |  |
+| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 |  |
 | `BENNY-DRAFT-ONLY` Benny opens draft PRs only and never merges or deploys | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:291-291 |  |
 | `BENNY-OUTBOX-RESTART` A crash after posting but before acknowledgement does not post again | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:13-13 |  |
 | `BENNY-EVENT-DELIVERY` Webhook delivery authenticates, bounds and deduplicates events | 14.1 | PASS | specification 14.1 |  |
@@ -146,7 +145,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `BENNY-EVIDENCE-IN-THREAD` Allowed evidence is attached to the one source reply by the parent, or linked | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:214-214 |  |
 | `BENNY-REJECTION-WINDOW` No fix starts until the rejection window closes without a valid rejection | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:216-216 |  |
 | `BENNY-OPS-FOLLOW-UP` The repro automation watches the operations thread for one follow-up window | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:301-308 |  |
-| `BENNY-TRIAGE-FOLLOW-UP` Triage watches the source thread for one follow-up window | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:230-240 |  |
+| `BENNY-TRIAGE-FOLLOW-UP` Triage watches the source thread for one follow-up window | 14.2 | FAIL | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:230-240 | 10 linked test(s) failed: no worker starts while nobody has written in the thread, or for the triage identity or the parent itself; a new human message starts one read-only worker with the case and the message, and a second pass adopts it; the answer is posted once as a marker-free reply in the source thread; a second verdict marker in a follow-up answer is dropped, so one run never emits two; a tracker correction becomes one comment on the issue this case owns, from a body with no Source line; a later message after an answered round starts round two with only the new messages; a stop request closes the window: later messages start nothing; the window is fixed: after it ends no round starts and a worker still running is closed without a post; a restart in the middle of a round adopts that worker and starts no second one; a worker that failed leaves the thread alone and closes its round |
 | `BENNY-OPS-STATUS` The repro workflow's one root post is the operations status message | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:107-107 |  |
 | `BENNY-TRACKER-ADAPTER` The tracker is an adapter the parent reaches without trusting the worker | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:129-142 |  |
 | `BENNY-DEDUPE` A source permalink already linked to a tracker issue creates no second issue | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:146-146 |  |
