@@ -17,6 +17,7 @@ const required = <T>(value: T | undefined): T => {
 };
 const ids = ['babysit.single.the-second-request-armed-no-second-watcher', 'babysit.single.only-one-watcher-ever-polled-the-pr'];
 const observation = (id = 'w', phase = 'running') => ({ runId: 'r', id, instance: id, phase, childPid: id === 'w' ? 101 : 102, childStarted: 'process-start', before: 'process-start', after: 'process-start' });
+const ended = (id = 'w'): WatcherObservation => ({ ...observation(id, 'exited'), before: null, after: null, absentBefore: true, absentAfter: true });
 
 function fixture(use: (view: RunView, save: (workers: WatcherObservation[], spawns?: WatcherObservation[][]) => void) => void): void {
   const sandbox = mkdtempSync(join(tmpdir(), 'single-watcher-temporal-'));
@@ -146,11 +147,57 @@ test('a terminal phase with unreadable process starts cannot prove a sequential 
     expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
   }));
 
+test.for([
+  { before: null, after: null, absentBefore: true, absentAfter: false },
+  { before: 'process-start', after: null, absentBefore: false, absentAfter: true },
+])('partial or contradictory termination samples cannot prove non-overlap %j', (samples) =>
+  fixture((view, save) => {
+    const run = required(view.runs[0]);
+    run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
+    save([observation()], [[{ ...observation('w', 'exited'), ...samples }, observation('replacement')]]);
+    expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
+  }),
+);
+
+test('matching PID reuse samples prove the old process identity ended', () =>
+  fixture((view, save) => {
+    const run = required(view.runs[0]);
+    run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
+    save([observation()], [[{ ...observation('w', 'exited'), before: 'new-process-start', after: 'new-process-start' }, observation('replacement')]]);
+    expect(results(view)).toEqual(['PASS', 'PASS']);
+  }));
+
+test('a reaped owned child with ESRCH supports a sequential replacement', async () => {
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+  const exited = once(child, 'exit');
+  try {
+    await once(child, 'spawn');
+    const pid = required(child.pid);
+    const started = required(processStartTime(pid));
+    const delivery = { ...observation(), childPid: pid, childStarted: started, before: started, after: started };
+    child.kill('SIGTERM');
+    await exited;
+    expect(() => process.kill(pid, 0)).toThrow(expect.objectContaining({ code: 'ESRCH' }));
+    const before = processStartTime(pid) ?? null;
+    expect(() => process.kill(pid, 0)).toThrow(expect.objectContaining({ code: 'ESRCH' }));
+    const after = processStartTime(pid) ?? null;
+    fixture((view, save) => {
+      const run = required(view.runs[0]);
+      run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
+      save([delivery], [[{ ...ended(), childPid: pid, childStarted: started, before, after }, observation('replacement')]]);
+      expect(results(view)).toEqual(['PASS', 'PASS']);
+    });
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
+    await exited;
+  }
+});
+
 test('a proved sequential replacement after a valid repeat request is allowed', () =>
   fixture((view, save) => {
     const run = required(view.runs[0]);
     run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
-    save([observation()], [[observation('w', 'exited'), observation('replacement')]]);
+    save([observation()], [[ended(), observation('replacement')]]);
     expect(results(view)).toEqual(['PASS', 'PASS']);
   }));
 
@@ -158,6 +205,6 @@ test('a new watcher after a proved ended original is not automatically a duplica
   fixture((view, save) => {
     const run = required(view.runs[0]);
     run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
-    save([observation('w', 'exited')], [[observation('w', 'exited'), observation('replacement')]]);
+    save([ended()], [[ended(), observation('replacement')]]);
     expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
   }));

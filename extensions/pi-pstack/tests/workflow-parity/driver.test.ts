@@ -135,7 +135,7 @@ test('real-driver teardown records container credential probe coverage without a
   expect(probes).toEqual([]);
 });
 
-test('an already removed worker makes only its credential measurement inconclusive', async () => {
+test.skipIf(process.env['PSTACK_NON_CONTAINER_TESTS'] === '1')('an already removed worker makes only its credential measurement inconclusive', async () => {
   process.env['FAKE_PI_MODE'] = 'busy';
   process.env['FAKE_PI_BUSY_MS'] = '0';
   const container = `pstack-removed-${Date.now()}`;

@@ -19,20 +19,33 @@ export interface WatcherObservation {
   childStarted: string | null;
   before: string | null;
   after: string | null;
+  absentBefore?: boolean;
+  absentAfter?: boolean;
 }
 interface Observations {
   deliveries: { message: string; workers: WatcherObservation[] }[];
   spawns: WatcherObservation[][];
 }
 
-export const liveObservation = (worker: WatcherObservation): boolean =>
-  worker.phase === 'running' &&
-  typeof worker.instance === 'string' &&
-  typeof worker.childPid === 'number' &&
-  typeof worker.childStarted === 'string' &&
-  worker.childStarted !== '' &&
-  worker.before === worker.childStarted &&
-  worker.after === worker.childStarted;
+const matchingProcess = (worker: WatcherObservation): boolean =>
+  typeof worker.childPid === 'number' && typeof worker.childStarted === 'string' && worker.childStarted !== '' && worker.before === worker.childStarted && worker.after === worker.childStarted;
+export const liveObservation = (worker: WatcherObservation): boolean => worker.phase === 'running' && typeof worker.instance === 'string' && matchingProcess(worker);
+const endedObservation = (worker: WatcherObservation): boolean => {
+  if (!['exited', 'aborted'].includes(worker.phase ?? '') || typeof worker.childPid !== 'number' || typeof worker.childStarted !== 'string' || worker.childStarted === '') return false;
+  const goneAt = (started: string | null, absent: boolean | undefined): boolean => (started === null ? absent === true : started !== '' && started !== worker.childStarted);
+  return goneAt(worker.before, worker.absentBefore) && goneAt(worker.after, worker.absentAfter);
+};
+
+function processSample(pid: number): { started: string | null; absent: boolean } {
+  const started = processStartTime(pid) ?? null;
+  let absent = false;
+  try {
+    process.kill(pid, 0);
+  } catch (error) {
+    absent = (error as NodeJS.ErrnoException).code === 'ESRCH';
+  }
+  return { started, absent };
+}
 const textOf = (message: Json): string =>
   typeof message['content'] === 'string'
     ? message['content']
@@ -60,6 +73,7 @@ function observe(ctx: Ctx): WatcherObservation[] {
     const state = worker.state ?? {};
     const supervision = state['supervision'] as Json | undefined;
     const pid = state['childPid'];
+    const before = typeof pid === 'number' ? processSample(pid) : { started: null, absent: false };
     return {
       runId,
       id: worker.id,
@@ -67,12 +81,16 @@ function observe(ctx: Ctx): WatcherObservation[] {
       phase: typeof state['phase'] === 'string' ? state['phase'] : null,
       childPid: typeof pid === 'number' ? pid : null,
       childStarted: typeof supervision?.['childStarted'] === 'string' ? supervision['childStarted'] : null,
-      before: typeof pid === 'number' ? (processStartTime(pid) ?? null) : null,
+      before: before.started,
+      absentBefore: before.absent,
       after: null,
     };
   });
   // Two identity sweeps bracket a common observation interval; a host heartbeat is not child evidence.
-  return observations.map((worker) => ({ ...worker, after: typeof worker.childPid === 'number' ? (processStartTime(worker.childPid) ?? null) : null }));
+  return observations.map((worker) => {
+    const after = typeof worker.childPid === 'number' ? processSample(worker.childPid) : { started: null, absent: false };
+    return { ...worker, after: after.started, absentAfter: after.absent };
+  });
 }
 
 const isRecord = (value: unknown): value is Json => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -81,6 +99,7 @@ const validObservation = (value: unknown): value is WatcherObservation =>
   typeof value['runId'] === 'string' &&
   typeof value['id'] === 'string' &&
   ['instance', 'phase', 'childStarted', 'before', 'after'].every((key) => value[key] === null || typeof value[key] === 'string') &&
+  ['absentBefore', 'absentAfter'].every((key) => value[key] === undefined || typeof value[key] === 'boolean') &&
   (value['childPid'] === null || (typeof value['childPid'] === 'number' && Number.isSafeInteger(value['childPid']) && value['childPid'] > 0));
 const validWorkers = (value: unknown): value is WatcherObservation[] => Array.isArray(value) && value.every(validObservation);
 
@@ -125,7 +144,7 @@ export const repeatOnWatcherSpawn: NonNullable<RunSpec['interrupt']> = (ctx, eve
 export function repeatPremise(view: RunView): { worker: WatcherObservation } | { inconclusive: string } | { ok: false; evidence: string } {
   const evidence = readObservations(view.sandbox);
   if (evidence === undefined) return { inconclusive: 'no delivery-time watcher observations; historical liveness cannot be inferred from final state or event indexes' };
-  if ([...evidence.spawns, ...evidence.deliveries.map((delivery) => delivery.workers)].some((workers) => new Set(workers.filter(liveObservation).map((worker) => `${worker.childPid}/${worker.childStarted}`)).size > 1))
+  if ([...evidence.spawns, ...evidence.deliveries.map((delivery) => delivery.workers)].some((workers) => new Set(workers.filter(matchingProcess).map((worker) => `${worker.childPid}/${worker.childStarted}`)).size > 1))
     return { ok: false, evidence: 'observed overlapping live PR 16 watcher children with matching PID/start identities' };
   const repeat = view.parent.messages.filter((message) => message.role === 'user')[1];
   const delivery = evidence.deliveries[0];
@@ -150,8 +169,7 @@ export function repeatPremise(view: RunView): { worker: WatcherObservation } | {
     if (candidate.runId === worker.runId && candidate.entry.id === worker.id) continue;
     const endedThenReplaced = evidence.spawns.some(
       (group) =>
-        group.some((entry) => entry.runId === candidate.runId && entry.id === candidate.entry.id && liveObservation(entry)) &&
-        group.some((entry) => entry.runId === worker.runId && entry.id === worker.id && ['exited', 'aborted'].includes(entry.phase ?? '')),
+        group.some((entry) => entry.runId === candidate.runId && entry.id === candidate.entry.id && liveObservation(entry)) && group.some((entry) => entry.runId === worker.runId && entry.id === worker.id && endedObservation(entry)),
     );
     if (!endedThenReplaced) return { inconclusive: 'an additional watcher has no proved non-overlapping lifetime' };
   }
