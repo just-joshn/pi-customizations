@@ -130,12 +130,15 @@ const stackedUnits = (handle: ForgeHandle): Unit[] => {
 
 const OWNER_FAMILY = (model: string): string => model.slice(model.indexOf('/') + 1).split(/[-.]/)[0] as string;
 
-const ownerWorkers = (view: RunView): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'owner');
+const ownerWorkers = (view: RunView): WorkerView[] => {
+  const authors = new Set(Object.values(readForge(view).state.prs).map((pr) => pr.author));
+  return allWorkers(view).filter((worker) => assignmentOf(worker).role === 'owner' || authors.has(String(worker.assignment['workerId'] ?? worker.id)));
+};
 
 export function responsibleWorker(view: RunView, role: string, pr: number, lane?: string): WorkerView | undefined {
   const { state, actions } = readForge(view);
   const candidates = allWorkers(view).filter((worker) => {
-    if (assignmentOf(worker).role !== role) return false;
+    if (role !== 'owner' && assignmentOf(worker).role !== role) return false;
     const identity = String(worker.assignment['workerId'] ?? worker.id);
     const responsible = role === 'owner' ? state.prs[String(pr)]?.author === identity : actions.some((action) => action.pr === pr && action.worker === identity && action.kind === 'comment');
     return responsible && (lane === undefined || new RegExp(`\\b${lane}\\b`, 'i').test(worker.brief ?? ''));
