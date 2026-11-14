@@ -211,7 +211,7 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     { name: 'cross-judge verdict, or that the judge was skipped', pattern: /cross-judge|judge[^.\n]*skipped|skipped[^.\n]*judge/i },
     { name: 'grafts', pattern: /\bGrafts?\b/i },
     { name: 'rejected', pattern: /\bRejected\b/i },
-    { name: 'dropouts', pattern: /dropouts?/i },
+    { name: 'convergence or dropouts', pattern: /converg\w*|dropouts?/i },
     { name: 'verification', pattern: /\bVerification\b/i },
   ]),
   settledAndCollected(`${prefix}.settled-and-collected`, src('arena/SKILL.md', 'After all Phase B candidates complete')),
