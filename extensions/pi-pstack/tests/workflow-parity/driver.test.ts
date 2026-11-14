@@ -20,18 +20,22 @@ const withPi = (mode: string) => {
 test('an idle parent and coordinator do not end a run while a nested worker is running', async () => {
   process.env['FAKE_PI_MODE'] = 'nested-worker';
   let nestedState = '';
-  const outcome = await runWorkflow({
-    ...spec,
-    prepare: (ctx) => {
-      const coordinator = join(ctx.repo, '.pi/pstack/runs/root/workers/coordinator');
-      const leaf = join(coordinator, 'worktree/.pi/pstack/runs/area/workers/leaf');
-      mkdirSync(leaf, { recursive: true });
-      writeFileSync(join(coordinator, 'state.json'), JSON.stringify({ phase: 'idle' }));
-      nestedState = join(leaf, 'state.json');
-      writeFileSync(nestedState, JSON.stringify({ phase: 'running' }));
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      prepare: (ctx) => {
+        const coordinator = join(ctx.repo, '.pi/pstack/runs/root/workers/coordinator');
+        const leaf = join(coordinator, 'worktree/.pi/pstack/runs/area/workers/leaf');
+        mkdirSync(leaf, { recursive: true });
+        writeFileSync(join(coordinator, 'state.json'), JSON.stringify({ phase: 'idle' }));
+        nestedState = join(leaf, 'state.json');
+        writeFileSync(nestedState, JSON.stringify({ phase: 'running' }));
+      },
+      env: () => ({ FAKE_PI_NESTED_STATE: nestedState }),
     },
-    env: () => ({ FAKE_PI_NESTED_STATE: nestedState }),
-  }, 'scripted', { pi: FAKE_PI });
+    'scripted',
+    { pi: FAKE_PI },
+  );
   try {
     expect(outcome.meta.timedOut).toBe(false);
     expect(JSON.parse(readFileSync(nestedState, 'utf8'))).toEqual({ phase: 'idle' });
@@ -51,11 +55,19 @@ test.for([false, true])('commits since start exclude fixture setup commits and r
     git('commit', '-qm', name);
     return git('rev-parse', 'HEAD');
   };
-  const outcome = await runWorkflow({
-    ...spec,
-    prepare: (ctx) => { commit(ctx.repo, 'inherited.txt'); },
-    drive: async ({ ctx }) => { if (addWork) created = commit(ctx.repo, 'new.txt'); },
-  }, 'scripted', { pi: FAKE_PI });
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      prepare: (ctx) => {
+        commit(ctx.repo, 'inherited.txt');
+      },
+      drive: async ({ ctx }) => {
+        if (addWork) created = commit(ctx.repo, 'new.txt');
+      },
+    },
+    'scripted',
+    { pi: FAKE_PI },
+  );
   try {
     expect(outcome.view.git.commitsSinceBase).toEqual(addWork ? [created] : []);
   } finally {
