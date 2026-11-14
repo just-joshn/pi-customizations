@@ -6,7 +6,7 @@
   "license": "MIT",
   "pstackSource": {
     "repository": "https://github.com/cursor/plugins",
-    "revision": "a5539b15a3d56e04992565aafee2b37051329ce3",
+    "revision": "3dbd22ff12742fb28c9700b9760baa29ed41dc13",
     "path": "pstack",
     "version": "0.15.36",
     "lastChange": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c"
@@ -90,5 +90,12 @@
     "typebox": "1.3.27",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
+  },
+  "teamKitSource": {
+    "repository": "https://github.com/cursor/plugins",
+    "revision": "3dbd22ff12742fb28c9700b9760baa29ed41dc13",
+    "path": "cursor-team-kit",
+    "version": "1.2.0",
+    "inventory": "generated/upstream-inventory.json"
   }
 }

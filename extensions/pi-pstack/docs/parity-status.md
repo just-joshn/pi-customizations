@@ -4,9 +4,11 @@ This page lists, for pi-pstack 0.15.36-pi.40, which parts of the specification h
 
 ## Source pin
 
-- Upstream: `github.com/cursor/plugins` at `a5539b15a3d56e04992565aafee2b37051329ce3`, paths `pstack/` and `cursor-team-kit/`. `generated/upstream-lock.json` holds the checksum of every vendored file.
+- Upstream: `github.com/cursor/plugins` at `3dbd22ff12742fb28c9700b9760baa29ed41dc13`, paths `pstack/` and `cursor-team-kit/`. `generated/upstream-lock.json` holds the checksum of every vendored file.
 - pstack's last change at that commit is `c742dd61706fbacc1b95f1a20b7b988cf096ce6c`, recorded in `package.json` `pstackSource`.
-- Move the pin with `node scripts/sync-upstream.mjs --revision <sha>`. A move that changes any vendored file is refused without `--review <file>`, a record naming the reviewer, notes, and every changed file. Each move is logged in `generated/source-review-log.json`, and `check-parity.mjs` fails when the lock, `package.json`, and that log disagree.
+- `generated/upstream-inventory.json` records the fetched Git trees for both source roots, all 573 pstack and 29 team-kit blob IDs, and their SHA-256 hashes. The 593 vendored files retain their upstream bytes. Nine inventory-only files have `vendorPath: null`. These are pstack's `.gitignore` and team-kit's manifest, README, license, avatar, two agents, and two Cursor rules. They are not installed worker roles or Pi rules. Team-kit's license remains in `licenses/cursor-team-kit.LICENSE`.
+- Move the pin with `node scripts/sync-upstream.mjs --revision <sha>`. A move that changes any vendored file is refused without `--review <file>`, a record naming the reviewer, notes, and every changed file. Each move is logged in `generated/source-review-log.json`. `check-parity.mjs` rejects any revision other than the audited ZIP revision, even with identical contents and a valid sync log. A future source upgrade requires a new audit, not merely a sync.
+- Verify against a fetched checkout with `node scripts/verify-source-inventory.mjs --checkout <cursor/plugins-checkout>`. It compares the exact revision, both tree IDs, all 602 blob IDs and SHA-256 hashes, and all 593 vendored files. `tests/skill-parity/source-inventory.test.ts` checks the committed inventory and the guide, playbook, principle, skill, and dormant Benny counts without network access. These checks prove source identity, not runtime parity.
 - `node scripts/check-parity.mjs` reports 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, 62 prompts, 244 rules, and 309 spans.
 
 ## Run the checks

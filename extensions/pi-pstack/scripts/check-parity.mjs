@@ -17,6 +17,10 @@ const fail = (message) => problems.push(message);
 const read = (path) => readFileSync(join(root, path), 'utf8');
 
 const lock = JSON.parse(read('generated/upstream-lock.json'));
+const auditedRevision = '3dbd22ff12742fb28c9700b9760baa29ed41dc13';
+if (lock.revision !== auditedRevision) fail(`upstream lock ${lock.revision} does not match the audited ZIP revision ${auditedRevision}; identical content does not authorize a new source revision`);
+const teamKit = JSON.parse(read('package.json')).teamKitSource;
+if (teamKit?.revision !== lock.revision) fail('package.json teamKitSource.revision differs from generated/upstream-lock.json');
 if (existsSync(join(root, 'requirements/requirements.json'))) for (const problem of buildRecords(root, loadInputs(root)).problems) fail(problem);
 else fail('requirements/requirements.json: missing');
 const pinned = JSON.parse(read('package.json')).pstackSource;

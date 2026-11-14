@@ -8,7 +8,7 @@ pi-pstack is pstack 0.15.36 as a native Pi package. It has three parts:
 
 Pi's own features stay in charge of everything else: models, sessions, MCP, Codemode, and skill loading. The package adds no subagent tool, no todo tool, no plan mode, and no permission prompts. Plans and checklists are Markdown files.
 
-The upstream pin is `github.com/cursor/plugins` at `a5539b15a3d56e04992565aafee2b37051329ce3` (`generated/upstream-lock.json`). Pi loads 62 skills and 62 prompts from this package: pstack's 58 skills and the team-kit skills they call (`tests/integration/pi-load.test.ts`).
+Both upstream source roots are pinned to `github.com/cursor/plugins` at the audited ZIP revision `3dbd22ff12742fb28c9700b9760baa29ed41dc13`. `generated/upstream-lock.json` hashes the vendored bytes. `generated/upstream-inventory.json` records the complete fetched source trees and identifies files outside the vendor subset. See [Source pin](docs/parity-status.md#source-pin) for the inventory verifier and its limits. Pi loads 62 skills and 62 prompts from this package: pstack's 58 skills and the team-kit skills they call (`tests/integration/pi-load.test.ts`).
 
 ## Install
 
