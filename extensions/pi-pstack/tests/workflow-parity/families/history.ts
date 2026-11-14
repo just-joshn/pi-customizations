@@ -526,7 +526,7 @@ export const showWorkFamily: Family = {
       const reply = finalReply(view);
       const attention = reply.split(/^(?:#{1,6}\s*|\*\*)?Attention(?:\*\*)?:?\s*$/m)[1] ?? '';
       const lines = attention.split('\n').filter(Boolean);
-      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /\brow\s+(?:\d|`[\w-]+`)|\b\d\d:\d\d:\d\d(?:Z)?\b|\bno flags\b/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
+      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /\brows?\s+(?:\d|`[\w-]+`)|\b\d\d:\d\d:\d\d(?:Z)?\b|\bno flags\b/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
     }),
     settledAndCollected('trail.settled-and-collected', src('show-me-your-work/SKILL.md', '## Cross-model review of the trail')),
     noToolErrors('trail.no-tool-errors', src('show-me-your-work/SKILL.md', '## Logging a row')),
