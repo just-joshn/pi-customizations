@@ -159,15 +159,15 @@ test.for([
   }),
 );
 
-test('matching PID reuse samples prove the old process identity ended', () =>
+test('PID reuse observed after spawn does not establish replacement ordering', () =>
   fixture((view, save) => {
     const run = required(view.runs[0]);
     run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
     save([observation()], [[{ ...observation('w', 'exited'), before: 'new-process-start', after: 'new-process-start' }, observation('replacement')]]);
-    expect(results(view)).toEqual(['PASS', 'PASS']);
+    expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
   }));
 
-test('a reaped owned child with ESRCH supports a sequential replacement', async () => {
+test('a reaped owned child sampled with ESRCH after spawn does not establish replacement ordering', async () => {
   const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
   const exited = once(child, 'exit');
   try {
@@ -185,7 +185,7 @@ test('a reaped owned child with ESRCH supports a sequential replacement', async 
       const run = required(view.runs[0]);
       run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
       save([delivery], [[{ ...ended(), childPid: pid, childStarted: started, before, after }, observation('replacement')]]);
-      expect(results(view)).toEqual(['PASS', 'PASS']);
+      expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
     });
   } finally {
     if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
@@ -239,12 +239,12 @@ test('late ESRCH observations cannot prove end-before-start when actual overlap 
   }
 });
 
-test('a proved sequential replacement after a valid repeat request is allowed', () =>
+test('a terminal old-child snapshot beside a live replacement does not establish ordering', () =>
   fixture((view, save) => {
     const run = required(view.runs[0]);
     run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement' });
     save([observation()], [[ended(), observation('replacement')]]);
-    expect(results(view)).toEqual(['PASS', 'PASS']);
+    expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
   }));
 
 test('a new watcher after a proved ended original is not automatically a duplicate', () =>

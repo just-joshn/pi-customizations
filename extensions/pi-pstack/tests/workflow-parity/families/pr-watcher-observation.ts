@@ -30,11 +30,6 @@ interface Observations {
 const matchingProcess = (worker: WatcherObservation): boolean =>
   typeof worker.childPid === 'number' && typeof worker.childStarted === 'string' && worker.childStarted !== '' && worker.before === worker.childStarted && worker.after === worker.childStarted;
 export const liveObservation = (worker: WatcherObservation): boolean => worker.phase === 'running' && typeof worker.instance === 'string' && matchingProcess(worker);
-const endedObservation = (worker: WatcherObservation): boolean => {
-  if (!['exited', 'aborted'].includes(worker.phase ?? '') || typeof worker.childPid !== 'number' || typeof worker.childStarted !== 'string' || worker.childStarted === '') return false;
-  const goneAt = (started: string | null, absent: boolean | undefined): boolean => (started === null ? absent === true : started !== '' && started !== worker.childStarted);
-  return goneAt(worker.before, worker.absentBefore) && goneAt(worker.after, worker.absentAfter);
-};
 
 function processSample(pid: number): { started: string | null; absent: boolean } {
   const started = processStartTime(pid) ?? null;
@@ -165,13 +160,7 @@ export function repeatPremise(view: RunView): { worker: WatcherObservation } | {
       const argv = assignment.watch?.argv ?? [];
       return assignment.kind === 'watch' && argv[argv.indexOf('--pr') + 1] === '16';
     });
-  for (const candidate of candidates) {
-    if (candidate.runId === worker.runId && candidate.entry.id === worker.id) continue;
-    const endedThenReplaced = evidence.spawns.some(
-      (group) =>
-        group.some((entry) => entry.runId === candidate.runId && entry.id === candidate.entry.id && liveObservation(entry)) && group.some((entry) => entry.runId === worker.runId && entry.id === worker.id && endedObservation(entry)),
-    );
-    if (!endedThenReplaced) return { inconclusive: 'an additional watcher has no proved non-overlapping lifetime' };
-  }
+  if (candidates.some((candidate) => candidate.runId !== worker.runId || candidate.entry.id !== worker.id))
+    return { inconclusive: 'an additional watcher has no causal end-before-start proof; post-spawn absence cannot establish non-overlap' };
   return { worker };
 }
