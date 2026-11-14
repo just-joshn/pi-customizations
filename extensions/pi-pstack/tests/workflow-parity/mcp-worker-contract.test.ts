@@ -23,6 +23,16 @@ test('disabling MCP on a launch is still a violation', () => {
   required(required(value.runs[0]).events[0])['data'] = { command: ['pi', '--no-mcp', '--tools', 'read'] };
   expect(check('worker-launch-keeps-mcp', value)).toBe('FAIL');
 });
+test('missing document coverage uses the category and reason, not a literal fixture sentence', () => {
+  const value = structuredClone(view);
+  value.parent.messages = [{ order: 1, role: 'assistant', text: 'Sources consulted\nLong-form documents were skipped because no MCP server is available.' }];
+  expect(check('citations-come-from-tool-output', value)).toBe('PASS');
+  required(value.parent.messages[0]).text = 'No records found.';
+  expect(check('citations-come-from-tool-output', value)).toBe('FAIL');
+  required(value.parent.messages[0]).text = 'Long-form documents were skipped. DEC-777 explains it.';
+  expect(check('citations-come-from-tool-output', value)).toBe('FAIL');
+});
+
 test('codemode execution does not require a general writable worker', () => {
   const value = structuredClone(view);
   required(required(value.runs[0]).workers[0]).assignment['role'] = 'poteto';

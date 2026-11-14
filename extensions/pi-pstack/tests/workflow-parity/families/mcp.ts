@@ -81,7 +81,7 @@ function whyMcp(withServer: boolean): Family {
     check(`${id}.citations-come-from-tool-output`, withServer ? 'every decision id and URL in the reply appears in the MCP tool output' : 'the reply cites no decision id or URL, and its Sources Consulted line says the documents were not searched', src('why/references/investigator-prompt.md', '**Never invent.**'), (view) => {
       const reply = finalReply(view);
       const cited = [...new Set((reply.match(/DEC-\d+|https?:\/\/[^\s)]+/g) ?? []).map((entry) => entry.replace(/[.,]+$/, '')))];
-      if (!withServer) return when(cited.length === 0 && /Long-form documents: skipped, the decisions MCP server is not connected/.test(reply), 'no citation, and the missing coverage is stated', `cited ${cited.join(', ') || 'nothing'}; line ${/Long-form documents.*/.exec(reply)?.[0] ?? 'absent'}`);
+      if (!withServer) return when(cited.length === 0 && /\bLong.form doc(?:ument)?s?\b[^\n]*(?:skipp\w*|not (?:searched|available|connected)|unavailable|no[^.\n]*MCP)/i.test(reply), 'no citation, and the missing coverage is stated', `cited ${cited.join(', ') || 'nothing'}; line ${/Long-form documents.*/.exec(reply)?.[0] ?? 'absent'}`);
       const output = codemodeOf(view, 'mcp-control')?.resultText ?? '';
       const invented = cited.filter((entry) => !output.includes(entry));
       return when(cited.length >= 2 && invented.length === 0, `cited ${cited.join(', ')}, all in the tool output`, `cited ${cited.join(', ') || 'nothing'}; not in the tool output: ${invented.join(', ')}`);
