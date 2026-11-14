@@ -1071,6 +1071,10 @@
       "file": "tests/container/container-auth.test.ts",
       "name": "the packages that register a provider a stored credential for a provider no package registers refuses the spawn, naming the override"
     },
+    "cont.filesystem-isolation": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker isolates unmounted host files while the workspace and read-only package remain readable"
+    },
     "cont.container.1": {
       "file": "tests/container/container.test.ts",
       "name": "a container worker uses the image the environment file builds and runs its install command"
@@ -5175,7 +5179,7 @@
     },
     {
       "id": "WORKER-CAPABILITY-BOUNDARY",
-      "title": "A worker's tools, MCP and environment are limited by its assignment",
+      "title": "Every worker's Pi tools, MCP and launch environment are limited by its assignment, not its host file access",
       "specSection": "15.1",
       "source": {
         "specOnly": true,
@@ -5183,7 +5187,7 @@
       },
       "observable": "A minimal worker launches with --no-mcp and without the parent's variables, secrets travel in claim/launch-env.json, never argv, and a worker asking for external write authority is refused.",
       "invariants": [
-        "A worker receives no credential it was not assigned."
+        "A worker's launch environment receives no credential it was not assigned; this does not restrict files the process can read."
       ],
       "piMechanism": "Assignment capabilities and launch environment in src/worker-host.ts.",
       "dependencies": [],
@@ -5199,8 +5203,53 @@
         "nest.registers-worker",
         "life.automation-default",
         "life.not-owner"
+      ]
+    },
+    {
+      "id": "CONTAINER-FILE-ISOLATION",
+      "title": "A container worker cannot read unmounted host files or write its read-only package mount",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Specification 15.1, lines 966-984: isolation is external to Pi's permission model; use containerization and do not confuse read-only instructions with an operating-system boundary."
+      },
+      "observable": "A real container worker cannot see a host-home sentinel or the operator's .ssh, .pi/agent/auth.json and .config/gh paths. Its workspace and package are readable, its workspace is writable, and writes to its read-only package and protected /etc path fail. Container-private writable paths remain writable; this is not a read-only root filesystem or a network sandbox.",
+      "invariants": [
+        "Unmounted host files are not exposed to the worker."
       ],
-      "coverageGap": "A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access."
+      "piMechanism": "Container mount boundary and unprivileged user in src/container.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/container/container.test.ts (requires an available Docker engine on Linux and macOS)",
+      "tests": [
+        "cont.filesystem-isolation"
+      ]
+    },
+    {
+      "id": "LOCAL-WORKER-FILE-ACCESS-LIMITATION",
+      "title": "Local workers retain the operator's filesystem authority",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Specification 15.1, lines 966-984 distinguishes Pi capabilities from operating-system isolation. This entry discloses the local deployment limitation, not an isolation guarantee."
+      },
+      "observable": "A local worker can read any file the operator's user can read, including credential files. Use container mode for untrusted input, such as reviewing someone else's pull request. Container mode does not remove explicitly assigned credentials or network access.",
+      "invariants": [
+        "Local workspace modes do not claim operating-system filesystem isolation."
+      ],
+      "piMechanism": "Local worktree and readonly workers run as the operator's user.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": false,
+        "justification": "Informational deployment limitation, not a promise of local filesystem isolation. Container filesystem isolation is a separate mandatory requirement."
+      },
+      "verification": "README.md and docs/architecture.md disclose this limitation.",
+      "tests": [],
+      "coverageGap": "Local workers have no operating-system filesystem boundary. Tool, MCP and launch-environment limits do not prevent reading files available to the operator's user."
     },
     {
       "id": "WF-TEACH",
