@@ -156,7 +156,7 @@ export function todoChecks(options: TodoOptions): Check[] {
   const { playbook } = options;
   const book = src(`poteto-mode/playbooks/${playbook}.md`, playbookSource(playbook)[0]?.split('\n')[0]?.slice(0, 30) ?? '###');
   const run = (view: RunView) => primaryRun(view, playbook);
-  return [
+  const checks = [
     check(`todo.${playbook}.run-from-playbook`, `a run for the ${playbook} playbook exists with run.json and TODO.md pinned to the upstream revision`, TODO_SRC, (view) => {
       const found = run(view);
       if (found === undefined || found.runJson === null || found.todoText === null) return fail(`no run directory with run.json and TODO.md under .pi/pstack/runs (found ${view.runs.map((entry) => entry.id).join(', ') || 'none'})`);
@@ -253,6 +253,15 @@ export function todoChecks(options: TodoOptions): Check[] {
       return when(writers.length === 0, `${allWorkers(view).length} workers, none touched TODO.md`, `workers that wrote TODO.md: ${writers.map((worker) => worker.id).join(', ')}`);
     }),
   ];
+  return checks.map((entry) => ['run-from-playbook', 'parent-sole-writer'].some((suffix) => entry.id.endsWith(suffix)) ? entry : {
+    ...entry,
+    run: (view: RunView) => {
+      const found = run(view);
+      const historyKnown = ['initial-states-open', 'resolved-in-order'].some((suffix) => entry.id.endsWith(suffix)) && (view.todoHistory[found?.id ?? '']?.length ?? 0) > 0;
+      if ((found === undefined || found.todoText === null) && !historyKnown) return { inconclusive: 'the run TODO prerequisite is missing; run-from-playbook scores its absence' };
+      return entry.run(view);
+    },
+  });
 }
 
 // ---- skills and principle leaves
