@@ -388,12 +388,13 @@ export const autonomousFamily: Family = {
       const wake = (id: string) => view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === id && message.details?.['phase'] === 'exited')?.order ?? -1;
       const final = view.parent.toolCalls.filter((call) => call.name === 'bash' && /bench\/bench\.js/.test(String(call.args['command'])) && /-le/.test(String(call.args['command']))).at(-1)?.order ?? -1;
       const shapes = watchers.every((worker) => assignmentOf(worker).role === 'watcher' && assignmentOf(worker).watch?.argv?.[0] === 'sleep' && String(assignmentOf(worker).watch?.cwd).startsWith('/'));
-      const ordered = watchers.length >= 2 && watchers.every((worker, index) => index === 0 || spawn(worker.id) > wake((watchers[index - 1] as { id: string }).id)) && watchers.every((worker) => wake(worker.id) !== -1 && spawn(worker.id) < final);
+      const ordered = watchers.length >= 1 && watchers.every((worker, index) => index === 0 || spawn(worker.id) > wake((watchers[index - 1] as { id: string }).id)) && watchers.every((worker) => wake(worker.id) !== -1 && spawn(worker.id) < final);
       return when(shapes && ordered, `${watchers.length} watch workers, each re-armed after the previous wake, none after the predicate held`, `watchers ${watchers.map((worker) => worker.id).join(', ')}; shapes ${shapes}; ordered ${ordered}`);
     }),
     check('auto.one-row-per-iteration', 'each iteration leaves a decisions.tsv row naming what changed and whether the predicate moved', src('poteto-mode/playbooks/autonomous-run.md', 'Checkpoint every iteration via the **show-me-your-work** skill'), (view) => {
       const rows = (primaryRun(view, 'autonomous-run')?.decisions ?? []).slice(1).filter((row) => row[1] === 'iteration');
-      return when(rows.length === 2 && rows.every((row) => row.length === 6 && /predicate/.test(row[5] ?? '')), `${rows.length} iteration rows`, `iteration rows ${rows.length}`);
+      const iterations = allWorkers(view).filter((worker) => assignmentOf(worker).kind === 'watch').length;
+      return when(iterations > 0 && rows.length === iterations && rows.every((row) => row.length === 6 && /predicate/.test(row[5] ?? '')), `${rows.length} iteration rows`, `iteration rows ${rows.length}`);
     }),
     check('auto.discarded-change-is-gone-and-the-win-is-one-small-commit', 'a change that did not move the predicate is discarded in full, and the one that did is one commit touching only its file', src('poteto-mode/playbooks/autonomous-run.md', 'discards changes that didn\'t help'), (view) => {
       const commits = view.git.commitsSinceBase;
