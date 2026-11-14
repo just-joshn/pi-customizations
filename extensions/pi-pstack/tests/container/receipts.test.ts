@@ -68,6 +68,26 @@ describe('a receipt recorded inside a container worker', () => {
     expect(existsSync(join(runRoot, 'verification'))).toBe(false);
   });
 
+  test('a raw source saved in the inbox is reported without poisoning other worker evidence', () => {
+    const worker = inContainer('v1');
+    worker.record('good');
+    const source = readFileSync(join(worker.out, 'evidence', 'good.json'), 'utf8');
+    writeFileSync(join(worker.out, 'receipts', 'misplaced.json'), source);
+
+    expect(listReceipts(worker.scope, RUN).map(({ receipt }) => receipt.id)).toEqual(['good']);
+    expect(verifyTarget(worker.scope, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['good'] });
+    expect(verifyTarget(worker.scope, RUN, 'missing')).toMatchObject({ kind: 'inconclusive', reason: expect.stringMatching(/misplaced\.json.*save.*evidence\/.*pstack_evidence record/i) });
+    expect(worker.record('next').receipt.id).toBe('next');
+    expect(() => recordReceipt(worker.scope, RUN, join(worker.out, 'receipts', 'misplaced.json'))).not.toThrow();
+  });
+
+  test('a malformed recorded envelope still prevents worker verification', () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    writeFileSync(join(worker.out, 'receipts', 'r1.json'), JSON.stringify({ receipt: { tampered: true } }));
+    expect(() => verifyTarget(worker.scope, RUN, 'step-1')).toThrow(/Invalid receipt.*r1\.json/);
+  });
+
   test('the worker cannot record outside its own directory, and the exclusive-link rule holds in the inbox', () => {
     const worker = inContainer('v1');
     writeFileSync(join(runRoot, 'elsewhere.json'), '{}');
