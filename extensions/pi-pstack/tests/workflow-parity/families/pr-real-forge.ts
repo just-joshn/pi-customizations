@@ -258,7 +258,7 @@ export const babysitDriveRealFamily: RealFamily = {
       return when(lives.length >= 2 && overlap.length === 0 && loops.length === 0 && last !== undefined && exitCodeOf(last) === 0, `${lives.length} watchers, strictly sequential, the last ended READY, no sleep loop but the owner wait`, `overlapping ${overlap.map((life) => life.id).join(', ') || 'none'}; loops ${loops.length}; last exit ${last === undefined ? 'n/a' : String(exitCodeOf(last))}`);
     }),
     check('real.babysit.parent-typed-no-topology-change', 'the parent typed no rebase, merge, reset, push, force, retarget or branch move', BS('Never mutate stack topology'), (view) => {
-      const typed = BASH(view).filter((entry) => /git (rebase|merge(?!-base)|reset --hard|push)|--force|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
+      const typed = BASH(view).filter((entry) => /git (rebase|merge(?=\s|$)|reset --hard|push)|--force|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
       return when(typed.length === 0, 'no mutating git or retarget command typed', typed.map((entry) => entry.command.slice(0, 60)).join(' | '));
     }),
     check('real.babysit.fresh-build-came-after-the-log-and-the-base-check-and-was-whole-run', 'the failing run log and the base were read before the one rerun, the rerun has no --failed or --job, and exactly one rerun was typed', BS('Classify CI before any retrigger'), (view) => {

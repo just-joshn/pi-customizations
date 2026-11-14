@@ -17,6 +17,15 @@ const action = (body: string, worker = 'v'): ForgeAction => ({ kind: 'comment', 
 test('a verifier can post the skill verdict without an invented comment protocol', () => {
   expect(verdictsOf(state, [action('PASS: the user behavior works.')], view)).toMatchObject([{ pr: 21, verdict: 'PASS', head, author: 'v', verifier: 'v' }]);
 });
+test.each([`# PR 21 verification: PASS\nVerified head ${head}`, `**FAIL** at ${head.slice(0, 7)}`])('verdict headings and Markdown preserve the verdict: %s', (body) => {
+  expect(verdictsOf(state, [action(body)], view)).toMatchObject([{ verdict: body.includes('FAIL') ? 'FAIL' : 'PASS', head }]);
+});
+
+test('an explicit verdict for another PR or head is not silently assigned to this head', () => {
+  expect(verdictsOf(state, [action('# PR 22 verification: PASS')], view)).toEqual([]);
+  expect(verdictsOf(state, [action('PASS at bbbbbbb')], view)[0]?.head).not.toBe(head);
+});
+
 test('a stray mention or an unidentified reviewer does not establish a verdict at a head', () => {
   expect(verdictsOf(state, [action('CI says PASS, not a user verdict')], view)).toEqual([]);
   expect(verdictsOf(state, [action('PASS: works', 'unknown')], view)).toEqual([]);

@@ -18,7 +18,7 @@ const result = (commands: string[], note = 'forge: `gh` (origin CLI absent)') =>
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'state.json'), JSON.stringify({ prs: {} }));
   writeFileSync(join(dir, 'actions.jsonl'), `${JSON.stringify({ kind: 'read', tool: 'gh' })}\n`);
-  const view = { sandbox, runs: [{ todoText: '', decisions: [['forge', note]] }], parent: { messages: [], toolCalls: commands.map((command, order) => ({ order, name: 'bash', args: { command } })) } } as unknown as RunView;
+  const view = { sandbox, runs: [{ todoText: '', decisions: [['decision', note]] }], parent: { messages: [], toolCalls: commands.map((command, order) => ({ order, name: 'bash', args: { command } })) } } as unknown as RunView;
   return forgeResolvedOnce('forge', { file: 'poteto-mode/playbooks/shipping.md', anchor: 'record the fallback' }, 'gh').run(view);
 };
 
@@ -32,6 +32,10 @@ test('command substitution and a plain-language fallback record satisfy the cont
 
 test('GitHub is the recorded fallback even when the prose does not spell gh', () => {
   expect(result(['command -v origin; gh pr view 1'], 'Origin is unavailable, so I used GitHub throughout.')).toMatchObject({ ok: true });
+});
+
+test.each(["Origin isn't installed, so I used gh.", 'Origin is not installed, so I used GitHub.'])('an unavailable Origin installation records the fallback: %s', (note) => {
+  expect(result(['command -v origin; gh pr view 1'], note)).toMatchObject({ ok: true });
 });
 
 test('rechecking CLI availability does not change the resolved forge choice', () => {

@@ -45,11 +45,18 @@ export function shellCommands(command: string): string[] {
  */
 function readsInDirectory(command: string, suffix: string): boolean {
   let cwd = '';
-  for (const part of command.split(/&&|;|\n/)) {
+  const variables = new Map<string, string>();
+  for (const raw of command.split(/&&|;|\n/)) {
+    const part = raw.replace(/\$\{(\w+)\}|\$(\w+)/g, (reference, braced: string | undefined, bare: string | undefined) => variables.get(braced ?? bare ?? '') ?? reference);
+    const assigned = /^\s*(\w+)=["']?([^"'\s]+)["']?\s*$/.exec(part);
+    if (assigned !== null) variables.set(assigned[1] as string, assigned[2] as string);
     const cd = /^\s*cd\s+["']?([^"'\s]+)["']?\s*$/.exec(part);
     if (cd !== null) cwd = resolve(cwd || '/', cd[1] as string);
     const read = /^\s*(?:cat|head|tail|sed|less|bat|nl)\s+(.+)$/.exec(part);
-    if (read !== null && cwd !== '' && (read[1] as string).split(/\s+/).some((word) => resolve(cwd, word.replace(/^["']|["']$/g, '')).endsWith(suffix))) return true;
+    if (read !== null && (read[1] as string).split(/\s+/).some((word) => {
+      const path = word.replace(/^["']|["']$/g, '');
+      return (isAbsolute(path) || cwd !== '') && resolve(cwd || '/', path).endsWith(suffix);
+    })) return true;
   }
   const at = suffix.indexOf('/worktree/');
   if (at === -1) return false;
@@ -195,7 +202,8 @@ export function todoChecks(options: TodoOptions): Check[] {
           });
         });
       const done = found.steps.filter((step) => step.state === 'done').length;
-      return when(problems.length === 0 && done > 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; ') || 'no step is done');
+      if (done === 0) return { inconclusive: 'no step is done, so no completion claim requires a receipt; every-step-resolved scores unfinished steps' };
+      return when(problems.length === 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; '));
     }, 'adaptation'),
     check(`todo.${playbook}.skips-explained`, 'a skipped step names its reason, and no mandatory step is skipped', [SKIP_SRC, book], (view) => {
       const found = run(view);
@@ -447,7 +455,7 @@ export function settledAndCollected(id: string, source: Src | Src[], roles?: str
       const settles = (worker.state?.['settles'] as { phase: string }[] | undefined) ?? [];
       if (settles.length === 0 || !settles.some((settle) => settle.phase === 'idle')) return [`${worker.id} never recorded an idle settle (${JSON.stringify(settles.map((settle) => settle.phase))})`];
       const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id);
-      const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|settled/.test(call.resultText));
+      const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|\bWorker \S+ settled \(/.test(call.resultText));
       if (collect === undefined) return [wake === undefined ? `${worker.id}: no pstack-worker wake in the parent session, and the parent never collected a settled result` : `${worker.id}: parent never collected a settled result`];
       // The collect span allows an inspect that shows the worker settled in place of a wake, and a settle the parent already collected is sent no wake.
       return collectedOnEvidence(view, worker.id, collect, wake?.order ?? Number.POSITIVE_INFINITY) ? [] : [`${worker.id}: collected before ${wake === undefined ? 'any wake' : 'its wake'}, and no inspect had shown it settled`];
@@ -597,7 +605,7 @@ export type { Outcome };
 
 // ---- ordering of tool calls across the parent session
 
-export const spawnOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/workers/${workerId}/`))?.order ?? -1;
+export const spawnOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && !call.isError && String(call.args['assignmentPath']).includes(`/workers/${workerId}/`))?.order ?? -1;
 export const collectOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError)?.order ?? -1;
 
 const idsOf = (view: RunView, roles: string[]) => allWorkers(view).filter((worker) => roles.includes(String(assignmentOf(worker).role))).map((worker) => worker.id);

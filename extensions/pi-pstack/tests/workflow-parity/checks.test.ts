@@ -5,9 +5,27 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterAll, describe, expect, test } from 'vitest';
-
 import { evaluate } from './lib/check.ts';
-import { carries, commitsNotFromWorkers, delegateCommits, everyCommitGreen, parentSpawnCommits, ranBefore, redFirst, workflowCommits, shellCommands, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
+import {
+  carries,
+  commitsNotFromWorkers,
+  delegateCommits,
+  everyCommitGreen,
+  fileReferencesResolve,
+  finalReply,
+  noToolErrors,
+  openedAt,
+  parentProductionWrites,
+  parentSpawnCommits,
+  ranBefore,
+  redFirst,
+  settledAndCollected,
+  shellCommands,
+  todoChecks,
+  withoutOwnIdentity,
+  workflowCommits,
+  writableWorkerRecords,
+} from './lib/checks.ts';
 import type { RunView, Session, WorkerView } from './lib/view.ts';
 
 const call = (order: number, args: Record<string, unknown>, resultText: string) => ({ order, name: 'pstack_worker', args, resultText, isError: false });
@@ -23,6 +41,10 @@ const collect = (order: number) => call(order, { action: 'collect', workerId: 'w
 const inspect = (order: number, phase: string) => call(order, { action: 'inspect', workerId: 'w' }, `Worker w: ${phase}`);
 
 describe('collect needs a wake or an inspect that shows the worker settled', () => {
+  test('a not-settled collect is not a collected result even after a wake', () => {
+    expect(verdict(view([call(5, { action: 'collect', workerId: 'w' }, 'Worker w has not settled (running).')], [wake(4)]))?.verdict).toBe('FAIL');
+    expect(verdict(view([call(5, { action: 'collect', workerId: 'w' }, '{"settled":false}')], [wake(4)]))?.verdict).toBe('FAIL');
+  });
   test('a collect after the wake is allowed', () => {
     expect(verdict(view([collect(5)], [wake(4)]))?.verdict).toBe('PASS');
   });
@@ -47,6 +69,24 @@ describe('collect needs a wake or an inspect that shows the worker settled', () 
   test('a worker the parent never collected is refused, woken or not', () => {
     expect(verdict(view([inspect(3, 'idle')], [wake(4)]))?.verdict).toBe('FAIL');
   });
+});
+
+test('receipt adaptation is inconclusive when no playbook step was marked done', () => {
+  const checks = todoChecks({ playbook: 'feature' });
+  const step = { n: 1, state: 'open', evidence: [] };
+  const run = { id: 'r', steps: [step], receipts: [] };
+  const results = evaluate(
+    checks.filter((entry) => /every-step-resolved|done-steps-proven/.test(entry.id)),
+    { runs: [run] } as unknown as RunView,
+  );
+  expect(results.map((entry) => entry.verdict)).toEqual(['FAIL', 'INCONCLUSIVE']);
+  step.state = 'done';
+  expect(
+    evaluate(
+      checks.filter((entry) => entry.id.endsWith('done-steps-proven')),
+      { runs: [run] } as unknown as RunView,
+    )[0]?.verdict,
+  ).toBe('FAIL');
 });
 
 describe('file references', () => {
@@ -151,6 +191,12 @@ describe('opening a file through a worktree directory', () => {
     expect(openedAt(bash('cd /p/generated/skills/poteto-mode && ls -R && cat playbooks/babysit.md'), suffix)).toBe(3);
     expect(openedAt(bash('cd /p/generated/skills/poteto-mode && cat playbooks/shipping.md'), suffix)).toBe(-1);
     expect(openedAt(bash('cd /p/generated/skills/other && cat playbooks/babysit.md'), suffix)).toBe(-1);
+  });
+  test('a playbook path under an assigned shell variable opens that playbook', () => {
+    const suffix = 'generated/skills/poteto-mode/playbooks/orchestrate.md';
+    expect(openedAt(bash('P=/p/generated/skills/poteto-mode; cat $P/playbooks/orchestrate.md'), suffix)).toBe(3);
+    expect(openedAt(bash(`P=/p/generated/skills/other; cat \${P}/playbooks/orchestrate.md`), suffix)).toBe(-1);
+    expect(openedAt(bash('P=/p/generated/skills/poteto-mode; echo $P/playbooks/orchestrate.md'), suffix)).toBe(-1);
   });
   test('cd into the worktree and cat the file opens it', () => {
     expect(openedAt(bash('cd /r/workers/candidate-1/worktree && cat src/coupon.js'), suffix)).toBe(3);
