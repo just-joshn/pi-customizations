@@ -571,7 +571,8 @@ export const autopilotStackFamily: Family = {
       const { state, actions } = readForge(view);
       const reply = finalReply(view).replace(/[*_`]/g, '');
       const verdicts = verdictsOf(state, actions, view);
-      const chunks = reply.split(/(?=\bPR\s*#?\d+\b)/i);
+      const rows = reply.replace(/\([^()]*\bPR\s*#?\d+\b[^()]*\)/gi, (aside) => /\b(?:PASS|FAIL)\b/i.test(aside) ? aside : '');
+      const chunks = rows.split(/(?=\bPR\s*#?\d+\b)/i);
       const missing = [41, 42].filter((pr) => {
         const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
         return verdict === undefined || !chunks.some((text) => new RegExp(`^PR\\s*#?${pr}\\b`, 'i').test(text) && text.toUpperCase().includes(verdict.verdict));
