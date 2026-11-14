@@ -431,6 +431,7 @@ var MAX_CONTROL_BYTES = 65536;
 var MAX_INSTRUCTION_BYTES = 32768;
 var MAX_RPC_RECORD = 8 * 1024 * 1024;
 var MAX_BRIEF_BYTES = 1024 * 1024;
+var PROJECT_TRUST = { decision: "deny", flag: "--no-approve" };
 var RPC_DEADLINE_MS = 1e4;
 var PI_START_MS = 120000;
 var ABORT_DEADLINE_MS = 60000;
@@ -468,6 +469,8 @@ function parseLaunch(text) {
     throw new Error("Launch tmuxSession is invalid");
   if (!strings(extraArgs))
     throw new Error("Launch extraArgs must be strings");
+  if (extraArgs.some((arg) => ["--approve", "-a", "--"].includes(arg)))
+    throw new Error("Worker Pi extra arguments must not override project trust");
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     throw new Error("Launch credentialEnv must be variable names");
   const modelNote = raw["modelNote"] ?? null;
@@ -563,6 +566,7 @@ function piArgs(loaded, launch) {
   return [
     "--mode",
     "rpc",
+    PROJECT_TRUST.flag,
     "--session-dir",
     join3(loaded.workerDir, "session"),
     ...launch.model === null ? [] : ["--model", `${launch.model.provider}/${launch.model.id}`],
@@ -1173,7 +1177,7 @@ async function runHost(assignmentFile, launchText) {
     });
   };
   try {
-    event("launch", { command, hostPid: process.pid, childPid: child.pid, instance });
+    event("launch", { command, ...assignment.kind === "pi" ? { projectTrust: PROJECT_TRUST } : {}, hostPid: process.pid, childPid: child.pid, instance });
     save();
     if (container !== null) {
       const deadline = setTimeout(() => void fail(new Error(`The container was not ready within ${CONTAINER_START_MS / 60000} minutes`)), CONTAINER_START_MS);
