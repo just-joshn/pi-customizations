@@ -849,6 +849,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
+  const aborting = new Set<string>();
   // Bumped on every session_start and session_tree. A pass that began under an older version is discarded and rerun,
   // so it never sends wakes chosen for another session or branch.
   let branchVersion = 0;
@@ -870,6 +871,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     for (const { runId, runRoot } of runs) {
       for (const workerId of workerIds(runRoot)) {
         const workerDir = workerDirOf(runRoot, workerId);
+        if (aborting.has(workerDir)) continue;
         let transitions: Transition[];
         try {
           transitions = workerTransitions(runId, workerId, readHostState(workerDir), readClaim(workerDir), live?.has(tmuxSessionName(project, runId, workerId)));
@@ -1032,8 +1034,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        const receipt = await abortWorker(project, loaded, { exec, tmuxSocket: socket, startCheckMs });
-        return text(`Aborted worker ${workerId}.`, receipt);
+        const before = readHostState(loaded.workerDir);
+        aborting.add(loaded.workerDir);
+        try {
+          const receipt = await abortWorker(project, loaded, { exec, tmuxSocket: socket, startCheckMs });
+          if (typeof receipt === 'object' && receipt !== null && 'disposition' in receipt && (receipt.disposition === 'stopped' || receipt.disposition === 'session-ended')) {
+            const state = readHostState(loaded.workerDir);
+            const cancellations = workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined).filter(
+              (transition) => transition.phase === 'aborted' && transition.reason === 'Stopped by request' && !workerTransitions(runId, workerId, before, undefined, undefined).some((previous) => previous.transitionId === transition.transitionId),
+            );
+            markCollected(loaded.workerDir, cancellations);
+          }
+          return text(`Aborted worker ${workerId}.`, receipt);
+        } finally {
+          aborting.delete(loaded.workerDir);
+        }
       }
       const inspected = await inspectWorker(loaded);
       const state = inspected.available ? inspected.state : inspected.lastState;

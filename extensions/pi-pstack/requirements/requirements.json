@@ -293,7 +293,7 @@
     },
     "life.abort": {
       "file": "tests/worker-lifecycle/lifecycle.test.ts",
-      "name": "pstack_worker on real tmux and Pi abort clears queued work, stops the worker, and wakes the parent with aborted"
+      "name": "pstack_worker on real tmux and Pi abort clears queued work and stops the worker without a redundant cancellation wake"
     },
     "life.collect": {
       "file": "tests/worker-lifecycle/lifecycle.test.ts",
