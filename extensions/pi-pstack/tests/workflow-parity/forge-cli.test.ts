@@ -125,6 +125,32 @@ test('repository configuration and empty action secrets have API-shaped response
   expect(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/unknown').status).toBe(1);
 });
 
+test('compare API reports git ancestry, commits, and changed filenames', () => {
+  const { ctx, forge } = fixture();
+  const git = (...args: string[]) => execFileSync('git', ['-C', ctx.repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8' }).trim();
+  git('checkout', '-qb', 'topic');
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'topic\n');
+  git('add', '.');
+  git('commit', '-qm', 'topic');
+  const head = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'topic');
+  const compare = (base: string, headRef: string) => {
+    const result = call(ctx, forge, 'gh', 'api', `repos/fixture/repo/compare/${base}...${headRef}`);
+    expect(result.status, result.stderr).toBe(0);
+    return JSON.parse(result.stdout);
+  };
+  expect(compare('main', 'topic')).toMatchObject({ status: 'ahead', ahead_by: 1, behind_by: 0, commits: [{ sha: head }], files: [{ filename: 'topic.txt' }] });
+  expect(compare('topic', 'main')).toMatchObject({ status: 'behind', ahead_by: 0, behind_by: 1, commits: [], files: [] });
+  expect(compare(head, head)).toMatchObject({ status: 'identical', ahead_by: 0, behind_by: 0, commits: [], files: [] });
+  git('checkout', '-qb', 'other', ctx.base);
+  writeFileSync(join(ctx.repo, 'other.txt'), 'other\n');
+  git('add', '.');
+  git('commit', '-qm', 'other');
+  git('push', '-q', 'origin', 'other');
+  expect(compare('other', 'topic')).toMatchObject({ status: 'diverged', ahead_by: 1, behind_by: 1, commits: [{ sha: head }], files: [{ filename: 'topic.txt' }] });
+  expect(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/compare/missing...topic').status).not.toBe(0);
+});
+
 test('review comment database IDs are numeric and address the same comment through REST', () => {
   const { ctx, forge } = fixture();
   const path = join(forge.dir, 'state.json');

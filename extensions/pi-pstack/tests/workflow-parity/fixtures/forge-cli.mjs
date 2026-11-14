@@ -393,6 +393,25 @@ function gh(state) {
       log({ kind: 'read', what: 'action-secrets' });
       return out({ total_count: 0, secrets: [] });
     }
+    const compare = /^repos\/[^/]+\/[^/]+\/compare\/(.+)\.\.\.(.+)$/.exec(target ?? '');
+    if (compare !== null) {
+      if ((value('--method', '-X') ?? 'GET').toUpperCase() !== 'GET') die(1, 'gh: compare only supports GET');
+      const resolve = (ref) => {
+        const result = git('rev-parse', '--verify', '--end-of-options', `${decodeURIComponent(ref)}^{commit}`);
+        if (result.status !== 0) die(1, `gh: unknown compare ref ${ref}`);
+        return result.stdout.trim();
+      };
+      const base = resolve(compare[1]);
+      const head = resolve(compare[2]);
+      const ancestor = git('merge-base', base, head);
+      if (ancestor.status !== 0) die(1, 'gh: compare refs have no common ancestor');
+      const ahead = Number(git('rev-list', '--count', `${base}..${head}`).stdout.trim());
+      const behind = Number(git('rev-list', '--count', `${head}..${base}`).stdout.trim());
+      const commits = git('log', '--reverse', '--format=%H', `${base}..${head}`).stdout.trim().split('\n').filter(Boolean).map((sha) => ({ sha }));
+      const files = git('diff', '--name-only', '-z', ancestor.stdout.trim(), head).stdout.split('\0').filter(Boolean).map((filename) => ({ filename }));
+      log({ kind: 'read', what: 'compare', base, head });
+      return out({ status: ahead === 0 ? (behind === 0 ? 'identical' : 'behind') : behind === 0 ? 'ahead' : 'diverged', ahead_by: ahead, behind_by: behind, commits, files });
+    }
     const comments = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments$/.exec(target ?? '');
     if (comments !== null && (value('--method', '-X') ?? 'GET').toUpperCase() === 'GET') {
       const pr = state.prs[comments[1]];
