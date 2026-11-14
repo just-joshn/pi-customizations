@@ -12,14 +12,14 @@ afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 const check = (id: string, view: unknown) => autopilotFullFamily.checks.find((entry) => entry.id === id)?.run(view as RunView);
-test('self-proof permits multiple step receipts and run-relative worker artifacts', () => {
+test.for(['decisions.tsv', 'trail.md'])('self-proof permits multiple step receipts and a TSV trail in %s', (trail) => {
   const sandbox = mkdtempSync(join(tmpdir(), 'owner-proof-'));
   const dir = join(sandbox, 'run');
   const workerDir = join(dir, 'workers/owner');
   const receipts = ['head-test', 'head-live'].map((target) => ({ runId: 'r', target, verdict: 'pass', artifacts: [{ path: 'workers/owner/proof.txt' }] }));
   try {
     mkdirSync(workerDir, { recursive: true });
-    writeFileSync(join(workerDir, 'decisions.tsv'), 'ts\tphase\tdecision\twhy\tevidence\tresult\nnow\tbuild\tpush\twhy\tproof\tpass\n');
+    writeFileSync(join(workerDir, trail), 'ts\tphase\tdecision\twhy\tevidence\tresult\nnow\tbuild\tpush\twhy\tproof\tpass\n');
     mkdirSync(forgeDirOf(sandbox), { recursive: true });
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: { 31: { number: 31, author: 'owner', head: 'feat', base: 'main', mergedHead: 'a'.repeat(40) } } }));
     writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), JSON.stringify({ kind: 'push', worker: 'owner', run: 'r', ref: 'refs/heads/feat' }));
