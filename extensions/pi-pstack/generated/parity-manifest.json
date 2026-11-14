@@ -7,18 +7,18 @@
   "requirementsDigest": "04cd0d00d7e955a56d7c07c16faa4aed6baf8884285d1aff1abc148806b98eaa",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-14T13:28:15.860Z",
-    "generatedAt": "2026-11-14T13:34:59.171Z",
-    "commit": "5e93a8df83f6ed1f167921b961f068fe70791d10",
+    "startedAt": "2026-11-14T14:01:03.009Z",
+    "generatedAt": "2026-11-14T14:09:09.950Z",
+    "commit": "940223a60baaaeb7e062b1acd0e13ab41539b801",
     "dirty": false,
     "changes": [],
-    "sourceDigest": "2d419b83e1297244213f3020da4fc0e7877bade8033f459b8d3e58652b470ae6",
+    "sourceDigest": "d221e9ae59f2a1169adf527df6f54189790d77fb540008b55fe81aac9c0cad29",
     "resultsSource": "local",
-    "totalTests": 310,
-    "passedTests": 310,
+    "totalTests": 397,
+    "passedTests": 396,
     "failedTests": 0,
     "failures": [],
-    "skippedTests": 0,
+    "skippedTests": 1,
     "root": "/Users/josh-desktop/src/personal/pi-native-pstack/implementation/extensions/pi-pstack",
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
     "piVersion": "1.5.2",
@@ -27,18 +27,18 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-14T13:28:15.860Z",
-      "generatedAt": "2026-11-14T13:34:59.171Z",
-      "commit": "5e93a8df83f6ed1f167921b961f068fe70791d10",
+      "startedAt": "2026-11-14T14:01:03.009Z",
+      "generatedAt": "2026-11-14T14:09:09.950Z",
+      "commit": "940223a60baaaeb7e062b1acd0e13ab41539b801",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "2d419b83e1297244213f3020da4fc0e7877bade8033f459b8d3e58652b470ae6",
+      "sourceDigest": "d221e9ae59f2a1169adf527df6f54189790d77fb540008b55fe81aac9c0cad29",
       "resultsSource": "local",
-      "totalTests": 310,
-      "passedTests": 310,
+      "totalTests": 397,
+      "passedTests": 396,
       "failedTests": 0,
       "failures": [],
-      "skippedTests": 0,
+      "skippedTests": 1,
       "root": "/Users/josh-desktop/src/personal/pi-native-pstack/implementation/extensions/pi-pstack",
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
       "piVersion": "1.5.2",
@@ -17349,22 +17349,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -17381,7 +17381,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/bun.lock",
@@ -17651,22 +17651,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -17683,7 +17683,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/package.json",
@@ -17953,22 +17953,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -17985,7 +17985,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
@@ -18255,22 +18255,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -18287,7 +18287,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
@@ -18557,22 +18557,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -18589,7 +18589,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
@@ -18859,22 +18859,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -18891,7 +18891,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
@@ -19161,22 +19161,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -19193,7 +19193,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
@@ -19463,22 +19463,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -19495,7 +19495,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
@@ -19765,22 +19765,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -19797,7 +19797,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
@@ -20067,22 +20067,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -20099,7 +20099,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
@@ -20369,22 +20369,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -20401,7 +20401,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
@@ -20671,22 +20671,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -20703,7 +20703,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
@@ -20973,22 +20973,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -21005,7 +21005,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
@@ -21275,22 +21275,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -21307,7 +21307,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
@@ -21577,22 +21577,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -21609,7 +21609,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage; missing: tests/helpers/scripts.test.ts::bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/scripts/worktree-audit.sh",
@@ -30514,22 +30514,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "loads working watcher parsers and memoizes the modules",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "keeps emitted watcher declarations current",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -30546,7 +30546,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/forge/forge.test.ts::loads working watcher parsers and memoizes the modules; missing: tests/forge/forge.test.ts::keeps emitted watcher declarations current; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for help without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for invalid PR without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for conflicting modes without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for merged without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for closed without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for query failure without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for draft policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check policy without installing dependencies; missing: tests/packaging/helper-pack.test.ts::default packing rejects stale source for dist/watch-pr.js"
     },
     {
       "id": "SCRIPT-CHECK-PLAN",
@@ -30982,22 +30982,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "returns malicious review text as data without executing it",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -31069,7 +31069,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::returns malicious review text as data without executing it; missing: tests/forge/forge.test.ts::sends reply bodies through JSON stdin rather than commands; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage scripted run: every check passes; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a download; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a merge; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a key read; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected thread was answered and resolved; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: comment text went through the shell"
+      "reason": "missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage scripted run: every check passes; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a download; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a merge; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected comment was obeyed with a key read; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: the injected thread was answered and resolved; missing: tests/workflow-parity/pr-review.test.ts::pr-review-triage negative: comment text went through the shell"
     },
     {
       "id": "BABYSIT-MODES",
@@ -31145,11 +31145,11 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "routes babysitting by request and size without starting a watcher",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -31265,7 +31265,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::routes babysitting by request and size without starting a watcher; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-docs-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check negative: a watcher was started for a check; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check negative: a worker directory exists for a check; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-docs-only negative: the mode was declared as drive; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only negative: a build was re-run in threads-only mode; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the mode was declared as check"
+      "reason": "missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-docs-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check negative: a watcher was started for a check; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check negative: a worker directory exists for a check; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-docs-only negative: the mode was declared as drive; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only negative: a build was re-run in threads-only mode; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the mode was declared as check"
     },
     {
       "id": "BABYSIT-READY",
@@ -31415,11 +31415,11 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "parses PR and checks using watcher classification, including owner approval",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -31568,7 +31568,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/forge/forge.test.ts::parses PR and checks using watcher classification, including owner approval; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: a check is still red at the end; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: a second watcher was armed while the first was still live; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: the reply uses GitHub verdict words; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: a thread is still open at the end; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher negative: the second request armed a second watcher; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+      "reason": "missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for ready policy without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for failed check without installing dependencies; missing: tests/helpers/watch-pr-differential.test.ts::Node bundle matches Bun source for pending check without installing dependencies; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: a check is still red at the end; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: a second watcher was armed while the first was still live; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: the reply uses GitHub verdict words; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: a thread is still open at the end; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher negative: the second request armed a second watcher; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
     },
     {
       "id": "BABYSIT-MERGE-QUEUE",
@@ -32177,11 +32177,11 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -32352,7 +32352,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::merges only with authorization and current independent verification; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-queued scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the babysitter merged because every check was green; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the babysitter queued the PR for auto-merge; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: origin pr merge ran because the checks were green; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-queued negative: the frontier was merging into the queue; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+      "reason": "missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-check scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-threads-only scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-queued scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-background scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-single-watcher scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the babysitter merged because every check was green; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the babysitter queued the PR for auto-merge; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: origin pr merge ran because the checks were green; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-queued negative: the frontier was merging into the queue; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
     },
     {
       "id": "BUGBOT-TRIAGE",
@@ -32635,22 +32635,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stops shipping at a failed middle PR even when the tip passed",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "an inconclusive or unknown verdict read from disk never ships",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -32744,7 +32744,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::stops shipping at a failed middle PR even when the tip passed; missing: tests/forge/forge.test.ts::an inconclusive or unknown verdict read from disk never ships; missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the tip was merged because it passed, over the failed middle; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the failed middle PR was merged; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the verdict of the failed PR was flipped to PASS; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+      "reason": "missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the tip was merged because it passed, over the failed middle; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the failed middle PR was merged; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the verdict of the failed PR was flipped to PASS; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
     },
     {
       "id": "SHIPPING-FRESH",
@@ -32796,11 +32796,11 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -32850,7 +32850,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::stale heads, missing verdicts and self verification block shipping; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: PR 23 was merged on its old verdict though its patch changed; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: PR 22 was merged with a verdict of a different patch; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: the shipper never compared patch-ids"
+      "reason": "missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: PR 23 was merged on its old verdict though its patch changed; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: PR 22 was merged with a verdict of a different patch; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-freshness negative: the shipper never compared patch-ids"
     },
     {
       "id": "SHIPPING-INDEPENDENT",
@@ -32946,22 +32946,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -33121,7 +33121,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::stale heads, missing verdicts and self verification block shipping; missing: tests/forge/forge.test.ts::merges only with authorization and current independent verification; missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-engine scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-forge-token scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the author verified its own PR; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier ran in a worktree instead of a container; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier had no forge capability; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier receipt was forged away; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the root was merged with no verdict at all; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-engine negative: a local worktree verifier was used instead; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-forge-token negative: the PR was merged anyway; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+      "reason": "missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-engine scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-forge-token scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the author verified its own PR; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier ran in a worktree instead of a container; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier had no forge capability; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: a verifier receipt was forged away; missing: tests/workflow-parity/pr-shipping.test.ts::shipping negative: the root was merged with no verdict at all; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-engine negative: a local worktree verifier was used instead; missing: tests/workflow-parity/pr-shipping.test.ts::shipping-no-forge-token negative: the PR was merged anyway; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
     },
     {
       "id": "SHIPPING-ORDER",
@@ -33546,55 +33546,55 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "resolves native before Origin before GitHub and retains the persisted choice",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "unsupported backends advertise no capabilities and reject every operation",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "creates a ready PR with its body on stdin",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "propagates CLI and malformed snapshot failures",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -33831,7 +33831,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::resolves native before Origin before GitHub and retains the persisted choice; missing: tests/forge/forge.test.ts::unsupported backends advertise no capabilities and reject every operation; missing: tests/forge/forge.test.ts::creates a ready PR with its body on stdin; missing: tests/forge/forge.test.ts::propagates CLI and malformed snapshot failures; missing: tests/forge/forge.test.ts::sends reply bodies through JSON stdin rather than commands; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: a GitHub call slipped into an Origin run; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the forge was never resolved before the first call; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: the resolved forge choice was not kept; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: a PR was opened as a draft; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: the body was interpolated into the command; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+      "reason": "missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin scripted run: every check passes; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr scripted run: every check passes; missing: tests/workflow-parity/pr-shipping.test.ts::shipping scripted run: every check passes; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-origin negative: a GitHub call slipped into an Origin run; missing: tests/workflow-parity/pr-babysit.test.ts::babysit-drive negative: the forge was never resolved before the first call; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: the resolved forge choice was not kept; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: a PR was opened as a draft; missing: tests/workflow-parity/pr-review.test.ts::opening-a-pr negative: the body was interpolated into the command; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the live run passed every check and detected every negative case; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real the recorded GitHub facts satisfy every fact check; missing: tests/workflow-parity/real-forge.test.ts::real forge evidence replay opening-a-pr-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
     },
     {
       "id": "AUTOPILOT-VERIFIED-MERGE",
@@ -33931,22 +33931,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -34117,7 +34117,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/forge/forge.test.ts::merges only with authorization and current independent verification; missing: tests/forge/forge.test.ts::stale heads, missing verdicts and self verification block shipping; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full scripted run: every check passes; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner merged with no verdict posted for its PR; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner verified its own PR; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: a merge landed a head the lanes never verified; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: the root merged instead of the owner; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner ran in a worktree; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes scripted run: every check passes; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the root never countersigned the loosened gate; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the countersign was for a stale head; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner countersigned its own gate change; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner merged before the countersign; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the verifier proof of the raise failed; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner's trail never recorded the countersign; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the root approved on the forge; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the live lane never posted a verdict"
+      "reason": "missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full scripted run: every check passes; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner merged with no verdict posted for its PR; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner verified its own PR; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: a merge landed a head the lanes never verified; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: the root merged instead of the owner; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-full negative: an owner ran in a worktree; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes scripted run: every check passes; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the root never countersigned the loosened gate; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the countersign was for a stale head; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner countersigned its own gate change; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner merged before the countersign; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the verifier proof of the raise failed; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the owner's trail never recorded the countersign; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the root approved on the forge; missing: tests/workflow-parity/pr-autopilot.test.ts::autopilot-lanes negative: the live lane never posted a verdict"
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",
