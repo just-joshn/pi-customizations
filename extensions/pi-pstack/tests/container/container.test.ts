@@ -2,7 +2,8 @@
 import { execFile, execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { userInfo } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
@@ -105,6 +106,9 @@ afterAll(async () => {
 describe('a container worker', () => {
   let outcome: string[];
   let image: string;
+  const hostHome = userInfo().homedir;
+  const packageRoot = resolve(import.meta.dirname, '../..');
+  let sentinel: string;
 
   beforeAll(async () => {
     mkdirSync(join(project.dir, '.pi'), { recursive: true });
@@ -113,9 +117,18 @@ describe('a container worker', () => {
     parent = makeContainerParent({ PSTACK_TEST_CREDENTIAL: SECRET, HOST_ONLY_SENTINEL: 'host-env-value' });
     await parent.start();
     const dir = workerDir(project, RUN_ID, 'a');
+    sentinel = join(dirname(project.dir), 'host-home', 'sentinel');
+    mkdirSync(dirname(sentinel), { recursive: true });
+    writeFileSync(sentinel, 'host-only-sentinel');
     // The worker prints facts about its own world. Its brief is one scripted bash call.
     const facts = [
       'pwd',
+      ...[sentinel, join(hostHome, '.ssh'), join(hostHome, '.pi/agent/auth.json'), join(hostHome, '.config/gh')].map(
+        (path, index) => `if test -e '${path}' || test -r '${path}'; then echo HOST-PATH-${index}-VISIBLE; else echo HOST-PATH-${index}-HIDDEN; fi`,
+      ),
+      `test -r '${packageRoot}/package.json' && echo PACKAGE-READABLE`,
+      `if (echo forbidden > '${packageRoot}/.pstack-isolation-probe') 2>/dev/null; then echo PACKAGE-WRITABLE; else echo PACKAGE-READONLY; fi`,
+      'if (echo forbidden > /etc/pstack-isolation-probe) 2>/dev/null; then echo SYSTEM-WRITABLE; else echo SYSTEM-PROTECTED; fi',
       'git rev-parse HEAD',
       'git branch --show-current',
       'echo written-in-container > container-only.txt',
@@ -164,6 +177,20 @@ describe('a container worker', () => {
     expect(existsSync(join(project.dir, 'container-only.txt'))).toBe(false);
     expect(git(project.dir, 'status', '--porcelain', '--', ':!.pi')).toBe('');
     expect(git(project.dir, 'rev-parse', 'HEAD')).toBe(project.commit);
+  });
+
+  test('isolates unmounted host files while the workspace and read-only package remain readable', () => {
+    expect(readFileSync(sentinel, 'utf8')).toBe('host-only-sentinel');
+    for (const index of [0, 1, 2, 3]) {
+      expect(outcome).toContain(`HOST-PATH-${index}-HIDDEN`);
+      expect(outcome).not.toContain(`HOST-PATH-${index}-VISIBLE`);
+    }
+    expect(outcome).toContain('PACKAGE-READABLE');
+    expect(outcome).toContain('PACKAGE-READONLY');
+    expect(outcome).toContain('SYSTEM-PROTECTED');
+    expect(outcome).toContain(project.commit);
+    expect(outcome).toContain('?? container-only.txt');
+    expect(existsSync(join(packageRoot, '.pstack-isolation-probe'))).toBe(false);
   });
 
   test('uses the image the environment file builds and runs its install command', () => {
