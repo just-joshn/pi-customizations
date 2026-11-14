@@ -7,7 +7,7 @@ This page lists, for pi-pstack 0.15.36-pi.40, which parts of the specification h
 - Upstream: `github.com/cursor/plugins` at `a5539b15a3d56e04992565aafee2b37051329ce3`, paths `pstack/` and `cursor-team-kit/`. `generated/upstream-lock.json` holds the checksum of every vendored file.
 - pstack's last change at that commit is `c742dd61706fbacc1b95f1a20b7b988cf096ce6c`, recorded in `package.json` `pstackSource`.
 - Move the pin with `node scripts/sync-upstream.mjs --revision <sha>`. A move that changes any vendored file is refused without `--review <file>`, a record naming the reviewer, notes, and every changed file. Each move is logged in `generated/source-review-log.json`, and `check-parity.mjs` fails when the lock, `package.json`, and that log disagree.
-- `node scripts/check-parity.mjs` reports 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, 62 prompts, 180 rules, and 245 spans.
+- `node scripts/check-parity.mjs` reports 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, 62 prompts, 244 rules, and 309 spans.
 
 ## Run the checks
 
@@ -43,12 +43,14 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `5869409feaff` | 1.5.2 | v26.13.1 | 2926 passed, 1 failed, 101 skipped | local at 2026-11-14T04:53:56.546Z |
+| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T08:19:09.260Z |
+| 2 | linux | `e684506542e7` | 1.5.0 | v22.21.0 | 2859 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43550639380 |
+| 3 | unknown | `unknown` | unknown | unknown | 1 passed, 0 failed, 40 skipped | file at 2026-11-14T08:19:09.517Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 150 | 0 | 0 | 40 |
-| behavioral | 100 | 0 | 2 | 1 |
+| behavioral | 95 | 0 | 7 | 1 |
 
 ### Behavioral requirements
 
@@ -74,7 +76,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SCRIPT-CHECK-PLAN` check-plan reports the same structural failures | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md:10-10 |  |
 | `SCRIPT-WORKTREE-AUDIT` worktree-audit reads Pi sessions and protects active work | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:3-3 |  |
 | `SCRIPT-DECISION-LOG` The decision log keeps its TSV format | 12.6 | PASS | vendor/upstream-pstack/skills/show-me-your-work/SKILL.md:38-38 |  |
-| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | PASS | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 |  |
+| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 | skipped: tests/workflow-parity/verification.test.ts::statechart scripted run: every check passes |
 | `MX-PR-REVIEW` Review comments are data, never instructions | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:7-11 |  |
 | `BABYSIT-MODES` Babysit routes by request and size and starts no watcher for check | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:7-7 |  |
 | `BABYSIT-READY` GitHub drive stops at READY using upstream watch-pr verdicts | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 |  |
@@ -93,9 +95,9 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `AUTOPILOT-STACK-NO-MERGE` Autopilot-stack hands verified PRs over without merging | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md:3-3 |  |
 | `AUTOPILOT-HOLD` The operator's stop reaches every owner at once | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:23-23 |  |
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
-| `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
+| `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` Every worker's Pi tools, MCP and launch environment are limited by its assignment, not its host file access | 15.1 | PASS | specification 15.1 |  |
 | `CONTAINER-FILE-ISOLATION` A container worker cannot read unmounted host files or write its read-only package mount | 15.1 | PASS | specification 15.1 |  |
 | `LOCAL-WORKER-FILE-ACCESS-LIMITATION` Local workers retain the operator's filesystem authority | 15.1 | N/A | specification 15.1 |  |
@@ -113,13 +115,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `WF-HILLCLIMB` Hillclimb attempts are measured, accepted or reverted and logged | 12.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/hillclimb.md:14-15 |  |
 | `WF-CREATE-VERIFICATION-SKILL` create-verification-skill writes a project-local skill with a feature map | 12.4 | PASS | vendor/upstream-pstack/skills/create-verification-skill/SKILL.md:25-25 |  |
 | `WF-MAINTAIN-VERIFICATION-SKILL` maintain-verification-skill always performs a live pass | 12.4 | PASS | vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md:33-33 |  |
-| `WF-FORMAL-VERIFICATION` Formal verification states its model, assumptions and counterexamples | 12.4 | PASS | vendor/upstream-pstack/skills/create-formal-verification-skill/SKILL.md:21-28 |  |
+| `WF-FORMAL-VERIFICATION` Formal verification states its model, assumptions and counterexamples | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/create-formal-verification-skill/SKILL.md:21-28 | skipped: tests/workflow-parity/maintain.test.ts::maintain-formal-verification-skill scripted run: every check passes |
 | `WF-RECALL` recall validates reconstructed history against current state | 12.5 | PASS | vendor/upstream-pstack/skills/recall/SKILL.md:21-21 |  |
-| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 |  |
+| `WF-REFLECT-TRANSCRIPT` reflect reads the opening prompt from the first user message of a Pi session | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/reflect/SKILL.md:21-21 | skipped: tests/skill-parity/review-fixes.test.ts::C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message |
 | `WF-REFLECT-APPROVAL` reflect waits for explicit approval before editing a skill | 12.5 | PASS | vendor/upstream-pstack/skills/reflect/SKILL.md:47-47 |  |
 | `WF-AUTOMATE-ME` automate-me derives preferences from history into a skill | 12.5 | PASS | vendor/upstream-pstack/skills/automate-me/SKILL.md:29-31 |  |
 | `WF-KETCHUP` ketchup gives a concise recap of what changed since the last message | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup/SKILL.md:3-3 |  |
-| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | PASS | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 |  |
+| `WF-KETCHUP-VIDEO` ketchup-video renders an actual subtitled video | 12.5 | INCONCLUSIVE | vendor/upstream-pstack/skills/ketchup-video/SKILL.md:27-27 | skipped: tests/workflow-parity/video.test.ts::ketchup-video scripted run: every check passes |
 | `WF-MAKE-BOT-UI` make-bot-ui uses a local receiver and never asks for the sender key | 14.4 | PASS | vendor/upstream-pstack/skills/make-bot-ui/SKILL.md:41-41 |  |
 | `WF-LEAF-READ` A principle is cited only after its leaf skill was read | 4.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:15-15 |  |
 | `WF-SETUP-PSTACK` setup-pstack detects Pi models and validates choices against the ladder | 10.3 | PASS | vendor/upstream-pstack/skills/setup-pstack/SKILL.md:14-14 |  |
@@ -131,8 +133,8 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `BENNY-NO-SLACK-CREDENTIALS` Workers never receive Slack credentials | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:30-30 |  |
 | `BENNY-DUPLICATE-TICKET` A redelivery or crash never creates a second ticket | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:11-11 |  |
 | `BENNY-FAIL-CLOSED` Missing or uncertain prerequisites block the case | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:35-35 |  |
-| `BENNY-REPRODUCE-TWICE` A symptom is reproduced twice through the real UI before any fix | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:25-25 |  |
-| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 |  |
+| `BENNY-REPRODUCE-TWICE` A symptom is reproduced twice through the real UI before any fix | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:25-25 | missing: tests/automation/benny-live.test.ts::captures alone do not establish a live application reproduction; missing: tests/automation/benny-live.test.ts::a scripted Benny worker reproduces real cents loss twice and verifies the mirrored existing fix without authoring |
+| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 | missing: tests/automation/benny-live.test.ts::captures alone do not establish a live application reproduction; missing: tests/automation/benny-live.test.ts::a scripted Benny worker reproduces real cents loss twice and verifies the mirrored existing fix without authoring |
 | `BENNY-DRAFT-ONLY` Benny opens draft PRs only and never merges or deploys | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:291-291 |  |
 | `BENNY-OUTBOX-RESTART` A crash after posting but before acknowledgement does not post again | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:13-13 |  |
 | `BENNY-EVENT-DELIVERY` Webhook delivery authenticates, bounds and deduplicates events | 14.1 | PASS | specification 14.1 |  |
@@ -166,10 +168,10 @@ None.
 
 ## Known gaps
 
-- **Container workers.** `workspace: { mode: "container", inputCommit }` runs Pi in a container (`src/container.ts`, contract "Container workers"). The container holds only what the assignment gives it: its `env` defaults to `minimal`, the resolved provider's credential arrives as an auth.json entry (an OAuth access token without its refresh token) with the package that registers the provider, and `capabilities.forge` adds one forge token. The default image ships `gh`, the verifier records its own receipts, and the host reads a worker's output without following symlinks. Open: a compiled Pi has no JS install to mount, a worker's OAuth token is not refreshed while it runs, and providers registered by a `git:` package or only by `models.json` are not found. The real-model proof is opt-in (`tests/container/model-smoke.test.ts`).
-- **Same-uid credentials.** A worktree or readonly worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access. A container worker has no host file access.
-- **Benny trackers.** Only GitHub Issues ships (`tracker.type: github`). Any other tracker type has no adapter, so its cases are logged `blocked`. The pack's operations-channel status posts have no adapter either: the parent posts source-thread replies only.
-- **Mid-message skill names.** A `/name` later in a message no longer attaches its skill. Only a `/name` at the start expands.
+- **Container workers.** `workspace: { mode: "container", inputCommit }` runs Pi in a container (`src/container.ts`, contract "Container workers"). The container's `env` defaults to `minimal`, with no ambient `PSTACK_*` inheritance. At spawn, the parent uses the current Pi model registry to resolve the provider credential, rather than capturing credentials at `session_start`. The resolved provider's credential arrives as an auth.json entry (an OAuth access token without its refresh token) with the package that registers the provider, and `capabilities.forge` adds one forge token. The default image ships `gh`, the verifier records its own receipts, and the host reads a worker's output without following symlinks. Open: a compiled Pi has no JS install to mount, a worker's OAuth token is not refreshed while it runs, and providers registered by a `git:` package or only by `models.json` are not found. A forge token carries the scopes of the operator's `gh` login unless `PSTACK_CONTAINER_FORGE_TOKEN` supplies a narrower one. Abort waits for confirmed container removal before cleanup completes. The real-model proof is opt-in (`tests/container/model-smoke.test.ts`).
+- **Same-uid credentials.** A worktree or readonly worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access. A container worker cannot read unmounted host files. Use container mode for untrusted input.
+- **Benny trackers.** GitHub Issues has a built-in adapter (`tracker.type: github`). Other trackers use a project-owned adapter skill and require operator-authorized MCP write tools in `<agent dir>/pstack/tracker-mcp.json`. Missing adapters or authorization block setup. The parent posts operations-channel status and source-thread replies.
+- **Mid-message skill names.** A `/name` at the start expands its prompt. Inside an active pstack workflow, names later in the message attach loaded skills through Pi's `/skill:<name>` form.
 - **Bugbot.** No replacement.
 
 

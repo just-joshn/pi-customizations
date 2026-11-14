@@ -6,7 +6,7 @@ pstack was written for Cursor. Its skills call a `Task` subagent tool, a todo to
 
 `vendor/upstream-pstack/` and `vendor/upstream-cursor-team-kit/` hold the upstream files byte for byte, at the commit in `generated/upstream-lock.json`. Nobody edits them.
 
-`scripts/compile-skills.mjs` reads them and writes `generated/`. Each change from the upstream text is a rule in `adapters/cursor-to-pi.ts` or `adapters/skill-transforms.ts`. A rule names the file, the exact source span, the replacement, and the Cursor primitive it replaces. `generated/transformation-manifest.json` records every span. The compiler fails when a rule's source text matches a different number of times than the rule expects, so an upstream change cannot slip past a stale rule (`tests/skill-parity/gates.test.ts`). `scripts/check-parity.mjs` then checks the inventory: 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, and 62 prompts, with 179 rules over 244 spans at the current pin.
+`scripts/compile-skills.mjs` reads them and writes `generated/`. Each change from the upstream text is a rule in `adapters/cursor-to-pi.ts` or `adapters/skill-transforms.ts`. A rule names the file, the exact source span, the replacement, and the Cursor primitive it replaces. `generated/transformation-manifest.json` records every span. The compiler fails when a rule's source text matches a different number of times than the rule expects, so an upstream change cannot slip past a stale rule (`tests/skill-parity/gates.test.ts`). `scripts/check-parity.mjs` then checks the inventory: 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, and 62 prompts, with 244 rules over 309 spans at the current pin.
 
 The old package kept a hand-edited copy of every skill in `skills/`. That copy drifted from upstream with each fix and had no record of what changed or why. The compiled copy costs a rule per change, which is the point: each difference from pstack is written down and tested (`tests/skill-parity/`).
 
@@ -20,7 +20,7 @@ The old package kept a hand-edited copy of every skill in `skills/`. That copy d
 - An `input` handler rewrites `/pstack:<name>` to `/skill:<name>` for a skill name another command owns (`src/skill-routing.ts`).
 - `before_agent_start` adds the `poteto-mode` skill once per context while the style is on (`src/style.ts`).
 
-Inside a worker (`PSTACK_WORKER=1`) the extension registers only `pstack_evidence`, plus `pstack_worker` for a sub-coordinator. `tests/integration/pi-load.test.ts` loads the package into the real Pi binary and checks that the model sees exactly these tools and none of the old ones.
+Inside a worker (`PSTACK_WORKER=1`) the extension registers `pstack_evidence`, plus `bash_readonly` for a readonly worker and `pstack_worker` for a sub-coordinator. `tests/integration/pi-load.test.ts` loads the package into the real Pi binary and checks that the model sees exactly these tools and none of the old ones.
 
 ## Workers are Pi processes in tmux
 
@@ -36,7 +36,7 @@ A spawn takes `claim/` with an exclusive `mkdir` before tmux starts, so two spaw
 
 A run is a directory, `<project>/.pi/pstack/runs/<runId>/`. `TODO.md` replaces `TodoWrite`. `scripts/start-run.mjs` copies the playbook's steps into it in order, and the parent ticks them off with evidence ids. A plan is a Markdown file under `.pi/pstack/plans/`, which replaces plan mode. `events.jsonl` is an audit trail. Pi's own session files stay the record of every conversation.
 
-Files survive a restart where in-memory tool state does not. When the parent restarts, it reads its runs, lists the live tmux sessions, and delivers each worker's settle exactly once. The delivery record is the `pstack-worker` message in the parent's own session branch, so no second database can disagree with it (`tests/recovery/recovery.test.ts`).
+Files survive a restart where in-memory tool state does not. When the parent restarts, it reads its runs and lists the live tmux sessions. It delivers each uncollected worker transition once on the current session branch. Wakes wait until the parent is idle or reaches `agent_before_settle`, which reconciles again after any pending poll. The delivery record is the `pstack-worker` message in the parent's own session branch, so no second database can disagree with it (`tests/recovery/recovery.test.ts`).
 
 ## What the old runtime did that this one does not
 
@@ -49,9 +49,9 @@ Files survive a restart where in-memory tool state does not. When the parent res
 | `AskQuestion` | A question in the conversation |
 | `/loop`, `bash_background`, `AwaitShell` | A `watch` worker. Its exit wakes the parent. |
 | Subscriptions, the routines supervisor, Slack tools | `/pstack automation` event sources that run as watch workers |
-| Cloud agents, `/in-cloud` | Not yet. Container workers are pending. |
+| Cloud agents, `/in-cloud` | Container workers run Pi against a clone of the pushed remote. |
 | `GenerateImage`, `visualize`, `request_secret`, Projects | Removed |
-| A `/name` anywhere in a message attaches its skill | A `/name` prompt at the start of a message, and the `input` handler rewrites a message that names a skill later to Pi's `/skill:<name>` form |
+| A `/name` anywhere in a message attaches its skill | A `/name` prompt at the start of a message. Inside an active pstack workflow, the `input` handler attaches loaded skills named later through Pi's `/skill:<name>` form |
 
 The removals are deliberate. Each old feature was a second implementation of something Pi or the file system already does, and each carried its own state, recovery code, and tests. The cost is real for a few users. A `/loop` with a timer has no direct replacement.
 
