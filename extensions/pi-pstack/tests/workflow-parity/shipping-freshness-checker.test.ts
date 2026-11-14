@@ -68,8 +68,20 @@ test.for([true, false])('a changed patch can land only after fresh verification 
         toolCalls: heads.map((_, index) => ({
           name: 'bash',
           order: index,
-          args: { command: index === 1 ? `gh pr view 22 --json baseRefName,state --jq '.state+" base="+.baseRefName'` : `gh pr view ${21 + index} --json baseRefName,state,mergeCommit; gh pr view 99 --json state,baseRefName` },
-          resultText: index === 1 ? 'MERGED base=main\n' : `Merged pull request\n${JSON.stringify({ state: 'MERGED', baseRefName: 'main', mergeCommit: { oid: heads[index] } }, null, 2)}\n{"state":"OPEN","baseRefName":"main"}\n`,
+          args: {
+            command:
+              index === 1
+                ? `gh pr view 22 --json baseRefName,state --jq '.state+" base="+.baseRefName'`
+                : index === 2
+                  ? `for n in 23; do gh pr view $n --json number,state,baseRefName --jq '"PR "+(.number|tostring)+" "+.state+" base="+.baseRefName'; done`
+                  : `gh pr view ${21 + index} --json baseRefName,state,mergeCommit; gh pr view 99 --json state,baseRefName`,
+          },
+          resultText:
+            index === 1
+              ? 'MERGED base=main\n'
+              : index === 2
+                ? 'PR 23 MERGED base=main\n'
+                : `Merged pull request\n${JSON.stringify({ state: 'MERGED', baseRefName: 'main', mergeCommit: { oid: heads[index] } }, null, 2)}\n{"state":"OPEN","baseRefName":"main"}\n`,
           isError: false,
         })),
       },
@@ -95,6 +107,12 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       call.resultText = 'OPEN base=main';
       expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
       call.resultText = 'MERGED base=side';
+      expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
+      call.resultText = original;
+    }
+    for (const call of view.parent.toolCalls.filter((entry) => String(entry.args['command']).includes('gh pr view $n'))) {
+      const original = call.resultText;
+      call.resultText = 'PR 99 MERGED base=main';
       expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
       call.resultText = original;
     }

@@ -230,7 +230,7 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
     const readBack = merged.filter((n) => view.parent.toolCalls.some((call) => {
       if (call.name !== 'bash' || call.isError) return false;
       const command = String(call.args['command']);
-      const queries = [...command.matchAll(/\bgh pr view (\d+)\s+([^;\n]*)/g)];
+      const queries = [...command.matchAll(/\bgh pr view ["']?(\d+|\$(?:\{\w+\}|\w+))["']?\s+([^;\n]*)/g)];
       const fieldsOf = (query: string) => /--json(?:=|\s+)["']?([\w,]+)/.exec(query)?.[1]?.split(',') ?? [];
       const documents: unknown[] = [];
       let start = -1;
@@ -254,11 +254,17 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
         start = -1;
       }
       const scalar = queries.length === 1 ? queries[0] : undefined;
-      if (documents.length === 0 && Number(scalar?.[1]) === n && ['state', 'baseRefName'].every((field) => fieldsOf(scalar?.[2] ?? '').includes(field)) && /(?:--jq|-q)\s/.test(scalar?.[2] ?? '') && /\.state\b/.test(scalar?.[2] ?? '') && /\.baseRefName\b/.test(scalar?.[2] ?? '') && !/\b(?:OPEN|CLOSED)\b/i.test(call.resultText) && call.resultText.split(/\r?\n/).some((line) => /\bMERGED\b/i.test(line) && line.split(/[\s=:,]+/).includes(state.repo.trunk))) return true;
+      const numbered = fieldsOf(scalar?.[2] ?? '').includes('number') && /\.number\b/.test(scalar?.[2] ?? '');
+      const identity = new RegExp(`\\bPR\\s*#?${n}\\b|^\\s*${n}\\b`, 'i');
+      const lines = call.resultText.split(/\r?\n/).filter((line) => !numbered || identity.test(line));
+      const scalarIdentity = Number(scalar?.[1]) === n || (scalar?.[1]?.startsWith('$') === true && numbered);
+      if (documents.length === 0 && scalarIdentity && ['state', 'baseRefName'].every((field) => fieldsOf(scalar?.[2] ?? '').includes(field)) && /(?:--jq|-q)\s/.test(scalar?.[2] ?? '') && /\.state\b/.test(scalar?.[2] ?? '') && /\.baseRefName\b/.test(scalar?.[2] ?? '') && !lines.some((line) => /\b(?:OPEN|CLOSED)\b/i.test(line)) && lines.some((line) => /\bMERGED\b/i.test(line) && line.split(/[\s=:,]+/).includes(state.repo.trunk))) return true;
       return documents.some((observed, index) => {
-        const query = queries[index];
+        if (observed === null || typeof observed !== 'object') return false;
+        const query = queries[index] ?? (scalar?.[1]?.startsWith('$') === true ? scalar : undefined);
         const fields = fieldsOf(query?.[2] ?? '');
-        return Number(query?.[1]) === n && ['state', 'baseRefName'].every((field) => fields.includes(field)) && observed !== null && typeof observed === 'object' && 'state' in observed && observed.state === 'MERGED' && 'baseRefName' in observed && observed.baseRefName === state.repo.trunk;
+        const identified = Number(query?.[1]) === n || (query?.[1]?.startsWith('$') === true && fields.includes('number') && 'number' in observed && observed.number === n);
+        return identified && (!('number' in observed) || observed.number === n) && ['state', 'baseRefName'].every((field) => fields.includes(field)) && 'state' in observed && observed.state === 'MERGED' && 'baseRefName' in observed && observed.baseRefName === state.repo.trunk;
       });
     }));
     const base = merged.map((n) => state.prs[String(n)]?.base);
