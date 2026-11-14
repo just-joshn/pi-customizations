@@ -49,7 +49,7 @@ const COMMIT = /^[0-9a-f]{7,64}$/;
 
 /** The fields a receipt got wrong, one line each: what was wrong, and what the field must be. Each field is checked alone, so every bad field is named in one pass. */
 function describeSchemaErrors(raw: unknown): string {
-  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return `(receipt): must be a JSON object with the fields ${RECEIPT_FIELDS.join(', ')}`;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return `(receipt): received ${raw === null ? 'null' : Array.isArray(raw) ? 'an array' : typeof raw}; must be a JSON object with the fields ${RECEIPT_FIELDS.join(', ')}`;
   const lines: string[] = [];
   const record = raw as Record<string, unknown>;
   const hint = (field: string) => (RECEIPT_FIELD_HINTS[field] === undefined ? '' : ` (must be ${RECEIPT_FIELD_HINTS[field]})`);
@@ -197,7 +197,9 @@ export function ingestContainerReceipts(runRoot: string, runId: RunId): Ingested
           reject(read.kind === 'missing' ? 'the file disappeared' : read.reason);
           continue;
         }
-        const raw = JSON.parse(read.bytes.toString('utf8')) as { receipt?: unknown };
+        const raw: unknown = JSON.parse(read.bytes.toString('utf8'));
+        if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) throw new Error(`Invalid receipt ${join(inbox, file)}: expected a recorded receipt object, received ${raw === null ? 'null' : Array.isArray(raw) ? 'an array' : typeof raw}`);
+        if (!('receipt' in raw)) throw new Error(`Invalid receipt ${join(inbox, file)}: missing "receipt" field in the recorded receipt; save the source under evidence/ and use pstack_evidence record to create the inbox entry`);
         const receipt = parseReceipt(raw.receipt, runId, join(inbox, file));
         if (`${receipt.id}.json` !== file) throw new Error(`receipt id ${receipt.id} does not match its file name`);
         for (const artifact of receipt.artifacts) {

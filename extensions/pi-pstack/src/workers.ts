@@ -1043,6 +1043,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       markCollected(loaded.workerDir, workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined));
       // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
       const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
+      if (receipts !== undefined) receipts.rejected = receipts.rejected.filter((entry) => entry.workerId === workerId);
       const result = {
         settled: true,
         available: inspected.available,
