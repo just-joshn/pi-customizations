@@ -1,0 +1,40 @@
+ [38;2;228;138;122m[48;2;79;142;179m▀[49m▀█[39m  [38;2;88;123;40mv1.5.2[39m                                                                                                           [38;2;100;123;44m│
+[39m [38;2;79;142;179m█▀[39m [38;2;234;182;93m█[39m [38;2;88;123;40mescape[38;2;85;123;39m interrupt · [38;2;88;123;40mctrl+c/ctrl+d[38;2;85;123;39m clear/exit · [38;2;88;123;40m/[38;2;85;123;39m commands · [38;2;88;123;40m![38;2;85;123;39m bash · [38;2;88;123;40mctrl+o[38;2;85;123;39m more[39m                                  [38;2;103;123;45m┃
+[39m [38;2;88;123;40mPress ctrl+o to show full startup help and loaded resources.[39m                                                          [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+[39m [38;2;88;123;40mPi can explain its own features and look up its docs. Ask it how to use or extend Pi.[39m                                 [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+[38;2;142;123;58m[Extensions][39m                                                                                                           [38;2;103;123;45m┃
+[38;2;88;123;40m  extensions[39m                                                                                                           [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+[39m [38;2;64;123;32m✓ New session started[39m                                                                                                 [38;2;103;123;45m┃
+[39m                                                                                                                       [38;2;103;123;45m┃
+
+[38;2;67;123;33m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+[38;2;82;123;38mOnly showing models from configured providers. Use /login to add providers.[39m                                             
+
+> [7m [0m                           
+
+[38;2;64;123;32m→ ✓ claude-opus-4-5[38;2;85;123;39m (Claude Opus 4.5 (latest))[39m [38;2;85;123;39m[anthropic] · default[39m                                                    
+    claude-fable-5 [38;2;85;123;39m[anthropic]
+[39m    claude-fable-5-1 [38;2;85;123;39m[anthropic][39m                            
+    claude-fable-5-2 [38;2;85;123;39m[anthropic][39m                            
+    claude-haiku-4-5[38;2;85;123;39m (Claude Haiku 4.5 (latest))[39m [38;2;85;123;39m[anthropic]
+[39m    claude-haiku-4-5-20251001 [38;2;85;123;39m[anthropic][39m                   
+    claude-haiku-5-5 [38;2;85;123;39m[anthropic][39m                            
+    claude-opus-4-5-20251101 [38;2;85;123;39m[anthropic][39m                    
+    claude-opus-4-6 [38;2;85;123;39m[anthropic][39m                             
+    claude-opus-4-7 [38;2;85;123;39m[anthropic][39m                             
+[38;2;85;123;39m  (1/18)[39m                      
+
+[38;2;85;123;39m  Model Name: Claude Opus 4.5 (latest)[39m                      
+
+[38;2;76;123;36m  Model catalogs refreshed.[39m   
+
+[38;2;88;123;40m  Enter to select · Ctrl+S to set as default · Escape/Ctrl+C to cancel[39m                                                  
+[38;2;67;123;33m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[38;2;88;123;40m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-capture-Z1ngfB/work[39m                                         
+[38;2;88;123;40m0.0%/200k (auto)                                                                                claude-opus-4-5 • medium

@@ -1,0 +1,40 @@
+ retries and a shared helper. A synthetic conversation about bounded retries and a shared helper. A synthetic           
+ conversation about bounded retries and a shared helper. A synthetic conversation about bounded retries and a shared    
+ helper. A synthetic conversation about bounded retries and a shared helper. A synthetic conversation about bounded     
+ retries and a shared helper. A synthetic conversation about bounded retries and a shared helper. A synthetic           
+ conversation about bounded retries and a shared helper. A synthetic conversation about bounded retries and a shared    
+ helper. A synthetic conversation about bounded retries and a shared helper. A synthetic conversation about bounded     
+ retries and a shared helper. A synthetic conversation about bounded retries and a shared helper. A synthetic           
+ conversation about bounded retries and a shared helper. A synthetic conversation about bounded retries and a shared    
+ helper. A synthetic conversation about bounded retries and a shared helper. A synthetic conversation about bounded     
+ retries and a shared helper. A synthetic conversation about bounded retries and a shared helper. A synthetic           
+ conversation about bounded retries and a shared helper. A synthetic conversation about bounded retries and a shared    
+ helper. A synthetic conversation about bounded retries and a shared helper. A synthetic conversation about bounded     
+ retries and a shared helper. A synthetic conversation about bounded retries and a shared helper.                       
+ Compaction input complete.   
+
+[48;2;118;123;50m                                                                                                                        
+ [1m[38;2;124;123;52m[compaction][0m[48;2;118;123;50m                                                                                                           
+                                                                                                                        
+ [38;2;121;123;51mCompacted from 17 tokens ([38;2;88;123;40mctrl+o[38;2;121;123;51m to expand)[39m                                                                            
+                                                                                                                        
+
+[49m [38;2;88;123;40mTool output: collapsed[39m       
+
+
+[38;2;67;123;33m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[39m [1m  Session Tree[0m               
+[38;2;85;123;39m  ↑/↓ move · ←/→ page · option+←/→ branch · ctrl+x copy · shift+l label · shift+t label time · filters ctrl+d/t/u/l/a[39m   
+[38;2;85;123;39m  cycle ctrl+o/shift+ctrl+o[39m   
+  [38;2;85;123;39mType to search:[39m [7m [0m           
+[38;2;67;123;33m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+[39m  [38;2;64;123;32m• [38;2;88;123;40m[system][39m                  
+  [38;2;64;123;32m• user: [39mSCENE:compaction    
+  [38;2;64;123;32m• [38;2;76;123;36massistant: [39mA synthetic conversation about bounded retries and a shared helper. A synthetic conversation about bounde
+[38;2;64;123;32m[48;2;97;123;43m› • [1m[38;2;70;123;34m[compaction: 0k tokens][0m   
+[38;2;85;123;39m  (4/4)[39m                       
+
+[38;2;67;123;33m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[38;2;88;123;40m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-capture-Z1ngfB/work[39m                                         
+[38;2;88;123;40m↑20 ↓14 $0.000 ?/200k (auto)                                                                    claude-opus-4-5 • medium

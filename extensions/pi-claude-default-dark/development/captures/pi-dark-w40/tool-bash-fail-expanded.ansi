@@ -1,0 +1,40 @@
+ [38;2;126;136;142mlook up its docs. Ask it how to use or 
+[39m [38;2;126;136;142mextend Pi.[39m         
+
+[38;2;205;154;34m[Extensions][39m        
+  [38;2;167;152;215muser[39m    
+[38;2;126;136;142m                                        
+/Users/josh-desktop/src/personal/pi-cust
+omizations/extensions/pi-claude-default-
+dark/extensions[39m     
+
+
+
+ [38;2;167;152;215m✓ New session started[39m                  
+
+
+[48;2;33;59;73m                                        
+ [38;2;222;224;225mSCENE:tool-bash-fail[39m                   
+                                        
+
+[48;2;91;40;42m                                        
+ [1m[38;2;222;224;225m$ printf 'FAIL tests/client.test.ts\n' 
+[0m[48;2;91;40;42m [1m[38;2;222;224;225m&& false[0m[48;2;91;40;42m                               
+                                        
+ [38;2;157;165;169mFAIL tests/client.test.ts[39m              
+                                        
+                                        
+ [38;2;157;165;169mCommand exited with code 1[39m             
+                                        
+ [38;2;157;165;169mTook 0.0s[39m                              
+                                        
+
+[49m The test run failed.                   
+
+ [38;2;126;136;142mTool output: expanded[39m                  
+
+[38;2;97;133;204m────────────────────────────────────────
+[7m[39m [0m         
+[38;2;97;133;204m────────────────────────────────────────
+[38;2;126;136;142m/private/var/folders/11/m_kwnqr97632l...
+↑20 ↓14 $0.000 0.0%/200k (auto)  claude-

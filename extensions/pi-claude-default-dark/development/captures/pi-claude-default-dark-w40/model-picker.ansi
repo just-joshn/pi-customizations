@@ -1,0 +1,40 @@
+                                       [38;2;72;78;82m│
+[39m[Extensions]                           [38;2;72;78;82m│
+[38;2;153;153;153m  extensions[39m                           [38;2;72;78;82m│
+[39m                                       [38;2;72;78;82m│
+[39m                                       [38;2;72;78;82m│
+[39m                                       [38;2;151;160;165m┃
+[39m [38;2;177;185;249m✓ New session started[39m                 [38;2;151;160;165m┃
+[39m                                       [38;2;151;160;165m┃
+
+[38;2;177;185;249m────────────────────────────────────────
+
+[38;2;205;154;34mOnly showing models from configured     
+providers. Use /login to add providers.[39m 
+
+> [7m [0m       
+
+[38;2;177;185;249m→ ✓ claude-opus-4-5[38;2;153;153;153m (Claude Opus 4.5    
+(latest))[39m [38;2;153;153;153m[anthropic] · default[39m         
+    claude-fable-5 [38;2;153;153;153m[anthropic][39m          
+    claude-fable-5-1 [38;2;153;153;153m[anthropic][39m        
+    claude-fable-5-2 [38;2;153;153;153m[anthropic][39m        
+    claude-haiku-4-5[38;2;153;153;153m (Claude Haiku 4.5  
+(latest))[39m [38;2;153;153;153m[anthropic][39m                   
+    claude-haiku-4-5-20251001           
+[38;2;153;153;153m[anthropic][39m         
+    claude-haiku-5-5 [38;2;153;153;153m[anthropic][39m        
+    claude-opus-4-5-20251101 [38;2;153;153;153m[anthropic]
+[39m    claude-opus-4-6 [38;2;153;153;153m[anthropic][39m         
+    claude-opus-4-7 [38;2;153;153;153m[anthropic][39m         
+[38;2;153;153;153m  (1/18)[39m  
+
+[38;2;153;153;153m  Model Name: Claude Opus 4.5 (latest)[39m  
+
+[38;2;78;186;101m  Model catalogs refreshed.[39m             
+
+[38;2;153;153;153m  Enter to select · Ctrl+S to set as    
+default · Escape/Ctrl+C to cancel[39m       
+[38;2;177;185;249m────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l...
+0.0%/200k (auto)  claude-opus-4-5 • medi

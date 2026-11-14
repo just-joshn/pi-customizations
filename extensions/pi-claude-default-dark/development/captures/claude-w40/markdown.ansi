@@ -1,0 +1,40 @@
+
+[38;2;153;153;153m[48;2;55;55;55m❯ [38;2;255;255;255mSCENE:markdown[39m                        
+
+[38;2;255;255;255m[49m⏺[39m [1mImplementation[0m                        
+
+  Here is the [1msmallest safe[0m refactor    
+  with [3mone[0m helper and a link            
+  (https://example.com).                
+
+  1. Preserve the public [38;2;177;185;249mrequest()[39m      
+     signature.                         
+  2. Share retry logic through a private
+     helper.                            
+
+  - bounded retries                     
+  - current backoff 
+
+  [2m▎[0m [3mKeep the API stable.[0m                
+
+  [34mexport[39m [34masync[39m [34mfunction[39m [33mrequest[39m([36murl[39m:    
+  [36mstring[39m): [34mPromise[39m<[34mResponse[39m> {          
+    [34mconst[39m attempts = [32m3[39m; [32m// retries[39m      
+    [34mreturn[39m [33mwithRetry[39m([33m() =>[39m [33mfetch[39m(url),  
+  attempts);        
+  }       
+
+  ---     
+
+  ┌───────────────┬──────────┐          
+  │     file      │  change  │          
+  ├───────────────┼──────────┤          
+  │ src/client.ts │ refactor │          
+  └───────────────┴──────────┘          
+
+[38;2;153;153;153m✻[39m [38;2;153;153;153mBrewed for 0s · done 3:36 PM[39m          
+                    [38;2;153;153;153m◐ medium · /effort[39m  
+[38;2;136;136;136m────────────────────────────────────────
+[39m❯ [7m [0m                                     
+[38;2;136;136;136m────────────────────────────────────────
+[39m  [38;2;255;193;7m⏵⏵ auto mode on[38;2;153;153;153m (shift+tab to cycle)[39m  

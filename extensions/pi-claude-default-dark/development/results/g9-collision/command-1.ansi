@@ -1,0 +1,50 @@
+
+ [38;2;228;138;122m[48;2;79;142;179m▀[49m▀█[39m  [38;2;153;153;153mv1.5.2[39m
+ [38;2;79;142;179m█▀[39m [38;2;234;182;93m█[39m [38;2;153;153;153mescape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more[39m
+ [38;2;153;153;153mPress ctrl+o to show full startup help and loaded resources.[39m
+
+ [38;2;153;153;153mPi can explain its own features and look up its docs. Ask it how to use or extend Pi.[39m
+
+[Extensions]
+[38;2;153;153;153m  extensions[39m
+
+[38;2;205;154;34m[Theme conflicts][39m
+[38;2;205;154;34m  "claude-default-dark" collision:[39m
+[38;2;153;153;153m    [38;2;78;186;101m✓[39m auto (user)
+/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-oRoBeq/agent/themes/claude-default-dark.json
+[38;2;153;153;153m    [38;2;205;154;34m✗[39m
+/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/themes/claude-default-dark.json
+(skipped)
+
+
+ [38;2;205;154;34mWarning: No models available. Use /login to log into a provider via OAuth or API key. See:
+[39m [38;2;205;154;34m  /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/providers.md
+[39m [38;2;205;154;34m  /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/models.md[39m
+
+ [38;2;153;153;153mclaude-default-dark: installed; parity requires separate verification[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[38;2;108;118;123m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[7m[39m [0m
+[38;2;108;118;123m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-oRoBeq/work[39m
+[38;2;153;153;153m0.0%/0 (auto)                                                                                                    unknown

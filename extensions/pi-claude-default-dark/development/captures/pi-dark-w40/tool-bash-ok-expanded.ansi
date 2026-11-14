@@ -1,0 +1,40 @@
+ [38;2;157;165;169mimages, or text[39m    
+ [38;2;126;136;142mdrop files[38;2;157;165;169m to attach[39m                   
+
+ [38;2;126;136;142mPi can explain its own features and    
+[39m [38;2;126;136;142mlook up its docs. Ask it how to use or 
+[39m [38;2;126;136;142mextend Pi.[39m         
+
+[38;2;205;154;34m[Extensions][39m        
+  [38;2;167;152;215muser[39m    
+[38;2;126;136;142m                                        
+/Users/josh-desktop/src/personal/pi-cust
+omizations/extensions/pi-claude-default-
+dark/extensions[39m     
+
+
+
+ [38;2;167;152;215m✓ New session started[39m                  
+
+
+[48;2;33;59;73m                                        
+ [38;2;222;224;225mSCENE:tool-bash-ok[39m                     
+                                        
+
+[48;2;37;65;49m                                        
+ [1m[38;2;222;224;225m$ printf '42 passed\n'[0m[48;2;37;65;49m                 
+                                        
+ [38;2;157;165;169m42 passed[39m                              
+                                        
+ [38;2;157;165;169mTook 0.0s[39m                              
+                                        
+
+[49m Tests passed.      
+
+ [38;2;126;136;142mTool output: expanded[39m                  
+
+[38;2;97;133;204m────────────────────────────────────────
+[7m[39m [0m         
+[38;2;97;133;204m────────────────────────────────────────
+[38;2;126;136;142m/private/var/folders/11/m_kwnqr97632l...
+↑20 ↓14 $0.000 0.0%/200k (auto)  claude-

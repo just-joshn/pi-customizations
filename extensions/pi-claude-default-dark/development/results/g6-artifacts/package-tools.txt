@@ -1,0 +1,60 @@
+
+ ▀▀█  v1.5.2
+ █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  extensions
+
+
+ G6 plain
+
+
+ G6 plain reply
+
+
+ G6 tools
+
+
+
+ $ printf "g6 bash output\n"
+
+ g6 bash output
+
+ Took 0.0s
+
+
+
+ edit fixture.txt
+
+ 1 -before
+ 1 +after
+
+
+ G6 tools complete
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-g6-D7n5Do/work
+↑40 ↓28 $0.001 0.0%/200k (auto)                                                                                     claude-opus-4-5 • medium

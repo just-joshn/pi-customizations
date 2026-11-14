@@ -1,0 +1,609 @@
+{
+  "status": "PASS",
+  "beforeDirectory": "captures/debug-adapters-before",
+  "afterDirectory": "captures/debug-adapters",
+  "observations": [
+    {
+      "scene": "tool-edit",
+      "token": "const maxAttempts = 3;",
+      "claude": "tool-edit@13:9",
+      "before": {
+        "at": "20:7",
+        "char": "c",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#dc5a5a"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "22:7",
+        "char": "c",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#3d0100"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "const maxAttempts = 5;",
+      "claude": "tool-edit@15:11",
+      "before": {
+        "at": "22:7",
+        "char": "c",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#50c850"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "24:7",
+        "char": "c",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#022800"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "const maxAttempts = 3;",
+      "claude": "tool-edit@13:31",
+      "before": {
+        "at": "20:27",
+        "char": "3",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#dc5a5a"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "22:27",
+        "char": "3",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#5c0200"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "const maxAttempts = 5;",
+      "claude": "tool-edit@15:31",
+      "before": {
+        "at": "22:27",
+        "char": "5",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#50c850"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "24:27",
+        "char": "5",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#044700"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "2 -",
+      "claude": "tool-edit@13:5",
+      "before": {
+        "at": "20:1",
+        "char": "-",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#dc5a5a"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "22:4",
+        "char": "-",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#dc5a5a"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#3d0100"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "2 +",
+      "claude": "tool-edit@15:5",
+      "before": {
+        "at": "22:1",
+        "char": "+",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#50c850"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "24:4",
+        "char": "+",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#50c850"
+        },
+        "bg": {
+          "kind": "rgb",
+          "hex": "#022800"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "1  export",
+      "claude": "tool-edit@12:5",
+      "before": {
+        "at": "19:3",
+        "char": "1",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "21:2",
+        "char": "1",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#f8f8f2"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": true,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-edit",
+      "token": "src/client.ts",
+      "claude": "tool-edit@10:8",
+      "before": {
+        "at": "17:6",
+        "char": "s",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#b1b9f9"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "19:6",
+        "char": "s",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-read",
+      "token": "notes.txt",
+      "claude": "tool-read-expanded@10:6",
+      "before": {
+        "at": "17:6",
+        "char": "n",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#b1b9f9"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "20:6",
+        "char": "n",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-read",
+      "token": "read notes.txt",
+      "claude": "tool-read@10:2",
+      "before": {
+        "at": "17:1",
+        "char": "r",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": true,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "20:1",
+        "char": "r",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#999999"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-bash-ok",
+      "token": "$ printf",
+      "claude": "tool-bash-ok@10:2",
+      "before": {
+        "at": "17:1",
+        "char": "$",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": true,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "20:1",
+        "char": "$",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#999999"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-pending",
+      "token": "$ sleep",
+      "claude": "tool-pending@11:0",
+      "before": {
+        "at": "17:1",
+        "char": "$",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": true,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "20:1",
+        "char": "$",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#999999"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "token": "FAIL tests/client.test.ts",
+      "claude": "tool-bash-fail-expanded@11:5",
+      "before": {
+        "at": "23:1",
+        "char": "F",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "23:1",
+        "char": "F",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#ff6b80"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "token": "Command exited with code 1",
+      "claude": "tool-bash-fail-expanded@12:5",
+      "before": {
+        "at": "26:1",
+        "char": "C",
+        "fg": {
+          "kind": "default"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "26:1",
+        "char": "C",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#ff6b80"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    },
+    {
+      "scene": "working-800ms",
+      "token": "Working",
+      "claude": "working-800ms@34:0 (message)",
+      "before": {
+        "at": "35:5",
+        "char": "W",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#888888"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      },
+      "after": {
+        "at": "35:5",
+        "char": "W",
+        "fg": {
+          "kind": "rgb",
+          "hex": "#d77757"
+        },
+        "bg": {
+          "kind": "default"
+        },
+        "bold": false,
+        "dim": false,
+        "italic": false,
+        "underline": false,
+        "inverse": false,
+        "strikethrough": false
+      }
+    }
+  ],
+  "spinner": {
+    "before": {
+      "at": "35:3",
+      "char": "⠏",
+      "fg": {
+        "kind": "rgb",
+        "hex": "#888888"
+      }
+    },
+    "after": {
+      "at": "35:3",
+      "char": "✻",
+      "fg": {
+        "kind": "rgb",
+        "hex": "#d77757"
+      }
+    }
+  }
+}

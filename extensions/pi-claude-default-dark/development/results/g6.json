@@ -1,0 +1,93 @@
+{
+  "gate": "G6",
+  "verdict": "PASS",
+  "inputs": {
+    "package": "31059881853a3c7396ee8fc1006bc88c231fc5146a2de61c326293513e3a7ede"
+  },
+  "checks": [
+    {
+      "name": "stock renders selected dark theme",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-plain.ansi"
+      ]
+    },
+    {
+      "name": "stock conversation includes plain reply, bash/edit round-trips and thinking",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-session.jsonl",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-requests.raw.json"
+      ]
+    },
+    {
+      "name": "local package installed",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/install.txt"
+      ]
+    },
+    {
+      "name": "package renders selected claude-default-dark theme",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-plain.ansi"
+      ]
+    },
+    {
+      "name": "package conversation includes plain reply, bash/edit round-trips and thinking",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-session.jsonl",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-requests.raw.json"
+      ]
+    },
+    {
+      "name": "requests identical after allowed normalization",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-normalized.json",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-normalized.json",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/differences.json"
+      ]
+    },
+    {
+      "name": "session identical after allowed normalization",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-normalized.json",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-normalized.json",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/differences.json"
+      ]
+    },
+    {
+      "name": "no added model-visible tools",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-requests.raw.json",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-requests.raw.json"
+      ]
+    },
+    {
+      "name": "no extra message entries",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/stock-session.jsonl",
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/package-session.jsonl"
+      ]
+    },
+    {
+      "name": "zero non-loopback connections or attempted egress",
+      "verdict": "PASS",
+      "evidence": [
+        "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g6-artifacts/network.json"
+      ]
+    }
+  ],
+  "normalization": [
+    "JSON object keys id, parentId, sessionId, responseId, toolCallId, tool_use_id are mapped by first occurrence, preserving equality and references.",
+    "JSON object keys timestamp, createdAt, updatedAt, lastUpdated are replaced with <timestamp>.",
+    "JSON object key durationMs is replaced with <duration>: wall-clock timing varies between identical runs (two stock-vs-package runs differed on different entries, in both directions; see results/g6-timing-evidence/).",
+    "No paths, text, system prompts, tools, cache_control, usage, costs, or other fields are normalized."
+  ]
+}

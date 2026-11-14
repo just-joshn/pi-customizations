@@ -1,0 +1,11 @@
+{
+  "ready": true,
+  "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g8-256color/screen.ansi",
+  "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g8-256color/screens.json",
+  "refusedEgress": [],
+  "nonLoopbackConnections": [],
+  "term": "xterm-256color",
+  "COLORTERM": "unset",
+  "selected": "claude-default-dark",
+  "installed": false
+}

@@ -1,0 +1,40 @@
+ [38;2;153;153;153mclear/exit · / commands · ! bash ·     
+[39m [38;2;153;153;153mctrl+o more[39m        
+ [38;2;153;153;153mPress ctrl+o to show full startup help 
+[39m [38;2;153;153;153mand loaded resources.[39m                  
+
+ [38;2;153;153;153mPi can explain its own features and    
+[39m [38;2;153;153;153mlook up its docs. Ask it how to use or 
+[39m [38;2;153;153;153mextend Pi.[39m         
+
+[Extensions]        
+[38;2;153;153;153m  extensions[39m        
+
+
+
+ [38;2;177;185;249m✓ New session started[39m                  
+
+
+[48;2;55;55;55m                                        
+ [38;2;255;255;255mSCENE:tool-bash-fail[39m                   
+                                        
+
+
+[49m [38;2;153;153;153m$ printf 'FAIL tests/client.test.ts\n'[39m 
+ [1m&& false[0m 
+
+ [38;2;255;107;128mFAIL[39m [38;2;255;107;128mtests/client.test.ts[39m              
+
+
+ [38;2;255;107;128mCommand[39m [38;2;255;107;128mexited[39m [38;2;255;107;128mwith[39m [38;2;255;107;128mcode[39m [38;2;255;107;128m1[39m             
+
+ [38;2;153;153;153mTook 0.0s
+
+
+[39m The test run failed.                   
+
+[38;2;136;136;136m────────────────────────────────────────
+[7m[39m [0m         
+[38;2;136;136;136m────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l...
+↑20 ↓14 $0.000 0.0%/200k (auto)  claude-

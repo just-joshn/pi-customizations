@@ -1,0 +1,160 @@
+{
+  "gate": "G9",
+  "verdict": "PASS",
+  "inputs": {
+    "package": "31059881853a3c7396ee8fc1006bc88c231fc5146a2de61c326293513e3a7ede"
+  },
+  "checks": [
+    {
+      "name": "bad-color-validator",
+      "verdict": "PASS",
+      "evidence": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-bad-color/validation.log",
+        "exit": 1
+      }
+    },
+    {
+      "name": "bad-color-real-pi",
+      "verdict": "PASS",
+      "evidence": {
+        "ready": true,
+        "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-bad-color/screen.ansi",
+        "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-bad-color/screens.json",
+        "refusedEgress": [],
+        "nonLoopbackConnections": [],
+        "term": "xterm-256color",
+        "COLORTERM": "truecolor",
+        "selected": "claude-default-dark",
+        "installed": false,
+        "startup": "\n ▀▀█  v1.5.2\n █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more\n Press ctrl+o to show full startup help and loaded resources.\n\n Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.\n\n[Extensions]\n  extensions\n\n[Theme conflicts]\n  /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-2R4cwg/agent/themes/claude-default-dark.json\n    Invalid color value: #notrgb\n\n\n Error: Failed to load theme \"claude-default-dark\": Invalid color value: #notrgb\n Fell back to the system theme.\n\n Warning: No models available. Use /login to log into a provider via OAuth or API key. See:\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/providers.md\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/models.md\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-2R4cwg/work\n0.0%/0 (auto)                                                                                                    unknown\n",
+        "requirement": "Selected malformed theme must report a visible load error and keep Pi usable rather than silently falling back."
+      }
+    },
+    {
+      "name": "missing-role-validator",
+      "verdict": "PASS",
+      "evidence": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-missing-role/validation.log",
+        "exit": 1
+      }
+    },
+    {
+      "name": "missing-role-real-pi",
+      "verdict": "PASS",
+      "evidence": {
+        "ready": true,
+        "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-missing-role/screen.ansi",
+        "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-missing-role/screens.json",
+        "refusedEgress": [],
+        "nonLoopbackConnections": [],
+        "term": "xterm-256color",
+        "COLORTERM": "truecolor",
+        "selected": "claude-default-dark",
+        "installed": false,
+        "startup": "\n ▀▀█  v1.5.2\n █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more\n Press ctrl+o to show full startup help and loaded resources.\n\n Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.\n\n[Extensions]\n  extensions\n\n[Theme conflicts]\n  /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-iCgwf1/agent/themes/claude-default-dark.json\n    Invalid theme\n\"/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-iCgwf1/agent/themes/claude-default-dark.json\":\n\nMissing required color tokens:\n  - accent\n\nPlease add these colors to your theme's \"colors\" object.\nSee the built-in themes (dark.json, light.json) for reference values.\n\n\n Error: Failed to load theme \"claude-default-dark\": Invalid theme \"claude-default-dark\":\n\n Missing required color tokens:\n   - accent\n\n Please add these colors to your theme's \"colors\" object.\n See the built-in themes (dark.json, light.json) for reference values.\n Fell back to the system theme.\n\n Warning: No models available. Use /login to log into a provider via OAuth or API key. See:\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/providers.md\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/models.md\n\n\n\n\n\n\n\n\n\n\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-iCgwf1/work\n0.0%/0 (auto)                                                                                                    unknown\n",
+        "requirement": "Selected malformed theme must report a visible load error and keep Pi usable rather than silently falling back."
+      }
+    },
+    {
+      "name": "invalid-json-validator",
+      "verdict": "PASS",
+      "evidence": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-invalid-json/validation.log",
+        "exit": 1
+      }
+    },
+    {
+      "name": "invalid-json-real-pi",
+      "verdict": "PASS",
+      "evidence": {
+        "ready": true,
+        "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-invalid-json/screen.ansi",
+        "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-invalid-json/screens.json",
+        "refusedEgress": [],
+        "nonLoopbackConnections": [],
+        "term": "xterm-256color",
+        "COLORTERM": "truecolor",
+        "selected": "claude-default-dark",
+        "installed": false,
+        "startup": "\n ▀▀█  v1.5.2\n █▀ █ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more\n Press ctrl+o to show full startup help and loaded resources.\n\n Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.\n\n[Extensions]\n  extensions\n\n[Theme conflicts]\n  /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-d7vCYJ/agent/themes/claude-default-dark.json\n    Failed to parse theme\n/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-d7vCYJ/agent/themes/claude-default-dark.json:\nSyntaxError: Expected double-quoted property name in JSON at position 31 (line 1 column 32)\n\n\n Error: Failed to load theme \"claude-default-dark\": Failed to parse theme claude-default-dark: SyntaxError: Expected\n double-quoted property name in JSON at position 31 (line 1 column 32)\n Fell back to the system theme.\n\n Warning: No models available. Use /login to log into a provider via OAuth or API key. See:\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/providers.md\n   /Users/josh-desktop/.pi/agent/install/releases/1.5.2/node_modules/@earendil-works/pi-coding-agent/docs/models.md\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n\n────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/claude-theme-gate-d7vCYJ/work\n0.0%/0 (auto)                                                                                                    unknown\n",
+        "requirement": "Selected malformed theme must report a visible load error and keep Pi usable rather than silently falling back."
+      }
+    },
+    {
+      "name": "name-collision",
+      "verdict": "PASS",
+      "evidence": {
+        "ready": true,
+        "ansi": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-collision/screen.ansi",
+        "snapshots": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-collision/screens.json",
+        "refusedEgress": [],
+        "nonLoopbackConnections": [],
+        "term": "xterm-256color",
+        "COLORTERM": "truecolor",
+        "selected": "claude-default-dark",
+        "installed": true,
+        "localAccentObserved": false,
+        "collisionWarning": true,
+        "resolution": "Pi displays a Theme conflicts warning. It marks the scratch agent themes/claude-default-dark.json as selected with ✓ auto (user), and marks the package themes/claude-default-dark.json as skipped."
+      }
+    },
+    {
+      "name": "absent-status",
+      "verdict": "PASS",
+      "evidence": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-absent/screens.json"
+    },
+    {
+      "name": "absent-use",
+      "verdict": "PASS",
+      "evidence": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-absent/screens.json"
+    },
+    {
+      "name": "status-no-parity-claim",
+      "verdict": "PASS",
+      "evidence": {
+        "source": "extensions/index.ts",
+        "staticSafe": true,
+        "dynamic": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-present/screens.json"
+      }
+    },
+    {
+      "name": "zero-observed-nonloopback-connections",
+      "verdict": "PASS",
+      "evidence": {
+        "runs": [
+          {
+            "name": "g9-bad-color",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          },
+          {
+            "name": "g9-missing-role",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          },
+          {
+            "name": "g9-invalid-json",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          },
+          {
+            "name": "g9-collision",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          },
+          {
+            "name": "g9-absent",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          },
+          {
+            "name": "g9-present",
+            "nonLoopbackConnections": [],
+            "refusedEgress": []
+          }
+        ],
+        "limitation": "lsof samples descendant sockets every 400ms. Proxy sink and ssh stub refuse egress; sampling does not prove absence of sub-400ms direct sockets."
+      }
+    }
+  ]
+}

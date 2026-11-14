@@ -1,0 +1,900 @@
+[48;2;55;55;55m                                                                                                                        
+ [38;2;255;255;255mdo not change any files but please show me a static diff so I can test this theme. Just a normal, common diff please.[39m  
+                                                                                                                        
+
+[49m [3m[38;2;150;160;164mThinking...[0m                  
+
+ Here's a sample unified diff:
+
+ [38;2;157;165;169m```diff[39m                      
+   [38;5;2mdiff --git a/src/utils/format.ts b/src/utils/format.ts[39m   
+   [38;5;2mindex 3f2a1b7..8c4d9e2 100644[39m                            
+   [38;5;2m--- a/src/utils/format.ts[39m  
+   [38;5;2m+++ b/src/utils/format.ts[39m  
+   [38;2;153;153;153m@@ -1,18 +1,22 @@[39m          
+    import { Locale } from "./locale";                      
+   [38;2;80;200;80m+import { clamp } from "./math";[39m                         
+
+    export interface FormatOptions {                        
+      locale?: Locale;        
+   [38;2;220;90;90m-  precision: number;[39m      
+   [38;2;80;200;80m+  precision?: number;[39m     
+   [38;2;80;200;80m+  trimZeros?: boolean;[39m    
+    }                         
+
+   [38;2;220;90;90m-export function formatNumber(value: number, opts: FormatOptions): string {[39m                                          
+   [38;2;220;90;90m-  const fixed = value.toFixed(opts.precision);[39m          
+   [38;2;220;90;90m-  return fixed;[39m           
+   [38;2;80;200;80m+export function formatNumber(value: number, opts: FormatOptions = {}): string {[39m                                     
+   [38;2;80;200;80m+  const precision = clamp(opts.precision ?? 2, 0, 20);[39m  
+   [38;2;80;200;80m+  const fixed = value.toFixed(precision);[39m               
+   [38;2;80;200;80m+  return opts.trimZeros ? fixed.replace(/\.?0+$/, "") : fixed;[39m                                                      
+    }                         
+
+    export function formatPercent(value: number): string {  
+   [38;2;220;90;90m-  return formatNumber(value * 100, { precision: 1 }) + "%";[39m                                                         
+   [38;2;80;200;80m+  return `${formatNumber(value * 100, { precision: 1, trimZeros: true })}%`;[39m                                        
+    }                         
+
+    // TODO: support currency formatting                    
+   [38;2;153;153;153m@@ -42,7 +46,6 @@[39m export function formatBytes(bytes: number): string {                                               
+      const units = ["B", "KB", "MB", "GB", "TB"];          
+      let i = 0;              
+   [38;2;220;90;90m-  // legacy: assumes base 1000[39m                          
+      while (bytes >= 1024 && i < units.length - 1) {       
+        bytes /= 1024;        
+        i++;                  
+ [38;2;157;165;169m```[39m                          
+
+ It has the usual parts: file headers, two hunk headers, added lines, removed lines, unchanged context lines, a block   
+ where a line is replaced, and a hunk that only removes a line. No files were changed.                                  
+
+[48;2;55;55;55m                                                                                                                        
+ [38;2;255;255;255mplease show a static example of everything that you can possible. Do not change or actually do anything. Do a theme    
+[39m [38;2;255;255;255mtest. But it needs to be static so I can take screenshots.[39m                                                             
+                                                                                                                        
+
+[49m [3m[38;2;150;160;164mThinking...[0m                  
+
+ [1;4mHeading 1[0m                    
+
+ [1mHeading 2[0m                    
+
+ [1m### Heading 3[0m                
+
+ [1m#### Heading 4[0m               
+
+ [1m##### Heading 5[0m              
+
+ [1m###### Heading 6[0m             
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mInline text[0m                  
+
+ This is a normal paragraph. It has [1mbold text[0m, [3mitalic text[0m, [1;3mbold italic[0m, [9mstrikethrough[0m, [38;2;177;185;249minline code[39m, and a [4mlink to[0m      
+ [4mexample.com[0m (https://example.com). Here is a bare URL: [4mhttps://github.com/example/repo[0m. Here is a file path:           
+ [38;2;177;185;249msrc/components/Button.tsx:42[39m.
+
+ These words are [1mbold with underscores[0m and [3mitalic with underscores[0m. Here is [38;2;177;185;249mcode with **asterisks** inside[39m.             
+
+ Escaped characters: *not italic*, `not code`, # not a heading.                                                         
+
+ Unicode and emoji: ✓ ✗ → ← ↑ ↓ • … — – © ™ 🚀 🎉 ⚠️ ✅ ❌  
+
+ A long line to test wrapping: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor           
+ incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi   
+ ut aliquip ex ea commodo consequat.                        
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mBlockquotes[0m                  
+
+ [38;2;157;165;169m│ [3m[39mA single-level blockquote with [1mbold[0;3m and [38;2;177;185;249mcode[39m.[0m            
+ [38;2;157;165;169m│ [39m                           
+ [38;2;157;165;169m│ [3m│ [39mA nested blockquote.[0m     
+ [38;2;157;165;169m│ [3m│ [0m                         
+ [38;2;157;165;169m│ [3m│ │ [39mThree levels deep.[0m     
+
+ [38;2;157;165;169m│ [1;3m[39mNote:[0;3m Callout-style quote.[0m 
+
+ [38;2;157;165;169m│ [3m[39m⚠️ [1mWarning:[0;3m Callout with an emoji.[0m                       
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mLists[0m                        
+
+ Unordered:                   
+ - First item                 
+ - Second item with [38;2;177;185;249mcode[39m      
+     - Nested item            
+         - Deeply nested item 
+             - Fourth level   
+ - Third item                 
+
+ Ordered:                     
+ 1. Step one                  
+ 2. Step two                  
+     1. Sub-step a            
+     2. Sub-step b            
+ 3. Step three                
+
+ Task list:                   
+ - [x] Completed task         
+ - [ ] Pending task           
+ - [x] Another done item      
+     - [ ] Nested pending item
+
+ Mixed:                       
+ 1. Ordered parent            
+     - Unordered child        
+     - Another child          
+ 2. Second parent             
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mTable[0m                        
+
+ ┌──────────────┬────────────┬───────┬──────────────────────────┐                                                       
+ │ [1mFeature     [0m │ [1mStatus    [0m │ [1mCount[0m │ [1mNotes                   [0m │                                                       
+ ├──────────────┼────────────┼───────┼──────────────────────────┤                                                       
+ │ Left aligned │ ✅ Done    │ 42    │ Uses [38;2;177;185;249minline code[39m         │                                                       
+ ├──────────────┼────────────┼───────┼──────────────────────────┤                                                       
+ │ Centered     │ ⏳ Pending │ 7     │ Has [1mbold[0m text            │                                                       
+ ├──────────────┼────────────┼───────┼──────────────────────────┤                                                       
+ │ Right count  │ ❌ Failed  │ 1,024 │ Has a [4mlink[0m (https://x.y) │                                                       
+ └──────────────┴────────────┴───────┴──────────────────────────┘                                                       
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mCode blocks[0m                  
+
+ Plain (no language):         
+
+ [38;2;157;165;169m```[39m                          
+   [38;2;177;185;249mplain text block[39m           
+   [38;2;177;185;249m  indented line[39m            
+ [38;2;157;165;169m```[39m                          
+
+ TypeScript:                  
+
+ [38;2;157;165;169m```typescript[39m                
+   [38;5;4mimport[39m { readFile } [38;5;4mfrom[39m [38;5;1m"node:fs/promises"[39m;             
+
+   [38;5;4minterface[39m User {           
+     [38;5;6mid[39m: number;              
+     name: string;            
+     email?: string;          
+   }                          
+
+   [38;5;4mexport[39m [38;5;4masync[39m [38;5;4mfunction[38;5;3m loadUsers([38;5;6mpath: [39mstring[38;5;3m): Promise<User[]> [39m{                                                     
+     [38;5;4mconst[39m raw = [38;5;4mawait[39m readFile(path, [38;5;1m"utf8"[39m);              
+     [38;5;4mconst[39m data = JSON.parse(raw) [38;5;4mas[39m User[];                
+     [38;5;4mreturn[39m data.filter([38;5;3m([38;5;6mu[38;5;3m) =>[39m u.id > [38;5;2m0[39m); [38;5;2m// only valid ids[39m 
+   }                          
+
+   [38;5;4mclass[39m [38;5;3mCache[39m<[38;5;3mT[39m> {           
+     [38;5;4mprivate[39m store = [38;5;4mnew[39m Map<string, T>();                  
+     get(key: string): T | [38;5;2mundefined[39m {                      
+       [38;5;4mreturn[39m this.store.get(key);                          
+     }                        
+   }                          
+ [38;2;157;165;169m```[39m                          
+
+ Python:                      
+
+ [38;2;157;165;169m```python[39m                    
+   [38;5;4mfrom[39m dataclasses [38;5;4mimport[39m dataclass                        
+
+   [38;2;153;153;153m@dataclass[39m                 
+   [38;5;4mclass[39m [38;5;3mPoint[39m:               
+       x: float               
+       y: float               
+
+       [38;5;4mdef[38;5;3m distance([38;5;6mself, other: [38;5;1m"Point"[38;5;3m) -> [39mfloat[38;5;3m:[39m         
+           [38;5;1m"""Return Euclidean distance."""[39m                 
+           [38;5;4mreturn[39m ((self.x - other.x) ** [38;5;2m2[39m + (self.y - other.y) ** [38;5;2m2[39m) ** [38;5;2m0.5[39m                                            
+
+   [38;5;4mif[39m __name__ == [38;5;1m"__main__"[39m: 
+       print(Point([38;5;2m0[39m, [38;5;2m0[39m).distance(Point([38;5;2m3[39m, [38;5;2m4[39m)))  [38;5;2m# 5.0[39m      
+ [38;2;157;165;169m```[39m                          
+
+ Rust:                        
+
+ [38;2;157;165;169m```rust[39m                      
+   [38;5;4muse[39m std::collections::HashMap;                           
+
+   [38;5;4mfn[38;5;3m main[39m() {                
+       [38;5;4mlet[39m [38;5;4mmut[39m counts: HashMap<&str, i32> = HashMap::new(); 
+       [38;5;4mfor[39m word [38;5;4min[39m [38;5;1m"a b a c b a"[39m.split_whitespace() {       
+           *counts.entry(word).or_insert([38;5;2m0[39m) += [38;5;2m1[39m;           
+       }                      
+       println!([38;5;1m"{:?}"[39m, counts);                            
+   }                          
+ [38;2;157;165;169m```[39m                          
+
+ Go:                          
+
+ [38;2;157;165;169m```go[39m                        
+   [38;5;4mpackage[39m main               
+
+   [38;5;4mimport[39m [38;5;1m"fmt"[39m               
+
+   [38;5;4mfunc[38;5;3m main[38;5;6m()[39m {              
+      ch := make([38;5;4mchan[39m [38;5;4mint[39m)    
+      [38;5;4mgo[39m [38;5;4mfunc[38;5;6m()[39m { ch <- [38;5;2m42[39m }()
+      fmt.Println(<-ch)       
+   }                          
+ [38;2;157;165;169m```[39m                          
+
+ Bash:                        
+
+ [38;2;157;165;169m```bash[39m                      
+   [38;2;153;153;153m#!/usr/bin/env bash[39m        
+   set -euo pipefail          
+
+   [38;5;4mfor[39m f [38;5;4min[39m *.log; [38;5;4mdo[39m         
+     echo [38;5;1m"Processing [38;5;6m$f[38;5;1m"[39m     
+     grep -c [38;5;1m"ERROR"[39m [38;5;1m"[38;5;6m$f[38;5;1m"[39m || [38;5;2mtrue[39m                           
+   [38;5;4mdone[39m                       
+ [38;2;157;165;169m```[39m                          
+
+ JSON:                        
+
+ [38;2;157;165;169m```json[39m                      
+   {                          
+     [38;5;6m"name"[39m: [38;5;1m"example"[39m,       
+     [38;5;6m"version"[39m: [38;5;1m"1.2.3"[39m,      
+     [38;5;6m"private"[39m: [38;5;2mtrue[39m,         
+     [38;5;6m"dependencies"[39m: { [38;5;6m"react"[39m: [38;5;1m"^19.0.0"[39m },                
+     [38;5;6m"tags"[39m: [[38;5;1m"a"[39m, [38;5;1m"b"[39m, [38;5;2mnull[39m, [38;5;2m3.14[39m]                         
+   }                          
+ [38;2;157;165;169m```[39m                          
+
+ YAML:                        
+
+ [38;2;157;165;169m```yaml[39m                      
+   [38;5;6mname:[39m [38;5;1mCI[39m                   
+   [38;5;6mon:[39m [[38;5;1mpush[39m, [38;5;1mpull_request[39m]   
+   [38;5;6mjobs:[39m                      
+     [38;5;6mtest:[39m                    
+       [38;5;6mruns-on:[39m [38;5;1mubuntu-latest[39m 
+       [38;5;6msteps:[39m                 
+         - [38;5;6muses:[39m [38;5;1mactions/checkout@v4[39m                        
+         - [38;5;6mrun:[39m [38;5;1mnpm[39m [38;5;1mtest[39m      
+ [38;2;157;165;169m```[39m                          
+
+ HTML:                        
+
+ [38;2;157;165;169m```html[39m                      
+   [38;2;153;153;153m<!DOCTYPE html>[39m            
+   [38;5;8m<[38;5;4mhtml[38;5;8m [38;5;6mlang[38;5;8m=[38;5;1m"en"[38;5;8m>[39m           
+     [38;5;8m<[38;5;4mbody[38;5;8m>[39m                   
+       [38;5;8m<[38;5;4mbutton[38;5;8m [38;5;6mclass[38;5;8m=[38;5;1m"btn"[38;5;8m [38;5;6monclick[38;5;8m=[38;5;1m"alert('hi')"[38;5;8m>[39mClick[38;5;8m</[38;5;4mbutton[38;5;8m>[39m                                                         
+     [38;5;8m</[38;5;4mbody[38;5;8m>[39m                  
+   [38;5;8m</[38;5;4mhtml[38;5;8m>[39m                    
+ [38;2;157;165;169m```[39m                          
+
+ CSS:                         
+
+ [38;2;157;165;169m```css[39m                       
+   .btn {                     
+     color: [38;5;2m#fff[39m;             
+     background: linear-gradient([38;5;2m90deg[39m, [38;5;2m#d97757[39m, [38;5;2m#c15f3c[39m);  
+     border-radius: [38;5;2m6px[39m;      
+   }                          
+   .btn:hover { opacity: [38;5;2m0.9[39m; }                             
+ [38;2;157;165;169m```[39m                          
+
+ SQL:                         
+
+ [38;2;157;165;169m```sql[39m                       
+   [38;5;4mSELECT[39m u.id, u.name, COUNT(o.id) [38;5;4mAS[39m orders               
+   [38;5;4mFROM[39m users u               
+   [38;5;4mLEFT[39m [38;5;4mJOIN[39m orders o [38;5;4mON[39m o.user_id = u.id                   
+   [38;5;4mWHERE[39m u.created_at > [38;5;1m'2026-01-01'[39m                        
+   [38;5;4mGROUP[39m [38;5;4mBY[39m u.id              
+   [38;5;4mORDER[39m [38;5;4mBY[39m orders [38;5;4mDESC[39m       
+   LIMIT [38;5;2m10[39m;                  
+ [38;2;157;165;169m```[39m                          
+
+ Diff:                        
+
+ [38;2;157;165;169m```diff[39m                      
+   [38;5;2mdiff --git a/src/config.ts b/src/config.ts[39m               
+   [38;5;2mindex 1a2b3c4..5d6e7f8 100644[39m                            
+   [38;5;2m--- a/src/config.ts[39m        
+   [38;5;2m+++ b/src/config.ts[39m        
+   [38;2;153;153;153m@@ -1,6 +1,7 @@[39m            
+    export const config = {   
+   [38;2;220;90;90m-  port: 3000,[39m             
+   [38;2;80;200;80m+  port: Number(process.env.PORT ?? 3000),[39m               
+   [38;2;80;200;80m+  host: "0.0.0.0",[39m        
+      debug: false,           
+   [38;2;220;90;90m-  retries: 1,[39m             
+   [38;2;80;200;80m+  retries: 3,[39m             
+    };                        
+ [38;2;157;165;169m```[39m                          
+
+ Terminal output:             
+
+ [38;2;157;165;169m```console[39m                   
+   [38;2;153;153;153m$[39m npm test                 
+
+   [38;2;153;153;153m>[39m example@1.2.3 test       
+   [38;2;153;153;153m>[39m vitest run               
+
+    ✓ src/format.test.ts (12 tests) 8ms                     
+    ✗ src/parse.test.ts (3 tests | 1 failed) 14ms           
+
+    Test Files  1 failed | 1 passed (2)                     
+         Tests  1 failed | 14 passed (15)                   
+ [38;2;157;165;169m```[39m                          
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mMermaid[0m                      
+
+ [38;2;177;185;249m                        [39myes  [38;2;118;129;134m┌─────────┐[39m    [38;2;118;129;134m┌──────┐[39m       
+ [38;2;177;185;249m                       ┌────▶[38;2;118;129;134m│[39m Process [38;2;118;129;134m├[38;2;177;185;249m───▶[38;2;118;129;134m│[39m Done [38;2;118;129;134m│[39m       
+ [38;2;118;129;134m┌───────┐[39m    [38;2;118;129;134m╔════════╗[38;2;177;185;249m│[39m     [38;2;118;129;134m└─────────┘[39m    [38;2;118;129;134m└──────┘[39m       
+ [38;2;118;129;134m│[39m Start [38;2;118;129;134m├[38;2;177;185;249m───▶[38;2;118;129;134m║[39m Valid? [38;2;118;129;134m╟[38;2;177;185;249m┤[39m     
+ [38;2;118;129;134m└───────┘[39m    [38;2;118;129;134m╚════════╝[38;2;177;185;249m│[39mno   [38;2;118;129;134m┌───────┐[39m                     
+ [38;2;177;185;249m                       └────▶[38;2;118;129;134m│[39m Error [38;2;118;129;134m│[39m                     
+ [38;2;177;185;249m                             [38;2;118;129;134m└───────┘[39m                     
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mHorizontal rules[0m             
+
+ Above                        
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ Between                      
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ Below                        
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mFootnote and HTML[0m            
+
+ Some text with a footnote.[^1]                             
+
+ [^1]: This is the footnote content.                        
+
+ <kbd>Ctrl</kbd> + <kbd>C</kbd> &nbsp;·&nbsp; <sub>subscript</sub> &nbsp;·&nbsp; <sup>superscript</sup>                 
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ [1mStatus-style message examples
+
+[0m ✅ [1mSuccess:[0m All 15 tests passed.                           
+ ⚠️ [1mWarning:[0m 2 deprecated APIs found.                       
+ ❌ [1mError:[0m [38;2;177;185;249mTypeError: Cannot read properties of undefined (reading 'map')[39m at [38;2;177;185;249msrc/app.ts:17:9[39m.                           
+ ℹ️ [1mInfo:[0m No files were changed.                            
+
+ ────────────────────────────────────────────────────────────────────────────────                                       
+
+ All of this is markdown. I didn't call any tools or change any files. Pi only shows tool-call boxes, real edit diffs,  
+ and the todo widget when a tool actually runs, so they don't appear here. If you want screenshots of those, I can do a 
+ harmless read-only call, like reading a file.              
+
+[48;2;55;55;55m                                                                                                                        
+ [38;2;255;255;255myeah that works, I need to tool calls please. Like if you want to create a temporary file, read, edit, delete, etc,    
+[39m [38;2;255;255;255mthen actually delete when you are done. Then go for it.[39m                                                                
+                                                                                                                        
+
+[49m [3m[38;2;150;160;164mThinking...[0m                  
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"1","content":"Write a temp file","status":"in_progress"},{"id":"2","content":"Read ...[39m         
+ Todos (0/5 completed, 1 in progress):                      
+ [>] 1: Write a temp file     
+ [ ] 2: Read the temp file    
+ [ ] 3: Edit the temp file    
+ [ ] 4: Run bash commands (success + error)                 
+ [ ] 5: Delete the temp file  
+
+
+
+ [1mwrite[0m [38;2;177;185;249m/tmp/pi-theme-test/example.ts[39m                        
+
+ [38;5;4mimport[39m { readFile } [38;5;4mfrom[39m [38;5;1m"node:fs/promises"[39m;               
+
+ [38;5;4mexport[39m [38;5;4minterface[39m User {      
+   [38;5;6mid[39m: number;                
+   name: string;              
+ }                            
+
+ [38;5;4mexport[39m [38;5;4masync[39m [38;5;4mfunction[38;5;3m loadUsers([38;5;6mpath: [39mstring[38;5;3m): Promise<User[]> [39m{                                                       
+   [38;5;4mconst[39m raw = [38;5;4mawait[39m readFile(path, [38;5;1m"utf8"[39m);                
+   [38;5;4mreturn[39m JSON.parse(raw);[38;2;153;153;153m                                                                                              
+[39m [38;2;153;153;153m... (8 more lines, 18 total,[39m [38;2;153;153;153mctrl+o to expand)[39m             
+
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"1","status":"completed"},{"id":"2","status":"in_progress"}] merge=true[39m                         
+ Todos (1/5 completed, 1 in progress):                      
+ [x] 1: Write a temp file     
+ [>] 2: Read the temp file    
+ [ ] 3: Edit the temp file    
+ [ ] 4: Run bash commands (success + error)                 
+ [ ] 5: Delete the temp file  
+
+
+
+ [38;2;153;153;153mread[39m /tmp/pi-theme-test/example.ts                         
+
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"2","status":"completed"},{"id":"3","status":"in_progress"}] merge=true[39m                         
+ Todos (2/5 completed, 1 in progress):                      
+ [x] 1: Write a temp file     
+ [x] 2: Read the temp file    
+ [>] 3: Edit the temp file    
+ [ ] 4: Run bash commands (success + error)                 
+ [ ] 5: Delete the temp file  
+
+
+
+ [1medit[0m /tmp/pi-theme-test/example.ts                         
+
+ [38;2;248;248;242m    ...[39m                      
+ [38;2;248;248;242m [2m2  [0m[38;2;248;248;242m                                                                                                                 [39m  
+ [38;2;248;248;242m [2m3  [0m[38;2;249;38;114mexport[38;2;248;248;242m [38;2;249;38;114minterface[38;2;248;248;242m User {                                                                                          [39m  
+ [38;2;248;248;242m [2m4  [0m[38;2;248;248;242m  id: number;                                                                                                    [39m  
+ [38;2;248;248;242m [2m5  [0m[38;2;248;248;242m  name: string;                                                                                                  [39m  
+ [38;2;80;200;80m[48;2;2;40;0m 6 +[38;2;248;248;242m  email?: string;                                                                                                 [39m[49m 
+ [38;2;248;248;242m [2m6  [0m[38;2;248;248;242m}                                                                                                                [39m  
+ [38;2;248;248;242m [2m7  [0m[38;2;248;248;242m                                                                                                                 [39m  
+ [38;2;248;248;242m [2m8  [0m[38;2;249;38;114mexport[38;2;248;248;242m [38;2;249;38;114masync[38;2;248;248;242m [38;2;249;38;114mfunction[38;2;248;248;242m [38;2;166;226;46mloadUsers[38;2;248;248;242m([38;2;166;226;46mpath[38;2;248;248;242m: string): [38;2;166;226;46mPromise[38;2;248;248;242m<[38;2;166;226;46mUser[38;2;248;248;242m[]> {                                                 [39m  
+ [38;2;248;248;242m [2m9  [0m[38;2;248;248;242m  [38;2;249;38;114mconst[38;2;248;248;242m raw = [38;2;249;38;114mawait[38;2;248;248;242m readFile(path, "utf8");                                                                      [39m  
+ [38;2;220;90;90m[48;2;61;1;0m10 -[38;2;248;248;242m  return JSON.parse(raw);                                                                                         [39m[49m 
+ [38;2;80;200;80m[48;2;2;40;0m11 +[38;2;248;248;242m  [38;2;249;38;114mconst[38;2;248;248;242m users = JSON.parse(raw) [38;2;249;38;114mas[38;2;248;248;242m User[];                                                                        [39m[49m 
+ [38;2;80;200;80m[48;2;2;40;0m12 +[38;2;248;248;242m  [38;2;249;38;114mreturn[38;2;248;248;242m users.filter(([38;2;166;226;46mu[38;2;248;248;242m) => u.id > [38;2;190;132;255m0[38;2;248;248;242m);                                                                           [39m[49m 
+ [2m[38;2;248;248;242m11  [0m[38;2;248;248;242m}                                                                                                                 [39m 
+ [2m[38;2;248;248;242m12  [0m[38;2;248;248;242m                                                                                                                  [39m 
+ [2m[38;2;248;248;242m13  [0m[38;2;249;38;114mexport[38;2;248;248;242m [38;2;249;38;114mfunction[38;2;248;248;242m [38;2;166;226;46mgreet[38;2;248;248;242m([38;2;166;226;46muser[38;2;248;248;242m: [38;2;166;226;46mUser[38;2;248;248;242m): [38;2;166;226;46mstring[38;2;248;248;242m {                                                                       [39m 
+ [38;2;220;90;90m[48;2;61;1;0m14 -[38;2;248;248;242m  return [48;2;92;2;0m"[48;2;61;1;0mHello, [48;2;92;2;0m" + [48;2;61;1;0muser.name;                                                                                   [39m[49m 
+ [38;2;80;200;80m[48;2;2;40;0m16 +[38;2;248;248;242m  [38;2;249;38;114mreturn[38;2;248;248;242m [48;2;4;71;0m`[48;2;2;40;0mHello, [48;2;4;71;0m${[48;2;2;40;0muser.name[48;2;4;71;0m}!`[48;2;2;40;0m;                                                                                  [39m[49m 
+ [2m[38;2;248;248;242m15  [0m[38;2;248;248;242m}                                                                                                                 [39m 
+ [2m[38;2;248;248;242m16  [0m[38;2;248;248;242m                                                                                                                  [39m 
+ [38;2;220;90;90m[48;2;61;1;0m17 -[38;2;248;248;242m// legacy helper                                                                                                  [39m[49m 
+ [38;2;220;90;90m[48;2;61;1;0m18 -[38;2;248;248;242mexport const VERSION = "1.0.0";                                                                                   [39m[49m 
+ [38;2;80;200;80m[48;2;2;40;0m19 +[38;2;249;38;114mexport[38;2;248;248;242m [38;2;249;38;114mconst[38;2;248;248;242m VERSION = "2.0.0";                                                                                   [39m[49m 
+
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"3","status":"completed"},{"id":"4","status":"in_progress"}] merge=true[39m                         
+ Todos (3/5 completed, 1 in progress):                      
+ [x] 1: Write a temp file     
+ [x] 2: Read the temp file    
+ [x] 3: Edit the temp file    
+ [>] 4: Run bash commands (success + error)                 
+ [ ] 5: Delete the temp file  
+
+
+
+ [38;2;153;153;153m$ ls -la /tmp/pi-theme-test && wc -l /tmp/pi-theme-test/example.ts && grep -n "export" /tmp/pi-theme-test/example.ts  [39m 
+
+ [38;2;153;153;153m... (4 earlier lines,[39m [38;2;153;153;153mctrl+o to expand)[39m                    
+       19 /tmp/pi-theme-test/example.ts                     
+ 3:export interface User {    
+ 9:export async function loadUsers(path: string): Promise<User[]> {                                                     
+ 15:export function greet(user: User): string {             
+ 19:export const VERSION = "2.0.0";                         
+
+ [38;2;153;153;153mTook 0.0s[39m                    
+
+
+
+ [38;2;153;153;153m$ cat /tmp/pi-theme-test/does-not-exist.ts                                                                            [39m 
+
+ [38;2;255;107;128mcat:[39m [38;2;255;107;128m/tmp/pi-theme-test/does-not-exist.ts:[39m [38;2;255;107;128mNo[39m [38;2;255;107;128msuch[39m [38;2;255;107;128mfile[39m [38;2;255;107;128mor[39m [38;2;255;107;128mdirectory[39m                                                   
+
+
+ [38;2;255;107;128mCommand[39m [38;2;255;107;128mexited[39m [38;2;255;107;128mwith[39m [38;2;255;107;128mcode[39m [38;2;255;107;128m1[39m   
+
+ [38;2;153;153;153mTook 0.0s[39m                    
+
+
+ That error was on purpose. It shows how a failed command looks.                                                        
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"4","status":"completed"},{"id":"5","status":"in_progress"}] merge=true[39m                         
+ Todos (4/5 completed, 1 in progress):                      
+ [x] 1: Write a temp file     
+ [x] 2: Read the temp file    
+ [x] 3: Edit the temp file    
+ [x] 4: Run bash commands (success + error)                 
+ [>] 5: Delete the temp file  
+
+
+
+ [38;2;153;153;153m$ rm -rf /tmp/pi-theme-test && ls /tmp/pi-theme-test 2>&1 || echo "cleaned up"                                        [39m 
+
+ ls: /tmp/pi-theme-test: No such file or directory          
+ cleaned up                   
+
+ [38;2;153;153;153mTook 0.0s[39m                    
+
+
+
+ [1mTodoWrite[0m [38;2;153;153;153mtodos=[{"id":"5","status":"completed"}] merge=true[39m                                                           
+ Todos (5/5 completed):       
+ [x] 1: Write a temp file     
+ [x] 2: Read the temp file    
+ [x] 3: Edit the temp file    
+ [x] 4: Run bash commands (success + error)                 
+ [x] 5: Delete the temp file  
+
+
+ I ran the tool calls on a scratch file at [38;2;177;185;249m/tmp/pi-theme-test/example.ts[39m, then deleted it. Nothing in your repo was     
+ touched. Here's what's in the transcript to screenshot:    
+
+ - [1mTodoWrite:[0m the list at every stage: pending, in progress, and all done.                                              
+ - [1mWrite:[0m a new 19-line TypeScript file.                    
+ - [1mRead:[0m that file, with syntax highlighting.               
+ - [1mEdit:[0m one call with 4 changes, so you get a real edit diff:                                                          
+     - one added line         
+     - one line replaced by two                             
+     - a line rewritten to use a template string            
+     - a comment removed and a value changed                
+ - [1mBash (success):[0m [38;2;177;185;249mls[39m, [38;2;177;185;249mwc[39m and [38;2;177;185;249mgrep[39m output.                  
+ - [1mBash (error):[0m a deliberate [38;2;177;185;249mcat[39m of a missing file, ending in [38;2;177;185;249mexit code 1[39m.                                             
+ - [1mBash (cleanup):[0m [38;2;177;185;249mrm -rf[39m, then a check that the folder is gone.                                                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Todos 5/5                    
+ ✓ Write a temp file          
+ ✓ Read the temp file         
+ ✓ Edit the temp file         
+ ✓ Run bash commands (success + error)                      
+ ✓ Delete the temp file       
+[38;2;136;136;136m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[7m[39m [0m                             
+[38;2;136;136;136m────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[38;2;153;153;153m~/src/personal/pi-customizations (feat/pi-claude-default-dark)[39m                                                          
+[38;2;153;153;153m↑24 ↓5.7k R380k W33k CH99.6% $0.451 (sub) 4.9%/1.0M (auto)                (claude-subscription) claude-opus-5-5 • medium

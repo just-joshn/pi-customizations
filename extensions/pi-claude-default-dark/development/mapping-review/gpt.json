@@ -1,0 +1,3443 @@
+{
+  "roles": {
+    "accent": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["login-picker@29:3", "login-picker@35:8", "model-picker@29:8", "mermaid@12:4"],
+      "piSurface": "Picker title, selected row/cursor, status headings; Mermaid arrows",
+      "claudeSurface": "Dialog titles, selected items, diagram source",
+      "note": "Not the Claude brand color by name. Pi selected labels and headings share accent; Claude selected model is green, login option lavender and title bold lavender. Mermaid geometry has no direct referent.",
+      "contexts": [
+        {
+          "surface": "Login title",
+          "value": "#b1b9f9",
+          "attrs": "bold",
+          "evidence": ["login-picker@29:3"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Selected login option",
+          "value": "#b1b9f9",
+          "attrs": "none",
+          "evidence": ["login-picker@35:8"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Selected recommended model",
+          "value": "#4eba65",
+          "attrs": "none",
+          "evidence": ["model-picker@29:8"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Mermaid source (not rendered arrows)",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["mermaid@12:4"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "border": {
+      "class": "measured",
+      "value": "#b1b9f9",
+      "attrs": "none",
+      "evidence": ["login-picker@28:0", "model-picker@24:0"],
+      "piSurface": "Generic dialog separators (also Pi-only tree borders)",
+      "claudeSurface": "Login/model dialog top rule",
+      "note": "Captured comparable dialogs agree. Does not certify tree borders or missing dialog bottom-border geometry."
+    },
+    "borderAccent": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Focused border in Pi compaction/session-tree UI",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Only observed in Pi compaction tree; Claude captures have no corresponding tree focus state. Do not substitute the editor border."
+    },
+    "borderMuted": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["mermaid@11:2"],
+      "piSurface": "Mermaid node box outlines; generic subdued component borders",
+      "claudeSurface": "Mermaid source text",
+      "note": "Claude renders source, not node boxes. No border cells correspond to Pi node outlines."
+    },
+    "success": {
+      "class": "measured",
+      "value": "#4eba65",
+      "attrs": "none",
+      "evidence": ["model-picker@29:30"],
+      "piSurface": "Success feedback and current-item check",
+      "claudeSurface": "Current/recommended model check",
+      "note": "The check is an actual successful/current selection indicator, not gray explanatory text. Catalog-refresh and Pi tree notices remain Pi-specific; no claim about unobserved success notifications."
+    },
+    "error": {
+      "class": "measured",
+      "value": "#ffc107",
+      "attrs": "none",
+      "evidence": ["api-error@14:2", "api-error-expanded@11:2"],
+      "piSurface": "Assistant API failure text",
+      "claudeSurface": "API failure message",
+      "note": "Tool failure output is toolOutput, not this role; do not merge its red with this yellow API failure."
+    },
+    "warning": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["model-picker@26:3"],
+      "piSurface": "Warning notifications, including configured-provider restriction in model picker",
+      "claudeSurface": "No warning notification observed in comparable Claude picker",
+      "note": "Claude model descriptions are not warnings; the CSV gray mapping is a false textual alignment. Warning state exists conceptually, but supplied captures do not establish a same-surface value. Unverified is a parity blocker, not pi-only."
+    },
+    "muted": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["model-picker@26:3", "login-picker@39:3", "compaction@34:5"],
+      "piSurface": "Secondary/help text and tool metadata",
+      "claudeSurface": "Secondary text, cancel hint, tool metadata",
+      "note": "Gray help text is common but not uniform in attributes; the compaction disclosure uses terminal default plus dim. A single role cannot impose contextual italic/dim.",
+      "contexts": [
+        {
+          "surface": "Normal secondary description",
+          "value": "#999999",
+          "attrs": "none",
+          "evidence": ["model-picker@26:3"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Cancel hint",
+          "value": "#999999",
+          "attrs": "italic",
+          "evidence": ["login-picker@39:3"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Collapsed compaction disclosure",
+          "value": "default",
+          "attrs": "dim",
+          "evidence": ["compaction@34:5"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "dim": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["idle@35:102", "login-picker@39:3", "compaction@34:16"],
+      "piSurface": "Key hints, footer, minor descriptions and compaction expand key",
+      "claudeSurface": "Footer/help and compaction hint",
+      "note": "Literal ctrl+o compaction hint is default+dim, not gray. Login cancel hint is gray italic; other hints gray plain.",
+      "contexts": [
+        {
+          "surface": "Footer metadata",
+          "value": "#999999",
+          "attrs": "none",
+          "evidence": ["idle@35:102"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Dialog cancel hint",
+          "value": "#999999",
+          "attrs": "italic",
+          "evidence": ["login-picker@39:3"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Compaction expansion key",
+          "value": "default",
+          "attrs": "dim",
+          "evidence": ["compaction@34:16"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "text": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["login-picker@36:8", "model-picker@30:8", "assistant-text@14:2", "unicode@14:2"],
+      "piSurface": "Unselected picker rows, ordinary text and diagram labels",
+      "claudeSurface": "Unselected dialog options and ordinary prose",
+      "note": "Exclude selected rows and bold headings owned by other roles. Mermaid source-versus-diagram remains a structural blocker separately."
+    },
+    "thinkingText": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["thinking@14:2", "thinking@14:14"],
+      "piSurface": "Expanded thinking content and italic collapsed thinking label",
+      "claudeSurface": "Collapsed thought-duration disclosure",
+      "note": "Claude capture hides the actual reasoning; shared words in final assistant prose do not measure thinking text. Pi forces italic; Claude visible thought label is not italic and its duration alone is bold. Cannot certify expanded content or duplicate this structure with a foreground role."
+    },
+    "selectedBg": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["login-picker@35:3", "model-picker@29:8"],
+      "piSurface": "Mouse-selected transcript/tree item background",
+      "claudeSurface": "Dialog selection is foreground cursor/label; no captured selected transcript region",
+      "note": "Cannot infer mouse selection from a picker. Claude dialog selected items use lavender/green foreground on default background, not Pi selectedBg. Trees are Pi-only; transcript selection remains unobserved."
+    },
+    "scrollbarTrack": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-scrollbar@38:0"],
+      "piSurface": "Scrollbar track foreground glyph",
+      "claudeSurface": "Detailed transcript scrolling without a visible scrollbar",
+      "note": "Probe proves these Pi roles paint foreground, contrary to CSV background label. Claude fullscreen-scrollbar and fullscreen-search captures contain no visible track/thumb. A theme cannot remove Pi glyph geometry; no measured scrollbar color is available."
+    },
+    "scrollbarThumb": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-scrollbar@38:0"],
+      "piSurface": "Scrollbar thumb foreground glyph",
+      "claudeSurface": "Detailed transcript scrolling without a visible scrollbar",
+      "note": "Probe proves these Pi roles paint foreground, contrary to CSV background label. Claude fullscreen-scrollbar and fullscreen-search captures contain no visible track/thumb. A theme cannot remove Pi glyph geometry; no measured scrollbar color is available."
+    },
+    "searchMatchBg": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-search@0:35", "fullscreen-search@34:35"],
+      "piSurface": "Search-hit background",
+      "claudeSurface": "Reverse-video search hits, with special current-hit emphasis",
+      "note": "Claude emits SGR inverse over default fg/bg; current hit additionally uses ANSI3 foreground, bold and underline. Setting a foreground/background role cannot emit SGR inverse or express current-vs-other hits. Do not resolve inverse/default to a guessed RGB."
+    },
+    "searchMatchText": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["fullscreen-search@0:35", "fullscreen-search@34:35"],
+      "piSurface": "Search-hit foreground",
+      "claudeSurface": "Reverse-video search hits, with special current-hit emphasis",
+      "note": "Claude emits SGR inverse over default fg/bg; current hit additionally uses ANSI3 foreground, bold and underline. Setting a foreground/background role cannot emit SGR inverse or express current-vs-other hits. Do not resolve inverse/default to a guessed RGB."
+    },
+    "userMessageBg": {
+      "class": "measured",
+      "value": "#373737",
+      "attrs": "none",
+      "evidence": [
+        "api-error-expanded@8:2",
+        "api-error@12:2",
+        "assistant-text@12:2",
+        "code-tokens@8:2",
+        "markdown@7:2",
+        "mermaid@8:2",
+        "thinking@12:2",
+        "tool-bash-fail-expanded@8:2",
+        "tool-bash-fail@8:2",
+        "tool-bash-ok-expanded@8:2",
+        "tool-bash-ok@8:2",
+        "tool-edit-expanded@8:2",
+        "tool-edit@8:2",
+        "tool-pending@8:2",
+        "tool-read-expanded@8:2",
+        "tool-read@8:2",
+        "unicode@12:2",
+        "working-1600ms@8:2",
+        "working-2400ms@8:2",
+        "working-3200ms@8:2",
+        "working-800ms@8:2"
+      ],
+      "piSurface": "Submitted user-message panel background",
+      "claudeSurface": "Submitted ordinary user prompt background",
+      "note": "All supplied SCENE prompt cells agree. Shell commands have a separate #413c41 surface, listed Claude-only, not silently folded into ordinary user prompts."
+    },
+    "userMessageText": {
+      "class": "measured",
+      "value": "#ffffff",
+      "attrs": "none",
+      "evidence": [
+        "api-error-expanded@8:2",
+        "api-error@12:2",
+        "assistant-text@12:2",
+        "code-tokens@8:2",
+        "markdown@7:2",
+        "mermaid@8:2",
+        "thinking@12:2",
+        "tool-bash-fail-expanded@8:2",
+        "tool-bash-fail@8:2",
+        "tool-bash-ok-expanded@8:2",
+        "tool-bash-ok@8:2",
+        "tool-edit-expanded@8:2",
+        "tool-edit@8:2",
+        "tool-pending@8:2",
+        "tool-read-expanded@8:2",
+        "tool-read@8:2",
+        "unicode@12:2",
+        "working-1600ms@8:2",
+        "working-2400ms@8:2",
+        "working-3200ms@8:2",
+        "working-800ms@8:2"
+      ],
+      "piSurface": "Submitted user-message body foreground",
+      "claudeSurface": "Submitted ordinary user prompt body",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "customMessageBg": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["compaction@34:5", "compaction-expanded@0:5"],
+      "piSurface": "Custom messages and compaction-summary panel background",
+      "claudeSurface": "Compaction summary/disclosure background",
+      "note": "Background itself is consistently default, but disclosure is dim and expanded summary plain. Strict color-plus-attributes classification therefore needs contextual rendering, not a measured all-attributes match. Generic extension custom messages and branch summaries are Pi-only.",
+      "contexts": [
+        {
+          "surface": "Collapsed disclosure",
+          "value": "default",
+          "attrs": "dim",
+          "evidence": ["compaction@34:5"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Expanded summary",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["compaction-expanded@0:5"],
+          "direction": "bg"
+        }
+      ]
+    },
+    "customMessageText": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["compaction@34:5", "compaction-expanded@0:5"],
+      "piSurface": "Collapsed and expanded compaction summary body",
+      "claudeSurface": "Compaction disclosure and expanded summary",
+      "note": "Collapsed disclosure is default+dim, expanded summary body default plain. Pi one foreground role cannot choose those attributes.",
+      "contexts": [
+        {
+          "surface": "Collapsed disclosure",
+          "value": "default",
+          "attrs": "dim",
+          "evidence": ["compaction@34:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Expanded summary body",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["compaction-expanded@0:5"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "customMessageLabel": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["compaction@34:5"],
+      "piSurface": "Bold [compaction] / custom-message label",
+      "claudeSurface": "Compaction disclosure without a separate label",
+      "note": "Claude has no separately styled compaction heading; its single dim disclosure cannot be recreated by coloring Pi bold label independently. Generic extension labels are Pi-only, but compaction is comparable."
+    },
+    "toolPendingBg": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["tool-pending@11:9"],
+      "piSurface": "Running tool panel background",
+      "claudeSurface": "Running command area background",
+      "note": "Read actual pending command, not the echoed submitted prompt. Only one pending capture exists; no animation extrapolation."
+    },
+    "toolSuccessBg": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-bash-ok-expanded@11:5", "tool-edit@12:9", "tool-edit@13:9", "tool-edit@13:31", "tool-edit@15:11", "tool-edit@15:31"],
+      "piSurface": "Successful tool panel background, including edit diff",
+      "claudeSurface": "Successful tool and diff backgrounds",
+      "note": "One panel background cannot supply per-line and intra-line backgrounds. These background surfaces also appear in claudeOnly because no dedicated Pi diff background roles exist.",
+      "contexts": [
+        {
+          "surface": "Successful Bash output",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["tool-bash-ok-expanded@11:5"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Edit context",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:9"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Removed line",
+          "value": "#3d0100",
+          "attrs": "none",
+          "evidence": ["tool-edit@13:9"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Removed intra-line",
+          "value": "#5c0200",
+          "attrs": "none",
+          "evidence": ["tool-edit@13:31"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Added line",
+          "value": "#022800",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:11"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Added intra-line",
+          "value": "#044700",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:31"],
+          "direction": "bg"
+        }
+      ]
+    },
+    "toolErrorBg": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-bash-fail-expanded@10:2", "tool-bash-fail-expanded@12:5"],
+      "piSurface": "Failed tool panel background",
+      "claudeSurface": "Expanded failed Bash command/output background",
+      "note": "Background itself is consistently default. Strict style observation differs between bold tool name and plain output; foreground/title rendering must preserve that distinction. This is not evidence for a red error background.",
+      "contexts": [
+        {
+          "surface": "Tool heading",
+          "value": "default",
+          "attrs": "bold",
+          "evidence": ["tool-bash-fail-expanded@10:2"],
+          "direction": "bg"
+        },
+        {
+          "surface": "Failure output",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["tool-bash-fail-expanded@12:5"],
+          "direction": "bg"
+        }
+      ]
+    },
+    "toolTitle": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-bash-ok-expanded@10:2", "tool-bash-ok@10:2", "tool-read-expanded@10:2", "tool-read@10:2"],
+      "piSurface": "Tool name/command heading",
+      "claudeSurface": "Expanded tool name versus collapsed tool summary",
+      "note": "Bold default tool names collapse to gray descriptions with only numeric count bold. A single foreground role plus Pi fixed title bold cannot represent both.",
+      "contexts": [
+        {
+          "surface": "Expanded Bash name",
+          "value": "default",
+          "attrs": "bold",
+          "evidence": ["tool-bash-ok-expanded@10:2"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Collapsed Bash summary",
+          "value": "#999999",
+          "attrs": "none",
+          "evidence": ["tool-bash-ok@10:2"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Expanded Read name",
+          "value": "default",
+          "attrs": "bold",
+          "evidence": ["tool-read-expanded@10:2"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Collapsed Read summary",
+          "value": "#999999",
+          "attrs": "none",
+          "evidence": ["tool-read@10:2"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "toolOutput": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-bash-ok-expanded@11:5", "tool-bash-fail-expanded@12:5", "tool-read-expanded@11:10"],
+      "piSurface": "Tool output text",
+      "claudeSurface": "Successful and failed Bash output",
+      "note": "Failure output red, successful text default; Read summary selectively bold. Do not mistake assistant success/failure prose for output.",
+      "contexts": [
+        {
+          "surface": "Successful output",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["tool-bash-ok-expanded@11:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Failed output",
+          "value": "#ff6b80",
+          "attrs": "none",
+          "evidence": ["tool-bash-fail-expanded@12:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Read summary count",
+          "value": "default",
+          "attrs": "bold",
+          "evidence": ["tool-read-expanded@11:10"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "mdHeading": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "bold",
+      "evidence": ["markdown@9:2"],
+      "piSurface": "Markdown heading",
+      "claudeSurface": "Implementation heading",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "mdLink": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@11:59"],
+      "piSurface": "Markdown visible link label",
+      "claudeSurface": "Link label",
+      "note": "Label is plain default, not underlined."
+    },
+    "mdLinkUrl": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@11:64"],
+      "piSurface": "Markdown link URL",
+      "claudeSurface": "Parenthesized URL",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "mdCode": {
+      "class": "measured",
+      "value": "#b1b9f9",
+      "attrs": "none",
+      "evidence": ["markdown@13:25"],
+      "piSurface": "Inline code",
+      "claudeSurface": "request() inline code",
+      "note": "Mermaid rendered diagram is not inline code; no claim that source text measures its node styling."
+    },
+    "mdCodeBlock": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["code-tokens@18:2", "mermaid@11:2"],
+      "piSurface": "Unhighlighted fenced-code text/fallback",
+      "claudeSurface": "Language-less code and unsupported Mermaid source",
+      "note": "Plain fence uses lavender; unsupported Mermaid fence is default. Syntax-highlighted tokens are independently classified, not counted as mdCodeBlock conflicts. Pi actually renders Mermaid diagrams, so that branch additionally needs structural rendering work.",
+      "contexts": [
+        {
+          "surface": "Language-less fence content",
+          "value": "#b1b9f9",
+          "attrs": "none",
+          "evidence": ["code-tokens@18:2"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Mermaid source content",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["mermaid@11:2"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "mdCodeBlockBorder": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["code-tokens@18:2", "mermaid@10:2"],
+      "piSurface": "Visible opening/closing fence and language label",
+      "claudeSurface": "No visible fences; Mermaid language label only",
+      "note": "Claude omits fence glyphs altogether, except a dim language label for Mermaid. A color role cannot hide Pi fences or convert a fence to the standalone label."
+    },
+    "mdQuote": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "italic",
+      "evidence": ["markdown@19:4"],
+      "piSurface": "Blockquote content",
+      "claudeSurface": "Keep the API stable.",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "mdQuoteBorder": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "dim",
+      "evidence": ["markdown@19:2"],
+      "piSurface": "Blockquote vertical bar",
+      "claudeSurface": "Blockquote left bar",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "mdHr": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@26:2"],
+      "piSurface": "Markdown horizontal rule foreground",
+      "claudeSurface": "Literal Markdown separator ---",
+      "note": "CSV aligned to editor border at row36 incorrectly. Claude displays literal --- with default foreground. Geometry is distinct from Pi full-width line; foreground evidence does not certify geometry."
+    },
+    "mdListBullet": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["markdown@13:2", "markdown@14:2", "markdown@16:2", "markdown@17:2"],
+      "piSurface": "Ordered and unordered list markers",
+      "claudeSurface": "Ordered and unordered list markers",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "toolDiffAdded": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-edit@15:5", "tool-edit@15:11", "tool-edit@15:17", "tool-edit@15:31"],
+      "piSurface": "Added diff line foreground including marker/text",
+      "claudeSurface": "Added gutter, syntax and body",
+      "note": "Not one green foreground: gutter green, body off-white, keywords cyan/pink, numbers purple. Background matching is separately required.",
+      "contexts": [
+        {
+          "surface": "Added gutter",
+          "value": "#50c850",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Added keyword",
+          "value": "#66d9ef",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:11"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Added body",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:17"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Added number",
+          "value": "#be84ff",
+          "attrs": "none",
+          "evidence": ["tool-edit@15:31"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "toolDiffRemoved": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-edit@13:5", "tool-edit@13:11"],
+      "piSurface": "Removed diff line foreground including marker/text",
+      "claudeSurface": "Removed gutter and body",
+      "note": "Gutter red, removed content off-white. Pi single removed foreground cannot paint the two independently; red backgrounds are separate surfaces.",
+      "contexts": [
+        {
+          "surface": "Removed gutter",
+          "value": "#dc5a5a",
+          "attrs": "none",
+          "evidence": ["tool-edit@13:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Removed body",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "evidence": ["tool-edit@13:11"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "toolDiffContext": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["tool-edit@12:5", "tool-edit@12:9", "tool-edit@12:22", "tool-edit@12:31", "tool-edit@12:38", "tool-edit@12:42"],
+      "piSurface": "Unchanged diff line foreground",
+      "claudeSurface": "Context line syntax and dim gutter",
+      "note": "A context line has multiple syntax foregrounds and only its gutter dim; not a single context gray.",
+      "contexts": [
+        {
+          "surface": "Context gutter",
+          "value": "#f8f8f2",
+          "attrs": "dim",
+          "evidence": ["tool-edit@12:5"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Context keyword",
+          "value": "#f92672",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:9"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Context function keyword",
+          "value": "#66d9ef",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:22"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Context function",
+          "value": "#a6e22e",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:31"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Context punctuation",
+          "value": "#f8f8f2",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:38"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Context type separator",
+          "value": "#fd971f",
+          "attrs": "none",
+          "evidence": ["tool-edit@12:42"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "syntaxComment": {
+      "class": "measured",
+      "value": "ansi:2",
+      "attrs": "none",
+      "evidence": ["markdown@22:24"],
+      "piSurface": "Fenced-code comments",
+      "claudeSurface": "// retries comment",
+      "note": "Preserve ANSI2, not its measured terminal RGB. The earlier ordinary prose word retries is not a comment."
+    },
+    "syntaxKeyword": {
+      "class": "measured",
+      "value": "ansi:4",
+      "attrs": "none",
+      "evidence": ["markdown@21:2", "markdown@21:9", "markdown@22:4", "code-tokens@10:2", "code-tokens@14:2", "code-tokens@14:14", "code-tokens@14:28", "code-tokens@14:45", "code-tokens@16:3", "code-tokens@16:42"],
+      "piSurface": "Fenced-code keyword/tag-name tokens",
+      "claudeSurface": "TS/JS/SQL keywords and HTML tag names",
+      "note": "Diff highlighting uses different Pi diff roles and a different Claude palette; not merged into this code-fence role."
+    },
+    "syntaxFunction": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["markdown@21:24", "markdown@21:31", "markdown@21:46", "markdown@23:21"],
+      "piSurface": "Pi highlighted function spans, including parameters/return annotation punctuation",
+      "claudeSurface": "Function names and surrounding declaration span",
+      "note": "Probe Pi markdown row21 col24 contains request( and row21 col44 contains ): Promise<Response>; Claude splits those spans into ANSI3 names, default punctuation, ANSI4 type names. CSV request() was inline code, not function syntax.",
+      "contexts": [
+        {
+          "surface": "Function name",
+          "value": "ansi:3",
+          "attrs": "none",
+          "evidence": ["markdown@21:24"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Opening paren in same Pi role span",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["markdown@21:31"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Return-type name in same Pi role span",
+          "value": "ansi:4",
+          "attrs": "none",
+          "evidence": ["markdown@21:46"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Arrow function",
+          "value": "ansi:3",
+          "attrs": "none",
+          "evidence": ["markdown@23:21"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "syntaxVariable": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["code-tokens@16:11", "markdown@21:32", "markdown@21:35"],
+      "piSurface": "HTML attributes and TS parameter span",
+      "claudeSurface": "HTML class attribute and TS url parameter",
+      "note": "Pi params span includes colon/space but Claude only name ANSI6, colon default. No single foreground matches the actual probe span.",
+      "contexts": [
+        {
+          "surface": "HTML attribute",
+          "value": "ansi:6",
+          "attrs": "none",
+          "evidence": ["code-tokens@16:11"],
+          "direction": "fg"
+        },
+        {
+          "surface": "TS parameter name",
+          "value": "ansi:6",
+          "attrs": "none",
+          "evidence": ["markdown@21:32"],
+          "direction": "fg"
+        },
+        {
+          "surface": "Colon within Pi parameter span",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["markdown@21:35"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "syntaxString": {
+      "class": "measured",
+      "value": "ansi:1",
+      "attrs": "none",
+      "evidence": ["code-tokens@10:16", "code-tokens@16:17"],
+      "piSurface": "Fenced-code string literals",
+      "claudeSurface": "JS/HTML quoted capture literal",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "syntaxNumber": {
+      "class": "measured",
+      "value": "ansi:2",
+      "attrs": "none",
+      "evidence": ["code-tokens@11:17", "code-tokens@11:21", "code-tokens@11:28", "code-tokens@14:43", "code-tokens@14:58", "markdown@22:21"],
+      "piSurface": "Fenced-code numeric literals",
+      "claudeSurface": "JS/SQL/TS numbers",
+      "note": "Read directly from parser runs; coordinates are zero-based terminal columns. Scope is the supplied captured surface, not unobserved states."
+    },
+    "syntaxType": {
+      "class": "renderer-required",
+      "value": "context-dependent",
+      "attrs": "context-dependent",
+      "evidence": ["code-tokens@12:2", "markdown@21:37"],
+      "piSurface": "Built-in names and TS types",
+      "claudeSurface": "console built-in and string type",
+      "note": "Pi built_in/type share syntaxType; Claude console is terminal default while string is ANSI6.",
+      "contexts": [
+        {
+          "surface": "console",
+          "value": "default",
+          "attrs": "none",
+          "evidence": ["code-tokens@12:2"],
+          "direction": "fg"
+        },
+        {
+          "surface": "string type",
+          "value": "ansi:6",
+          "attrs": "none",
+          "evidence": ["markdown@21:37"],
+          "direction": "fg"
+        }
+      ]
+    },
+    "syntaxOperator": {
+      "class": "measured",
+      "value": "default",
+      "attrs": "none",
+      "evidence": ["code-tokens@14:40", "code-tokens@14:55"],
+      "piSurface": "SQL operators",
+      "claudeSurface": "SQL >= and !=",
+      "note": "Compare actual SQL operator cells, not an absent token alignment."
+    },
+    "syntaxPunctuation": {
+      "class": "measured",
+      "value": "ansi:8",
+      "attrs": "none",
+      "evidence": ["code-tokens@16:2", "code-tokens@16:16", "code-tokens@16:26", "code-tokens@16:40", "code-tokens@16:49"],
+      "piSurface": "HTML tag punctuation",
+      "claudeSurface": "HTML tag delimiters and equals",
+      "note": "Scoped to probe-observed HTML punctuation; unhighlighted JS punctuation is not assigned this Pi role in these captures."
+    },
+    "thinkingOff": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi off reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingMinimal": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi minimal reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingLow": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi low reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingMedium": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi medium reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingHigh": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi high reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingXhigh": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi xhigh reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "thinkingMax": {
+      "class": "pi-only",
+      "value": null,
+      "attrs": null,
+      "evidence": [],
+      "piSurface": "Pi max reasoning-level editor border",
+      "claudeSurface": "No analogous Claude user-visible state",
+      "note": "Pi encodes reasoning level by editor border color. Claude has an effort badge but its ordinary editor rule is not a per-level indicator; there is no corresponding seven-level border state. Medium token aligns to rule glyphs only by geometry, not semantics."
+    },
+    "bashMode": {
+      "class": "unmappable",
+      "value": null,
+      "attrs": null,
+      "evidence": ["shell-mode@38:0", "shell-run@8:0"],
+      "piSurface": "Editor border in Bash-entry mode",
+      "claudeSurface": "Submitted shell command marker and panel; active shell editor not captured",
+      "note": "shell-mode capture is still detailed transcript search/scroll, not a Bash editor. shell-run shows pink ! marker and #413c41 submitted-command background, but no active Bash-entry border. Cannot use ordinary #888888 rule or dim transcript separator as bashBorder proof."
+    }
+  },
+  "claudeOnly": [
+    {
+      "scene": "api-error-expanded",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "10:92",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "11:0",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: API failure",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "13:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "api-error",
+      "at": "10:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "14:0",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: API failure",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "16:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "api-error",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "10:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "14:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "16:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "assistant-text",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "10:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "12:10",
+      "value": "ansi:3",
+      "attrs": "none",
+      "surface": "Highlighted JS method call log",
+      "closestPi": "Pi leaves this call uncolored in probe; no role reaches this token",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "20:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "20:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "code-tokens",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction-expanded",
+      "at": "35:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction-expanded",
+      "at": "36:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "31:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "31:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "33:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "34:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "compaction",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-scrollbar",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-scrollbar",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "0:35",
+      "value": "default",
+      "attrs": "inverse",
+      "surface": "Other search match reverse-video",
+      "closestPi": "searchMatchText cannot emit inverse/current-hit attributes",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "0:35",
+      "value": "default",
+      "attrs": "inverse",
+      "surface": "Other search match background reverse-video",
+      "closestPi": "searchMatchBg cannot emit inverse/current-hit attributes",
+      "direction": "bg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "34:35",
+      "value": "ansi:3",
+      "attrs": "bold+underline+inverse",
+      "surface": "Current search match reverse-video emphasis",
+      "closestPi": "searchMatchText cannot emit inverse/current-hit attributes",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "34:35",
+      "value": "default",
+      "attrs": "bold+underline+inverse",
+      "surface": "Current search match background reverse-video",
+      "closestPi": "searchMatchBg cannot emit inverse/current-hit attributes",
+      "direction": "bg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "36:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "36:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "fullscreen-search",
+      "at": "39:113",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Search hit ordinal/count",
+      "closestPi": "No search-counter role",
+      "direction": "fg"
+    },
+    {
+      "scene": "idle",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "idle",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "idle",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "idle",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "idle",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "login-picker",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "login-picker",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "login-picker",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "login-picker",
+      "at": "28:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "0:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "5:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "9:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "28:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Markdown table frame/header/body",
+      "closestPi": "No distinct Markdown table roles; inherited ordinary foreground",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "34:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "34:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "markdown",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "10:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "10:2",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Unsupported fence language label",
+      "closestPi": "mdCodeBlockBorder includes visible fences instead",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "14:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "mermaid",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "24:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "31:33",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Featured-model description emphasis",
+      "closestPi": "muted cannot independently emphasize model description segment",
+      "direction": "fg"
+    },
+    {
+      "scene": "model-picker",
+      "at": "37:3",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "10:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "prompt-typed",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-mode",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-mode",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "8:0",
+      "value": "#fd5db1",
+      "attrs": "none",
+      "surface": "Submitted shell command foreground/marker",
+      "closestPi": "bashMode only editor border; userMessageText not shell-specific",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "8:0",
+      "value": "#413c41",
+      "attrs": "none",
+      "surface": "Submitted shell command background",
+      "closestPi": "No dedicated shell-command panel role",
+      "direction": "bg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "8:2",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Submitted shell command foreground/marker",
+      "closestPi": "bashMode only editor border; userMessageText not shell-specific",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "9:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "12:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "14:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "shell-run",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "slash-autocomplete",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "thinking",
+      "at": "10:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Collapsed thought duration disclosure",
+      "closestPi": "thinkingText forces italic and does not split duration bold",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "14:14",
+      "value": "#999999",
+      "attrs": "bold",
+      "surface": "Collapsed thought duration disclosure",
+      "closestPi": "thinkingText forces italic and does not split duration bold",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "16:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "18:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "18:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "thinking",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "10:0",
+      "value": "#ff6b80",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: tool failure",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "14:88",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "15:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "17:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "12:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "14:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-fail",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "10:0",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: tool success",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "13:88",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "14:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "12:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "14:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-bash-ok",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "10:0",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: tool success",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:5",
+      "value": "#f8f8f2",
+      "attrs": "dim",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:9",
+      "value": "#f92672",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:22",
+      "value": "#66d9ef",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:31",
+      "value": "#a6e22e",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:38",
+      "value": "#f8f8f2",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "12:42",
+      "value": "#fd971f",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "13:5",
+      "value": "#3d0100",
+      "attrs": "none",
+      "surface": "Removed diff line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "13:5",
+      "value": "#dc5a5a",
+      "attrs": "none",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "13:31",
+      "value": "#5c0200",
+      "attrs": "none",
+      "surface": "Removed diff intra-line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "15:5",
+      "value": "#022800",
+      "attrs": "none",
+      "surface": "Added diff line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "15:5",
+      "value": "#50c850",
+      "attrs": "none",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "15:31",
+      "value": "#044700",
+      "attrs": "none",
+      "surface": "Added diff intra-line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "15:31",
+      "value": "#be84ff",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "21:88",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "22:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "24:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "10:0",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: tool success",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:5",
+      "value": "#f8f8f2",
+      "attrs": "dim",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:9",
+      "value": "#f92672",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:22",
+      "value": "#66d9ef",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:31",
+      "value": "#a6e22e",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:38",
+      "value": "#f8f8f2",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "12:42",
+      "value": "#fd971f",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "13:5",
+      "value": "#3d0100",
+      "attrs": "none",
+      "surface": "Removed diff line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "13:5",
+      "value": "#dc5a5a",
+      "attrs": "none",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "13:31",
+      "value": "#5c0200",
+      "attrs": "none",
+      "surface": "Removed diff intra-line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:5",
+      "value": "#022800",
+      "attrs": "none",
+      "surface": "Added diff line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:5",
+      "value": "#50c850",
+      "attrs": "none",
+      "surface": "Diff gutter/line-number foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:31",
+      "value": "#044700",
+      "attrs": "none",
+      "surface": "Added diff intra-line background",
+      "closestPi": "toolSuccessBg is one whole-panel background; no per-diff backgrounds",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "15:31",
+      "value": "#be84ff",
+      "attrs": "none",
+      "surface": "Per-token diff syntax foreground",
+      "closestPi": "toolDiffAdded/Removed/Context are whole-line foreground roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "21:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "23:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "23:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-edit",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working spinner",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "34:2",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working label",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "34:11",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Animated working progress metadata",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-pending",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "10:0",
+      "value": "#4eba65",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: tool success",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "11:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Tool/compaction output connector",
+      "closestPi": "toolOutput / customMessageText, no independent connector role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "13:88",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "14:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "38:0",
+      "value": "default",
+      "attrs": "dim",
+      "surface": "Detailed-transcript separator (default + dim)",
+      "closestPi": "border / thinkingMedium; neither is a mode-specific separator role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read-expanded",
+      "at": "39:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Detailed transcript mode footer",
+      "closestPi": "dim / muted; no dedicated transcript-mode control",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "12:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "14:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "14:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "tool-read",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "unicode",
+      "at": "10:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "14:0",
+      "value": "#ffffff",
+      "attrs": "none",
+      "surface": "Assistant/tool status bullet: assistant",
+      "closestPi": "Assistant body / toolTitle; no independent bullet role",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "16:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Completed-turn timing icon",
+      "closestPi": "No completed-turn icon role",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "16:2",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Turn duration / expanded timestamp-model metadata",
+      "closestPi": "dim; no dedicated turn-metadata surface",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "37:0",
+      "value": "default",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "unicode",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working spinner",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "34:2",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working label",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "34:11",
+      "value": "#eb9f7f",
+      "attrs": "none",
+      "surface": "Animated working moving highlight",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-1600ms",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working spinner",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "34:2",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working label",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "34:7",
+      "value": "#eb9f7f",
+      "attrs": "none",
+      "surface": "Animated working moving highlight",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-2400ms",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working spinner",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "34:2",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working label",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "34:3",
+      "value": "#eb9f7f",
+      "attrs": "none",
+      "surface": "Animated working moving highlight",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-3200ms",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "1:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Brand logo / startup announcement rail",
+      "closestPi": "accent (not a dedicated brand/rail role)",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "1:2",
+      "value": "#000000",
+      "attrs": "none",
+      "surface": "Logo internal black backing",
+      "closestPi": "No logo-background role",
+      "direction": "bg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "6:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Submitted user prompt chevron foreground",
+      "closestPi": "userMessageText cannot independently color marker",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "34:0",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working spinner",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "34:2",
+      "value": "#d77757",
+      "attrs": "none",
+      "surface": "Animated working label",
+      "closestPi": "Working indicator; no independent animation-highlight/spinner theme roles",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "35:100",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Effort indicator / effort adjustment control",
+      "closestPi": "thinkingMedium is border color, not this badge",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "37:0",
+      "value": "#999999",
+      "attrs": "none",
+      "surface": "Active/disabled editor prompt marker and input foreground",
+      "closestPi": "Editor text is not controlled by a dedicated Pi theme role",
+      "direction": "fg"
+    },
+    {
+      "scene": "working-800ms",
+      "at": "39:2",
+      "value": "#ffc107",
+      "attrs": "none",
+      "surface": "Permission mode status",
+      "closestPi": "No permission-mode role; bashMode is a different mode",
+      "direction": "fg"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+ [38;2;153;153;153mPress ctrl+o to show full startup help 
+[39m [38;2;153;153;153mand loaded resources.[39m                  
+
+ [38;2;153;153;153mPi can explain its own features and    
+[39m [38;2;153;153;153mlook up its docs. Ask it how to use or 
+[39m [38;2;153;153;153mextend Pi.[39m         
+
+[Extensions]        
+[38;2;153;153;153m  extensions[39m        
+
+
+
+ [38;2;177;185;249m✓ New session started[39m                  
+
+
+[48;2;55;55;55m                                        
+ [38;2;255;255;255mSCENE:session-tree[39m                     
+                                        
+
+[49m A branch for the session tree.         
+
+
+[38;2;177;185;249m────────────────────────────────────────
+[39m [1m  Session Tree[0m     
+[38;2;153;153;153m  ↑/↓ move · ←/→ page[39m                   
+[38;2;153;153;153m  option+←/→ branch · ctrl+x copy[39m       
+[38;2;153;153;153m  shift+l label · shift+t label time[39m    
+[38;2;153;153;153m  filters ctrl+d/t/u/l/a[39m                
+[38;2;153;153;153m  cycle ctrl+o/shift+ctrl+o[39m             
+  [38;2;153;153;153mType to search:[39m [7m [0m 
+[38;2;177;185;249m────────────────────────────────────────
+
+[39m  [38;2;177;185;249m• [38;2;153;153;153m[system][39m        
+  [38;2;177;185;249m• user: [39mSCENE:session-tree            
+[38;2;177;185;249m[48;2;33;59;73m› • [1m[38;2;78;186;101massistant: [39mA branch for the session 
+[0m[38;2;153;153;153m  (3/3)[39m   
+
+[38;2;177;185;249m────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l...
+↑10 ↓7 $0.000 0.0%/200k (auto)  claude-o

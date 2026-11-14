@@ -1,0 +1,40 @@
+
+ [38;2;228;138;122m[48;2;79;142;179m▀[49m▀█[39m  [38;2;153;153;153mv1.5.2[39m        
+ [38;2;79;142;179m█▀[39m [38;2;234;182;93m█[39m [38;2;153;153;153mescape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash ·       
+[39m [38;2;153;153;153mctrl+o more[39m        
+ [38;2;153;153;153mPress ctrl+o to show full startup help and loaded resources.[39m                   
+
+ [38;2;153;153;153mPi can explain its own features and look up its docs. Ask it how to use or     
+[39m [38;2;153;153;153mextend Pi.[39m         
+
+[Extensions]        
+[38;2;153;153;153m  extensions[39m        
+
+
+
+ [38;2;177;185;249m✓ New session started[39m                  
+
+
+[48;2;55;55;55m                                                                                
+ [38;2;255;255;255mSCENE:session-tree[39m                                                             
+                                                                                
+
+[49m A branch for the session tree.         
+
+
+
+[38;2;177;185;249m────────────────────────────────────────────────────────────────────────────────
+[39m [1m  Session Tree[0m     
+[38;2;153;153;153m  ↑/↓ move · ←/→ page · option+←/→ branch · ctrl+x copy · shift+l label[39m         
+[38;2;153;153;153m  shift+t label time · filters ctrl+d/t/u/l/a · cycle ctrl+o/shift+ctrl+o[39m       
+  [38;2;153;153;153mType to search:[39m [7m [0m 
+[38;2;177;185;249m────────────────────────────────────────────────────────────────────────────────
+
+[39m  [38;2;177;185;249m• [38;2;153;153;153m[system][39m        
+  [38;2;177;185;249m• user: [39mSCENE:session-tree            
+[38;2;177;185;249m[48;2;33;59;73m› • [1m[38;2;78;186;101massistant: [39mA branch for the session tree.[0m                                   
+[38;2;153;153;153m  (3/3)[39m             
+
+[38;2;177;185;249m────────────────────────────────────────────────────────────────────────────────
+[38;2;153;153;153m/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-capture-K3aa6n/work[39m 
+[38;2;153;153;153m↑10 ↓7 $0.000 0.0%/200k (auto)                          claude-opus-4-5 • medium

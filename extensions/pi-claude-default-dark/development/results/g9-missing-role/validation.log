@@ -1,0 +1,10 @@
+
+theme INVALID:
+missing roles: accent
+Pi 1.5.2 loader: Invalid theme "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-claude-default-dark/development/results/g9-missing-role/theme.json":
+
+Missing required color tokens:
+  - accent
+
+Please add these colors to your theme's "colors" object.
+See the built-in themes (dark.json, light.json) for reference values.

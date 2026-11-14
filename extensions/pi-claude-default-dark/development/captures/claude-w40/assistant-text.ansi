@@ -1,0 +1,40 @@
+
+           [1mClaude Code[0m [38;2;153;153;153mv2.1.323[39m         
+[38;2;215;119;87m ▐[48;2;0;0;0m▛███▛█[39m[49m   [38;2;153;153;153mOpus 5.5[39m 
+[38;2;215;119;87m▝▜[48;2;0;0;0m█████[49m█▀[39m  [38;2;153;153;153mAPI Usage Billing[39m            
+[38;2;215;119;87m ▝▝   ▝▝ [39m  [38;2;153;153;153m/…/work[39m  
+
+[38;2;215;119;87m▎[39m [1mAuto mode is now Claude Code's default
+[0m[38;2;215;119;87m▎[39m [1mpermission mode.[0m  
+[38;2;215;119;87m▎[39m [38;2;153;153;153mAuto mode lets Claude handle [39m         
+[38;2;215;119;87m▎[39m [38;2;153;153;153mpermission prompts automatically. [39m    
+[38;2;215;119;87m▎[39m [38;2;153;153;153mClaude checks each tool call for risky
+[38;2;215;119;87m▎[39m [38;2;153;153;153mactions and prompt injection before [39m  
+[38;2;215;119;87m▎[39m [38;2;153;153;153mexecuting, runs the ones it assesses [39m 
+[38;2;215;119;87m▎[39m [38;2;153;153;153mas lower-risk, and blocks the rest.[39m   
+[38;2;215;119;87m▎[39m [38;2;153;153;153mhttps://code.claude.com/docs/en/permis
+[38;2;215;119;87m▎[39m [38;2;153;153;153msion-modes[39m        
+
+[38;2;153;153;153m[48;2;55;55;55m❯[39m [38;2;255;255;255m/clear[39m                                
+
+[38;2;153;153;153m❯ [38;2;255;255;255mRefactor the HTTP client and run the [39m 
+  [38;2;255;255;255m/clear[39m                                
+
+[38;2;255;255;255m[49m⏺[39m ok      
+
+[38;2;153;153;153m✻[39m [38;2;153;153;153mBrewed for 0s · done 3:36 PM[39m          
+
+[38;2;153;153;153m[48;2;55;55;55m❯ [38;2;255;255;255mSCENE:assistant-text[39m                  
+
+[38;2;255;255;255m[49m⏺[39m Here is the smallest safe refactor.   
+
+[38;2;153;153;153m✻[39m [38;2;153;153;153mCogitated for 0s · done 3:36 PM[39m       
+
+                                        
+                                        
+                                        
+          [38;2;153;153;153mCtrl+Y to paste deleted text[39m  
+[38;2;136;136;136m────────────────────────────────────────
+[39m❯ [7m [0m                                     
+[38;2;136;136;136m────────────────────────────────────────
+[39m  [38;2;255;193;7m⏵⏵ auto mode on[38;2;153;153;153m (shift+tab to cycle)[39m  

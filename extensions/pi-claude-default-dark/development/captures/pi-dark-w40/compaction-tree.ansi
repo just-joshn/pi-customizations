@@ -1,0 +1,40 @@
+ retries and a shared helper. A         
+ synthetic conversation about bounded   
+ retries and a shared helper. A         
+ synthetic conversation about bounded   
+ retries and a shared helper. A         
+ synthetic conversation about bounded   
+ retries and a shared helper. A         
+ synthetic conversation about bounded   
+ retries and a shared helper.           
+ Compaction input complete.             
+
+[48;2;58;48;85m                                        
+ [1m[38;2;167;152;215m[compaction][0m[48;2;58;48;85m                           
+                                        
+ [38;2;157;165;169mCompacted from 17 tokens ([38;2;126;136;142mctrl+o[38;2;157;165;169m to    
+[39m [38;2;157;165;169mexpand)[39m                                
+                                        
+
+[49m [38;2;126;136;142mTool output: collapsed[39m                 
+
+
+[38;2;95;168;204m────────────────────────────────────────
+[39m [1m  Session Tree[0m     
+[38;2;157;165;169m  ↑/↓ move · ←/→ page[39m                   
+[38;2;157;165;169m  option+←/→ branch · ctrl+x copy[39m       
+[38;2;157;165;169m  shift+l label · shift+t label time[39m    
+[38;2;157;165;169m  filters ctrl+d/t/u/l/a[39m                
+[38;2;157;165;169m  cycle ctrl+o/shift+ctrl+o[39m             
+  [38;2;157;165;169mType to search:[39m [7m [0m 
+[38;2;95;168;204m────────────────────────────────────────
+
+[39m  [38;2;167;152;215m• [38;2;126;136;142m[system][39m        
+  [38;2;167;152;215m• user: [39mSCENE:compaction              
+  [38;2;167;152;215m• [38;2;104;183;141massistant: [39mA synthetic conversation 
+[38;2;167;152;215m[48;2;33;59;73m› • [1m[38;2;160;142;213m[compaction: 0k tokens][0m             
+[38;2;157;165;169m  (4/4)[39m   
+
+[38;2;95;168;204m────────────────────────────────────────
+[38;2;126;136;142m/private/var/folders/11/m_kwnqr97632l...
+↑20 ↓14 $0.000 ?/200k (auto)  claude-opu
