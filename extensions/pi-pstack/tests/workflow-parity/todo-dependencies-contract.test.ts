@@ -13,7 +13,14 @@ test.for(['missing-run', 'missing-todo'])('a missing TODO prerequisite fails onc
 });
 
 test('actual unresolved steps and recorded bad initial states remain independently assessable', () => {
-  const run = { id: 'r', runJson: { schemaVersion: 1, playbook: 'feature', upstreamRevision: PINNED_REVISION, title: 'work' }, todoText: `Source playbook: feature.md\nUpstream revision: ${PINNED_REVISION}`, steps: [{ n: 1, state: 'open' }], workers: [], receipts: [] };
+  const run = {
+    id: 'r',
+    runJson: { schemaVersion: 1, playbook: 'feature', upstreamRevision: PINNED_REVISION, title: 'work' },
+    todoText: `Source playbook: feature.md\nUpstream revision: ${PINNED_REVISION}`,
+    steps: [{ n: 1, state: 'open' }],
+    workers: [],
+    receipts: [],
+  };
   const view = { runs: [run], todoHistory: { r: [{ text: '- [x] 1. Already completed before the first snapshot' }] } } as unknown as RunView;
   const checks = todoChecks({ playbook: 'feature' });
   expect(checks.find((check) => check.id.endsWith('every-step-resolved'))?.run(view)).toMatchObject({ ok: false });
