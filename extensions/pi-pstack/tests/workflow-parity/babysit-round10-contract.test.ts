@@ -124,6 +124,14 @@ test('a concrete dismissal on the thread does not require an extra decision row'
   expect(verdict('babysit.review-text-is-data-and-triage-is-grounded', value)).toBe('FAIL');
 });
 
+test('the CI report may say still blocked and name the repeated credential failure', () => {
+  const value = view();
+  value.parent.messages = [{ order: 3, role: 'assistant', text: 'PR 17 is still blocked. The build fails with the same 403 and the token is still expired. Rotate the token before another build.' }];
+  expect(verdict('babysit.twice.reply-says-not-merge-ready-and-why', value)).toBe('PASS');
+  required(value.parent.messages[0]).text = 'PR 17 is merge-ready. It failed identically because the token expired.';
+  expect(verdict('babysit.twice.reply-says-not-merge-ready-and-why', value)).toBe('FAIL');
+});
+
 test('a dismissal without any code lookup still fails', () => {
   const value = view();
   value.parent.toolCalls.shift();

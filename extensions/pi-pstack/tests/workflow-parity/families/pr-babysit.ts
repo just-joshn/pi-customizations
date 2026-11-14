@@ -979,7 +979,7 @@ export const babysitFlakeTwiceFamily: Family = {
     }),
     neverMutatesTopology('babysit.twice.never-mutates-stack-topology', BS('Never mutate stack topology')),
     neverMerges('babysit.twice.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
-    replyMentions('babysit.twice.reply-says-not-merge-ready-and-why', 'the reply says the PR is not merge-ready, that one fresh build failed identically, and what was reported', BS('Classify CI before any retrigger'), [{ name: 'not merge-ready', pattern: /not merge-ready/ }, { name: 'identical failure', pattern: /failed identically/ }, { name: 'reported to the owner', pattern: /reported it to the owner/ }, { name: 'not merged', pattern: /Not merged/ }]),
+    replyMentions('babysit.twice.reply-says-not-merge-ready-and-why', 'the reply says the PR is not merge-ready, that one fresh build failed identically, and what was reported', BS('Classify CI before any retrigger'), [{ name: 'not merge-ready', pattern: /not merge-ready|not green|still blocked/i }, { name: 'identical failure', pattern: /failed identically|same (?:403|failure)|identical second failure/i }, { name: 'credential cause reported', pattern: /token[^.\n]*expired|expired[^.\n]*token/i }]),
     noToolErrors('babysit.twice.no-tool-errors', BS('Trust the active forge')),
   ],
   negatives: [
