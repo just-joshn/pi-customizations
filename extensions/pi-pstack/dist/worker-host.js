@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, rmSync as rmSync2, statSync, symlinkSync, unlinkSync, writeFileSync as writeFileSync2, writeSync } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, readlinkSync, rmSync as rmSync2, statSync, symlinkSync, unlinkSync, writeFileSync as writeFileSync2, writeSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute3, join as join3, resolve as resolve3 } from "node:path";
 import { createInterface } from "node:readline";
@@ -358,6 +358,8 @@ function readBrief(workerDir) {
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   } catch (error) {
+    if (error.code === "ENOENT")
+      throw new Error(`Brief file not found. Write or finish writing brief.md at ${path} before spawning the worker`, { cause: error });
     if (error.code === "ELOOP")
       throw new Error(`${path} must be a regular file, not a symlink`);
     throw error;
@@ -560,9 +562,14 @@ function prepareOutput(workerDir) {
   const out = outDirOf(workerDir);
   for (const name of ["session", "evidence", "receipts"])
     mkdirSync2(join3(out, name), { recursive: true, mode: 448 });
-  for (const name of ["session", "evidence", "report.md", "decisions.tsv"])
-    if (lstatSync2(join3(workerDir, name), { throwIfNoEntry: false }) === undefined)
-      symlinkSync(join3("out", name), join3(workerDir, name));
+  for (const name of ["session", "evidence", "report.md", "decisions.tsv"]) {
+    const path = join3(workerDir, name);
+    const entry = lstatSync2(path, { throwIfNoEntry: false });
+    if (entry === undefined)
+      symlinkSync(join3("out", name), path);
+    else if (!entry.isSymbolicLink() || resolve3(workerDir, readlinkSync(path)) !== join3(out, name))
+      throw new Error(`Output projection ${path} must be a symlink to ${join3("out", name)}. Existing entry was preserved. Move any data you need to keep, then spawn a fresh worker id.`);
+  }
 }
 function containerEnv(piEnv) {
   return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent`, PSTACK_CONTAINER: "1" };

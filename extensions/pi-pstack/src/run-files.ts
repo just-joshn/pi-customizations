@@ -273,6 +273,7 @@ export function readBrief(workerDir: string): Buffer {
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error(`Brief file not found. Write or finish writing brief.md at ${path} before spawning the worker`, { cause: error });
     if ((error as NodeJS.ErrnoException).code === 'ELOOP') throw new Error(`${path} must be a regular file, not a symlink`);
     throw error;
   }
