@@ -70,9 +70,25 @@ test('reading the code grounds a dismissal without prescribing git grep', () => 
 });
 test('concrete function names can cite the dismissal disproof without a full source path', () => {
   const value = view();
-  writeFileSync(join(forgeDirOf(value.sandbox), 'actions.jsonl'), [{ kind: 'reply', thread: 'thread-a', body: 'checkout() passes couponPercent to total(), so the coupon is applied.' }, { kind: 'resolve', thread: 'thread-a' }].map((action) => JSON.stringify(action)).join('\n'));
+  writeFileSync(
+    join(forgeDirOf(value.sandbox), 'actions.jsonl'),
+    [
+      { kind: 'reply', thread: 'thread-a', body: 'checkout() passes couponPercent to total(), so the coupon is applied.' },
+      { kind: 'resolve', thread: 'thread-a' },
+    ]
+      .map((action) => JSON.stringify(action))
+      .join('\n'),
+  );
   expect(verdict('babysit.threads.dismissal-grounded-and-the-ask-left-open', value)).toBe('PASS');
-  writeFileSync(join(forgeDirOf(value.sandbox), 'actions.jsonl'), [{ kind: 'reply', thread: 'thread-a', body: 'Dismissed, looks fine.' }, { kind: 'resolve', thread: 'thread-a' }].map((action) => JSON.stringify(action)).join('\n'));
+  writeFileSync(
+    join(forgeDirOf(value.sandbox), 'actions.jsonl'),
+    [
+      { kind: 'reply', thread: 'thread-a', body: 'Dismissed, looks fine.' },
+      { kind: 'resolve', thread: 'thread-a' },
+    ]
+      .map((action) => JSON.stringify(action))
+      .join('\n'),
+  );
   expect(verdict('babysit.threads.dismissal-grounded-and-the-ask-left-open', value)).toBe('FAIL');
 });
 
@@ -99,7 +115,10 @@ test('reclassification reads a full log with trailing flags and does not require
 
 test('reclassification can be reported to the user rather than posted as a PR comment', () => {
   const value = view();
-  value.parent.toolCalls = [{ order: 1, name: 'bash', args: { command: 'gh run rerun 9217' }, resultText: '', isError: false }, { order: 2, name: 'bash', args: { command: 'gh run view 9217 --log-failed' }, resultText: '403 expired token', isError: false }];
+  value.parent.toolCalls = [
+    { order: 1, name: 'bash', args: { command: 'gh run rerun 9217' }, resultText: '', isError: false },
+    { order: 2, name: 'bash', args: { command: 'gh run view 9217 --log-failed' }, resultText: '403 expired token', isError: false },
+  ];
   value.parent.messages = [{ order: 3, role: 'assistant', text: 'An identical second failure is not flake. The registry token is expired. Rotate the token before another build.' }];
   expect(verdict('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', value)).toBe('PASS');
   required(value.parent.messages[0]).text = 'I saw a log.';

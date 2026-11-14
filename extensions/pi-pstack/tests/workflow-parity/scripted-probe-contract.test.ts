@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { codemodeFamily } from './families/codemode.ts';
-import { mcpFamilies } from './families/mcp.ts';
 import { historyFamilies } from './families/history.ts';
+import { mcpFamilies } from './families/mcp.ts';
 import { evaluate } from './lib/check.ts';
 import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
