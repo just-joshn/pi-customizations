@@ -63,14 +63,24 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     const view = {
       sandbox,
       runs: [],
-      parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json baseRefName,state,headRefOid` }, resultText: '', isError: false })) },
+      parent: {
+        messages: [],
+        toolCalls: heads.map((_, index) => ({
+          name: 'bash',
+          order: index,
+          args: { command: `gh pr view ${21 + index} --json baseRefName,state,headRefOid` },
+          resultText: JSON.stringify({ state: 'MERGED', baseRefName: 'main' }),
+          isError: false,
+        })),
+      },
     } as unknown as RunView;
     const leaseCommands = [1, 2].map((index) => ({ name: 'bash', order: 4 + index, args: { command: `git push origin HEAD:refs/heads/s-${index + 1} --force-with-lease=s-${index + 1}:${heads[index]}` }, resultText: '', isError: false }));
     view.parent.toolCalls.push(...leaseCommands);
+    view.parent.toolCalls.unshift({ name: 'bash', order: -1, args: { command: 'gh pr view 21 --json baseRefName,state' }, resultText: '{"state":"OPEN","baseRefName":"main"}', isError: false });
     const check = (suffix: string) => shippingFreshnessFamily.checks.find((entry) => entry.id === `ship.fresh.${suffix}`)?.run(view);
     expect(check('the-chain-rebase-moved-every-head-and-changed-one-patch')).toMatchObject({ ok: true });
     expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: fresh });
-    for (const call of view.parent.toolCalls.filter((entry) => String(entry.args['command']).includes('gh pr view 21 '))) {
+    for (const call of view.parent.toolCalls.filter((entry) => String(entry.args['command']).includes('gh pr view 21 ') && /"state"\s*:\s*"MERGED"/.test(entry.resultText))) {
       const original = String(call.args['command']);
       call.args['command'] = original.replace('baseRefName,', '');
       expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
