@@ -51,6 +51,10 @@ test('independent replay checks the full package suite when that is the verdict 
     mkdirSync(join(sandbox, 'forge'));
     execFileSync('git', ['clone', '--bare', repo, bareOf(sandbox)], { stdio: 'pipe' });
     expect(testAt({ sandbox }, git('rev-parse', 'HEAD'), undefined)).toBe(true);
+    const full = git('rev-parse', 'HEAD');
+    const shortView = { sandbox, runs: [{ workers: [{ id: 'v', assignment: { role: 'verifier', workspace: { inputCommit: full.slice(0, 7) } } }] }] } as unknown as RunView;
+    expect(verdictsOf(state, [action('PASS: ran the flow')], shortView)[0]?.head).toBe(full);
+    expect(verdictsOf(state, [action('PASS at fffffff')], shortView)[0]?.head).not.toBe(full);
 
     writeFileSync(join(repo, 'test/inherited.test.js'), "require('node:assert/strict').equal(3, 2);\n");
     git('add', '.');
