@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { modeDeclared } from './families/pr-shared.ts';
+import { declaredMode, modeDeclared } from './families/pr-shared.ts';
 import type { RunView } from './lib/view.ts';
 
 const result = (declaration: number, poll: number) =>
@@ -11,6 +11,11 @@ const result = (declaration: number, poll: number) =>
 test('a mode declared in chat before polling satisfies the playbook', () => {
   expect(result(1, 2)).toMatchObject({ ok: true });
 });
+test('a CI check mention is not a declared babysit mode', () => {
+  expect(declaredMode({ runs: [], parent: { messages: [{ role: 'assistant', text: 'The CI check is pending.' }] } } as unknown as RunView)).toBeUndefined();
+  expect(declaredMode({ runs: [], parent: { messages: [{ role: 'assistant', text: 'The CI check is pending. I am using drive mode.' }] } } as unknown as RunView)).toBe('drive');
+});
+
 test('a late chat declaration still fails', () => {
   expect(result(2, 1)).toMatchObject({ ok: false });
 });

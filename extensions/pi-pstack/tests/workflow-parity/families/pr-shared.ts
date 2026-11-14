@@ -92,9 +92,14 @@ export function modeFor(request: string): 'check' | 'threads-only' | 'drive' | '
   return /docs.only|documentation.only|only changes the readme|small pr/.test(text) ? 'check' : 'drive';
 }
 
+const modeInText = (text: string): string | undefined => {
+  const match = /\bmode\s*(?::|is|=)\s*[`*]*(check|threads-only|drive|background)\b|\b(check|threads-only|drive|background)[`*]*\s+mode\b/i.exec(text);
+  return (match?.[1] ?? match?.[2])?.toLowerCase();
+};
+
 export const declaredMode = (view: RunView): string | undefined => {
   const todo = view.runs[0]?.todoText ?? '';
-  return /Mode: (check|threads-only|drive|background)\b/.exec(todo.split('## Task-specific work')[1] ?? '')?.[1] ?? view.parent.messages.filter((message) => message.role === 'assistant').map((message) => /\b(check|threads-only|drive|background)\b/.exec(message.text)?.[1]).find((mode) => mode !== undefined);
+  return /Mode: (check|threads-only|drive|background)\b/.exec(todo.split('## Task-specific work')[1] ?? '')?.[1] ?? view.parent.messages.filter((message) => message.role === 'assistant').map((message) => modeInText(message.text)).find((mode) => mode !== undefined);
 };
 
 /** The Mode item exists, matches the request-to-mode table for the user's request, and was written before the first forge call or watcher spawn. */
@@ -103,7 +108,7 @@ export function modeDeclared(id: string, source: Src | Src[], expected: 'check' 
     const declared = declaredMode(view);
     const table = modeFor(view.prompt);
     const writtenAt = parentCommandOrder(view, /Mode: (check|threads-only|drive|background)/);
-    const spokenAt = view.parent.messages.find((message) => message.role === 'assistant' && new RegExp(`\\b${expected}\\b`).test(message.text))?.order ?? -1;
+    const spokenAt = view.parent.messages.find((message) => message.role === 'assistant' && modeInText(message.text) === expected)?.order ?? -1;
     const declaredAt = Math.min(...[writtenAt, spokenAt].filter((order) => order !== -1));
     const firstPoll = view.parent.toolCalls.find((call) => (call.name === 'bash' && /\b(gh|origin) |watch-pr/.test(String(call.args['command'])) && !/Mode:|command -v/.test(String(call.args['command']))) || (call.name === 'pstack_worker' && call.args['action'] === 'spawn'))?.order ?? Number.POSITIVE_INFINITY;
     return when(declared === expected && table === expected && Number.isFinite(declaredAt) && declaredAt < firstPoll, `request routes to ${table}; TODO.md declares ${declared} at ${declaredAt}, before the first poll at ${firstPoll}`, `declared ${declared}; the table says ${table}; expected ${expected}; declared at ${declaredAt}, first poll at ${firstPoll}`);
