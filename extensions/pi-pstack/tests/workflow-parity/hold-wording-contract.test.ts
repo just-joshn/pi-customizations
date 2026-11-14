@@ -22,7 +22,7 @@ test.for([false, true])('a zero-write hold and stance report do not require fixt
           { order: 1, role: 'user', text: 'Operator HOLD. Zero writes until released.' },
           { order: 2, role: 'assistant', text: `Head SHA: ${'a'.repeat(40)}. I have made no writes since the hold.` },
         ],
-        toolCalls: writes ? [{ order: 3, name: 'write', args: {} }] : [],
+        toolCalls: [{ order: 3, name: 'bash', args: { command: writes ? 'git push origin HEAD' : 'cd /tmp/workspace; gh pr view 31 --json state,headRefOid; git ls-remote origin' } }],
       },
     }));
     const view = { sandbox, runs: [{ workers }] } as unknown as RunView;
