@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
@@ -39,11 +40,14 @@ function withTodoLock(project, action) {
   const state = join(project, '.pi/pstack');
   mkdirSync(state, { recursive: true });
   const lock = join(state, 'todo.lock');
-  mkdirSync(lock);
+  if (existsSync(lock) && statSync(lock).isDirectory()) throw new Error(`Legacy TODO lock at ${lock}. Ownership is unknown. Verify no legacy writer is running before removing it manually.`);
+  // Keep this inode at the legacy mkdir path. SQLite releases its OS lock even on SIGKILL.
+  const database = new DatabaseSync(lock);
   try {
+    database.exec('BEGIN IMMEDIATE');
     return action(join(state, 'active-run'));
   } finally {
-    rmSync(lock, { recursive: true });
+    database.close();
   }
 }
 
