@@ -55,7 +55,7 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     const view = {
       sandbox,
       runs: [],
-      parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json state,mergedAt,baseRefName` }, resultText: '', isError: false })) },
+      parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json baseRefName,state,mergedAt` }, resultText: '', isError: false })) },
     } as unknown as RunView;
     const check = (suffix: string) => shippingFreshnessFamily.checks.find((entry) => entry.id === `ship.fresh.${suffix}`)?.run(view);
     expect(check('the-chain-rebase-moved-every-head-and-changed-one-patch')).toMatchObject({ ok: true });

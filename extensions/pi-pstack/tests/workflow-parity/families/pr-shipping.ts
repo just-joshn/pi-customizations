@@ -231,7 +231,12 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
     });
     const prefix = by === 'head' ? verifiedPrefix(order, state, verdicts, current) : order.slice(0, lost === -1 ? order.length : lost);
     const merged = mergesIn(actions).map((action) => action.pr);
-    const readBack = merged.filter((n) => BASH(view).some((entry) => new RegExp(`\\bgh pr view ${n} .*--json state,mergedAt,baseRefName`).test(entry.command)));
+    const readBack = merged.filter((n) => view.parent.toolCalls.some((call) => {
+      if (call.name !== 'bash' || call.isError) return false;
+      const command = String(call.args['command']);
+      const fields = /--json(?:=|\s+)["']?([\w,]+)/.exec(command)?.[1]?.split(',') ?? [];
+      return new RegExp(`\\bgh pr view ${n}\\s`).test(command) && ['state', 'mergedAt', 'baseRefName'].every((field) => fields.includes(field));
+    }));
     const base = merged.map((n) => state.prs[String(n)]?.base);
     const want = expected ?? prefix;
     return when(JSON.stringify(prefix) === JSON.stringify(want) && JSON.stringify(merged) === JSON.stringify(want) && readBack.length === merged.length && base.every((entry) => entry === state.repo.trunk), `independent prefix ${prefix.join(', ')}; merged ${merged.join(', ')} in that order; read back; base ${base.join(', ')}`, `independent prefix ${JSON.stringify(prefix)}, merged ${JSON.stringify(merged)}, read back ${JSON.stringify(readBack)}, bases ${JSON.stringify(base)}, want ${JSON.stringify(want)}`);
