@@ -8,7 +8,7 @@ import { PROOF_FILE, RUNS_REQUIRED } from './proof.ts';
 import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, OPS_STATUSES, type OperationsConfig, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
 import { createExclusive, json } from './store.ts';
 
-export const UPSTREAM_REVISION = 'a5539b15a3d56e04992565aafee2b37051329ce3';
+export const UPSTREAM_REVISION = '3dbd22ff12742fb28c9700b9760baa29ed41dc13';
 
 export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 

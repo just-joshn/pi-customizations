@@ -240,7 +240,7 @@ describe('C: setup-pstack, reflect, poteto-help', () => {
     const text = line('skills/poteto-help/SKILL.md', 13);
     expect(text).not.toContain('blob/main/pstack/');
     expect(text).toMatch(/For a file the compiler changed, [^.]*`generated\/transformation-manifest\.json`[^.]*, the public copy is `https:\/\/github\.com\/just-joshn\/pi-customizations\/tree\/main\/extensions\/pi-pstack\/generated\/skills\/`/);
-    expect(text).toMatch(/For any other skill file, which the compiler copied unchanged, it is the pinned upstream copy, `https:\/\/github\.com\/cursor\/plugins\/blob\/a5539b15a3d56e04992565aafee2b37051329ce3\/pstack\/skills\/`/);
+    expect(text).toMatch(/For any other skill file, which the compiler copied unchanged, it is the pinned upstream copy, `https:\/\/github\.com\/cursor\/plugins\/blob\/3dbd22ff12742fb28c9700b9760baa29ed41dc13\/pstack\/skills\/`/);
   });
 });
 

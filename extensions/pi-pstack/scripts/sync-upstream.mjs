@@ -10,7 +10,9 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const { values } = parseArgs({ options: { revision: { type: 'string' }, review: { type: 'string' }, root: { type: 'string' }, 'dry-run': { type: 'boolean' }, repository: { type: 'string' } } });
+const { values } = parseArgs({
+  options: { revision: { type: 'string' }, review: { type: 'string' }, root: { type: 'string' }, 'dry-run': { type: 'boolean' }, repository: { type: 'string' }, 'skip-pin-file': { type: 'string', multiple: true } },
+});
 const pkgRoot = resolve(values.root ?? root);
 const repository = values.repository ?? 'https://github.com/cursor/plugins.git';
 const pkgPath = join(pkgRoot, 'package.json');
@@ -64,6 +66,27 @@ try {
     for (const entry of entries) cpSync(join(temp, source, entry), join(stage, destination, entry), { recursive: true, preserveTimestamps: false });
   }
   const files = hashTree(stage);
+  const inventoryFiles = {};
+  const tree = execFileSync('git', ['-C', temp, 'ls-tree', '-r', '-z', revision, '--', ...SOURCES.map(([source]) => source)], { encoding: 'utf8' });
+  for (const record of tree.split('\0').filter(Boolean)) {
+    const [header, path] = record.split('\t');
+    const [mode, type, blob] = header.split(' ');
+    if (type !== 'blob' || !['100644', '100755'].includes(mode)) throw new Error(`Unsupported upstream tree entry: ${record}`);
+    const [source, destination] = SOURCES.find(([source]) => path.startsWith(`${source}/`));
+    const vendorPath = `${destination}/${path.slice(source.length + 1)}`;
+    inventoryFiles[path] = { blob, sha256: sha(readFileSync(join(temp, path))), vendorPath: vendorPath in files ? vendorPath : null };
+  }
+  const inventory = {
+    repository,
+    revision,
+    sources: SOURCES.map(([source]) => ({
+      path: source,
+      revision,
+      tree: execFileSync('git', ['-C', temp, 'rev-parse', `${revision}:${source}`], { encoding: 'utf8' }).trim(),
+      files: Object.keys(inventoryFiles).filter((path) => path.startsWith(`${source}/`)).length,
+    })),
+    files: inventoryFiles,
+  };
   const lockPath = join(pkgRoot, 'generated/upstream-lock.json');
   const hasLock = existsSync(lockPath);
   const oldFiles = hasLock ? JSON.parse(readFileSync(lockPath, 'utf8')).files : {};
@@ -97,11 +120,20 @@ try {
   };
   mkdirSync(join(pkgRoot, 'generated'), { recursive: true });
   writeFileSync(lockPath, `${JSON.stringify({ repository, revision, counts, files }, null, 2)}\n`);
+  writeFileSync(join(pkgRoot, 'generated/upstream-inventory.json'), `${JSON.stringify(inventory, null, 2)}\n`);
 
   pkg.pstackSource = { ...pkg.pstackSource, revision, version: pluginVersion, lastChange };
+  pkg.teamKitSource = {
+    repository: pkg.pstackSource.repository,
+    revision,
+    path: 'cursor-team-kit',
+    version: JSON.parse(readFileSync(join(temp, 'cursor-team-kit/.cursor-plugin/plugin.json'), 'utf8')).version,
+    inventory: 'generated/upstream-inventory.json',
+  };
   writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   if (oldRevision !== revision) {
     for (const file of PIN_FILES) {
+      if (values['skip-pin-file']?.includes(file)) continue;
       const path = join(pkgRoot, file);
       if (existsSync(path)) writeFileSync(path, readFileSync(path, 'utf8').split(oldRevision).join(revision));
     }

@@ -15852,7 +15852,7 @@ function acquireSourceLock(store, source) {
 }
 
 // src/automation/dispatch.ts
-var UPSTREAM_REVISION = "a5539b15a3d56e04992565aafee2b37051329ce3";
+var UPSTREAM_REVISION = "3dbd22ff12742fb28c9700b9760baa29ed41dc13";
 var spawnInTmux = (projectRoot, options = {}) => async (runId, assignmentPath) => {
   await spawnAssignment(projectRoot, runId, assignmentPath, { piCommand: ["pi"], ...options });
 };

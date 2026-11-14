@@ -29,6 +29,7 @@ function writeUpstream(repo: string, skillText: string) {
     'pstack/README.md': 'r',
     'pstack/LICENSE': 'l',
     'cursor-team-kit/skills/t/SKILL.md': 'team',
+    'cursor-team-kit/.cursor-plugin/plugin.json': '{"version":"1.2.0"}',
   };
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(join(repo, path, '..'), { recursive: true });
@@ -66,6 +67,25 @@ describe('source upgrade', () => {
     expect(JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8')).pstackSource.revision).toBe(second);
   });
 
+  test('sync records complete source blobs and preserves explicitly excluded pin files', () => {
+    const { upstream, pkg, first, sync } = scenario();
+    mkdirSync(join(pkg, 'scripts'));
+    writeFileSync(join(pkg, 'scripts/start-run.mjs'), first);
+    writeFileSync(join(upstream, 'cursor-team-kit/LICENSE'), 'license');
+    git(upstream, 'add', '-A');
+    git(upstream, 'commit', '-qm', 'add source metadata outside the vendor subset');
+    const second = git(upstream, 'rev-parse', 'HEAD');
+    const result = sync(['--revision', second, '--skip-pin-file', 'scripts/start-run.mjs']);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(join(pkg, 'scripts/start-run.mjs'), 'utf8')).toBe(first);
+    const inventory = JSON.parse(readFileSync(join(pkg, 'generated/upstream-inventory.json'), 'utf8'));
+    expect(inventory.revision).toBe(second);
+    expect(inventory.sources.map((source: { revision: string }) => source.revision)).toEqual([second, second]);
+    expect(inventory.files['cursor-team-kit/LICENSE']).toMatchObject({ blob: git(upstream, 'rev-parse', `${second}:cursor-team-kit/LICENSE`), vendorPath: null });
+    expect(inventory.files['pstack/skills/how/SKILL.md'].vendorPath).toBe('vendor/upstream-pstack/skills/how/SKILL.md');
+    expect(JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8')).teamKitSource.revision).toBe(second);
+  });
+
   test('a changed upstream instruction is refused without a parity review and writes nothing', () => {
     const { upstream, pkg, first, sync } = scenario();
     writeUpstream(upstream, 'two');
@@ -94,7 +114,50 @@ describe('source upgrade', () => {
   });
 });
 
+describe('fetched source verification', () => {
+  test('verifies the fetched tree and rejects modified working bytes', () => {
+    const { upstream, pkg } = scenario();
+    const verify = () => spawnSync(process.execPath, [join(PKG, 'scripts/verify-source-inventory.mjs'), '--root', pkg, '--checkout', upstream], { encoding: 'utf8' });
+    expect(verify().status).toBe(0);
+    writeFileSync(join(upstream, 'pstack/skills/how/SKILL.md'), 'changed');
+    const result = verify();
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('fetched bytes or recorded hash differ');
+  });
+
+  test('rejects a different checkout revision even when all source bytes are identical', () => {
+    const { upstream, pkg } = scenario();
+    git(upstream, 'commit', '--allow-empty', '-qm', 'different revision, identical source');
+    const result = spawnSync(process.execPath, [join(PKG, 'scripts/verify-source-inventory.mjs'), '--root', pkg, '--checkout', upstream], { encoding: 'utf8' });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('revisions must match exactly');
+  });
+});
+
 describe('pin consistency gate', () => {
+  test('the audited ZIP revision is required even when another revision has identical files and a sync log', async () => {
+    const { fixture } = await import('../skill-parity/helpers.ts');
+    const f = fixture();
+    try {
+      const revision = '1'.repeat(40);
+      for (const [path, key] of [
+        ['generated/upstream-lock.json', 'revision'],
+        ['package.json', 'pstackSource'],
+      ] as const) {
+        const value = JSON.parse(readFileSync(join(f.root, path), 'utf8'));
+        if (key === 'revision') value.revision = revision;
+        else value.pstackSource.revision = revision;
+        writeFileSync(join(f.root, path), JSON.stringify(value));
+      }
+      writeFileSync(join(f.root, 'generated/source-review-log.json'), JSON.stringify({ entries: [{ from: revision, to: revision, contentChanged: false, changedFiles: [], review: null }] }));
+      const result = spawnSync(process.execPath, [join(PKG, 'scripts/check-parity.mjs'), '--root', f.root], { encoding: 'utf8' });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain('does not match the audited ZIP revision 3dbd22ff12742fb28c9700b9760baa29ed41dc13');
+    } finally {
+      f.cleanup();
+    }
+  });
+
   test('check-parity fails when the lock moves without a source-review-log entry', async () => {
     const { fixture } = await import('../skill-parity/helpers.ts');
     const f = fixture();

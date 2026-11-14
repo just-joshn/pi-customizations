@@ -201,7 +201,7 @@ describe('parent session', () => {
     expect(doctor.message).toMatch(/^role resolution: \d+ of 17 roles resolve as configured$/m);
     expect(doctor.message).toContain('MCP servers: none');
     expect(doctor.message).toContain(`generated skills: 62 (62 loaded from ${join(PKG, 'generated/skills')})`);
-    expect(doctor.message).toContain('upstream lock: a5539b15a3d56e04992565aafee2b37051329ce3');
+    expect(doctor.message).toContain('upstream lock: 3dbd22ff12742fb28c9700b9760baa29ed41dc13');
     expect(doctor.message).toMatch(/^hard links: supported at /m);
     expect(doctor.message).toContain('slash names: no conflicts; every skill has its /name');
     await pi.close();
