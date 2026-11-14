@@ -28,7 +28,6 @@ test.for(FOUR_BYTE_MODELS)('%s counts four bytes per token', (modelId) => {
   expect(bytesPerToken(modelId)).toBe(4);
 });
 
-// The remaining ids in Pi 1.4.0's Anthropic catalog. Claude Code scores each 3.
 const THREE_BYTE_MODELS = ['claude-fable-5', 'claude-fable-5-1', 'claude-haiku-5-5', 'claude-opus-4-7', 'claude-opus-4-8', 'claude-opus-5', 'claude-opus-5-5', 'claude-sonnet-5', 'claude-sonnet-5-5', 'unknown-model'];
 
 test.for(THREE_BYTE_MODELS)('%s counts three bytes per token', (modelId) => {
@@ -122,21 +121,21 @@ test('a tool result message charges its images flat, never their base64 size', (
 });
 
 test('an extension-injected custom message counts its content', () => {
-  expect(agentMessageBlocks({ role: 'custom', content: 'injected' })).toStrictEqual([{ kind: 'text', text: 'injected' }]);
-  expect(agentMessageBlocks({ role: 'custom', content: [PIXEL] })).toStrictEqual([{ kind: 'image' }]);
+  expect(agentMessageBlocks({ role: 'custom', customType: 'note', content: 'injected', display: true, timestamp: 1 })).toStrictEqual([{ kind: 'text', text: 'injected' }]);
+  expect(agentMessageBlocks({ role: 'custom', customType: 'note', content: [PIXEL], display: true, timestamp: 1 })).toStrictEqual([{ kind: 'image' }]);
 });
 
 test('a bash execution counts its command and output unless it is excluded', () => {
-  expect(agentMessageBlocks({ role: 'bashExecution', command: 'ls', output: 'a.txt' })).toStrictEqual([
+  expect(agentMessageBlocks({ role: 'bashExecution', command: 'ls', output: 'a.txt', exitCode: 0, cancelled: false, truncated: false, timestamp: 1 })).toStrictEqual([
     { kind: 'text', text: 'ls' },
     { kind: 'text', text: 'a.txt' },
   ]);
-  expect(agentMessageBlocks({ role: 'bashExecution', command: 'ls', output: 'a.txt', excludeFromContext: true })).toStrictEqual([]);
+  expect(agentMessageBlocks({ role: 'bashExecution', command: 'ls', output: 'a.txt', exitCode: 0, cancelled: false, truncated: false, timestamp: 1, excludeFromContext: true })).toStrictEqual([]);
 });
 
 test('summary messages count their summary text', () => {
-  expect(agentMessageBlocks({ role: 'branchSummary', summary: 'branch' })).toStrictEqual([{ kind: 'text', text: 'branch' }]);
-  expect(agentMessageBlocks({ role: 'compactionSummary', summary: 'compacted' })).toStrictEqual([{ kind: 'text', text: 'compacted' }]);
+  expect(agentMessageBlocks({ role: 'branchSummary', summary: 'branch', fromId: null, timestamp: 1 })).toStrictEqual([{ kind: 'text', text: 'branch' }]);
+  expect(agentMessageBlocks({ role: 'compactionSummary', summary: 'compacted', tokensBefore: 0, timestamp: 1 })).toStrictEqual([{ kind: 'text', text: 'compacted' }]);
 });
 
 test('a system message counts its content and its section text', () => {

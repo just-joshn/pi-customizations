@@ -1,9 +1,8 @@
-// Request-local fitting: shrink one outgoing Anthropic payload under the
-// model's blocking threshold without producing a payload the API rejects.
 import type { ContextBudget } from './tokens.ts';
 
 export const OMITTED_MARKER = '[Pi context guard: middle of the conversation omitted to fit the model request limit]';
-const SUMMARIZATION_SYSTEM_MARKER = 'summarization assistant';
+// Pi's compaction and branch-summarization system prompt opens with this sentence.
+const SUMMARIZATION_SYSTEM_OPENING = 'You are a context summarization assistant.';
 
 interface WireMessage {
   readonly role: string;
@@ -57,7 +56,6 @@ function replaceFirstText(content: unknown, next: string): unknown {
   });
 }
 
-/** Prepends the marker as a plain text block, keeping every existing block and its cache_control. */
 function withMarker(message: WireMessage): WireMessage {
   const content = message.content;
   if (typeof content === 'string')
@@ -101,13 +99,6 @@ function utf8Tail(text: string, maxBytes: number): string {
   return text.slice(index);
 }
 
-/**
- * Shrinks Pi's serialization-shaped single user message head-and-tail. The
- * request may carry trailing system messages (the mid-conversation output
- * config), which are preserved. Only a request whose system prompt identifies
- * summarization is rewritten, so a user's own oversized first prompt is never
- * silently truncated.
- */
 function fitSummarization(captured: CapturedPayload, budget: ContextBudget, estimate: (payload: unknown) => number): unknown {
   const users = captured.messages.filter((message) => message.role === 'user');
   const [message] = users;
@@ -118,7 +109,9 @@ function fitSummarization(captured: CapturedPayload, budget: ContextBudget, esti
   if (text === undefined || text === '') return captured.payload;
   const replaced = (content: string): readonly WireMessage[] => captured.messages.map((candidate, position) => (position === index ? { ...candidate, content: replaceFirstText(candidate.content, content) } : candidate));
   const rest = estimate({ ...captured.payload, messages: replaced('') });
-  let available = Math.max(0, (budget.blockAt - 1 - rest) * budget.bytesPerToken - Buffer.byteLength(OMITTED_MARKER, 'utf8') - 2 * budget.bytesPerToken);
+  const textTokens = estimate(captured.payload) - rest;
+  const bytesPerEstimatedToken = textTokens > 0 ? Buffer.byteLength(text, 'utf8') / textTokens : budget.bytesPerToken;
+  let available = Math.max(0, Math.floor((budget.blockAt - 1 - rest) * bytesPerEstimatedToken) - Buffer.byteLength(OMITTED_MARKER, 'utf8') - 2 * budget.bytesPerToken);
   for (let attempt = 0; attempt < 4 && available > 0; attempt += 1) {
     const shrunk = `${utf8Head(text, Math.floor(available * 0.4))}${framed(OMITTED_MARKER)}${utf8Tail(text, Math.floor(available * 0.6))}`;
     const candidate = { ...captured.payload, messages: replaced(shrunk) };
@@ -128,38 +121,55 @@ function fitSummarization(captured: CapturedPayload, budget: ContextBudget, esti
   return captured.payload;
 }
 
-/**
- * Drops the smallest prefix that ends immediately before a kept, text-only
- * user message. Cutting only there preserves every tool_use/tool_result pair
- * and keeps the first message user.
- */
+type ToolChangeBlock = Readonly<Record<string, unknown>> & { readonly type: 'tool_addition' | 'tool_removal' };
+
+function isToolChangeBlock(block: unknown): block is ToolChangeBlock {
+  return isRecord(block) && (block['type'] === 'tool_addition' || block['type'] === 'tool_removal');
+}
+
+function toolChanges(dropped: readonly WireMessage[]): readonly ToolChangeBlock[] {
+  return dropped.flatMap((message) => (message.role === 'system' && Array.isArray(message.content) ? message.content.filter(isToolChangeBlock) : []));
+}
+
+function isPrompt(message: WireMessage): boolean {
+  return message.role === 'user' && !hasContentBlock(message, 'tool_result');
+}
+
+/** Keeps the prompt at `prompt` and every message from `tail` on, carrying the tool changes of what is dropped. */
+function keptAround(captured: CapturedPayload, { prompt, tail }: { prompt: number; tail: number }): unknown {
+  const { messages } = captured;
+  const kept = messages[prompt];
+  if (kept === undefined) return captured.payload;
+  const changes = toolChanges([...messages.slice(0, prompt), ...messages.slice(prompt + 1, tail)]);
+  const carried: readonly WireMessage[] = changes.length > 0 ? [{ role: 'system', content: changes }] : [];
+  return { ...captured.payload, messages: [withMarker(kept), ...carried, ...messages.slice(tail)] };
+}
+
 function fitConversation(captured: CapturedPayload, budget: ContextBudget, estimate: (payload: unknown) => number): unknown {
   const { messages } = captured;
-  let lastUser = -1;
-  for (let index = 0; index < messages.length; index += 1) if (messages[index]?.role === 'user') lastUser = index;
-  for (let start = 1; start <= lastUser; start += 1) {
-    const message = messages[start];
-    if (message === undefined) continue;
-    if (message.role !== 'user' || hasContentBlock(message, 'tool_result')) continue;
-    const candidate = { ...captured.payload, messages: [withMarker(message), ...messages.slice(start + 1)] };
+  for (let prompt = 1; prompt < messages.length; prompt += 1) {
+    const message = messages[prompt];
+    if (message === undefined || !isPrompt(message)) continue;
+    const candidate = keptAround(captured, { prompt, tail: prompt + 1 });
+    if (estimate(candidate) < budget.blockAt) return candidate;
+  }
+  // One prompt's own tool loop can outgrow the window. A tail that starts at an assistant turn keeps every tool_use with its tool_result.
+  const latest = messages.findLastIndex(isPrompt);
+  for (let tail = latest + 2; latest >= 0 && tail < messages.length; tail += 1) {
+    if (messages[tail]?.role !== 'assistant') continue;
+    const candidate = keptAround(captured, { prompt: latest, tail });
     if (estimate(candidate) < budget.blockAt) return candidate;
   }
   return captured.payload;
 }
 
-/** True for Pi's compaction and branch-summarization requests. */
 export function isSummarizationRequest(payload: unknown): boolean {
   if (!isRecord(payload)) return false;
   const system = payload['system'];
-  const text = typeof system === 'string' ? system : Array.isArray(system) ? system.flatMap((block) => (isRecord(block) && typeof block['text'] === 'string' ? [block['text']] : [])).join('\n') : '';
-  return text.toLowerCase().includes(SUMMARIZATION_SYSTEM_MARKER);
+  const texts = typeof system === 'string' ? [system] : Array.isArray(system) ? system.flatMap((block) => (isRecord(block) && typeof block['text'] === 'string' ? [block['text']] : [])) : [];
+  return texts.some((text) => text.trimStart().startsWith(SUMMARIZATION_SYSTEM_OPENING));
 }
 
-/**
- * Returns the payload unchanged when it already fits or cannot validly be
- * shrunk. A single message larger than the model window is that boundary; the
- * endpoint's rejection then surfaces exactly as it does today.
- */
 export function fitPayload(payload: unknown, budget: ContextBudget, estimate: (payload: unknown) => number): unknown {
   const captured = capture(payload);
   if (!captured || estimate(payload) < budget.blockAt) return payload;

@@ -1,22 +1,3 @@
-// Proves the claude-subscription context guard on the real RPC surface.
-//
-// The probe seeds a session on a second provider (`probe-foreign`) whose
-// endpoint reports usage for a tokenizer that counts the same text more
-// cheaply, then switches to claude-subscription. Pi's estimate trusts the
-// foreign usage and stays below its own threshold, while Anthropic's tokenizer
-// sees a request over the model window.
-//
-// RED (before the guard): the endpoint rejects the prompt with `prompt is too
-// long`, the overflow-recovery summarization request is itself over the window
-// (it serializes the whole foreign-grown session), and no compaction entry
-// lands, so a second prompt wedges the same way.
-// GREEN (with the guard): the wire fit keeps the first request under the
-// window, the guard compacts once that run settles, each summarization piece
-// fits, and the next run carries the compaction summary.
-//
-// Usage:
-//   node --experimental-strip-types scripts/prove-context-guard.ts --expect red
-//   PI_OAUTH_CLI_PATH=<install>/dist/bundle/cli.js node --experimental-strip-types scripts/prove-context-guard.ts --expect green
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import type { ServerResponse } from 'node:http';
@@ -36,12 +17,8 @@ const MODEL = 'claude-opus-5-5';
 const MODEL_REFERENCE = `${PROVIDER}/${MODEL}`;
 const FOREIGN_PROVIDER = 'probe-foreign';
 const FOREIGN_MODEL = 'probe-foreign-1';
-// The probe pins the subscription model window to 200k so the fixture prompts
-// stay small. The foreign provider keeps a 1M window.
 const CONTEXT_WINDOW = 200_000;
-// The endpoint's tokenizer. Claude Code's bytesPerToken for claude-opus-5-5.
 const WIRE_BYTES_PER_TOKEN = 3;
-// The tokenizer of the foreign provider whose usage Pi's baseline trusts.
 const FOREIGN_BYTES_PER_TOKEN = 4.5;
 const SUMMARIZATION_SYSTEM = 'You are a context summarization assistant.';
 const COMPACTION_MARKER = 'The conversation history before this point was compacted into the following summary:';
@@ -93,8 +70,7 @@ function contentBlocks(message: Record<string, unknown>): readonly unknown[] {
 
 // Anthropic rejects a payload whose first message is not user, whose
 // tool_result has no preceding tool_use, or that appends content after a
-// tool_result, or that carries more than four cache breakpoints. A fit that
-// breaks them must fail the probe, not pass it.
+// tool_result, or that carries more than four cache breakpoints.
 function payloadViolations(body: unknown): readonly string[] {
   if (!isRecord(body)) return ['body is not an object'];
   const messages = messagesOf(body);

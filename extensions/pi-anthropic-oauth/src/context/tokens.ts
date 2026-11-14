@@ -1,7 +1,5 @@
-// Claude Code's token accounting, extracted from the installed 2.1.311 bundle
-// and unchanged through 2.1.316. One definition of "how this provider counts
-// tokens" for the whole extension.
-import type { Api, AssistantMessage, ImageContent, Message, Model, SystemMessage, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
+import type { Api, AssistantMessage, ImageContent, Model, SystemMessage, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
+import type { SessionProjection } from '@earendil-works/pi-coding-agent';
 
 export type BytesPerToken = 3 | 4;
 
@@ -11,32 +9,7 @@ export interface ContextBudget {
   readonly blockAt: number;
 }
 
-// The coding-agent message shapes beyond pi-ai's Message union. Declared
-// structurally because @earendil-works/pi-agent-core is not a declared
-// dependency, and because the pure counting functions take plain data.
-export interface CustomMessage {
-  readonly role: 'custom';
-  readonly content: string | readonly (TextContent | ImageContent)[];
-}
-
-export interface BashExecutionMessage {
-  readonly role: 'bashExecution';
-  readonly command: string;
-  readonly output: string;
-  readonly excludeFromContext?: boolean;
-}
-
-export interface BranchSummaryMessage {
-  readonly role: 'branchSummary';
-  readonly summary: string;
-}
-
-export interface CompactionSummaryMessage {
-  readonly role: 'compactionSummary';
-  readonly summary: string;
-}
-
-export type AgentMessage = Message | CustomMessage | BashExecutionMessage | BranchSummaryMessage | CompactionSummaryMessage;
+export type AgentMessage = SessionProjection['messages'][number];
 
 export type CountedBlock =
   | { readonly kind: 'text'; readonly text: string }
@@ -46,10 +19,8 @@ export type CountedBlock =
   | { readonly kind: 'image' }
   | { readonly kind: 'json'; readonly json: string };
 
-/** Claude Code charges one flat rate for an image or document block. */
 export const IMAGE_TOKENS = 2000;
 
-// Claude Code's 14-name four-bytes-per-token set. Every other name is 3.
 const FOUR_BYTE_MODELS: ReadonlySet<string> = new Set([
   'claude-3-opus',
   'claude-3-sonnet',
@@ -67,12 +38,6 @@ const FOUR_BYTE_MODELS: ReadonlySet<string> = new Set([
   'claude-haiku-4-5',
 ]);
 
-/**
- * Claude Code's four-bytes-per-token check (`gy` in the 2.1.311 bundle). A
- * missing id is 4; the 14 named models are 4; every other model is 3. A
- * trailing eight-digit date names a variant of the same model, so a dated
- * alias resolves to its family. Dots and underscores normalize to dashes.
- */
 export function bytesPerToken(modelId: string): BytesPerToken {
   if (modelId === '') return 4;
   const normalized = modelId.toLowerCase().replace(/[._]/g, '-');
@@ -95,8 +60,6 @@ function byteLength(text: string): number {
 }
 
 function textTokens(text: string, bpt: BytesPerToken): number {
-  // Claude Code rounds per block; a UTF-16 .length would undercount CJK and
-  // base64, so this deliberately measures UTF-8 bytes instead.
   return Math.round(byteLength(text) / bpt);
 }
 
@@ -157,8 +120,6 @@ function assistantBlocks(message: AssistantMessage): readonly CountedBlock[] {
   });
 }
 
-// A tool result's text is one counted unit with its images charged flat, so a
-// base64 image never inflates the estimate to its wire size.
 function toolResultBlocks(content: readonly (TextContent | ImageContent)[]): readonly CountedBlock[] {
   let text = '';
   let imageCount = 0;
@@ -169,7 +130,6 @@ function toolResultBlocks(content: readonly (TextContent | ImageContent)[]): rea
   return [{ kind: 'toolResult', content: text, imageCount }];
 }
 
-/** The projection shapes Pi hands to a request estimator. */
 export function agentMessageBlocks(message: AgentMessage): readonly CountedBlock[] {
   switch (message.role) {
     case 'user':
@@ -254,30 +214,20 @@ function wireToolBlocks(tools: unknown): readonly CountedBlock[] {
   });
 }
 
-/** The exact Anthropic wire shapes, validated structurally. */
 export function wireMessageBlocks(message: unknown): readonly CountedBlock[] {
   if (!isRecord(message)) return [];
   return wireContentBlocks(message['content']);
 }
 
-/** The estimate over Pi's projected, pre-conversion messages. */
 export function estimateMessages(messages: readonly AgentMessage[], bpt: BytesPerToken): number {
   let total = 0;
   for (const [index, message] of messages.entries()) {
-    // The leading system message is the request's rendered prompt, which the
-    // caller passes separately. Later system messages carry instruction,
-    // section, and tool additions that do reach the wire.
     if (index === 0 && message.role === 'system') continue;
     total += countBlocks(agentMessageBlocks(message), bpt);
   }
   return total;
 }
 
-/**
- * The estimate over the exact outgoing payload: every system block,
- * every tool declaration, and every message, including mid-conversation
- * system blocks that carry tool additions or removals.
- */
 export function payloadTokens(payload: unknown, bpt: BytesPerToken): number {
   if (!isRecord(payload)) return 0;
   const messages = payload['messages'];
@@ -285,10 +235,6 @@ export function payloadTokens(payload: unknown, bpt: BytesPerToken): number {
   return countBlocks([...wireContentBlocks(payload['system']), ...wireToolBlocks(payload['tools']), ...messageBlocks], bpt);
 }
 
-/**
- * The wire model id when the payload carries one, so an observation can pick
- * the right bytes-per-token rule without shared mutable state.
- */
 export function payloadModelId(payload: unknown): string | undefined {
   if (!isRecord(payload)) return undefined;
   const model = payload['model'];
