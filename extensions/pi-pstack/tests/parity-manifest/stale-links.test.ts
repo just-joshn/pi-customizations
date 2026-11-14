@@ -1,6 +1,10 @@
+import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { afterEach, describe, expect, test } from 'vitest';
 import { absentLinkedTests } from '../../scripts/parity-lib.mjs';
-import { type MiniRoot, miniRoot, script } from './helpers.ts';
+import { type MiniRoot, miniRoot, PKG, script } from './helpers.ts';
 
 let mini: MiniRoot;
 afterEach(() => mini?.cleanup());
@@ -28,6 +32,19 @@ describe('a requirement that links a test the suite no longer has', () => {
       { report: reported('a test'), identity: { platform: 'linux' } },
     ];
     expect(absentLinkedTests([link('a test')], runs, '/x')).toEqual([]);
+  });
+
+  test('a local report keeps its execution root when imported from another checkout', () => {
+    mini = miniRoot();
+    const path = mini.report({ 'suite passes': 'passed' });
+    const report = JSON.parse(readFileSync(path, 'utf8'));
+    report.testResults[0].name = '/original-checkout/tests/t.test.ts';
+    mini.write('parity-results/local/vitest-report.json', JSON.stringify(report));
+    mini.write('parity-results/local/vitest-report.identity.json', JSON.stringify({ resultsSource: 'local', root: '/original-checkout', platform: process.platform, commit: '0'.repeat(40), dirty: false, sourceDigest: '0'.repeat(64) }));
+    const result = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--results', path, '--no-docs'], { encoding: 'utf8' });
+    expect(result.status, result.stderr).toBe(0);
+    const manifest = JSON.parse(readFileSync(join(mini.root, 'generated/parity-manifest.json'), 'utf8'));
+    expect(manifest.requirements.every((r: { status: string }) => r.status === 'PASS')).toBe(true);
   });
 
   test('stops the manifest builder, which writes nothing', () => {

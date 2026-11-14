@@ -5,14 +5,16 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { toolchain, toolchainNotes } from '../../scripts/parity-lib.mjs';
-import { type MiniRoot, miniRoot, PKG } from './helpers.ts';
+import { type MiniRoot, miniRoot, PKG, zipFixture } from './helpers.ts';
 
 let mini: MiniRoot;
 let fakeBin = '';
+let runtimePi: string | undefined;
 afterEach(() => {
   mini?.cleanup();
   if (fakeBin) rmSync(fakeBin, { recursive: true, force: true });
   fakeBin = '';
+  runtimePi = undefined;
 });
 
 const git = (...args: string[]) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: mini.root, encoding: 'utf8' });
@@ -47,6 +49,8 @@ interface Fake {
 
 /** `npx vitest run --reporter=json --outputFile=<path>` replaced by a script that writes the given report and exits as told. */
 function build(fake: Fake, ...extra: string[]) {
+  runtimePi = fake.pi;
+  zipFixture(mini.root, toolchain({ PSTACK_E2E_PI: runtimePi }).piVersion);
   fakeBin ||= mkdtempSync(join(tmpdir(), 'pstack-fake-npx-'));
   const reportFile = join(fakeBin, 'report.json');
   if (fake.rawReport !== undefined) writeFileSync(reportFile, fake.rawReport);
@@ -63,20 +67,24 @@ exit ${fake.exit ?? 0}
 `,
   );
   chmodSync(join(fakeBin, 'npx'), 0o755);
-  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', ...extra], {
+  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', '--zip-evidence', join(mini.root, 'parity-results/zip-evidence.json'), ...extra], {
     encoding: 'utf8',
     env: { ...process.env, ...(fake.pi === undefined ? {} : { PSTACK_E2E_PI: fake.pi }), PATH: `${fakeBin}:${process.env['PATH']}` },
   });
   return { status: r.status, stderr: r.stderr };
 }
 const gate = () => {
-  const r = spawnSync(process.execPath, [join(PKG, 'scripts/check-release.mjs'), '--root', mini.root], { encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [join(PKG, 'scripts/check-release.mjs'), '--root', mini.root], { encoding: 'utf8', env: { ...process.env, ...(runtimePi ? { PSTACK_E2E_PI: runtimePi } : {}) } });
   return { status: r.status, stderr: r.stderr };
 };
 const manifestPath = () => join(mini.root, 'generated/parity-manifest.json');
 const manifest = () => JSON.parse(readFileSync(manifestPath(), 'utf8'));
 const saved = () => join(mini.root, 'parity-results/local/vitest.json');
-const importReport = () => spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', '--results', saved()], { encoding: 'utf8' });
+const importReport = () =>
+  spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', '--zip-evidence', join(mini.root, 'parity-results/zip-evidence.json'), '--results', saved()], {
+    encoding: 'utf8',
+    env: { ...process.env, ...(runtimePi ? { PSTACK_E2E_PI: runtimePi } : {}) },
+  });
 const passing = { 'suite passes': 'passed' };
 
 const repo = () => {

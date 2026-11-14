@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Derives every requirement's status from a Vitest JSON report and writes generated/parity-manifest.json and the
-// generated section of docs/parity-status.md. Status is never taken from the requirements source.
+// Derives legacy statuses from Vitest and evaluates the separate ZIP experiment receipts. Writes generated/parity-manifest.json
+// and the generated section of docs/parity-status.md. Missing ZIP evidence retains explicit unresolved verdicts.
 //   node scripts/build-parity-manifest.mjs                 runs `npx vitest run --reporter=json` first
 //   node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json   runs Vitest and keeps the report and its sidecar
 //   node scripts/build-parity-manifest.mjs --results r.json  uses a report you already have
@@ -33,8 +33,11 @@ import {
   UNATTRIBUTED,
   vitestRunOutcome,
 } from './parity-lib.mjs';
+import { evaluateZip } from './zip-contract.mjs';
 
-const { values } = parseArgs({ options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, save: { type: 'string' }, out: { type: 'string' }, docs: { type: 'string' }, 'no-docs': { type: 'boolean' } } });
+const { values } = parseArgs({
+  options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, save: { type: 'string' }, out: { type: 'string' }, docs: { type: 'string' }, 'zip-evidence': { type: 'string' }, 'no-docs': { type: 'boolean' } },
+});
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 
 const inputs = loadInputs(root);
@@ -69,13 +72,13 @@ if (!resultFiles.length || values.save) {
     console.error(`parity manifest: ${appeared.length ? `files changed while Vitest ran (${appeared.join(', ')})` : 'git status failed'}, so the report cannot be attributed to the committed tree; nothing written`);
     process.exit(1);
   }
-  const identity = runIdentity(root, report, 'local', { commit: before.commit, dirty: before.dirty, sourceDigest: before.sourceDigest, ...toolchain() });
+  const identity = runIdentity(root, report, 'local', { root, commit: before.commit, dirty: before.dirty, sourceDigest: before.sourceDigest, ...toolchain() });
   if (values.save) {
     const target = resolve(values.save);
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, reportText);
     const { platform, commit, dirty, sourceDigest, piPath, piVersion, nodeVersion } = identity;
-    writeFileSync(target.replace(/\.json$/, '.identity.json'), `${JSON.stringify({ resultsSource: 'local', platform, commit, dirty, sourceDigest, piPath, piVersion, nodeVersion }, null, 2)}\n`);
+    writeFileSync(target.replace(/\.json$/, '.identity.json'), `${JSON.stringify({ resultsSource: 'local', root, platform, commit, dirty, sourceDigest, piPath, piVersion, nodeVersion }, null, 2)}\n`);
   }
   loaded.push({ report, identity });
 }
@@ -113,6 +116,7 @@ const manifest = {
   runs: loaded.map((l) => l.identity),
   counts: tally(requirements),
   requirements,
+  zip: evaluateZip(root, inputs, values['zip-evidence'] ?? null, toolchain().piVersion),
 };
 writeFileSync(resolve(root, values.out ?? 'generated/parity-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 if (!values['no-docs']) {

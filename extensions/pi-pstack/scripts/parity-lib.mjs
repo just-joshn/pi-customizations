@@ -396,7 +396,7 @@ const DEFAULT_PI = '/Users/josh-desktop/.pi/agent/bin/pi';
 export function toolchain(env = process.env) {
   const piPath = env.PSTACK_E2E_PI || DEFAULT_PI;
   const ran = spawnSync(piPath, ['--version'], { encoding: 'utf8', timeout: 30_000 });
-  const reported = ran.status === 0 ? (ran.stdout.trim() || ran.stderr.trim()) : '';
+  const reported = ran.status === 0 ? ran.stdout.trim() || ran.stderr.trim() : '';
   return { piPath, piVersion: reported || null, nodeVersion: process.version };
 }
 
@@ -422,7 +422,10 @@ export function sidecarIdentity(sidecar) {
     if (!/^[0-9a-f]{64}$/.test(sidecar.sourceDigest ?? '')) missing.push('sourceDigest');
     if (typeof sidecar.dirty !== 'boolean') missing.push('dirty');
     if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
-    return { identity: { resultsSource: 'local', platform: sidecar.platform, commit: sidecar.commit, dirty: sidecar.dirty, sourceDigest: sidecar.sourceDigest, ...recordedToolchain(sidecar) } };
+    if (sidecar.root !== undefined && (typeof sidecar.root !== 'string' || !isAbsolute(sidecar.root))) return { problem: 'identity root must be an absolute execution directory' };
+    return {
+      identity: { resultsSource: 'local', ...(sidecar.root ? { root: sidecar.root } : {}), platform: sidecar.platform, commit: sidecar.commit, dirty: sidecar.dirty, sourceDigest: sidecar.sourceDigest, ...recordedToolchain(sidecar) },
+    };
   }
   const missing = SIDECAR_FIELDS.filter((f) => typeof sidecar?.[f] !== 'string' || !sidecar[f].trim());
   if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
@@ -485,7 +488,10 @@ export function renderStatusSection(manifest) {
     '',
     '| Result | Platform | Commit | Pi | Node | Tests | Run |',
     '| --- | --- | --- | --- | --- | --- | --- |',
-    ...(manifest.runs ?? [run]).map((r, i) => `| ${i + 1} | ${r.platform ?? 'unknown'} | \`${r.commit?.slice(0, 12) ?? 'unknown'}\`${r.dirty ? ' (dirty tree)' : ''} | ${r.piVersion ?? 'unknown'} | ${r.nodeVersion ?? 'unknown'} | ${r.passedTests ?? '?'} passed, ${r.failedTests ?? '?'} failed, ${r.skippedTests ?? '?'} skipped | ${r.runUrl ?? `${r.resultsSource ?? 'local'} at ${r.generatedAt}`} |`),
+    ...(manifest.runs ?? [run]).map(
+      (r, i) =>
+        `| ${i + 1} | ${r.platform ?? 'unknown'} | \`${r.commit?.slice(0, 12) ?? 'unknown'}\`${r.dirty ? ' (dirty tree)' : ''} | ${r.piVersion ?? 'unknown'} | ${r.nodeVersion ?? 'unknown'} | ${r.passedTests ?? '?'} passed, ${r.failedTests ?? '?'} failed, ${r.skippedTests ?? '?'} skipped | ${r.runUrl ?? `${r.resultsSource ?? 'local'} at ${r.generatedAt}`} |`,
+    ),
     '',
     '| Kind | PASS | FAIL | INCONCLUSIVE | N/A |',
     '| --- | --- | --- | --- | --- |',
@@ -499,6 +505,19 @@ export function renderStatusSection(manifest) {
   else {
     lines.push('| Requirement | Status | Why |', '| --- | --- | --- |');
     for (const r of open) lines.push(`| \`${r.id}\` | ${r.status} | ${cell(r.reason)} |`);
+  }
+  if (manifest.zip) {
+    lines.push(
+      '',
+      '### Audited ZIP acceptance',
+      '',
+      `ZIP acceptance is ${manifest.zip.status}. Legacy test counts do not establish ZIP acceptance. Each mandatory experiment and obligation needs current explicit evidence.`,
+      '',
+      '| ZIP requirement | Status | Source | Evidence or unresolved gap |',
+      '| --- | --- | --- | --- |',
+    );
+    for (const r of manifest.zip.requirements) lines.push(`| \`${r.id}\` | ${r.status} | ${r.source.document}:${r.source.lines.join('-')} | ${cell(r.reason)} |`);
+    for (const problem of manifest.zip.problems) lines.push('', `ZIP integrity problem: ${cell(problem)}`);
   }
   lines.push('', MARKERS[1]);
   return lines.join('\n');
