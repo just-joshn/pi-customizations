@@ -1,10 +1,13 @@
 import { readFileSync } from 'node:fs';
 
+import { type Static, Type } from 'typebox';
 import { expect, test } from 'vitest';
 import { attestBody, attestedBytes, CCH_PLACEHOLDER, cchDigest, xxh64 } from '../src/attestation.ts';
+import { parseJson } from './support/json.ts';
 
-type Capture = { cch: string; body: string };
-const captures: Capture[] = (JSON.parse(readFileSync(new URL('./fixtures/claude-cch-2.1.316.json', import.meta.url), 'utf8')) as { bodies: Capture[] }).bodies;
+const Capture = Type.Object({ cch: Type.String(), body: Type.String() });
+type Capture = Static<typeof Capture>;
+const captures: readonly Capture[] = parseJson(Type.Object({ bodies: Type.Array(Capture) }), readFileSync(new URL('./fixtures/claude-cch-2.1.316.json', import.meta.url), 'utf8')).bodies;
 
 function unattested(capture: Capture): string {
   return capture.body.replace(`cch=${capture.cch}`, CCH_PLACEHOLDER);
@@ -38,4 +41,16 @@ test('a body without the placeholder near the system array is unchanged', () => 
   const far = `{"model":"a","system":[{"text":"${'x'.repeat(400)}cch=00000;"}]}`;
   expect(attestBody(far)).toBe(far);
   expect(attestBody('{"model":"a"}')).toBe('{"model":"a"}');
+});
+
+test('a "system" array inside an earlier tool input does not hide the billing placeholder', () => {
+  const body = JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    messages: [
+      { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_1', name: 'Read', input: { path: 'a', system: ['x'] } }] },
+      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'y'.repeat(400) }] },
+    ],
+    system: [{ type: 'text', text: `x-anthropic-billing-header: cc_version=2.1.316.000; cc_entrypoint=sdk-cli; ${CCH_PLACEHOLDER};` }],
+  });
+  expect(attestBody(body)).toContain(`cch=${cchDigest(Buffer.from(body))};`);
 });
