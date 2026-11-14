@@ -223,7 +223,7 @@ function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real', realModel: str
 
 type RpcEvent = { type: string } & Json;
 
-class Rpc {
+export class Rpc {
   readonly events: RpcEvent[] = [];
   stderr = '';
   private buffer = '';
@@ -240,6 +240,7 @@ class Rpc {
     this.json = json;
     child.once('error', (error) => this.ended(`failed to start (${error.message})`));
     child.once('close', (code, signal) => this.ended(`exited (code ${code}, signal ${signal})`));
+    child.stdin?.on('error', (error) => this.ended(`closed its stdin (${error.message})`));
     child.stderr?.on('data', (chunk: Buffer) => {
       this.stderr += chunk.toString('utf8');
     });
