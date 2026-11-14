@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, lineOf } from '../fixtures/repos.ts';
-import { check, fail, pass, src, when } from '../lib/check.ts';
+import { check, fail, pass, scriptedProbe, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
@@ -529,7 +529,7 @@ export const showWorkFamily: Family = {
     }),
     settledAndCollected('trail.settled-and-collected', src('show-me-your-work/SKILL.md', '## Cross-model review of the trail')),
     noToolErrors('trail.no-tool-errors', src('show-me-your-work/SKILL.md', '## Logging a row')),
-  ],
+  ].map((entry) => entry.id === 'trail.append-only-wrong-call-gets-a-superseding-row' ? scriptedProbe(entry) : entry),
   negatives: [
     { name: 'the trail is at decisions.tsv in the work dir, not in the run directory', mutate: (sandbox) => renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/decisions.tsv')), fails: [], passes: ['trail.log-format', 'trail.append-only-wrong-call-gets-a-superseding-row'] },
     { name: 'the trail is at .audit/cart.tsv, as the skill allows when several efforts run at once', mutate: (sandbox) => { mkdirSync(join(sandbox, 'repo/.audit')); renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/.audit/cart.tsv')); }, fails: [], passes: ['trail.log-format'] },
