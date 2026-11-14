@@ -709,38 +709,11 @@ The extension handles only the mechanical guarantees that are unreliable as pros
 
 ### 11.1 `TODO.md` is the workflow checkpoint
 
-At the start of a run, the parent reads the selected playbook and writes its original numbered steps into the run's `TODO.md`, before adding task-specific steps.
+At the start of a run, the coordinator reads the selected playbook. The first section of its `TODO.md` contains the byte-identical numbered-step block from `vendor/upstream-pstack/skills/poteto-mode/playbooks/<name>.md` at `3dbd22ff12742fb28c9700b9760baa29ed41dc13`. Preserve the original whitespace and order. Do not insert checkboxes, status, or Pi translations into that immutable historical source block.
 
-Example structure:
+A separate status ledger follows it. Each stable step number links to `pending`, `running`, `passed`, `blocked`, or `skipped`, its required proof, pinned source pointer, and evidence receipt IDs. A skipped step remains in the ledger with a one-line `skip: <reason>`. Missing access is blocked, not skipped. Task-specific work follows the ledger under `## Task-specific work`.
 
-```
-# Feature: Add an export command
-
-Source playbook: feature.md
-Upstream revision: 5866df557357
-
-## Original playbook steps
-- [ ] 1. `how` over the affected subsystem.
-- [ ] 2. `architect` for parallel design exploration.
-- [ ] 3. Write the throughput checkpoint as four todo items.
-- [ ] 4. Delegate code-writing to a worker.
-- [ ] 5. Verify on the matching surface.
-- [ ] 6. Rebase into small, ordered commits. Stack follow-ups.
-- [ ] 7. If the design is contested, `interrogate` before shipping.
-- [ ] 8. Run Opening a PR.
-
-## Task-specific work
-- [ ] Define the export data shape.
-- [ ] Characterize existing output behavior.
-- [ ] Implement one verifiable change.
-- [ ] Prove output compatibility.
-```
-
-This illustrates the layout. The actual generator must copy the complete upstream step wording, including nested instructions, not use the abbreviated example above.
-
-Each completion records its supporting evidence. Skipped upstream steps remain visible with an explicit `skip:` reason. A failed verification stays incomplete.
-
-The parent is the sole writer of its run's `TODO.md`. Workers return receipts and recommendations. This eliminates concurrent task-file edits.
+The coordinator is the sole writer. Workers return receipts and recommendations or use their own worktree TODO. `scripts/start-run.mjs` writes updates atomically and refuses source-byte changes. Only one run is active per worktree. Archive its TODO snapshot with `--run-id <id> --archive` at durable handoff before starting another run. The existing run-state layout remains unchanged.
 
 ### 11.2 Plans are files, not an execution mode
 

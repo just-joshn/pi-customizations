@@ -735,8 +735,8 @@ function blockedFamily(kind: BlockedKind): Family {
     negatives: [
       ...(kind === 'ForgeUnavailable' ? [{ name: 'the kept no-token reply reports the blocker and no landing in different words', mutate: (sandbox: string) => rewriteFinalReply(sandbox, /^.*$/s, readFileSync(new URL('../fixtures/shipping-no-forge-token-reply.txt', import.meta.url), 'utf8')), fails: [], passes: ['ship.blocked.reply-reports-blocked'] }] : []),
       { name: 'the reply omits the blocker', mutate: (sandbox) => rewriteFinalReply(sandbox, /^.*$/s, `Nothing landed. ${kind}. Every PR is still open and unchanged.`), fails: ['ship.blocked.reply-reports-blocked'] },
-      { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, 1, ' '), fails: ['todo.shipping.every-step-resolved'] },
-      { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, 2, '~', (line) => line.replace(/ \(skip: [^)]*\)/, '')), fails: ['todo.shipping.skips-explained'] },
+      { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, 1, 'pending'), fails: ['todo.shipping.every-step-resolved'] },
+      { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, 2, 'skipped', (entry) => ({ ...entry, skip: null })), fails: ['todo.shipping.skips-explained'] },
       { name: 'a playbook step was deleted from TODO.md', mutate: (sandbox) => deleteStep(sandbox, runId, 3), fails: ['todo.shipping.steps-verbatim-in-order'] },
       { name: 'a local worktree verifier was used instead', mutate: (sandbox) => patchAssignment(sandbox, runId, 'verifier-21', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: (assignment['workspace'] as { inputCommit: string }).inputCommit })), fails: ['ship.blocked.no-local-fallback-verifies'] },
       { name: 'the PR was merged anyway', mutate: (sandbox) => editForge(sandbox, (actions, state) => { actions.push({ kind: 'merge', tool: 'gh', pr: 21, worker: '', run: '', actor: '', container: false }); (state.prs['21'] as { state: string }).state = 'MERGED'; }), fails: ['ship.blocked.lands-nothing'] },

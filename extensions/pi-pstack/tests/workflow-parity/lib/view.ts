@@ -4,6 +4,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { immutableTodoBlock, readTodoLedger, type TodoStatus, upstreamSteps } from '../../../src/todo.ts';
+
 export type Json = Record<string, unknown>;
 
 export interface ToolCall {
@@ -153,8 +155,8 @@ export interface WorkerView {
 
 export interface TodoStep {
   n: number;
-  state: 'open' | 'done' | 'skipped';
-  /** The complete step text: first line and nested lines, without the checkbox prefix. */
+  state: TodoStatus;
+  /** The immutable source step text, separate from its status. */
   text: string;
   evidence: string[];
   skip: string | null;
@@ -221,30 +223,19 @@ export interface RunView {
   prompt: string;
 }
 
-export const STEP_LINE = /^- \[( |x|X|~)\] (\d+)\. /;
-
 export function parseTodoSteps(text: string): TodoStep[] {
-  const lines = text.split('\n');
-  const section = lines.findIndex((line) => line === '## Original playbook steps');
-  const end = lines.findIndex((line, index) => index > section && line.startsWith('## '));
-  const body = section === -1 ? [] : lines.slice(section + 1, end === -1 ? lines.length : end);
-  const blocks: string[][] = [];
-  for (const line of body) {
-    if (STEP_LINE.test(line)) blocks.push([line]);
-    else blocks.at(-1)?.push(line);
+  try {
+    const source = upstreamSteps(immutableTodoBlock(Buffer.from(text))).steps;
+    return readTodoLedger(text).map((entry) => ({
+      n: entry.n,
+      state: entry.status,
+      text: source.find((step) => step.n === entry.n)?.text ?? '',
+      evidence: entry.evidence,
+      skip: entry.skip === null ? null : entry.skip.slice(6),
+    }));
+  } catch {
+    return [];
   }
-  return blocks.map((block) => {
-    const head = STEP_LINE.exec(block[0] as string) as RegExpExecArray;
-    const all = block.join('\n');
-    const evidence = [...all.matchAll(/\(evidence: ([^)]+)\)/g)].flatMap((found) => (found[1] ?? '').split(/[,\s]+/).filter(Boolean));
-    return {
-      n: Number(head[2]),
-      state: head[1] === '~' ? 'skipped' : head[1] === ' ' ? 'open' : 'done',
-      text: all.slice(head[0].length).trimEnd(),
-      evidence,
-      skip: /\(skip: ([^)]*)\)/.exec(all)?.[1] ?? null,
-    };
-  });
 }
 
 function readJson(path: string): Json | null {

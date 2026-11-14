@@ -1,7 +1,7 @@
 // /pstack (spec 8.3): the operator's one command. It turns the persistent style on and off, diagnoses the install,
 // lists and controls runs and workers, and starts the automation event sources as watch workers.
 import { createHash } from 'node:crypto';
-import { existsSync, writeSync, linkSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, linkSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, writeSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -15,6 +15,7 @@ import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rp
 import { appendEvent, loadAssignment, parseRunId, parseWorkerId, projectRoot, type RunId, readHostState, readRun, runRootOf, runsDir, tmuxSessionName, type WorkerId, workerDirOf, writeJsonAtomic } from './run-files.ts';
 import { GENERATED_SKILLS, generatedSkillNames, type SlashConflict } from './skill-routing.ts';
 import { STYLE_SKILL, setStyle, styleOn, styleSkillPath } from './style.ts';
+import { immutableTodoBlock, readTodoLedger, type TodoStatus, upstreamSteps, validateTodoSource } from './todo.ts';
 import { type SpawnOptions, spawnAssignment, workerSocket } from './workers.ts';
 
 export const MODELS_PATH = join(homedir(), '.pi', 'agent', 'pstack', 'models.json');
@@ -54,15 +55,21 @@ export function parsePstackArgs(args: string): PstackCommand {
 // ---- TODO.md audit (contract "TODO.md")
 
 export interface TodoItem {
-  state: 'open' | 'done' | 'skipped';
+  state: TodoStatus;
   title: string;
   evidence: string[];
   skip: string | null;
 }
 
-/** Checkbox items of TODO.md. A step's nested lines belong to it, so its evidence or skip note may sit on any of them. */
+/** Source statuses come only from the ledger. Task-specific checkboxes never alter the historical source. */
 export function parseTodo(text: string): TodoItem[] {
-  const items: TodoItem[] = [];
+  const steps = upstreamSteps(immutableTodoBlock(Buffer.from(text))).steps;
+  const items: TodoItem[] = readTodoLedger(text).map((entry) => ({
+    state: entry.status,
+    title: steps.find((step) => step.n === entry.n)?.text.split(/\r?\n/)[0] ?? `Step ${entry.n}`,
+    evidence: entry.evidence,
+    skip: entry.skip === null ? null : entry.skip.slice(6),
+  }));
   let block: string[] = [];
   const flush = () => {
     const all = block.join('\n');
@@ -71,9 +78,9 @@ export function parseTodo(text: string): TodoItem[] {
     if (match === null) return;
     const evidence = [...all.matchAll(/\(evidence: ([^)]+)\)/g)].flatMap((found) => (found[1] ?? '').split(/[,\s]+/).filter(Boolean));
     const skip = /\(skip: ([^)]*)\)/.exec(all)?.[1] ?? null;
-    items.push({ state: match[1] === '~' ? 'skipped' : match[1] === ' ' ? 'open' : 'done', title: match[2] ?? '', evidence, skip });
+    items.push({ state: match[1] === '~' ? 'skipped' : match[1] === ' ' ? 'pending' : 'passed', title: match[2] ?? '', evidence, skip });
   };
-  for (const line of text.split('\n')) {
+  for (const line of (text.split('## Task-specific work\n')[1] ?? '').split('\n')) {
     if (/^- \[/.test(line) || /^#/.test(line)) {
       flush();
       block = [line];
@@ -85,7 +92,7 @@ export function parseTodo(text: string): TodoItem[] {
 
 export interface AuditLine {
   item: TodoItem;
-  verdict: 'pass' | 'fail' | 'inconclusive' | 'open' | 'skipped';
+  verdict: 'pass' | 'fail' | 'inconclusive' | 'open' | 'blocked' | 'skipped';
   notes: string[];
 }
 
@@ -93,9 +100,13 @@ export interface AuditLine {
 export function auditRun(runRoot: string, runId: RunId): AuditLine[] {
   const todo = join(runRoot, 'TODO.md');
   if (!existsSync(todo)) throw new Error(`Run ${runId} has no TODO.md`);
+  const run = readRun(runRoot);
+  const bytes = readFileSync(todo);
+  if (run.playbook !== null) validateTodoSource(bytes, readFileSync(join(PACKAGE_ROOT, 'vendor/upstream-pstack/skills/poteto-mode/playbooks', `${run.playbook}.md`)), run.playbook, run.upstreamRevision);
   const receipts = listReceipts(runRoot, runId);
-  return parseTodo(readFileSync(todo, 'utf8')).map((item): AuditLine => {
-    if (item.state === 'open') return { item, verdict: 'open', notes: [] };
+  return parseTodo(bytes.toString('utf8')).map((item): AuditLine => {
+    if (item.state === 'pending' || item.state === 'running') return { item, verdict: 'open', notes: [item.state] };
+    if (item.state === 'blocked') return { item, verdict: 'blocked', notes: ['blocked, not completed or skipped'] };
     if (item.state === 'skipped') return { item, verdict: 'skipped', notes: [item.skip === null ? 'skipped with no reason' : `skip: ${item.skip}`] };
     if (item.evidence.length === 0) return { item, verdict: 'inconclusive', notes: ['marked done with no evidence receipt'] };
     const notes: string[] = [];
@@ -114,12 +125,12 @@ export function auditRun(runRoot: string, runId: RunId): AuditLine[] {
   });
 }
 
-const AUDIT_MARK: Record<AuditLine['verdict'], string> = { pass: '[x] pass', fail: '[x] FAIL', inconclusive: '[x] UNPROVEN', open: '[ ]', skipped: '[~]' };
+const AUDIT_MARK: Record<AuditLine['verdict'], string> = { pass: 'passed', fail: 'FAIL', inconclusive: 'UNPROVEN', open: 'pending/running', blocked: 'BLOCKED', skipped: 'skipped' };
 
 function auditText(runId: RunId, lines: AuditLine[]): string {
   const count = (verdict: AuditLine['verdict']) => lines.filter((line) => line.verdict === verdict).length;
   return [
-    `Audit of run ${runId}: ${count('pass')} proven, ${count('fail')} failed, ${count('inconclusive')} unproven, ${count('open')} open, ${count('skipped')} skipped.`,
+    `Audit of run ${runId}: ${count('pass')} proven, ${count('fail')} failed, ${count('inconclusive')} unproven, ${count('open')} open, ${count('blocked')} blocked, ${count('skipped')} skipped.`,
     ...lines.flatMap((line) => [`${AUDIT_MARK[line.verdict]} ${line.item.title}`, ...line.notes.map((note) => `    ${note}`)]),
   ].join('\n');
 }

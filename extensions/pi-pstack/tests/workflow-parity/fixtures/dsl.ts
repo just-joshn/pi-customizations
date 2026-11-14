@@ -1,7 +1,6 @@
 // Builders for scripted scenarios. A scenario is what a model that follows the skill would do, written as tool calls.
 import { join } from 'node:path';
 
-import { playbookSource } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 
 type Args = Record<string, unknown>;
@@ -105,23 +104,15 @@ export class Parent extends Actor {
       .readPlaybook(playbook)
       .bash(`node ${join(this.ctx.pkg, 'scripts', 'start-run.mjs')} --playbook ${playbook} --title ${JSON.stringify(title)} --run-id ${this.ctx.runId}`);
   }
-  stepLine(playbook: string, n: number): string {
-    return (playbookSource(playbook)[n - 1] as string).split('\n')[0] as string;
+  done(_playbook: string, n: number, ...receipts: string[]): this {
+    return this.bash(`node ${shQuote(join(this.ctx.pkg, 'scripts/start-run.mjs'))} --run-id ${this.ctx.runId} --step ${n} --status passed --evidence ${shQuote(receipts.join(','))}`);
   }
-  private todo(): string {
-    return join(this.runDir, 'TODO.md');
-  }
-  done(playbook: string, n: number, ...receipts: string[]): this {
-    const line = this.stepLine(playbook, n);
-    return this.edit(this.todo(), `- [ ] ${line}`, `- [x] ${line} (evidence: ${receipts.join(', ')})`);
-  }
-  skip(playbook: string, n: number, reason: string): this {
-    const line = this.stepLine(playbook, n);
-    return this.edit(this.todo(), `- [ ] ${line}`, `- [~] ${line} (skip: ${reason})`);
+  skip(_playbook: string, n: number, reason: string): this {
+    return this.bash(`node ${shQuote(join(this.ctx.pkg, 'scripts/start-run.mjs'))} --run-id ${this.ctx.runId} --step ${n} --status skipped --skip ${shQuote(reason)}`);
   }
   /** Appends a task-specific item under `## Task-specific work`. */
   task(text: string): this {
-    return this.bash(`printf '%s\\n' ${shQuote(`- [ ] ${text}`)} >> ${JSON.stringify(this.todo())}`);
+    return this.bash(`node ${shQuote(join(this.ctx.pkg, 'scripts/start-run.mjs'))} --run-id ${this.ctx.runId} --task ${shQuote(text)}`);
   }
   /** Writes brief.md and assignment.json and returns the spawn call, so several spawns can go out in one message. */
   stage(workerId: string, fields: AssignmentFields, brief: string): { tool: string; args: Args } {

@@ -47,11 +47,12 @@ export const writes = (parent: Parent, id: string, files: Record<string, string>
 
 /** Task-specific TODO items, one per phase, appended before anything launches. */
 export function phaseItems(parent: Parent, phases: string[]): Parent {
-  return parent.bash(phases.map((phase) => `printf '%s\\n' ${shQuote(`- [ ] ${phase}`)} >> ${JSON.stringify(join(parent.runDir, 'TODO.md'))}`).join('\n'));
+  for (const phase of phases) parent.task(phase);
+  return parent;
 }
 
 export function markPhase(parent: Parent, phase: string): Parent {
-  return parent.edit(join(parent.runDir, 'TODO.md'), `- [ ] ${phase}`, `- [x] ${phase}`);
+  return parent.bash(`node ${shQuote(join(parent.ctx.pkg, 'scripts/start-run.mjs'))} --run-id ${parent.ctx.runId} --task ${shQuote(phase)} --task-status passed`);
 }
 
 /** Task-specific items of the run's TODO.md. */
@@ -110,11 +111,11 @@ export function todoNegatives(runId: string, playbook: string, options: { done: 
   const last = options.done.at(-1) as number;
   const prefix = `todo.${playbook}`;
   return [
-    { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, first, ' ', stripEvidence), fails: [`${prefix}.every-step-resolved`] },
-    { name: 'a step is done with no receipt id', mutate: (sandbox) => setStep(sandbox, runId, second, 'x', stripEvidence), fails: [`${prefix}.done-steps-proven`] },
+    { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, first, 'pending', stripEvidence), fails: [`${prefix}.every-step-resolved`] },
+    { name: 'a step is done with no receipt id', mutate: (sandbox) => setStep(sandbox, runId, second, 'passed', stripEvidence), fails: [`${prefix}.done-steps-proven`] },
     { name: 'a step cites a receipt that was never recorded', mutate: (sandbox) => deleteReceipt(sandbox, runId, options.receipts[last] as string), fails: [`${prefix}.done-steps-proven`] },
     { name: 'the artifact changed after the receipt hashed it', mutate: (sandbox) => corruptArtifact(sandbox, runId, options.receipts[second] as string), fails: [`${prefix}.done-steps-proven`] },
-    { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, first, '~', stripEvidence), fails: [`${prefix}.skips-explained`] },
+    { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, first, 'skipped', stripEvidence), fails: [`${prefix}.skips-explained`] },
     { name: 'steps were resolved out of order', mutate: (sandbox) => reorderHistory(sandbox, runId, last), fails: [`${prefix}.resolved-in-order`] },
     { name: 'a playbook step was deleted from TODO.md', mutate: (sandbox) => deleteStep(sandbox, runId, second), fails: [`${prefix}.steps-verbatim-in-order`] },
   ];

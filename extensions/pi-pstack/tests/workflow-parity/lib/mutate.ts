@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { immutableTodoBlock, readTodoLedger, replaceTodoLedger, type TodoLedgerEntry, type TodoStatus, upstreamSteps } from '../../../src/todo.ts';
 import { loadView, requireSandbox } from './driver.ts';
 import { loadGit, type RunView } from './view.ts';
 
@@ -53,15 +54,21 @@ export function withCopy<T>(sandbox: string, mutate: Negative['mutate'], use: (v
 const runDir = (sandbox: string, runId: string) => join(sandbox, 'repo', '.pi', 'pstack', 'runs', runId);
 const edit = (path: string, change: (text: string) => string) => writeFileSync(path, change(readFileSync(path, 'utf8')));
 
-/** Rewrites one TODO.md step's checkbox, so a step is open, done, or skipped without the evidence the run had. */
-export function setStep(sandbox: string, runId: string, n: number, mark: ' ' | 'x' | '~', change: (line: string) => string = (line) => line): void {
-  edit(join(runDir(sandbox, runId), 'TODO.md'), (text) => text.replace(new RegExp(`^- \\[.\\] ${n}\\. .*$`, 'm'), (line) => change(line.replace(/^- \[.\]/, `- [${mark}]`))));
+/** Mutates the separate ledger to plant invalid status or evidence claims. */
+export function setStep(sandbox: string, runId: string, n: number, status: TodoStatus, change: (entry: TodoLedgerEntry) => TodoLedgerEntry = (entry) => entry): void {
+  edit(join(runDir(sandbox, runId), 'TODO.md'), (text) => {
+    const ledger = readTodoLedger(text).map((entry) => (entry.n === n ? change({ ...entry, status }) : entry));
+    return text.replace(/(## Status ledger\n\n```json\n)[\s\S]*?(\n```\n\n## Task-specific work\n)/, `$1${JSON.stringify(ledger, null, 2)}$2`);
+  });
 }
 
-export const stripEvidence = (line: string) => line.replace(/ \(evidence: [^)]*\)/, '');
+export const stripEvidence = (entry: TodoLedgerEntry): TodoLedgerEntry => ({ ...entry, evidence: [] });
 
 export function deleteStep(sandbox: string, runId: string, n: number): void {
-  edit(join(runDir(sandbox, runId), 'TODO.md'), (text) => text.replace(new RegExp(`^- \\[.\\] ${n}\\. .*\\n`, 'm'), ''));
+  edit(join(runDir(sandbox, runId), 'TODO.md'), (text) => {
+    const block = upstreamSteps(immutableTodoBlock(Buffer.from(text))).steps.find((entry) => entry.n === n)?.text;
+    return block === undefined ? text : text.replace(block, '');
+  });
 }
 
 export function deleteReceipt(sandbox: string, runId: string, id: string): void {
@@ -180,8 +187,13 @@ export function reorderHistory(sandbox: string, runId: string, n: number): void 
   const path = join(sandbox, 'todo-history.json');
   const history = JSON.parse(readFileSync(path, 'utf8')) as Record<string, { t: number; seq: number; text: string }[]>;
   const final = history[runId]?.at(-1)?.text ?? '';
-  const open = final.replace(/^- \[[x~X]\] (\d+\. )/gm, '- [ ] $1');
-  const partial = open.split('\n').map((line) => (new RegExp(`^- \\[ \\] ${n}\\. `).test(line) ? (final.split('\n').find((candidate) => new RegExp(`^- \\[.\\] ${n}\\. `).test(candidate)) as string) : line)).join('\n');
+  const ledger = readTodoLedger(final);
+  const pending = ledger.map((entry): TodoLedgerEntry => ({ ...entry, status: 'pending', skip: null, evidence: [] }));
+  const open = replaceTodoLedger(final, pending);
+  const partial = replaceTodoLedger(
+    final,
+    pending.map((entry) => (entry.n === n ? (ledger.find((original) => original.n === n) as TodoLedgerEntry) : entry)),
+  );
   history[runId] = [
     { t: 1, seq: 1, text: open },
     { t: 2, seq: 2, text: partial },

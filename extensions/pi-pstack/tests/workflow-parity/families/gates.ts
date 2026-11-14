@@ -196,7 +196,7 @@ export const featureContestedFamily: Family = {
     check('feature-contested.interrogate-step-is-done-not-skipped', 'step 7 ends done with a receipt, after the interrogate skill and its two companion skills were opened', src('poteto-mode/playbooks/feature.md', 'If the design is contested, `interrogate` before shipping.'), (view) => {
       const step = primaryRun(view, 'feature')?.steps.find((entry) => entry.n === 7);
       const opened = ['interrogate', 'in-your-own-words', 'arena'].map((name) => openedAt(view.parent, skillFile(name)));
-      return when(step?.state === 'done' && step.evidence.length > 0 && !opened.includes(-1), `step 7 done with ${step?.evidence.join(', ')}; skills opened at ${opened.join(', ')}`, `step 7 is ${step?.state}; skills opened at ${opened.join(', ')}`);
+      return when(step?.state === 'passed' && step.evidence.length > 0 && !opened.includes(-1), `step 7 done with ${step?.evidence.join(', ')}; skills opened at ${opened.join(', ')}`, `step 7 is ${step?.state}; skills opened at ${opened.join(', ')}`);
     }),
     panelCheck('feature-contested.reviewers-from-two-families', 'the adversaries are role reviewer, each in its own worktree, on the "interrogate reviewers" line, from at least two families', src('interrogate/SKILL.md', 'Read the `interrogate reviewers` line in place of `arena runners`'), { role: 'reviewer', line: 'interrogate reviewers', mode: 'worktree' }),
     check('feature-contested.adversaries-start-from-the-delivered-commit', 'the reviewers were spawned after the implementation was collected, and each starts at the implementation head', src('interrogate/SKILL.md', 'Copy the scope\'s uncommitted changes into each worktree'), (view) => {
@@ -226,7 +226,7 @@ export const featureContestedFamily: Family = {
   ],
   negatives: [
     ...todoNegatives(FI_RUN, 'feature', { done: [3, 4, 5, 6, 7], receipts: { 3: 'fc-checkpoint', 4: 'impl-check', 5: 'fc-surface', 6: 'fc-units', 7: 'fc-interrogate' } }),
-    { name: 'the interrogate step was skipped as not contested', mutate: (sandbox) => setStep(sandbox, FI_RUN, 7, '~', (line) => `${stripEvidence(line)} (skip: not contested)`), fails: ['feature-contested.interrogate-step-is-done-not-skipped', 'todo.feature.skips-explained'] },
+    { name: 'the interrogate step was skipped as not contested', mutate: (sandbox) => setStep(sandbox, FI_RUN, 7, 'skipped', (entry) => ({ ...stripEvidence(entry), skip: 'skip: not contested' })), fails: ['feature-contested.interrogate-step-is-done-not-skipped', 'todo.feature.skips-explained'] },
     { name: 'the reviewers were one model family', mutate: (sandbox) => patchAssignment(sandbox, FI_RUN, 'reviewer-2', (assignment) => (assignment['model'] = (SCRIPTED_ROLES['interrogate reviewers'] as string[])[0])), fails: ['feature-contested.reviewers-from-two-families'] },
     { name: 'a reviewer started from the base, not the delivered commit', mutate: (sandbox) => patchAssignment(sandbox, FI_RUN, 'reviewer-1', (assignment) => ((assignment['workspace'] as { inputCommit: string }).inputCommit = 'deadbeef')), fails: ['feature-contested.adversaries-start-from-the-delivered-commit'] },
     { name: 'a fix was applied while interrogating', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['feature-contested.no-fix-was-applied'] },

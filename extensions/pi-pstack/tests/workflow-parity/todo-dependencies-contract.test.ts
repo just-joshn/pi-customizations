@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from 'vitest';
+import { createTodo, readTodoLedger, replaceTodoLedger } from '../../src/todo.ts';
 import { PINNED_REVISION, todoChecks } from './lib/checks.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -17,11 +20,13 @@ test('actual unresolved steps and recorded bad initial states remain independent
     id: 'r',
     runJson: { schemaVersion: 1, playbook: 'feature', upstreamRevision: PINNED_REVISION, title: 'work' },
     todoText: `Source playbook: feature.md\nUpstream revision: ${PINNED_REVISION}`,
-    steps: [{ n: 1, state: 'open' }],
+    steps: [{ n: 1, state: 'pending' }],
     workers: [],
     receipts: [],
   };
-  const view = { runs: [run], todoHistory: { r: [{ text: '- [x] 1. Already completed before the first snapshot' }] } } as unknown as RunView;
+  const initial = createTodo('work', 'feature', PINNED_REVISION, readFileSync(new URL('../../vendor/upstream-pstack/skills/poteto-mode/playbooks/feature.md', import.meta.url)));
+  const ledger = readTodoLedger(initial).map((entry) => ({ ...entry, status: 'passed' as const }));
+  const view = { runs: [run], todoHistory: { r: [{ text: replaceTodoLedger(initial, ledger) }] } } as unknown as RunView;
   const checks = todoChecks({ playbook: 'feature' });
   expect(checks.find((check) => check.id.endsWith('every-step-resolved'))?.run(view)).toMatchObject({ ok: false });
   const missingTodo = { ...view, runs: [{ ...run, todoText: null }] } as unknown as RunView;
