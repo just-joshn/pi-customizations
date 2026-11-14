@@ -4,23 +4,21 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "bbf7ca3d78c22df5dd24c7354941cb8965c15b870fe7be35bbfdf734c25c3474",
+  "requirementsDigest": "bc27d097f5c51b98a162445ee024fdb21b8176a912a276df3c24efc432d69499",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-14T03:56:13.083Z",
-    "generatedAt": "2026-11-14T04:05:26.038Z",
-    "commit": "b36bd98c702c6e6daf96e96ecd530cb64555d61c",
+    "startedAt": "2026-11-14T04:45:53.377Z",
+    "generatedAt": "2026-11-14T04:53:56.546Z",
+    "commit": "5869409feaffe88fc668795c00f73b5b41958251",
     "dirty": false,
     "changes": [],
-    "sourceDigest": "4c6608b152f1120186b30bf1250e27dcbd33789931e9d6904913e7c1f7678cb6",
+    "sourceDigest": "2365f5ffd7bbfc844bdee1fc0d346906f60711878f908b7dc7b581580dc550e1",
     "resultsSource": "local",
-    "totalTests": 2994,
-    "passedTests": 2891,
-    "failedTests": 2,
+    "totalTests": 3028,
+    "passedTests": 2926,
+    "failedTests": 1,
     "failures": [
-      "tests/automation/follow-up.test.ts::(suite failed)",
-      "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock",
-      "tests/worker-lifecycle/lifecycle.test.ts::pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions"
+      "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock"
     ],
     "skippedTests": 101,
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
@@ -30,20 +28,18 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-14T03:56:13.083Z",
-      "generatedAt": "2026-11-14T04:05:26.038Z",
-      "commit": "b36bd98c702c6e6daf96e96ecd530cb64555d61c",
+      "startedAt": "2026-11-14T04:45:53.377Z",
+      "generatedAt": "2026-11-14T04:53:56.546Z",
+      "commit": "5869409feaffe88fc668795c00f73b5b41958251",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "4c6608b152f1120186b30bf1250e27dcbd33789931e9d6904913e7c1f7678cb6",
+      "sourceDigest": "2365f5ffd7bbfc844bdee1fc0d346906f60711878f908b7dc7b581580dc550e1",
       "resultsSource": "local",
-      "totalTests": 2994,
-      "passedTests": 2891,
-      "failedTests": 2,
+      "totalTests": 3028,
+      "passedTests": 2926,
+      "failedTests": 1,
       "failures": [
-        "tests/automation/follow-up.test.ts::(suite failed)",
-        "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock",
-        "tests/worker-lifecycle/lifecycle.test.ts::pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions"
+        "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock"
       ],
       "skippedTests": 101,
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
@@ -59,10 +55,10 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 96,
-      "FAIL": 2,
-      "INCONCLUSIVE": 3,
-      "N/A": 0
+      "PASS": 100,
+      "FAIL": 0,
+      "INCONCLUSIVE": 2,
+      "N/A": 1
     }
   },
   "requirements": [
@@ -28848,11 +28844,11 @@
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions",
-          "outcome": "failed",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed"
+              "outcome": "passed"
             }
           ]
         },
@@ -28923,8 +28919,8 @@
           ]
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions"
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "MX-DIRECT-INTERACTION",
@@ -36261,7 +36257,7 @@
     {
       "id": "WORKER-CAPABILITY-BOUNDARY",
       "kind": "behavioral",
-      "title": "A worker's tools, MCP and environment are limited by its assignment",
+      "title": "Every worker's Pi tools, MCP and launch environment are limited by its assignment, not its host file access",
       "specSection": "15.1",
       "source": {
         "specOnly": true,
@@ -36269,7 +36265,7 @@
       },
       "observable": "A minimal worker launches with --no-mcp and without the parent's variables, secrets travel in claim/launch-env.json, never argv, and a worker asking for external write authority is refused.",
       "invariants": [
-        "A worker receives no credential it was not assigned."
+        "A worker's launch environment receives no credential it was not assigned; this does not restrict files the process can read."
       ],
       "piMechanism": "Assignment capabilities and launch environment in src/worker-host.ts.",
       "dependencies": [],
@@ -36304,7 +36300,6 @@
           "name": "pstack_worker boundary validation refuses control from a session that does not own the run"
         }
       ],
-      "coverageGap": "A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access.",
       "results": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -36373,8 +36368,77 @@
           ]
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access."
+      "status": "PASS",
+      "reason": "6 linked test(s) ran and passed"
+    },
+    {
+      "id": "CONTAINER-FILE-ISOLATION",
+      "kind": "behavioral",
+      "title": "A container worker cannot read unmounted host files or write its read-only package mount",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Specification 15.1, lines 966-984: isolation is external to Pi's permission model; use containerization and do not confuse read-only instructions with an operating-system boundary."
+      },
+      "observable": "A real container worker cannot see a host-home sentinel or the operator's .ssh, .pi/agent/auth.json and .config/gh paths. Its workspace and package are readable, its workspace is writable, and writes to its read-only package and protected /etc path fail. Container-private writable paths remain writable; this is not a read-only root filesystem or a network sandbox.",
+      "invariants": [
+        "Unmounted host files are not exposed to the worker."
+      ],
+      "piMechanism": "Container mount boundary and unprivileged user in src/container.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/container/container.test.ts (requires an available Docker engine on Linux and macOS)",
+      "tests": [
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker isolates unmounted host files while the workspace and read-only package remain readable"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker isolates unmounted host files while the workspace and read-only package remain readable",
+          "outcome": "passed",
+          "byRun": [
+            {
+              "platform": "darwin",
+              "outcome": "passed"
+            }
+          ]
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
+    },
+    {
+      "id": "LOCAL-WORKER-FILE-ACCESS-LIMITATION",
+      "kind": "behavioral",
+      "title": "Local workers retain the operator's filesystem authority",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Specification 15.1, lines 966-984 distinguishes Pi capabilities from operating-system isolation. This entry discloses the local deployment limitation, not an isolation guarantee."
+      },
+      "observable": "A local worker can read any file the operator's user can read, including credential files. Use container mode for untrusted input, such as reviewing someone else's pull request. Container mode does not remove explicitly assigned credentials or network access.",
+      "invariants": [
+        "Local workspace modes do not claim operating-system filesystem isolation."
+      ],
+      "piMechanism": "Local worktree and readonly workers run as the operator's user.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": false,
+        "justification": "Informational deployment limitation, not a promise of local filesystem isolation. Container filesystem isolation is a separate mandatory requirement."
+      },
+      "verification": "README.md and docs/architecture.md disclose this limitation.",
+      "tests": [],
+      "coverageGap": "Local workers have no operating-system filesystem boundary. Tool, MCP and launch-environment limits do not prevent reading files available to the operator's user.",
+      "results": [],
+      "status": "N/A",
+      "reason": "Informational deployment limitation, not a promise of local filesystem isolation. Container filesystem isolation is a separate mandatory requirement."
     },
     {
       "id": "WF-TEACH",
@@ -42536,116 +42600,116 @@
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "no worker starts while nobody has written in the thread, or for the triage identity or the parent itself",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a new human message starts one read-only worker with the case and the message, and a second pass adopts it",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "the answer is posted once as a marker-free reply in the source thread",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a second verdict marker in a follow-up answer is dropped, so one run never emits two",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a tracker correction becomes one comment on the issue this case owns, from a body with no Source line",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a later message after an answered round starts round two with only the new messages",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a stop request closes the window: later messages start nothing",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "the window is fixed: after it ends no round starts and a worker still running is closed without a post",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a restart in the middle of a round adopts that worker and starts no second one",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/automation/follow-up.test.ts",
           "name": "a worker that failed leaves the thread alone and closes its round",
-          "outcome": "failed-to-run",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed-to-run"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "FAIL",
-      "reason": "10 linked test(s) failed: no worker starts while nobody has written in the thread, or for the triage identity or the parent itself; a new human message starts one read-only worker with the case and the message, and a second pass adopts it; the answer is posted once as a marker-free reply in the source thread; a second verdict marker in a follow-up answer is dropped, so one run never emits two; a tracker correction becomes one comment on the issue this case owns, from a body with no Source line; a later message after an answered round starts round two with only the new messages; a stop request closes the window: later messages start nothing; the window is fixed: after it ends no round starts and a worker still running is closed without a post; a restart in the middle of a round adopts that worker and starts no second one; a worker that failed leaves the thread alone and closes its round"
+      "status": "PASS",
+      "reason": "10 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-OPS-STATUS",
