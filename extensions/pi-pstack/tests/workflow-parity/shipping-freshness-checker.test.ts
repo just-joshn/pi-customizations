@@ -72,6 +72,13 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     expect(watchCheck?.run(watched)).toMatchObject({ ok: fresh });
     watcher.state.exit.code = 2;
     expect(watchCheck?.run(watched)).toMatchObject({ ok: false });
+    if (fresh) {
+      const report = { role: 'assistant', order: 20, text: 'Verified run: PR 21, PR 22, PR 23. Ceiling: PR 23. The changed patch got a fresh verdict. Landed: PR 21, PR 22, PR 23. Next gap: none.' };
+      view.parent.messages.push(report);
+      expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: true });
+      report.text = report.text.replace('Ceiling: PR 23.', '');
+      expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: false });
+    }
     const comparison = { name: 'bash', order: -1, args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' }, resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'), isError: false };
     view.parent.toolCalls.unshift(comparison);
     expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });

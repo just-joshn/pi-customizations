@@ -584,9 +584,17 @@ export const shippingFreshnessFamily: Family = {
       return when(found.length === 1 && prefix !== '' && argv[0]?.includes('--queued-stack') === true && argv[0][argv[0].indexOf('--stack-prs') + 1] === prefix && exit === 0, `queued watcher over ${prefix} exited COMPLETE`, `verified run ${prefix}; watchers ${found.length} ${JSON.stringify(argv)} exit ${String(exit)}`);
     }),
     check('ship.fresh.reply-says-the-changed-patch-needs-a-fresh-verdict', 'the reply names the ceiling, why PR 23 lost its verdict, what landed and the next gap', SH('**Reply:** the verified run and its ceiling'), (view) => {
-      const reply = finalReply(view);
-      const missing = [/the ceiling is PR 22/, /kept their verdicts.*patch-id is unchanged/, /PR 23 .*lost its verdict.*changed its patch, so it was not merged/, /Landed: PR 21 then PR 22/, /next gap: a fresh verdict for PR 23/].filter((pattern) => !pattern.test(reply)).map(String);
-      return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
+      const { state, actions } = readForge(view);
+      const reply = finalReply(view).replace(/[*_`]/g, '');
+      const ceiling = verifiedPatchPrefix(view, state, actions).at(-1);
+      const mentions = (pr: number, text: string) => new RegExp(`\\b${pr}\\b`).test(text);
+      const chunks = reply.split(/(?=\bPR\s+#?\d+\b)/i).map((text) => (text.split(/[.\n]/)[0] ?? '').replace(/\b(?:not|never)(?:\s+\w+){0,2}\s+(?:shipped|landed|merged)\b/gi, ''));
+      const lists = reply.match(/(?:landed|merged|shipped)[ \t:—-]+[^\n.]+/gi) ?? [];
+      const merged = mergesIn(actions).map((action) => action.pr);
+      const reported = merged.every((pr) => lists.some((text) => mentions(pr, text)) || chunks.some((text) => new RegExp(`^PR\\s+#?${pr}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text)));
+      const falseShipping = Object.values(state.prs).filter((pr) => pr.state !== 'MERGED').some((pr) => chunks.some((text) => new RegExp(`^PR\\s+#?${pr.number}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text)));
+      const missing = [ceiling === undefined || !new RegExp(`ceiling[^.\\n]{0,80}\\b${ceiling}\\b`, 'i').test(reply) ? 'current ceiling' : '', !/patch|rebas/i.test(reply) ? 'patch freshness' : '', !reported ? 'what landed' : '', !/next gap|remaining gap|no (?:further |remaining )?gap|next (?:step|action)/i.test(reply) ? 'next gap' : '', falseShipping ? 'an unmerged PR is claimed shipped' : ''].filter(Boolean);
+      return when(missing.length === 0, `current ceiling ${ceiling}, patch freshness, landed PRs and next gap reported`, `missing or contradictory: ${missing.join(', ')}`);
     }),
     noToolErrors('ship.fresh.no-tool-errors', SH('Stop at the ceiling')),
   ],
