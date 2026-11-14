@@ -486,12 +486,15 @@ export const cleanupFamily: Family = {
     ...todoChecks({ playbook: 'worktree-cleanup', skipReason: { 6: /.+/ } }),
     check('cleanup.audit-ran-as-a-watch-and-woke-the-parent', 'step 1: the audit script runs as a watch worker (role watcher, sh -c, redirected to an absolute file, absolute cwd) whose exit woke the parent', src('poteto-mode/playbooks/worktree-cleanup.md', 'run it as a watch, a `kind: "watch"` worker'), (view) => {
       const worker = allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch');
-      const argv = assignmentOf(worker as never).watch?.argv ?? [];
+      if (worker === undefined) return fail('no audit watch worker');
+      const argv = assignmentOf(worker).watch?.argv ?? [];
       const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['phase'] === 'exited');
       return when(worker !== undefined && assignmentOf(worker).role === 'watcher' && argv[0] === 'sh' && argv[1] === '-c' && /worktree-audit\.sh .*> \/\S+/.test(argv[2] ?? '') && String(assignmentOf(worker).watch?.cwd).startsWith('/') && wake !== undefined, `watch ${argv.join(' ').slice(0, 120)} woke the parent`, `worker ${worker?.id}; argv ${JSON.stringify(argv)}; wake ${wake?.order}`);
     }),
     check('cleanup.audit-output-covers-every-worktree', "the audit file is the script's real table with one row per worktree", src('poteto-mode/playbooks/worktree-cleanup.md', 'It classifies each worktree by size, age, merge state'), (view) => {
-      const file = /> (\S+)/.exec(String(assignmentOf(allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch') as never).watch?.argv?.[2]))?.[1] ?? '';
+      const worker = allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch');
+      if (worker === undefined) return fail('no audit watch worker or output file');
+      const file = /> (\S+)/.exec(String(assignmentOf(worker).watch?.argv?.[2]))?.[1] ?? '';
       const text = read(file);
       const rows = text.split('\n').filter((line) => /wts\//.test(line));
       return when(/^SIZE\tAGE\tMERGED\tDIRTY/m.test(text) && rows.length === 3 && ['wt-clean', 'wt-wip', 'wt-active'].every((name) => text.includes(name)) && /wip:1/.test(text), `${rows.length} rows with the dirty count`, `rows ${rows.length}; file ${file}`);
@@ -509,7 +512,7 @@ export const cleanupFamily: Family = {
       const pinned = taskLines(primaryRun(view, 'worktree-cleanup')).some((line) => /Pinned set from the user: .*wt-active/.test(line));
       const candidates = allWorkers(view).filter((worker) => worker.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command']))));
       const reader = candidates[0];
-      if (candidates.length !== 1 || reader === undefined) throw new Error(`expected one chat reader; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
+      if (candidates.length !== 1 || reader === undefined) return fail(`expected one chat reader; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
       const read = reader?.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command'])));
       return when(pinned && read === true && assignmentOf(reader as never).workspace?.mode === 'readonly', 'pinned set recorded and the transcript read by a readonly worker', `pinned recorded ${pinned}; transcript read ${String(read)}`);
     }),

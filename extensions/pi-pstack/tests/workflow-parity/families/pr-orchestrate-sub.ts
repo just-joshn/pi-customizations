@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { Actor, Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, type ForgeAction, type ForgeHandle, forgeEnv, predictCommit, readForge, setupForge } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, type Src, src, when } from '../lib/check.ts';
+import { check, fail, type Src, src, when } from '../lib/check.ts';
 import { finalReply, noToolErrors, playbookReads, promptRoutes } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { parentSession, rewriteFinalReply } from '../lib/mutate.ts';
@@ -182,13 +182,13 @@ interface Tree {
 function treeOf(view: RunView): Tree {
   const rootRun = view.runs[0];
   const candidates = rootRun?.workers.filter((worker) => (worker.assignment as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true) ?? [];
-  if (candidates.length !== 1) throw new Error(`Expected one subcoordinator, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+  if (candidates.length !== 1) return { subWorker: undefined, subRun: undefined, leaves: [], rootSessionFile: view.parent.file };
   const subWorker = candidates[0];
   const worktree = subWorker?.worktree;
   const runsDir = worktree ? join(worktree, '.pi', 'pstack', 'runs') : '';
   const runs = worktree && existsSync(runsDir) ? readdirSync(runsDir).filter((id) => existsSync(join(runsDir, id, 'run.json'))).map((id) => loadRun(worktree, id)) : [];
   const owned = runs.filter((run) => run.runJson?.['parentSessionFile'] === subWorker?.state?.['sessionFile']);
-  if (owned.length !== 1) throw new Error(`Expected one coordinator-owned run, candidates: ${runs.map((run) => run.id).join(', ')}`);
+  if (owned.length !== 1) return { subWorker, subRun: undefined, leaves: [], rootSessionFile: view.parent.file };
   const subRun = owned[0];
   return { subWorker, subRun, leaves: (subRun?.workers ?? []).filter((worker) => worker.state !== null), rootSessionFile: view.parent.file };
 }
@@ -231,6 +231,7 @@ export const orchestrateSubFamily: Family = {
     ...playbookReads('orchestrate'),
     check('orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns', 'the root spawned only the coordinator (the one worker with capabilities.spawn), the coordinator made every leaf spawn call from its own session into its own run, the leaves are owned by the coordinator\'s session and hold no spawn capability, a spawn of a fourth level was refused and left no claim, and the root got wakes for the coordinator only', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const rootSpawns = spawnsOf(view.parent).map(idFromPath);
       const subSpawns = spawnsOf(tree.subWorker?.session);
       const spawned = subSpawns.filter((call) => !call.isError).map(idFromPath);
@@ -248,24 +249,27 @@ export const orchestrateSubFamily: Family = {
     }),
     check('orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it', 'each leaf\'s own environment agrees with the tree: PSTACK_DEPTH is 3', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const seen = tree.leaves.filter((worker) => worker.state?.['phase'] !== 'failed').map((worker) => ({ id: worker.id, out: worker.session?.toolCalls.find((call) => call.name === 'bash' && /printenv PSTACK_DEPTH/.test(String(call.args['command'])))?.resultText.trim().split('\n') ?? [] }));
       return when(seen.length === 4 && seen.every((entry) => entry.out[0] === '3'), `${seen.map((entry) => entry.id).join(', ')} all run with PSTACK_DEPTH 3`, JSON.stringify(seen));
     }),
     check('orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch', 'each PR was opened by exactly one live owner that alone pushed its branch, the failed owner wrote nothing, and each PR\'s forge author is its owner', OR('**One owner per PR.**'), (view) => {
+      const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const { state, actions } = readForge(view);
       const writers = (branch: string) => [...new Set(actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${branch}`).map((action) => action.worker))];
-      const tree = treeOf(view);
       const authors = [state.prs['61']?.author, state.prs['62']?.author];
       const candidates = tree.leaves.filter((worker) => (worker.assignment as { role?: string }).role === 'owner' && !authors.includes(worker.id));
-      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      if (candidates.length !== 1) return fail(`expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
       const failed = candidates[0];
       const failedWrites = actions.filter((action) => action.worker === failed?.id && !['read', 'log-view'].includes(action.kind));
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
       return when(failed !== undefined && new Set(authors).size === 2 && authors.every((id) => typeof id === 'string' && tree.leaves.some((worker) => worker.id === id && (worker.assignment as { role?: string }).role === 'owner')) && JSON.stringify(writers('feat-greet-sub')) === JSON.stringify([authors[0]]) && JSON.stringify(writers('feat-shout-sub')) === JSON.stringify([authors[1]]) && creates.length === 2 && failedWrites.length === 0, `PR 61 by ${authors[0]} alone, PR 62 by ${authors[1]} alone, two PRs opened, ${failed?.id} wrote nothing`, `authors ${state.prs['61']?.author}, ${state.prs['62']?.author}; writers ${JSON.stringify(writers('feat-greet-sub'))}, ${JSON.stringify(writers('feat-shout-sub'))}; creates ${creates.length}; failed owner writes ${failedWrites.length}`);
     }),
     check('orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict', 'each PR has a verifier on a different model family than its owner whose verdict names the head, and each owner merged only after that verdict, pinned to the head, with the coordinator\'s steer naming it', OR('**Each PR gets a verifier that isn\'t its author,** on a different model family'), (view) => {
-      const { state, actions } = readForge(view);
       const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
+      const { state, actions } = readForge(view);
       const verdicts = verdictsOf(state, actions);
       const steers = spawnsOfSteer(tree);
       const problems = ([61, 62] as const).flatMap((pr, index) => {
@@ -288,10 +292,11 @@ export const orchestrateSubFamily: Family = {
     mergesAreAuthorizedAndVerified('orchestrate.sub.no-merge-without-the-operators-request-and-a-verdict-at-that-head', OR('A verdict covers one head SHA, so a new push needs a new verdict')),
     check('orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff', 'the coordinator got the failed wake, inspected the owner, probed the branch for pushes, then spawned the replacement with the original kickoff plus the reason, and the host recorded the owner as failed', OR('**Stop or replace a worker that stalls or loops.**'), (view) => {
       const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const session = tree.subWorker?.session;
       const authors = Object.values(readForge(view).state.prs).map((pr) => pr.author);
       const candidates = tree.leaves.filter((worker) => (worker.assignment as { role?: string }).role === 'owner' && !authors.includes(worker.id));
-      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      if (candidates.length !== 1) return fail(`expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
       const failed = candidates[0];
       const replacement = tree.leaves.find((worker) => worker.id === readForge(view).state.prs['62']?.author);
       const wake = session?.messages.find((message) => message.customType === 'pstack-worker' && failed !== undefined && message.details?.['workerId'] === failed.id);
@@ -307,6 +312,7 @@ export const orchestrateSubFamily: Family = {
     }),
     check('orchestrate.sub.the-root-read-one-rollup-and-the-live-state', 'the root read the coordinator\'s one rollup and both PRs live, collected no leaf worker and no raw report, and its reply accounts for the coordinator and the replaced owner without asking', OR('It owns that area\'s workers and kickoffs and sends you one rollup, never raw worker reports'), (view) => {
       const tree = treeOf(view);
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const failed = tree.leaves.filter((worker) => worker.state?.['phase'] === 'failed');
       const watchers = (view.runs[0]?.workers ?? []).filter((worker) => (worker.assignment as { role?: string }).role === 'watcher');
       const calls = view.parent.toolCalls;
