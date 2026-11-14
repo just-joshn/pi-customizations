@@ -50,18 +50,21 @@ export const concurrencyFamily: Family = {
   },
   checks: [
     spawnedTogether('worker-concurrency.spawned-in-one-message', SRC, ['general']),
-    check('worker-concurrency.spawn-does-not-block', 'all four worker intervals overlap, and the parent continues independent work rather than waiting to collect', src('poteto-mode/SKILL.md', 'Keep working after the spawn returns'), (view) => {
+    check('worker-concurrency.spawn-does-not-block', 'all four worker intervals overlap rather than spawn blocking on their completion', SRC, (view) => {
       const ids = allWorkers(view).map((worker) => worker.id);
       if (ids.length !== 4) return fail(`expected four workers, got ${ids.length}`);
       const spawned = ids.map((id) => eventAt(view, id, 'spawn'));
       const settled = statesOf(view).map(({ state }) => Date.parse(state.settles?.find((settle) => settle.phase === 'idle')?.at ?? ''));
       if ([...spawned, ...settled].some(Number.isNaN)) return fail(`missing spawn or idle times: spawned ${spawned.join()}, settled ${settled.join()}`);
       const overlap = Math.min(...settled) - Math.max(...spawned);
-      const lastSpawn = Math.max(...ids.map((id) => spawnOrder(view, id)));
-      const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
-      const independent = next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
-      return when(overlap > 0 && independent, `all four intervals overlap; the parent continued with ${next?.name}`, `overlap ${overlap} ms; next action ${next?.name} ${String(next?.args['action'] ?? '')}, independent work ${independent}`);
+      return when(overlap > 0, 'all four worker intervals overlap', `overlap ${overlap} ms`);
     }),
+    check('worker-concurrency.parent-continues-independent-work', 'the parent continues independent work after spawning rather than waiting to collect', src('poteto-mode/SKILL.md', 'Keep working after the spawn returns'), (view) => {
+      const lastSpawn = Math.max(...allWorkers(view).map((worker) => spawnOrder(view, worker.id)));
+      const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
+      const independent = allWorkers(view).length === 4 && next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
+      return when(independent, `the parent continued with ${next?.name}`, `next action ${next?.name} ${String(next?.args['action'] ?? '')}, independent work ${independent}`);
+    }, 'adaptation'),
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: each recorded by the host and in the worker session', SRC, (view) => {
       const states = statesOf(view);
       const problems = states.flatMap(({ id, state }) => {
@@ -123,7 +126,7 @@ export const concurrencyFamily: Family = {
       if (view.driver === 'real' && rows.some(({ row }) => row.length < 3)) return { inconclusive: 'the live run did not record its pane environment; no TMUX_PANE claim can be verified' };
       const wrong = rows.filter(({ row }) => row.length < 3 || row[2] !== row[1]);
       return when(rows.length === 4 && wrong.length === 0, 'every worker sees its own pane id', `${wrong.map(({ id, row }) => `${id} is in pane ${row[1]} but $TMUX_PANE is ${row[2]}`).join('; ')}`);
-    }),
+    }, 'adaptation'),
     settledAndCollected('worker-concurrency.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
   negatives: [

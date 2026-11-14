@@ -76,7 +76,7 @@ function whyMcp(withServer: boolean): Family {
     check(`${id}.readonly-holds-beside-mcp`, 'the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools', src('why/SKILL.md', 'A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files'), (view) => {
       const write = worker(view, 'docs-investigator')?.session?.toolCalls.find((call) => call.name === 'write');
       return when(write?.isError === true && !existsSync(join(view.repo, 'NOTES.md')) && view.git.dirty.length === 0, 'write refused, NOTES.md absent, checkout clean', `write ${write === undefined ? 'never tried' : `isError ${write.isError}`}; dirty ${view.git.dirty.join(',')}`);
-    }),
+    }, 'adaptation'),
     check(`${id}.citations-come-from-tool-output`, withServer ? 'every decision id and URL in the reply appears in the MCP tool output' : 'the reply cites no decision id or URL, and its Sources Consulted line says the documents were not searched', src('why/references/investigator-prompt.md', '**Never invent.**'), (view) => {
       const reply = finalReply(view);
       const cited = [...new Set((reply.match(/DEC-\d+|https?:\/\/[^\s)]+/g) ?? []).map((entry) => entry.replace(/[.,]+$/, '')))];

@@ -43,7 +43,8 @@ test('keep-working is behavioral rather than a race with worker completion', () 
   next.name = 'pstack_worker';
   next.args = { action: 'collect', workerId: 'a' };
   next.at = '2026-01-01T00:00:01Z';
-  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: false });
+  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: true });
+  expect(run('parent-continues-independent-work', value)).toMatchObject({ ok: false });
 });
 
 test('assignment reasoning suffixes do not change model identity', () => {
