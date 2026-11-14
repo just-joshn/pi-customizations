@@ -81,6 +81,18 @@ describe('a receipt recorded inside a container worker', () => {
     expect(() => recordReceipt(worker.scope, RUN, join(worker.out, 'receipts', 'misplaced.json'))).not.toThrow();
   });
 
+  test('recording over a raw source names the collision and how to recover', () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    const source = readFileSync(join(worker.out, 'evidence', 'r1.json'), 'utf8');
+    const misplaced = join(worker.out, 'receipts', 'r1.json');
+    writeFileSync(misplaced, source);
+    expect(() => recordReceipt(worker.scope, RUN, misplaced)).toThrow(/r1\.json.*save.*evidence\/.*Move.*out of receipts\//);
+    rmSync(misplaced);
+    expect(worker.record('r1').receipt.id).toBe('r1');
+    expect(verifyTarget(worker.scope, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['r1'] });
+  });
+
   test('a malformed recorded envelope still prevents worker verification', () => {
     const worker = inContainer('v1');
     worker.record('r1');

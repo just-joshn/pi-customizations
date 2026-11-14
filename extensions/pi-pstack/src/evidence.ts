@@ -90,9 +90,12 @@ const artifactPath = (base: string, path: string): string => (isAbsolute(path) ?
 
 const RECEIPT_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json$/;
 
+class UnrecordedReceiptError extends Error {}
+
 function readRecorded(scope: EvidenceScope, runId: RunId, file: string): RecordedReceipt {
   const path = join(scope.receipts, file);
   const raw = readJson(path) as Partial<RecordedReceipt>;
+  if (typeof raw !== 'object' || raw === null || !('receipt' in raw)) throw new UnrecordedReceiptError(`${path} is not a recorded receipt envelope; save the source under evidence/ and use pstack_evidence record to create the inbox entry. Move this source out of receipts/ before recording with the same id`);
   const receipt = parseReceipt(raw.receipt, runId, path);
   if (`${receipt.id}.json` !== file || typeof raw.receiptPath !== 'string' || typeof raw.recordedAt !== 'string') throw new Error(`${path} is not a recorded receipt`);
   return { receipt, receiptPath: raw.receiptPath, recordedAt: raw.recordedAt };
@@ -105,7 +108,15 @@ function readAll(runRoot: string | EvidenceScope, runId: RunId): { receipts: Rec
   if (!existsSync(scope.receipts)) return { receipts: [], rejected };
   const receipts = readdirSync(scope.receipts)
     .filter((file) => RECEIPT_FILE.test(file))
-    .map((file) => readRecorded(scope, runId, file))
+    .flatMap((file) => {
+      try {
+        return [readRecorded(scope, runId, file)];
+      } catch (error) {
+        if (typeof runRoot === 'string' || !(error instanceof UnrecordedReceiptError)) throw error;
+        rejected.push({ workerId: basename(scope.root), file, reason: error.message });
+        return [];
+      }
+    })
     .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt) || a.receipt.id.localeCompare(b.receipt.id));
   return { receipts, rejected };
 }
