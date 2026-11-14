@@ -3,25 +3,14 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-import {
-  CONTAINER_HOME,
-  type ContainerPlan,
-  clientEnv,
-  containerPreamble,
-  containerRunArgs,
-  hostOnlyEnv,
-  isTmuxIdentityEnv,
-  outDirOf,
-  parseContainerPlan,
-  READY_RECORD,
-  removeWorkerContainers,
-} from './container.ts';
+import { CONTAINER_HOME, type ContainerPlan, clientEnv, containerPreamble, containerRunArgs, hostOnlyEnv, isTmuxIdentityEnv, outDirOf, parseContainerPlan, READY_RECORD, removeWorkerContainers } from './container.ts';
+import { scrubber, secretValues } from './redact.ts';
 import {
   appendEvent,
   type Capabilities,
@@ -29,6 +18,7 @@ import {
   controlSocketPath,
   type HostPhase,
   type HostState,
+  type HostSupervision,
   isTerminal,
   type LoadedAssignment,
   launchEnvPath,
@@ -41,10 +31,9 @@ import {
   THINKING_LEVELS,
   type ThinkingLevel,
   TMUX_SESSION,
-  writeJsonAtomic,
   WATCH_OUTPUT_TAIL,
+  writeJsonAtomic,
 } from './run-files.ts';
-import { scrubber, secretValues } from './redact.ts';
 
 export const MAX_CONTROL_BYTES = 65_536;
 export const MAX_INSTRUCTION_BYTES = 32_768;
@@ -55,6 +44,9 @@ const RPC_DEADLINE_MS = 10_000;
 /** Pi's cold start: node boot plus loading the extensions, which a container does beside its siblings on a shared engine. The first get_state waits for it; later commands go to a Pi that is already up. */
 const PI_START_MS = 120_000;
 const ABORT_DEADLINE_MS = 60_000;
+const HOST_HEARTBEAT_MS = 5_000;
+const STOP_TERM_MS = 3_000;
+const STOP_KILL_MS = 6_000;
 /** A container worker's clone and install happen before Pi starts, so the first RPC waits this long for the ready record. */
 const CONTAINER_START_MS = 30 * 60_000;
 /** Stderr without a newline is held back until it is this long, then shown but for its last bytes, which a secret could straddle. */
@@ -244,11 +236,12 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
  * Claims the assignment exclusively inside the claim/ directory the parent created at spawn. A second host for the
  * same assignment fails here and never starts Pi.
  */
-function claim(loaded: LoadedAssignment, instance: string): void {
+function claim(loaded: LoadedAssignment, instance: string): ClaimIdentity {
   const hostStarted = processStartTime(process.pid);
   if (hostStarted === undefined) throw new Error(`Cannot read the start time of this host process ${process.pid}`);
   const identity: ClaimIdentity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
   writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify(identity)}\n`, { mode: 0o600, flag: 'wx' });
+  return identity;
 }
 
 /**
@@ -320,10 +313,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const launch = parseLaunch(launchText);
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
-  claim(loaded, instance);
+  const identity = claim(loaded, instance);
   const launchEnv = takeLaunchEnv(workerDir);
   // Everything this host shows or stores about the worker passes through this: its credentials, and any URL's userinfo.
-  const scrub = scrubber(secretValues(workerEnv(loaded, launch, launchEnv), launch.credentialEnv));
+  const environment = workerEnv(loaded, launch, launchEnv);
+  const scrub = scrubber([...secretValues(environment, launch.credentialEnv), ...launch.credentialEnv.flatMap((name) => (environment[name] ? [environment[name]] : []))]);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join(workerDir, 'session');
 
@@ -348,6 +342,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let lastRun: Outcome | undefined;
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
+  let supervision: HostSupervision | undefined;
+  let heartbeat: NodeJS.Timeout | undefined;
+  let outputFd: number | undefined;
   let stderrTail = '';
   let stderrPending = '';
   let watchOutput = '';
@@ -377,6 +374,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     instance,
     hostPid: process.pid,
     childPid,
+    ...(supervision === undefined ? {} : { supervision }),
     tmuxSession: launch.tmuxSession,
     socketPath,
     phase,
@@ -399,7 +397,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   };
   const save = () => writeJsonAtomic(join(workerDir, 'state.json'), observation());
-  const display = (kind: string, value: unknown) => process.stdout.write(scrub(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`));
+  const output = (text: string) => {
+    process.stdout.write(text);
+    if (outputFd !== undefined) writeSync(outputFd, text);
+  };
+  const display = (kind: string, value: unknown) => output(scrub(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`));
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
     recordedRuns = runs;
@@ -427,12 +429,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const readonly = assignment.kind === 'pi' && assignment.workspace.mode === 'readonly';
   // tmux gave this host its pane's identity; the parent's snapshot has the parent's, so the worker inherits the host's.
   const ownPane = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined && isTmuxIdentityEnv(entry[0])));
-  const piEnv = { ...workerEnv(loaded, launch, launchEnv), ...ownPane, PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
+  const piEnv = { ...environment, ...ownPane, PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
   const { container } = launch;
   // Pi's environment goes into the container over stdin. The docker client gets only what reaches the engine.
   const dockerEnv = clientEnv(launchEnv);
   const piCommand = [...launch.piCommand, ...piArgs(loaded, launch)];
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : container === null ? piCommand : [container.docker, ...containerRunArgs(container, workerDir, piCommand)];
+  const outputPath = join(workerDir, 'output.log');
+  if (container === null) outputFd = openSync(outputPath, 'wx', 0o600);
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
     detached: true,
@@ -440,6 +444,27 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     stdio: assignment.kind === 'watch' ? ['ignore', 'pipe', 'pipe'] : ['pipe', 'pipe', 'pipe'],
   });
   childPid = child.pid ?? null;
+  if (container === null) {
+    supervision = {
+      command: command.map(scrub),
+      cwd: workspaceDir(loaded),
+      environment: { mode: assignment.capabilities.env, values: 'omitted', names: Object.keys(piEnv).sort() },
+      hostStarted: identity.hostStarted,
+      childStarted: childPid === null ? null : (processStartTime(childPid) ?? null),
+      heartbeat: { meaning: 'host-liveness', intervalMs: HOST_HEARTBEAT_MS, at: new Date().toISOString() },
+      logs: { events: join(runRoot, 'events.jsonl'), output: outputPath },
+      stopPolicy: {
+        cancel: assignment.kind === 'watch' ? null : ['get_state', 'clear_queue', 'abort', 'get_state'],
+        abortDeadlineMs: assignment.kind === 'watch' ? null : ABORT_DEADLINE_MS,
+        shutdown: assignment.kind === 'watch' ? ['SIGTERM'] : ['clear_queue', 'abort', 'stdin.end'],
+        failure: 'SIGTERM',
+        signals: ['SIGTERM', 'SIGHUP'],
+        target: 'child-process-group',
+        termAfterMs: STOP_TERM_MS,
+        killAfterMs: STOP_KILL_MS,
+      },
+    };
+  }
 
   const rejectWaiting = (error: Error) => {
     for (const pending of waiting.values()) {
@@ -527,8 +552,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     if (childExited) return closed;
     if (assignment.kind === 'watch') signalChild('SIGTERM');
     else child.stdin?.end();
-    const term = setTimeout(() => signalChild('SIGTERM'), 3_000);
-    const kill = setTimeout(() => signalChild('SIGKILL'), 6_000);
+    const term = setTimeout(() => signalChild('SIGTERM'), STOP_TERM_MS);
+    const kill = setTimeout(() => signalChild('SIGKILL'), STOP_KILL_MS);
     try {
       return await closed;
     } finally {
@@ -537,6 +562,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   };
   const finishHost = () => {
+    clearInterval(heartbeat);
+    if (outputFd !== undefined) {
+      closeSync(outputFd);
+      outputFd = undefined;
+    }
     terminal?.close();
     process.stdin.pause();
     for (const socket of sockets) socket.end();
@@ -576,7 +606,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   function showWatch(text: string) {
     if (text === '') return;
     const clean = scrub(text);
-    process.stdout.write(clean);
+    output(clean);
     watchOutput = `${watchOutput}${clean}`.slice(-WATCH_OUTPUT_TAIL);
     save();
   }
@@ -840,8 +870,20 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   };
 
   try {
-    event('launch', { command, ...(assignment.kind === 'pi' ? { projectTrust: PROJECT_TRUST } : {}), hostPid: process.pid, childPid: child.pid, instance });
+    event('launch', { command: command.map(scrub), ...(assignment.kind === 'pi' ? { projectTrust: PROJECT_TRUST } : {}), hostPid: process.pid, childPid: child.pid, instance });
     save();
+    if (supervision !== undefined) {
+      const record = supervision;
+      heartbeat = setInterval(() => {
+        record.heartbeat.at = new Date().toISOString();
+        try {
+          save();
+        } catch (error) {
+          void fail(error);
+        }
+      }, HOST_HEARTBEAT_MS);
+      heartbeat.unref();
+    }
     if (container !== null) {
       // The clone and install run before Pi. A container that ends first has already failed the host through `closed`.
       const deadline = setTimeout(() => void fail(new Error(`The container was not ready within ${CONTAINER_START_MS / 60_000} minutes`)), CONTAINER_START_MS);

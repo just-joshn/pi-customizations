@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, rmSync as rmSync2, statSync, symlinkSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, rmSync as rmSync2, statSync, symlinkSync, unlinkSync, writeFileSync as writeFileSync2, writeSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute3, join as join3, resolve as resolve3 } from "node:path";
 import { createInterface } from "node:readline";
@@ -437,6 +437,9 @@ var PROJECT_TRUST = { decision: "deny", flag: "--no-approve" };
 var RPC_DEADLINE_MS = 1e4;
 var PI_START_MS = 120000;
 var ABORT_DEADLINE_MS = 60000;
+var HOST_HEARTBEAT_MS = 5000;
+var STOP_TERM_MS = 3000;
+var STOP_KILL_MS = 6000;
 var CONTAINER_START_MS = 30 * 60000;
 var STDERR_HOLD = 16384;
 var STDERR_OVERLAP = 512;
@@ -587,6 +590,7 @@ function claim(loaded, instance) {
   const identity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
   writeFileSync2(join3(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify(identity)}
 `, { mode: 384, flag: "wx" });
+  return identity;
 }
 async function prepareWorktree(loaded, inputCommit) {
   const { runId, workerId } = loaded.assignment;
@@ -646,9 +650,10 @@ async function runHost(assignmentFile, launchText) {
   const launch = parseLaunch(launchText);
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
-  claim(loaded, instance);
+  const identity = claim(loaded, instance);
   const launchEnv = takeLaunchEnv(workerDir);
-  const scrub = scrubber(secretValues(workerEnv(loaded, launch, launchEnv), launch.credentialEnv));
+  const environment = workerEnv(loaded, launch, launchEnv);
+  const scrub = scrubber([...secretValues(environment, launch.credentialEnv), ...launch.credentialEnv.flatMap((name) => environment[name] ? [environment[name]] : [])]);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join3(workerDir, "session");
   let phase = "starting";
@@ -666,6 +671,9 @@ async function runHost(assignmentFile, launchText) {
   let lastRun;
   let settles = [];
   let childPid = null;
+  let supervision;
+  let heartbeat;
+  let outputFd;
   let stderrTail = "";
   let stderrPending = "";
   let watchOutput = "";
@@ -694,6 +702,7 @@ async function runHost(assignmentFile, launchText) {
     instance,
     hostPid: process.pid,
     childPid,
+    ...supervision === undefined ? {} : { supervision },
     tmuxSession: launch.tmuxSession,
     socketPath,
     phase,
@@ -716,7 +725,12 @@ async function runHost(assignmentFile, launchText) {
     }
   };
   const save = () => writeJsonAtomic(join3(workerDir, "state.json"), observation());
-  const display = (kind, value) => process.stdout.write(scrub(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
+  const output = (text) => {
+    process.stdout.write(text);
+    if (outputFd !== undefined)
+      writeSync(outputFd, text);
+  };
+  const display = (kind, value) => output(scrub(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
 `));
   const settle = (settlePhase, why, covers = generation) => {
     recordedRuns = runs;
@@ -744,11 +758,14 @@ async function runHost(assignmentFile, launchText) {
   }
   const readonly = assignment.kind === "pi" && assignment.workspace.mode === "readonly";
   const ownPane = Object.fromEntries(Object.entries(process.env).filter((entry) => entry[1] !== undefined && isTmuxIdentityEnv(entry[0])));
-  const piEnv = { ...workerEnv(loaded, launch, launchEnv), ...ownPane, PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
+  const piEnv = { ...environment, ...ownPane, PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
   const { container } = launch;
   const dockerEnv = clientEnv(launchEnv);
   const piCommand = [...launch.piCommand, ...piArgs(loaded, launch)];
   const command = assignment.kind === "watch" ? assignment.watch.argv : container === null ? piCommand : [container.docker, ...containerRunArgs(container, workerDir, piCommand)];
+  const outputPath = join3(workerDir, "output.log");
+  if (container === null)
+    outputFd = openSync2(outputPath, "wx", 384);
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
     detached: true,
@@ -756,6 +773,27 @@ async function runHost(assignmentFile, launchText) {
     stdio: assignment.kind === "watch" ? ["ignore", "pipe", "pipe"] : ["pipe", "pipe", "pipe"]
   });
   childPid = child.pid ?? null;
+  if (container === null) {
+    supervision = {
+      command: command.map(scrub),
+      cwd: workspaceDir(loaded),
+      environment: { mode: assignment.capabilities.env, values: "omitted", names: Object.keys(piEnv).sort() },
+      hostStarted: identity.hostStarted,
+      childStarted: childPid === null ? null : processStartTime(childPid) ?? null,
+      heartbeat: { meaning: "host-liveness", intervalMs: HOST_HEARTBEAT_MS, at: new Date().toISOString() },
+      logs: { events: join3(runRoot, "events.jsonl"), output: outputPath },
+      stopPolicy: {
+        cancel: assignment.kind === "watch" ? null : ["get_state", "clear_queue", "abort", "get_state"],
+        abortDeadlineMs: assignment.kind === "watch" ? null : ABORT_DEADLINE_MS,
+        shutdown: assignment.kind === "watch" ? ["SIGTERM"] : ["clear_queue", "abort", "stdin.end"],
+        failure: "SIGTERM",
+        signals: ["SIGTERM", "SIGHUP"],
+        target: "child-process-group",
+        termAfterMs: STOP_TERM_MS,
+        killAfterMs: STOP_KILL_MS
+      }
+    };
+  }
   const rejectWaiting = (error) => {
     for (const pending of waiting.values()) {
       clearTimeout(pending.timer);
@@ -851,8 +889,8 @@ async function runHost(assignmentFile, launchText) {
       signalChild("SIGTERM");
     else
       child.stdin?.end();
-    const term = setTimeout(() => signalChild("SIGTERM"), 3000);
-    const kill = setTimeout(() => signalChild("SIGKILL"), 6000);
+    const term = setTimeout(() => signalChild("SIGTERM"), STOP_TERM_MS);
+    const kill = setTimeout(() => signalChild("SIGKILL"), STOP_KILL_MS);
     try {
       return await closed;
     } finally {
@@ -861,6 +899,11 @@ async function runHost(assignmentFile, launchText) {
     }
   };
   const finishHost = () => {
+    clearInterval(heartbeat);
+    if (outputFd !== undefined) {
+      closeSync2(outputFd);
+      outputFd = undefined;
+    }
     terminal?.close();
     process.stdin.pause();
     for (const socket of sockets)
@@ -898,7 +941,7 @@ async function runHost(assignmentFile, launchText) {
     if (text === "")
       return;
     const clean = scrub(text);
-    process.stdout.write(clean);
+    output(clean);
     watchOutput = `${watchOutput}${clean}`.slice(-WATCH_OUTPUT_TAIL);
     save();
   }
@@ -1179,8 +1222,20 @@ async function runHost(assignmentFile, launchText) {
     });
   };
   try {
-    event("launch", { command, ...assignment.kind === "pi" ? { projectTrust: PROJECT_TRUST } : {}, hostPid: process.pid, childPid: child.pid, instance });
+    event("launch", { command: command.map(scrub), ...assignment.kind === "pi" ? { projectTrust: PROJECT_TRUST } : {}, hostPid: process.pid, childPid: child.pid, instance });
     save();
+    if (supervision !== undefined) {
+      const record = supervision;
+      heartbeat = setInterval(() => {
+        record.heartbeat.at = new Date().toISOString();
+        try {
+          save();
+        } catch (error) {
+          fail(error);
+        }
+      }, HOST_HEARTBEAT_MS);
+      heartbeat.unref();
+    }
     if (container !== null) {
       const deadline = setTimeout(() => void fail(new Error(`The container was not ready within ${CONTAINER_START_MS / 60000} minutes`)), CONTAINER_START_MS);
       await Promise.race([containerReady, closed]);

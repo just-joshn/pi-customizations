@@ -342,6 +342,29 @@ export interface Settle {
   at: string;
 }
 
+export interface HostSupervision {
+  command: string[];
+  cwd: string;
+  environment: { mode: Capabilities['env']; values: 'omitted'; names: string[] };
+  hostStarted: string;
+  childStarted: string | null;
+  /** Updated every five seconds while the host is alive, never evidence of child progress or completion. */
+  heartbeat: { meaning: 'host-liveness'; intervalMs: number; at: string };
+  logs: { events: string; output: string };
+  stopPolicy: {
+    cancel: string[] | null;
+    abortDeadlineMs: number | null;
+    shutdown: string[];
+    /** Failure signals immediately, then uses the same child close and escalation path. */
+    failure: 'SIGTERM';
+    signals: ['SIGTERM', 'SIGHUP'];
+    target: 'child-process-group';
+    /** Delays start at the child close request, after shutdown's RPC attempts, not at control receipt. */
+    termAfterMs: number;
+    killAfterMs: number;
+  };
+}
+
 export interface HostState {
   schemaVersion: 1;
   runId: RunId;
@@ -351,6 +374,8 @@ export interface HostState {
   instance: string;
   hostPid: number;
   childPid: number | null;
+  /** Non-container process records. Older hosts and container workers may omit this. */
+  supervision?: HostSupervision;
   tmuxSession: string;
   socketPath: string;
   phase: HostPhase;
