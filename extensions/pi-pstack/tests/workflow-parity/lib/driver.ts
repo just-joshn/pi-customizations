@@ -7,6 +7,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
+import { processStartTime, readClaim } from '../../../src/run-files.ts';
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
 import { type ContainerCredentialProbe, type CredentialCapture, recordContainerCredentials, startCredentialCapture } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
@@ -345,23 +346,33 @@ const alive = (pid: number): boolean => {
  * claim, and remove their container. The run's sandbox is final once they and their Pi children have exited, not when the kill returns
  * (measured: all 8 of autopilot-stack's worker processes were still alive right after it, and a loaded runner takes longer).
  */
-async function untilWorkersExit(repo: string): Promise<void> {
+export async function untilWorkersExit(repo: string, stop: () => void = () => {}): Promise<void> {
   const runs = join(repo, '.pi', 'pstack', 'runs');
   const pids = (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
     const workers = join(runs, runId, 'workers');
     return (existsSync(workers) ? readdirSync(workers) : []).flatMap((id) => {
       try {
         const state = JSON.parse(readFileSync(join(workers, id, 'state.json'), 'utf8')) as Json;
-        return [state['hostPid'], state['childPid']].filter((pid): pid is number => typeof pid === 'number');
+        const claim = readClaim(join(workers, id));
+        return [
+          ...(typeof state['hostPid'] === 'number' ? [{ pid: state['hostPid'], started: claim?.hostStarted ?? processStartTime(state['hostPid']) }] : []),
+          ...(typeof state['childPid'] === 'number' && state['exit'] == null ? [{ pid: state['childPid'], started: processStartTime(state['childPid']) }] : []),
+        ];
       } catch {
         return [];
       }
     });
   });
+  stop();
+  const stillRunning = ({ pid, started }: (typeof pids)[number]) => {
+    if (!alive(pid)) return false;
+    const current = started === undefined ? undefined : processStartTime(pid);
+    return current === undefined || current === started;
+  };
   const end = Date.now() + 30_000;
-  while (pids.some(alive) && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 50));
-  const left = pids.filter(alive);
-  if (left.length > 0) throw new Error(`worker processes ${left.join(', ')} outlived the tmux server for 30 s, so the sandbox is still changing`);
+  while (pids.some(stillRunning) && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 50));
+  const left = pids.filter(stillRunning);
+  if (left.length > 0) throw new Error(`worker processes ${left.map(({ pid }) => pid).join(', ')} outlived the tmux server for 30 s, so the sandbox is still changing`);
 }
 
 /** Everything a run writes while it works: worker phases, and the size of each worker's session and each run's event log. A model turn that is still going shows as a session that grows. */
@@ -642,10 +653,11 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       writeFileSync(join(ctx.sandbox, 'worker-states-before-stop.json'), JSON.stringify(states, null, 2));
     }
     await stopPi(child);
-    spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
-    rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
+    await untilWorkersExit(ctx.repo, () => {
+      spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
+      rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
+    });
     if (driver === 'real') {
-      await untilWorkersExit(ctx.repo);
       containerCredentialProbes = recordContainerCredentials(ctx.repo, ctx.sandbox, capture?.captureDir);
       for (const probe of containerCredentialProbes) {
         if (probe.status === 'unavailable') findings.push(`INCONCLUSIVE container credential probe ${probe.runId}/${probe.workerId}: no live worker capture`);
@@ -653,7 +665,6 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       }
     }
   }
-  if (driver !== 'real') await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
   const meta: Meta = { ...(containerCredentialProbes === undefined ? {} : { containerCredentialProbes }), family: spec.family, driver, base: ctx.base, inputHead, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
