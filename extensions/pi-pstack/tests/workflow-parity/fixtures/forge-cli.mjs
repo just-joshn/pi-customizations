@@ -37,7 +37,7 @@ function die(code, message) {
 }
 const out = (value) => {
   const query = tool === 'gh' ? argv.findIndex((arg) => arg === '--jq' || arg === '-q') : -1;
-  if (query !== -1) {
+  if (query !== -1 && argv[query + 1] !== '.') {
     const result = sh('jq', ['-r', argv[query + 1]], { input: JSON.stringify(value) });
     if (result.status !== 0) die(1, result.stderr || 'gh: jq failed');
     process.stdout.write(result.stdout);
@@ -151,7 +151,7 @@ function facts(state, pr) {
     mergedAt: pr.mergedAt,
     isDraft: pr.isDraft === true,
     isCrossRepository: false,
-    comments: pr.comments,
+    comments: pr.comments.map((entry) => ({ ...entry, author: { login: entry.author } })),
     commits: git('log', '--reverse', '--format=%H%x00%s%x00%b%x00%cI%x1e', `${tipOf(pr.base)}..${headOf(pr)}`).stdout.split('\x1e').filter((entry) => entry.trim()).map((entry) => {
       const [oid, messageHeadline, messageBody, committedDate] = entry.trim().split('\x00');
       return { oid, messageHeadline, messageBody, committedDate };
@@ -190,7 +190,7 @@ const positionals = (skip) => {
   }
   return found;
 };
-const WITH_VALUE = ['--jq', '-q', '--json', '--repo', '--state', '--limit', '--title', '--body', '--body-file', '-F', '--base', '--head', '--match-head-commit', '--method', '--input', '-f', '-X', '--status', '--job', '-R', '-b', '-t', '-B', '-H'];
+const WITH_VALUE = ['--jq', '-q', '--json', '--repo', '--state', '--limit', '--title', '--body', '--body-file', '-F', '--base', '--head', '--match-head-commit', '--method', '--input', '-f', '-X', '--status', '--job', '--attempt', '-a', '--branch', '-R', '-b', '-t', '-B', '-H'];
 const bodyOf = () => {
   const inline = value('--body', '-b');
   if (inline !== undefined) return inline;
@@ -215,8 +215,10 @@ function threadsOf(pr) {
   return pr.threads.map((thread) => ({ ...thread, comments: thread.comments }));
 }
 
+const databaseIdOf = (pr, entry) => /^\d+$/.test(String(entry.id)) ? Number(entry.id) : pr.number * 100000 + pr.threads.flatMap((thread) => thread.comments).indexOf(entry) + 1;
+
 function replyTo(pr, commentId, body) {
-  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId)) || item.id === commentId);
+  const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(pr, entry)) === String(commentId)) || item.id === commentId);
   if (thread === undefined) die(1, `gh: no review comment ${commentId}`);
   thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, in_reply_to_id: thread.comments[0].id, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
   return thread;
@@ -330,7 +332,7 @@ function graphql(state) {
   if (pr === undefined) die(1, 'gh: unknown pull request');
   if (/\breviewThreads\s*\(/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
-    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: entry.id, body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
+    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, isOutdated: false, path: thread.comments[0]?.path ?? null, line: thread.comments[0]?.line ?? null, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, databaseId: databaseIdOf(pr, entry), body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
   }
   if (/PrCheckRollup/.test(query)) {
@@ -349,7 +351,7 @@ function gh(state) {
   const [group, verb, ...rest] = argv;
   void rest;
   if (group === 'repo' && verb === 'view') {
-    const repo = { name: state.repo.name, owner: { login: state.repo.owner }, nameWithOwner: repoName(state.repo), url: `https://github.com/${repoName(state.repo)}`, defaultBranchRef: { name: state.repo.trunk } };
+    const repo = { name: state.repo.name, owner: { login: state.repo.owner }, nameWithOwner: repoName(state.repo), url: `https://github.com/${repoName(state.repo)}`, defaultBranchRef: { name: state.repo.trunk }, squashMergeAllowed: true, mergeCommitAllowed: true, rebaseMergeAllowed: true };
     log({ kind: 'read', what: 'repo' });
     const fields = (value('--json') ?? '').split(',').filter(Boolean);
     return out(fields.length === 0 ? `${repo.nameWithOwner}\n` : pick(repo, fields));
@@ -365,12 +367,20 @@ function gh(state) {
   if (group === 'api') {
     const target = argv.find((arg) => /^repos\//.test(arg) || arg === 'graphql');
     if (target === 'graphql') return graphql(state);
+    if (target === `repos/${repoName(state.repo)}`) {
+      log({ kind: 'read', what: 'repo-api' });
+      return out({ name: state.repo.name, full_name: repoName(state.repo), owner: { login: state.repo.owner }, default_branch: state.repo.trunk, allow_squash_merge: true, allow_merge_commit: true, allow_rebase_merge: true });
+    }
+    if (target === `repos/${repoName(state.repo)}/actions/secrets`) {
+      log({ kind: 'read', what: 'action-secrets' });
+      return out({ total_count: 0, secrets: [] });
+    }
     const comments = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments$/.exec(target ?? '');
     if (comments !== null && (value('--method', '-X') ?? 'GET').toUpperCase() === 'GET') {
       const pr = state.prs[comments[1]];
       if (pr === undefined) die(1, 'gh: unknown pull request');
       log({ kind: 'read', what: 'review-comments', pr: pr.number });
-      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: entry.id, body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: entry.in_reply_to_id }) }))));
+      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: databaseIdOf(pr, entry), body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: databaseIdOf(pr, pr.threads.flatMap((item) => item.comments).find((item) => item.id === entry.in_reply_to_id)) }) }))));
     }
     const reply = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments\/([^/]+)\/replies$/.exec(target ?? '');
     if (reply !== null && String(value('--method', '-X')).toUpperCase() === 'POST') {
@@ -380,14 +390,14 @@ function gh(state) {
       const payload = JSON.parse(readFileSync(value('--input') === '-' ? 0 : value('--input'), 'utf8'));
       const thread = replyTo(pr, reply[2], String(payload.body));
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: String(payload.body) });
-      return out({ id: thread.comments.at(-1).id, body: payload.body });
+      return out({ id: databaseIdOf(pr, thread.comments.at(-1)), body: payload.body });
     }
     die(1, `gh: unsupported api call ${target}`);
   }
   if (group === 'run') {
     if (verb === 'list' || verb === 'ls') {
       const branch = value('--branch', '-b');
-      const runs = Object.values(state.prs).filter((pr) => branch === undefined || pr.head === branch).flatMap((pr) => readChecks(pr, false).map((check) => ({ databaseId: check.runId, headBranch: pr.head, headSha: headOf(pr), status: check.state === 'PENDING' ? 'in_progress' : 'completed', conclusion: check.state === 'PENDING' ? '' : check.state.toLowerCase(), name: check.workflow, workflowName: check.workflow, url: check.link })));
+      const runs = Object.values(state.prs).filter((pr) => branch === undefined || pr.head === branch).flatMap((pr) => readChecks(pr, false).map((check) => ({ databaseId: check.runId, attempt: (pr.checks.find((item) => item.runId === check.runId)?.reruns ?? 0) + 1, headBranch: pr.head, headSha: headOf(pr), status: check.state === 'PENDING' ? 'in_progress' : 'completed', conclusion: check.state === 'PENDING' ? '' : check.state.toLowerCase(), name: check.workflow, workflowName: check.workflow, url: check.link })));
       const fields = (value('--json') ?? '').split(',').filter(Boolean);
       log({ kind: 'read', what: 'runs', branch });
       return out(fields.length === 0 ? runs : runs.map((run) => pick(run, fields)));
@@ -398,7 +408,11 @@ function gh(state) {
     const check = holder.checks.find((item) => String(item.runId) === String(id));
     if (verb === 'view') {
       log({ kind: 'log-view', pr: holder.number, runId: String(id) });
-      return out(`${check.log ?? ''}\n`);
+      const fields = (value('--json') ?? '').split(',').filter(Boolean);
+      const attempt = (check.reruns ?? 0) + 1;
+      if (value('--attempt', '-a') !== undefined && Number(value('--attempt', '-a')) !== attempt) die(1, `gh: no recorded attempt ${value('--attempt', '-a')}`);
+      const run = { databaseId: check.runId, attempt, headBranch: holder.head, headSha: headOf(holder), status: check.pendingReads > 0 || check.state === 'PENDING' ? 'in_progress' : 'completed', conclusion: check.pendingReads > 0 || check.state === 'PENDING' ? '' : check.state.toLowerCase(), name: check.workflow ?? 'CI', workflowName: check.workflow ?? 'CI', url: `https://github.com/${repoName(state.repo)}/actions/runs/${id}` };
+      return out(fields.length > 0 ? pick(run, fields) : `${check.log ?? ''}\n`);
     }
     if (verb === 'rerun') {
       needToken(true);
@@ -413,16 +427,19 @@ function gh(state) {
     }
   }
   if (group !== 'pr') die(1, `gh: unsupported command ${group}`);
-  const numberArg = positionals(WITH_VALUE).slice(2).find((arg) => /^\d+$/.test(arg));
+  const target = positionals(WITH_VALUE)[2];
+  const numberArg = /^\d+$/.test(target ?? '') ? target : /\/pull\/(\d+)$/.exec(target ?? '')?.[1];
   const find = () => {
     if (numberArg !== undefined) return state.prs[numberArg];
-    const branch = currentBranch();
+    const branch = target ?? currentBranch();
     return Object.values(state.prs).find((pr) => pr.head === branch);
   };
   if (verb === 'list') {
     log({ kind: 'read', what: 'list' });
-    const open = Object.values(state.prs).filter((pr) => pr.state === 'OPEN').map((pr) => facts(state, pr));
-    return out(open.map((item) => pick(item, ['number', 'headRefName', 'baseRefName', 'isCrossRepository'])));
+    const wanted = (value('--state') ?? 'open').toUpperCase();
+    const fields = (value('--json') ?? 'number,headRefName,baseRefName,isCrossRepository').split(',');
+    const matches = Object.values(state.prs).filter((pr) => (wanted === 'ALL' || pr.state === wanted) && (value('--head', '-H') === undefined || pr.head === value('--head', '-H')) && (value('--base', '-B') === undefined || pr.base === value('--base', '-B')));
+    return out(matches.map((pr) => pick(facts(state, pr), fields)));
   }
   if (verb === 'create') {
     needToken(true);
