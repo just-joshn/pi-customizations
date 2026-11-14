@@ -9,6 +9,12 @@ test('each PR has a successful watcher without requiring one watcher for the pro
   const check = orchestrateFamily.checks.find((entry) => entry.id === 'orchestrate.a-watch-loop-follows-the-pr');
   if (check === undefined) throw new Error('Missing watcher check');
   expect(check.run(view)).toMatchObject({ ok: true });
+  for (const worker of workers) worker.assignment.watch.argv.unshift('/usr/bin/env', 'PATH=/fixture/bin:/usr/bin');
+  expect(check.run(view)).toMatchObject({ ok: true });
+  const first = workers[0];
+  if (first === undefined) throw new Error('Missing watcher');
+  first.assignment.watch.argv = ['/usr/bin/env', 'PATH=/fixture/bin:/usr/bin', 'sh', '-c', `while true; do ${WATCH_PR} --pr 51; done`];
+  expect(check.run(view)).toMatchObject({ ok: false });
   workers.pop();
   expect(check.run(view)).toMatchObject({ ok: false });
 });

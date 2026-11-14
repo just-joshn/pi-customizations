@@ -184,7 +184,11 @@ export const orchestrateFamily: Family = {
       return when(live && (run?.decisions?.length ?? 0) > 0 && existsSync(notes) && readFileSync(notes, 'utf8').trim() !== '' && missing.length === 0 && reply !== '' && !reply.trim().endsWith('?'), 'both PRs read live before the reply; notes and decisions present; every worker accounted for; no question', `live reads ${live}; decisions ${run?.decisions?.length}; unaccounted workers ${missing.join(', ') || 'none'}`);
     }),
     check('orchestrate.a-watch-loop-follows-the-pr', 'the PR was watched with a watch-pr watcher in a watcher worker, not a script or sleep loop in the parent', OR('Watch each PR with a watch loop'), (view) => {
-      const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).watch?.argv?.[0]?.endsWith('/poteto-mode/scripts/watch-pr/watch-pr') === true);
+      const candidates = allWorkers(view).filter((worker) => {
+        const argv = assignmentOf(worker).watch?.argv ?? [];
+        const command = /(?:^|\/)env$/.test(argv[0] ?? '') ? argv.slice(1).find((arg) => !/^[A-Za-z_][A-Za-z_0-9]*=/.test(arg)) : argv[0];
+        return command?.endsWith('/poteto-mode/scripts/watch-pr/watch-pr') === true;
+      });
       const missing = [51, 52].filter((pr) => !candidates.some((worker) => {
         const argv = assignmentOf(worker).watch?.argv ?? [];
         const selected = argv[argv.indexOf('--pr') + 1];
