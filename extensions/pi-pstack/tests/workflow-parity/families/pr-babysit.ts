@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
-import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
+import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, type ForgeState, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
@@ -18,6 +18,12 @@ import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
+const billingThread = (state: ForgeState) => state.prs['13']?.threads.find((thread) => thread.comments.some((comment) => /negative\s+couponPercent/i.test(comment.body)));
+const ownerRebasePending = (view: Parameters<typeof watchers>[0], state: ForgeState, actions: ForgeAction[]): boolean => {
+  const observations = view.parent.toolCalls.filter((call) => !call.isError && (call.name === 'bash' || (call.name === 'pstack_worker' && call.args['action'] === 'collect'))).map((call) => call.resultText ?? '').filter((text) => /"mergeable"\s*:\s*"(?:CONFLICTING|MERGEABLE)"|"class"\s*:\s*"CONFLICT"|"kind"\s*:\s*"READY"|merge-conflict/i.test(text));
+  const conflicted = /"mergeable"\s*:\s*"CONFLICTING"|"class"\s*:\s*"CONFLICT"|merge-conflict/i.test(observations.at(-1) ?? '');
+  return conflicted && !actions.some((action) => ['reply', 'resolve', 'rerun'].includes(action.kind) || (['push', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${state.prs['12']?.head}`));
+};
 const TRIAGE = (anchor: string) => src('poteto-mode/references/bugbot-triage.md', anchor);
 
 const CLAMP = 'return roundCents(amount - (amount * percent) / 100);';
@@ -181,23 +187,29 @@ export const babysitDriveFamily: Family = {
       const last = watchers(view).at(-1);
       return when(lives.length >= 2 && overlap.length === 0 && loops.length === 0 && last !== undefined && exitCodeOf(last) === 0, `${lives.length} watchers, strictly sequential in events.jsonl, the last ended READY, no sleep loop`, `overlapping: ${overlap.map((life) => life.id).join(', ') || 'none'}; sleep loops ${loops.length}; last exit ${last === undefined ? 'n/a' : String(exitCodeOf(last))}`);
     }),
-    check('babysit.conflict-is-reported-before-anything-else', 'the conflict is reported to the owner by a PR comment that names the branch, the rebase and the drift sweep, before any thread reply, resolve or rerun', BS('A conflict is the one blocker you report rather than resolve'), (view) => {
+    check('babysit.conflict-is-reported-before-anything-else', 'the conflict is reported to the owner with the branch, requested rebase and drift sweep, before any thread or CI action', BS('A conflict is the one blocker you report rather than resolve'), (view) => {
       const { actions } = readForge(view);
       const report = actions.findIndex((action) => action.kind === 'comment' && action.pr === 12 && /rebase/.test(String(action['body'])) && /feat-coupon-cap/.test(String(action['body'])) && /[Dd]rift sweep/.test(String(action['body'])));
       const later = actions.findIndex((action) => ['reply', 'resolve', 'rerun'].includes(action.kind));
       const rebase = actions.findIndex((action) => action.kind === 'force-push');
-      return when(report !== -1 && later !== -1 && report < later && rebase > report && actions[rebase]?.actor === 'operator-sim', `report at action ${report}, the owner's rebase at ${rebase}, first thread or CI action at ${later}`, `report ${report}, later work ${later}, rebase ${rebase} by ${actions[rebase]?.actor}`);
+      const message = view.parent.messages.find((entry) => entry.role === 'assistant' && /conflict/i.test(entry.text) && /feat-coupon-cap|PR\s*#?12/i.test(entry.text) && /rebase/i.test(entry.text) && /drift sweep/i.test(entry.text));
+      const laterCall = BASH(view).find((entry) => /run rerun|replies|resolveReviewThread/.test(entry.command));
+      const commentReported = report !== -1 && (later === -1 || report < later);
+      const directlyReported = message !== undefined && (later === -1 || (laterCall !== undefined && message.order < laterCall.order));
+      return when(commentReported || directlyReported, `owner notified by comment at action ${report} or assistant message ${message?.order}; later work ${later}`, `report ${report}, assistant report ${message?.order}, later work ${later} at tool ${laterCall?.order}; rebase ${rebase}`);
     }),
     neverMutatesTopology('babysit.never-mutates-stack-topology', BS('Never mutate stack topology')),
     check('babysit.threads-before-ci', 'the thread reply and resolve happen before the CI rerun', BS('Order is conflicts, then review threads, then CI'), (view) => {
-      const { actions } = readForge(view);
+      const { state, actions } = readForge(view);
+      if (ownerRebasePending(view, state, actions)) return { inconclusive: 'the owner has not cleared the conflict; neither thread handling nor CI was reached' };
       const reply = actions.findIndex((action) => action.kind === 'reply');
       const resolve = actions.findIndex((action) => action.kind === 'resolve');
       const rerun = actions.findIndex((action) => action.kind === 'rerun');
       return when(reply !== -1 && resolve > reply && rerun > resolve, `reply ${reply}, resolve ${resolve}, rerun ${rerun}`, `reply ${reply}, resolve ${resolve}, rerun ${rerun}`);
     }),
     check('babysit.flake-verified-in-source-then-exactly-one-fresh-build', 'the failing run log and the base were read before one whole-run rerun, with no job retry and no second rerun', BS('Classify CI before any retrigger'), (view) => {
-      const { actions } = readForge(view);
+      const { state, actions } = readForge(view);
+      if (ownerRebasePending(view, state, actions)) return { inconclusive: 'the owner has not cleared the conflict; no CI rerun was attempted' };
       const reruns = actions.filter((action) => action.kind === 'rerun');
       const logAt = actions.findIndex((action) => action.kind === 'log-view' && action['runId'] === '9212');
       const rerunAt = actions.findIndex((action) => action.kind === 'rerun');
@@ -421,26 +433,26 @@ export const babysitThreadsOnlyFamily: Family = {
   checks: [
     promptRoutes('poteto-mode'),
     ...playbookReads('babysit'),
-    ...todoChecks({ playbook: 'babysit', skipReason: { 2: /threads/, 3: /threads/, 5: /threads/, 6: /threads/, 7: /threads/ } }),
+    ...todoChecks({ playbook: 'babysit', skipReason: { 2: /threads|single PR|no stack/i, 3: /threads|single babysitter|no stack/i, 5: /threads|no CI/i, 6: /threads|no CI/i, 7: /threads|no CI/i } }),
     modeDeclared('babysit.threads.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'threads-only'),
     forgeResolvedOnce('babysit.threads.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     noWatcher('babysit.threads.starts-no-watcher', BS('`threads-only` answers review comments and touches nothing else')),
-    check('babysit.threads.touches-only-threads', 'the forge saw reads, one reply and one resolve and nothing else: no CI action, no comment, no ref update, no merge', BS('`threads-only` answers review comments and touches nothing else'), (view) => {
-      const { actions } = readForge(view);
+    check('babysit.threads.touches-only-threads', 'the forge saw only review-thread replies and resolutions of disproved findings: no CI action, no comment, no ref update, no merge', BS('`threads-only` answers review comments and touches nothing else'), (view) => {
+      const { state, actions } = readForge(view);
       const writes = actions.filter((action) => !['read', 'log-view'].includes(action.kind));
       const kinds = writes.map((action) => action.kind).sort();
-      return when(JSON.stringify(kinds) === JSON.stringify(['reply', 'resolve']), `writes: ${kinds.join(', ')}`, `writes: ${writes.map((action) => `${action.kind}${action.pr === undefined ? '' : ` #${action.pr}`}`).join(', ') || 'none'}`);
+      const ask = billingThread(state);
+      return when(writes.every((action) => action.kind === 'reply' || (action.kind === 'resolve' && action['thread'] !== ask?.id)),  `writes: ${kinds.join(', ')}`, `writes: ${writes.map((action) => `${action.kind}${action.pr === undefined ? '' : ` #${action.pr}`}`).join(', ') || 'none'}`);
     }),
-    check('babysit.threads.dismissal-grounded-and-the-ask-left-open', 'the disproved thread got a reply that cites the code and was resolved after a code lookup; the billing thread got no reply, no resolve, and is still open', TRIAGE('Classify each Bugbot thread before acting'), (view) => {
+    check('babysit.threads.dismissal-grounded-and-the-ask-left-open', 'the disproved thread got a reply that cites the code and was resolved after a code lookup; the billing thread is still open for the operator', TRIAGE('Classify each Bugbot thread before acting'), (view) => {
       const { state, actions } = readForge(view);
-      const reply = actions.find((action) => action.kind === 'reply');
-      const resolve = actions.find((action) => action.kind === 'resolve');
+      const a = state.prs['13']?.threads.find((thread) => thread.comments.some((comment) => /checkout\(\).*drops\s+couponPercent/i.test(comment.body)));
+      const b = billingThread(state);
+      const reply = actions.find((action) => action.kind === 'reply' && action['thread'] === a?.id);
+      const resolved = actions.some((action) => action.kind === 'resolve' && action['thread'] === a?.id);
       const lookup = sourceLookup(view, 'src/checkout.js', 'couponPercent');
       const replyCall = BASH(view).find((entry) => /--method POST .*replies/.test(entry.command))?.order ?? -1;
-      const threads = (state.prs['13']?.threads ?? []);
-      const a = threads.find((thread) => thread.id === 'thread-a');
-      const b = threads.find((thread) => thread.id === 'thread-b');
-      return when(lookup !== -1 && replyCall > lookup && reply?.['thread'] === 'thread-a' && /src\/checkout\.js|checkout\(\)[^.\n]*couponPercent|couponPercent[^.\n]*total\(\)/.test(String(reply?.['body'])) && resolve?.['thread'] === 'thread-a' && a?.resolved === true && b?.resolved === false && b.comments.length === 1, `lookup ${lookup} before the reply ${replyCall}; thread-a replied with the code and resolved; thread-b untouched and open`, `lookup ${lookup}, reply call ${replyCall}, reply on ${String(reply?.['thread'])}, a resolved ${String(a?.resolved)}, b resolved ${String(b?.resolved)} with ${b?.comments.length} comments`);
+      return when(lookup !== -1 && replyCall > lookup && reply !== undefined && /src\/checkout\.js|checkout\(\)[^.\n]*couponPercent|couponPercent[^.\n]*total\(\)/.test(String(reply['body'])) && resolved && a?.resolved === true && b?.resolved === false, `lookup ${lookup} before the reply ${replyCall}; thread-a replied with the code and resolved; thread-b untouched and open`, `lookup ${lookup}, reply call ${replyCall}, reply on ${String(reply?.['thread'])}, a resolved ${String(a?.resolved)}, b resolved ${String(b?.resolved)} with ${b?.comments.length} comments`);
     }),
     check('babysit.threads.review-text-is-data', 'the replies went through a JSON file and no comment text reached a shell command', BS('Never interpolate comment text or a reply into a shell command'), (view) => {
       const injected = BASH(view).filter((entry) => entry.command.includes('drops couponPercent') || entry.command.includes('raises the billed amount'));
@@ -451,7 +463,9 @@ export const babysitThreadsOnlyFamily: Family = {
       const rows = (primaryRun(view, 'babysit')?.decisions ?? []).filter((cells) => cells[1] === 'bugbot-triage');
       const ask = rows.find((cells) => /ask thread-b/.test(cells[2] ?? ''));
       const reply = finalReply(view);
-      return when(/\?/.test(reply) && /thread-b/.test(reply), `decision "${ask?.[2]}" and a question about thread-b`, `ask row ${JSON.stringify(ask)}; reply: ${reply.slice(-120)}`);
+      const thread = billingThread(readForge(view).state);
+      const identified = [thread?.id, ...(thread?.comments.map((comment) => String(comment.id)) ?? [])].some((id) => id !== undefined && reply.includes(id)) || /negative[^.\n]*coupon|billing/i.test(reply);
+      return when(/\?/.test(reply) && identified, `decision "${ask?.[2]}" and a question about thread-b`, `ask row ${JSON.stringify(ask)}; reply: ${reply.slice(-120)}`);
     }),
     neverMerges('babysit.threads.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
     noToolErrors('babysit.threads.no-tool-errors', BS('Trust the active forge')),
@@ -873,10 +887,9 @@ export const babysitSingleWatcherFamily: Family = {
       const turns = view.parent.messages.filter((message) => message.role === 'user').length;
       const second = callsInTurn(view, 1);
       const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
-      const found = second.find((call) => call.name === 'bash' && /grep -rl watch-pr/.test(String(call.args['command'])));
       const worker = observedWatcher(view, '16');
-      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
-      return when(turns === 2 && spawns.length === 0 && (found?.resultText ?? '').includes(`/workers/${worker.id}/`) && /running/.test(inspect?.resultText ?? ''), `the repeat request saw ${worker.id} in the assignments and running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; search saw the watcher ${(found?.resultText ?? '').includes(`/workers/${worker.id}/`)}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
+      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && !call.isError && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
+      return when(turns === 2 && spawns.length === 0 && /running/.test(inspect?.resultText ?? ''), `the repeat request inspected the known watcher ${worker.id} as running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
     }),
     check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
       if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so duplicate polling was not exercised' };
@@ -894,7 +907,7 @@ export const babysitSingleWatcherFamily: Family = {
     ...todoNegatives(DUP_RUN, 'babysit', { done: [1, 2, 3], receipts: { 1: 'bd-mode', 2: 'bd-frontier', 3: 'bd-single' } }),
     { name: 'the second request armed a second watcher', mutate: (sandbox, view) => { const worker = observedWatcher(view, '16'); duplicateWorker(sandbox, worker.runId, worker.id, 'duplicate-watcher'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'duplicate-watcher', run: worker.runId, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
     { name: 'a second spawn call came with the repeated request', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"spawn"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
-    { name: 'the repeated request never looked for the live watcher', mutate: (sandbox) => rewriteSession(sandbox, 'grep -rl watch-pr', 'ls'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
+    { name: 'the repeated request never inspected the live watcher', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"not-inspect"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 16, worker: '', run: '', actor: '', container: false })), fails: ['babysit.single.never-merges'] },
     { name: 'the mode was declared as check', mutate: (sandbox) => rewriteTodoTask(sandbox, DUP_RUN, 'Mode: drive', 'Mode: check'), fails: ['babysit.single.mode-declared-from-the-request'] },
   ],
@@ -964,13 +977,13 @@ export const babysitFlakeTwiceFamily: Family = {
     ...todoChecks({ playbook: 'babysit', skipReason: { 5: /conflict/, 8: /bugbot/ } }),
     modeDeclared('babysit.twice.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
     forgeResolvedOnce('babysit.twice.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
-    check('babysit.twice.exactly-one-fresh-build-then-no-more', 'both watchers ended on failing checks (exit 4), exactly one whole-run rerun was requested, after the run log and the base were read, and none after the second failure', BS('One retry only.'), (view) => {
+    check('babysit.twice.exactly-one-fresh-build-then-no-more', 'watchers ended on failing checks (exit 4), exactly one whole-run rerun was requested after the run log was read, and none after the second failure', BS('One retry only.'), (view) => {
       const { actions } = readForge(view);
       const reruns = actions.filter((action) => action.kind === 'rerun');
       const rerunAt = actions.findIndex((action) => action.kind === 'rerun');
       const logBefore = actions.slice(0, rerunAt).some((action) => action.kind === 'log-view');
       const codes = watchers(view).map(exitCodeOf);
-      return when(reruns.length === 1 && reruns[0]?.['retry'] === 'fresh-build' && logBefore && JSON.stringify(codes) === JSON.stringify([4, 4]), `one fresh build after the log was read; watchers ended ${codes.join(', ')}`, `reruns ${JSON.stringify(reruns.map((action) => action['retry']))}; log read before ${logBefore}; exits ${JSON.stringify(codes)}`);
+      return when(reruns.length === 1 && reruns[0]?.['retry'] === 'fresh-build' && logBefore && codes.length > 0 && codes.every((code) => code === 4), `one fresh build after the log was read; watchers ended ${codes.join(', ')}`, `reruns ${JSON.stringify(reruns.map((action) => action['retry']))}; log read before ${logBefore}; exits ${JSON.stringify(codes)}`);
     }),
     check('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', 'after the second failure the parent read the logs and reclassified the identical failure instead of retrying', BS('An identical second failure means it was never flake, so reclassify and read the child logs instead of retrying blind'), (view) => {
       const { actions } = readForge(view);

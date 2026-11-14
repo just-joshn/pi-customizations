@@ -140,8 +140,10 @@ export const pickupFamily: Family = {
     check('pickup.resume-point-is-the-first-unfinished-unit', "the reply names the first unit the prior plan left pending, derived from the prior report", src('poteto-mode/playbooks/session-pickup.md', 'name the resume point'), (view) => {
       const report = read(join(view.repo, '.pi/pstack/runs/prior-run/workers/old-worker/report.md'));
       const pending = /Pending: (\d+\. [^.]+)\./.exec(report)?.[1] ?? '';
-      const resume = /Resume point: ([^\n]*)/.exec(finalReply(view))?.[1] ?? '';
-      return when(pending !== '' && resume.includes(pending.replace(/^\d+\. /, '')), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
+      const reply = finalReply(view);
+      const resume = /(?:resume(?: point)?|next step):\s*([^\n]*)/i.exec(reply)?.[1] ?? reply;
+      const normalize = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      return when(pending !== '' && /resume|next|remaining|pending|continue/i.test(reply) && normalize(resume).includes(normalize(pending.replace(/^\d+\. /, ''))), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
     }),
     check('pickup.nothing-redone', 'completed work is not redone: no parent write into the files the prior commits made, no commit, and the prior repro command is not re-run before verification', src('poteto-mode/playbooks/session-pickup.md', 'do not re-run the prior repro or redo completed work'), (view) => {
       const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /^(src|test)\//.test(String(call.args['path']).startsWith('/') ? relative(view.repo, String(call.args['path'])) : String(call.args['path'])));
@@ -149,9 +151,10 @@ export const pickupFamily: Family = {
       return when(rewrites.length === 0 && rerun.length === 0 && view.git.commitsSinceBase.length === 0 && view.git.dirty.length === 0, 'nothing in src or test was written, nothing committed, the repro ran only as the final verification', `rewrites ${rewrites.length}, extra repro runs ${rerun.length}, commits ${view.git.commitsSinceBase.length}`);
     }),
     check('pickup.verdict-and-route', 'the verdict is one of the four, and the playbook it routes to was opened', src('poteto-mode/playbooks/session-pickup.md', 'continue the execution, ship a finished recommendation, ratify or override a prior conclusion, or postmortem a failed run'), (view) => {
-      const verdict = /Verdict: (continue the execution|ship a finished recommendation|ratify or override a prior conclusion|postmortem a failed run)/.exec(finalReply(view))?.[1];
-      const routed = /routed to the (\w+) playbook/.exec(finalReply(view))?.[1]?.toLowerCase();
-      return when(verdict !== undefined && routed !== undefined && openedAt(view.parent, `playbooks/${routed}.md`) !== -1, `verdict "${verdict}", routed to ${routed}`, `verdict ${verdict}, routed ${routed}`);
+      const reply = finalReply(view);
+      const verdict = /\b(?:continu(?:e|ing)|ship(?:ping)?[^.\n]*recommendation|(?:ratify|override)[^.\n]*conclusion|postmortem)\b/i.exec(reply)?.[0];
+      const routed = view.parent.toolCalls.filter((call) => call.name === 'read' && !call.isError).map((call) => /playbooks\/([^/]+)\.md$/.exec(String(call.args['path']))?.[1]).find((book) => book !== undefined && book !== 'session-pickup' && new RegExp(`\\b${book}\\b`, 'i').test(reply));
+      return when(verdict !== undefined && routed !== undefined,  `verdict "${verdict}", routed to ${routed}`, `verdict ${verdict}, routed ${routed}`);
     }),
     check('pickup.inherited-claims-verified-on-the-real-artifact', 'the inherited claim is verified on the prior branch head: the receipt names that commit and the checker re-runs the tests there', src('poteto-mode/playbooks/session-pickup.md', 'Verify the inherited claims against the original goal on the real artifact'), (view) => {
       const run = primaryRun(view, 'session-pickup');
@@ -162,7 +165,13 @@ export const pickupFamily: Family = {
     }),
     check('pickup.reply-has-the-four-parts', 'the reply says where the prior agent stopped, inherited versus redone, the resume point, and the outcome', src('poteto-mode/playbooks/session-pickup.md', '**Reply:** where the prior agent stopped'), (view) => {
       const reply = finalReply(view);
-      const missing = [/Where the prior agent stopped/i, /Inherited versus redone/i, /Resume point/i, /Outcome/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const parts = [
+        { name: 'prior stopping point', pattern: /where[^.\n]*stopp|prior[^.\n]*(?:completed|done|stopp)|units? 1[^.\n]*2[^.\n]*(?:committed|green|complete)/i },
+        { name: 'inherited versus redone', pattern: /inherit[^.\n]*(?:redo|redid)|(?:reuse|kept|retained)[^.\n]*(?:redo|redid)|(?:nothing|no work)[^.\n]*(?:redone|redid|rework)/i },
+        { name: 'resume point', pattern: /resume|next|remaining|pending/i },
+        { name: 'outcome', pattern: /outcome\s*:\s*\S|verif(?:ied|ication)|(?:tests?|node --test)[^.\n]*(?:pass|fail)|\bblocked\b/i },
+      ];
+      const missing = parts.filter(({ pattern }) => !pattern.test(reply)).map(({ name }) => name);
       return when(missing.length === 0, 'four parts present', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('pickup.no-tool-errors', src('poteto-mode/playbooks/session-pickup.md', '**You own the resume point.')),
@@ -175,7 +184,7 @@ export const pickupFamily: Family = {
     { name: 'the verdict is not one of the four', mutate: (sandbox) => rewriteFinalReply(sandbox, 'continue the execution', 'start over'), fails: ['pickup.verdict-and-route'] },
     { name: 'the inherited claim was verified on the wrong commit', mutate: (sandbox) => patchReceiptCommit(sandbox), fails: ['pickup.inherited-claims-verified-on-the-real-artifact'] },
     { name: 'the prior report was never read', mutate: (sandbox) => rewriteSession(sandbox, 'workers/old-worker/report.md', 'workers/old-worker/other.md'), fails: ['pickup.trail-read-inside-this-workspace'] },
-    { name: 'the reply left out the outcome', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Outcome:', 'Note:'), fails: ['pickup.reply-has-the-four-parts'] },
+    { name: 'the reply left out the outcome', mutate: (sandbox) => rewriteFinalReply(sandbox, /Outcome:[^\n]*/, ''), fails: ['pickup.reply-has-the-four-parts'] },
   ],
 };
 

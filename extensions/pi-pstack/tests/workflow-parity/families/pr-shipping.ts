@@ -225,23 +225,69 @@ export function mergesAreAuthorizedAndVerified(id: string, source: Src | Src[], 
 }
 
 /** Only a prefix computed independently from the verdicts landed, one PR at a time from the root, each read back as merged into trunk. */
-export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expected: number[], by: 'head' | 'patch' = 'head'): Check {
-  return check(id, `exactly the contiguous verified prefix (${expected.map((n) => `#${n}`).join(', ')}) merged, bottom-up, each read back as merged into trunk, nothing above the first unverified PR`, source, (view) => {
+export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expected: number[] | undefined, by: 'head' | 'patch' = 'head'): Check {
+  return check(id, `exactly the contiguous verified prefix (${expected?.map((n) => `#${n}`).join(', ') ?? 'computed from current verdicts'}) merged, bottom-up, each read back as merged into trunk, nothing above the first unverified PR`, source, (view) => {
     const { state, actions } = readForge(view);
     const order = stackOrder(state);
     const heads = headAt(view, state);
     const verdicts = verdictsOf(state, actions, view);
     const current = (n: number) => state.prs[String(n)]?.mergedHead ?? heads(n);
-    const lost = order.findIndex((n) => {
-      const found = verdicts.filter((verdict) => verdict.pr === n).at(-1);
-      return found === undefined || found.verdict === 'FAIL' || found.patch !== patchIdOf(bareOf(view.sandbox), current(n));
-    });
-    const prefix = by === 'head' ? verifiedPrefix(order, state, verdicts, current) : order.slice(0, lost === -1 ? order.length : lost);
+    const prefix = by === 'head' ? verifiedPrefix(order, state, verdicts, current) : verifiedPatchPrefix(view, state, actions);
     const merged = mergesIn(actions).map((action) => action.pr);
-    const readBack = merged.filter((n) => BASH(view).some((entry) => new RegExp(`\\bgh pr view ${n} .*--json state,mergedAt,baseRefName`).test(entry.command)));
+    const readBack = merged.filter((n) => view.parent.toolCalls.some((call) => {
+      if (call.name !== 'bash' || call.isError) return false;
+      const command = String(call.args['command']);
+      const queries = [...command.matchAll(/\bgh pr view ["']?(\d+|\$(?:\{\w+\}|\w+))["']?\s+([^;\n]*)/g)];
+      const fieldsOf = (query: string) => /--json(?:=|\s+)["']?([\w,]+)/.exec(query)?.[1]?.split(',') ?? [];
+      const documents: unknown[] = [];
+      let start = -1;
+      let depth = 0;
+      let quoted = false;
+      let escaped = false;
+      for (let index = 0; index < call.resultText.length; index++) {
+        const char = call.resultText[index];
+        if (start === -1) {
+          if (char === '{') { start = index; depth = 1; }
+          continue;
+        }
+        if (escaped) { escaped = false; continue; }
+        if (quoted && char === '\\') { escaped = true; continue; }
+        if (char === '"') { quoted = !quoted; continue; }
+        if (quoted) continue;
+        if (char === '{') depth++;
+        if (char === '}') depth--;
+        if (depth !== 0) continue;
+        try { documents.push(JSON.parse(call.resultText.slice(start, index + 1))); } catch { documents.push(null); }
+        start = -1;
+      }
+      const scalar = queries.length === 1 ? queries[0] : undefined;
+      const numbered = fieldsOf(scalar?.[2] ?? '').includes('number') && /\.number\b/.test(scalar?.[2] ?? '');
+      const identity = new RegExp(`\\bPR\\s*#?${n}\\b|^\\s*${n}\\b`, 'i');
+      const lines = call.resultText.split(/\r?\n/).filter((line) => !numbered || identity.test(line));
+      const scalarIdentity = Number(scalar?.[1]) === n || (scalar?.[1]?.startsWith('$') === true && numbered);
+      if (documents.length === 0 && scalarIdentity && ['state', 'baseRefName'].every((field) => fieldsOf(scalar?.[2] ?? '').includes(field)) && /(?:--jq|-q)\s/.test(scalar?.[2] ?? '') && /\.state\b/.test(scalar?.[2] ?? '') && /\.baseRefName\b/.test(scalar?.[2] ?? '') && !lines.some((line) => /\b(?:OPEN|CLOSED)\b/i.test(line)) && lines.some((line) => /\bMERGED\b/i.test(line) && line.split(/[\s=:,]+/).includes(state.repo.trunk))) return true;
+      return documents.some((observed, index) => {
+        if (observed === null || typeof observed !== 'object') return false;
+        const query = queries[index] ?? (scalar?.[1]?.startsWith('$') === true ? scalar : undefined);
+        const fields = fieldsOf(query?.[2] ?? '');
+        const identified = Number(query?.[1]) === n || (query?.[1]?.startsWith('$') === true && fields.includes('number') && 'number' in observed && observed.number === n);
+        return identified && (!('number' in observed) || observed.number === n) && ['state', 'baseRefName'].every((field) => fields.includes(field)) && 'state' in observed && observed.state === 'MERGED' && 'baseRefName' in observed && observed.baseRefName === state.repo.trunk;
+      });
+    }));
     const base = merged.map((n) => state.prs[String(n)]?.base);
-    return when(JSON.stringify(prefix) === JSON.stringify(expected) && JSON.stringify(merged) === JSON.stringify(expected) && readBack.length === merged.length && base.every((entry) => entry === state.repo.trunk), `independent prefix ${prefix.join(', ')}; merged ${merged.join(', ')} in that order; read back; base ${base.join(', ')}`, `independent prefix ${JSON.stringify(prefix)}, merged ${JSON.stringify(merged)}, read back ${JSON.stringify(readBack)}, bases ${JSON.stringify(base)}, want ${JSON.stringify(expected)}`);
+    const want = expected ?? prefix;
+    return when(JSON.stringify(prefix) === JSON.stringify(want) && JSON.stringify(merged) === JSON.stringify(want) && readBack.length === merged.length && base.every((entry) => entry === state.repo.trunk), `independent prefix ${prefix.join(', ')}; merged ${merged.join(', ')} in that order; read back; base ${base.join(', ')}`, `independent prefix ${JSON.stringify(prefix)}, merged ${JSON.stringify(merged)}, read back ${JSON.stringify(readBack)}, bases ${JSON.stringify(base)}, want ${JSON.stringify(want)}`);
   });
+}
+
+function verifiedPatchPrefix(view: RunView, state: ForgeState, actions: ForgeAction[]): number[] {
+  const order = stackOrder(state);
+  const verdicts = verdictsOf(state, actions, view);
+  const lost = order.findIndex((pr) => {
+    const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
+    return verdict === undefined || verdict.verdict === 'FAIL' || verdict.patch !== patchIdOf(bareOf(view.sandbox), state.prs[String(pr)]?.mergedHead ?? headAt(view, state)(pr));
+  });
+  return order.slice(0, lost === -1 ? order.length : lost);
 }
 
 type Check = ReturnType<typeof check>;
@@ -507,50 +553,99 @@ export const shippingFreshnessFamily: Family = {
       const verdicts = verdictsOf(state, actions, view);
       const bare = bareOf(view.sandbox);
       const forced = actions.filter((action) => action.kind === 'force-push' && action.actor === 'operator-sim').map((action) => String(action['ref']));
-      const afterVerdicts = actions.findIndex((action) => action.kind === 'force-push' && action.actor === 'operator-sim') > Math.max(...verdicts.map((verdict) => verdict.at));
+      const afterVerdicts = actions.findIndex((action) => action.kind === 'force-push' && action.actor === 'operator-sim') > Math.max(...[21, 22, 23].map((pr) => verdicts.find((verdict) => verdict.pr === pr)?.at ?? Number.POSITIVE_INFINITY));
       const sameSha = [21, 22, 23].filter((n) => verdicts.find((verdict) => verdict.pr === n)?.head === revParse(bare, `refs/heads/${state.prs[String(n)]?.head}`) || state.prs[String(n)]?.mergedHead === verdicts.find((verdict) => verdict.pr === n)?.head);
       const patchSame = [21, 22, 23].map((n) => verdicts.find((verdict) => verdict.pr === n)?.patch === patchIdOf(bare, state.prs[String(n)]?.mergedHead ?? revParse(bare, `refs/heads/${state.prs[String(n)]?.head}`)));
       return when(afterVerdicts && forced.length === 3 && sameSha.length === 0 && JSON.stringify(patchSame) === JSON.stringify([true, true, false]), 'three force-pushes by the operator after the verdicts; no head kept its SHA; patch-ids: 21 same, 22 same, 23 changed', `forced ${forced.join(', ')}, after the verdicts ${afterVerdicts}, heads unchanged for ${sameSha.join(', ') || 'none'}, patch unchanged ${JSON.stringify(patchSame)}`);
     }),
     check('ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict', 'before any merge the parent compared git patch-id at each verdict SHA with the current head, and its own output matches the independent computation', SH('Compare `git patch-id` at the verdict SHA with the current head'), (view) => {
-      const compare = view.parent.toolCalls.find((call) => call.name === 'bash' && /^bash \S+compare-verdicts\.sh$/.test(String(call.args['command'])));
-      const firstMerge = view.parent.toolCalls.find((call) => call.name === 'bash' && /gh pr merge/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
-      const out = compare?.resultText ?? '';
-      const want = ['PR 21 .* same-patch', 'PR 22 .* same-patch', 'PR 23 .* changed-patch'];
-      const missing = want.filter((pattern) => !new RegExp(pattern).test(out));
-      return when(compare !== undefined && compare.order < firstMerge && missing.length === 0, `compared at ${compare?.order}, before the first merge at ${firstMerge}: 21 same-patch, 22 same-patch, 23 changed-patch`, `compare at ${compare?.order}, first merge ${firstMerge}; missing ${missing.join(', ')}; output ${out.slice(0, 200)}`);
+      const { state, actions } = readForge(view);
+      const verdicts = verdictsOf(state, actions, view);
+      const firstMerge = view.parent.toolCalls.find((call) => call.name === 'bash' && /(?:gh|origin) pr merge/.test(String(call.args['command'])))?.order ?? Number.POSITIVE_INFINITY;
+      const scripts = view.parent.toolCalls.filter((call) => call.name === 'write' && /\bgit\s+patch-id\b/.test(String(call.args['content']))).map((call) => String(call.args['path']));
+      const compared = view.parent.toolCalls.filter((call) => call.name === 'bash' && !call.isError && call.order < firstMerge && (/\bgit\s+patch-id\b/.test(String(call.args['command'])) || scripts.some((path) => String(call.args['command']).includes(path))));
+      const out = compared.map((call) => call.resultText).join('\n');
+      const missing = stackOrder(state).filter((pr) => {
+        const original = verdicts.find((verdict) => verdict.pr === pr);
+        if (original === undefined) return true;
+        const current = state.prs[String(pr)]?.mergedHead ?? headAt(view, state)(pr);
+        const patch = patchIdOf(bareOf(view.sandbox), current);
+        if (patch === '' || original.patch === '') return true;
+        const status = original.patch === patch ? 'same-patch' : 'changed-patch';
+        const reported = new RegExp(`PR ${pr} [^\\n]*\\b${status}\\b`).test(out);
+        const hashes = original.patch === patch ? out.split(patch).length >= 3 : out.includes(original.patch) && out.includes(patch);
+        return !reported && !hashes;
+      });
+      return when(compared.length > 0 && missing.length === 0, `patch comparisons for every PR before merge at ${firstMerge}`, `missing comparisons for ${missing.join(', ')}; first merge ${firstMerge}; output ${out.slice(0, 200)}`);
     }),
-    landsOnlyTheVerifiedPrefix('ship.fresh.only-the-patches-a-verdict-covers-merged', SH('A verdict covers a patch'), [21, 22], 'patch'),
+    landsOnlyTheVerifiedPrefix('ship.fresh.only-the-patches-a-verdict-covers-merged', SH('A verdict covers a patch'), undefined, 'patch'),
     mergesAreAuthorizedAndVerified('ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', SH('Only a verdict from an agent that did not write the code counts'), 'patch'),
-    check('ship.fresh.a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged', 'PR 21 and PR 22 merged at a head that is not the verdict head, and PR 23 never merged or armed', SH('so step 3\'s patch-id rule decides whether the verdict survives'), (view) => {
+    check('ship.fresh.a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged', 'a rebased patch keeps its covering verdict; a changed patch cannot merge or arm without a fresh covering verdict', SH('so step 3\'s patch-id rule decides whether the verdict survives'), (view) => {
       const { state, actions } = readForge(view);
       const verdicts = verdictsOf(state, actions, view);
       const merges = mergesIn(actions);
+      const valid = (pr: number, head: string, before = Number.POSITIVE_INFINITY) => {
+        const verdict = verdicts.filter((entry) => entry.pr === pr && entry.at < before).at(-1);
+        return verdict !== undefined && verdict.verdict !== 'FAIL' && verdict.patch === patchIdOf(bareOf(view.sandbox), head);
+      };
       const moved = merges.filter((merge) => verdicts.find((verdict) => verdict.pr === merge.pr)?.head !== merge['head']).map((merge) => merge.pr);
-      const p23 = state.prs['23'];
-      return when(JSON.stringify(moved) === JSON.stringify([21, 22]) && p23?.state === 'OPEN' && p23.autoMerge !== true && p23.queued !== true, 'PR 21 and 22 merged at new heads that keep their verdicts; PR 23 stays open and unarmed', `merged at a new head: ${moved.join(', ')}; PR 23 state ${p23?.state}`);
+      const uncovered = merges.filter((merge) => merge.pr === undefined || !valid(merge.pr, String(merge['head']), actions.indexOf(merge))).map((merge) => merge.pr);
+      const armed = Object.values(state.prs).filter((pr) => (pr.autoMerge === true || pr.queued === true) && !valid(pr.number, pr.mergedHead ?? headAt(view, state)(pr.number))).map((pr) => pr.number);
+      return when(moved.length > 0 && uncovered.length === 0 && armed.length === 0, `rebased verdicts survived for ${moved.join(', ')}; every landed or armed patch has a covering verdict`, `merged at a new head: ${moved.join(', ')}; uncovered merges ${uncovered.join(', ')}; uncovered armed PRs ${armed.join(', ')}`);
     }),
-    check('ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease', 'after PR 21 merged, the shipper retargeted PR 22 to trunk and pushed its moved patch with --force-with-lease pinned to the SHA it fetched, and changed no other branch or base', SH('After a merge lands, retarget the PR whose base was the merged branch to trunk'), (view) => {
-      const { actions } = readForge(view);
+    check('ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease', 'after each merge only its verified successor moves to trunk, with a lease-protected push before that successor lands', SH('After a merge lands, retarget the PR whose base was the merged branch to trunk'), (view) => {
+      const { state, actions } = readForge(view);
+      const verdicts = verdictsOf(state, actions, view);
       const parentRefs = actions.filter((action) => ['push', 'force-push', 'ref-create', 'ref-delete'].includes(action.kind) && action.worker === '' && action.actor === '');
       const edits = actions.filter((action) => action.kind === 'edit-base');
-      const merge21 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 21);
-      const merge22 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 22);
-      const edit = actions.findIndex((action) => action.kind === 'edit-base');
-      const push = actions.findIndex((action) => action.kind === 'force-push' && action.worker === '' && action.actor === '');
-      const lease = BASH(view).some((entry) => /git push -q --force-with-lease=s-2:\$OLD origin HEAD:refs\/heads\/s-2/.test(entry.command)) || view.parent.toolCalls.some((call) => call.name === 'write' && /--force-with-lease=s-2:\$OLD/.test(String(call.args['content'])));
-      return when(parentRefs.length === 1 && parentRefs[0]?.['ref'] === 'refs/heads/s-2' && edits.length === 1 && edits[0]?.pr === 22 && edits[0]?.['to'] === 'main' && merge21 < edit && edit < push && push < merge22 && lease, `merge 21 (${merge21}), retarget 22 (${edit}), forced push of s-2 (${push}), merge 22 (${merge22}); one ref update by the shipper, one retarget, lease pinned`, `shipper ref updates ${parentRefs.map((action) => String(action['ref'])).join(', ')}; retargets ${edits.map((action) => `#${action.pr}->${String(action['to'])}`).join(', ')}; order ${merge21}, ${edit}, ${push}, ${merge22}; lease ${lease}`);
+      const commands = BASH(view).map((entry) => entry.command);
+      const scripts = view.parent.toolCalls.filter((call) => call.name === 'write' && commands.some((command) => command.includes(String(call.args['path'])))).map((call) => String(call.args['content']));
+      const used = new Set<ForgeAction>();
+      const problems = edits.flatMap((edit) => {
+        const pr = state.prs[String(edit.pr)];
+        const at = actions.indexOf(edit);
+        const previous = actions.findIndex((action, index) => index < at && action.kind === 'merge' && state.prs[String(action.pr)]?.head === edit['from']);
+        const push = parentRefs.find((action) => action['ref'] === `refs/heads/${pr?.head}`);
+        const pushed = push === undefined ? -1 : actions.indexOf(push);
+        const landed = actions.findIndex((action) => action.kind === 'merge' && action.pr === edit.pr);
+        const verdict = verdicts.filter((entry) => entry.pr === edit.pr && entry.at < at).at(-1);
+        const covered = push !== undefined && verdict !== undefined && verdict.verdict !== 'FAIL' && verdict.patch === patchIdOf(bareOf(view.sandbox), String(push['old']));
+        const lease = [...commands, ...scripts].some((command) => /\bgit\b[^\n;]*\bpush\b/.test(command) && /--force-with-lease(?:[=\s]|$)/.test(command) && (command.includes(`:refs/heads/${pr?.head}`) || command.includes(`:${pr?.head}`)));
+        if (push !== undefined) used.add(push);
+        return previous !== -1 && edit['to'] === state.repo.trunk && at < pushed && (landed === -1 || pushed < landed) && covered && lease ? [] : [`PR ${edit.pr}: predecessor ${previous}, edit ${at}, push ${pushed}, merge ${landed}, covering verdict ${covered}, lease ${lease}`];
+      });
+      return when(edits.length > 0 && used.size === parentRefs.length && problems.length === 0, `${edits.length} verified successors retargeted and pushed with a lease after their predecessors landed`, problems.join('; ') || `retargets ${edits.length}; accounted ref updates ${used.size}/${parentRefs.length}`);
     }),
-    check('ship.fresh.ceiling-watched-until-COMPLETE', 'the landing run was watched with the queued watcher over 21,22 until COMPLETE', SH('until it reports `COMPLETE` at the ceiling'), (view) => {
+    check('ship.fresh.ceiling-watched-until-COMPLETE', 'the landing run was watched through its currently verified ceiling until COMPLETE', SH('until it reports `COMPLETE` at the ceiling'), (view) => {
+      const { state, actions } = readForge(view);
+      const prefix = verifiedPatchPrefix(view, state, actions).join(',');
       const found = watchers(view);
       const argv = found.map((worker) => assignmentOf(worker).watch?.argv ?? []);
       const exit = (found[0]?.state?.['exit'] as { code: number } | undefined)?.code;
-      return when(found.length === 1 && argv[0]?.includes('--queued-stack') === true && argv[0][argv[0].indexOf('--stack-prs') + 1] === '21,22' && exit === 0, 'queued watcher over 21,22 exited COMPLETE', `watchers ${found.length} ${JSON.stringify(argv)} exit ${String(exit)}`);
+      return when(found.length === 1 && prefix !== '' && argv[0]?.includes('--queued-stack') === true && argv[0][argv[0].indexOf('--stack-prs') + 1] === prefix && exit === 0, `queued watcher over ${prefix} exited COMPLETE`, `verified run ${prefix}; watchers ${found.length} ${JSON.stringify(argv)} exit ${String(exit)}`);
     }),
     check('ship.fresh.reply-says-the-changed-patch-needs-a-fresh-verdict', 'the reply names the ceiling, why PR 23 lost its verdict, what landed and the next gap', SH('**Reply:** the verified run and its ceiling'), (view) => {
-      const reply = finalReply(view);
-      const missing = [/the ceiling is PR 22/, /kept their verdicts.*patch-id is unchanged/, /PR 23 .*lost its verdict.*changed its patch, so it was not merged/, /Landed: PR 21 then PR 22/, /next gap: a fresh verdict for PR 23/].filter((pattern) => !pattern.test(reply)).map(String);
-      return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
+      const { state, actions } = readForge(view);
+      const reply = finalReply(view).replace(/[*_`]/g, '');
+      const prefix = verifiedPatchPrefix(view, state, actions);
+      const ceiling = prefix.at(-1);
+      const mentions = (pr: number, text: string) => new RegExp(`\\b${pr}\\b`).test(text);
+      const declarations = reply.split(/(?=\bPR\s+#?\d+\b)/i);
+      const chunks = declarations.map((text) => (text.split(/[.\n]/)[0] ?? '').replace(/\b(?:not|never)(?:\s+\w+){0,2}\s+(?:shipped|landed|merged)\b/gi, ''));
+      const lists = reply.match(/(?:landed|merged|shipped)[ \t:—-]+[^\n.]+/gi) ?? [];
+      const merged = mergesIn(actions).map((action) => action.pr);
+      const allMerged = /\ball(?:\s+(?:three|3|the PRs|PRs|pull requests))?(?:\s+(?:PRs|pull requests))?(?:\s+(?:are|were|have been))?\s+(?:merged|landed)\b/i.test(reply);
+      const unmerged = Object.values(state.prs).filter((pr) => pr.state !== 'MERGED');
+      const reported = (allMerged && unmerged.length === 0 && merged.every((pr) => pr !== undefined && mentions(pr, reply))) || merged.every((pr) => pr !== undefined && (lists.some((text) => mentions(pr, text)) || chunks.some((text) => new RegExp(`^PR\\s+#?${pr}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text))));
+      const falseShipping = (allMerged && unmerged.length > 0) || unmerged.some((pr) => chunks.some((text) => new RegExp(`^PR\\s+#?${pr.number}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text)));
+      const verdicts = verdictsOf(state, actions, view);
+      const missingVerdicts = prefix.filter((pr) => {
+        const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
+        return verdict === undefined || !declarations.some((text) => new RegExp(`^PR\\s+#?${pr}\\b`, 'i').test(text) && text.toUpperCase().includes(verdict.verdict) && text.includes(verdict.verifier));
+      });
+      const confirmed = /\b(?:read(?:s|ing)?\s*(?:back)?|confirm(?:ed|ation)?|re-read)[^.\n]*(?:MERGED|state|main|trunk)/i.test(reply);
+      const missing = [ceiling === undefined || !new RegExp(`ceiling[^.\\n]{0,80}\\b${ceiling}\\b|\\b${ceiling}\\b[^.\\n]{0,40}ceiling`, 'i').test(reply) ? 'current ceiling' : '', !/patch|rebas/i.test(reply) ? 'patch freshness' : '', !reported ? 'what landed' : '', !confirmed ? 'how confirmed' : '', missingVerdicts.length > 0 ? `verdict and producer for ${missingVerdicts.join(', ')}` : '', !/next gap|remaining gap|no (?:further |remaining )?gap|next (?:step|action)/i.test(reply) ? 'next gap' : '', falseShipping ? 'an unmerged PR is claimed shipped' : ''].filter(Boolean);
+      return when(missing.length === 0, `current ceiling ${ceiling}, patch freshness, landed PRs and next gap reported`, `missing or contradictory: ${missing.join(', ')}`);
     }),
     noToolErrors('ship.fresh.no-tool-errors', SH('Stop at the ceiling')),
   ],
@@ -558,7 +653,7 @@ export const shippingFreshnessFamily: Family = {
     ...todoNegatives(FRESH_RUN, 'shipping', { done: [1, 2, 3, 4, 5, 6], receipts: { 1: 'sf-verifiers', 2: 'sf-prefix', 3: 'sf-fresh', 4: 'sf-landed', 5: 'sf-hands-off', 6: 'sf-ceiling' } }),
     { name: 'PR 23 was merged on its old verdict though its patch changed', mutate: (sandbox) => editForge(sandbox, (actions, state) => { const head = revParse(bareOf(sandbox), 'refs/heads/s-3'); actions.push({ kind: 'merge', tool: 'gh', pr: 23, head, requested: head, worker: '', run: '', actor: '', container: false }); (state.prs['23'] as { state: string }).state = 'MERGED'; (state.prs['23'] as { mergedHead?: string }).mergedHead = head; }), fails: ['ship.fresh.only-the-patches-a-verdict-covers-merged', 'ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', 'ship.fresh.a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged'] },
     { name: 'PR 22 was merged with a verdict of a different patch', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (action.kind === 'comment' && action.pr === 22) action['body'] = String(action['body']).replace(/patch=\S+/, 'patch=0123456789abcdef'); })), fails: ['ship.fresh.no-merge-without-a-verdict-that-covers-the-patch', 'ship.fresh.only-the-patches-a-verdict-covers-merged'] },
-    { name: 'the shipper never compared patch-ids', mutate: (sandbox) => rewriteSessionSafe(sandbox, 'compare-verdicts.sh', 'compare-other.sh'), fails: ['ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict'] },
+    { name: 'the shipper never compared patch-ids', mutate: (sandbox) => rewriteSessionSafe(sandbox, 'PR 21 verdict-sha=', 'comparison removed '), fails: ['ship.fresh.the-parent-compared-patch-ids-before-trusting-a-verdict'] },
     { name: 'the shipper force-pushed without the lease on a second branch', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'force-push', ref: 'refs/heads/s-3', worker: '', run: '', actor: '', container: false } as ForgeAction)), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },
     { name: 'the shipper retargeted PR 23 as well', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'edit-base', tool: 'gh', pr: 23, from: 's-2', to: 'main', worker: '', run: '', actor: '', container: false })), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },
     { name: 'PR 22 was merged before it moved onto the merge result', mutate: (sandbox) => editForge(sandbox, (actions) => { const at = actions.findIndex((action) => action.kind === 'merge' && action.pr === 22); const [merge] = actions.splice(at, 1); actions.splice(actions.findIndex((action) => action.kind === 'edit-base'), 0, merge as ForgeAction); }), fails: ['ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease'] },

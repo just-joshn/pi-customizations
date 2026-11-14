@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
-import { autopilotFullFamily } from './families/pr-autopilot.ts';
+import { autopilotFullFamily, autopilotLanesFamily, autopilotStackFamily } from './families/pr-autopilot.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -12,14 +12,14 @@ afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 const check = (id: string, view: unknown) => autopilotFullFamily.checks.find((entry) => entry.id === id)?.run(view as RunView);
-test('self-proof permits multiple step receipts and run-relative worker artifacts', () => {
+test.for(['decisions.tsv', 'trail.md'])('self-proof permits multiple step receipts and a TSV trail in %s', (trail) => {
   const sandbox = mkdtempSync(join(tmpdir(), 'owner-proof-'));
   const dir = join(sandbox, 'run');
   const workerDir = join(dir, 'workers/owner');
   const receipts = ['head-test', 'head-live'].map((target) => ({ runId: 'r', target, verdict: 'pass', artifacts: [{ path: 'workers/owner/proof.txt' }] }));
   try {
     mkdirSync(workerDir, { recursive: true });
-    writeFileSync(join(workerDir, 'decisions.tsv'), 'ts\tphase\tdecision\twhy\tevidence\tresult\nnow\tbuild\tpush\twhy\tproof\tpass\n');
+    writeFileSync(join(workerDir, trail), 'ts\tphase\tdecision\twhy\tevidence\tresult\nnow\tbuild\tpush\twhy\tproof\tpass\n');
     mkdirSync(forgeDirOf(sandbox), { recursive: true });
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: { 31: { number: 31, author: 'owner', head: 'feat', base: 'main', mergedHead: 'a'.repeat(40) } } }));
     writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), JSON.stringify({ kind: 'push', worker: 'owner', run: 'r', ref: 'refs/heads/feat' }));
@@ -52,6 +52,32 @@ test('hourly watch ignores re-collects of idle workers but not newly steered wor
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: true });
   calls.push({ order: 3.5, name: 'pstack_worker', args: { action: 'steer', runId: 'r', workerId: 'owner' } });
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: false });
+});
+
+test('stack handoff reports each actual verdict without mandatory producer or go wording', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'stack-report-'));
+  roots.push(sandbox);
+  mkdirSync(forgeDirOf(sandbox), { recursive: true });
+  writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ prs: { 41: { number: 41 }, 42: { number: 42 } } }));
+  const actions = [41, 42].map((pr) => ({ kind: 'comment', pr, worker: `v-${pr}`, body: `PSTACK-VERDICT: PASS head=${'a'.repeat(40)} verifier=v-${pr} patch=p-${pr}` }));
+  writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
+  const report = { role: 'assistant', order: 1, text: 'PR 41 | PASS\nPR 42 | PASS\nBoth PRs remain open. No further pushes without your approval.' };
+  const view = { sandbox, runs: [], parent: { toolCalls: [], messages: [report] } } as unknown as RunView;
+  const run = () => autopilotStackFamily.checks.find((entry) => entry.id === 'autopilot.stack.reply-lists-each-pr-with-its-verdict')?.run(view);
+  expect(run()).toMatchObject({ ok: true });
+  report.text = "Handoff: PR 41 (greet) PASS by v-41. PR 42 (shout, stacked on PR 41's branch because it imports greet) PASS by v-42. Nothing merged. Nobody pushes until you give the go.";
+  expect(run()).toMatchObject({ ok: true });
+  report.text = report.text.replace('Nothing merged.', 'All merged.');
+  expect(run()).toMatchObject({ ok: false });
+});
+
+test('lane catch-up names all lanes and explains the countersign without fixed labels', () => {
+  const report = { role: 'assistant', order: 1, text: 'Merged PR 33. Verifiers: gates / live / audit. I signed off budget.json because the audit receipt proved the raise was needed. Operator decisions: none. Remaining work: none.' };
+  const view = { parent: { toolCalls: [], messages: [report] } } as unknown as RunView;
+  const run = () => autopilotLanesFamily.checks.find((entry) => entry.id === 'autopilot.lanes.reply-names-the-lanes-and-the-countersign')?.run(view);
+  expect(run()).toMatchObject({ ok: true });
+  report.text = report.text.replace('budget.json', 'the change');
+  expect(run()).toMatchObject({ ok: false });
 });
 
 test('catch-up covers topics without requiring the playbook vocabulary', () => {
