@@ -99,6 +99,26 @@ test('a missing PR policy is missing evidence rather than a claimed policy viola
   expect(routeEvidence(jsonl(value), expected, 0).status).toBe('INCONCLUSIVE');
 });
 
+test('a selected source read after the final decision cannot validate that decision', () => {
+  const value = events();
+  expect(routeEvidence(jsonl([value[2], value[0], value[1], value[3]]), expected, 0).status).not.toBe('PASS');
+});
+
+test.for(['length', 'toolUse', 'pending', undefined])('final stop reason %s cannot establish a completed decision', (stopReason) => {
+  const value = events();
+  value[2] = { ...value[2], message: { role: 'assistant', stopReason, content: [{ type: 'text', text: JSON.stringify({ route: expected.route, path: expected.path, prRequired: false }) }] } };
+  expect(routeEvidence(jsonl(value), expected, 0).status).toBe('INCONCLUSIVE');
+});
+
+test.for([{ type: 'agent_start', nonsense: true }, { type: 'agent_settled' }, { type: 'tool_execution_start', toolName: 'read' }, { type: 'message_end', message: 'not an object' }, { type: 'tool_execution_end', isError: 'false' }])(
+  'malformed consumed event shapes require review rather than PASS',
+  (malformed) => {
+    const value = events();
+    value.splice(2, 0, malformed);
+    expect(() => routeEvidence(jsonl(value), expected, 0)).toThrow('Malformed');
+  },
+);
+
 test('invalid event framing is rejected rather than treated as evidence', () => {
   expect(() => routeEvidence('null\n', expected, 0)).toThrow('Malformed');
   expect(() => routeEvidence('not json\n', expected, 0)).toThrow();
