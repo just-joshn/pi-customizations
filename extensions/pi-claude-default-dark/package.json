@@ -1,0 +1,31 @@
+{
+  "name": "pi-claude-default-dark",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi-native, reference-locked Claude Code default-dark appearance extension",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-theme"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/index.ts"
+    ],
+    "themes": [
+      "./themes/claude-default-dark.json"
+    ]
+  },
+  "files": [
+    "extensions",
+    "themes",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {},
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}
