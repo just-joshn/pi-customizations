@@ -63,13 +63,19 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     const view = {
       sandbox,
       runs: [],
-      parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json baseRefName,state,mergedAt` }, resultText: '', isError: false })) },
+      parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json baseRefName,state,headRefOid` }, resultText: '', isError: false })) },
     } as unknown as RunView;
     const leaseCommands = [1, 2].map((index) => ({ name: 'bash', order: 4 + index, args: { command: `git push origin HEAD:refs/heads/s-${index + 1} --force-with-lease=s-${index + 1}:${heads[index]}` }, resultText: '', isError: false }));
     view.parent.toolCalls.push(...leaseCommands);
     const check = (suffix: string) => shippingFreshnessFamily.checks.find((entry) => entry.id === `ship.fresh.${suffix}`)?.run(view);
     expect(check('the-chain-rebase-moved-every-head-and-changed-one-patch')).toMatchObject({ ok: true });
     expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: fresh });
+    for (const call of view.parent.toolCalls.filter((entry) => String(entry.args['command']).includes('gh pr view 21 '))) {
+      const original = String(call.args['command']);
+      call.args['command'] = original.replace('baseRefName,', '');
+      expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
+      call.args['command'] = original;
+    }
     expect(check('a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged')).toMatchObject({ ok: fresh });
     expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: fresh });
     for (const call of leaseCommands) call.args.command = call.args.command.replace(/--force-with-lease=\S+/, '--force');

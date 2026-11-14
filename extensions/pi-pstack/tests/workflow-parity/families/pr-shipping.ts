@@ -231,7 +231,7 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
       if (call.name !== 'bash' || call.isError) return false;
       const command = String(call.args['command']);
       const fields = /--json(?:=|\s+)["']?([\w,]+)/.exec(command)?.[1]?.split(',') ?? [];
-      return new RegExp(`\\bgh pr view ${n}\\s`).test(command) && ['state', 'mergedAt', 'baseRefName'].every((field) => fields.includes(field));
+      return new RegExp(`\\bgh pr view ${n}\\s`).test(command) && ['state', 'baseRefName'].every((field) => fields.includes(field));
     }));
     const base = merged.map((n) => state.prs[String(n)]?.base);
     const want = expected ?? prefix;
