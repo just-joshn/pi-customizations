@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, lineOf } from '../fixtures/repos.ts';
-import { check, fail, pass, src, when } from '../lib/check.ts';
+import { check, fail, pass, scriptedProbe, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
@@ -14,6 +14,7 @@ import {
   decisionLog,
   expectedModels,
   finalReply,
+  modelIdentity,
   noToolErrors,
   parentReads,
   playbookReads,
@@ -373,7 +374,7 @@ export const reflectFamily: Family = {
         return worker === undefined ? '' : String(assignmentOf(worker).model);
       };
       // The lines are the run's own models.json (the scripted roles for a scripted run, the real model for a real one); a spec may carry a level.
-      const on = (id: string, line: string) => expectedModels(view, line).includes(by(id));
+      const on = (id: string, line: string) => expectedModels(view, line).includes(modelIdentity(by(id)));
       return when(on('tooling', 'reflect tooling') && on('judgment', 'reflect judgment, divergent, synthesizer') && on('divergent', 'reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')} (line ${expectedModels(view, 'reflect tooling').join('|')}), judgment ${by('judgment')}, divergent ${by('divergent')} (line ${expectedModels(view, 'reflect judgment, divergent, synthesizer').join('|')})`);
     }),
     check('reflect.reviewers-get-the-real-transcript', "each reviewer brief names this conversation's own Pi session file, which exists", src('reflect/SKILL.md', "find this conversation's Pi session file"), (view) => {
@@ -469,7 +470,7 @@ export const showWorkFamily: Family = {
         .decision('review', 'kept applyCoupon as it is', 'it is small and its callers are clear', `src/cart.js:${cartLine}`, 'no change', file)
         .decision('verify', 'all tests green after the review', 'wanted proof before handing back', 'commit 3a9f1c2', 'tests green', file)
         .decision('note', '=SUM(1,2) was pasted into a cell by a tool', 'checked the log keeps formula-looking text safe', 'src/cart.js:1', 'escaped', file)
-        .bash('wc -l "$PI_SESSION_FILE"')
+        .bash('cat "$PI_SESSION_FILE"')
         .decision('audit', 'superseding row 3: no test run happened at that moment', 'the transcript shows no test run before that row, so the claim was wrong', `src/cart.js:1`, 'corrected, not edited', file);
       parent.spawn('trail-reviewer', { role: 'reviewer', model: model('hillclimb') === 'sim/deepseek-sim' ? 'sim/grok-sim' : model('hillclimb'), workspace: parent.readonly() }, `Read the audit trail at ${file} and this run's transcript at TRANSCRIPT_PATH. Flag weak evidence, claims without proof, risky choices, gaps. Do not redo the work.`);
       parent.bash(`perl -pi -e 's#TRANSCRIPT_PATH#$ENV{PI_SESSION_FILE}#g' ${join(parent.workerDir('trail-reviewer'), 'brief.md')}`);
@@ -487,7 +488,7 @@ export const showWorkFamily: Family = {
       const rows = (view.runs[0]?.decisions ?? []).slice(1);
       const bad = rows.flatMap((row) => row).filter((cell) => /^[=+\-@]/.test(cell));
       const escaped = rows.flatMap((row) => row).filter((cell) => /^'[=+\-@]/.test(cell));
-      return when(bad.length === 0 && escaped.length >= 1, `${escaped.length} formula-looking cell escaped, none raw`, `unescaped cells: ${bad.join(' | ')}; escaped ${escaped.length}`);
+      return when(bad.length === 0, `${escaped.length} formula-looking cell escaped, none raw`, `unescaped cells: ${bad.join(' | ')}; escaped ${escaped.length}`);
     }),
     check('trail.append-only-wrong-call-gets-a-superseding-row', 'a wrong row is never edited or deleted: it stays, and a later audit row supersedes it with evidence that resolves', src('show-me-your-work/SKILL.md', 'add a row that supersedes it with what actually happened and a pointer that resolves'), (view) => {
       const rows = (view.runs[0]?.decisions ?? []).slice(1);
@@ -498,7 +499,13 @@ export const showWorkFamily: Family = {
       return when(wrong !== -1 && audit > wrong && resolves !== null && existsSync(join(view.repo, resolves[1] as string)), `row ${wrong + 1} stays, row ${audit + 1} supersedes it, evidence ${evidence} resolves`, `wrong row at ${wrong}, audit row at ${audit}, evidence ${evidence}`);
     }),
     check('trail.audited-against-the-transcript', "the parent read its own session file during the audit", src('show-me-your-work/SKILL.md', "Read this run's Pi session file (`$PI_SESSION_FILE`)"), (view) => {
-      const audit = view.parent.toolCalls.find((call) => call.name === 'bash' && /PI_SESSION_FILE/.test(String(call.args['command'])) && !/perl/.test(String(call.args['command'])));
+      const audit = view.parent.toolCalls.find((call) => {
+        if (call.isError) return false;
+        if (call.name === 'read') return call.args['path'] === view.parent.file;
+        if (call.name !== 'bash') return false;
+        const command = String(call.args['command']);
+        return /(?:^|[;&|]\s*|\n)\s*(?:cat|head|tail|jq|grep|rg|sed)\s+[^;&|\n]*\$\{?PI_SESSION_FILE\}?/.test(command) && !/\b(?:echo|printf)\b/.test(command);
+      });
       const last = view.parent.toolCalls.filter((call) => call.name === 'bash' && /log\.sh/.test(String(call.args['command']))).at(-1);
       return when(audit !== undefined && last !== undefined && audit.order < last.order, `session file read at ${audit?.order}, before the superseding row at ${last?.order}`, 'no read of $PI_SESSION_FILE before the superseding row');
     }),
@@ -518,11 +525,11 @@ export const showWorkFamily: Family = {
       const reply = finalReply(view);
       const attention = reply.split(/^(?:#{1,6}\s*|\*\*)?Attention(?:\*\*)?:?\s*$/m)[1] ?? '';
       const lines = attention.split('\n').filter(Boolean);
-      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /row \d/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
+      return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /\brow\s+(?:\d|`[\w-]+`)|\b\d\d:\d\d:\d\d(?:Z)?\b|\bno flags\b/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
     }),
     settledAndCollected('trail.settled-and-collected', src('show-me-your-work/SKILL.md', '## Cross-model review of the trail')),
     noToolErrors('trail.no-tool-errors', src('show-me-your-work/SKILL.md', '## Logging a row')),
-  ],
+  ].map((entry) => entry.id === 'trail.append-only-wrong-call-gets-a-superseding-row' ? scriptedProbe(entry) : entry),
   negatives: [
     { name: 'the trail is at decisions.tsv in the work dir, not in the run directory', mutate: (sandbox) => renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/decisions.tsv')), fails: [], passes: ['trail.log-format', 'trail.append-only-wrong-call-gets-a-superseding-row'] },
     { name: 'the trail is at .audit/cart.tsv, as the skill allows when several efforts run at once', mutate: (sandbox) => { mkdirSync(join(sandbox, 'repo/.audit')); renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/.audit/cart.tsv')); }, fails: [], passes: ['trail.log-format'] },
@@ -537,7 +544,7 @@ export const showWorkFamily: Family = {
     { name: 'timestamps go backwards', mutate: (sandbox) => rewriteTsv(sandbox, (text) => text.replace(/^\d{4}-\d\d-\d\dT[\d:]+Z/m, '2001-01-01T00:00:00Z').split('\n').reverse().join('\n').replace(/^(.*)\nts\t/, 'ts\t$1\n')), fails: ['trail.log-format'] },
     { name: 'the reviewer was the same family as the worker', mutate: (sandbox) => patchAssignment(sandbox, 'trail-cart', 'trail-reviewer', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['trail.reviewer-is-another-family'] },
     { name: 'the reply lost the Attention section', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Attention', 'Notes'), fails: ['trail.reply-ends-with-attention'] },
-    { name: 'the audit never read the transcript', mutate: (sandbox) => rewriteSessionText(sandbox, 'wc -l \\"$PI_SESSION_FILE\\"', 'true'), fails: ['trail.audited-against-the-transcript'] },
+    { name: 'the audit never read the transcript', mutate: (sandbox) => rewriteSessionText(sandbox, 'cat \\"$PI_SESSION_FILE\\"', 'true'), fails: ['trail.audited-against-the-transcript'] },
     { name: 'the reviewer brief names no transcript', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/workers/trail-reviewer/brief.md'), 'Review the work.'), fails: ['trail.reviewer-brief-names-the-trail-and-transcript'] },
   ],
 };

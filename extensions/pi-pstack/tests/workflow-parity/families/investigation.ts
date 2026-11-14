@@ -2,6 +2,8 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
+import { cartHistory, lineOf } from '../fixtures/repos.ts';
 import { type Check, check, fail, type Outcome, pass, type Src, src, when } from '../lib/check.ts';
 import {
   allWorkers,
@@ -9,9 +11,10 @@ import {
   briefCarries,
   citationsResolve,
   collectOrder,
-  fileReferencesResolve,
   expectedModels,
+  fileReferencesResolve,
   finalReply,
+  modelIdentity,
   noInventedSources,
   noToolErrors,
   openedAt,
@@ -23,21 +26,19 @@ import {
   promptRoutes,
   readonlyEnforced,
   receiptsFor,
-  repoUntouched,
   replyLacks,
   replySections,
+  repoUntouched,
   settledAndCollected,
   skillFile,
-  spawnOrder,
   spawnedAfterCollect,
   spawnedTogether,
+  spawnOrder,
   todoChecks,
   workersCheck,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToBrief, appendToolCall, cloneWorker, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory, overwrite } from '../lib/mutate.ts';
-import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
-import { cartHistory, lineOf } from '../fixtures/repos.ts';
+import { appendToBrief, appendToolCall, cloneWorker, corruptArtifact, deleteReceipt, deleteStep, dirtyRepo, dropWakes, overwrite, parentSession, patchAssignment, removeWorker, reorderHistory, rewriteFinalReply, rewriteSession, setStep, stripEvidence, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
 import type { Family } from './types.ts';
 
@@ -525,7 +526,7 @@ export const teachFamily: Family = {
         const allowed = expectedModels(view, line);
         return [
           ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
-          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not the "${line}" line`]),
+          ...(allowed.length === 0 || allowed.includes(modelIdentity(String(assignment.model))) ? [] : [`${worker.id} model ${String(assignment.model)} is not the "${line}" line`]),
         ];
       });
       return when(problems.length === 0, `${how.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', ')}`, problems.join('; '));
@@ -541,7 +542,7 @@ export const teachFamily: Family = {
         const allowed = expectedModels(view, assignment.role === 'investigator' ? 'why investigators' : 'why synthesizer');
         if (assignment.workspace?.mode !== 'readonly' || assignment.workspace.path !== view.repo) problems.push(`${worker.id} is not readonly on the repository root`);
         if (assignment.capabilities?.mcp === 'none') problems.push(`${worker.id} sets capabilities.mcp none`);
-        if (allowed.length > 0 && !allowed.includes(String(assignment.model))) problems.push(`${worker.id} model ${String(assignment.model)} is off its why line`);
+        if (allowed.length > 0 && !allowed.includes(modelIdentity(String(assignment.model)))) problems.push(`${worker.id} model ${String(assignment.model)} is off its why line`);
       }
       const firstSynth = Math.min(...sides.synth.map((worker) => spawnOrder(view, worker.id)));
       const lastCollect = Math.max(...sides.investigators.map((worker) => collectOrder(view, worker.id)));
@@ -684,7 +685,7 @@ export const investigationFamily: Family = {
         const allowed = expectedModels(view, assignment.role === 'explorer' ? 'how explorer' : 'how explainer');
         return [
           ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
-          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not its how line`]),
+          ...(allowed.length === 0 || allowed.includes(modelIdentity(String(assignment.model))) ? [] : [`${worker.id} model ${String(assignment.model)} is not its how line`]),
         ];
       });
       return when(problems.length === 0, workers.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', '), problems.join('; '));

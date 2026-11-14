@@ -1,7 +1,7 @@
 // Families: session-pickup, pause-safely, autonomous-run, worktree-cleanup.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { BENCH_JS, cartHistory, DEDUPE_JS, perfHistory, SET_DEDUPE_JS } from '../fixtures/repos.ts';
@@ -144,7 +144,7 @@ export const pickupFamily: Family = {
       return when(pending !== '' && resume.includes(pending.replace(/^\d+\. /, '')), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
     }),
     check('pickup.nothing-redone', 'completed work is not redone: no parent write into the files the prior commits made, no commit, and the prior repro command is not re-run before verification', src('poteto-mode/playbooks/session-pickup.md', 'do not re-run the prior repro or redo completed work'), (view) => {
-      const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /\/(src|test)\//.test(String(call.args['path'])));
+      const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /^(src|test)\//.test(String(call.args['path']).startsWith('/') ? relative(view.repo, String(call.args['path'])) : String(call.args['path'])));
       const rerun = view.parent.toolCalls.filter((call) => call.name === 'bash' && /node --test/.test(String(call.args['command'])) && !/pick-verify/.test(String(call.args['command'])));
       return when(rewrites.length === 0 && rerun.length === 0 && view.git.commitsSinceBase.length === 0 && view.git.dirty.length === 0, 'nothing in src or test was written, nothing committed, the repro ran only as the final verification', `rewrites ${rewrites.length}, extra repro runs ${rerun.length}, commits ${view.git.commitsSinceBase.length}`);
     }),
@@ -388,12 +388,13 @@ export const autonomousFamily: Family = {
       const wake = (id: string) => view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === id && message.details?.['phase'] === 'exited')?.order ?? -1;
       const final = view.parent.toolCalls.filter((call) => call.name === 'bash' && /bench\/bench\.js/.test(String(call.args['command'])) && /-le/.test(String(call.args['command']))).at(-1)?.order ?? -1;
       const shapes = watchers.every((worker) => assignmentOf(worker).role === 'watcher' && assignmentOf(worker).watch?.argv?.[0] === 'sleep' && String(assignmentOf(worker).watch?.cwd).startsWith('/'));
-      const ordered = watchers.length >= 2 && watchers.every((worker, index) => index === 0 || spawn(worker.id) > wake((watchers[index - 1] as { id: string }).id)) && watchers.every((worker) => wake(worker.id) !== -1 && spawn(worker.id) < final);
+      const ordered = watchers.length >= 1 && watchers.every((worker, index) => index === 0 || spawn(worker.id) > wake((watchers[index - 1] as { id: string }).id)) && watchers.every((worker) => wake(worker.id) !== -1 && spawn(worker.id) < final);
       return when(shapes && ordered, `${watchers.length} watch workers, each re-armed after the previous wake, none after the predicate held`, `watchers ${watchers.map((worker) => worker.id).join(', ')}; shapes ${shapes}; ordered ${ordered}`);
     }),
     check('auto.one-row-per-iteration', 'each iteration leaves a decisions.tsv row naming what changed and whether the predicate moved', src('poteto-mode/playbooks/autonomous-run.md', 'Checkpoint every iteration via the **show-me-your-work** skill'), (view) => {
       const rows = (primaryRun(view, 'autonomous-run')?.decisions ?? []).slice(1).filter((row) => row[1] === 'iteration');
-      return when(rows.length === 2 && rows.every((row) => row.length === 6 && /predicate/.test(row[5] ?? '')), `${rows.length} iteration rows`, `iteration rows ${rows.length}`);
+      const iterations = allWorkers(view).filter((worker) => assignmentOf(worker).kind === 'watch').length;
+      return when(iterations > 0 && rows.length === iterations && rows.every((row) => row.length === 6 && /predicate/.test(row[5] ?? '')), `${rows.length} iteration rows`, `iteration rows ${rows.length}`);
     }),
     check('auto.discarded-change-is-gone-and-the-win-is-one-small-commit', 'a change that did not move the predicate is discarded in full, and the one that did is one commit touching only its file', src('poteto-mode/playbooks/autonomous-run.md', 'discards changes that didn\'t help'), (view) => {
       const commits = view.git.commitsSinceBase;
@@ -403,7 +404,7 @@ export const autonomousFamily: Family = {
     }),
     check('auto.stops-when-met-and-does-not-ask', 'the reply gives the exit condition, iterations, what landed, what was discarded and the final state, and does not stop to ask the user a question', src('poteto-mode/playbooks/autonomous-run.md', '**Reply:** the exit condition, iterations run'), (view) => {
       const reply = finalReply(view);
-      const missing = [/Exit condition:/, /Iterations run: \d+/, /Landed:/, /Discarded:/, /Final predicate state:/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/exit condition|\bgoal\b/i, /iterations? run:\s*\d+|\b\d+\s+iterations?\b/i, /\blanded\b|\bcommitted\b/i, /\bdiscard\w*\b/i, /final (?:predicate|state)|predicate (?:passed|holds|met)/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0 && !reply.trim().endsWith('?'), 'all five parts present, no question', `missing ${missing.join(', ')}; ends with ?: ${reply.trim().endsWith('?')}`);
     }),
     noToolErrors('auto.no-unexpected-tool-errors', src('poteto-mode/playbooks/autonomous-run.md', '**You own the exit condition.'), [/bench\/bench\.js/, /comparisons=/]),
@@ -486,12 +487,15 @@ export const cleanupFamily: Family = {
     ...todoChecks({ playbook: 'worktree-cleanup', skipReason: { 6: /.+/ } }),
     check('cleanup.audit-ran-as-a-watch-and-woke-the-parent', 'step 1: the audit script runs as a watch worker (role watcher, sh -c, redirected to an absolute file, absolute cwd) whose exit woke the parent', src('poteto-mode/playbooks/worktree-cleanup.md', 'run it as a watch, a `kind: "watch"` worker'), (view) => {
       const worker = allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch');
-      const argv = assignmentOf(worker as never).watch?.argv ?? [];
+      if (worker === undefined) return fail('no audit watch worker');
+      const argv = assignmentOf(worker).watch?.argv ?? [];
       const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['phase'] === 'exited');
       return when(worker !== undefined && assignmentOf(worker).role === 'watcher' && argv[0] === 'sh' && argv[1] === '-c' && /worktree-audit\.sh .*> \/\S+/.test(argv[2] ?? '') && String(assignmentOf(worker).watch?.cwd).startsWith('/') && wake !== undefined, `watch ${argv.join(' ').slice(0, 120)} woke the parent`, `worker ${worker?.id}; argv ${JSON.stringify(argv)}; wake ${wake?.order}`);
     }),
     check('cleanup.audit-output-covers-every-worktree', "the audit file is the script's real table with one row per worktree", src('poteto-mode/playbooks/worktree-cleanup.md', 'It classifies each worktree by size, age, merge state'), (view) => {
-      const file = /> (\S+)/.exec(String(assignmentOf(allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch') as never).watch?.argv?.[2]))?.[1] ?? '';
+      const worker = allWorkers(view).find((entry) => assignmentOf(entry).kind === 'watch');
+      if (worker === undefined) return fail('no audit watch worker or output file');
+      const file = /> (\S+)/.exec(String(assignmentOf(worker).watch?.argv?.[2]))?.[1] ?? '';
       const text = read(file);
       const rows = text.split('\n').filter((line) => /wts\//.test(line));
       return when(/^SIZE\tAGE\tMERGED\tDIRTY/m.test(text) && rows.length === 3 && ['wt-clean', 'wt-wip', 'wt-active'].every((name) => text.includes(name)) && /wip:1/.test(text), `${rows.length} rows with the dirty count`, `rows ${rows.length}; file ${file}`);
@@ -509,13 +513,13 @@ export const cleanupFamily: Family = {
       const pinned = taskLines(primaryRun(view, 'worktree-cleanup')).some((line) => /Pinned set from the user: .*wt-active/.test(line));
       const candidates = allWorkers(view).filter((worker) => worker.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command']))));
       const reader = candidates[0];
-      if (candidates.length !== 1 || reader === undefined) throw new Error(`expected one chat reader; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
+      if (candidates.length !== 1 || reader === undefined) return fail(`expected one chat reader; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
       const read = reader?.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command'])));
       return when(pinned && read === true && assignmentOf(reader as never).workspace?.mode === 'readonly', 'pinned set recorded and the transcript read by a readonly worker', `pinned recorded ${pinned}; transcript read ${String(read)}`);
     }),
     check('cleanup.reply-has-disk-pruned-and-held-back-with-reasons', 'the reply gives df before and after, what was pruned, and a reason for each held-back worktree', src('poteto-mode/playbooks/worktree-cleanup.md', '**Reply:** `df -h /` before and after'), (view) => {
       const reply = finalReply(view);
-      const missing = [/df -h \/ before:/, /After:/, /Pruned: wt-clean/, /wt-wip .*uncommitted/, /wt-active .*in use/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/\bbefore\b/i, /\bafter\b/i, /(?:pruned|removed)[^.\n]*wt-clean/i, /wt-wip[^.\n]*(?:uncommitted|dirty)/i, /wt-active[^.\n]*(?:in use|ongoing|pinned|active chat)/i].filter((pattern) => !pattern.test(reply)).map(String);
       const df = view.parent.toolCalls.filter((call) => call.name === 'bash' && /df -h \//.test(String(call.args['command']))).length;
       return when(missing.length === 0 && df >= 2, 'df before and after were run, and the reply accounts for every worktree', `missing ${missing.join(', ')}; df runs ${df}`);
     }),

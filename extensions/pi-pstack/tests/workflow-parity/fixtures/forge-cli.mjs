@@ -152,6 +152,15 @@ function facts(state, pr) {
     isDraft: pr.isDraft === true,
     isCrossRepository: false,
     comments: pr.comments,
+    commits: git('log', '--reverse', '--format=%H%x00%s%x00%b%x00%cI%x1e', `${tipOf(pr.base)}..${headOf(pr)}`).stdout.split('\x1e').filter((entry) => entry.trim()).map((entry) => {
+      const [oid, messageHeadline, messageBody, committedDate] = entry.trim().split('\x00');
+      return { oid, messageHeadline, messageBody, committedDate };
+    }),
+    files: git('diff', '--numstat', `${tipOf(pr.base)}...${headOf(pr)}`).stdout.trim().split('\n').filter(Boolean).map((line) => {
+      const [additions, deletions, path] = line.split('\t');
+      return { path, additions: additions === '-' ? 0 : Number(additions), deletions: deletions === '-' ? 0 : Number(deletions) };
+    }),
+    statusCheckRollup: readChecks(pr, false).map((check) => ({ __typename: 'CheckRun', name: check.name, status: check.state === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED', conclusion: check.state === 'PENDING' ? '' : check.state, detailsUrl: check.link, workflowName: check.workflow })),
     author: { login: pr.author },
   };
 }
@@ -230,7 +239,7 @@ function runEvents(state, op, pr, text) {
   for (const event of state.events ?? []) {
     if (event.done || event.when.op !== op || (event.when.pr !== undefined && event.when.pr !== pr)) continue;
     if (event.when.match !== undefined && !new RegExp(event.when.match).test(text ?? '')) continue;
-    if (event.when.verdictsFor !== undefined && !event.when.verdictsFor.every((n) => state.prs[String(n)].comments.some((entry) => /PSTACK-VERDICT/.test(entry.body)))) continue;
+    if (event.when.verdictsFor !== undefined && !event.when.verdictsFor.every((n) => state.prs[String(n)].comments.some((entry) => /^\s*(?:PSTACK-VERDICT:\s*)?(?:PASS\+NOTES|PASS|FAIL)\b/.test(entry.body)))) continue;
     event.done = true;
     for (const step of event.do) chaos(step);
   }
@@ -376,6 +385,13 @@ function gh(state) {
     die(1, `gh: unsupported api call ${target}`);
   }
   if (group === 'run') {
+    if (verb === 'list' || verb === 'ls') {
+      const branch = value('--branch', '-b');
+      const runs = Object.values(state.prs).filter((pr) => branch === undefined || pr.head === branch).flatMap((pr) => readChecks(pr, false).map((check) => ({ databaseId: check.runId, headBranch: pr.head, headSha: headOf(pr), status: check.state === 'PENDING' ? 'in_progress' : 'completed', conclusion: check.state === 'PENDING' ? '' : check.state.toLowerCase(), name: check.workflow, workflowName: check.workflow, url: check.link })));
+      const fields = (value('--json') ?? '').split(',').filter(Boolean);
+      log({ kind: 'read', what: 'runs', branch });
+      return out(fields.length === 0 ? runs : runs.map((run) => pick(run, fields)));
+    }
     const id = positionals(WITH_VALUE)[2] ?? positionals(WITH_VALUE)[1];
     const holder = Object.values(state.prs).find((pr) => pr.checks.some((check) => String(check.runId) === String(id)));
     if (holder === undefined) die(1, `gh: no workflow run ${id}`);

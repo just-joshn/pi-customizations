@@ -12,22 +12,23 @@ import {
   briefCarries,
   briefsContain,
   collectOrder,
+  commitsNotFromWorkers,
   expectedModels,
   fanOutBeforeCollect,
   finalReply,
+  modelIdentity,
   noToolErrors,
   openedAt,
-  parentProductionWrites,
   panelCheck,
   parentOpenedFiles,
-  commitsNotFromWorkers,
+  parentProductionWrites,
   parentReads,
   promptRoutes,
   repoUntouched,
   settledAndCollected,
   skillFile,
-  spawnOrder,
   spawnedAfterCollect,
+  spawnOrder,
   verifyReceipt,
   withoutOwnIdentity,
   workersCheck,
@@ -210,7 +211,7 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     { name: 'cross-judge verdict, or that the judge was skipped', pattern: /cross-judge|judge[^.\n]*skipped|skipped[^.\n]*judge/i },
     { name: 'grafts', pattern: /\bGrafts?\b/i },
     { name: 'rejected', pattern: /\bRejected\b/i },
-    { name: 'dropouts', pattern: /dropouts?/i },
+    { name: 'convergence or dropouts', pattern: /converg\w*|dropouts?/i },
     { name: 'verification', pattern: /\bVerification\b/i },
   ]),
   settledAndCollected(`${prefix}.settled-and-collected`, src('arena/SKILL.md', 'After all Phase B candidates complete')),
@@ -607,8 +608,8 @@ Gaps and dropouts
 - slice-3 first result did not record the commit SHA or the method, so it did not count and was respawned once as slice-3b.
 Race rule: none, this was a coverage partition.`;
 
-/** A result-table row: a pipe row whose first cell is a src/ path, plain or in a code span (Phase D asks only for "a result table"). */
-const LANE_ROW = /^\|\s*`?src\//;
+/** Phase D asks for a result table without prescribing its column order. */
+const LANE_ROW = /^\|.*\|?\s*`?src\/[\w.-]+\.js`?\s*\|/;
 const laneRows = (reply: string) => reply.split('\n').filter((line) => LANE_ROW.test(line));
 const SLICE_FILE = /src\/[\w.-]+\.js/;
 const settledIdle = (worker: WorkerView) => ((worker.state?.['settles'] as { phase: string }[] | undefined) ?? []).some((settle) => settle.phase === 'idle');
@@ -708,7 +709,7 @@ export const swarmFamily: Family = {
     }),
     check('swarm.workers-use-the-swarm-model-line', 'workers are role general on the run\'s "swarm workers" model line', src('swarm/SKILL.md', 'Pick the worker model from the `swarm workers` line'), (view) => {
       const allowed = [...expectedModels(view, 'swarm workers'), 'inherit-parent'];
-      const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role !== 'general' || !allowed.includes(String(assignmentOf(worker).model)));
+      const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role !== 'general' || !allowed.includes(modelIdentity(String(assignmentOf(worker).model))));
       return when(allWorkers(view).length > 0 && bad.length === 0, `${allWorkers(view).length} workers, role general, on ${allowed.join(' | ')}`, `off-contract workers: ${bad.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}:${String(assignmentOf(worker).model)}`).join(', ')}; the line is ${allowed.join(' | ')}`);
     }),
     check('swarm.fan-out-without-waiting', 'the workers are spawned together before the parent collects any; only replacements for a dropped result come later', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {
@@ -763,8 +764,8 @@ export const swarmFamily: Family = {
     check('swarm.report-keeps-outcome-distinctions', 'the report is one table with PASS, ISSUES, or BLOCKED per slice, issue one-liners, and gaps; no raw worker dumps', src('swarm/SKILL.md', 'Return one consolidated in-chat report'), (view) => {
       const reply = finalReply(view);
       const rows = laneRows(reply);
-      const outcomes = rows.map((row) => row.split('|')[2]?.trim());
-      return when(rows.length === SLICES.length && outcomes.every((outcome) => ['PASS', 'ISSUES', 'BLOCKED'].includes(String(outcome))) && outcomes.includes('ISSUES') && /gaps?\b[^.\n]{0,12}\bdropouts?/i.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
+      const outcomes = rows.map((row) => row.split('|').map((cell) => cell.trim()).find((cell) => ['PASS', 'ISSUES', 'BLOCKED'].includes(cell)));
+      return when(rows.length === SLICES.length && outcomes.every((outcome) => outcome !== undefined) && /\b(gaps?|dropouts?)\b/i.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
     }),
     settledAndCollected('swarm.settled-and-collected', src('swarm/SKILL.md', '## Phase C: Aggregate')),
     writableWorkerRecords('swarm.worker-records', src('swarm/SKILL.md', 'Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence')),

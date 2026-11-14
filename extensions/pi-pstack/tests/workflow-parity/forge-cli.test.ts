@@ -51,6 +51,49 @@ function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
 }
 
+test('run list filters the real head branch and omits unrelated runs', () => {
+  const { ctx, forge } = fixture();
+  const listed = call(ctx, forge, 'gh', 'run', 'list', '--branch', 'main', '--json', 'databaseId,headBranch,headSha,status,conclusion');
+  expect(listed.status, listed.stderr).toBe(0);
+  expect(JSON.parse(listed.stdout)).toEqual([{ databaseId: 9071, headBranch: 'main', headSha: ctx.base, status: 'completed', conclusion: 'success' }]);
+  const absent = call(ctx, forge, 'gh', 'run', 'list', '-b', 'unrelated', '--json', 'databaseId');
+  expect(absent.status, absent.stderr).toBe(0);
+  expect(JSON.parse(absent.stdout)).toEqual([]);
+});
+
+test('PR JSON fields expose actual commits, changed files and checks', () => {
+  const { ctx, forge } = fixture();
+  const branch = 'feature';
+  execFileSync('git', ['-C', ctx.repo, 'checkout', '-qb', branch]);
+  writeFileSync(join(ctx.repo, 'change.txt'), 'new behavior\n');
+  execFileSync('git', ['-C', ctx.repo, 'add', 'change.txt']);
+  execFileSync('git', ['-C', ctx.repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'add behavior']);
+  execFileSync('git', ['-C', ctx.repo, 'push', '-q', 'origin', branch]);
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].head = branch;
+  writeFileSync(path, JSON.stringify(state));
+  const result = call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'commits,files,statusCheckRollup');
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({
+    commits: [{ messageHeadline: 'add behavior', oid: execFileSync('git', ['-C', ctx.repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() }],
+    files: [{ path: 'change.txt', additions: 1, deletions: 0 }],
+    statusCheckRollup: [{ name: 'build', status: 'COMPLETED', conclusion: 'SUCCESS' }],
+  });
+});
+
+test('freshness events accept upstream verdicts but not prose mentioning PASS', () => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.events = [{ when: { op: 'comment', verdictsFor: [71] }, do: [] }];
+  writeFileSync(path, JSON.stringify(state));
+  expect(call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'CI says PASS, not a verdict').status).toBe(0);
+  expect(JSON.parse(readFileSync(path, 'utf8')).events[0].done).not.toBe(true);
+  expect(call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', 'PASS+NOTES: ran the user flow.').status).toBe(0);
+  expect(JSON.parse(readFileSync(path, 'utf8')).events[0].done).toBe(true);
+});
+
 test.skipIf(!engineAvailable())('a container reads every host forge comment in full', async () => {
   const { ctx, forge } = fixture();
   const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',[${JSON.stringify(FORGE_CLI)},'gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;

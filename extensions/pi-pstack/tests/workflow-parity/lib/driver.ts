@@ -106,6 +106,8 @@ export interface RunSpec {
   mode?: Mode;
   /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
   drive?: (api: DriveApi) => Promise<void>;
+  /** One operator steer, sent at the matching tool event while the first turn is in flight. */
+  interrupt?: (ctx: Ctx, event: { type: string } & Json, events: readonly ({ type: string } & Json)[]) => string | undefined;
   /** Watch workers whose id matches hold the run open while they run, because the scenario waits for their exit. Other watches never do. */
   holdWatchers?: RegExp;
 }
@@ -232,7 +234,7 @@ class Rpc {
   readonly child: ChildProcess;
   readonly raw: string[] = [];
   private readonly json: boolean;
-  constructor(child: ChildProcess, json: boolean) {
+  constructor(child: ChildProcess, json: boolean, onEvent?: (event: RpcEvent) => void) {
     this.child = child;
     this.json = json;
     child.once('error', (error) => this.ended(`failed to start (${error.message})`));
@@ -253,6 +255,7 @@ class Rpc {
         if (line === '') continue;
         const event = JSON.parse(line) as RpcEvent;
         this.events.push(event);
+        onEvent?.(event);
         if (event.type === 'response') this.waiters.get(String(event['id']))?.(event);
       }
     });
@@ -492,9 +495,18 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
   const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
+  let interruption: Promise<void> | undefined;
+  let interruptionError: string | undefined;
   const startPi = (piArgs: string[], extraEnv: Record<string, string> = {}) => {
     const started = spawn(options.pi ?? PI, piArgs, { cwd: ctx.repo, env: { ...env, ...extraEnv }, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
-    const next = new Rpc(started, mode === 'rpc');
+    const next = new Rpc(started, mode === 'rpc', (event) => {
+      if (interruption !== undefined || spec.interrupt === undefined) return;
+      const message = spec.interrupt(ctx, event, next.events);
+      if (message === undefined) return;
+      interruption = next.request({ type: 'steer', message }).then((response) => {
+        if (response['success'] !== true) throw new Error(`operator steer rejected: ${JSON.stringify(response)}`);
+      }).catch((error: unknown) => { interruptionError = String(error); });
+    });
     started.once('close', (code) => {
       if (child === started) exitCode = code;
     });
@@ -609,6 +621,9 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
         break;
       }
     }
+    if (interruption !== undefined) await interruption;
+    if (interruptionError !== undefined) crashed = interruptionError;
+    if (spec.interrupt !== undefined && interruption === undefined) findings.push('the operator interruption trigger was never observed');
     }
   } finally {
     stopObserving();

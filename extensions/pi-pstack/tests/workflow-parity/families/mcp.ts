@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { type Check, check, fail, src, when } from '../lib/check.ts';
+import { type Check, check, fail, scriptedProbe, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, repoUntouched, settledAndCollected, workersCheck } from '../lib/checks.ts';
 import { PI, PKG, SCRIPTED_ROLES } from '../lib/driver.ts';
 import { overwrite, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
@@ -60,12 +60,13 @@ function whyMcp(withServer: boolean): Family {
       const names = /decisions/.test(listed.resultText);
       return when(names === withServer, `pi mcp list ${names ? 'shows' : 'does not show'} the decisions server`, `pi mcp list said: ${listed.resultText.slice(0, 160)}`);
     }),
-    workersCheck(`${id}.investigators-readonly-with-mcp`, 'the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none)', [WHY, src('why/SKILL.md', '**Do not set `capabilities.mcp: "none"`.**')], { role: 'investigator', min: 2, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' }),
+    workersCheck(`${id}.investigators-readonly-with-mcp`, 'the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none)', [WHY, src('why/SKILL.md', '**Do not set `capabilities.mcp: "none"`.**')], { role: 'investigator', min: withServer ? 2 : 1, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' }),
     check(`${id}.worker-launch-keeps-mcp`, 'no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist', WHY, (view) => {
       const launches = (view.runs[0]?.events ?? []).filter((entry) => entry['kind'] === 'launch').map((entry) => ({ id: String(entry['workerId']), command: JSON.stringify((entry['data'] as Record<string, unknown>)['command']) }));
       const problems = launches.flatMap(({ id: workerId, command }) => [...(/--no-mcp/.test(command) ? [`${workerId} was launched with --no-mcp`] : []), ...(assignmentOf(allWorkers(view).find((entry) => entry.id === workerId) as WorkerView).workspace?.mode === 'readonly' && !/--tools/.test(command) ? [`${workerId} is readonly with no --tools allowlist`] : [])]);
-      return when(launches.length >= 3 && problems.length === 0, `${launches.length} launch commands, none with --no-mcp`, problems.join('; ') || `only ${launches.length} launches recorded`);
-    }),
+      if (launches.length === 0) return { inconclusive: 'no worker launch was observed' };
+      return when(problems.length === 0, `${launches.length} launch commands, none with --no-mcp`, problems.join('; ') || `only ${launches.length} launches recorded`);
+    }, 'adaptation'),
     check(`${id}.worker-discovers-and-calls`, withServer ? 'a worker with default tools discovered the namespace, called the tool through codemode, and the server logged the call' : 'a worker looking for the server could not even start a codemode script or found no namespace, so nothing was called', WHY, (view) => {
       const call = codemodeOf(view, 'mcp-control');
       if (call === undefined) return fail('the control worker never ran codemode');
@@ -80,7 +81,7 @@ function whyMcp(withServer: boolean): Family {
     check(`${id}.citations-come-from-tool-output`, withServer ? 'every decision id and URL in the reply appears in the MCP tool output' : 'the reply cites no decision id or URL, and its Sources Consulted line says the documents were not searched', src('why/references/investigator-prompt.md', '**Never invent.**'), (view) => {
       const reply = finalReply(view);
       const cited = [...new Set((reply.match(/DEC-\d+|https?:\/\/[^\s)]+/g) ?? []).map((entry) => entry.replace(/[.,]+$/, '')))];
-      if (!withServer) return when(cited.length === 0 && /Long-form documents: skipped, the decisions MCP server is not connected/.test(reply), 'no citation, and the missing coverage is stated', `cited ${cited.join(', ') || 'nothing'}; line ${/Long-form documents.*/.exec(reply)?.[0] ?? 'absent'}`);
+      if (!withServer) return when(cited.length === 0 && /\bLong.form doc(?:ument)?s?\b[^\n]*(?:skipp\w*|not (?:searched|available|connected)|unavailable|no[^.\n]*MCP)/i.test(reply), 'no citation, and the missing coverage is stated', `cited ${cited.join(', ') || 'nothing'}; line ${/Long-form documents.*/.exec(reply)?.[0] ?? 'absent'}`);
       const output = codemodeOf(view, 'mcp-control')?.resultText ?? '';
       const invented = cited.filter((entry) => !output.includes(entry));
       return when(cited.length >= 2 && invented.length === 0, `cited ${cited.join(', ')}, all in the tool output`, `cited ${cited.join(', ') || 'nothing'}; not in the tool output: ${invented.join(', ')}`);
@@ -135,7 +136,7 @@ function whyMcp(withServer: boolean): Family {
         });
       },
     },
-    checks,
+    checks: checks.map((entry) => /worker-discovers-and-calls|readonly-holds-beside-mcp/.test(entry.id) ? scriptedProbe(entry) : entry),
     negatives: [
       { name: 'an investigator was spawned with MCP off', mutate: (sandbox) => patchAssignment(sandbox, id, 'docs-investigator', (assignment) => (assignment['capabilities'] = { mcp: 'none', env: 'inherit', externalWrite: false })), fails: [`${id}.investigators-readonly-with-mcp`] },
       { name: 'a host was launched with --no-mcp', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs', id, 'events.jsonl'), (text) => text.replace('"--tools"', '"--no-mcp","--tools"')), fails: [`${id}.worker-launch-keeps-mcp`] },

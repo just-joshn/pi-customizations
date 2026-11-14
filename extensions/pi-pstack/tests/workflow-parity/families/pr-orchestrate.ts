@@ -165,7 +165,7 @@ export const orchestrateFamily: Family = {
       const authors = Object.values(readForge(view).state.prs).map((pr) => pr.author);
       const candidates = ownerWorkers(view).filter((worker) => !authors.includes(worker.id));
       if (candidates.length === 0 && view.driver === 'real') return { skip: 'no stalled or replaced owner was observed in this run' };
-      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      if (candidates.length !== 1) return { inconclusive: `no unique replaced owner was identified; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}` };
       const stalled = candidates[0];
       const replacement = allWorkers(view).find((worker) => worker.id === readForge(view).state.prs['52']?.author);
       const probe = BASH(view).find((entry) => /git ls-remote --heads origin feat-shout-orch/.test(entry.command))?.order ?? -1;

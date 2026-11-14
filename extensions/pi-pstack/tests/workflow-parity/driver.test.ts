@@ -17,6 +17,25 @@ const withPi = (mode: string) => {
   return runWorkflow(spec, 'scripted', { pi: FAKE_PI, rpcTimeoutMs: 1_500 });
 };
 
+test('an event-triggered hold reaches the parent while work is in flight', async () => {
+  process.env['FAKE_PI_MODE'] = 'interrupt';
+  let evidence: unknown;
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      interrupt: (_ctx, event) => (event.type === 'tool_execution_start' ? 'hold everything' : undefined),
+      cleanup: (ctx) => {
+        const file = join(ctx.sandbox, 'interrupt.json');
+        evidence = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+      },
+    },
+    'scripted',
+    { pi: FAKE_PI },
+  );
+  outcome.cleanup();
+  expect(evidence).toEqual({ message: 'hold everything', streaming: true });
+});
+
 test.for(['scripted', 'real'] as const)('%s sandboxes expose scripted scenarios only to the scripted driver', async (driver) => {
   const seen: { container: boolean; parent: boolean }[] = [];
   process.env['FAKE_PI_MODE'] = 'crash';

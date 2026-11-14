@@ -8,36 +8,36 @@ import { cartHistory, lineOf } from '../fixtures/repos.ts';
 import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
-  assignmentOf,
   artifactText,
+  assignmentOf,
   branchCommits,
-  redFirst,
   delegateCommits,
   delegateOf,
   everyCommitGreen,
-  namesCommit,
-  ranBefore,
-  recordOrder,
-  spawnOrder,
-  stepReceipts,
   filesChanged,
   finalReply,
+  namesCommit,
   noToolErrors,
+  openedAt,
   parentReads,
   parentWritesOnlyScratch,
   playbookReads,
   primaryRun,
   promptRoutes,
+  ranBefore,
+  recordOrder,
+  redFirst,
   runAtCommit,
   settledAndCollected,
   skillFile,
-  openedAt,
+  spawnOrder,
+  stepReceipts,
   todoChecks,
   workersCheck,
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, overwrite, rewriteSession, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
+import { appendToolCall, dirtyRepo, overwrite, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, rewriteSession, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
 import type { RunView, ToolCall } from '../lib/view.ts';
 import { taskItems, todoNegatives, worktreeOf, writer } from './shared.ts';
 import type { Family } from './types.ts';
@@ -435,7 +435,7 @@ export const tddFamily: Family = {
     promptRoutes('tdd'),
     parentReads('tdd.reads-skill', 'the parent opens the tdd skill', src('tdd/SKILL.md', '# TDD Bug Fix'), ['tdd']),
     check('tdd.test-first-red-then-fix-then-green', 'a regression test is written or added to a test file first, run and seen failing, then the source is edited, then the suite is run and passes', src('tdd/SKILL.md', '**Run the new test before fixing.**'), (view) => {
-      const calls = view.parent.toolCalls;
+      const calls = view.parent.toolCalls.map((call, order) => ({ ...call, order }));
       const wrote = calls.find((call) => isTestEdit(call, view));
       const fixed = calls.find((call) => (call.name === 'edit' || call.name === 'write') && !isTestEdit(call, view) && isRepoSource(call, view) && wrote !== undefined && call.order > wrote.order);
       const runs = calls.filter((call) => call.name === 'bash' && TEST_RUN.test(String(call.args['command'])) && !/git (add|commit)/.test(String(call.args['command'])));

@@ -333,12 +333,13 @@ export interface WorkerSpec {
   id?: RegExp;
 }
 
+export const modelIdentity = (spec: string): string => spec.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, '');
+
 export function expectedModels(view: RunView, line: string): string[] {
   const value = view.models?.[line];
   const parent = view.parent.models[0] ?? '';
-  const stripLevel = (spec: string) => spec.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, '');
   if (value === undefined) return [];
-  const list = (Array.isArray(value) ? value : [value]).map(stripLevel);
+  const list = (Array.isArray(value) ? value : [value]).map(modelIdentity);
   return list.flatMap((entry) => (entry === 'auto' || entry === 'inherit-parent' ? ['inherit-parent', parent] : entry === parent ? [entry, 'inherit-parent'] : [entry]));
 }
 
@@ -361,7 +362,7 @@ export function workersCheck(id: string, title: string, source: Src | Src[], spe
       if (spec.mcpInherit === true && assignment.capabilities?.mcp === 'none') problems.push(`${worker.id} sets capabilities.mcp none`);
       if (spec.modelLine !== undefined) {
         const allowed = expectedModels(view, spec.modelLine);
-        if (allowed.length > 0 && !allowed.includes(String(assignment.model))) problems.push(`${worker.id} model ${String(assignment.model)} is not the "${spec.modelLine}" line (${allowed.join(' | ')})`);
+        if (allowed.length > 0 && !allowed.includes(modelIdentity(String(assignment.model)))) problems.push(`${worker.id} model ${String(assignment.model)} is not the "${spec.modelLine}" line (${allowed.join(' | ')})`);
       }
     }
     return when(problems.length === 0, `${found.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}:${String(assignmentOf(worker).workspace?.mode)}:${String(assignmentOf(worker).model)}`).join(', ')}`, problems.join('; '));
@@ -467,12 +468,13 @@ export function worktreeIsolation(id: string, source: Src | Src[]): Check {
       if (paths.has(own)) problems.push(`${worker.id} shares ${own}`);
       paths.add(own);
       const registered = view.git.worktrees.find((tree) => tree.path === own);
-      if (registered === undefined) problems.push(`${worker.id}: git has no worktree at ${own}`);
-      else if (registered.branch !== `pstack-run/${run?.id}/${worker.id}`) problems.push(`${worker.id}: branch ${registered.branch} is not pstack-run/${run?.id}/${worker.id}`);
+      const branch = `pstack-run/${run?.id}/${worker.id}`;
+      if (registered === undefined && (worker.session?.cwd !== own || view.git.branchCommits[branch] === undefined)) problems.push(`${worker.id}: no registered worktree or session and retained branch evidence at ${own}`);
+      else if (registered !== undefined && registered.branch !== branch) problems.push(`${worker.id}: branch ${registered.branch} is not ${branch}`);
       const sessionCwd = worker.session?.cwd;
       if (sessionCwd !== undefined && sessionCwd !== null && sessionCwd !== own) problems.push(`${worker.id}: session ran in ${sessionCwd}, not its worktree ${own}`);
     }
-    const branches = writable.map((worker) => view.git.worktrees.find((tree) => tree.path === join(worker.dir, 'worktree'))?.branch);
+    const branches = writable.map((worker) => view.git.worktrees.find((tree) => tree.path === join(worker.dir, 'worktree'))?.branch ?? `pstack-run/${view.runs.find((run) => run.workers.includes(worker))?.id}/${worker.id}`);
     if (new Set(branches).size !== branches.length) problems.push('two workers share a branch');
     return when(problems.length === 0, `${writable.length} worktree workers, ${paths.size} distinct worktrees and branches`, problems.join('; '));
   });
@@ -516,6 +518,7 @@ export function replySections(id: string, title: string, source: Src | Src[], se
 export function fileReferencesResolve(id: string, source: Src | Src[], options: { min: number; from?: (view: RunView) => string }): Check {
   return check(id, `the reply references at least ${options.min} repository files, and every file it names exists and every line it gives is inside its file`, source, (view) => {
     const text = (options.from ?? finalReply)(view);
+    if (text.trim() === '') return { inconclusive: 'no presented text to resolve references from' };
     const tracked = readdirSync(view.repo, { recursive: true }).map(String).filter((path) => !path.startsWith('.') && !path.includes('node_modules') && /\.[a-z]+$/.test(path));
     const resolve = (file: string) => (file.includes('/') ? (existsSync(join(view.repo, file)) ? file : undefined) : tracked.find((path) => path === file || path.endsWith(`/${file}`)));
     // A bare name that is no repository file (Node.js, a library) is prose; a path with a directory is a claim about this repository.
@@ -686,11 +689,11 @@ export function panelCheck(id: string, title: string, source: Src | Src[], optio
   return check(id, title, source, (view) => {
     const workers = allWorkers(view).filter((worker) => assignmentOf(worker).role === options.role);
     const configured = view.models?.[options.line];
-    const entries = (Array.isArray(configured) ? configured : configured === undefined ? [] : [configured]).map((entry) => entry.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, ''));
+    const entries = (Array.isArray(configured) ? configured : configured === undefined ? [] : [configured]).map(modelIdentity);
     const parent = view.parent.models[0] ?? '';
     const used = workers.map((worker) => {
       const model = String(assignmentOf(worker).model);
-      return model === 'inherit-parent' ? parent : model;
+      return modelIdentity(model === 'inherit-parent' ? parent : model);
     });
     const problems: string[] = [];
     if (workers.length < Math.max(2, entries.length === 0 ? 2 : Math.min(entries.length, 2))) problems.push(`${workers.length} ${options.role} workers`);

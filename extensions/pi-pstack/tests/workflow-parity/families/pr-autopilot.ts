@@ -331,7 +331,6 @@ function fullScenario(ctx: Ctx, store: Store, mode: 'merge' | 'hold') {
   parent.bash(`gh pr view 31 ${pr} --json headRefOid,baseRefName,state && gh pr view 32 ${pr} --json headRefOid,baseRefName,state`);
   stepDone(parent, 'autopilot-full', 3, 'af-parallel', `gh pr view 32 ${pr} --json baseRefName | grep -q main`);
   if (mode === 'hold') {
-    parent.text('Both owners reported code-ready: PR 31 and PR 32 are open off main. Verification starts next.');
     parent.together(...[a, b].map((unit) => ({ tool: 'pstack_worker', args: { action: 'steer', runId: ctx.runId, workerId: unit.id, message: `HOLD from the operator: zero writes now. Do not push, comment, rebase or merge. Report where you stand, and keep your brief until the operator releases you.` } })));
     parent.wait('owner-a', 2).wait('owner-b', 2).collect('owner-a', 'owner-b');
     for (const n of [4, 5, 6]) parent.skip('autopilot-full', n, 'the operator held the queue before verification, so nothing is verified or merged');
@@ -441,7 +440,30 @@ export const autopilotHoldFamily: Family = {
   id: 'autopilot-hold',
   requires: 'container',
   title: 'autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)',
-  spec: specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL, ['/poteto-mode hold everything: stop all writes now, do not merge anything']),
+  spec: {
+    ...specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
+    interrupt: (ctx, event, events) => {
+      if (event.type !== 'tool_execution_end' || event['toolName'] !== 'pstack_worker' || event['isError'] === true) return undefined;
+      const admitted = new Set(events.filter((entry) => entry.type === 'tool_execution_end' && entry['toolName'] === 'pstack_worker' && entry['isError'] !== true).map((entry) => entry['toolCallId']));
+      const owners = events.flatMap((entry) => {
+        const args = entry['args'] as Record<string, unknown> | undefined;
+        if (entry.type !== 'tool_execution_start' || entry['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn' || !admitted.has(entry['toolCallId'])) return [];
+        try {
+          const path = resolve(ctx.repo, String(args['assignmentPath']));
+          const assignment = JSON.parse(readFileSync(path, 'utf8')) as { role?: string };
+          return assignment.role === 'owner' ? [path] : [];
+        } catch {
+          return [];
+        }
+      });
+      const identities = owners.map((path) => JSON.parse(readFileSync(path, 'utf8')) as { workerId: string; runId: string });
+      const collected = events.filter((entry) => {
+        const args = entry['args'] as Record<string, unknown> | undefined;
+        return entry.type === 'tool_execution_start' && entry['toolName'] === 'pstack_worker' && admitted.has(entry['toolCallId']) && args?.['action'] === 'collect' && identities.some((owner) => owner.workerId === args['workerId'] && owner.runId === args['runId']);
+      });
+      return new Set(collected.map((entry) => String((entry['args'] as Record<string, unknown>)['workerId']))).size === 2 ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
+    },
+  },
   checks: [
     ...fullChecks('autopilot.hold', HOLD_STORE),
     ...todoChecks({ playbook: 'autopilot-full', skipReason: { 4: /held|hold/, 5: /held|hold/, 6: /held|hold/, 7: /./ } }),
@@ -514,7 +536,7 @@ export const autopilotStackFamily: Family = {
   id: 'autopilot-stack',
   requires: 'container',
   title: 'autopilot-stack: autopilot-full without the merge: a PR stacks only on the PR it builds on, every PR is verified at its head, nothing merges, nobody pushes after the handoff (spec 13.4)',
-  spec: specOf('autopilot-stack', STACK_RUN, STACK_STORE, (ctx) => stackScenario(ctx, STACK_STORE), stackedUnits, { 'feat-greet-stack': 41, 'feat-shout-stack': 42 }, '/poteto-mode autopilot-stack: build PR 41 (greet) and PR 42 (shout, which builds on greet), verify them, and do not merge, I will land them'),
+  spec: specOf('autopilot-stack', STACK_RUN, STACK_STORE, (ctx) => stackScenario(ctx, STACK_STORE), stackedUnits, { 'feat-greet-stack': 41, 'feat-shout-stack': 42 }, "/poteto-mode autopilot-stack: build PR 41 (greet) and PR 42 (shout, which builds on greet), verify them, and do not merge, I will land them. PR numbers 41 and 42 are reserved, not existing PRs. PR 41 uses branch feat-greet-stack and adds the named export greet(name) in src/greet.js, returning 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 42 uses branch feat-shout-stack and adds the named export shout(name) in src/shout.js, importing greet and returning greet(name).toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Include behavior tests under test/ and preserve existing cart behavior."),
   checks: [
     promptRoutes('poteto-mode'),
     ...playbookReads('autopilot-stack'),
@@ -535,7 +557,7 @@ export const autopilotStackFamily: Family = {
     rootAudited('autopilot.stack.root-audits-receipts', AS('In place of step 5, stop at verified')),
     check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and every owner push and PR creation precedes the first verdict', AS('In place of step 5, stop at verified'), (view) => {
       const { actions, state } = readForge(view);
-      const firstVerdict = actions.findIndex((action) => action.kind === 'comment' && /PSTACK-VERDICT/.test(String(action['body'])));
+      const firstVerdict = verdictsOf(state, actions, view)[0]?.at ?? -1;
       const late = actions.filter((action, index) => index > firstVerdict && ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind));
       return when(firstVerdict !== -1 && late.length === 0 && mergesIn(actions).length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN' && pr.autoMerge !== true && pr.queued !== true), 'no merge; no push, creation or retarget after the first verdict', `late writes ${late.map((action) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
     }),
@@ -605,7 +627,7 @@ function appendOwnerCall(sandbox: string, runId: string, workerId: string): void
 
 const LANES_RUN = 'autopilot-lanes-countersign';
 const LANES_STORE: Store = { units: [] };
-const PROMPT_LANES = '/poteto-mode autopilot this queue, full autopilot, go: PR 33 adds the lookup table and raises the size budget it needs. Merge it once it is verified.';
+const PROMPT_LANES = '/poteto-mode autopilot this queue, full autopilot, go. PR 33 is reserved, not an existing PR. Use branch feat-table. Add src/table.js with named exports table, an explicit array of the integers 0 through 2999 (3000 entries), and lookup(n), which returns table[n]. The serialized table must be present in the file, not generated at runtime. Include behavior tests under test/ and a size check against budget.json maxKb * 1024. Raise the size budget to fit the required table and preserve existing cart behavior. Merge it once it is verified.';
 const TABLE = `export const table = ${JSON.stringify(Array.from({ length: 3000 }, (_, index) => index))};\nexport const lookup = (n) => table[n];\n`;
 const TABLE_TEST = "import assert from 'node:assert/strict';\nimport { readFileSync, statSync } from 'node:fs';\nimport { test } from 'node:test';\nimport { lookup } from '../src/table.js';\n\ntest('lookup reads the table', () => assert.equal(lookup(7), 7));\ntest('the table fits the size budget', () => assert.ok(statSync(new URL('../src/table.js', import.meta.url)).size <= JSON.parse(readFileSync(new URL('../budget.json', import.meta.url), 'utf8')).maxKb * 1024));\n";
 const BUDGET = (maxKb: number): string => `{ "maxKb": ${maxKb} }\n`;
@@ -704,7 +726,8 @@ export const autopilotLanesFamily: Family = {
     onePerPrOwners('autopilot.lanes.one-container-owner-for-the-pr', AF('Spawn one owner per PR'), lanesUnits, { from: 'trunk' }),
     check('autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each distinct from the code author and at exactly the code-ready head, and each posted its own PASS verdict at that head', AF('Fan out independent verifiers at the code-ready SHA per the **swarm** skill'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
+      const unit = observedUnits(view, lanesUnits())[0];
+      if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const verdicts = verdictsOf(state, actions);
       const owner = responsibleWorker(view, 'owner', 33);
       const lanes = LANES.map((lane) => responsibleWorker(view, 'verifier', 33, lane));
@@ -732,7 +755,8 @@ export const autopilotLanesFamily: Family = {
     }),
     check('autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign', 'the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces', AF('Anything that loosens a gate, such as a raised budget or an allowlist entry'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
+      const unit = observedUnits(view, lanesUnits())[0];
+      if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const bare = bareOf(view.sandbox);
       const verdicts = verdictsOf(state, actions);
       const from = budgetAt(bare, `${unit.sha}^`);
