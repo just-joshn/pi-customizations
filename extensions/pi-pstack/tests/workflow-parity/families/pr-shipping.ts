@@ -1,7 +1,7 @@
 // Shipping families (spec 13.3): one container verifier per PR with the forge capability, a verdict that covers the head and
 // the patch it examined, only the contiguous verified run from the root landing, bottom-up, never a merge from green CI.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
@@ -244,8 +244,9 @@ export { stepDone };
 // ---- family: shipping
 
 export function verifierFor(view: RunView, pr: number): WorkerView | undefined {
-  const { actions } = readForge(view);
-  const candidates = containerWorkers(view, 'verifier').filter((worker) => actions.some((action) => action.kind === 'comment' && action.pr === pr && action.worker === (worker.assignment['workerId'] ?? worker.id)));
+  const { state, actions } = readForge(view);
+  const latest = verdictsOf(state, actions, view).filter((verdict) => verdict.pr === pr).at(-1)?.verifier ?? actions.filter((action) => action.kind === 'comment' && action.pr === pr).at(-1)?.worker;
+  const candidates = containerWorkers(view, 'verifier').filter((worker) => latest === (worker.assignment['workerId'] ?? worker.id));
   return candidates.length === 1 ? candidates[0] : undefined;
 }
 
@@ -264,7 +265,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const merged = state.prs[String(n)]?.mergedHead;
         return [
           ...(assignment.workspace?.mode !== 'container' ? [`${worker.id} workspace ${String(assignment.workspace?.mode)}`] : []),
-          ...(canonicalCommit(view, assignment.workspace?.inputCommit ?? '') !== canonicalCommit(view, (mode === 'head' ? (merged ?? heads(n)) : verdictHeads.find((verdict) => verdict.pr === n)?.head) ?? '') ? [`${worker.id} inputCommit is not the head it verified`] : []),
+          ...(canonicalCommit(view, assignment.workspace?.inputCommit ?? '') !== canonicalCommit(view, (mode === 'head' ? (merged ?? heads(n)) : verdictHeads.filter((verdict) => verdict.pr === n).at(-1)?.head) ?? '') ? [`${worker.id} inputCommit is not the head it verified`] : []),
           ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false || caps['mcp'] !== 'inherit' ? [`${worker.id} capabilities ${JSON.stringify(caps)}`] : []),
           ...(worker.id === state.prs[String(n)]?.author ? [`${worker.id} is the author`] : []),
           ...(worker.session?.cwd !== '/tmp/workspace' ? [`${worker.id} session ran in ${String(worker.session?.cwd)}, not the container clone`] : []),
@@ -272,7 +273,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
           ...(view.runs.flatMap((run) => run.events).find((event) => event['workerId'] === worker.id && event['kind'] === 'spawn' && ((event['data'] as { container?: { image?: { id?: string } } }).container?.image?.id ?? '') !== '') === undefined ? [`${worker.id} has no container spawn event with an image id`] : []),
         ];
       });
-      return when(workers.length === 3 && new Set([21, 22, 23].map((pr) => verifierFor(view, pr))).size === 3 && problems.length === 0, `${workers.map((worker) => worker.id).join(', ')}: container, forge capability, ran in /tmp/workspace`, `${workers.length} verifiers; ${problems.join('; ')}`);
+      return when(workers.length >= 3 && new Set([21, 22, 23].map((pr) => verifierFor(view, pr))).size === 3 && problems.length === 0, `${workers.map((worker) => worker.id).join(', ')}: container, forge capability, ran in /tmp/workspace`, `${workers.length} verifiers; ${problems.join('; ')}`);
     }),
     check(`${prefix}.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes`, 'each verifier was spawned and collected after it settled, observed through a wake, inspect, or the collect result', SH('One verifier per PR'), (view) => {
       const spawns = [21, 22, 23].map((n) => {
@@ -296,8 +297,8 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
       const verdicts = verdictsOf(state, actions, view);
       const problems = [21, 22, 23].flatMap((n) => {
         const found = verdicts.filter((verdict) => verdict.pr === n);
-        const verdict = found[0];
-        if (found.length !== 1 || verdict === undefined) return [`PR ${n} has ${found.length} verdicts`];
+        const verdict = found.at(-1);
+        if (verdict === undefined) return [`PR ${n} has no verdict`];
         const head = mode === 'head' ? (state.prs[String(n)]?.mergedHead ?? headAt(view, state)(n)) : verdict.head;
         const action = actions[verdict.at] as ForgeAction;
         const worker = verifierFor(view, n);
@@ -323,9 +324,9 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const worker = selected?.id;
         const run = view.runs.find((entry) => selected !== undefined && entry.workers.includes(selected));
         const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${selected?.dir}/evidence/`))) ?? [];
-        const receipt = receipts.find((entry) => (entry.verdict === 'pass') !== (verdicts.find((verdict) => verdict.pr === n)?.verdict === 'FAIL'));
+        const receipt = receipts.find((entry) => (entry.verdict === 'pass') !== (verdicts.filter((verdict) => verdict.pr === n).at(-1)?.verdict === 'FAIL'));
         if (receipt === undefined || run === undefined) return [`${worker} has no recorded receipt`];
-        const posted = verdicts.find((verdict) => verdict.pr === n)?.verdict;
+        const posted = verdicts.filter((verdict) => verdict.pr === n).at(-1)?.verdict;
         const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(resolve(run.dir, artifact.path)) && resolve(run.dir, artifact.path).startsWith(`${selected?.dir}/evidence/`));
         const hashes = verifyReceipt(run, { ...receipt, verdict: 'pass' });
         return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : [])];
@@ -377,6 +378,15 @@ export const shippingFamily: Family = {
   ],
   negatives: [
     ...todoNegatives(SHIP_RUN, 'shipping', { done: [1, 2, 3, 4, 5, 6], receipts: { 1: 'sh-verifiers', 2: 'sh-prefix', 3: 'sh-fresh', 4: 'sh-landed', 5: 'sh-hands-off', 6: 'sh-ceiling' } }),
+    { name: 'a replacement verifier supersedes an obsolete verdict at the prior head', mutate: (sandbox) => {
+      const workers = join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers');
+      const assignment = JSON.parse(readFileSync(join(workers, 'verifier-21/assignment.json'), 'utf8'));
+      assignment.workerId = 'retired-verifier';
+      assignment.workspace.inputCommit = revParse(bareOf(sandbox), `${assignment.workspace.inputCommit}^`);
+      mkdirSync(join(workers, 'retired-verifier'), { recursive: true });
+      writeFileSync(join(workers, 'retired-verifier/assignment.json'), JSON.stringify(assignment));
+      editForge(sandbox, (actions) => actions.unshift({ kind: 'comment', pr: 21, worker: 'retired-verifier', run: SHIP_RUN, actor: '', container: true, authenticated: true, body: `PSTACK-VERDICT: FAIL head=${assignment.workspace.inputCommit} verifier=retired-verifier patch=old` }));
+    }, fails: [], passes: ['ship.one-container-verifier-per-pr-with-the-forge-capability', 'ship.verdicts-are-by-the-verifiers-and-match-what-the-code-does', 'ship.each-verifier-recorded-its-own-receipt'] },
     { name: 'verifier assignments may use unambiguous abbreviated commit IDs', mutate: (sandbox) => {
       for (const pr of [21, 22, 23]) patchAssignment(sandbox, SHIP_RUN, `verifier-${pr}`, (assignment) => {
         const workspace = assignment['workspace'] as { inputCommit: string };
