@@ -7,6 +7,11 @@ import { babysitThreadsOnlyFamily } from './families/pr-babysit.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
+test.for(['single PR, no stack frontier above it', 'no CI in scope', ''])('scope-specific skips need a concrete reason, not the word threads (%s)', (reason) => {
+  const view = { runs: [{ id: 'r', steps: [{ n: reason.startsWith('single') ? 2 : 5, state: 'skipped', skip: reason }] }] } as unknown as RunView;
+  expect(babysitThreadsOnlyFamily.checks.find((check) => check.id === 'todo.babysit.skips-explained')?.run(view)).toMatchObject({ ok: reason !== '' });
+});
+
 test.for(['valid', 'resolve-ask', 'ci'])('threads-only permits multiple grounded replies and keeps an escalated finding open (%s)', (mode) => {
   const sandbox = mkdtempSync(join(tmpdir(), 'thread-scope-'));
   try {

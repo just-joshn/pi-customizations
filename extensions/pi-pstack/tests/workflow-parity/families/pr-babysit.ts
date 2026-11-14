@@ -422,7 +422,7 @@ export const babysitThreadsOnlyFamily: Family = {
   checks: [
     promptRoutes('poteto-mode'),
     ...playbookReads('babysit'),
-    ...todoChecks({ playbook: 'babysit', skipReason: { 2: /threads/, 3: /threads/, 5: /threads/, 6: /threads/, 7: /threads/ } }),
+    ...todoChecks({ playbook: 'babysit', skipReason: { 2: /threads|single PR|no stack/i, 3: /threads|single babysitter|no stack/i, 5: /threads|no CI/i, 6: /threads|no CI/i, 7: /threads|no CI/i } }),
     modeDeclared('babysit.threads.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'threads-only'),
     forgeResolvedOnce('babysit.threads.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     noWatcher('babysit.threads.starts-no-watcher', BS('`threads-only` answers review comments and touches nothing else')),
