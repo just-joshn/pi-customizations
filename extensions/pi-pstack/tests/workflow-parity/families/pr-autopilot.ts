@@ -535,7 +535,7 @@ export const autopilotStackFamily: Family = {
     rootAudited('autopilot.stack.root-audits-receipts', AS('In place of step 5, stop at verified')),
     check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and every owner push and PR creation precedes the first verdict', AS('In place of step 5, stop at verified'), (view) => {
       const { actions, state } = readForge(view);
-      const firstVerdict = actions.findIndex((action) => action.kind === 'comment' && /PSTACK-VERDICT/.test(String(action['body'])));
+      const firstVerdict = verdictsOf(state, actions, view)[0]?.at ?? -1;
       const late = actions.filter((action, index) => index > firstVerdict && ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind));
       return when(firstVerdict !== -1 && late.length === 0 && mergesIn(actions).length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN' && pr.autoMerge !== true && pr.queued !== true), 'no merge; no push, creation or retarget after the first verdict', `late writes ${late.map((action) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
     }),

@@ -51,6 +51,20 @@ const run = (suffix: string, value: RunView) =>
     ?.checks.find((entry) => entry.id === `autopilot.full.${suffix}`)
     ?.run(value);
 
+test('stack handoff recognizes an upstream verdict and still rejects subsequent pushes', () => {
+  const value = view();
+  writeFileSync(join(forgeDirOf(value.sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: { 41: { number: 41, state: 'OPEN', author: 'owner' } } }));
+  const runDir = value.runs[0]!;
+  runDir.workers.push({ id: 'verifier', assignment: { role: 'verifier', workspace: { inputCommit: sha } } } as never);
+  const actions = [{ kind: 'push', worker: 'owner' }, { kind: 'comment', pr: 41, worker: 'verifier', body: 'PASS: ran the user behavior.' }];
+  const file = join(forgeDirOf(value.sandbox), 'actions.jsonl');
+  const check = autopilotFamilies.find((family) => family.id === 'autopilot-stack')!.checks.find((entry) => entry.id === 'autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff')!;
+  writeFileSync(file, actions.map((action) => JSON.stringify(action)).join('\n'));
+  expect(check.run(value)).toMatchObject({ ok: true });
+  writeFileSync(file, [...actions, { kind: 'push', worker: 'owner' }].map((action) => JSON.stringify(action)).join('\n'));
+  expect(check.run(value)).toMatchObject({ ok: false });
+});
+
 test('an empty forge cannot pass owner execution or owner evidence checks on rescore', () => {
   const value = view();
   writeFileSync(join(forgeDirOf(value.sandbox), 'state.json'), JSON.stringify({ repo: { trunk: 'main' }, prs: {} }));
