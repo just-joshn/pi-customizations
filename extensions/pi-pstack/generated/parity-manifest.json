@@ -7,15 +7,15 @@
   "requirementsDigest": "04cd0d00d7e955a56d7c07c16faa4aed6baf8884285d1aff1abc148806b98eaa",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-14T12:25:09.765Z",
-    "generatedAt": "2026-11-14T12:28:52.156Z",
-    "commit": "a217ed4a3c083dff58fc1d35ec05bb393455aad3",
+    "startedAt": "2026-11-14T12:38:36.184Z",
+    "generatedAt": "2026-11-14T12:41:19.015Z",
+    "commit": "c2464c3f6c9a5bbbdda9ae4aaa25b7284b68fb3a",
     "dirty": false,
     "changes": [],
-    "sourceDigest": "c29c1491bb9789c45e914e658e08759c8d1327a9c58f0f1359310a4e17b5f60f",
+    "sourceDigest": "68a5b0003e1d24d85ce1d0e900fd0448d06a9e1d824b4b44d298236da04f6c54",
     "resultsSource": "local",
-    "totalTests": 218,
-    "passedTests": 218,
+    "totalTests": 274,
+    "passedTests": 274,
     "failedTests": 0,
     "failures": [],
     "skippedTests": 0,
@@ -27,15 +27,15 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-14T12:25:09.765Z",
-      "generatedAt": "2026-11-14T12:28:52.156Z",
-      "commit": "a217ed4a3c083dff58fc1d35ec05bb393455aad3",
+      "startedAt": "2026-11-14T12:38:36.184Z",
+      "generatedAt": "2026-11-14T12:41:19.015Z",
+      "commit": "c2464c3f6c9a5bbbdda9ae4aaa25b7284b68fb3a",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "c29c1491bb9789c45e914e658e08759c8d1327a9c58f0f1359310a4e17b5f60f",
+      "sourceDigest": "68a5b0003e1d24d85ce1d0e900fd0448d06a9e1d824b4b44d298236da04f6c54",
       "resultsSource": "local",
-      "totalTests": 218,
-      "passedTests": 218,
+      "totalTests": 274,
+      "passedTests": 274,
       "failedTests": 0,
       "failures": [],
       "skippedTests": 0,
@@ -53,9 +53,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 0,
+      "PASS": 1,
       "FAIL": 0,
-      "INCONCLUSIVE": 102,
+      "INCONCLUSIVE": 101,
       "N/A": 1
     }
   },
@@ -10752,11 +10752,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for authoring-a-skill.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -10795,7 +10795,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for authoring-a-skill.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
@@ -10875,11 +10875,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autonomous-run.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -10918,7 +10918,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autonomous-run.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/autopilot-full.md",
@@ -10998,11 +10998,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autopilot-full.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11041,7 +11041,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autopilot-full.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
@@ -11121,11 +11121,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autopilot-stack.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11164,7 +11164,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autopilot-stack.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/babysit.md",
@@ -11244,11 +11244,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for babysit.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11287,7 +11287,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for babysit.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/bug-fix.md",
@@ -11367,11 +11367,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for bug-fix.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11410,7 +11410,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for bug-fix.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/eval.md",
@@ -11490,11 +11490,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for eval.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11533,7 +11533,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for eval.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/feature.md",
@@ -11613,11 +11613,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for feature.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11656,7 +11656,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for feature.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/hillclimb.md",
@@ -11736,11 +11736,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for hillclimb.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11779,7 +11779,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for hillclimb.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/investigation.md",
@@ -11859,11 +11859,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for investigation.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -11902,7 +11902,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for investigation.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
@@ -11982,11 +11982,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for multi-phase-plan.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12025,7 +12025,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for multi-phase-plan.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
@@ -12105,11 +12105,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for opening-a-pr.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12148,7 +12148,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for opening-a-pr.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/orchestrate.md",
@@ -12228,11 +12228,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for orchestrate.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12271,7 +12271,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for orchestrate.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/pause-safely.md",
@@ -12351,11 +12351,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for pause-safely.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12394,7 +12394,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for pause-safely.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/perf-issue.md",
@@ -12474,11 +12474,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for perf-issue.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12517,7 +12517,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for perf-issue.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/prototype.md",
@@ -12597,11 +12597,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for prototype.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12640,7 +12640,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for prototype.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/refactoring.md",
@@ -12720,11 +12720,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for refactoring.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12763,7 +12763,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for refactoring.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
@@ -12843,11 +12843,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for runtime-forensics.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -12886,7 +12886,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for runtime-forensics.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/session-pickup.md",
@@ -12966,11 +12966,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for session-pickup.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -13009,7 +13009,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for session-pickup.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/shipping.md",
@@ -13089,11 +13089,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for shipping.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -13132,7 +13132,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for shipping.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/trace-forensics.md",
@@ -13212,11 +13212,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for trace-forensics.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -13255,7 +13255,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for trace-forensics.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/visual-parity.md",
@@ -13335,11 +13335,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for visual-parity.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -13378,7 +13378,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for visual-parity.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
@@ -13458,11 +13458,11 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for worktree-cleanup.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -13501,7 +13501,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for worktree-cleanup.md; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+      "reason": "missing: tests/skill-parity/inventory.test.ts::inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents; missing: tests/skill-parity/inventory.test.ts::inventory generated poteto-mode keeps all 23 playbooks; missing: tests/skill-parity/gates.test.ts::parity gate passes on the real tree; missing: tests/skill-parity/regeneration.test.ts::regenerating the skills twice produces the committed tree byte for byte; missing: tests/skill-parity/spans.test.ts::every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
     },
     {
       "id": "SRC/pstack/agents/comment-sicko.md",
@@ -28442,325 +28442,325 @@
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for authoring-a-skill.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autonomous-run.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autopilot-full.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for autopilot-stack.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for babysit.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for bug-fix.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for eval.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for feature.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for hillclimb.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for investigation.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for multi-phase-plan.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for opening-a-pr.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for orchestrate.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for pause-safely.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for perf-issue.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for prototype.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for refactoring.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for runtime-forensics.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for session-pickup.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for shipping.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for trace-forensics.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for visual-parity.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "CLI preserves pinned source bytes and a separate pending ledger for worktree-cleanup.md",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "the source inventory contains all 23 playbooks",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/source.test.ts",
           "name": "source span retains Unicode, whitespace, continuations and fenced examples (\"\\n\")",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "a playbook without numbered steps says so and points at its rules (opening-a-pr)",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "a playbook without numbered steps says so and points at its rules (orchestrate)",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "uses the git project root and records the parent session and input commit",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/todo/start-run.test.ts",
           "name": "keeps a single active run and refuses to overwrite an existing run",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for authoring-a-skill.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autonomous-run.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autopilot-full.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for autopilot-stack.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for babysit.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for bug-fix.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for eval.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for feature.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for hillclimb.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for investigation.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for multi-phase-plan.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for opening-a-pr.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for orchestrate.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for pause-safely.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for perf-issue.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for prototype.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for refactoring.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for runtime-forensics.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for session-pickup.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for shipping.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for trace-forensics.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for visual-parity.md; missing: tests/todo/start-run.test.ts::CLI preserves pinned source bytes and a separate pending ledger for worktree-cleanup.md; missing: tests/todo/start-run.test.ts::the source inventory contains all 23 playbooks; missing: tests/todo/source.test.ts::source span retains Unicode, whitespace, continuations and fenced examples (\"\\n\"); missing: tests/todo/start-run.test.ts::a playbook without numbered steps says so and points at its rules (opening-a-pr); missing: tests/todo/start-run.test.ts::a playbook without numbered steps says so and points at its rules (orchestrate); missing: tests/todo/start-run.test.ts::uses the git project root and records the parent session and input commit; missing: tests/todo/start-run.test.ts::keeps a single active run and refuses to overwrite an existing run"
+      "status": "PASS",
+      "reason": "29 linked test(s) ran and passed"
     },
     {
       "id": "MX-WORKER-CONCURRENCY",
