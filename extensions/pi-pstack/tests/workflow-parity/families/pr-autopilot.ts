@@ -552,6 +552,7 @@ export const autopilotStackFamily: Family = {
     ownerHygiene('autopilot.stack.owners-push-their-own-branch-and-keep-a-trail', AF('Assume the container dies'), unitsOf(STACK_STORE)),
     check('autopilot.stack.stacks-only-the-pr-that-builds-on-another', 'PR 42 is based on PR 41\'s branch and its commit sits on PR 41\'s head, PR 41 is based on trunk, and neither base changed after opening', AS('Stack a PR only when it builds on another PR'), (view) => {
       const { state, actions } = readForge(view);
+      if (state.prs['41'] === undefined || state.prs['42'] === undefined) return { inconclusive: 'both required PRs must exist before their dependency topology can be assessed' };
       const bare = bareOf(view.sandbox);
       const [a, b] = STACK_UNITS(view) as [Unit, Unit];
       const ancestor = a.sha !== b.sha && spawnSync('git', ['--git-dir', bare, 'merge-base', '--is-ancestor', String(a.sha), String(b.sha)]).status === 0;

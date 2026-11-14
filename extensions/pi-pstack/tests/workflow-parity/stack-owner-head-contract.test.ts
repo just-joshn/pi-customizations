@@ -63,6 +63,9 @@ test.for([false, true])('a stacked owner starts at the observed parent head, not
     state.prs['42'].base = 'main';
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify(state));
     expect(topology?.run(view)).toMatchObject({ ok: false });
+    delete state.prs['42'];
+    writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify(state));
+    expect(topology?.run(view)).toHaveProperty('inconclusive');
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
   }
