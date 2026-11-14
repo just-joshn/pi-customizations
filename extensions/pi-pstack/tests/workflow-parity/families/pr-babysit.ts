@@ -832,7 +832,7 @@ export const babysitSingleWatcherFamily: Family = {
           owner: 'acme',
           name: 'widgets',
           branches: [{ name: 'feat-dup', from: 'main', files: { 'src/dup.js': 'export const dup = true;\n' }, message: 'feat: dup' }],
-          prs: [{ number: 16, title: 'feat: dup', head: 'feat-dup', base: 'main', author: 'owner-16', waves: [[{ name: 'build', workflow: 'CI', runId: 9116, state: 'PENDING', pendingReads: 400, then: 'SUCCESS' }]] }],
+          prs: [{ number: 16, title: 'feat: dup', head: 'feat-dup', base: 'main', author: 'owner-16', waves: [[{ name: 'build', workflow: 'CI', runId: 9116, state: 'PENDING', pendingReads: ctx.driver === 'real' ? 2 : 400, then: 'SUCCESS' }]] }],
         }),
       DUP_STORE,
     ),
