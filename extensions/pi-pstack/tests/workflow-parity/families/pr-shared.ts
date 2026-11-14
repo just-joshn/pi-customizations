@@ -43,7 +43,7 @@ export const sourceLookup = (view: RunView, file: string, symbol: string): numbe
   if (call.isError || !call.resultText?.includes(symbol)) return false;
   if (call.name === 'read') return String(call.args['path']).endsWith(file);
   const command = String(call.args['command']);
-  return ['bash', 'bash_readonly'].includes(call.name) && /\b(?:git\s+(?:grep|show)|cat|rg|grep|sed|head|tail)\b/.test(command) && (command.includes(file) || command.includes(symbol));
+  return ['bash', 'bash_readonly'].includes(call.name) && /(?:^|[;&|\n]\s*)\s*(?:git\s+(?:grep|show)|cat|rg|grep|sed|head|tail)\b/.test(command) && (command.includes(file) || command.includes(symbol));
 })?.order ?? -1;
 
 /** No merge, queue entry, or auto-merge was requested, and no PR of the run reads merged. */

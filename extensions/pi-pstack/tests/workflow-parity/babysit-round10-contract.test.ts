@@ -31,6 +31,13 @@ test('an inline body does not satisfy the file-data contract', () => {
 test('reading the code grounds a dismissal without prescribing git grep', () => {
   expect(verdict('babysit.threads.dismissal-grounded-and-the-ask-left-open', view())).toBe('PASS');
 });
+test('echoing code-shaped text is not a source lookup', () => {
+  const value = view();
+  required(value.parent.toolCalls[0]).name = 'bash';
+  required(value.parent.toolCalls[0]).args = { command: 'echo cat src/checkout.js couponPercent' };
+  expect(verdict('babysit.threads.dismissal-grounded-and-the-ask-left-open', value)).toBe('FAIL');
+});
+
 test('a dismissal without any code lookup still fails', () => {
   const value = view();
   value.parent.toolCalls.shift();
