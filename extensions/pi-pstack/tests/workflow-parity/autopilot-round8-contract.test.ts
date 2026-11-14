@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
-import { autopilotFullFamily } from './families/pr-autopilot.ts';
+import { autopilotFullFamily, autopilotStackFamily } from './families/pr-autopilot.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -52,6 +52,21 @@ test('hourly watch ignores re-collects of idle workers but not newly steered wor
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: true });
   calls.push({ order: 3.5, name: 'pstack_worker', args: { action: 'steer', runId: 'r', workerId: 'owner' } });
   expect(check('autopilot.full.hourly-watch-loop-armed-on-the-go', view)).toMatchObject({ ok: false });
+});
+
+test('stack handoff reports each actual verdict without mandatory producer or go wording', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'stack-report-'));
+  roots.push(sandbox);
+  mkdirSync(forgeDirOf(sandbox), { recursive: true });
+  writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify({ prs: { 41: { number: 41 }, 42: { number: 42 } } }));
+  const actions = [41, 42].map((pr) => ({ kind: 'comment', pr, worker: `v-${pr}`, body: `PSTACK-VERDICT: PASS head=${'a'.repeat(40)} verifier=v-${pr} patch=p-${pr}` }));
+  writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
+  const report = { role: 'assistant', order: 1, text: 'PR 41 | PASS\nPR 42 | PASS\nBoth PRs remain open. No further pushes without your approval.' };
+  const view = { sandbox, runs: [], parent: { toolCalls: [], messages: [report] } } as unknown as RunView;
+  const run = () => autopilotStackFamily.checks.find((entry) => entry.id === 'autopilot.stack.reply-lists-each-pr-with-its-verdict')?.run(view);
+  expect(run()).toMatchObject({ ok: true });
+  report.text = report.text.replace('Both PRs remain open.', 'All merged.');
+  expect(run()).toMatchObject({ ok: false });
 });
 
 test('catch-up covers topics without requiring the playbook vocabulary', () => {
