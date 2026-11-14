@@ -50,6 +50,7 @@ export const MAX_CONTROL_BYTES = 65_536;
 export const MAX_INSTRUCTION_BYTES = 32_768;
 const MAX_RPC_RECORD = 8 * 1024 * 1024;
 const MAX_BRIEF_BYTES = 1024 * 1024;
+const PROJECT_TRUST = { decision: 'deny', flag: '--no-approve' } as const;
 const RPC_DEADLINE_MS = 10_000;
 /** Pi's cold start: node boot plus loading the extensions, which a container does beside its siblings on a shared engine. The first get_state waits for it; later commands go to a Pi that is already up. */
 const PI_START_MS = 120_000;
@@ -126,6 +127,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (!(strings(excludeTools) && excludeTools.every((name) => /^[A-Za-z0-9_*]+$/.test(name)))) throw new Error('Launch excludeTools must be tool names or patterns');
   if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
+  if (extraArgs.some((arg) => ['--approve', '-a', '--'].includes(arg))) throw new Error('Worker Pi extra arguments must not override project trust');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
   const modelNote = raw['modelNote'] ?? null;
   if (modelNote !== null && typeof modelNote !== 'string') throw new Error('Launch modelNote must be a string or null');
@@ -225,6 +227,7 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
   return [
     '--mode',
     'rpc',
+    PROJECT_TRUST.flag,
     '--session-dir',
     join(loaded.workerDir, 'session'),
     ...(launch.model === null ? [] : ['--model', `${launch.model.provider}/${launch.model.id}`]),
@@ -837,7 +840,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   };
 
   try {
-    event('launch', { command, hostPid: process.pid, childPid: child.pid, instance });
+    event('launch', { command, ...(assignment.kind === 'pi' ? { projectTrust: PROJECT_TRUST } : {}), hostPid: process.pid, childPid: child.pid, instance });
     save();
     if (container !== null) {
       // The clone and install run before Pi. A container that ends first has already failed the host through `closed`.
