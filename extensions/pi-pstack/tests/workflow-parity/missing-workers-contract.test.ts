@@ -20,6 +20,16 @@ test('duplicate-watcher behavior is inconclusive when the first request never ar
   expect(evaluate(checks, empty).map((result) => result.verdict)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
 });
 
+test('cleanup reports disk and held-back reasons without prescribed labels', () => {
+  const checks = required(opsFamilies.find((family) => family.id === 'worktree-cleanup')).checks.filter((check) => check.id === 'cleanup.reply-has-disk-pruned-and-held-back-with-reasons');
+  const value = structuredClone(empty);
+  value.parent.messages = [{ order: 3, role: 'assistant', text: 'Disk before 40G free, after 41G free. Removed wt-clean. Held wt-wip for dirty uncommitted changes and wt-active because its chat is ongoing.' }];
+  value.parent.toolCalls = [1, 2].map((order) => ({ order, name: 'bash', args: { command: 'df -h /' }, resultText: '41G', isError: false }));
+  expect(evaluate(checks, value)[0]?.verdict).toBe('PASS');
+  required(value.parent.messages[0]).text = 'Disk before 40G free, after 41G free. Removed wt-clean. Held wt-wip and wt-active.';
+  expect(evaluate(checks, value)[0]?.verdict).toBe('FAIL');
+});
+
 test('a missing subcoordinator is a workflow failure with a direct reason', () => {
   const checks = orchestrateSubFamily.checks.filter((check) => check.id.startsWith('orchestrate.sub.') && !check.id.includes('no-merge') && !check.id.includes('no-tool-errors'));
   const results = evaluate(checks, empty);

@@ -519,7 +519,7 @@ export const cleanupFamily: Family = {
     }),
     check('cleanup.reply-has-disk-pruned-and-held-back-with-reasons', 'the reply gives df before and after, what was pruned, and a reason for each held-back worktree', src('poteto-mode/playbooks/worktree-cleanup.md', '**Reply:** `df -h /` before and after'), (view) => {
       const reply = finalReply(view);
-      const missing = [/df -h \/ before:/, /After:/, /Pruned: wt-clean/, /wt-wip .*uncommitted/, /wt-active .*in use/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/\bbefore\b/i, /\bafter\b/i, /(?:pruned|removed)[^.\n]*wt-clean/i, /wt-wip[^.\n]*(?:uncommitted|dirty)/i, /wt-active[^.\n]*(?:in use|ongoing|pinned|active chat)/i].filter((pattern) => !pattern.test(reply)).map(String);
       const df = view.parent.toolCalls.filter((call) => call.name === 'bash' && /df -h \//.test(String(call.args['command']))).length;
       return when(missing.length === 0 && df >= 2, 'df before and after were run, and the reply accounts for every worktree', `missing ${missing.join(', ')}; df runs ${df}`);
     }),
