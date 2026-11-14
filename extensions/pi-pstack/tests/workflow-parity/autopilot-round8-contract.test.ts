@@ -65,7 +65,7 @@ test('stack handoff reports each actual verdict without mandatory producer or go
   const view = { sandbox, runs: [], parent: { toolCalls: [], messages: [report] } } as unknown as RunView;
   const run = () => autopilotStackFamily.checks.find((entry) => entry.id === 'autopilot.stack.reply-lists-each-pr-with-its-verdict')?.run(view);
   expect(run()).toMatchObject({ ok: true });
-  report.text = 'Handoff: PR 41 (greet) PASS by v-41. PR 42 (shout, stacked on PR 41\'s branch because it imports greet) PASS by v-42. Nothing merged. Nobody pushes until you give the go.';
+  report.text = "Handoff: PR 41 (greet) PASS by v-41. PR 42 (shout, stacked on PR 41's branch because it imports greet) PASS by v-42. Nothing merged. Nobody pushes until you give the go.";
   expect(run()).toMatchObject({ ok: true });
   report.text = report.text.replace('Nothing merged.', 'All merged.');
   expect(run()).toMatchObject({ ok: false });
