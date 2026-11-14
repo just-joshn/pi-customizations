@@ -12,7 +12,7 @@ import { type ContainerCredentialProbe, type CredentialCapture, recordContainerC
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { paneCapture } from './pane-identity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
-import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
+import { type Claim, type GitState, type Json, loadDecisions, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
@@ -711,6 +711,7 @@ export function loadView(sandbox: string): RunView {
           .map((id) => loadRun(repo, id))
       : [],
     plans: loadPlans(repo),
+    decisions: loadDecisions(repo),
     todoHistory: existsSync(join(sandbox, 'todo-history.json')) ? (JSON.parse(readFileSync(join(sandbox, 'todo-history.json'), 'utf8')) as Record<string, Snapshot[]>) : {},
     claims: existsSync(join(sandbox, 'claims.json')) ? (JSON.parse(readFileSync(join(sandbox, 'claims.json'), 'utf8')) as Claim[]) : [],
     git: JSON.parse(readFileSync(join(sandbox, 'git.json'), 'utf8')) as GitState,

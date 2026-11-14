@@ -72,7 +72,13 @@ export function loadSession(file: string): Session {
       continue;
     }
     if (entry['type'] === 'custom_message') {
-      messages.push({ order: order++, role: 'custom', text: textOf(entry['content']), customType: String(entry['customType']), ...(typeof entry['details'] === 'object' && entry['details'] !== null ? { details: entry['details'] as Json } : {}) });
+      messages.push({
+        order: order++,
+        role: 'custom',
+        text: textOf(entry['content']),
+        customType: String(entry['customType']),
+        ...(typeof entry['details'] === 'object' && entry['details'] !== null ? { details: entry['details'] as Json } : {}),
+      });
       continue;
     }
     if (entry['type'] !== 'message') continue;
@@ -87,7 +93,15 @@ export function loadSession(file: string): Session {
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
       for (const [contentIndex, part] of (message['content'] as Json[]).entries()) {
         if (part['type'] !== 'toolCall') continue;
-        const call: ToolCall = { order: order - 1, contentIndex, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}) };
+        const call: ToolCall = {
+          order: order - 1,
+          contentIndex,
+          name: String(part['name']),
+          args: (part['arguments'] ?? {}) as Json,
+          resultText: '',
+          isError: false,
+          ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}),
+        };
         calls.set(String(part['id']), call);
         toolCalls.push(call);
       }
@@ -189,6 +203,7 @@ export interface RunView {
   parent: Session;
   runs: RunDir[];
   plans: { path: string; text: string }[];
+  decisions?: string[][] | null;
   /** Distinct TODO.md contents the driver saw, per run id, oldest first. */
   todoHistory: Record<string, Snapshot[]>;
   /** When the driver first saw each worker's claim directory, in the same sequence as todoHistory. */
@@ -289,13 +304,30 @@ function loadWorker(dir: string, id: string): WorkerView {
   };
 }
 
+export function loadDecisions(project: string, dir = project): string[][] | null {
+  const audit = join(project, '.audit');
+  const path = [
+    join(dir, 'decisions.tsv'),
+    join(project, 'decisions.tsv'),
+    ...(existsSync(audit)
+      ? readdirSync(audit)
+          .filter((file) => file.endsWith('.tsv'))
+          .sort()
+          .map((file) => join(audit, file))
+      : []),
+  ].find((candidate) => existsSync(candidate));
+  return path === undefined
+    ? null
+    : readFileSync(path, 'utf8')
+        .split('\n')
+        .filter((line) => line !== '')
+        .map((line) => line.split('\t'));
+}
+
 export function loadRun(project: string, id: string): RunDir {
   const dir = join(project, '.pi', 'pstack', 'runs', id);
   const todoPath = join(dir, 'TODO.md');
   const todoText = existsSync(todoPath) ? readFileSync(todoPath, 'utf8') : null;
-  // The trail's default home is the run directory (show-me-your-work, compiled); with no run it is decisions.tsv in the work dir, or .audit/<task-slug>.tsv.
-  const audit = join(project, '.audit');
-  const decisionsPath = [join(dir, 'decisions.tsv'), join(project, 'decisions.tsv'), ...(existsSync(audit) ? readdirSync(audit).filter((file) => file.endsWith('.tsv')).sort().map((file) => join(audit, file)) : [])].find((candidate) => existsSync(candidate)) ?? join(dir, 'decisions.tsv');
   const eventsPath = join(dir, 'events.jsonl');
   const receiptsDir = join(dir, 'verification', 'receipts');
   const workersDir = join(dir, 'workers');
@@ -305,12 +337,7 @@ export function loadRun(project: string, id: string): RunDir {
     runJson: readJson(join(dir, 'run.json')),
     todoText,
     steps: todoText === null ? [] : parseTodoSteps(todoText),
-    decisions: existsSync(decisionsPath)
-      ? readFileSync(decisionsPath, 'utf8')
-          .split('\n')
-          .filter((line) => line !== '')
-          .map((line) => line.split('\t'))
-      : null,
+    decisions: loadDecisions(project, dir),
     events: existsSync(eventsPath) ? readJsonl(eventsPath) : [],
     receipts: existsSync(receiptsDir)
       ? readdirSync(receiptsDir)

@@ -564,7 +564,7 @@ export const DECISION_HEADER = ['ts', 'phase', 'decision', 'why', 'evidence', 'r
 export function decisionLog(id: string, source: Src | Src[], options: { run?: string; min: number; phases?: RegExp }): Check {
   return check(id, 'decisions.tsv has the show-me-your-work header, six single-line cells per row, ISO timestamps, and evidence pointers', source, (view) => {
     const run = view.runs.find((entry) => options.run === undefined || entry.id === options.run) ?? view.runs[0];
-    const rows = run?.decisions;
+    const rows = run?.decisions ?? view.decisions;
     if (rows == null) return fail('no decisions.tsv in the run directory');
     const [header, ...body] = rows;
     const problems: string[] = [];

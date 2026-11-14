@@ -485,13 +485,13 @@ export const showWorkFamily: Family = {
     parentReads('trail.reads-skill', 'the parent opens show-me-your-work and unslop (log text is unslopped)', src('show-me-your-work/SKILL.md', 'the **unslop** skill applies to log text too'), ['show-me-your-work', 'unslop']),
     decisionLog('trail.log-format', src('show-me-your-work/SKILL.md', 'A single TSV file, one row per decision'), { min: 5 }),
     check('trail.cells-are-spreadsheet-safe', 'no cell starts with =, +, - or @ unescaped', src('show-me-your-work/SKILL.md', 'prefixes any cell starting with `=`, `+`, `-`, or `@` with a single quote'), (view) => {
-      const rows = (view.runs[0]?.decisions ?? []).slice(1);
+      const rows = (view.runs[0]?.decisions ?? view.decisions ?? []).slice(1);
       const bad = rows.flatMap((row) => row).filter((cell) => /^[=+\-@]/.test(cell));
       const escaped = rows.flatMap((row) => row).filter((cell) => /^'[=+\-@]/.test(cell));
       return when(bad.length === 0, `${escaped.length} formula-looking cell escaped, none raw`, `unescaped cells: ${bad.join(' | ')}; escaped ${escaped.length}`);
     }),
     check('trail.append-only-wrong-call-gets-a-superseding-row', 'a wrong row is never edited or deleted: it stays, and a later audit row supersedes it with evidence that resolves', src('show-me-your-work/SKILL.md', 'add a row that supersedes it with what actually happened and a pointer that resolves'), (view) => {
-      const rows = (view.runs[0]?.decisions ?? []).slice(1);
+      const rows = (view.runs[0]?.decisions ?? view.decisions ?? []).slice(1);
       const wrong = rows.findIndex((row) => /tests green/.test(row[5] ?? ''));
       const audit = rows.findIndex((row, index) => index > wrong && row[1] === 'audit');
       const evidence = rows[audit]?.[4] ?? '';
