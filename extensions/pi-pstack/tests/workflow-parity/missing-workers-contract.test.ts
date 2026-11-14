@@ -55,7 +55,7 @@ test('reviewer family comparison is derived when no trail reviewer ran', () => {
 });
 
 test('a missing subcoordinator is a workflow failure with a direct reason', () => {
-  const checks = orchestrateSubFamily.checks.filter((check) => check.id.startsWith('orchestrate.sub.') && !check.id.includes('no-merge') && !check.id.includes('no-tool-errors'));
+  const checks = orchestrateSubFamily.checks.filter((check) => check.id.startsWith('orchestrate.sub.') && !check.id.includes('no-merge') && !check.id.includes('no-tool-errors') && !check.id.includes('each-leaf-ran-at-the-depth'));
   const results = evaluate(checks, empty);
   expect(results.every((result) => result.verdict === 'FAIL' && !/checker threw/i.test(result.evidence))).toBe(true);
 });

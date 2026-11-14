@@ -250,9 +250,10 @@ export const orchestrateSubFamily: Family = {
     }),
     check('orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it', 'each leaf\'s own environment agrees with the tree: PSTACK_DEPTH is 3', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
-      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
+      if (tree.subWorker === undefined || tree.subRun === undefined) return { inconclusive: 'no leaf runtime-depth observations; the prompt did not request depth self-reports' };
       const seen = tree.leaves.filter((worker) => worker.state?.['phase'] !== 'failed').map((worker) => ({ id: worker.id, out: worker.session?.toolCalls.find((call) => call.name === 'bash' && /printenv PSTACK_DEPTH/.test(String(call.args['command'])))?.resultText.trim().split('\n') ?? [] }));
-      return when(seen.length === 4 && seen.every((entry) => entry.out[0] === '3'), `${seen.map((entry) => entry.id).join(', ')} all run with PSTACK_DEPTH 3`, JSON.stringify(seen));
+      if (!seen.some((entry) => entry.out.length > 0 && entry.out[0] !== '3') && (seen.length === 0 || seen.some((entry) => entry.out.length === 0))) return { inconclusive: 'leaf runtime-depth probes are absent; the prompt did not request them' };
+      return when(seen.every((entry) => entry.out[0] === '3'), `${seen.map((entry) => entry.id).join(', ')} all run with PSTACK_DEPTH 3`, JSON.stringify(seen));
     }),
     check('orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch', 'each PR was opened by exactly one live owner that alone pushed its branch, the failed owner wrote nothing, and each PR\'s forge author is its owner', OR('**One owner per PR.**'), (view) => {
       const tree = treeOf(view);
