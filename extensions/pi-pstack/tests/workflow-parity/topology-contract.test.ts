@@ -23,6 +23,10 @@ test('removing a local scratch worktree is not changing stack topology', () => {
   expect(result('git worktree remove --force /scratch/verification')).toMatchObject({ ok: true });
 });
 
-test.each(['git push --force origin HEAD', 'git push --force-with-lease origin HEAD', 'git rebase main', 'gh pr edit 22 --base main'])('stack mutation still fails: %s', (command) => {
+test('merge-tree and merge-base inspect topology without mutating it', () => {
+  expect(result('git merge-tree HEAD main && git merge-base HEAD main')).toMatchObject({ ok: true });
+});
+
+test.each(['git merge main', 'git merge --no-ff topic', 'git push --force origin HEAD', 'git push --force-with-lease origin HEAD', 'git rebase main', 'gh pr edit 22 --base main'])('stack mutation still fails: %s', (command) => {
   expect(result(command)).toMatchObject({ ok: false });
 });

@@ -63,7 +63,7 @@ export function neverMutatesTopology(id: string, source: Src | Src[]): Check {
     const { actions } = readForge(view);
     const refs = actions.filter((action) => isRefUpdate(action) && byParent(action));
     const edits = actions.filter((action) => action.kind === 'edit-base');
-    const typed = BASH(view).filter((entry) => /git (rebase|merge(?!-base)|reset --hard|push)|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
+    const typed = BASH(view).filter((entry) => /git (rebase|merge(?=\s|$)|reset --hard|push)|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
     return when(refs.length === 0 && edits.length === 0 && typed.length === 0, `${actions.filter(isRefUpdate).length} ref updates, all by someone else; no retarget; no mutating git command`, `parent ref updates ${refs.map((action) => `${action.kind} ${String(action['ref'])}`).join(', ') || 'none'}; retargets ${edits.length}; commands ${typed.map((entry) => entry.command.slice(0, 60)).join(' | ') || 'none'}`);
   });
 }
