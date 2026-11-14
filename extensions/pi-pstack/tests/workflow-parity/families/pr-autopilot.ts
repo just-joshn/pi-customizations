@@ -170,7 +170,7 @@ export const verificationWorkers = (view: RunView, head: string | undefined): Wo
 });
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
-  const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
+  const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`.replace(/\*\*|`/g, '');
   if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s*:?\s+)?(?:FAIL|ISSUES(?!\s*:\s*none\b)|BLOCKED|INCONCLUSIVE)\b/i.test(report)) return false;
   if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s*:?\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
