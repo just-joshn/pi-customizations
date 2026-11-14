@@ -52,6 +52,14 @@ test('reclassification reads a full log with trailing flags and does not require
   expect(verdict('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', value)).toBe('FAIL');
 });
 
+test('the billing escalation may be a plain-language question rather than a labeled ledger row', () => {
+  const value = view();
+  value.parent.messages = [{ order: 3, role: 'assistant', text: 'thread-b touches billing. Should its owner fix it here or in a follow-up?' }];
+  expect(verdict('babysit.threads.ask-is-recorded-and-put-to-the-user', value)).toBe('PASS');
+  required(value.parent.messages[0]).text = 'thread-b touches billing. I left it open.';
+  expect(verdict('babysit.threads.ask-is-recorded-and-put-to-the-user', value)).toBe('FAIL');
+});
+
 test('a dismissal without any code lookup still fails', () => {
   const value = view();
   value.parent.toolCalls.shift();
