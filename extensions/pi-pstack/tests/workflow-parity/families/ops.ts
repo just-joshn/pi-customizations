@@ -404,7 +404,7 @@ export const autonomousFamily: Family = {
     }),
     check('auto.stops-when-met-and-does-not-ask', 'the reply gives the exit condition, iterations, what landed, what was discarded and the final state, and does not stop to ask the user a question', src('poteto-mode/playbooks/autonomous-run.md', '**Reply:** the exit condition, iterations run'), (view) => {
       const reply = finalReply(view);
-      const missing = [/Exit condition:/, /Iterations run: \d+/, /Landed:/, /Discarded:/, /Final predicate state:/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/exit condition|\bgoal\b/i, /iterations? run:\s*\d+|\b\d+\s+iterations?\b/i, /\blanded\b|\bcommitted\b/i, /\bdiscard\w*\b/i, /final (?:predicate|state)|predicate (?:passed|holds|met)/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0 && !reply.trim().endsWith('?'), 'all five parts present, no question', `missing ${missing.join(', ')}; ends with ?: ${reply.trim().endsWith('?')}`);
     }),
     noToolErrors('auto.no-unexpected-tool-errors', src('poteto-mode/playbooks/autonomous-run.md', '**You own the exit condition.'), [/bench\/bench\.js/, /comparisons=/]),

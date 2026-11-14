@@ -15,6 +15,14 @@ test('a one-iteration solution needs one watch and one checkpoint', () => {
 test('a missing checkpoint for the second iteration still fails', () => {
   expect(verdict('auto.one-row-per-iteration', view(2, 1))).toBe('FAIL');
 });
+test('the five reply contents do not require literal fixture labels', () => {
+  const value = view();
+  value.parent.messages = [{ order: 20, role: 'assistant', text: 'The goal was at most 1000 comparisons with tests green. I ran 1 iteration and committed the Set lookup. Nothing was discarded. The final predicate passed at 400 comparisons.' }];
+  expect(verdict('auto.stops-when-met-and-does-not-ask', value)).toBe('PASS');
+  required(value.parent.messages[0]).text = 'The goal was at most 1000 comparisons with tests green. I committed the Set lookup. Nothing was discarded. The final predicate passed at 400 comparisons.';
+  expect(verdict('auto.stops-when-met-and-does-not-ask', value)).toBe('FAIL');
+});
+
 test('a watcher spawned before the preceding wake is still a violation', () => {
   const value = view(2, 2);
   required(value.parent.toolCalls[1]).order = 1;
