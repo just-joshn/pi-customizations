@@ -4,19 +4,15 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "da6e9122937bc3b768433d3851a75c35546f15b1e8df34ca7106f0ead0a6f820",
+  "requirementsDigest": "369f8f52bbcd010d8637537171818897bdcbeb8744e810695569f7b7d8c7013a",
   "run": {
     "platform": "darwin",
     "startedAt": "2026-11-14T03:07:33.696Z",
-    "generatedAt": "2026-11-14T08:19:09.260Z",
+    "generatedAt": "2026-11-14T08:20:34.230Z",
     "commit": "4f2f99fd3f9c8caffc7b9d636fcca0ed51715916",
     "dirty": false,
     "changes": [
-      "xtensions/pi-pstack/README.md",
-      "extensions/pi-pstack/docs/architecture.md",
-      "extensions/pi-pstack/docs/parity-status.md",
-      "extensions/pi-pstack/generated/parity-manifest.json",
-      "extensions/pi-pstack/requirements/requirements.json"
+      "xtensions/pi-pstack/requirements/requirements.json"
     ],
     "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
     "resultsSource": "local",
@@ -33,15 +29,11 @@
     {
       "platform": "darwin",
       "startedAt": "2026-11-14T03:07:33.696Z",
-      "generatedAt": "2026-11-14T08:19:09.260Z",
+      "generatedAt": "2026-11-14T08:20:34.230Z",
       "commit": "4f2f99fd3f9c8caffc7b9d636fcca0ed51715916",
       "dirty": false,
       "changes": [
-        "xtensions/pi-pstack/README.md",
-        "extensions/pi-pstack/docs/architecture.md",
-        "extensions/pi-pstack/docs/parity-status.md",
-        "extensions/pi-pstack/generated/parity-manifest.json",
-        "extensions/pi-pstack/requirements/requirements.json"
+        "xtensions/pi-pstack/requirements/requirements.json"
       ],
       "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
       "resultsSource": "local",
@@ -57,15 +49,11 @@
     {
       "platform": "linux",
       "startedAt": "2026-11-14T03:15:34.724Z",
-      "generatedAt": "2026-11-14T08:19:09.447Z",
+      "generatedAt": "2026-11-14T08:20:34.309Z",
       "commit": "e684506542e745d2579f8a95174c7948a404fbcd",
       "dirty": false,
       "changes": [
-        "xtensions/pi-pstack/README.md",
-        "extensions/pi-pstack/docs/architecture.md",
-        "extensions/pi-pstack/docs/parity-status.md",
-        "extensions/pi-pstack/generated/parity-manifest.json",
-        "extensions/pi-pstack/requirements/requirements.json"
+        "xtensions/pi-pstack/requirements/requirements.json"
       ],
       "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
       "resultsSource": "ci",
@@ -83,15 +71,11 @@
     {
       "platform": null,
       "startedAt": "2026-11-14T08:17:38.776Z",
-      "generatedAt": "2026-11-14T08:19:09.517Z",
+      "generatedAt": "2026-11-14T08:20:34.376Z",
       "commit": null,
       "dirty": null,
       "changes": [
-        "xtensions/pi-pstack/README.md",
-        "extensions/pi-pstack/docs/architecture.md",
-        "extensions/pi-pstack/docs/parity-status.md",
-        "extensions/pi-pstack/generated/parity-manifest.json",
-        "extensions/pi-pstack/requirements/requirements.json"
+        "xtensions/pi-pstack/requirements/requirements.json"
       ],
       "sourceDigest": null,
       "resultsSource": "file",
@@ -50135,7 +50119,7 @@
     {
       "id": "LOCAL-WORKER-FILE-ACCESS-LIMITATION",
       "kind": "behavioral",
-      "title": "Local workers retain the operator's filesystem authority",
+      "title": "Local workers retain the operator's filesystem authority. Use container mode for untrusted input",
       "specSection": "15.1",
       "source": {
         "specOnly": true,

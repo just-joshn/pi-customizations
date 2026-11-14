@@ -43,9 +43,9 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T08:19:09.260Z |
+| 1 | darwin | `4f2f99fd3f9c` | 1.5.2 | v26.13.1 | 2901 passed, 0 failed, 101 skipped | local at 2026-11-14T08:20:34.230Z |
 | 2 | linux | `e684506542e7` | 1.5.0 | v22.21.0 | 2859 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43550639380 |
-| 3 | unknown | `unknown` | unknown | unknown | 1 passed, 0 failed, 40 skipped | file at 2026-11-14T08:19:09.517Z |
+| 3 | unknown | `unknown` | unknown | unknown | 1 passed, 0 failed, 40 skipped | file at 2026-11-14T08:20:34.376Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
@@ -100,7 +100,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` Every worker's Pi tools, MCP and launch environment are limited by its assignment, not its host file access | 15.1 | PASS | specification 15.1 |  |
 | `CONTAINER-FILE-ISOLATION` A container worker cannot read unmounted host files or write its read-only package mount | 15.1 | PASS | specification 15.1 |  |
-| `LOCAL-WORKER-FILE-ACCESS-LIMITATION` Local workers retain the operator's filesystem authority | 15.1 | N/A | specification 15.1 |  |
+| `LOCAL-WORKER-FILE-ACCESS-LIMITATION` Local workers retain the operator's filesystem authority. Use container mode for untrusted input | 15.1 | N/A | specification 15.1 |  |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
 | `WF-ARCHITECT-CHECKPOINT` architect proceeds unless a checkpoint was explicitly requested | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:43-43 |  |

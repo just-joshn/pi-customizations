@@ -5230,7 +5230,7 @@
     },
     {
       "id": "LOCAL-WORKER-FILE-ACCESS-LIMITATION",
-      "title": "Local workers retain the operator's filesystem authority",
+      "title": "Local workers retain the operator's filesystem authority. Use container mode for untrusted input",
       "specSection": "15.1",
       "source": {
         "specOnly": true,
