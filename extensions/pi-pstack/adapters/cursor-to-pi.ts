@@ -685,11 +685,18 @@ export const RULES: readonly Rule[] = [
     `Navigate to a leaf \`principle-*\` skill whenever you apply that principle.\n\n${WORKER_CONTRACT}`,
   ),
   rule(
+    'comment-sicko.readonly-scope',
+    'readonly',
+    AG('comment-sicko'),
+    'I touch comments and identify refactor targets. I never write application code.',
+    'I propose comment deletions and identify refactor targets. I never edit files or write application code.',
+  ),
+  rule(
     'comment-sicko.worker-contract',
     'task-tool',
     AG('comment-sicko'),
     'Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n',
-    `Report only. Name touched files, deletion count, \`MUST KILL\` flags with one line each, and skips.\n\n${WORKER_CONTRACT}`,
+    `Report only. Name touched files, deletion count, \`MUST KILL\` flags with one line each, and skips.\n\nIn Pi you are a read-only critic. Do not edit files, including comments. Every kill is a proposal: return the scoped unified diff and findings in your final reply. The coordinator inspects and applies only accepted comment deletions.\n\n${WORKER_CONTRACT}`,
   ),
 
   // other pstack skills
@@ -824,7 +831,7 @@ A bot UI needs a routine with these fields:`,
     ['task-tool', 'subagent-type'],
     SK('no-comments/SKILL.md'),
     '1. Spawn `Task` with `subagent_type: "comment-sicko"`. Pass the scope.',
-    '1. Write the scope as a patch without committing anything. `<inputCommit>` is the commit the scope\'s diff starts from, the merge base with the base branch or `HEAD` for the caller\'s files. Save `git diff <inputCommit> -- <scoped paths>`, followed by `git diff --no-index /dev/null <file>` for each untracked file in scope, as `scope.patch` in the worker directory. Spawn a `pstack_worker` worker with `role: "comment-sicko"` and `workspace: { mode: "worktree", inputCommit }`. Pass the scope in its brief, which first has it run `git apply --index <worker dir>/scope.patch` in its worktree. After `collect`, `git -C <its worktree> diff` holds its comment changes alone. Review them per step 2, then apply the accepted patch in the caller\'s checkout with `git apply`, which leaves unrelated and uncommitted caller state untouched.',
+    '1. Write the scope as a patch without committing anything. `<inputCommit>` is the commit the scope\'s diff starts from, the merge base with the base branch or `HEAD` for the caller\'s files. Save `git diff <inputCommit> -- <scoped paths>`, followed by `git diff --no-index /dev/null <file>` for each untracked file in scope, as `scope.patch` in the worker directory. Spawn a `pstack_worker` worker with `role: "comment-sicko"` and `workspace: { mode: "readonly", path: "<absolute repository root>" }`. Its brief names the scoped files, base SHA and absolute scope.patch path. The critic reads that patch and nearby code without modifying files, then returns its findings and proposed unified diff in its final reply. After `collect`, review the proposal per step 2; only the coordinator applies the accepted patch in the caller\'s checkout with `git apply`, which leaves unrelated and uncommitted caller state untouched.',
   ),
   rule('poteto-help.custom-mode-mention', 'custom-modes', SK('poteto-help/SKILL.md'), 'mention once that a Custom Mode keeps it on.', 'mention once that `/pstack on` keeps it on.'),
   rule(

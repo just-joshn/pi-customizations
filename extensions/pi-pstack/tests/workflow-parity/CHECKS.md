@@ -1593,16 +1593,17 @@ Negative cases, each of which must FAIL the named checks:
 
 ## commit-review-gates
 
-deslop before the commit and no-comments before review: a rejected Comment Sicko report is reverted and rerun once, only the accepted patch is applied (poteto-mode triggers)
+deslop before the commit and read-only no-comments review: reject an application-code proposal, rerun once and apply only accepted comment deletions
 
 | Check | Contract | Source |
 | --- | --- | --- |
 | `gates.deslop-before-the-commit` | the committing worker opened the deslop skill and removed the slop before its first commit, and the committed file has none of it | `generated/skills/poteto-mode/SKILL.md:30` |
 | `gates.no-comments-before-review` | the parent opened no-comments and had its report accepted before the reviewer was spawned | `generated/skills/poteto-mode/SKILL.md:31` |
-| `gates.comment-sicko-in-its-own-worktree` | each Comment Sicko is role comment-sicko in a worktree started at the scope's base commit | `generated/skills/no-comments/SKILL.md:19` |
-| `gates.scope-patch-applied-first` | scope.patch was written into the worker directory before the spawn, holds the scoped diff, and the brief has the worker apply it with git apply --index | `generated/skills/no-comments/SKILL.md:19` |
-| `gates.rejected-report-is-rerun-once` | a report that edited application code was rejected and the worker rerun once with the failure named; the rejected change never reached the checkout | `generated/skills/no-comments/SKILL.md:20` |
+| `gates.comment-sicko-is-readonly` | each Comment Sicko is a read-only critic of the caller's scoped diff | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.scope-patch-read-only` | scope.patch holds the scoped diff and the critic reads it without applying changes | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.rejected-report-is-rerun-once` | a report that proposed application-code edits was rejected and the critic rerun once with the failure named; the rejected change never reached the checkout | `generated/skills/no-comments/SKILL.md:20` |
 | `gates.only-the-accepted-patch-is-applied` | the caller's checkout holds exactly the accepted comment deletion: one removed comment line and no other change | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.unrelated-dirty-state-preserved` | unrelated staged, unstaged and untracked user changes survive the accepted comment patch | `generated/skills/no-comments/SKILL.md:19` |
 | `gates.report-has-the-counts` | the reply reports the deletion count, the rerun and that nothing was restored | `generated/skills/no-comments/SKILL.md:24` |
 | `gates.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
 
@@ -1611,8 +1612,18 @@ Negative cases, each of which must FAIL the named checks:
 - the worker never opened deslop → `gates.deslop-before-the-commit`
 - the parent never opened no-comments → `gates.no-comments-before-review`
 - the rejected application edit reached the checkout → `gates.only-the-accepted-patch-is-applied`
-- a Comment Sicko started from the wrong commit → `gates.scope-patch-applied-first`
+- a Comment Sicko received a writable workspace → `gates.comment-sicko-is-readonly`
+- a critic did not read the scoped patch → `gates.scope-patch-read-only`
 - the rerun brief did not name the failure → `gates.rejected-report-is-rerun-once`
+- the second critic supplies no patch → `gates.only-the-accepted-patch-is-applied`
+- the second critic proposes an out-of-scope patch → `gates.only-the-accepted-patch-is-applied`
+- an out-of-scope proposal matches its applied patch and checkout → `gates.only-the-accepted-patch-is-applied`
+- a coherently applied out-of-scope proposal was committed → `gates.only-the-accepted-patch-is-applied`
+- committing an application edit inside the scoped file cannot hide it behind the comment deletion → `gates.only-the-accepted-patch-is-applied`
+- the second critic proposes deleting a protected license header → `gates.only-the-accepted-patch-is-applied`
+- the unrelated staged user change was lost → `gates.unrelated-dirty-state-preserved`
+- the unrelated unstaged user change was lost → `gates.unrelated-dirty-state-preserved`
+- the unrelated untracked user change was lost → `gates.unrelated-dirty-state-preserved`
 - the report omits the counts → `gates.report-has-the-counts`
 
 ## feature-contested
