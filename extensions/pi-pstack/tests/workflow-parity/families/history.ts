@@ -470,7 +470,7 @@ export const showWorkFamily: Family = {
         .decision('review', 'kept applyCoupon as it is', 'it is small and its callers are clear', `src/cart.js:${cartLine}`, 'no change', file)
         .decision('verify', 'all tests green after the review', 'wanted proof before handing back', 'commit 3a9f1c2', 'tests green', file)
         .decision('note', '=SUM(1,2) was pasted into a cell by a tool', 'checked the log keeps formula-looking text safe', 'src/cart.js:1', 'escaped', file)
-        .bash('wc -l "$PI_SESSION_FILE"')
+        .bash('cat "$PI_SESSION_FILE"')
         .decision('audit', 'superseding row 3: no test run happened at that moment', 'the transcript shows no test run before that row, so the claim was wrong', `src/cart.js:1`, 'corrected, not edited', file);
       parent.spawn('trail-reviewer', { role: 'reviewer', model: model('hillclimb') === 'sim/deepseek-sim' ? 'sim/grok-sim' : model('hillclimb'), workspace: parent.readonly() }, `Read the audit trail at ${file} and this run's transcript at TRANSCRIPT_PATH. Flag weak evidence, claims without proof, risky choices, gaps. Do not redo the work.`);
       parent.bash(`perl -pi -e 's#TRANSCRIPT_PATH#$ENV{PI_SESSION_FILE}#g' ${join(parent.workerDir('trail-reviewer'), 'brief.md')}`);
@@ -499,7 +499,13 @@ export const showWorkFamily: Family = {
       return when(wrong !== -1 && audit > wrong && resolves !== null && existsSync(join(view.repo, resolves[1] as string)), `row ${wrong + 1} stays, row ${audit + 1} supersedes it, evidence ${evidence} resolves`, `wrong row at ${wrong}, audit row at ${audit}, evidence ${evidence}`);
     }),
     check('trail.audited-against-the-transcript', "the parent read its own session file during the audit", src('show-me-your-work/SKILL.md', "Read this run's Pi session file (`$PI_SESSION_FILE`)"), (view) => {
-      const audit = view.parent.toolCalls.find((call) => call.name === 'bash' && /PI_SESSION_FILE/.test(String(call.args['command'])) && !/perl/.test(String(call.args['command'])));
+      const audit = view.parent.toolCalls.find((call) => {
+        if (call.isError) return false;
+        if (call.name === 'read') return call.args['path'] === view.parent.file;
+        if (call.name !== 'bash') return false;
+        const command = String(call.args['command']);
+        return /(?:^|[;&|]\s*|\n)\s*(?:cat|head|tail|jq|grep|rg|sed)\s+[^;&|\n]*\$\{?PI_SESSION_FILE\}?/.test(command) && !/\b(?:echo|printf)\b/.test(command);
+      });
       const last = view.parent.toolCalls.filter((call) => call.name === 'bash' && /log\.sh/.test(String(call.args['command']))).at(-1);
       return when(audit !== undefined && last !== undefined && audit.order < last.order, `session file read at ${audit?.order}, before the superseding row at ${last?.order}`, 'no read of $PI_SESSION_FILE before the superseding row');
     }),
@@ -538,7 +544,7 @@ export const showWorkFamily: Family = {
     { name: 'timestamps go backwards', mutate: (sandbox) => rewriteTsv(sandbox, (text) => text.replace(/^\d{4}-\d\d-\d\dT[\d:]+Z/m, '2001-01-01T00:00:00Z').split('\n').reverse().join('\n').replace(/^(.*)\nts\t/, 'ts\t$1\n')), fails: ['trail.log-format'] },
     { name: 'the reviewer was the same family as the worker', mutate: (sandbox) => patchAssignment(sandbox, 'trail-cart', 'trail-reviewer', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['trail.reviewer-is-another-family'] },
     { name: 'the reply lost the Attention section', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Attention', 'Notes'), fails: ['trail.reply-ends-with-attention'] },
-    { name: 'the audit never read the transcript', mutate: (sandbox) => rewriteSessionText(sandbox, 'wc -l \\"$PI_SESSION_FILE\\"', 'true'), fails: ['trail.audited-against-the-transcript'] },
+    { name: 'the audit never read the transcript', mutate: (sandbox) => rewriteSessionText(sandbox, 'cat \\"$PI_SESSION_FILE\\"', 'true'), fails: ['trail.audited-against-the-transcript'] },
     { name: 'the reviewer brief names no transcript', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/workers/trail-reviewer/brief.md'), 'Review the work.'), fails: ['trail.reviewer-brief-names-the-trail-and-transcript'] },
   ],
 };
