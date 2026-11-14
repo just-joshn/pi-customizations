@@ -7,44 +7,40 @@
   "requirementsDigest": "28ab9ae982f15138ec7d213b8901eaca34ae6e65993c0b739febe0431089734d",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-14T02:43:20.865Z",
-    "generatedAt": "2026-11-14T02:51:18.165Z",
-    "commit": "839739155e6c100d125289edca46cb1d40619537",
+    "startedAt": "2026-11-14T03:07:33.696Z",
+    "generatedAt": "2026-11-14T03:14:32.254Z",
+    "commit": "4f2f99fd3f9c8caffc7b9d636fcca0ed51715916",
     "dirty": false,
     "changes": [],
     "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
     "resultsSource": "local",
     "totalTests": 3002,
-    "passedTests": 2887,
+    "passedTests": 2901,
     "failedTests": 0,
-    "failures": [
-      "tests/workflow-parity/verification.test.ts::(suite failed)"
-    ],
-    "skippedTests": 115,
+    "failures": [],
+    "skippedTests": 101,
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
     "piVersion": "1.5.2",
-    "nodeVersion": "v26.13.0"
+    "nodeVersion": "v26.13.1"
   },
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-14T02:43:20.865Z",
-      "generatedAt": "2026-11-14T02:51:18.165Z",
-      "commit": "839739155e6c100d125289edca46cb1d40619537",
+      "startedAt": "2026-11-14T03:07:33.696Z",
+      "generatedAt": "2026-11-14T03:14:32.254Z",
+      "commit": "4f2f99fd3f9c8caffc7b9d636fcca0ed51715916",
       "dirty": false,
       "changes": [],
       "sourceDigest": "922c945f431fcb196064df877b2e57f3c7147a8dfed1b0550c0bae06ea785023",
       "resultsSource": "local",
       "totalTests": 3002,
-      "passedTests": 2887,
+      "passedTests": 2901,
       "failedTests": 0,
-      "failures": [
-        "tests/workflow-parity/verification.test.ts::(suite failed)"
-      ],
-      "skippedTests": 115,
+      "failures": [],
+      "skippedTests": 101,
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
       "piVersion": "1.5.2",
-      "nodeVersion": "v26.13.0"
+      "nodeVersion": "v26.13.1"
     }
   ],
   "counts": {
@@ -55,9 +51,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 95,
+      "PASS": 96,
       "FAIL": 0,
-      "INCONCLUSIVE": 6,
+      "INCONCLUSIVE": 5,
       "N/A": 0
     }
   },
@@ -30910,17 +30906,17 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "statechart scripted run: every check passes",
-          "outcome": "skipped",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "skipped"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "skipped: tests/workflow-parity/verification.test.ts::statechart scripted run: every check passes"
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "MX-PR-REVIEW",
