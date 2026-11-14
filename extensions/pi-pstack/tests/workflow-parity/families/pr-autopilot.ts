@@ -554,9 +554,9 @@ export const autopilotStackFamily: Family = {
       const { state, actions } = readForge(view);
       const bare = bareOf(view.sandbox);
       const [a, b] = STACK_UNITS(view) as [Unit, Unit];
-      const parent = spawnSyncGit(bare, `rev-parse ${b.sha}^`);
+      const ancestor = a.sha !== b.sha && spawnSync('git', ['--git-dir', bare, 'merge-base', '--is-ancestor', String(a.sha), String(b.sha)]).status === 0;
       const imports = spawnSyncGit(bare, `show ${b.sha}:src/shout.js`);
-      return when(state.prs['41']?.base === 'main' && state.prs['42']?.base === 'feat-greet-stack' && parent === a.sha && /from '\.\/greet\.js'/.test(imports) && !actions.some((action) => action.kind === 'edit-base'), 'PR 41 on main; PR 42 on feat-greet-stack, its commit on PR 41\'s head, and it imports greet', `bases ${state.prs['41']?.base}, ${state.prs['42']?.base}; parent of 42 ${parent.slice(0, 8)} vs ${a.sha?.slice(0, 8)}; imports greet ${/greet/.test(imports)}`);
+      return when(state.prs['41']?.base === 'main' && state.prs['42']?.base === 'feat-greet-stack' && ancestor && /from '\.\/greet\.js'/.test(imports) && !actions.some((action) => action.kind === 'edit-base'), 'PR 41 on main; PR 42 on feat-greet-stack, descended from PR 41\'s head, and it imports greet', `bases ${state.prs['41']?.base}, ${state.prs['42']?.base}; PR 41 is an ancestor of 42: ${ancestor}; imports greet ${/greet/.test(imports)}`);
     }),
     verifiersIndependent('autopilot.stack.independent-verifier-per-pr-at-the-head', AS('In place of step 5, stop at verified'), unitsOf(STACK_STORE)),
     rootAudited('autopilot.stack.root-audits-receipts', AS('In place of step 5, stop at verified')),

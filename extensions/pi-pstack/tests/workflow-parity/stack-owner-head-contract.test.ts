@@ -39,7 +39,11 @@ test.for([false, true])('a stacked owner starts at the observed parent head, not
     const parent = git('rev-parse', 'HEAD');
     git('push', '-q', 'origin', 'HEAD');
     git('checkout', '-q', '-b', 'feat-shout-stack');
-    git('-c', 'commit.gpgsign=false', 'commit', '-q', '--allow-empty', '-m', 'dependent head');
+    mkdirSync(join(repo, 'src'));
+    writeFileSync(join(repo, 'src/shout.js'), "import { greet } from './greet.js';\nexport const shout = (name) => greet(name).toUpperCase();\n");
+    git('add', '.');
+    git('-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'dependent head');
+    git('-c', 'commit.gpgsign=false', 'commit', '-q', '--allow-empty', '-m', 'dependent follow-up');
     git('push', '-q', 'origin', 'HEAD');
     const state = JSON.parse(readFileSync(join(forgeDirOf(sandbox), 'state.json'), 'utf8'));
     state.prs = Object.fromEntries(
@@ -54,6 +58,11 @@ test.for([false, true])('a stacked owner starts at the observed parent head, not
     }));
     const view = { sandbox, runs: [{ id: 'r', workers }] } as unknown as RunView;
     expect(autopilotStackFamily.checks.find((check) => check.id === 'autopilot.stack.one-container-owner-per-pr')?.run(view)).toMatchObject({ ok: !wrong });
+    const topology = autopilotStackFamily.checks.find((check) => check.id === 'autopilot.stack.stacks-only-the-pr-that-builds-on-another');
+    expect(topology?.run(view)).toMatchObject({ ok: true });
+    state.prs['42'].base = 'main';
+    writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify(state));
+    expect(topology?.run(view)).toMatchObject({ ok: false });
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
   }
