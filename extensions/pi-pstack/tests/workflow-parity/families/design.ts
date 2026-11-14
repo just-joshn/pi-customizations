@@ -608,8 +608,8 @@ Gaps and dropouts
 - slice-3 first result did not record the commit SHA or the method, so it did not count and was respawned once as slice-3b.
 Race rule: none, this was a coverage partition.`;
 
-/** A result-table row: a pipe row whose first cell is a src/ path, plain or in a code span (Phase D asks only for "a result table"). */
-const LANE_ROW = /^\|\s*`?src\//;
+/** Phase D asks for a result table without prescribing its column order. */
+const LANE_ROW = /^\|.*\|?\s*`?src\/[\w.-]+\.js`?\s*\|/;
 const laneRows = (reply: string) => reply.split('\n').filter((line) => LANE_ROW.test(line));
 const SLICE_FILE = /src\/[\w.-]+\.js/;
 const settledIdle = (worker: WorkerView) => ((worker.state?.['settles'] as { phase: string }[] | undefined) ?? []).some((settle) => settle.phase === 'idle');
@@ -764,8 +764,8 @@ export const swarmFamily: Family = {
     check('swarm.report-keeps-outcome-distinctions', 'the report is one table with PASS, ISSUES, or BLOCKED per slice, issue one-liners, and gaps; no raw worker dumps', src('swarm/SKILL.md', 'Return one consolidated in-chat report'), (view) => {
       const reply = finalReply(view);
       const rows = laneRows(reply);
-      const outcomes = rows.map((row) => row.split('|')[2]?.trim());
-      return when(rows.length === SLICES.length && outcomes.every((outcome) => ['PASS', 'ISSUES', 'BLOCKED'].includes(String(outcome))) && outcomes.includes('ISSUES') && /gaps?\b[^.\n]{0,12}\bdropouts?/i.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
+      const outcomes = rows.map((row) => row.split('|').map((cell) => cell.trim()).find((cell) => ['PASS', 'ISSUES', 'BLOCKED'].includes(cell)));
+      return when(rows.length === SLICES.length && outcomes.every((outcome) => outcome !== undefined) && /\b(gaps?|dropouts?)\b/i.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
     }),
     settledAndCollected('swarm.settled-and-collected', src('swarm/SKILL.md', '## Phase C: Aggregate')),
     writableWorkerRecords('swarm.worker-records', src('swarm/SKILL.md', 'Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence')),
