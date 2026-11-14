@@ -23,8 +23,8 @@ const view = () => {
       prs: {
         13: {
           threads: [
-            { id: 'thread-a', resolved: true },
-            { id: 'thread-b', resolved: false, comments: [{}] },
+            { id: 'thread-a', resolved: true, comments: [{ id: 'c-701', body: 'checkout() drops couponPercent' }] },
+            { id: 'thread-b', resolved: false, comments: [{ id: 'c-702', body: 'A negative couponPercent raises the billed amount' }] },
           ],
         },
       },
