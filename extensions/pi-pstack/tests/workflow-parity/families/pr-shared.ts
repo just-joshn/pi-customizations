@@ -39,6 +39,13 @@ export function lifeOf(view: RunView, workerId: string): { spawn: number; end: n
 export const MERGE_KINDS = ['merge', 'merge-queued', 'auto-merge'];
 export const actionsOf = (view: RunView): ForgeAction[] => readForge(view).actions;
 
+export const sourceLookup = (view: RunView, file: string, symbol: string): number => view.parent.toolCalls.find((call) => {
+  if (call.isError || !call.resultText?.includes(symbol)) return false;
+  if (call.name === 'read') return String(call.args['path']).endsWith(file);
+  const command = String(call.args['command']);
+  return ['bash', 'bash_readonly'].includes(call.name) && /\b(?:git\s+(?:grep|show)|cat|rg|grep|sed|head|tail)\b/.test(command) && (command.includes(file) || command.includes(symbol));
+})?.order ?? -1;
+
 /** No merge, queue entry, or auto-merge was requested, and no PR of the run reads merged. */
 export function neverMerges(id: string, title: string, source: Src | Src[]): Check {
   return checkAbsence(id, title, source, (view) => {
