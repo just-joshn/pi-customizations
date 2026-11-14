@@ -230,14 +230,33 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
     const readBack = merged.filter((n) => view.parent.toolCalls.some((call) => {
       if (call.name !== 'bash' || call.isError) return false;
       const command = String(call.args['command']);
-      const fields = /--json(?:=|\s+)["']?([\w,]+)/.exec(command)?.[1]?.split(',') ?? [];
-      if (!new RegExp(`\\bgh pr view ${n}\\s`).test(command) || !['state', 'baseRefName'].every((field) => fields.includes(field))) return false;
-      try {
-        const observed: unknown = JSON.parse(call.resultText);
-        return observed !== null && typeof observed === 'object' && 'state' in observed && observed.state === 'MERGED' && 'baseRefName' in observed && observed.baseRefName === state.repo.trunk;
-      } catch {
-        return false;
+      const queries = [...command.matchAll(/\bgh pr view (\d+)\s+([^;\n]*)/g)];
+      const documents: unknown[] = [];
+      let start = -1;
+      let depth = 0;
+      let quoted = false;
+      let escaped = false;
+      for (let index = 0; index < call.resultText.length; index++) {
+        const char = call.resultText[index];
+        if (start === -1) {
+          if (char === '{') { start = index; depth = 1; }
+          continue;
+        }
+        if (escaped) { escaped = false; continue; }
+        if (quoted && char === '\\') { escaped = true; continue; }
+        if (char === '"') { quoted = !quoted; continue; }
+        if (quoted) continue;
+        if (char === '{') depth++;
+        if (char === '}') depth--;
+        if (depth !== 0) continue;
+        try { documents.push(JSON.parse(call.resultText.slice(start, index + 1))); } catch { documents.push(null); }
+        start = -1;
       }
+      return documents.some((observed, index) => {
+        const query = queries[index];
+        const fields = /--json(?:=|\s+)["']?([\w,]+)/.exec(query?.[2] ?? '')?.[1]?.split(',') ?? [];
+        return Number(query?.[1]) === n && ['state', 'baseRefName'].every((field) => fields.includes(field)) && observed !== null && typeof observed === 'object' && 'state' in observed && observed.state === 'MERGED' && 'baseRefName' in observed && observed.baseRefName === state.repo.trunk;
+      });
     }));
     const base = merged.map((n) => state.prs[String(n)]?.base);
     const want = expected ?? prefix;

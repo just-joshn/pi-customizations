@@ -68,8 +68,11 @@ test.for([true, false])('a changed patch can land only after fresh verification 
         toolCalls: heads.map((_, index) => ({
           name: 'bash',
           order: index,
-          args: { command: `gh pr view ${21 + index} --json baseRefName,state,headRefOid` },
-          resultText: JSON.stringify({ state: 'MERGED', baseRefName: 'main' }),
+          args: { command: `gh pr view ${21 + index} --json baseRefName,state,mergeCommit; gh pr view 99 --json state,baseRefName` },
+          resultText:
+            index === 1
+              ? JSON.stringify({ state: 'MERGED', baseRefName: 'main' })
+              : `Merged pull request\n${JSON.stringify({ state: 'MERGED', baseRefName: 'main', mergeCommit: { oid: heads[index] } }, null, 2)}\n{"state":"OPEN","baseRefName":"side"}\n`,
           isError: false,
         })),
       },
@@ -85,6 +88,10 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       call.args['command'] = original.replace('baseRefName,', '');
       expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
       call.args['command'] = original;
+      const originalResult = call.resultText;
+      call.resultText = originalResult.replace('"MERGED"', '"OPEN"').replace('"state":"OPEN"', '"state":"MERGED"');
+      expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: false });
+      call.resultText = originalResult;
     }
     expect(check('a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged')).toMatchObject({ ok: fresh });
     expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: fresh });
