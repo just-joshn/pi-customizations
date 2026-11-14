@@ -513,8 +513,9 @@ export const showWorkFamily: Family = {
     check('trail.reviewer-is-another-family', "the reviewer's family is not the parent's", src('show-me-your-work/SKILL.md', 'Self-review is not a substitute'), (view) => {
       const reviewer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'reviewer');
       const family = (value: string) => value.slice(value.indexOf('/') + 1).split(/[-.]/)[0];
+      if (reviewer === undefined) return { inconclusive: 'no reviewer ran; trail.cross-model-review scores the missing review' };
       const parentModel = view.parent.models[0] ?? '';
-      const model = String(assignmentOf(reviewer as never).model);
+      const model = String(assignmentOf(reviewer).model);
       return when(reviewer !== undefined && model !== 'inherit-parent' && family(model) !== family(parentModel), `parent ${parentModel}, reviewer ${model}`, `parent ${parentModel}, reviewer ${model}`);
     }),
     check('trail.reviewer-brief-names-the-trail-and-transcript', "the reviewer brief names the trail and this run's real session file", src('show-me-your-work/SKILL.md', 'The subagent reads the audit trail and the run\'s transcript'), (view) => {

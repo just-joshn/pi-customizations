@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { showWorkFamily } from './families/history.ts';
 import { opsFamilies } from './families/ops.ts';
 import { babysitFamilies } from './families/pr-babysit.ts';
 import { orchestrateSubFamily } from './families/pr-orchestrate-sub.ts';
@@ -44,6 +45,13 @@ test('cleanup reports disk and held-back reasons without prescribed labels', () 
   expect(evaluate(checks, value)[0]?.verdict).toBe('PASS');
   required(value.parent.messages[0]).text = 'Disk before 40G free, after 41G free. Removed wt-clean. Held wt-wip and wt-active.';
   expect(evaluate(checks, value)[0]?.verdict).toBe('FAIL');
+});
+
+test('reviewer family comparison is derived when no trail reviewer ran', () => {
+  const checks = showWorkFamily.checks.filter((check) => check.id === 'trail.reviewer-is-another-family');
+  const result = evaluate(checks, empty)[0];
+  expect(result?.verdict).toBe('INCONCLUSIVE');
+  expect(result?.evidence).not.toContain('checker threw');
 });
 
 test('a missing subcoordinator is a workflow failure with a direct reason', () => {
