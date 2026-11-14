@@ -225,11 +225,7 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
     const heads = headAt(view, state);
     const verdicts = verdictsOf(state, actions, view);
     const current = (n: number) => state.prs[String(n)]?.mergedHead ?? heads(n);
-    const lost = order.findIndex((n) => {
-      const found = verdicts.filter((verdict) => verdict.pr === n).at(-1);
-      return found === undefined || found.verdict === 'FAIL' || found.patch !== patchIdOf(bareOf(view.sandbox), current(n));
-    });
-    const prefix = by === 'head' ? verifiedPrefix(order, state, verdicts, current) : order.slice(0, lost === -1 ? order.length : lost);
+    const prefix = by === 'head' ? verifiedPrefix(order, state, verdicts, current) : verifiedPatchPrefix(view, state, actions);
     const merged = mergesIn(actions).map((action) => action.pr);
     const readBack = merged.filter((n) => view.parent.toolCalls.some((call) => {
       if (call.name !== 'bash' || call.isError) return false;
@@ -241,6 +237,16 @@ export function landsOnlyTheVerifiedPrefix(id: string, source: Src | Src[], expe
     const want = expected ?? prefix;
     return when(JSON.stringify(prefix) === JSON.stringify(want) && JSON.stringify(merged) === JSON.stringify(want) && readBack.length === merged.length && base.every((entry) => entry === state.repo.trunk), `independent prefix ${prefix.join(', ')}; merged ${merged.join(', ')} in that order; read back; base ${base.join(', ')}`, `independent prefix ${JSON.stringify(prefix)}, merged ${JSON.stringify(merged)}, read back ${JSON.stringify(readBack)}, bases ${JSON.stringify(base)}, want ${JSON.stringify(want)}`);
   });
+}
+
+function verifiedPatchPrefix(view: RunView, state: ForgeState, actions: ForgeAction[]): number[] {
+  const order = stackOrder(state);
+  const verdicts = verdictsOf(state, actions, view);
+  const lost = order.findIndex((pr) => {
+    const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
+    return verdict === undefined || verdict.verdict === 'FAIL' || verdict.patch !== patchIdOf(bareOf(view.sandbox), state.prs[String(pr)]?.mergedHead ?? headAt(view, state)(pr));
+  });
+  return order.slice(0, lost === -1 ? order.length : lost);
 }
 
 type Check = ReturnType<typeof check>;
@@ -569,11 +575,13 @@ export const shippingFreshnessFamily: Family = {
       });
       return when(edits.length > 0 && used.size === parentRefs.length && problems.length === 0, `${edits.length} verified successors retargeted and pushed with a lease after their predecessors landed`, problems.join('; ') || `retargets ${edits.length}; accounted ref updates ${used.size}/${parentRefs.length}`);
     }),
-    check('ship.fresh.ceiling-watched-until-COMPLETE', 'the landing run was watched with the queued watcher over 21,22 until COMPLETE', SH('until it reports `COMPLETE` at the ceiling'), (view) => {
+    check('ship.fresh.ceiling-watched-until-COMPLETE', 'the landing run was watched through its currently verified ceiling until COMPLETE', SH('until it reports `COMPLETE` at the ceiling'), (view) => {
+      const { state, actions } = readForge(view);
+      const prefix = verifiedPatchPrefix(view, state, actions).join(',');
       const found = watchers(view);
       const argv = found.map((worker) => assignmentOf(worker).watch?.argv ?? []);
       const exit = (found[0]?.state?.['exit'] as { code: number } | undefined)?.code;
-      return when(found.length === 1 && argv[0]?.includes('--queued-stack') === true && argv[0][argv[0].indexOf('--stack-prs') + 1] === '21,22' && exit === 0, 'queued watcher over 21,22 exited COMPLETE', `watchers ${found.length} ${JSON.stringify(argv)} exit ${String(exit)}`);
+      return when(found.length === 1 && prefix !== '' && argv[0]?.includes('--queued-stack') === true && argv[0][argv[0].indexOf('--stack-prs') + 1] === prefix && exit === 0, `queued watcher over ${prefix} exited COMPLETE`, `verified run ${prefix}; watchers ${found.length} ${JSON.stringify(argv)} exit ${String(exit)}`);
     }),
     check('ship.fresh.reply-says-the-changed-patch-needs-a-fresh-verdict', 'the reply names the ceiling, why PR 23 lost its verdict, what landed and the next gap', SH('**Reply:** the verified run and its ceiling'), (view) => {
       const reply = finalReply(view);

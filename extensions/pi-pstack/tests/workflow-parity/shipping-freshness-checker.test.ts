@@ -66,6 +66,12 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: fresh });
     for (const call of leaseCommands) call.args.command = call.args.command.replace(/--force-with-lease=\S+/, '--force');
     expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: false });
+    const watcher = { id: 'queue', assignment: { kind: 'watch', watch: { argv: ['--queued-stack', '--stack-prs', '21,22,23'] } }, state: { kind: 'watch', exit: { code: 0 } } };
+    const watched = { ...view, runs: [...view.runs, { id: 'watch-run', workers: [watcher] }] } as unknown as RunView;
+    const watchCheck = shippingFreshnessFamily.checks.find((entry) => entry.id === 'ship.fresh.ceiling-watched-until-COMPLETE');
+    expect(watchCheck?.run(watched)).toMatchObject({ ok: fresh });
+    watcher.state.exit.code = 2;
+    expect(watchCheck?.run(watched)).toMatchObject({ ok: false });
     const comparison = { name: 'bash', order: -1, args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' }, resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'), isError: false };
     view.parent.toolCalls.unshift(comparison);
     expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });
