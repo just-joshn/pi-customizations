@@ -271,14 +271,13 @@ const STATUS_DOC = 'docs/parity-status.md';
 const WORKSPACE_INPUTS = ['biome.json', 'bun.lock', 'package.json', 'tsconfig.json'];
 
 /**
- * Hash of everything the tests can depend on, so a result is tied to the code it ran against: every tracked file in the package
- * (sources, adapters, generated and vendored trees, helper bundles, package.json, tsconfig and vitest config) and the workspace
- * lockfile, less the results themselves. Listing the files to include would miss the next kind of input; listing what is excluded cannot.
+ * Binds tracked and untracked package inputs, including ignored discoverable resources, plus workspace configuration.
+ * Installed node_modules contents are represented by the workspace lockfile; self-produced results cannot bind themselves.
  */
 export function sourceDigest(root) {
   try {
     const git = (...args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' });
-    const files = git('ls-files', '-z', '--', '.')
+    const files = git('ls-files', '--cached', '--others', '--exclude=node_modules/', '-z', '--', '.')
       .split('\0')
       .filter((f) => f && !SELF_REFERENTIAL.some((re) => re.test(f)))
       .sort();
@@ -313,14 +312,13 @@ export function failedTests(report, root) {
 export function sourceState(root) {
   const git = (...args) => {
     try {
-      return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
+      return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trimEnd();
     } catch {
       return null;
     }
   };
   const status = git('status', '--porcelain', '--untracked-files=all', '--', '.');
-  // Paths that are not committed, minus machine-written results (excluded from the digest too): a path that appears here during a
-  // run is an input the digest cannot see.
+  // Record input-path changes as well as byte changes; machine-written results are not source inputs.
   const changes =
     status === null
       ? null

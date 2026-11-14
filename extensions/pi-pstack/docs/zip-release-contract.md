@@ -13,7 +13,7 @@ The register contains the exact stimuli and required observations for all 23 acc
 A receipt has these fields:
 
 - `schemaVersion` is `1`.
-- `sourceDigest` is the current `sourceDigest(root)` from `scripts/parity-lib.mjs`.
+- `sourceDigest` is the current `sourceDigest(root)` from `scripts/parity-lib.mjs`. It includes tracked and untracked package files, including Git-ignored discoverable resources. Installed `node_modules` contents are represented by the workspace lockfile, not individually attested dependency bytes. The manifest and evidence outputs are excluded to avoid self-binding; store result files and sidecars under `parity-results/`, never alongside source inputs.
 - `upstreamRevision` is `3dbd22ff12742fb28c9700b9760baa29ed41dc13`.
 - `piVersion` is the version returned by the installed Pi binary selected through `PSTACK_E2E_PI`, or the existing default binary.
 - `requirements` contains exactly one record for every registered obligation.

@@ -63,11 +63,11 @@ if (!resultFiles.length || values.save) {
     process.exit(1);
   }
   const after = sourceState(root);
+  const appeared = (after.changes ?? []).filter((path) => !(before.changes ?? []).includes(path));
   if (before.sourceDigest !== after.sourceDigest || before.commit !== after.commit) {
-    console.error('parity manifest: the code changed while Vitest ran, so the report cannot be attributed to one revision; nothing written');
+    console.error(`parity manifest: the code changed while Vitest ran${appeared.length ? ` (${appeared.join(', ')})` : ''}, so the report cannot be attributed to one revision; nothing written`);
     process.exit(1);
   }
-  const appeared = (after.changes ?? []).filter((path) => !(before.changes ?? []).includes(path));
   if (before.changes === null || after.changes === null || appeared.length) {
     console.error(`parity manifest: ${appeared.length ? `files changed while Vitest ran (${appeared.join(', ')})` : 'git status failed'}, so the report cannot be attributed to the committed tree; nothing written`);
     process.exit(1);

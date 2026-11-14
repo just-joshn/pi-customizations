@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
-import { toolchain, toolchainNotes } from '../../scripts/parity-lib.mjs';
+import { sourceDigest, toolchain, toolchainNotes } from '../../scripts/parity-lib.mjs';
 import { type MiniRoot, miniRoot, PKG, zipFixture } from './helpers.ts';
 
 let mini: MiniRoot;
@@ -144,6 +144,32 @@ describe('a report is attributed to the code it ran against, never to the checko
     const g = gate();
     expect(g.status).toBe(1);
     expect(g.stderr).toContain('uncommitted changes');
+  });
+
+  test.each([false, true])('new discoverable source invalidates a previously passing gate even when ignored=%s', (ignored) => {
+    repo();
+    expect(build({ report: complete(passing) }, '--save', saved()).status).toBe(0);
+    expect(gate().status, gate().stderr).toBe(0);
+    const before = sourceDigest(mini.root);
+    if (ignored) writeFileSync(join(mini.root, '.git/info/exclude'), 'generated/skills/extra/\n');
+    mini.write('generated/skills/extra/SKILL.md', '# Extra executable instructions\n');
+    expect(sourceDigest(mini.root)).not.toBe(before);
+    const g = gate();
+    expect(g.status).toBe(1);
+    expect(g.stderr).toContain('stale, it ran against code that has since changed');
+    expect(g.stderr).toContain('ZIP: stale or missing evidence source digest');
+  });
+
+  test('changes to an untracked source file change the fingerprint but generated evidence and installed dependencies do not', () => {
+    repo();
+    mini.write('runtime-override.js', 'export const version = 1;\n');
+    const first = sourceDigest(mini.root);
+    mini.write('runtime-override.js', 'export const version = 2;\n');
+    const second = sourceDigest(mini.root);
+    expect(second).not.toBe(first);
+    mini.write('parity-results/local/output.txt', 'captured evidence\n');
+    mini.write('node_modules/dependency/index.js', 'installed dependency\n');
+    expect(sourceDigest(mini.root)).toBe(second);
   });
 
   test('a source file that appears while Vitest runs is not attributed to the revision', () => {

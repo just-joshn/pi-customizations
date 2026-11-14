@@ -58,10 +58,10 @@ describe('evidence is bound to every input the tests ran against', () => {
 
   test('a CI result recorded against the code before an adapter change cannot establish PASS afterwards', () => {
     builtRoot({ 'suite passes': 'skipped' });
-    const ci = join(mini.root, 'ci.json');
+    const ci = join(mini.root, 'parity-results/ci.json');
     writeFileSync(ci, JSON.stringify({ numTotalTests: 1, testResults: [{ name: '/runner/pkg/tests/t.test.ts', status: 'passed', assertionResults: [{ fullName: 'suite passes', status: 'passed' }] }] }));
     const digest = JSON.parse(readFileSync(join(mini.root, 'generated/parity-manifest.json'), 'utf8')).run['sourceDigest'];
-    writeFileSync(join(mini.root, 'ci.identity.json'), JSON.stringify({ platform: 'linux', commit: 'c'.repeat(40), sourceDigest: digest, runUrl: 'https://github.com/o/r/actions/runs/1', root: '/runner/pkg' }));
+    writeFileSync(join(mini.root, 'parity-results/ci.identity.json'), JSON.stringify({ platform: 'linux', commit: 'c'.repeat(40), sourceDigest: digest, runUrl: 'https://github.com/o/r/actions/runs/1', root: '/runner/pkg' }));
     expect(build(ci, '--no-docs').status).toBe(0);
     expect(gate().status).toBe(0);
     writeFileSync(join(mini.root, 'adapters/cursor.ts'), 'export const a = 2;\n');

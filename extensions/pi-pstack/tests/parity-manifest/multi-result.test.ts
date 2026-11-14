@@ -62,12 +62,12 @@ describe('the build script and the release gate with a CI result', () => {
     execFileSync('git', ['init', '-q'], { cwd: mini.root });
     execFileSync('git', ['add', '-A'], { cwd: mini.root });
     const local = mini.report({ 'suite passes': 'skipped' });
-    const ci = join(mini.root, 'ci.json');
+    const ci = join(mini.root, 'parity-results/ci.json');
     const ciReport = report('suite passes', 'passed');
     ciReport.testResults[0]!.name = '/home/runner/work/r/r/extensions/pi-pstack/tests/t.test.ts';
     writeFileSync(ci, JSON.stringify(ciReport));
     const identity = { platform: 'linux', commit: 'c'.repeat(40), sourceDigest: sourceDigest(mini.root), runUrl: 'https://github.com/o/r/actions/runs/1', root: '/home/runner/work/r/r/extensions/pi-pstack' };
-    writeFileSync(join(mini.root, 'ci.identity.json'), JSON.stringify(identity));
+    writeFileSync(join(mini.root, 'parity-results/ci.identity.json'), JSON.stringify(identity));
     return { local, ci, identity };
   };
   const build = (...files: string[]) => script('build-parity-manifest.mjs', ['--root', mini.root, ...files.flatMap((f) => ['--results', f]), '--no-docs']);
@@ -87,7 +87,7 @@ describe('the build script and the release gate with a CI result', () => {
 
   test('a CI result without an identity file is attributed to this host, so it cannot satisfy a Linux requirement', () => {
     const { ci } = setup();
-    writeFileSync(join(mini.root, 'ci.identity.json'), '{}');
+    writeFileSync(join(mini.root, 'parity-results/ci.identity.json'), '{}');
     const r = build(ci);
     expect(r.status).toBe(1);
     expect(r.stderr).toContain('identity is missing');
@@ -125,7 +125,7 @@ describe('the build script and the release gate with a CI result', () => {
     const { local, ci } = setup();
     const failing = report('suite passes', 'failed');
     failing.testResults[0]!.name = '/home/runner/work/r/r/extensions/pi-pstack/tests/t.test.ts';
-    writeFileSync(join(mini.root, 'ci.json'), JSON.stringify(failing));
+    writeFileSync(join(mini.root, 'parity-results/ci.json'), JSON.stringify(failing));
     build(local, ci);
     const path = join(mini.root, 'generated/parity-manifest.json');
     const m = manifest();
