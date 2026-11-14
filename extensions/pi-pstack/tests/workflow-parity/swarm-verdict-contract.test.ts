@@ -18,8 +18,10 @@ test('general swarm verifiers report PASS at their assigned head without an inve
     writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), '');
     expect(verificationWorkers(view, head)).toEqual([worker]);
     expect(laneClean(view, worker, head)).toBe(true);
+    worker.report = `VERDICT: pass\nHead: ${head}`;
+    expect(laneClean(view, worker, head)).toBe(true);
     expect(verificationWorkers(view, 'b'.repeat(40))).toEqual([]);
-    for (const report of [`Checked head ${head}`, `ISSUES at ${head}`, `BLOCKED at ${head}`, `PASS at ${'b'.repeat(40)}`]) {
+    for (const report of [`VERDICT: ISSUES at ${head}\nPASS at ${head}`, `Checked head ${head}`, `ISSUES at ${head}`, `BLOCKED at ${head}`, `PASS at ${'b'.repeat(40)}`]) {
       worker.report = report;
       expect(laneClean(view, worker, head), report).toBe(false);
     }

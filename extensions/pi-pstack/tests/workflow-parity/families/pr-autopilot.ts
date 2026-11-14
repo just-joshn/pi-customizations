@@ -155,8 +155,8 @@ export const verificationWorkers = (view: RunView, head: string | undefined): Wo
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
   const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
-  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s+)?(?:FAIL|ISSUES|BLOCKED)\b/i.test(report)) return false;
-  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
+  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s*:?\s+)?(?:FAIL|ISSUES|BLOCKED)\b/i.test(report)) return false;
+  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s*:?\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
   const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.verifier === worker.id && verdict.head === head).at(-1);
   return posted !== undefined && posted.author === worker.id && posted.verdict !== 'FAIL';
