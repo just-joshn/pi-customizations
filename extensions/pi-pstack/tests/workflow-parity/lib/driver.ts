@@ -107,7 +107,7 @@ export interface RunSpec {
   /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
   drive?: (api: DriveApi) => Promise<void>;
   /** One operator steer, sent at the matching tool event while the first turn is in flight. */
-  interrupt?: (ctx: Ctx, event: { type: string } & Json) => string | undefined;
+  interrupt?: (ctx: Ctx, event: { type: string } & Json, events: readonly ({ type: string } & Json)[]) => string | undefined;
   /** Watch workers whose id matches hold the run open while they run, because the scenario waits for their exit. Other watches never do. */
   holdWatchers?: RegExp;
 }
@@ -501,7 +501,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     const started = spawn(options.pi ?? PI, piArgs, { cwd: ctx.repo, env: { ...env, ...extraEnv }, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
     const next = new Rpc(started, mode === 'rpc', (event) => {
       if (interruption !== undefined || spec.interrupt === undefined) return;
-      const message = spec.interrupt(ctx, event);
+      const message = spec.interrupt(ctx, event, next.events);
       if (message === undefined) return;
       interruption = next.request({ type: 'steer', message }).then((response) => {
         if (response['success'] !== true) throw new Error(`operator steer rejected: ${JSON.stringify(response)}`);

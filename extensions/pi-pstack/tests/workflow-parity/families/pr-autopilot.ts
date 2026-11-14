@@ -443,11 +443,20 @@ export const autopilotHoldFamily: Family = {
   title: 'autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)',
   spec: {
     ...specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
-    interrupt: (_ctx, event) => {
-      const args = event['args'] as Record<string, unknown> | undefined;
-      if (event.type !== 'tool_execution_start' || event['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn') return undefined;
-      const assignment = JSON.parse(readFileSync(String(args['assignmentPath']), 'utf8')) as { role?: string };
-      return assignment.role === 'owner' ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
+    interrupt: (_ctx, event, events) => {
+      if (event.type !== 'tool_execution_start' || event['toolName'] !== 'pstack_worker') return undefined;
+      const owners = events.flatMap((entry) => {
+        const args = entry['args'] as Record<string, unknown> | undefined;
+        if (entry.type !== 'tool_execution_start' || entry['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn') return [];
+        try {
+          const path = String(args['assignmentPath']);
+          const assignment = JSON.parse(readFileSync(path, 'utf8')) as { role?: string };
+          return assignment.role === 'owner' ? [path] : [];
+        } catch {
+          return [];
+        }
+      });
+      return new Set(owners).size === 2 ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
     },
   },
   checks: [
