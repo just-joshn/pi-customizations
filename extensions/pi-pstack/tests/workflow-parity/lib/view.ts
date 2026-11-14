@@ -20,6 +20,7 @@ export interface ToolCall {
 
 export interface Message {
   order: number;
+  at?: string;
   role: string;
   text: string;
   parts?: Json[];
@@ -84,7 +85,7 @@ export function loadSession(file: string): Session {
     if (entry['type'] !== 'message') continue;
     const message = entry['message'] as Json;
     const role = String(message['role']);
-    messages.push({ order: order++, role, text: textOf(message['content']), ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}) });
+    messages.push({ order: order++, role, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}), text: textOf(message['content']), ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}) });
     if (role === 'assistant') {
       if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) {
         errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');

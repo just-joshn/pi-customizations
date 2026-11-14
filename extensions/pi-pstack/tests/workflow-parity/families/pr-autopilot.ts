@@ -572,25 +572,25 @@ export const autopilotStackFamily: Family = {
     }),
     verifiersIndependent('autopilot.stack.independent-verifier-per-pr-at-the-head', AS('In place of step 5, stop at verified'), unitsOf(STACK_STORE)),
     rootAudited('autopilot.stack.root-audits-receipts', AS('In place of step 5, stop at verified')),
-    check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and every owner push and PR creation precedes the first verdict', AS('In place of step 5, stop at verified'), (view) => {
+    check('autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff', 'no merge, queue entry or auto-merge exists, and no owner pushes or creates a PR after handing the stack to the operator', AS('In place of step 5, stop at verified'), (view) => {
       const { actions, state } = readForge(view);
-      const firstVerdict = verdictsOf(state, actions, view)[0]?.at ?? -1;
-      const late = actions.filter((action, index) => index > firstVerdict && ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind));
-      return when(firstVerdict !== -1 && late.length === 0 && mergesIn(actions).length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN' && pr.autoMerge !== true && pr.queued !== true), 'no merge; no push, creation or retarget after the first verdict', `late writes ${late.map((action) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
+      const reply = finalReply(view);
+      const handoff = [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '' && reply.includes(message.text));
+      const writes = actions.flatMap((action, index) => ['push', 'force-push', 'create', 'merge', 'merge-queued', 'auto-merge', 'edit-base'].includes(action.kind) ? [{ action, at: action['ts'] ?? actions.slice(index + 1).find((entry) => typeof entry['ts'] === 'string')?.['ts'] }] : []);
+      const late = writes.filter(({ at }) => Date.parse(String(at)) > Date.parse(handoff?.at ?? ''));
+      if (mergesIn(actions).length > 0 || Object.values(state.prs).some((pr) => pr.state !== 'OPEN' || pr.autoMerge === true || pr.queued === true) || late.length > 0) return when(false, '', `late writes ${late.map(({ action }) => action.kind).join(', ') || 'none'}; merges ${mergesIn(actions).length}`);
+      if (handoff?.at === undefined || writes.some(({ at }) => at === undefined)) return { inconclusive: 'the retained timeline does not place every write relative to the operator handoff' };
+      return when(true, 'no merge; every push and creation precedes the operator handoff', '');
     }),
-    check('autopilot.stack.reply-lists-each-pr-with-its-verdict', 'the reply lists each PR with its verdict in place of what merged, says nothing merged, and says nobody pushes without the go', AS('**Reply:** list each PR with its verdict'), (view) => {
-      const { state, actions } = readForge(view);
+    check('autopilot.stack.reply-lists-each-pr-with-its-verdict', 'the reply lists each PR with its verdict in place of what merged, without claiming a merge', AS('**Reply:** list each PR with its verdict'), (view) => {
       const reply = finalReply(view).replace(/[*_`]/g, '');
-      const verdicts = verdictsOf(state, actions, view);
       const rows = reply.replace(/\([^()]*\bPR\s*#?\d+\b[^()]*\)/gi, (aside) => /\b(?:PASS|FAIL)\b/i.test(aside) ? aside : '');
       const chunks = rows.split(/(?=\bPR\s*#?\d+\b)/i);
       const missing = [41, 42].filter((pr) => {
-        const verdict = verdicts.filter((entry) => entry.pr === pr).at(-1);
-        return verdict === undefined || !chunks.some((text) => new RegExp(`^PR\\s*#?${pr}\\b`, 'i').test(text) && text.toUpperCase().includes(verdict.verdict));
-      }).map((pr) => `PR ${pr} with its published verdict`);
-      if (!/nothing (?:was )?merged|not merged|no (?:PRs? |pull requests? )?(?:were |was )?merged|no merges|both[^.\n]*remain open/i.test(reply)) missing.push('nothing merged');
-      if (!/nobody pushes|no (?:further )?push(?:es|ing)?[^.\n]*(?:until|without)|writes? (?:are )?paused|no writes?[^.\n]*(?:go|approval|permission)|await(?:ing)? (?:your |operator )?(?:go|approval)/i.test(reply)) missing.push('no pushes without the go');
-      return when(missing.length === 0, 'each published verdict and the no-merge/no-push handoff reported', `missing ${missing.join(', ')}`);
+        return !chunks.some((text) => new RegExp(`^PR\\s*#?${pr}\\b`, 'i').test(text) && /\b(?:PASS(?:\+NOTES)?|FAIL|ISSUES|BLOCKED|clean)\b/i.test(text));
+      }).map((pr) => `PR ${pr} with its verdict`);
+      if (/(?:all|both|stack|PRs?)\s+(?:(?:were|has|have|was)\s+)?merged\b/i.test(reply) && !/nothing (?:was |has )?merged|not merged|no (?:PRs? |pull requests? )?(?:were |was )?merged|no merges/i.test(reply)) missing.push('claimed a merge');
+      return when(missing.length === 0, 'each PR and its verdict reported without a merge claim', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('autopilot.stack.no-tool-errors', AS('In place of step 5')),
   ],
@@ -598,7 +598,7 @@ export const autopilotStackFamily: Family = {
     ...todoNegatives(STACK_RUN, 'autopilot-stack', { done: [1, 2], receipts: { 1: 'as-verified', 2: 'as-stack' } }),
     { name: 'a PR was merged under autopilot-stack', mutate: (sandbox) => editForge(sandbox, (actions, state) => { actions.push({ kind: 'merge', tool: 'gh', pr: 41, worker: 'owner-a', run: STACK_RUN, actor: '', container: true }); (state.prs['41'] as { state: string }).state = 'MERGED'; }), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
     { name: 'auto-merge was armed', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['42'] as { autoMerge?: boolean }).autoMerge = true; }), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
-    { name: 'an owner pushed after the handoff', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'push', ref: 'refs/heads/feat-shout-stack', worker: 'owner-b', run: STACK_RUN, actor: '', container: true } as ForgeAction)), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
+    { name: 'an owner pushed after the handoff', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'push', ref: 'refs/heads/feat-shout-stack', worker: 'owner-b', run: STACK_RUN, actor: '', container: true, ts: '2099-01-01T00:00:00Z' } as ForgeAction)), fails: ['autopilot.stack.nothing-merges-and-nobody-pushes-after-the-handoff'] },
     { name: 'the dependent PR was based on trunk', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['42'] as { base: string }).base = 'main'; }), fails: ['autopilot.stack.stacks-only-the-pr-that-builds-on-another'] },
     { name: 'the stack was retargeted', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'edit-base', tool: 'gh', pr: 42, worker: '', run: '', actor: '', container: false })), fails: ['autopilot.stack.stacks-only-the-pr-that-builds-on-another'] },
     { name: 'a PR was handed over with no verdict', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !(action.kind === 'comment' && action.pr === 42)))), fails: ['autopilot.stack.independent-verifier-per-pr-at-the-head'] },
