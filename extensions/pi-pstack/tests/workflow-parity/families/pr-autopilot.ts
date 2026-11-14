@@ -150,7 +150,9 @@ function observedUnits(view: RunView, units: Unit[]): Unit[] {
   const { state } = readForge(view);
   return units.map((unit) => {
     const pr = state.prs[String(unit.pr)];
-    return { ...unit, id: responsibleWorker(view, 'owner', unit.pr)?.id ?? '', sha: pr?.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${pr?.head}`) };
+    const basePr = Object.values(state.prs).find((candidate) => candidate.head === pr?.base);
+    const from = basePr === undefined ? unit.from : basePr.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${basePr.head}`);
+    return { ...unit, from, id: responsibleWorker(view, 'owner', unit.pr)?.id ?? '', sha: pr?.mergedHead ?? revParse(bareOf(view.sandbox), `refs/heads/${pr?.head}`) };
   });
 }
 
