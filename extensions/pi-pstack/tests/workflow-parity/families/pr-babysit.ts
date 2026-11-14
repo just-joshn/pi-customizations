@@ -967,11 +967,11 @@ export const babysitFlakeTwiceFamily: Family = {
     }),
     check('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', 'after the second failure the parent read the full run log, recorded a not-a-flake decision, and reported the cause to the owner on the PR instead of retrying', BS('An identical second failure means it was never flake, so reclassify and read the child logs instead of retrying blind'), (view) => {
       const { actions } = readForge(view);
-      const second = BASH(view).findIndex((entry) => /^gh run view 9217 .* --log$/.test(entry.command));
       const rerunCall = BASH(view).findIndex((entry) => /gh run rerun/.test(entry.command));
+      const second = BASH(view).findIndex((entry, index) => index > rerunCall && /\bgh run view 9217\b/.test(entry.command) && /(?:^|\s)--log(?:-failed)?(?:\s|$)/.test(entry.command));
       const row = (primaryRun(view, 'babysit')?.decisions ?? []).find((cells) => cells[1] === 'ci-classification');
       const comment = actions.find((action) => action.kind === 'comment' && action.pr === 17);
-      return when(second > rerunCall && rerunCall !== -1 && /not a flake/.test(row?.[2] ?? '') && /403|token/.test(String(comment?.['body'])) && /owner/.test(String(comment?.['body'])), `full log read at ${second} after the rerun at ${rerunCall}; decision "${row?.[2]}"; the owner was told the cause`, `full log ${second}, rerun ${rerunCall}, decision ${JSON.stringify(row)}, comment ${String(comment?.['body']).slice(0, 60)}`);
+      return when(second > rerunCall && rerunCall !== -1 && /not a flake|identical (?:second )?failure/i.test(`${row?.[2] ?? ''} ${String(comment?.['body'])}`) && /403|token/.test(String(comment?.['body'])) && /owner/i.test(String(comment?.['body'])), `full log read at ${second} after the rerun at ${rerunCall}; decision "${row?.[2]}"; the owner was told the cause`, `full log ${second}, rerun ${rerunCall}, decision ${JSON.stringify(row)}, comment ${String(comment?.['body']).slice(0, 60)}`);
     }),
     neverMutatesTopology('babysit.twice.never-mutates-stack-topology', BS('Never mutate stack topology')),
     neverMerges('babysit.twice.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),

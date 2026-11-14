@@ -38,6 +38,20 @@ test('echoing code-shaped text is not a source lookup', () => {
   expect(verdict('babysit.threads.dismissal-grounded-and-the-ask-left-open', value)).toBe('FAIL');
 });
 
+test('reclassification reads a full log with trailing flags and does not require an invented decision row', () => {
+  const value = view();
+  value.parent.toolCalls = [
+    { order: 1, name: 'bash', args: { command: 'gh run rerun 9217 -R acme/widgets' }, resultText: '', isError: false },
+    { order: 2, name: 'bash', args: { command: 'gh run view 9217 --log -R acme/widgets' }, resultText: '403 expired token', isError: false },
+  ];
+  writeFileSync(join(forgeDirOf(value.sandbox), 'actions.jsonl'), JSON.stringify({ kind: 'comment', pr: 17, body: 'Not a flake. Owner must rotate the expired token after the identical failure.' }));
+  expect(verdict('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', value)).toBe('PASS');
+  required(value.parent.toolCalls[1]).args['command'] = 'gh run view 9217 --log-failed -R acme/widgets';
+  expect(verdict('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', value)).toBe('PASS');
+  required(value.parent.toolCalls[1]).args['command'] = 'gh run view 9217 --json conclusion -R acme/widgets';
+  expect(verdict('babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs', value)).toBe('FAIL');
+});
+
 test('a dismissal without any code lookup still fails', () => {
   const value = view();
   value.parent.toolCalls.shift();
