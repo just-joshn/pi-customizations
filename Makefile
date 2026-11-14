@@ -1,4 +1,4 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-skills verify-test-conventions verify-install verify-sources verify-x-subscription-oauth-live
+.PHONY: verify-claude-default-dark verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-skills verify-test-conventions verify-install verify-sources verify-x-subscription-oauth-live
 
 verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-skills verify-install
 
@@ -52,3 +52,9 @@ verify-install:
 # Needs network (npx verdaccio plus the npm registry proxy), so it stays out of `verify`.
 verify-sources:
 	node scripts/verify-install-sources.mjs
+
+verify-claude-default-dark:
+	cd extensions/pi-claude-default-dark/development && bun install --frozen-lockfile && bun run typecheck && bun run test
+	cd extensions/pi-claude-default-dark/development && node scripts/static-scan.selftest.mjs && node scripts/static-scan.mjs
+	cd extensions/pi-claude-default-dark/development && cp ../themes/claude-default-dark.json /tmp/claude-default-dark.committed.json && node scripts/generate-theme.ts && cmp ../themes/claude-default-dark.json /tmp/claude-default-dark.committed.json
+	cd extensions/pi-claude-default-dark/development && node scripts/validate-theme.mjs && node scripts/crosswalk.ts && node scripts/compare.ts && node scripts/report.ts && git diff --exit-code -- PARITY_REPORT.md reference-lock.json crosswalk.csv results/SHA256SUMS
