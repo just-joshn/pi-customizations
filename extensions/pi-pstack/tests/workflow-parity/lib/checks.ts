@@ -604,7 +604,7 @@ export type { Outcome };
 
 // ---- ordering of tool calls across the parent session
 
-export const spawnOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/workers/${workerId}/`))?.order ?? -1;
+export const spawnOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && !call.isError && String(call.args['assignmentPath']).includes(`/workers/${workerId}/`))?.order ?? -1;
 export const collectOrder = (view: RunView, workerId: string): number => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError)?.order ?? -1;
 
 const idsOf = (view: RunView, roles: string[]) => allWorkers(view).filter((worker) => roles.includes(String(assignmentOf(worker).role))).map((worker) => worker.id);

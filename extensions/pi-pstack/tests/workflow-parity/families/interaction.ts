@@ -104,7 +104,7 @@ export const interactionFamily: Family = {
   },
   checks: [
     check('worker-interaction.spawn-returns-an-attach-command', 'the spawn result names the tmux session and an attach command, and returned while the worker was starting', SRC, (view) => {
-      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
+      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && !call.isError && String(call.args['assignmentPath']).includes(`/workers/${interactiveWorker(view).id}/`));
       const session = String(interactiveWorker(view).state?.['tmuxSession']);
       return spawn !== undefined && /attach/.test(spawn.resultText) && spawn.resultText.includes(session) ? when(true, `spawn result carries ${spawn.resultText.match(/tmux[^\n]*attach[^\n]*/)?.[0] ?? 'attach'}`, '') : fail(`spawn result: ${spawn?.resultText.slice(0, 200)}`);
     }),

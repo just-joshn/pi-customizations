@@ -60,9 +60,10 @@ export const concurrencyFamily: Family = {
       return when(overlap > 0, 'all four worker intervals overlap', `overlap ${overlap} ms`);
     }),
     check('worker-concurrency.parent-continues-independent-work', 'the parent continues independent work after spawning rather than waiting to collect', src('poteto-mode/SKILL.md', 'Keep working after the spawn returns'), (view) => {
-      const lastSpawn = Math.max(...allWorkers(view).map((worker) => spawnOrder(view, worker.id)));
+      const spawns = allWorkers(view).map((worker) => spawnOrder(view, worker.id));
+      const lastSpawn = Math.max(...spawns);
       const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
-      const independent = allWorkers(view).length === 4 && next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
+      const independent = allWorkers(view).length === 4 && !spawns.includes(-1) && next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
       return when(independent, `the parent continued with ${next?.name}`, `next action ${next?.name} ${String(next?.args['action'] ?? '')}, independent work ${independent}`);
     }, 'adaptation'),
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: each recorded by the host and in the worker session', SRC, (view) => {
