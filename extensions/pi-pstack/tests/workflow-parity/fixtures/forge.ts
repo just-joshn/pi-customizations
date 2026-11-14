@@ -6,6 +6,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, wr
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { assignReviewIds } from './review-ids.ts';
 import { FORGE_TOKEN } from '../lib/container-credentials.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { PKG, REAL_MODEL, REAL_MODEL_B } from '../lib/driver.ts';
@@ -149,6 +150,7 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
     events: def.events ?? [],
     prs: Object.fromEntries(def.prs.map((pr) => [String(pr.number), { repo: { owner: def.owner, name: def.name }, state: 'OPEN', mergedAt: null, isDraft: pr.isDraft === true, reviewDecision: pr.reviewDecision ?? '', comments: [], threads: (pr.threads ?? []).map((thread) => ({ resolved: false, ...thread })), checks: [], ci: { waves: pr.waves ?? [[{ name: 'build', workflow: 'CI', runId: 9000 + pr.number, state: 'SUCCESS' }]], wave: 0, sha: null, history: [] }, number: pr.number, title: pr.title, body: pr.body ?? '', base: pr.base, baseAtStart: pr.base, head: pr.head, author: pr.author }])),
   };
+  assignReviewIds(state);
   writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2));
   mkdirSync(join(bare, 'hooks'), { recursive: true });
   writeFileSync(join(bare, 'hooks', 'pre-receive'), HOOK);

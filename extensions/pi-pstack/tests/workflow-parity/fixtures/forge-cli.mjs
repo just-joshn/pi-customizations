@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assignReviewIds } from './review-ids.ts';
 
 const [tool, ...argv] = process.argv.slice(2);
 if (argv.includes('--help') || argv.includes('-h')) {
@@ -215,12 +216,13 @@ function threadsOf(pr) {
   return pr.threads.map((thread) => ({ ...thread, comments: thread.comments }));
 }
 
-const databaseIdOf = (pr, entry) => /^\d+$/.test(String(entry.id)) ? Number(entry.id) : pr.number * 100000 + pr.threads.flatMap((thread) => thread.comments).indexOf(entry) + 1;
+const databaseIdOf = (pr, entry) => entry.databaseId;
 
-function replyTo(pr, commentId, body) {
+function replyTo(state, pr, commentId, body) {
   const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId) || String(databaseIdOf(pr, entry)) === String(commentId)) || item.id === commentId);
   if (thread === undefined) die(1, `gh: no review comment ${commentId}`);
   thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, in_reply_to_id: thread.comments[0].id, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
+  assignReviewIds(state);
   return thread;
 }
 
@@ -325,7 +327,7 @@ function graphql(state) {
     needToken(true);
     const found = Object.values(state.prs).find((item) => item.threads.some((thread) => thread.id === variables.thread));
     if (found === undefined) die(1, 'gh: thread not found');
-    replyTo(found, variables.thread, String(variables.body));
+    replyTo(state, found, variables.thread, String(variables.body));
     log({ kind: 'reply', pr: found.number, thread: variables.thread, body: String(variables.body) });
     return out({ data: { addPullRequestReviewThreadReply: { comment: { id: 'new' } } } });
   }
@@ -388,7 +390,7 @@ function gh(state) {
       const pr = state.prs[reply[1]];
       if (pr === undefined) die(1, 'gh: unknown pull request');
       const payload = JSON.parse(readFileSync(value('--input') === '-' ? 0 : value('--input'), 'utf8'));
-      const thread = replyTo(pr, reply[2], String(payload.body));
+      const thread = replyTo(state, pr, reply[2], String(payload.body));
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: String(payload.body) });
       return out({ id: databaseIdOf(pr, thread.comments.at(-1)), body: payload.body });
     }
@@ -551,7 +553,7 @@ function origin(state) {
       const thread = pr.threads.find((item) => item.id === threadId);
       if (thread === undefined) die(1, `origin: no thread ${threadId}`);
       const reply = readFileSync(value('--body-file'), 'utf8');
-      thread.comments.push({ id: `${thread.id}-r`, body: reply, author: WHO.worker || 'operator', createdAt: new Date().toISOString() });
+      replyTo(state, pr, threadId, reply);
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: reply });
       return undefined;
     }
@@ -621,6 +623,7 @@ const release = lock();
 process.on('exit', release);
 try {
   const state = load();
+  assignReviewIds(state);
   sync(state);
   const before = JSON.stringify(state);
   (tool === 'gh' ? gh : origin)(state);

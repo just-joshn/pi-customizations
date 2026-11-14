@@ -122,6 +122,29 @@ test('review comment database IDs are numeric and address the same comment throu
   expect(updated[1]).toMatchObject({ in_reply_to_id: id, body: 'Reproduced and fixed.' });
 });
 
+test('review IDs survive replies to earlier threads and still route to the original thread', () => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].threads[0].comments[0].id = 'first';
+  delete state.prs['71'].threads[0].comments[0].databaseId;
+  state.prs['71'].threads.push({ id: 'thread-2', resolved: false, comments: [{ ...state.prs['71'].threads[0].comments[0], id: 'second' }] });
+  writeFileSync(path, JSON.stringify(state));
+  const list = () => JSON.parse(call(ctx, forge, 'gh', 'api', 'repos/fixture/repo/pulls/71/comments').stdout);
+  const before = list();
+  const payload = join(ctx.sandbox, 'reply.json');
+  writeFileSync(payload, JSON.stringify({ body: 'reply' }));
+  const reply = (id: number) => call(ctx, forge, 'gh', 'api', `repos/fixture/repo/pulls/71/comments/${id}/replies`, '-X', 'POST', '--input', payload);
+  expect(reply(before[0].id).status).toBe(0);
+  expect(list().find((entry: { body: string; id: number }) => entry.body === 'Finding' && entry.id === before[1].id)).toBeDefined();
+  expect(list().filter((entry: { body: string }) => entry.body === 'Finding').map((entry: { id: number }) => entry.id)).toEqual(before.map((entry: { id: number }) => entry.id));
+  expect(reply(before[1].id).status).toBe(0);
+  const updated = JSON.parse(readFileSync(path, 'utf8'));
+  expect(updated.prs['71'].threads.map((thread: { comments: unknown[] }) => thread.comments.length)).toEqual([2, 2]);
+  expect(new Set(list().map((entry: { id: number }) => entry.id)).size).toBe(4);
+  expect(updated.prs['71'].threads[1].comments[0].databaseId).toBe(before[1].id);
+});
+
 test('the identity jq expression works without an external jq executable', () => {
   const { ctx, forge } = fixture();
   const bin = join(ctx.sandbox, 'no-jq');
