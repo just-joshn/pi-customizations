@@ -24,6 +24,8 @@ export interface CheckDef {
   workflow?: string;
   /** The next `pendingReads` reads of the checks report PENDING, then the check settles on `then`. */
   pendingReads?: number;
+  /** Holds CI pending until this fixture-controlled delivery marker exists, independent of reads. */
+  pendingUntil?: string;
   then?: 'SUCCESS' | 'FAILURE';
   log?: string;
   /** What a whole-run rerun leads to. */

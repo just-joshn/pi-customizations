@@ -8,12 +8,13 @@ import { join } from 'node:path';
 import { Parent, scenario } from '../fixtures/dsl.ts';
 import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, type ForgeState, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
-import { check, checkAbsence, fail, src, when } from '../lib/check.ts';
+import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { appendToolCall, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import { babysitRestartFamilies } from './pr-babysit-restart.ts';
 import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, REPO_FLAGS, REPO_SLUG, replyMentions, sourceLookup, stepDone, watchers } from './pr-shared.ts';
+import { liveObservation, observationsPath, observeSingleWatcher, readObservations, releasePath, repeatOnWatcherSpawn, repeatPremise } from './pr-watcher-observation.ts';
 import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
 
@@ -47,11 +48,6 @@ const watcherRun = (view: Parameters<typeof watchers>[0], worker: ReturnType<typ
   if (run === undefined) throw new Error(`missing run for ${worker.id}`);
   return run.id;
 };
-const watcherPresentOnFirstRequest = (view: Parameters<typeof watchers>[0]): boolean => watchers(view).some((worker) => {
-  if (worker.state === null) return false;
-  const spawned = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/workers/${worker.id}/`));
-  return spawned === undefined || callsInTurn(view, 0).includes(spawned);
-});
 const BASE_ARGS = (pr: number | string) => ['--owner', 'acme', '--repo', 'widgets', '--pr', String(pr)];
 
 const withForge = (build: (ctx: Ctx) => ForgeHandle, store: { handle?: ForgeHandle }) => ({
@@ -846,12 +842,13 @@ export const babysitSingleWatcherFamily: Family = {
           owner: 'acme',
           name: 'widgets',
           branches: [{ name: 'feat-dup', from: 'main', files: { 'src/dup.js': 'export const dup = true;\n' }, message: 'feat: dup' }],
-          prs: [{ number: 16, title: 'feat: dup', head: 'feat-dup', base: 'main', author: 'owner-16', waves: [[{ name: 'build', workflow: 'CI', runId: 9116, state: 'PENDING', pendingReads: ctx.driver === 'real' ? 2 : 400, then: 'SUCCESS' }]] }],
+          prs: [{ number: 16, title: 'feat: dup', head: 'feat-dup', base: 'main', author: 'owner-16', waves: [[{ name: 'build', workflow: 'CI', runId: 9116, state: 'PENDING', pendingUntil: releasePath(ctx.sandbox), then: 'SUCCESS' }]] }],
         }),
       DUP_STORE,
     ),
     prompt: () => '/poteto-mode babysit PR 16 and get it green',
-    followUps: () => ['/poteto-mode babysit PR 16 and get it green'],
+    interrupt: repeatOnWatcherSpawn,
+    observeEvent: observeSingleWatcher,
     scenario: (ctx) => {
       const parent = new Parent(ctx);
       const dir = parent.runDir;
@@ -865,8 +862,6 @@ export const babysitSingleWatcherFamily: Family = {
       stepDone(parent, 'babysit', 2, 'bd-frontier', `gh pr view 16 ${pr} --json state | grep -q OPEN`);
       parent.bash(find);
       parent.spawn('watch-1', watchAssignment(ctx, parent, BASE_ARGS(16)), '');
-      parent.text('Armed the watcher for PR 16. I will act on its verdict.');
-      // the repeated request: the one babysitter is already on this stack
       parent.bash(find);
       parent.call('pstack_worker', { action: 'inspect', runId: ctx.runId, workerId: 'watch-1' });
       parent.decision('one-babysitter', 'reuse watch-1 for PR 16', 'a live watch-pr watcher already covers PR 16, so a second would double the polling and the verdict handling', 'grep of assignments and pstack_worker inspect watch-1', 'no second watcher armed');
@@ -882,32 +877,30 @@ export const babysitSingleWatcherFamily: Family = {
     ...todoChecks({ playbook: 'babysit', skipReason: { 4: /watcher/, 5: /watcher/, 6: /watcher/, 7: /watcher/, 8: /watcher/, 9: /watcher/ } }),
     modeDeclared('babysit.single.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
     forgeResolvedOnce('babysit.single.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
-    check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found the existing watcher live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
-      if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so reuse on a second request was not exercised' };
-      if (watchers(view).length !== 1) return fail(`expected one watcher for PR 16, observed ${watchers(view).map((worker) => worker.id).join(', ')}`);
-      const turns = view.parent.messages.filter((message) => message.role === 'user').length;
+    check('babysit.single.the-second-request-armed-no-second-watcher', 'the repeat request arrived while the original watcher was live, the parent inspected it, and no overlapping watcher was proved', BS('One babysitter per stack'), (view) => {
+      const premise = repeatPremise(view);
+      if (!('worker' in premise)) return premise;
+      const { worker } = premise;
       const second = callsInTurn(view, 1);
-      const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
-      const worker = observedWatcher(view, '16');
       const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && !call.isError && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
-      return when(turns === 2 && spawns.length === 0 && /running/.test(inspect?.resultText ?? ''), `the repeat request inspected the known watcher ${worker.id} as running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
+      return when(inspect !== undefined, `repeat delivery observed ${worker.runId}/${worker.id} live, and the parent inspected it; later exit is allowed`, `the repeat request never successfully inspected ${worker.runId}/${worker.id}`);
     }),
-    check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
-      if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so duplicate polling was not exercised' };
-      if (watchers(view).length !== 1) return fail(`expected one watcher for PR 16, observed ${watchers(view).map((worker) => worker.id).join(', ')}`);
+    check('babysit.single.only-one-watcher-ever-polled-the-pr', 'the original watcher was live at repeat delivery and read PR 16; no active watcher overlap occurred, while proved sequential replacements are allowed', BS('Never add a second sleep loop'), (view) => {
+      const premise = repeatPremise(view);
+      if (!('worker' in premise)) return premise;
+      const { worker } = premise;
       const { actions } = readForge(view);
-      const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.pr === 16 && action.worker !== '').map((action) => action.worker))];
-      const worker = observedWatcher(view, '16');
-      const life = lifeOf({ ...view, runs: view.runs.filter((run) => run.id === worker.runId) }, worker.id);
-      const live = callsInTurn(view, 1).find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId)?.resultText ?? '';
-      return when(watchers(view).length === 1 && JSON.stringify(readers) === JSON.stringify([worker.id]) && life.spawn !== -1 && worker !== undefined && exitCodeOf(worker) === null && /running/.test(live), `one watcher, live at the second request, one polling identity (${readers.join(', ')})`, `watchers ${watchers(view).length}; polling identities ${JSON.stringify(readers)}; inspect "${live.slice(0, 50)}"`);
+      const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.pr === 16 && action.worker !== '').map((action) => `${action.run}/${action.worker}`))];
+      const knownWorkers = new Set(view.runs.flatMap((run) => run.workers.map((entry) => `${run.id}/${entry.id}`)));
+      if (readers.some((reader) => !knownWorkers.has(reader))) return { inconclusive: 'a polling identity has no worker evidence, so its lifetime is unknown' };
+      return when(readers.includes(`${worker.runId}/${worker.id}`), `delivery observed one live watcher ${worker.runId}/${worker.id}, with forge polling evidence and no proved active overlap`, `no PR 16 polling evidence for ${worker.runId}/${worker.id}`);
     }),
     neverMerges('babysit.single.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
     noToolErrors('babysit.single.no-tool-errors', BS('Trust the active forge')),
   ],
   negatives: [
     ...todoNegatives(DUP_RUN, 'babysit', { done: [1, 2, 3], receipts: { 1: 'bd-mode', 2: 'bd-frontier', 3: 'bd-single' } }),
-    { name: 'the second request armed a second watcher', mutate: (sandbox, view) => { const worker = observedWatcher(view, '16'); duplicateWorker(sandbox, worker.runId, worker.id, 'duplicate-watcher'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'duplicate-watcher', run: worker.runId, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
+    { name: 'the second request armed a second watcher', mutate: (sandbox, view) => { const worker = observedWatcher(view, '16'); duplicateWorker(sandbox, worker.runId, worker.id, 'duplicate-watcher'); const observations = readObservations(sandbox); const original = observations?.deliveries[0]?.workers.find(liveObservation); if (observations === undefined || original === undefined) throw new Error('negative requires a live repeat-delivery observation'); observations.spawns.push([original, { ...original, id: 'duplicate-watcher', instance: 'duplicate', childPid: Number(original.childPid) + 1 }]); writeFileSync(observationsPath(sandbox), JSON.stringify(observations)); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'duplicate-watcher', run: worker.runId, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
     { name: 'a second spawn call came with the repeated request', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"spawn"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the repeated request never inspected the live watcher', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"not-inspect"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 16, worker: '', run: '', actor: '', container: false })), fails: ['babysit.single.never-merges'] },

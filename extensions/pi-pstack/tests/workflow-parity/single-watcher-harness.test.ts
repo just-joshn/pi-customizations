@@ -6,7 +6,7 @@ import { babysitSingleWatcherFamily } from './families/pr-babysit.ts';
 import { FORGE_CLI } from './fixtures/forge.ts';
 import { runWorkflow, SCRIPTED_ROLES } from './lib/driver.ts';
 
-test.for(['real', 'scripted'] as const)('%s single-watcher CI progresses at its polling cadence', async (driver) => {
+test.for(['real', 'scripted'] as const)('%s single-watcher CI stays pending before repeat-request delivery', async (driver) => {
   process.env['FAKE_PI_MODE'] = 'crash';
   const states: string[] = [];
   const spec = babysitSingleWatcherFamily.spec;
@@ -29,5 +29,5 @@ test.for(['real', 'scripted'] as const)('%s single-watcher CI progresses at its 
       { pi: join(import.meta.dirname, 'fixtures/fake-pi.mjs'), model: 'sim/claude-sim' },
     ),
   ).rejects.toThrow(/pi exited/);
-  expect(states).toEqual(driver === 'real' ? ['PENDING', 'PENDING', 'SUCCESS'] : ['PENDING', 'PENDING', 'PENDING']);
+  expect(states).toEqual(['PENDING', 'PENDING', 'PENDING']);
 });
