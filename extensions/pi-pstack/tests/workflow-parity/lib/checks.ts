@@ -45,11 +45,18 @@ export function shellCommands(command: string): string[] {
  */
 function readsInDirectory(command: string, suffix: string): boolean {
   let cwd = '';
-  for (const part of command.split(/&&|;|\n/)) {
+  const variables = new Map<string, string>();
+  for (const raw of command.split(/&&|;|\n/)) {
+    const part = raw.replace(/\$\{(\w+)\}|\$(\w+)/g, (reference, braced: string | undefined, bare: string | undefined) => variables.get(braced ?? bare ?? '') ?? reference);
+    const assigned = /^\s*(\w+)=["']?([^"'\s]+)["']?\s*$/.exec(part);
+    if (assigned !== null) variables.set(assigned[1] as string, assigned[2] as string);
     const cd = /^\s*cd\s+["']?([^"'\s]+)["']?\s*$/.exec(part);
     if (cd !== null) cwd = resolve(cwd || '/', cd[1] as string);
     const read = /^\s*(?:cat|head|tail|sed|less|bat|nl)\s+(.+)$/.exec(part);
-    if (read !== null && cwd !== '' && (read[1] as string).split(/\s+/).some((word) => resolve(cwd, word.replace(/^["']|["']$/g, '')).endsWith(suffix))) return true;
+    if (read !== null && (read[1] as string).split(/\s+/).some((word) => {
+      const path = word.replace(/^["']|["']$/g, '');
+      return (isAbsolute(path) || cwd !== '') && resolve(cwd || '/', path).endsWith(suffix);
+    })) return true;
   }
   const at = suffix.indexOf('/worktree/');
   if (at === -1) return false;
