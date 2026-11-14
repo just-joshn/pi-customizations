@@ -3,6 +3,7 @@ import { expect, onTestFinished, vi } from 'vitest';
 import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_CLIENT_ID, LOGIN_CANCELLED, LOGIN_TIMED_OUT, subscriptionAuth } from '../src/auth.ts';
 import { test } from './network-guard.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
+import { parseJson, StringFields } from './support/json.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
 const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
@@ -45,12 +46,11 @@ test('loopback login exchanges the callback code with a matching localhost redir
     const url = String(input);
     if (url.startsWith('http://127.0.0.1') || url.startsWith('http://localhost')) return realFetch(input, init);
     expect(url).toBe(TOKEN_URL);
-    exchangeBodies.push(JSON.parse(String(init?.body)) as Record<string, string>);
+    exchangeBodies.push(parseJson(StringFields, String(init?.body)));
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
   });
 
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   const { login, events } = interaction(signal, 'loopback');
   const pending = oauth.login(login);
   const authorize = new URL(await waitForUrl(events));
@@ -83,7 +83,6 @@ test('loopback login exchanges the callback code with a matching localhost redir
 
 test('loopback login rejects a callback with the wrong state', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   const { login, events } = interaction(signal, 'loopback');
   const pending = oauth.login(login);
   const failure = pending.then(
@@ -100,7 +99,7 @@ test('loopback login rejects a callback with the wrong state', async ({ signal }
   expect(callbackResponse.status).toBe(400);
   const error = await failure;
   expect(error).toBeInstanceOf(Error);
-  expect((error as Error).message).toBe('Claude subscription login failed. Try /login again.');
+  expect(error).toHaveProperty('message', 'Claude subscription login failed. Try /login again.');
 });
 
 test('loopback listen timeout is not login cancellation', async ({ signal }) => {
@@ -110,7 +109,6 @@ test('loopback listen timeout is not login cancellation', async ({ signal }) => 
   });
   expect(LOGIN_TIMED_OUT).not.toBe(LOGIN_CANCELLED);
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   const { login, events } = interaction(signal, 'loopback');
   const pending = oauth.login(login);
   await waitForUrl(events);

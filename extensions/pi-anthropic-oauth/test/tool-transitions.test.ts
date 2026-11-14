@@ -59,7 +59,7 @@ test.for(cases.flatMap((spec) => methods.map((method) => ({ ...spec, method })))
   const before = structuredClone(context);
   const routed = { ...model, compat: { ...model.compat, supportsMidConvoSystemMessages: true, supportsMidConvoToolChanges: true } };
   const modelBefore = structuredClone(routed);
-  server.respond(sseReply(toolUseMessage('transition-call', 'Task', ['{}'])));
+  server.respond(sseReply(toolUseMessage({ id: 'transition-call', name: 'Task', jsonChunks: ['{}'] })));
   const run = await collect(models[method](routed, context));
 
   expect(taskDeclaration(soleRequest(server).body)).toMatchObject({ name: 'Task', description: expected.description, input_schema: expected.parameters });
@@ -72,7 +72,7 @@ test('case-folded custom names outside the canonical alias list retain first-act
   const first = { ...task, name: 'custom_probe' };
   const shadow = { ...collision, name: 'CUSTOM_PROBE' };
   const routed = { ...model, compat: { ...model.compat, supportsMidConvoSystemMessages: true, supportsMidConvoToolChanges: true } };
-  server.respond(sseReply(toolUseMessage('custom-call', 'CUSTOM_PROBE', ['{}'])));
+  server.respond(sseReply(toolUseMessage({ id: 'custom-call', name: 'CUSTOM_PROBE', jsonChunks: ['{}'] })));
   const run = await collect(models.streamSimple(routed, transcript([readTool, first], [shadow])));
   const body = soleRequest(server).body;
 
@@ -85,7 +85,7 @@ test('concurrent requests keep opposite collision winners isolated without chang
   const second = transcript([readTool, collision], [task]);
   const before = structuredClone([first, second]);
   const routed = Object.freeze({ ...model, compat: Object.freeze({ ...model.compat, supportsMidConvoSystemMessages: true, supportsMidConvoToolChanges: true }) });
-  server.respond(sseReply(toolUseMessage('concurrent-call', 'Task', ['{}'])));
+  server.respond(sseReply(toolUseMessage({ id: 'concurrent-call', name: 'Task', jsonChunks: ['{}'] })));
   const runs = await Promise.all([collect(models.stream(routed, Object.freeze(first))), collect(models.streamSimple(routed, Object.freeze(second)))]);
 
   expect(runs.map((run) => run.message.content)).toEqual([[expect.objectContaining({ type: 'toolCall', name: 'task' })], [expect.objectContaining({ type: 'toolCall', name: 'Task' })]]);

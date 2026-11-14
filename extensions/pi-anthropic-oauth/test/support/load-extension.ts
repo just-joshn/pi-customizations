@@ -2,8 +2,6 @@ import type { Provider } from '@earendil-works/pi-ai';
 import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
 import type { ExtensionHost } from '../../src/index.ts';
 
-// Runs the factory against a fake host that records the one native provider
-// registration. Pi's public discovery path is covered in registration.test.ts.
 export function captureProvider(factory: (pi: ExtensionHost) => void): Provider {
   const registered: Provider[] = [];
   const api: ExtensionHost = {

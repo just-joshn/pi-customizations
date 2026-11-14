@@ -1,4 +1,3 @@
-/** In-process singleflight. Concurrent callers share one attempt. */
 export function createRefreshLatch<T>() {
   let inflight: Promise<T> | undefined;
   return {

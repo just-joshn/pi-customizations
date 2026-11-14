@@ -6,7 +6,6 @@ import { TOKEN_URL } from './support/token-endpoint.ts';
 
 async function pasteLogin(signal: AbortSignal, status: number, statusText: string): Promise<unknown> {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let authorizeUrl: URL | undefined;
   vi.stubGlobal(
     'fetch',
@@ -42,7 +41,6 @@ test('exchange non-401 surfaces Claude token exchange failed string', async ({ s
 
 test('refresh non-200 surfaces Claude token refresh failed string', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue(
@@ -58,7 +56,6 @@ test('refresh non-200 surfaces Claude token refresh failed string', async ({ sig
 
 test('login cancellation still passes through', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   await expect(
     oauth.login({
       signal,
@@ -72,7 +69,6 @@ test('login cancellation still passes through', async ({ signal }) => {
 
 test('login timeout still passes through', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   await expect(
     oauth.login({
       signal,
@@ -86,7 +82,6 @@ test('login timeout still passes through', async ({ signal }) => {
 
 test('refresh abort still passes through', async () => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   const controller = new AbortController();
   const reason = new DOMException('Cancelled', 'AbortError');
   vi.stubGlobal(

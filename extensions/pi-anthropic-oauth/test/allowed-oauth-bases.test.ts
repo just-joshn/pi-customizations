@@ -2,9 +2,11 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Type } from 'typebox';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { ALLOWED_OAUTH_BASE_URLS, CUSTOM_OAUTH_URL_UNAPPROVED, readCustomOAuthBaseFromEnv, resolveCustomOAuthBase } from '../src/allowed-oauth-bases.ts';
 import { CLAUDE_AUTHORIZE_URL, CLAUDE_COPY_CODE_REDIRECT_URI, CLAUDE_TOKEN_URL, createClaudeOAuth, prodClaudeOAuthEndpoints, resolveClaudeOAuthEndpoints } from '../src/oauth.ts';
+import { parseJson, StringFields } from './support/json.ts';
 
 const ALLOWLIST_FIXTURE = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)), 'allowed-oauth-bases-2.1.312.json');
 
@@ -39,10 +41,7 @@ test.for([
 });
 
 test('allowlist matches allowed-oauth-bases-2.1.312.json hosts in order', async () => {
-  const fixture = JSON.parse(await readFile(ALLOWLIST_FIXTURE, 'utf8')) as {
-    version: string;
-    values: readonly string[];
-  };
+  const fixture = parseJson(Type.Object({ version: Type.String(), values: Type.Array(Type.String()) }), await readFile(ALLOWLIST_FIXTURE, 'utf8'));
   expect(fixture.version).toBe('2.1.312');
   expect([...ALLOWED_OAUTH_BASE_URLS]).toStrictEqual([...fixture.values]);
 });
@@ -52,7 +51,7 @@ test('readCustomOAuthBaseFromEnv ignores missing env', () => {
 });
 
 test('unset custom URL resolves to prod cai endpoints', () => {
-  expect(resolveClaudeOAuthEndpoints(undefined)).toStrictEqual(prodClaudeOAuthEndpoints());
+  expect(resolveClaudeOAuthEndpoints()).toStrictEqual(prodClaudeOAuthEndpoints());
   expect(prodClaudeOAuthEndpoints()).toStrictEqual({
     authorizeUrl: CLAUDE_AUTHORIZE_URL,
     tokenUrl: CLAUDE_TOKEN_URL,
@@ -67,7 +66,7 @@ test('unset custom URL resolves to prod cai endpoints', () => {
 
 test('allowlisted custom URL resolves the custom oauth profile', () => {
   const base = 'https://claude.fedstart.com';
-  expect(resolveClaudeOAuthEndpoints(base)).toStrictEqual({
+  expect(resolveClaudeOAuthEndpoints({ customOAuthUrl: base })).toStrictEqual({
     authorizeUrl: `${base}/oauth/authorize`,
     tokenUrl: `${base}/v1/oauth/token`,
     revokeUrl: `${base}/v1/oauth/token/revoke`,
@@ -95,7 +94,7 @@ test('custom copy-code flow stays on the allowlisted host', async ({ signal }) =
     vi.unstubAllGlobals();
   });
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
-    calls.push({ url: String(input), body: JSON.parse(String(init?.body)) as Record<string, string> });
+    calls.push({ url: String(input), body: parseJson(StringFields, String(init?.body)) });
     return Response.json(tokenBody);
   });
   const oauth = createClaudeOAuth({ customOAuthUrl: base });
@@ -144,7 +143,7 @@ test('createClaudeOAuth with empty customOAuthUrl forces prod even when env is s
 });
 
 test('a client id override replaces the client id and drops the plugins scope', () => {
-  const endpoints = resolveClaudeOAuthEndpoints(undefined, 'custom-client');
+  const endpoints = resolveClaudeOAuthEndpoints({ clientId: 'custom-client' });
   expect(endpoints.clientId).toBe('custom-client');
   expect(endpoints.loginScope).toBe(CUSTOM_LOGIN_SCOPE);
   expect(endpoints.refreshScope).toBe(CUSTOM_REFRESH_SCOPE);

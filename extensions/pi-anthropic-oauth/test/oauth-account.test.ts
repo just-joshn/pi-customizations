@@ -17,12 +17,12 @@ test('the profile is a Bearer GET with the account user agent and a request-id s
   expect(String(url)).toBe('https://api.anthropic.com/api/oauth/profile');
   expect(init?.method).toBe('GET');
   expect(init?.headers).toStrictEqual({ 'User-Agent': 'claude-code/2.1.316', Authorization: 'Bearer tok', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
-  expect(result).toStrictEqual({ profile: PROFILE, stamped: true });
+  expect(result).toStrictEqual({ profile: PROFILE, hasRequestId: true });
 });
 
-test('a profile without a request id is not stamped', async () => {
+test('a profile without a request id reports none', async () => {
   stub(new Response(JSON.stringify(PROFILE), { status: 200 }));
-  await expect(fetchOAuthProfile('tok')).resolves.toMatchObject({ stamped: false });
+  await expect(fetchOAuthProfile('tok')).resolves.toMatchObject({ hasRequestId: false });
 });
 
 test('a profile body that fails the shape check is rejected', async () => {

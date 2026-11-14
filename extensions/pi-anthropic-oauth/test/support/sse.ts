@@ -51,7 +51,7 @@ export function textBlock(index: number, text: string): readonly AnthropicEvent[
   ];
 }
 
-export function toolUseBlock(index: number, id: string, name: string, jsonChunks: readonly string[]): readonly AnthropicEvent[] {
+export function toolUseBlock({ index, id, name, jsonChunks }: { index: number; id: string; name: string; jsonChunks: readonly string[] }): readonly AnthropicEvent[] {
   return [
     { type: 'content_block_start', index, content_block: { type: 'tool_use', id, name, input: {} } },
     ...jsonChunks.map((partial_json): AnthropicEvent => ({ type: 'content_block_delta', index, delta: { type: 'input_json_delta', partial_json } })),
@@ -63,11 +63,11 @@ export function textMessage(text: string, usage: UsageCounts = DEFAULT_USAGE): r
   return [messageStart(usage), ...textBlock(0, text), ...finish('end_turn')];
 }
 
-export function toolUseMessage(id: string, name: string, jsonChunks: readonly string[]): readonly AnthropicEvent[] {
-  return [messageStart(), ...toolUseBlock(0, id, name, jsonChunks), ...finish('tool_use')];
+export function toolUseMessage({ id, name, jsonChunks }: { id: string; name: string; jsonChunks: readonly string[] }): readonly AnthropicEvent[] {
+  return [messageStart(), ...toolUseBlock({ index: 0, id, name, jsonChunks }), ...finish('tool_use')];
 }
 
-export function thinkingBlock(index: number, thinking: string, signature: string): readonly AnthropicEvent[] {
+export function thinkingBlock({ index, thinking, signature }: { index: number; thinking: string; signature: string }): readonly AnthropicEvent[] {
   return [
     { type: 'content_block_start', index, content_block: { type: 'thinking', thinking: '' } },
     { type: 'content_block_delta', index, delta: { type: 'thinking_delta', thinking } },

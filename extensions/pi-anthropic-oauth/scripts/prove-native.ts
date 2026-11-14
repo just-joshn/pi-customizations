@@ -7,16 +7,19 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 import { RpcClient } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
 import { OAUTH_ACCESS_TOKEN } from '../test/support/credentials.ts';
+import { parseJson } from '../test/support/json.ts';
 import { sseReply, startMessagesServer } from '../test/support/messages-server.ts';
 import { isRecord, systemTexts } from '../test/support/request-body.ts';
 import { textMessage, toolUseMessage } from '../test/support/sse.ts';
 
 const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: version } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
-const reference: unknown = JSON.parse(await readFile(new URL('../test/fixtures/claude-code-2.1.316.json', import.meta.url), 'utf8'));
-if (!isRecord(reference) || typeof reference['prompt'] !== 'string' || typeof reference['billing'] !== 'string' || !isRecord(reference['headers']) || typeof reference['headers']['user-agent'] !== 'string')
-  throw new Error('The captured Claude reference is invalid.');
+const reference = parseJson(
+  Type.Object({ model: Type.String(), prompt: Type.String(), billing: Type.String(), headers: Type.Object({ 'user-agent': Type.String() }) }),
+  await readFile(new URL('../test/fixtures/claude-code-2.1.316.json', import.meta.url), 'utf8'),
+);
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-native-'));
 const server = await startMessagesServer(sseReply(textMessage('LOCAL_OK')));
 const agentDir = join(root, 'agent');
@@ -42,7 +45,7 @@ try {
   const records: unknown[] = json.stdout
     .trim()
     .split('\n')
-    .map((line) => JSON.parse(line));
+    .map((line): unknown => JSON.parse(line));
   assert.ok(records.some((record) => isRecord(record) && record['type'] === 'agent_settled'));
   const jsonMessage = records.find((record) => isRecord(record) && record['type'] === 'message_end' && isRecord(record['message']) && record['message']['role'] === 'assistant');
   assert.ok(isRecord(jsonMessage) && isRecord(jsonMessage['message']) && Array.isArray(jsonMessage['message']['content']));
@@ -85,7 +88,7 @@ try {
     assert.equal(systemTexts(server.requests.at(-1)?.body)[0], reference['billing']);
 
     server.respond((res, request) => {
-      sseReply(toolUseMessage('toolu_read_probe', 'Read', ['{"path":"probe.txt"}']))(res, request);
+      sseReply(toolUseMessage({ id: 'toolu_read_probe', name: 'Read', jsonChunks: ['{"path":"probe.txt"}'] }))(res, request);
       server.respond(sseReply(textMessage('LOCAL_OK')));
     });
     await client.promptAndWait('Read probe.txt.', undefined, timeout);
@@ -94,7 +97,7 @@ try {
     assert.ok(read.content.some((block) => block.type === 'text' && block.text.includes('LOCAL_FILE')));
 
     server.respond((res, request) => {
-      sseReply(toolUseMessage('toolu_bash_probe', 'Bash', [JSON.stringify({ command: 'node -e \'process.stdout.write("x".repeat(40000))\'' })]))(res, request);
+      sseReply(toolUseMessage({ id: 'toolu_bash_probe', name: 'Bash', jsonChunks: [JSON.stringify({ command: 'node -e \'process.stdout.write("x".repeat(40000))\'' })] }))(res, request);
       server.respond(sseReply(textMessage('LOCAL_OK')));
     });
     await client.promptAndWait('Run the bounded local output probe.', undefined, timeout);

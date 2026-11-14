@@ -69,13 +69,13 @@ test('tool names are declared in Provider CLI casing', async ({ models, model, s
 });
 
 test('a tool call maps back to the Pi tool name', async ({ models, model, server }) => {
-  server.respond(sseReply(toolUseMessage('toolu_1', 'Read', ['{"path":', '"a.txt"}'])));
+  server.respond(sseReply(toolUseMessage({ id: 'toolu_1', name: 'Read', jsonChunks: ['{"path":', '"a.txt"}'] })));
   const { message } = await collect(models.streamSimple(model, ask('read a', { tools: [readTool] })));
   expect(message.content).toStrictEqual([{ type: 'toolCall', id: 'toolu_1', name: 'read', arguments: { path: 'a.txt' } }]);
 });
 
 test('a tool call stops the turn for tool use', async ({ models, model, server }) => {
-  server.respond(sseReply(toolUseMessage('toolu_1', 'Read', ['{"path":"a.txt"}'])));
+  server.respond(sseReply(toolUseMessage({ id: 'toolu_1', name: 'Read', jsonChunks: ['{"path":"a.txt"}'] })));
   const { message } = await collect(models.streamSimple(model, ask('read a', { tools: [readTool] })));
   expect(message.stopReason).toBe('toolUse');
 });

@@ -100,7 +100,9 @@ export type SubscriptionAuthOptions = {
   rotation?: { directory(): string | undefined; claimOptions?: RefreshClaimOptions };
 };
 
-export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): ProviderAuth {
+export type SubscriptionAuth = Required<Pick<ProviderAuth, 'apiKey' | 'oauth'>>;
+
+export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): SubscriptionAuth {
   const refresh = wrapRefreshErrors(oauth);
   return {
     apiKey: subscriptionToken,

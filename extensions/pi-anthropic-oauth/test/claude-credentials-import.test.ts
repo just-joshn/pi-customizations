@@ -2,18 +2,23 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Type } from 'typebox';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { createClaudeOAuth, subscriptionAuth } from '../src/auth.ts';
 import { CLAUDE_KEYCHAIN_SERVICE_DEFAULT, claudeKeychainAccount, claudeKeychainService, importClaudeAiOauth, parseClaudeCredentialsJson, resolveClaudeCredentialsLayout, toPiOAuthCredential } from '../src/claude-credentials.ts';
+import { parseJson } from './support/json.ts';
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 test('credentials-layout fixture documents the default keychain service and account rules', async () => {
-  const layout = JSON.parse(await readFile(join(fixturesDir, 'credentials-layout.json'), 'utf8')) as {
-    keychain: { serviceDefault: string; account: { sanitizedFallback: string } };
-    payload: { topLevelKey: string };
-    piMapping: { type: string; access: string; refresh: string; expires: string };
-  };
+  const layout = parseJson(
+    Type.Object({
+      keychain: Type.Object({ serviceDefault: Type.String(), account: Type.Object({ sanitizedFallback: Type.String() }) }),
+      payload: Type.Object({ topLevelKey: Type.String() }),
+      piMapping: Type.Object({ type: Type.String(), access: Type.String(), refresh: Type.String(), expires: Type.String() }),
+    }),
+    await readFile(join(fixturesDir, 'credentials-layout.json'), 'utf8'),
+  );
   expect(layout.keychain.serviceDefault).toBe(CLAUDE_KEYCHAIN_SERVICE_DEFAULT);
   expect(layout.keychain.account.sanitizedFallback).toBe('claude-code-user');
   expect(layout.payload.topLevelKey).toBe('claudeAiOauth');
@@ -88,7 +93,7 @@ test('import prefers keychain on darwin and does not read plaintext when keychai
     env: {},
     homedir: () => '/Users/fixture',
     username: () => 'fixture-user',
-    readKeychain: async (service, account) => {
+    readKeychain: async ({ service, account }) => {
       expect(service).toBe('Claude Code-credentials');
       expect(account).toBe('fixture-user');
       return sample;

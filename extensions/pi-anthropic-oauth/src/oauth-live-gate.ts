@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 
+import { type Static, Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { CLAUDE_TOKEN_URL } from './oauth.ts';
+import { invalidFields } from './schema.ts';
 
 export const LIVE_EXCHANGE_ENV = 'PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE';
 
@@ -13,17 +16,27 @@ export type TokenResponseFieldShape = {
   readonly optional: readonly string[];
 };
 
+const TokenJson = Type.Object({
+  access_token: Type.String({ minLength: 1 }),
+  expires_in: Type.Number(),
+  refresh_token: Type.String({ minLength: 1 }),
+  refresh_token_expires_in: Type.Optional(Type.Number()),
+});
+
+export type TokenJson = Static<typeof TokenJson>;
+
 export const AUTHORIZATION_CODE_RESPONSE_SHAPE: TokenResponseFieldShape = {
-  required: ['access_token', 'expires_in', 'refresh_token'],
-  optional: ['refresh_token_expires_in'],
+  required: TokenJson.required,
+  optional: Object.keys(TokenJson.properties).filter((key) => !TokenJson.required.some((required) => required === key)),
 };
 
-export type TokenJson = {
-  access_token: string;
-  expires_in: number;
-  refresh_token: string;
-  refresh_token_expires_in?: number;
-};
+const TOKEN_FIELD_ERRORS: readonly (readonly [field: string, message: string])[] = [
+  ['', 'Token endpoint response is not a JSON object'],
+  ['access_token', 'Token JSON access_token must be a non-empty string'],
+  ['expires_in', 'Token JSON expires_in must be a finite number'],
+  ['refresh_token', 'Token JSON refresh_token must be a non-empty string'],
+  ['refresh_token_expires_in', 'Token JSON refresh_token_expires_in must be a finite number when present'],
+];
 
 export type RedactedSecret = {
   present: true;
@@ -46,10 +59,6 @@ export type LiveExchangeReceipt = {
   };
   shape_ok: true;
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 export function isLiveExchangeEnvEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const value = env[LIVE_EXCHANGE_ENV];
@@ -83,26 +92,13 @@ export async function readLiveExchangeGateFile(path: string): Promise<string> {
   return readFile(path, 'utf8');
 }
 
-export function assertTokenJsonShape(body: unknown, shape: TokenResponseFieldShape = AUTHORIZATION_CODE_RESPONSE_SHAPE): TokenJson {
-  if (!isRecord(body)) throw new Error('Token endpoint response is not a JSON object');
-  for (const key of shape.required) {
-    if (!(key in body)) throw new Error(`Token JSON missing required field ${key}`);
-  }
-  if (typeof body['access_token'] !== 'string' || body['access_token'].length === 0) {
-    throw new Error('Token JSON access_token must be a non-empty string');
-  }
-  if (typeof body['expires_in'] !== 'number' || !Number.isFinite(body['expires_in'])) {
-    throw new Error('Token JSON expires_in must be a finite number');
-  }
-  if (typeof body['refresh_token'] !== 'string' || body['refresh_token'].length === 0) {
-    throw new Error('Token JSON refresh_token must be a non-empty string');
-  }
-  if ('refresh_token_expires_in' in body && body['refresh_token_expires_in'] !== undefined) {
-    if (typeof body['refresh_token_expires_in'] !== 'number' || !Number.isFinite(body['refresh_token_expires_in'])) {
-      throw new Error('Token JSON refresh_token_expires_in must be a finite number when present');
-    }
-  }
-  return body as TokenJson;
+export function assertTokenJsonShape(body: unknown): TokenJson {
+  if (Check(TokenJson, body)) return body;
+  const invalid = invalidFields(TokenJson, body);
+  const missing = TokenJson.required.find((key) => typeof body === 'object' && body !== null && !(key in body));
+  if (missing !== undefined) throw new Error(`Token JSON missing required field ${missing}`);
+  const [, message] = TOKEN_FIELD_ERRORS.find(([field]) => invalid.has(field)) ?? ['', 'Token JSON is malformed'];
+  throw new Error(message);
 }
 
 function redactSecret(value: string): RedactedSecret {

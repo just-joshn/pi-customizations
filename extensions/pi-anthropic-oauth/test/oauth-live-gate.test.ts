@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Type } from 'typebox';
 import { expect, onTestFinished, test } from 'vitest';
 import {
   AUTHORIZATION_CODE_RESPONSE_SHAPE,
@@ -14,6 +15,7 @@ import {
   LIVE_EXCHANGE_GATE_ID,
   parseLiveExchangeGateStatus,
 } from '../src/oauth-live-gate.ts';
+import { parseJson } from './support/json.ts';
 
 const FIXTURE = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)), 'token-endpoints-2.1.312.json');
 const GATES = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude', import.meta.url)), 'gates.md');
@@ -49,29 +51,21 @@ test('live exchange requires both the env flag and an approved gates.md section'
 });
 
 test('token JSON shape matches Claude token-endpoints fixture response fields', async () => {
-  const fixture = JSON.parse(await readFile(FIXTURE, 'utf8')) as {
-    authorization_code_response_fields: {
-      required: readonly string[];
-      optional: readonly string[];
-    };
-  };
+  const fixture = parseJson(Type.Object({ authorization_code_response_fields: Type.Object({ required: Type.Array(Type.String()), optional: Type.Array(Type.String()) }) }), await readFile(FIXTURE, 'utf8'));
   expect(fixture.authorization_code_response_fields.required).toStrictEqual([...AUTHORIZATION_CODE_RESPONSE_SHAPE.required]);
   expect(fixture.authorization_code_response_fields.optional).toStrictEqual([...AUTHORIZATION_CODE_RESPONSE_SHAPE.optional]);
 
-  const shaped = assertTokenJsonShape(
-    {
-      access_token: 'sk-ant-oat01-example',
-      refresh_token: 'sk-ant-ort01-example',
-      expires_in: 3600,
-      refresh_token_expires_in: 2_592_000,
-    },
-    fixture.authorization_code_response_fields,
-  );
+  const shaped = assertTokenJsonShape({
+    access_token: 'sk-ant-oat01-example',
+    refresh_token: 'sk-ant-ort01-example',
+    expires_in: 3600,
+    refresh_token_expires_in: 2_592_000,
+  });
   expect(shaped.expires_in).toBe(3600);
   expect(shaped.refresh_token).toBe('sk-ant-ort01-example');
 
-  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: 3600 }, fixture.authorization_code_response_fields)).toThrow(/refresh_token/);
-  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: '3600', refresh_token: 'y' }, fixture.authorization_code_response_fields)).toThrow(/expires_in/);
+  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: 3600 })).toThrow(/refresh_token/);
+  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: '3600', refresh_token: 'y' })).toThrow(/expires_in/);
 });
 
 test('redacted receipt omits secret values and keeps lengths plus numeric fields', async () => {
@@ -94,7 +88,7 @@ test('redacted receipt omits secret values and keeps lengths plus numeric fields
   expect(JSON.stringify(receipt)).not.toContain('sk-ant-oat01-aaaaaaaa');
   expect(JSON.stringify(receipt)).not.toContain('sk-ant-ort01-bbbbbbbb');
 
-  const example = JSON.parse(await readFile(EXAMPLE_RECEIPT, 'utf8')) as typeof receipt;
+  const example = parseJson(Type.Object({ unit: Type.String(), shape_ok: Type.Boolean() }), await readFile(EXAMPLE_RECEIPT, 'utf8'));
   expect(example.unit).toBe(LIVE_EXCHANGE_GATE_ID);
   expect(example.shape_ok).toBe(true);
   expect(JSON.stringify(example)).not.toMatch(/sk-ant-/);
@@ -103,6 +97,6 @@ test('redacted receipt omits secret values and keeps lengths plus numeric fields
   onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'live-exchange-redacted.json');
   await writeFile(path, `${JSON.stringify(receipt, null, 2)}\n`);
-  const written = JSON.parse(await readFile(path, 'utf8')) as typeof receipt;
+  const written = parseJson(Type.Object({ response: Type.Object({ keys: Type.Array(Type.String()) }) }), await readFile(path, 'utf8'));
   expect(written.response.keys).toStrictEqual(['access_token', 'expires_in', 'refresh_token', 'refresh_token_expires_in']);
 });
