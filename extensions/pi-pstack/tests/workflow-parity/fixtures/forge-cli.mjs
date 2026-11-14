@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { assignReviewIds } from './review-ids.ts';
 
@@ -39,10 +40,14 @@ function die(code, message) {
 }
 const out = (value) => {
   const query = tool === 'gh' ? argv.findIndex((arg) => arg === '--jq' || arg === '-q') : -1;
-  if (query !== -1 && argv[query + 1] !== '.') {
-    const result = sh('jq', ['-r', argv[query + 1]], { input: JSON.stringify(value) });
-    if (result.status !== 0) die(1, result.stderr || 'gh: jq failed');
-    process.stdout.write(result.stdout);
+  if (query !== -1) {
+    if (argv[query + 1] === undefined) die(1, `gh: ${argv[query]} requires a query`);
+    try {
+      const result = jq.raw(JSON.stringify(value), argv[query + 1], ['-r', '-c']);
+      if (result !== undefined) process.stdout.write(`${result}\n`);
+    } catch (error) {
+      die(1, `gh: jq failed: ${error.message}`);
+    }
     return;
   }
   process.stdout.write(typeof value === 'string' ? value : `${JSON.stringify(value)}\n`);
@@ -102,7 +107,7 @@ function sync(state) {
     const head = headOf(pr);
     if (head !== null && pr.ci.sha !== head) {
       if (pr.ci.sha !== null) {
-        pr.ci.history.push({ sha: pr.ci.sha, state: rollup(pr) });
+        pr.ci.history.push({ sha: pr.ci.sha, state: rollup(pr), checks: clone(pr.checks) });
         pr.ci.wave += 1;
       }
       pr.ci.sha = head;
@@ -243,17 +248,38 @@ function replyTo(state, pr, commentId, body) {
   return thread;
 }
 
-function mergeInto(state, pr, requested) {
+function mergeInto(state, pr, requested, mode = 'squash') {
   const base = tipOf(pr.base);
   const head = headOf(pr);
-  const tree = git('merge-tree', '--write-tree', '--no-messages', base, head);
-  if (tree.status !== 0) die(1, `gh: pull request #${pr.number} is not mergeable: merge conflict`);
-  const sha = sh('git', ['--git-dir', BARE, '-c', 'user.name=forge', '-c', 'user.email=forge@example.com', 'commit-tree', tree.stdout.trim(), '-p', base, '-m', `${pr.title} (#${pr.number})`]).stdout.trim();
-  git('update-ref', `refs/heads/${pr.base}`, sha, base);
+  let sha;
+  if (mode === 'rebase') {
+    const tmp = mkdtempSync(join(tmpdir(), 'forge-rebase-'));
+    try {
+      const cloned = sh('git', ['clone', '-q', BARE, tmp]);
+      if (cloned.status !== 0) throw new Error(`gh: cannot prepare rebase: ${cloned.stderr}`);
+      const ancestor = git('merge-base', base, head);
+      if (ancestor.status !== 0) throw new Error('gh: cannot rebase unrelated histories');
+      const rebased = sh('git', ['-C', tmp, '-c', 'user.name=forge', '-c', 'user.email=forge@example.com', '-c', 'commit.gpgsign=false', 'rebase', '--force-rebase', '--onto', base, ancestor.stdout.trim(), head]);
+      if (rebased.status !== 0) throw new Error(`gh: pull request #${pr.number} cannot be rebased: ${rebased.stderr}${rebased.stdout}`);
+      const imported = git('fetch', '-q', tmp, 'HEAD');
+      if (imported.status !== 0) throw new Error(`gh: cannot import rebased commits: ${imported.stderr}`);
+      sha = git('rev-parse', 'FETCH_HEAD').stdout.trim();
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  } else {
+    const tree = git('merge-tree', '--write-tree', '--no-messages', base, head);
+    if (tree.status !== 0) die(1, `gh: pull request #${pr.number} is not mergeable: merge conflict`);
+    const committed = sh('git', ['--git-dir', BARE, '-c', 'user.name=forge', '-c', 'user.email=forge@example.com', 'commit-tree', tree.stdout.trim(), '-p', base, ...(mode === 'merge' ? ['-p', head] : []), '-m', `${pr.title} (#${pr.number})`]);
+    if (committed.status !== 0) die(1, `gh: cannot create ${mode} commit: ${committed.stderr}`);
+    sha = committed.stdout.trim();
+  }
+  const updated = git('update-ref', `refs/heads/${pr.base}`, sha, base);
+  if (updated.status !== 0) die(1, `gh: cannot update base branch: ${updated.stderr}`);
   pr.state = 'MERGED';
   pr.mergedAt = new Date().toISOString();
   pr.mergedHead = head;
-  log({ kind: 'merge', pr: pr.number, head, base: pr.base, mergedInto: sha, requested, tipBefore: base });
+  log({ kind: 'merge', pr: pr.number, head, base: pr.base, mergedInto: sha, requested, tipBefore: base, mode });
 }
 
 function runEvents(state, op, pr, text) {
@@ -384,8 +410,10 @@ function gh(state) {
     return out('Logged in to github.com (fake forge)\n');
   }
   if (group === 'api') {
-    const target = argv.find((arg) => /^repos\//.test(arg) || arg === 'graphql');
+    const target = argv.find((arg) => /^repos\//.test(arg) || arg === 'graphql')?.replaceAll('{owner}', state.repo.owner).replaceAll('{repo}', state.repo.name);
     if (target === 'graphql') return graphql(state);
+    const repository = `repos/${repoName(state.repo)}`;
+    if (target?.startsWith('repos/') && target !== repository && !target.startsWith(`${repository}/`)) die(1, 'gh: repository not found (HTTP 404)');
     if (target === `repos/${repoName(state.repo)}`) {
       log({ kind: 'read', what: 'repo-api' });
       return out({ name: state.repo.name, full_name: repoName(state.repo), owner: { login: state.repo.owner }, default_branch: state.repo.trunk, allow_squash_merge: true, allow_merge_commit: true, allow_rebase_merge: true });
@@ -393,6 +421,20 @@ function gh(state) {
     if (target === `repos/${repoName(state.repo)}/actions/secrets`) {
       log({ kind: 'read', what: 'action-secrets' });
       return out({ total_count: 0, secrets: [] });
+    }
+    const checkRuns = /^repos\/[^/]+\/[^/]+\/commits\/([^/]+)\/check-runs$/.exec(target ?? '');
+    if (checkRuns !== null) {
+      if ((value('--method', '-X') ?? 'GET').toUpperCase() !== 'GET') die(1, 'gh: check-runs only supports GET');
+      const resolved = git('rev-parse', '--verify', '--end-of-options', `${decodeURIComponent(checkRuns[1])}^{commit}`);
+      if (resolved.status !== 0) die(1, `gh: unknown commit ref ${checkRuns[1]} (HTTP 422)`);
+      const sha = resolved.stdout.trim();
+      const runs = new Map();
+      for (const pr of Object.values(state.prs)) {
+        const checks = pr.ci.sha === sha ? readChecks(pr, true) : readChecks({ ...pr, checks: pr.ci.history.find((entry) => entry.sha === sha)?.checks ?? [] }, false);
+        for (const check of checks) runs.set(check.runId, { id: check.runId, name: check.name, head_sha: sha, status: check.state === 'PENDING' ? 'in_progress' : 'completed', conclusion: check.state === 'PENDING' ? null : check.state.toLowerCase(), details_url: check.link, html_url: check.link });
+      }
+      log({ kind: 'read', what: 'check-runs', head: sha });
+      return out({ total_count: runs.size, check_runs: [...runs.values()] });
     }
     const compare = /^repos\/[^/]+\/[^/]+\/compare\/(.+)\.\.\.(.+)$/.exec(target ?? '');
     if (compare !== null) {
@@ -525,6 +567,18 @@ function gh(state) {
     return undefined;
   }
   if (verb === 'merge') {
+    const supported = ['--merge', '-m', '--squash', '-s', '--rebase', '-r', '--auto', '--match-head-commit', '--repo', '-R'];
+    for (let i = 2; i < argv.length; i += 1) {
+      if (!argv[i].startsWith('-')) continue;
+      if (!supported.includes(argv[i])) die(1, `gh: unsupported merge flag ${argv[i]}`);
+      if (WITH_VALUE.includes(argv[i])) {
+        if (argv[i + 1] === undefined) die(1, `gh: ${argv[i]} requires a value`);
+        i += 1;
+      }
+    }
+    const modes = ['merge', 'squash', 'rebase'].filter((mode) => flag(`--${mode}`) || flag(`-${mode[0]}`));
+    if (modes.length > 1) die(1, 'gh: select only one merge strategy');
+    if (modes.length === 0 && !state.queue && !flag('--auto')) die(1, 'gh: a merge strategy is required');
     needToken(true);
     const match = value('--match-head-commit');
     if (match !== undefined && match !== headOf(pr)) {
@@ -541,7 +595,7 @@ function gh(state) {
       log({ kind: 'merge-queued', pr: pr.number, head: headOf(pr) });
       return out(`Pull request #${pr.number} added to the merge queue\n`);
     }
-    mergeInto(state, pr, match ?? null);
+    mergeInto(state, pr, match ?? null, modes[0]);
     return out(`Merged pull request #${pr.number}\n`);
   }
   die(1, `gh: unsupported pr ${verb}`);
@@ -652,6 +706,7 @@ if (argv[0] === 'pr' && argv[1] === 'edit') {
     i += 1;
   }
 }
+const jq = tool === 'gh' && argv.some((arg) => arg === '--jq' || arg === '-q') ? await (await import(pathToFileURL(join(DIR, 'jq', 'jq.js')).href)).default : null;
 const release = lock();
 process.on('exit', release);
 try {

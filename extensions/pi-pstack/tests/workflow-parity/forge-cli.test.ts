@@ -1,6 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -49,6 +49,31 @@ function fixture(): { ctx: Ctx; forge: ForgeHandle } {
 
 function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
+}
+
+function topicFixture() {
+  const { ctx, forge } = fixture();
+  const git = (...args: string[]) => execFileSync('git', ['-C', ctx.repo, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8' }).trim();
+  git('checkout', '-qb', 'topic');
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'first\n');
+  git('add', '.');
+  git('commit', '-qm', 'first topic commit');
+  const first = git('rev-parse', 'HEAD');
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'second\n');
+  git('commit', '-qam', 'second topic commit');
+  const head = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'topic');
+  git('checkout', '-q', 'main');
+  writeFileSync(join(ctx.repo, 'trunk.txt'), 'trunk\n');
+  git('add', '.');
+  git('commit', '-qm', 'trunk commit');
+  const base = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'main');
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].head = 'topic';
+  writeFileSync(path, JSON.stringify(state));
+  return { ctx, forge, git, first, head, base };
 }
 
 test('PR view accepts an explicit branch rather than silently using the current branch', () => {
@@ -209,6 +234,151 @@ test('the identity jq expression works without an external jq executable', () =>
   expect(JSON.parse(result.stdout)).toEqual({ name: 'repo' });
 });
 
+// https://cli.github.com/manual/gh_help_formatting specifies embedded jq, including filters and new structures.
+test.each(['absent', 'poisoned'])('jq queries use real offline semantics when the external executable is %s', (executable) => {
+  const { ctx, forge } = fixture();
+  const bin = join(ctx.sandbox, 'query-path');
+  mkdirSync(bin);
+  symlinkSync(execFileSync('which', ['git'], { encoding: 'utf8' }).trim(), join(bin, 'git'));
+  const marker = join(ctx.sandbox, 'external-jq-called');
+  if (executable === 'poisoned') {
+    writeFileSync(join(bin, 'jq'), `#!/bin/sh\nprintf called > '${marker}'\nexit 99\n`);
+    chmodSync(join(bin, 'jq'), 0o755);
+  } else {
+    expect(spawnSync('jq', ['--version'], { env: { PATH: bin } }).error).toMatchObject({ code: 'ENOENT' });
+  }
+  const isolated = join(ctx.sandbox, 'isolated-cli');
+  mkdirSync(isolated);
+  const cli = join(isolated, 'forge-cli.mjs');
+  copyFileSync(FORGE_CLI, cli);
+  copyFileSync(join(dirname(FORGE_CLI), 'review-ids.ts'), join(isolated, 'review-ids.ts'));
+  const dependency = spawnSync(process.execPath, ['--input-type=module', '-e', 'import("jq-web")'], { cwd: isolated, encoding: 'utf8' });
+  expect(dependency.status).not.toBe(0);
+  expect(dependency.stderr).toContain('ERR_MODULE_NOT_FOUND');
+  const query = (...args: string[]) => spawnSync(process.execPath, [cli, 'gh', ...args], { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare, PATH: bin } });
+  const filtered = query('pr', 'list', '--json', 'number,title,author', '--jq', 'map(select(.number > 70)) | map({id: .number, login: .author.login, label: (.title | ascii_upcase)})');
+  expect(filtered.status, filtered.stderr).toBe(0);
+  expect(JSON.parse(filtered.stdout)).toEqual([{ id: 71, login: 'fixture', label: 'REVIEW' }]);
+  const stream = query('repo', 'view', '--json', 'name,owner', '-q', '.name, .owner.login, ([2,3,5] | reduce .[] as $n (0; . + $n))');
+  expect(stream.status, stream.stderr).toBe(0);
+  expect(stream.stdout).toBe('repo\nfixture\n10\n');
+  const empty = query('pr', 'list', '--json', 'number', '-q', '.[] | select(.number < 0)');
+  expect(empty.status, empty.stderr).toBe(0);
+  expect(empty.stdout).toBe('');
+  for (const expression of ['map(', 'error("query runtime failure")']) {
+    const invalid = query('repo', 'view', '--json', 'name', '--jq', expression);
+    expect(invalid.status).not.toBe(0);
+    expect(invalid.stderr).toMatch(/jq|compile|runtime failure/i);
+    expect(invalid.stdout).toBe('');
+  }
+  expect(existsSync(marker)).toBe(false);
+});
+
+// https://cli.github.com/manual/gh_api documents endpoint placeholder substitution.
+test('repository API substitutes owner and repo placeholders', () => {
+  const { ctx, forge } = fixture();
+  const result = call(ctx, forge, 'gh', 'api', 'repos/{owner}/{repo}');
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ full_name: 'fixture/repo', default_branch: 'main' });
+  expect(call(ctx, forge, 'gh', 'api', 'repos/other/repo').status).not.toBe(0);
+});
+
+// https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference associates each run with head_sha.
+test('commit check runs report pending and settled conclusions only for the requested SHA', () => {
+  const { ctx, forge, git, first, head } = topicFixture();
+  const path = join(forge.dir, 'state.json');
+  const state = JSON.parse(readFileSync(path, 'utf8'));
+  state.prs['71'].ci.waves = [[{ name: 'old build', runId: 801, state: 'SUCCESS' }], [{ name: 'new build', runId: 802, state: 'PENDING', pendingReads: 1 }]];
+  state.prs['72'] = { ...state.prs['71'], number: 72, head: 'main', ci: { ...state.prs['71'].ci, waves: [[{ name: 'unrelated build', runId: 803, state: 'FAILURE' }]] } };
+  git('push', '-q', '--force', 'origin', `${first}:refs/heads/topic`);
+  writeFileSync(path, JSON.stringify(state));
+  const runs = (ref: string) => {
+    const result = call(ctx, forge, 'gh', 'api', `repos/{owner}/{repo}/commits/${ref}/check-runs`);
+    expect(result.status, result.stderr).toBe(0);
+    return JSON.parse(result.stdout);
+  };
+  expect(runs(first)).toMatchObject({ total_count: 1, check_runs: [{ id: 801, name: 'old build', head_sha: first, status: 'completed', conclusion: 'success' }] });
+  git('push', '-q', '--force', 'origin', `${head}:refs/heads/topic`);
+  expect(runs(head)).toMatchObject({ total_count: 1, check_runs: [{ id: 802, name: 'new build', head_sha: head, status: 'in_progress', conclusion: null, details_url: 'https://github.com/fixture/repo/actions/runs/802' }] });
+  expect(runs('topic')).toMatchObject({ total_count: 1, check_runs: [{ id: 802, head_sha: head, status: 'completed', conclusion: 'success' }] });
+  expect(runs(first)).toMatchObject({ total_count: 1, check_runs: [{ id: 801, head_sha: first, conclusion: 'success' }] });
+  expect(runs(ctx.base)).toEqual({ total_count: 0, check_runs: [] });
+  for (const target of [`repos/fixture/repo/commits/missing/check-runs`, `repos/other/repo/commits/${head}/check-runs`]) {
+    const invalid = call(ctx, forge, 'gh', 'api', target);
+    expect(invalid.status).not.toBe(0);
+    expect(invalid.stderr).toMatch(/404|422|not found|unknown/i);
+    expect(invalid.stdout).toBe('');
+  }
+  expect(call(ctx, forge, 'gh', 'api', `repos/fixture/repo/commits/${head}/check-runs`, '-X', 'POST').status).not.toBe(0);
+});
+
+test.each(['SUCCESS', 'FAILURE', 'PENDING'])('commit check runs expose REST status and conclusion for %s', (state) => {
+  const { ctx, forge } = fixture();
+  const path = join(forge.dir, 'state.json');
+  const stored = JSON.parse(readFileSync(path, 'utf8'));
+  stored.prs['71'].ci.waves = [[{ name: 'build', runId: 9071, state }]];
+  writeFileSync(path, JSON.stringify(stored));
+  const result = call(ctx, forge, 'gh', 'api', `repos/fixture/repo/commits/${ctx.base}/check-runs`);
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ total_count: 1, check_runs: [{ id: 9071, head_sha: ctx.base, status: state === 'PENDING' ? 'in_progress' : 'completed', conclusion: state === 'PENDING' ? null : state.toLowerCase() }] });
+});
+
+// https://cli.github.com/manual/gh_pr_merge defines the merge, squash, and rebase strategies.
+test.each(['--merge', '-m', '--squash', '-s', '--rebase', '-r'])('PR merge %s preserves the strategy in real git ancestry', (strategy) => {
+  const { ctx, forge, base, head } = topicFixture();
+  const path = join(forge.dir, 'state.json');
+  const inode = statSync(path).ino;
+  const result = call(ctx, forge, 'gh', 'pr', 'merge', '71', strategy, '--match-head-commit', head);
+  expect(result.status, result.stderr).toBe(0);
+  const merged = forge.tip('main');
+  const git = (...args: string[]) => execFileSync('git', ['--git-dir', forge.bare, ...args], { encoding: 'utf8' }).trim();
+  const parents = git('show', '-s', '--format=%P', merged).split(' ');
+  if (strategy === '--merge' || strategy === '-m') {
+    expect(parents).toEqual([base, head]);
+  } else if (strategy === '--squash' || strategy === '-s') {
+    expect(parents).toEqual([base]);
+    expect(git('rev-list', '--count', `${base}..${merged}`)).toBe('1');
+  } else {
+    expect(parents).toHaveLength(1);
+    expect(git('rev-list', '--count', `${base}..${merged}`)).toBe('2');
+    expect(git('log', '--reverse', '--format=%s', `${base}..${merged}`)).toBe('first topic commit\nsecond topic commit');
+    expect(merged).not.toBe(head);
+    expect(git('rev-parse', `${merged}~2`)).toBe(base);
+  }
+  expect(git('show', `${merged}:topic.txt`)).toBe('second');
+  expect(git('show', `${merged}:trunk.txt`)).toBe('trunk');
+  expect(forge.tip('topic')).toBe(head);
+  expect(JSON.parse(readFileSync(path, 'utf8')).prs['71']).toMatchObject({ state: 'MERGED', mergedHead: head });
+  expect(statSync(path).ino).toBe(inode);
+});
+
+test.each([{ flags: ['--merge', '--squash'] }, { flags: ['--merge', '--rebase'] }, { flags: ['--octopus'] }, { flags: ['--merge', '--delete-branch'] }, { flags: [] }])(
+  'PR merge rejects unsupported or ambiguous modes $flags without changing refs or state',
+  ({ flags }) => {
+    const { ctx, forge, base } = topicFixture();
+    const result = call(ctx, forge, 'gh', 'pr', 'merge', '71', ...flags);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/unsupported|strategy|only one|unknown/i);
+    expect(forge.tip('main')).toBe(base);
+    expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['71'].state).toBe('OPEN');
+  },
+);
+
+test.each(['--merge', '--squash', '--rebase'])('PR merge %s rejects real conflicts without changing the base or marking the PR merged', (strategy) => {
+  const { ctx, forge, git } = topicFixture();
+  writeFileSync(join(ctx.repo, 'topic.txt'), 'conflicting trunk content\n');
+  git('add', '.');
+  git('commit', '-qm', 'conflict with topic');
+  const base = git('rev-parse', 'HEAD');
+  git('push', '-q', 'origin', 'main');
+  const result = call(ctx, forge, 'gh', 'pr', 'merge', '71', strategy);
+  expect(result.status).not.toBe(0);
+  expect(result.stderr).toMatch(/conflict|cannot be rebased/i);
+  expect(forge.tip('main')).toBe(base);
+  expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['71'].state).toBe('OPEN');
+  expect(existsSync(join(forge.dir, 'lock'))).toBe(false);
+});
+
 test('run list filters the real head branch and omits unrelated runs', () => {
   const { ctx, forge } = fixture();
   const listed = call(ctx, forge, 'gh', 'run', 'list', '--branch', 'main', '--json', 'databaseId,headBranch,headSha,status,conclusion');
@@ -252,7 +422,7 @@ test('freshness events accept upstream verdicts but not prose mentioning PASS', 
   expect(JSON.parse(readFileSync(path, 'utf8')).events[0].done).toBe(true);
 });
 
-test.skipIf(!engineAvailable())('a container reads every host forge comment in full', async () => {
+test.skipIf(process.env['PSTACK_NON_CONTAINER_TESTS'] === '1' || !engineAvailable())('a container reads every host forge comment in full', async () => {
   const { ctx, forge } = fixture();
   const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',[${JSON.stringify(FORGE_CLI)},'gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
   const child = spawn(
