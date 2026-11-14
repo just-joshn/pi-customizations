@@ -196,7 +196,7 @@ export function todoChecks(options: TodoOptions): Check[] {
         });
       const done = found.steps.filter((step) => step.state === 'done').length;
       return when(problems.length === 0 && done > 0, `${done} done steps, every cited receipt re-verifies`, problems.join('; ') || 'no step is done');
-    }),
+    }, 'adaptation'),
     check(`todo.${playbook}.skips-explained`, 'a skipped step names its reason, and no mandatory step is skipped', [SKIP_SRC, book], (view) => {
       const found = run(view);
       if (found === undefined) return fail('no run');
@@ -231,7 +231,12 @@ export function todoChecks(options: TodoOptions): Check[] {
         (worker.session?.toolCalls ?? []).some((call) => {
           const args = JSON.stringify(call.args);
           if (!args.includes(`${found?.id ?? '?'}/TODO.md`)) return false;
-          return call.name === 'write' || call.name === 'edit' || (call.name === 'bash' && /(>|sed -i|tee |mv |cp )/.test(String(call.args['command'])));
+          if (call.name === 'write' || call.name === 'edit') return true;
+          if (call.name !== 'bash') return false;
+          return String(call.args['command']).split(/&&|;|\n|\|/).some((command) => {
+            if (!command.includes(`${found?.id ?? '?'}/TODO.md`)) return false;
+            return />{1,2}\s*["']?[^\s"';&|]*\/TODO\.md\b/.test(command) || /\b(?:sed\s+-i|tee\s+|mv\s+)/.test(command) || /\bcp\s+.*\/TODO\.md["']?\s*$/.test(command);
+          });
         }),
       );
       return when(writers.length === 0, `${allWorkers(view).length} workers, none touched TODO.md`, `workers that wrote TODO.md: ${writers.map((worker) => worker.id).join(', ')}`);

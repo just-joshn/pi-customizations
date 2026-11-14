@@ -705,7 +705,7 @@ export const investigationFamily: Family = {
     citationsResolve('investigation.citations-resolve', src('poteto-mode/playbooks/investigation.md', 'cited explanation'), { min: 2 }),
     parentReads('investigation.applies-unslop', 'the parent opened the unslop skill for the reply', src('poteto-mode/playbooks/investigation.md', 'Apply the **unslop** skill to the reply'), ['unslop']),
     settledAndCollected('investigation.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
-    receiptsFor('investigation.receipts-recorded', 'four receipts are recorded under verification/receipts and re-verify', src('poteto-mode/SKILL.md', 'once `pstack_evidence` `verify` passes for it'), () => true, 4),
+    { ...receiptsFor('investigation.receipts-recorded', 'four receipts are recorded under verification/receipts and re-verify', src('poteto-mode/SKILL.md', 'once `pstack_evidence` `verify` passes for it'), () => true, 4), scope: 'adaptation' },
     noToolErrors('investigation.no-tool-errors', src('poteto-mode/playbooks/investigation.md', '**Reply:** the investigation output')),
   ],
   negatives: [

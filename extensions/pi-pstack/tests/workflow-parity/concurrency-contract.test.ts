@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { concurrencyFamily } from './families/concurrency.ts';
 import type { RunView } from './lib/view.ts';
@@ -40,7 +44,8 @@ test('keep-working is behavioral rather than a race with worker completion', () 
   next.name = 'pstack_worker';
   next.args = { action: 'collect', workerId: 'a' };
   next.at = '2026-01-01T00:00:01Z';
-  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: false });
+  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: true });
+  expect(run('parent-continues-independent-work', value)).toMatchObject({ ok: false });
 });
 
 test('assignment reasoning suffixes do not change model identity', () => {
@@ -55,6 +60,28 @@ test('assignment reasoning suffixes do not change model identity', () => {
 test('missing pane environment evidence is inconclusive, not a fabricated failure or pass', () => {
   expect(run('workers-get-their-own-pane-env')).toHaveProperty('inconclusive');
 });
+test('host-captured pane environments decide real runs without scripted worker files', () => {
+  const value = view();
+  const sandbox = mkdtempSync(join(tmpdir(), 'pane-capture-'));
+  value.sandbox = sandbox;
+  try {
+    const rows = value.runs.flatMap((run) => run.workers.map((worker, index) => ({ runId: run.id, workerId: worker.id, session: worker.state?.['tmuxSession'], pane: `%${index}`, envPane: `%${index}` })));
+    const save = () => writeFileSync(join(sandbox, 'worker-pane-identities.json'), JSON.stringify(rows));
+    save();
+    expect(run('workers-get-their-own-pane-env', value)).toMatchObject({ ok: true });
+    const first = rows[0];
+    if (first === undefined) throw new Error('Missing pane');
+    first.envPane = '%77';
+    save();
+    expect(run('workers-get-their-own-pane-env', value)).toMatchObject({ ok: false });
+    rows.pop();
+    save();
+    expect(run('workers-get-their-own-pane-env', value)).toHaveProperty('inconclusive');
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
 test('mismatched models, shared sessions, and different inputs still fail', () => {
   const value = view();
   const worker = value.runs[0]?.workers[0];

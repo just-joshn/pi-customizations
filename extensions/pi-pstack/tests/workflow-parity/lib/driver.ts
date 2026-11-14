@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'node:path';
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
 import { type ContainerCredentialProbe, type CredentialCapture, recordContainerCredentials, startCredentialCapture } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
+import { paneCapture } from './pane-identity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
@@ -384,7 +385,7 @@ function runActivity(repo: string): string {
   return `${JSON.stringify(workerPhases(repo))}${sizes.join(',')}`;
 }
 
-function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: Claim[]): () => void {
+function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: Claim[], capturePanes?: () => void): () => void {
   let seq = 0;
   const timer = setInterval(() => {
     try {
@@ -394,6 +395,7 @@ function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: 
     }
   }, 10);
   const observe = () => {
+    capturePanes?.();
     const runs = join(repo, '.pi', 'pstack', 'runs');
     if (!existsSync(runs)) return;
     for (const id of readdirSync(runs)) {
@@ -517,7 +519,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   };
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
-  const stopObserving = observeRuns(ctx.repo, history, claims);
+  const stopObserving = observeRuns(ctx.repo, history, claims, driver === 'real' && spec.family === 'worker-concurrency' ? paneCapture(ctx.repo, ctx.sandbox, socket) : undefined);
   const budget = options.budget ?? budgetOf(spec, driver);
   const startedAt = Date.now();
   let lastProgressAt = startedAt;

@@ -151,12 +151,23 @@ function observedUnits(view: RunView, units: Unit[]): Unit[] {
   });
 }
 
-export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => (assignmentOf(worker).role === 'verifier' || (assignmentOf(worker).role === 'general' && /\b(?:verifier|verify|audit)\b/i.test(worker.brief ?? ''))) && assignmentOf(worker).workspace?.inputCommit === head);
+export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => {
+  const assignment = assignmentOf(worker);
+  if (head === undefined || !(assignment.role === 'verifier' || (assignment.role === 'general' && /\b(?:verifier|verify|audit)\b/i.test(worker.brief ?? '')))) return false;
+  if (assignment.workspace?.inputCommit === head) return true;
+  const path = assignment.workspace?.path;
+  if (assignment.workspace?.mode !== 'readonly' || path === undefined || worker.session?.cwd !== path || !worker.brief?.includes(head)) return false;
+  return worker.session.toolCalls.some((call) => {
+    const command = String(call.args['command']);
+    const lines = call.resultText.split('\n').map((line) => line.trim());
+    return call.name === 'bash_readonly' && !call.isError && /\bpwd\b/.test(command) && /\bgit rev-parse HEAD\b/.test(command) && !/\bcd\b|\bgit\s+-C\b/.test(command) && lines.includes(path) && lines.filter((line) => /^[0-9a-f]{40}$/.test(line)).join() === head;
+  });
+});
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
   const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
-  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s+)?(?:FAIL|ISSUES|BLOCKED)\b/i.test(report)) return false;
-  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
+  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s*:?\s+)?(?:FAIL|ISSUES|BLOCKED|INCONCLUSIVE)\b/i.test(report)) return false;
+  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s*:?\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
   const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.verifier === worker.id && verdict.head === head).at(-1);
   return posted !== undefined && posted.author === worker.id && posted.verdict !== 'FAIL';
@@ -228,7 +239,7 @@ function verifiersIndependent(id: string, source: Src | Src[], units: (view: Run
     const problems = wanted.flatMap((unit) => {
       const owner = ownerWorkers(view).find((worker) => worker.id === unit.id);
       const lanes = verificationWorkers(view, unit.sha);
-      if (owner === undefined || lanes.length === 0) return [`PR ${unit.pr} lacks an owner or verifier lanes`];
+      if (owner === undefined || lanes.length === 0) return [`PR ${unit.pr} lacks an owner or a verifier with an established head ${unit.sha}; readonly lanes need a matching brief, session cwd, and successful pwd plus git rev-parse HEAD observation`];
       const ownerRun = view.runs.find((entry) => entry.workers.includes(owner));
       const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === owner.id && message.details?.['runId'] === ownerRun?.id)?.order ?? Number.POSITIVE_INFINITY;
       const ambiguous = new Set(lanes.map((worker) => worker.brief)).size !== lanes.length;

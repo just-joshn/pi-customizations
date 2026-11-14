@@ -2,7 +2,7 @@
 // the patch it examined, only the contiguous verified run from the root landing, bottom-up, never a merge from green CI.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { bareOf, editForge, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, forgeEnv, patchIdOf, readForge, revParse, setupForge, WATCH_PR, writeContainerScenario } from '../fixtures/forge.ts';
@@ -312,16 +312,16 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const selected = verifierFor(view, n);
         const worker = selected?.id;
         const run = view.runs.find((entry) => selected !== undefined && entry.workers.includes(selected));
-        const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.artifacts.some((artifact) => artifact.path.startsWith(`${selected?.dir}/`))) ?? [];
+        const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${selected?.dir}/evidence/`))) ?? [];
         const receipt = receipts.find((entry) => (entry.verdict === 'pass') !== (verdicts.find((verdict) => verdict.pr === n)?.verdict === 'FAIL'));
         if (receipt === undefined || run === undefined) return [`${worker} has no recorded receipt`];
         const posted = verdicts.find((verdict) => verdict.pr === n)?.verdict;
-        const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(artifact.path) && artifact.path.startsWith(`${selected?.dir}/`));
+        const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(resolve(run.dir, artifact.path)) && resolve(run.dir, artifact.path).startsWith(`${selected?.dir}/evidence/`));
         const hashes = verifyReceipt(run, { ...receipt, verdict: 'pass' });
         return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : [])];
       });
       return when(problems.length === 0, 'three ingested receipts, artifacts inside each verifier\'s folder, verdicts consistent', problems.join('; '));
-    }, prefix === 'ship' ? 'adaptation' : 'upstream'),
+    }, 'adaptation'),
   ];
 }
 
