@@ -1,4 +1,5 @@
-import { chmod, mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { chmod, mkdir, mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -34,18 +35,18 @@ async function holdClaim(directory: string, held: OAuthCredential, signal: Abort
   const inRefresh = new Promise<void>((resolve) => {
     entered = resolve;
   });
-  const rotation = rotateRefreshToken(
+  const rotation = rotateRefreshToken({
     directory,
-    held,
-    () => {
+    credential: held,
+    refresh: () => {
       entered();
       return new Promise<OAuthCredential>((resolve, reject) => {
         settle = (outcome) => (outcome instanceof Error ? reject(outcome) : resolve(outcome));
       });
     },
-    {},
+    options: {},
     signal,
-  );
+  });
   await inRefresh;
   return { settle: (outcome: OAuthCredential | Error) => settle(outcome), rotation };
 }
@@ -59,11 +60,11 @@ test('a contended claim retries with the configured delays then rejects with ELO
   const refresh = returning(credential('never'));
 
   await expect(
-    rotateRefreshToken(
+    rotateRefreshToken({
       directory,
-      a,
+      credential: a,
       refresh,
-      {
+      options: {
         retries: REFRESH_CLAIM_MAX_RETRIES,
         retryDelayMs: () => {
           delays.push(3);
@@ -71,7 +72,7 @@ test('a contended claim retries with the configured delays then rejects with ELO
         },
       },
       signal,
-    ),
+    }),
   ).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED, file: directory });
   expect(delays).toStrictEqual(Array(REFRESH_CLAIM_MAX_RETRIES).fill(3));
   expect(refresh).not.toHaveBeenCalled();
@@ -88,7 +89,7 @@ test('a stale claim is taken over and refresh runs once', async ({ signal }) => 
   await age(directory, 60_000);
   const refresh = returning(b);
 
-  await expect(rotateRefreshToken(directory, a, refresh, { staleMs: 1_000, retries: 0 }, signal)).resolves.toStrictEqual(b);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: { staleMs: 1_000, retries: 0 }, signal })).resolves.toStrictEqual(b);
   expect(refresh.mock.calls.map(([sent]) => sent.refresh)).toStrictEqual([a.refresh]);
   expect(await readdir(directory)).toHaveLength(2);
 
@@ -102,8 +103,8 @@ test('a failed refresh rejects and a later call claims and refreshes', async ({ 
   const b = credential('b');
   const options = { retries: 0, staleMs: 0 };
 
-  await expect(rotateRefreshToken(directory, a, async () => Promise.reject(new Error('network down')), options, signal)).rejects.toThrow('network down');
-  await expect(rotateRefreshToken(directory, a, returning(b), options, signal)).resolves.toStrictEqual(b);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh: async () => Promise.reject(new Error('network down')), options, signal })).rejects.toThrow('network down');
+  await expect(rotateRefreshToken({ directory, credential: a, refresh: returning(b), options, signal })).resolves.toStrictEqual(b);
 });
 
 test('staleMs 0 never takes over an old claim', async ({ signal }) => {
@@ -113,7 +114,7 @@ test('staleMs 0 never takes over an old claim', async ({ signal }) => {
   await age(directory, HOUR);
   const refresh = returning(credential('b'));
 
-  await expect(rotateRefreshToken(directory, a, refresh, { staleMs: 0, retries: 0 }, signal)).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED });
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: { staleMs: 0, retries: 0 }, signal })).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED });
   expect(refresh).not.toHaveBeenCalled();
 
   settle(new Error('released'));
@@ -124,10 +125,10 @@ test('a recorded successor is returned without a refresh', async ({ signal }) =>
   const directory = await tempClaims();
   const a = credential('a');
   const b = credential('b');
-  await rotateRefreshToken(directory, a, returning(b), {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh: returning(b), options: {}, signal });
   const refresh = returning(credential('c'));
 
-  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(b);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal })).resolves.toStrictEqual(b);
   expect(refresh).not.toHaveBeenCalled();
 });
 
@@ -136,11 +137,11 @@ test('a chain of two successors returns the newest', async ({ signal }) => {
   const a = credential('a');
   const b = credential('b');
   const c = credential('c');
-  await rotateRefreshToken(directory, a, returning(b), {}, signal);
-  await rotateRefreshToken(directory, b, returning(c), {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh: returning(b), options: {}, signal });
+  await rotateRefreshToken({ directory, credential: b, refresh: returning(c), options: {}, signal });
   const refresh = returning(credential('d'));
 
-  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(c);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal })).resolves.toStrictEqual(c);
   expect(refresh).not.toHaveBeenCalled();
 });
 
@@ -149,11 +150,23 @@ test('an expiring newest successor is rotated with its own refresh token', async
   const a = credential('a');
   const expiring = credential('b', 60_000);
   const c = credential('c');
-  await rotateRefreshToken(directory, a, returning(expiring), {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh: returning(expiring), options: {}, signal });
   const refresh = returning(c);
 
-  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(c);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal })).resolves.toStrictEqual(c);
   expect(refresh.mock.calls.map(([sent]) => sent.refresh)).toStrictEqual([expiring.refresh]);
+});
+
+test('a later legacy share file is not followed when nothing claimed the credential', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const other = credential('other-account', 2 * HOUR);
+  const b = credential('b');
+  await writeFile(join(directory, '..', 'claude-subscription-refresh.json'), `${JSON.stringify(other)}\n`);
+  const refresh = returning(b);
+
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal })).resolves.toStrictEqual(b);
+  expect(refresh).toHaveBeenCalledTimes(1);
 });
 
 test.for([
@@ -164,17 +177,42 @@ test.for([
   const a = credential('a');
   const legacy = credential('legacy', legacyExpiresInMs);
   const b = credential('b');
+  await mkdir(directory, { recursive: true });
+  await writeFile(join(directory, `${createHash('sha256').update(a.refresh).digest('hex').slice(0, 32)}.1`), '');
+  await age(directory, 60_000);
   await writeFile(join(directory, '..', 'claude-subscription-refresh.json'), `${JSON.stringify(legacy)}\n`);
   const refresh = returning(b);
 
-  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(refreshes === 0 ? legacy : b);
+  await expect(rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal })).resolves.toStrictEqual(refreshes === 0 ? legacy : b);
   expect(refresh).toHaveBeenCalledTimes(refreshes);
+});
+
+test('a successor that keeps its refresh token is reused by a second caller', async ({ signal }) => {
+  const directory = await tempClaims();
+  const stale = credential('a', -1000);
+  const refresh = returning({ ...credential('fresh', 8 * HOUR), refresh: stale.refresh });
+  await rotateRefreshToken({ directory, credential: stale, refresh, signal });
+
+  await expect(rotateRefreshToken({ directory, credential: stale, refresh, options: { retries: 0 }, signal })).resolves.toMatchObject({ access: 'fresh-access' });
+  expect(refresh).toHaveBeenCalledTimes(1);
+});
+
+test('a successor that kept its refresh token can be refreshed again at once', async ({ signal }) => {
+  const directory = await tempClaims();
+  const original = credential('a', -1000);
+  const first = { ...credential('first', 8 * HOUR), refresh: original.refresh };
+  const second = { ...credential('second', 8 * HOUR), refresh: original.refresh };
+  const recovered = await rotateRefreshToken({ directory, credential: original, refresh: returning(first), signal });
+
+  const refresh = returning(second);
+  await expect(rotateRefreshToken({ directory, credential: recovered, refresh, options: { retries: 0 }, signal })).resolves.toStrictEqual(second);
+  expect(refresh).toHaveBeenCalledTimes(1);
 });
 
 test('claim file names do not contain the refresh token', async ({ signal }) => {
   const directory = await tempClaims();
   const a = credential('a');
-  await rotateRefreshToken(directory, a, returning(credential('b')), {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh: returning(credential('b')), options: {}, signal });
 
   const names = await readdir(directory);
   expect(names).toHaveLength(1);
@@ -183,7 +221,7 @@ test('claim file names do not contain the refresh token', async ({ signal }) => 
 
 test('a log entry is readable only by its owner', async ({ signal }) => {
   const directory = await tempClaims();
-  await rotateRefreshToken(directory, credential('a'), returning(credential('b')), {}, signal);
+  await rotateRefreshToken({ directory, credential: credential('a'), refresh: returning(credential('b')), options: {}, signal });
 
   const [entry] = await readdir(directory);
   if (entry === undefined) throw new Error('rotation left no log entry');
@@ -200,12 +238,12 @@ test.for([
   const a = credential('a');
   const b = credential('b');
   const liveCredential = () => (live === 'a' ? a : live === undefined ? undefined : credential(live));
-  await rotateRefreshToken(directory, a, returning(b), {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh: returning(b), options: {}, signal });
   await age(directory, agedMs);
-  await rotateRefreshToken(directory, credential('x'), returning(credential('y')), { liveCredential }, signal);
+  await rotateRefreshToken({ directory, credential: credential('x'), refresh: returning(credential('y')), options: { liveCredential }, signal });
   const refresh = returning(credential('c'));
 
-  await rotateRefreshToken(directory, a, refresh, {}, signal);
+  await rotateRefreshToken({ directory, credential: a, refresh, options: {}, signal });
   expect(refresh).toHaveBeenCalledTimes(swept ? 1 : 0);
 });
 
@@ -225,7 +263,7 @@ test('a started refresh is not cancelled by the caller signal', async () => {
     return next;
   });
 
-  await expect(rotateRefreshToken(directory, credential('a'), refresh, {}, caller.signal)).resolves.toStrictEqual(next);
+  await expect(rotateRefreshToken({ directory, credential: credential('a'), refresh, options: {}, signal: caller.signal })).resolves.toStrictEqual(next);
   expect(refreshCancelled).toBe(false);
 });
 
@@ -238,5 +276,5 @@ test('a refresh whose successor cannot be recorded still returns the new credent
     return next;
   });
 
-  await expect(rotateRefreshToken(directory, credential('a'), refresh, {}, signal)).resolves.toStrictEqual(next);
+  await expect(rotateRefreshToken({ directory, credential: credential('a'), refresh, options: {}, signal })).resolves.toStrictEqual(next);
 });

@@ -1,13 +1,17 @@
 import { readFile } from 'node:fs/promises';
 
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
+import { Type } from 'typebox';
 import { expect, vi } from 'vitest';
 import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES } from '../src/auth.ts';
 import { ask, PIXEL, user } from './support/context.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { test } from './support/fixtures.ts';
+import { parseJson } from './support/json.ts';
 import { soleRequest, systemTexts } from './support/request-body.ts';
 import { collect } from './support/run-stream.ts';
+
+const ClaudeReference = Type.Object({ prompt: Type.String(), billing: Type.String(), headers: Type.Object({ 'user-agent': Type.String() }) });
 
 const CAPTURED_BILLING = 'x-anthropic-billing-header: cc_version=2.1.316.959; cc_entrypoint=sdk-cli;';
 
@@ -57,7 +61,7 @@ test('concurrent requests keep identity request-local', async ({ models, model, 
 });
 
 test('identity matches the current Claude SDK fixture', async ({ models, model, server }) => {
-  const reference = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.316.json', import.meta.url), 'utf8'));
+  const reference = parseJson(ClaudeReference, await readFile(new URL('./fixtures/claude-code-2.1.316.json', import.meta.url), 'utf8'));
   await collect(models.streamSimple(model, ask(reference.prompt)));
   expect(systemTexts(soleRequest(server).body)[0]).toBe(reference.billing);
   expect(soleRequest(server).headers['user-agent']).toBe(reference.headers['user-agent']);
@@ -116,9 +120,9 @@ test('login uses Claude paste-code authorize URL with independent exchange state
       },
     },
   ]);
-  const exchange = tokenEndpoint.requests[0]?.body as { code_verifier?: string; state?: string };
-  expect(exchange.state).toBe(state);
-  expect(exchange.code_verifier).not.toBe(state);
+  const exchange = tokenEndpoint.requests[0]?.body;
+  expect(exchange).toHaveProperty('state', state);
+  expect(exchange).not.toHaveProperty('code_verifier', state);
   await expect(credentials.read(provider.id)).resolves.toStrictEqual(credential);
 });
 

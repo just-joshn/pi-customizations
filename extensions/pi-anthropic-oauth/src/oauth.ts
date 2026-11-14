@@ -2,22 +2,20 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
 import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
+import { type Static, Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { resolveCustomOAuthBase } from './allowed-oauth-bases.ts';
 import { importClaudeAiOauth } from './claude-credentials.ts';
 import { isRequestId } from './identity.ts';
 
-/** Claude Code 2.1.316 cai authorize origin and path. */
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
 export const CLAUDE_AUTHORIZE_URL = `${CLAUDE_AUTHORIZE_ORIGIN}${CLAUDE_AUTHORIZE_PATH}`;
 
-/** Prod CLIENT_ID from Claude Code config. */
 export const CLAUDE_OAUTH_CLIENT_ID = '9d1c250a-e61b-44d9-88ed-5944d1962f5e';
 
-/** Login scopes from gto() including user:plugins. */
 export const CLAUDE_LOGIN_SCOPES = ['org:create_api_key', 'user:profile', 'user:inference', 'user:sessions:claude_code', 'user:mcp_servers', 'user:file_upload', 'user:plugins'] as const;
 
-/** Refresh scopes from Zxt(); omits org:create_api_key. */
 export const CLAUDE_REFRESH_SCOPES = ['user:profile', 'user:inference', 'user:sessions:claude_code', 'user:mcp_servers', 'user:file_upload', 'user:plugins'] as const;
 
 export const CLAUDE_OAUTH_SCOPES = CLAUDE_LOGIN_SCOPES.join(' ');
@@ -34,9 +32,7 @@ export const CLAUDE_CLIENT_ID_ENV = 'CLAUDE_CODE_OAUTH_CLIENT_ID';
 export type ClaudeOAuthEndpoints = {
   authorizeUrl: string;
   tokenUrl: string;
-  /** Claude `TOKEN_URL` + `/revoke`. */
   revokeUrl: string;
-  /** Claude `BASE_API_URL`: host of the profile, validate, roles and create-api-key calls. */
   apiBaseUrl: string;
   copyCodeRedirectUri: string;
   clientId: string;
@@ -64,11 +60,7 @@ export function prodClaudeOAuthEndpoints(): ClaudeOAuthEndpoints {
   };
 }
 
-/**
- * Claude `nn()`: a custom OAuth base replaces every URL and drops the plugins scope.
- * `CLAUDE_CODE_OAUTH_CLIENT_ID` replaces the client id and also drops the plugins scope.
- */
-export function resolveClaudeOAuthEndpoints(customOAuthUrl?: string, clientIdOverride?: string): ClaudeOAuthEndpoints {
+export function resolveClaudeOAuthEndpoints({ customOAuthUrl, clientId: clientIdOverride }: { customOAuthUrl?: string | undefined; clientId?: string | undefined } = {}): ClaudeOAuthEndpoints {
   const base = resolveCustomOAuthBase(customOAuthUrl);
   const prod = prodClaudeOAuthEndpoints();
   const withClient = (endpoints: ClaudeOAuthEndpoints): ClaudeOAuthEndpoints => (clientIdOverride ? { ...endpoints, clientId: clientIdOverride, ...oauthScopes(false) } : endpoints);
@@ -91,7 +83,6 @@ const LOOPBACK_REDIRECT_HOST = 'localhost';
 export const LOGIN_CANCELLED = 'Login cancelled';
 export const LOGIN_TIMED_OUT = 'Login timed out';
 
-/** Claude's paste prompt and rejections, verbatim from the 2.1.316 paste handler. */
 export const PASTE_PROMPT = 'Paste code here if prompted > ';
 export const PASTE_INVALID_CODE = 'Invalid code. Please make sure the full code was copied.';
 export const PASTE_WRONG_SIGNIN = 'That code is not from this sign-in. Paste the code shown after opening the address above.';
@@ -107,17 +98,23 @@ export function refreshHttpError(statusText: string): string {
   return `Token refresh failed: ${statusText}`;
 }
 
-export function tokenEndpointHttpError(grantType: string, status: number, statusText: string): string {
-  if (grantType === 'authorization_code') return exchangeHttpError(status, statusText);
-  if (grantType === 'refresh_token') return refreshHttpError(statusText);
-  return `HTTP request failed. status=${status}; url=${CLAUDE_TOKEN_URL}`;
+export function tokenEndpointHttpError({ grantType, status, statusText }: { grantType: TokenRequest['grant_type']; status: number; statusText: string }): string {
+  switch (grantType) {
+    case 'authorization_code':
+      return exchangeHttpError(status, statusText);
+    case 'refresh_token':
+      return refreshHttpError(statusText);
+    default: {
+      const _exhaustive: never = grantType;
+      throw new Error(`Unhandled grant type: ${String(_exhaustive)}`);
+    }
+  }
 }
 
 export function isClaudeTokenEndpointError(message: string): boolean {
   return message === EXCHANGE_INVALID_CODE || /^Token exchange failed \(\d+\):/.test(message) || message.startsWith('Token refresh failed:');
 }
 
-/** Append order from Claude Y9r for the standard cai login. */
 export const CLAUDE_AUTHORIZE_QUERY_ORDER = ['code', 'client_id', 'response_type', 'redirect_uri', 'scope', 'code_challenge', 'code_challenge_method', 'state'] as const;
 
 const TOKEN_TIMEOUT_MS = 30_000;
@@ -130,7 +127,7 @@ type ClaudeRevokeHint = 'access_token' | 'refresh_token';
 export type ClaudeRevokeTarget = { revokeUrl?: string; clientId?: string };
 
 /** POST `/revoke`. True only for a 2xx the Anthropic edge stamped with a request id, as Claude counts an acknowledgement. */
-async function revokeOAuthToken(token: string, signal: AbortSignal, hint: ClaudeRevokeHint, target: ClaudeRevokeTarget): Promise<boolean> {
+async function revokeOAuthToken({ token, hint, target, signal }: { token: string; hint: ClaudeRevokeHint; target: ClaudeRevokeTarget; signal: AbortSignal }): Promise<boolean> {
   signal.throwIfAborted();
   try {
     const response = await fetch(target.revokeUrl ?? CLAUDE_REVOKE_URL, {
@@ -151,11 +148,11 @@ async function revokeOAuthToken(token: string, signal: AbortSignal, hint: Claude
 }
 
 export function revokeAccessToken(access: string, signal: AbortSignal, target: ClaudeRevokeTarget = {}): Promise<boolean> {
-  return revokeOAuthToken(access, signal, 'access_token', target);
+  return revokeOAuthToken({ token: access, hint: 'access_token', target, signal });
 }
 
 export function revokeRefreshToken(refresh: string, signal: AbortSignal, target: ClaudeRevokeTarget = {}): Promise<boolean> {
-  return revokeOAuthToken(refresh, signal, 'refresh_token', target);
+  return revokeOAuthToken({ token: refresh, hint: 'refresh_token', target, signal });
 }
 
 type ClaudeLoginMethod = 'copy-code' | 'loopback' | 'import';
@@ -190,43 +187,41 @@ export function buildAuthorizeUrl(input: { challenge: string; state: string; red
   return `${input.authorizeUrl ?? CLAUDE_AUTHORIZE_URL}?${params.toString()}`;
 }
 
-function parseAuthorizationInput(input: string): { code?: string; state?: string } {
+type AuthorizationInput = { readonly code: string; readonly state: string };
+
+function authorizationInput({ code, state }: { code: string | null | undefined; state: string | null | undefined }): AuthorizationInput | undefined {
+  return code && state ? { code, state } : undefined;
+}
+
+function parseAuthorizationInput(input: string): AuthorizationInput | undefined {
   const value = input.trim();
-  if (!value) return {};
+  if (!value) return undefined;
   try {
     const url = new URL(value);
-    const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state');
-    return {
-      ...(code !== null ? { code } : {}),
-      ...(state !== null ? { state } : {}),
-    };
+    return authorizationInput({ code: url.searchParams.get('code'), state: url.searchParams.get('state') });
   } catch {}
   if (value.includes('#')) {
     const [code, state] = value.split('#', 2);
-    return {
-      ...(code !== undefined && code !== '' ? { code } : {}),
-      ...(state !== undefined && state !== '' ? { state } : {}),
-    };
+    return authorizationInput({ code, state });
   }
   if (value.includes('code=')) {
     const params = new URLSearchParams(value);
-    const code = params.get('code');
-    const state = params.get('state');
-    return {
-      ...(code !== null ? { code } : {}),
-      ...(state !== null ? { state } : {}),
-    };
+    return authorizationInput({ code: params.get('code'), state: params.get('state') });
   }
-  return { code: value };
+  return undefined;
 }
 
-interface TokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-  refresh_token_expires_in?: number;
-}
+type TokenRequest =
+  | { grant_type: 'authorization_code'; code: string; redirect_uri: string; client_id: string; code_verifier: string; state: string }
+  | { grant_type: 'refresh_token'; refresh_token: string; client_id: string; scope: string };
+
+// A refresh response may omit the refresh token, and the credential keeps the old one.
+const TokenResponse = Type.Object({
+  access_token: Type.String(),
+  expires_in: Type.Number(),
+  refresh_token: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+});
+type TokenResponse = Static<typeof TokenResponse>;
 
 type PostedToken = {
   status: number;
@@ -234,7 +229,7 @@ type PostedToken = {
   body: unknown;
 };
 
-async function postToken(body: Record<string, string>, signal: AbortSignal, tokenUrl: string = CLAUDE_TOKEN_URL): Promise<PostedToken> {
+async function postToken({ body, signal, tokenUrl = CLAUDE_TOKEN_URL }: { body: TokenRequest; signal: AbortSignal; tokenUrl?: string | undefined }): Promise<PostedToken> {
   const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
@@ -246,19 +241,16 @@ async function postToken(body: Record<string, string>, signal: AbortSignal, toke
   });
   const text = await response.text();
   if (response.status !== 200) {
-    throw new Error(tokenEndpointHttpError(body['grant_type'] ?? '', response.status, response.statusText));
+    throw new Error(tokenEndpointHttpError({ grantType: body.grant_type, status: response.status, statusText: response.statusText }));
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text) as unknown;
+    parsed = JSON.parse(text);
   } catch {
     throw new Error(`Token endpoint returned invalid JSON. url=${tokenUrl}`);
   }
-  const data = parsed as Partial<TokenResponse>;
-  if (typeof data.access_token !== 'string' || typeof data.expires_in !== 'number') {
-    throw new Error('Token endpoint response lacks an access token');
-  }
-  return { status: response.status, data: data as TokenResponse, body: parsed };
+  if (!Check(TokenResponse, parsed)) throw new Error('Token endpoint response lacks an access token');
+  return { status: response.status, data: parsed, body: parsed };
 }
 
 function expiresAt(expiresIn: number): number {
@@ -283,8 +275,8 @@ export type AuthorizationCodeExchangeResult = {
 };
 
 async function postAuthorizationCode(input: { code: string; state: string; redirectUri: string; verifier: string; tokenUrl?: string; clientId?: string }, signal: AbortSignal): Promise<PostedToken> {
-  return postToken(
-    {
+  return postToken({
+    body: {
       grant_type: 'authorization_code',
       code: input.code,
       redirect_uri: input.redirectUri,
@@ -293,8 +285,8 @@ async function postAuthorizationCode(input: { code: string; state: string; redir
       state: input.state,
     },
     signal,
-    input.tokenUrl,
-  );
+    tokenUrl: input.tokenUrl,
+  });
 }
 
 export async function exchangeAuthorizationCode(input: { code: string; state: string; redirectUri: string; verifier: string; tokenUrl?: string; clientId?: string }, signal: AbortSignal): Promise<OAuthCredential> {
@@ -364,7 +356,7 @@ async function loginCopyCode(interaction: ProviderAuthInteraction, endpoints: Cl
     signal: interaction.signal,
   });
   const parsed = parseAuthorizationInput(input);
-  if (!parsed.code || !parsed.state) throw new Error(PASTE_INVALID_CODE);
+  if (!parsed) throw new Error(PASTE_INVALID_CODE);
   if (parsed.state !== state) throw new Error(PASTE_WRONG_SIGNIN);
   interaction.notify({ type: 'progress', message: 'Exchanging authorization code for tokens...' });
   return exchangeAuthorizationCode(
@@ -418,29 +410,20 @@ function sameSecret(left: string, right: string): boolean {
   return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
 }
 
-/** Typed stand-in for Promise.withResolvers (ES2024); repo lib is ES2023. */
-function deferredString(): {
-  promise: Promise<string>;
-  resolve: (value: string) => void;
-  reject: (error: Error) => void;
-} {
-  let resolve!: (value: string) => void;
-  let reject!: (error: Error) => void;
-  const promise = new Promise<string>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-}
-
 function listenForCallback(expectedState: string, signal: AbortSignal): Promise<{ redirectUri: string; code: Promise<string>; close: () => Promise<void> }> {
   signal.throwIfAborted();
   const server = createServer();
-  const { promise: code, resolve: settle, reject: fail } = deferredString();
-  const timeout = setTimeout(() => fail(new Error(LOGIN_TIMED_OUT)), LOOPBACK_LIMIT_MS);
-  const onAbort = () => fail(new Error(LOGIN_CANCELLED));
-  signal.addEventListener('abort', onAbort, { once: true });
-  server.on('request', (request, response) => handleCallback(request, response, expectedState, settle, fail));
+  let stopWaiting = (): void => {};
+  const code = new Promise<string>((settle, fail) => {
+    const timeout = setTimeout(() => fail(new Error(LOGIN_TIMED_OUT)), LOOPBACK_LIMIT_MS);
+    const onAbort = () => fail(new Error(LOGIN_CANCELLED));
+    signal.addEventListener('abort', onAbort, { once: true });
+    server.on('request', (request, response) => handleCallback({ request, response, expectedState, settle, fail }));
+    stopWaiting = () => {
+      clearTimeout(timeout);
+      signal.removeEventListener('abort', onAbort);
+    };
+  });
   return new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, LOOPBACK_BIND_HOST, () => {
@@ -452,13 +435,16 @@ function listenForCallback(expectedState: string, signal: AbortSignal): Promise<
       resolve({
         redirectUri: `http://${LOOPBACK_REDIRECT_HOST}:${address.port}${CLAUDE_LOOPBACK_CALLBACK_PATH}`,
         code,
-        close: () => closeServer(server, timeout, signal, onAbort),
+        close: () => {
+          stopWaiting();
+          return new Promise((closed) => server.close(() => closed()));
+        },
       });
     });
   });
 }
 
-function handleCallback(request: IncomingMessage, response: ServerResponse, expectedState: string, settle: (code: string) => void, fail: (error: Error) => void): void {
+function handleCallback({ request, response, expectedState, settle, fail }: { request: IncomingMessage; response: ServerResponse; expectedState: string; settle: (code: string) => void; fail: (error: Error) => void }): void {
   const url = new URL(request.url ?? '/', `http://${LOOPBACK_REDIRECT_HOST}`);
   if (url.pathname !== CLAUDE_LOOPBACK_CALLBACK_PATH) {
     response.writeHead(404).end();
@@ -485,14 +471,7 @@ function handleCallback(request: IncomingMessage, response: ServerResponse, expe
   settle(code);
 }
 
-function closeServer(server: ReturnType<typeof createServer>, timeout: ReturnType<typeof setTimeout>, signal: AbortSignal, onAbort: () => void): Promise<void> {
-  clearTimeout(timeout);
-  signal.removeEventListener('abort', onAbort);
-  return new Promise((resolve) => server.close(() => resolve()));
-}
-
 export type ClaudeOAuthOptions = {
-  /** Override for tests. Defaults to reading Claude Code keychain / `.credentials.json`. */
   importCredentials?: () => Promise<OAuthCredential>;
   customOAuthUrl?: string;
   clientId?: string;
@@ -508,7 +487,7 @@ async function loginImport(interaction: ProviderAuthInteraction, importCredentia
 
 export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
   const importCredentials = options.importCredentials ?? (() => importClaudeAiOauth());
-  const endpoints = resolveClaudeOAuthEndpoints(options.customOAuthUrl ?? process.env['CLAUDE_CODE_CUSTOM_OAUTH_URL'], options.clientId ?? process.env[CLAUDE_CLIENT_ID_ENV]);
+  const endpoints = resolveClaudeOAuthEndpoints({ customOAuthUrl: options.customOAuthUrl ?? process.env['CLAUDE_CODE_CUSTOM_OAUTH_URL'], clientId: options.clientId ?? process.env[CLAUDE_CLIENT_ID_ENV] });
   return {
     name: 'Claude subscription (Provider CLI)',
     loginLabel: 'Claude subscription (Provider CLI)',
@@ -517,22 +496,31 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
       interaction.signal.throwIfAborted();
       const method = await chooseLoginMethod(interaction);
       interaction.signal.throwIfAborted();
-      if (method === 'import') return loginImport(interaction, importCredentials);
-      if (method === 'loopback') return loginLoopback(interaction, endpoints);
-      return loginCopyCode(interaction, endpoints);
+      switch (method) {
+        case 'import':
+          return loginImport(interaction, importCredentials);
+        case 'loopback':
+          return loginLoopback(interaction, endpoints);
+        case 'copy-code':
+          return loginCopyCode(interaction, endpoints);
+        default: {
+          const _exhaustive: never = method;
+          throw new Error(`Unhandled login method: ${String(_exhaustive)}`);
+        }
+      }
     },
     refresh: async (credential, signal) => {
       signal.throwIfAborted();
-      const posted = await postToken(
-        {
+      const posted = await postToken({
+        body: {
           grant_type: 'refresh_token',
           refresh_token: credential.refresh,
           client_id: endpoints.clientId,
           scope: endpoints.refreshScope,
         },
         signal,
-        endpoints.tokenUrl,
-      );
+        tokenUrl: endpoints.tokenUrl,
+      });
       return credentialFrom(posted.data, credential.refresh);
     },
     async toAuth(credential) {

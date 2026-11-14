@@ -1,40 +1,31 @@
 import { join } from 'node:path';
 
-import {
-  type Api,
-  type AssistantMessage,
-  type AssistantMessageEventStream,
-  type CredentialStore,
-  createProvider,
-  getDeclaredTools,
-  type Model,
-  type OAuthCredential,
-  type StopReason,
-  type StreamOptions,
-  type TranscriptContext,
-} from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import { type ExtensionAPI, getAgentDir, readStoredCredential } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { attestingFetch } from './attesting-fetch.ts';
 import { createClaudeOAuth, subscriptionAuth } from './auth.ts';
 import { type AuthRecovery, createAuthRecovery } from './auth-recovery.ts';
 import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
 import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
-import { refreshClaimDirectoryFor } from './refresh-claim.ts';
+import { latestRecorded, refreshClaimDirectoryFor } from './refresh-claim.ts';
 import { attributionFor } from './request-session.ts';
+import { storedIn } from './stored-credential.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
-
-let activeRecovery: AuthRecovery | undefined;
-let rotationAuthPath: string | undefined;
 
 function defaultAuthJsonPath(): string {
   return join(getAgentDir(), 'auth.json');
 }
 
+/** What the host binds after loading the extension. The latest loaded provider reads it. */
+const host: { authPath: string | undefined; bindCredentials: (store: CredentialStore) => void } = { authPath: undefined, bindCredentials: () => undefined };
+
 /** Bind the CredentialStore Models uses so 401 recovery persists rotated tokens. */
 export function bindSubscriptionCredentials(store: CredentialStore): void {
-  activeRecovery?.bindCredentials(store);
+  host.bindCredentials(store);
 }
 
 /**
@@ -45,12 +36,7 @@ export function bindSubscriptionCredentials(store: CredentialStore): void {
  * Omit the argument to use `<agentDir>/auth.json`. Pass `undefined` to refresh without the log.
  */
 export function bindSubscriptionRefreshLock(...args: [] | [authJsonPath: string | undefined]): void {
-  rotationAuthPath = args.length === 0 ? defaultAuthJsonPath() : args[0];
-}
-
-function storedOAuthCredential(authPath: string): OAuthCredential | undefined {
-  const stored = readStoredCredential(PROVIDER_ID, authPath);
-  return stored?.type === 'oauth' ? stored : undefined;
+  host.authPath = args.length === 0 ? defaultAuthJsonPath() : args[0];
 }
 
 // Provider CLI writes its prompt cache with a one-hour lifetime, and Pi's own
@@ -78,30 +64,28 @@ function withBillingBlock(payload: unknown, block: ReturnType<typeof billingBloc
   return { ...payload, system: [block, ...system] };
 }
 
+const RequestTools = Type.Array(Type.Object({ name: Type.String() }));
+
 // Pi's Anthropic implementation renames OAuth tools to Provider CLI's canonical casing, so
 // names that differ only in case fold into one and Anthropic rejects the request with
 // "Tool names must be unique". Pi's reply maps a tool call back to the first
 // case-insensitive match in the session's tools, so the first tool of a folding pair is
-// the only one a request can offer. Later duplicates are dropped, and a cache marker on a
-// dropped last tool moves to the new last tool so the request keeps its tool breakpoint.
+// the only one a request can offer.
 function withUniqueToolNames(payload: unknown): unknown {
   if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) return payload;
-  if (!('tools' in payload) || !Array.isArray(payload.tools)) return payload;
-  // Pi's conversion builds these tools before the hook runs; a tool without a string name
-  // fails inside that conversion first.
-  const tools = payload.tools as readonly { name: string; cache_control?: unknown }[];
+  if (!('tools' in payload) || !Check(RequestTools, payload.tools)) return payload;
+  const tools = payload.tools;
   const seen = new Set<string>();
   const unique: object[] = [];
   let droppedMarker: unknown;
   tools.forEach((tool, index) => {
-    const requestTool = tool as { name: string; cache_control?: unknown };
-    const folded = requestTool.name.toLowerCase();
+    const folded = tool.name.toLowerCase();
     if (!seen.has(folded)) {
       seen.add(folded);
       unique.push(tool);
       return;
     }
-    if (index === tools.length - 1) droppedMarker = requestTool.cache_control;
+    if (index === tools.length - 1 && 'cache_control' in tool) droppedMarker = tool.cache_control;
   });
   if (unique.length === tools.length) return payload;
   if (droppedMarker !== undefined && unique.length > 0) {
@@ -119,14 +103,21 @@ function modelForCaseCollisions(model: Model<Api>, context: TranscriptContext): 
   return { ...model, compat: { ...model.compat, supportsMidConvoToolChanges: false } };
 }
 
-function requestOverrides(
-  model: Model<Api>,
-  context: TranscriptContext,
-  options: StreamOptions | undefined,
-  guard: ContextGuard,
-  capture: (payload: unknown) => void,
-  recovery: AuthRecovery,
-): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers' | 'fetch'> {
+function requestOverrides({
+  model,
+  context,
+  options,
+  guard,
+  capture,
+  recovery,
+}: {
+  model: Model<Api>;
+  context: TranscriptContext;
+  options: StreamOptions | undefined;
+  guard: ContextGuard;
+  capture: (payload: unknown) => void;
+  recovery: AuthRecovery;
+}): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers' | 'fetch'> {
   const attribution = attributionFor(options?.sessionId, context);
   const block = billingBlock(context, attribution);
   const configuredHeaders = new Set([model.headers, options?.headers].flatMap((headers) => Object.keys(headers ?? {}).map((name) => name.toLowerCase())));
@@ -153,52 +144,36 @@ function requestOverrides(
   };
 }
 
-// Only a successful terminal response carries a usable context measurement.
-// Error and aborted attempts must not feed the bias, and a deferred handle is
-// not terminal yet.
 const SUCCESSFUL_STOP_REASONS: ReadonlySet<StopReason> = new Set(['stop', 'toolUse', 'length']);
 
-/** The context tokens the endpoint counted for a request, or undefined. */
 function observedContextTokens(message: AssistantMessage): number | undefined {
   if (!SUCCESSFUL_STOP_REASONS.has(message.stopReason)) return undefined;
   const usage = message.usage;
-  // The context is the input side. `totalTokens` also counts the output and is
-  // only used when an adapter reports no input breakdown.
   const input = usage.input + usage.cacheRead + usage.cacheWrite;
   const tokens = input > 0 ? input : usage.totalTokens;
   return tokens > 0 ? tokens : undefined;
 }
 
-// Observes the final assistant usage against the exact payload that produced
-// it. `result()` is an independent promise, so the caller still reads every
-// event from the same stream and this never blocks the synchronous return.
-function guardedStream<TOptions extends StreamOptions>(
-  streamFn: (model: Model<Api>, context: TranscriptContext, options?: TOptions) => AssistantMessageEventStream,
-  model: Model<Api>,
-  context: TranscriptContext,
-  options: TOptions | undefined,
-  guard: ContextGuard,
-  recovery: AuthRecovery,
-): AssistantMessageEventStream {
+function guardedStream<TOptions extends StreamOptions>({
+  streamFn,
+  model,
+  context,
+  options,
+  guard,
+  recovery,
+}: {
+  streamFn: (model: Model<Api>, context: TranscriptContext, options?: TOptions) => AssistantMessageEventStream;
+  model: Model<Api>;
+  context: TranscriptContext;
+  options: TOptions | undefined;
+  guard: ContextGuard;
+  recovery: AuthRecovery;
+}): AssistantMessageEventStream {
   let observed: unknown;
-  const streamed = streamFn(
-    modelForCaseCollisions(model, context),
-    context,
-    Object.assign(
-      {},
-      options,
-      requestOverrides(
-        model,
-        context,
-        options,
-        guard,
-        (payload) => {
-          observed = payload;
-        },
-        recovery,
-      ),
-    ),
-  );
+  const capture = (payload: unknown): void => {
+    observed = payload;
+  };
+  const streamed = streamFn(modelForCaseCollisions(model, context), context, Object.assign({}, options, requestOverrides({ model, context, options, guard, capture, recovery })));
   void streamed.result().then(
     (message) => {
       try {
@@ -206,7 +181,6 @@ function guardedStream<TOptions extends StreamOptions>(
         if (tokens === undefined) return;
         guard.observe(observed, tokens);
       } catch {
-        // Usage observation must not surface as an unhandled rejection.
         return;
       }
     },
@@ -215,25 +189,24 @@ function guardedStream<TOptions extends StreamOptions>(
   return streamed;
 }
 
-/** The extension API methods this package uses, straight from Pi's own type. */
 export type ExtensionHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'appendEntry' | 'getAllTools' | 'getActiveTools' | 'getSettings'>;
 
 export default function (pi: ExtensionHost) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   if (!anthropic) throw new Error("Pi's built-in anthropic provider is not available.");
   const oauth = createClaudeOAuth();
+  host.authPath = defaultAuthJsonPath();
+  const directory = () => (host.authPath === undefined ? undefined : refreshClaimDirectoryFor(host.authPath));
+  const stored = () => storedIn(PROVIDER_ID, host.authPath);
+  // Recovery refreshes through auth, and auth reports every credential back to recovery.
   let recovery: AuthRecovery | undefined;
-  rotationAuthPath = defaultAuthJsonPath();
   const auth = subscriptionAuth(oauth, {
-    onCredential: (credential) => recovery?.remember(credential),
-    rotation: {
-      directory: () => (rotationAuthPath === undefined ? undefined : refreshClaimDirectoryFor(rotationAuthPath)),
-      claimOptions: { liveCredential: () => (rotationAuthPath === undefined ? undefined : storedOAuthCredential(rotationAuthPath)) },
-    },
+    onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
+    onNoStoredCredential: () => recovery?.forget(),
+    rotation: { directory, stored },
   });
-  if (!auth.oauth) throw new Error('Claude subscription OAuth is not initialized.');
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth });
-  activeRecovery = recovery;
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth, recorded: (credential) => latestRecorded(directory(), credential), stored });
+  host.bindCredentials = recovery.bindCredentials;
   const guard = installContextGuard(pi, {
     providerId: PROVIDER_ID,
     notify: (message) => pi.appendEntry(GUARD_ENTRY_TYPE, { message }),
@@ -246,8 +219,8 @@ export default function (pi: ExtensionHost) {
       auth,
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
-        stream: (model, context, options) => guardedStream(anthropic.stream, model, context, options, guard, recovery),
-        streamSimple: (model, context, options) => guardedStream(anthropic.streamSimple, model, context, options, guard, recovery),
+        stream: (model, context, options) => guardedStream({ streamFn: anthropic.stream, model, context, options, guard, recovery }),
+        streamSimple: (model, context, options) => guardedStream({ streamFn: anthropic.streamSimple, model, context, options, guard, recovery }),
       },
     }),
   );

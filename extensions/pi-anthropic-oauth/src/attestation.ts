@@ -5,7 +5,6 @@ const P3 = 0x165667b19e3779f9n;
 const P4 = 0x85ebca77c2b2ae63n;
 const P5 = 0x27d4eb2f165667c5n;
 
-/** Seed Claude Code 2.1.316's native HTTP layer feeds XXH64 for the `cch` body attestation. */
 export const CCH_SEED = 0x4d659218e32a3268n;
 export const CCH_PLACEHOLDER = 'cch=00000';
 
@@ -63,7 +62,7 @@ export function xxh64(data: Uint8Array, seed: bigint): bigint {
     offset += 4;
   }
   for (; offset < length; offset += 1) {
-    hash ^= (BigInt(data[offset] as number) * P5) & MASK;
+    hash ^= (BigInt(view.getUint8(offset)) * P5) & MASK;
     hash = (rotl(hash, 11n) * P1) & MASK;
   }
   hash ^= hash >> 33n;
@@ -81,8 +80,29 @@ const QUOTE = 0x22;
 const BACKSLASH = 0x5c;
 const OPEN_BRACKET = 0x5b;
 const CLOSE_BRACKET = 0x5d;
+const OPEN_BRACE = 0x7b;
+const CLOSE_BRACE = 0x7d;
+const SYSTEM_MARKER_BYTES = Buffer.from(SYSTEM_MARKER);
 
-function withComma(body: Buffer, start: number, end: number, cursor: number): Span {
+// Pi serializes `messages` before `system`, so a tool input may carry its own `"system":[` first.
+function topLevelSystemMarker(body: Buffer): number {
+  let depth = 0;
+  let inString = false;
+  for (let index = 0; index < body.length; index += 1) {
+    const byte = body[index];
+    if (inString) {
+      if (byte === BACKSLASH) index += 1;
+      else if (byte === QUOTE) inString = false;
+    } else if (byte === QUOTE) {
+      if (depth === 1 && body.subarray(index, index + SYSTEM_MARKER_BYTES.length).equals(SYSTEM_MARKER_BYTES)) return index;
+      inString = true;
+    } else if (byte === OPEN_BRACE || byte === OPEN_BRACKET) depth += 1;
+    else if (byte === CLOSE_BRACE || byte === CLOSE_BRACKET) depth -= 1;
+  }
+  return -1;
+}
+
+function withComma(body: Buffer, { start, end, cursor }: Span & { cursor: number }): Span {
   if (body[end] === COMMA) return { start, end: end + 1 };
   return { start: start > cursor && body[start - 1] === COMMA ? start - 1 : start, end };
 }
@@ -101,7 +121,7 @@ function fallbacksSpan(body: Buffer, cursor: number): Span | undefined {
     else if (byte === OPEN_BRACKET) depth += 1;
     else if (byte === CLOSE_BRACKET) {
       depth -= 1;
-      if (depth === 0) return withComma(body, at, index + 1, cursor);
+      if (depth === 0) return withComma(body, { start: at, end: index + 1, cursor });
     }
   }
   return undefined;
@@ -112,7 +132,7 @@ function creditTokenSpan(body: Buffer, cursor: number): Span | undefined {
   if (at < 0) return undefined;
   const close = body.indexOf('"', at + FALLBACK_TOKEN_KEY.length);
   if (close < 0) return undefined;
-  return withComma(body, at, close + 1, cursor);
+  return withComma(body, { start: at, end: close + 1, cursor });
 }
 
 function isDigit(byte: number | undefined): boolean {
@@ -132,7 +152,7 @@ function maxTokensSpan(body: Buffer, cursor: number): Span | undefined {
       from = valueStart;
       continue;
     }
-    return withComma(body, at, end, cursor);
+    return withComma(body, { start: at, end, cursor });
   }
 }
 
@@ -141,11 +161,6 @@ function nextSpan(body: Buffer, cursor: number): Span | undefined {
   return candidates.reduce<Span | undefined>((best, candidate) => (candidate !== undefined && (best === undefined || candidate.start < best.start) ? candidate : best), undefined);
 }
 
-/**
- * The bytes Claude Code hashes: the body without the model value, the `fallbacks`
- * array, the `fallback_credit_token` value, and `max_tokens`. Everything else, the
- * `cch=00000` placeholder included, is hashed as sent.
- */
 export function attestedBytes(body: Buffer): Buffer {
   const kept: Buffer[] = [];
   let cursor = 0;
@@ -177,14 +192,9 @@ export function cchDigest(body: Buffer): string {
   return (xxh64(attestedBytes(body), CCH_SEED) & 0xfffffn).toString(16).padStart(5, '0');
 }
 
-/**
- * Replace the `cch=00000` placeholder in the billing block with the body hash, as
- * Claude Code's HTTP layer does for `/v1/messages`. A body without the placeholder
- * inside the first 300 bytes after `"system":[` is returned unchanged.
- */
 export function attestBody(body: string): string {
   const bytes = Buffer.from(body, 'utf8');
-  const marker = bytes.indexOf(SYSTEM_MARKER);
+  const marker = topLevelSystemMarker(bytes);
   if (marker < 0) return body;
   const window = bytes.subarray(0, Math.min(marker + PLACEHOLDER_WINDOW, bytes.length));
   const placeholder = window.indexOf(CCH_PLACEHOLDER, marker);

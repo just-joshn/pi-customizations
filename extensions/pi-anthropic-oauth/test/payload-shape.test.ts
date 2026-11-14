@@ -41,8 +41,9 @@ const accepted = [
 test.for(accepted)('$name gets the billing block first', async ({ payload, sent }) => {
   const { message } = await send(payload);
   const received: unknown = JSON.parse(textOf(message));
+  if (typeof received !== 'object' || received === null) throw new Error('the probe did not receive an object payload');
   const system = systemBlocks(received);
-  expect({ ...(received as object), ...(system.length > 0 ? { system } : {}) }).toStrictEqual(sent);
+  expect({ ...received, ...(system.length > 0 ? { system } : {}) }).toStrictEqual(sent);
 });
 
 const rejected = [

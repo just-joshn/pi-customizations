@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.10] - 2026-11-14
+
+- A 401 is retried only for a token this provider issued from its OAuth credential. A rejected ambient token or explicit API key is no longer resent as the stored or logged-out account.
+- A leftover 0.1.5 share file is followed only when that version's claim on the current refresh token predates it, so a share file written while nothing had claimed the stored token can no longer replace the stored account. A share file carries no account, so one written by another login after such a claim, as when `auth.json` is restored from a backup, is still followed.
+- Requests after a 401 recovery send the recovered token recorded in the rotation log instead of failing first with the stale one. Pi still persists it at its next expiry refresh; Pi 1.5 gives extensions no writable credential store.
+- With no stored credential, the rotation log and any 0.1.5 share file are deleted the next time Pi resolves ambient auth, so tokens no longer stay on disk after `/logout`. Logging out or switching accounts also ends the 401-recovery lineage, so an old token is never retried as the logged-out or newly stored account. A request in flight when the logout or switch lands is not retried: recovery drops the retry, and skips the refresh, when the credential Pi stores in `auth.json` changed to a logout or another login after the request was sent. A host that keeps credentials elsewhere still recovers, and binding no store, it ends the lineage at its next auth resolution.
+- With a bound credential store, a 401 recovery that finds another login stored no longer retries the request with that login's token. A stored token that replaced the rejected one is used only when the rotation log records it as that token's successor.
+- A rotation log that cannot be read no longer fails requests; the stored token is sent.
+- A refresh response that keeps the refresh token is recognized as a successor: later requests use it, a second process reuses it instead of failing with `ELOCKED`, and that successor can be refreshed again at once instead of waiting 30 seconds for its finished claim to go stale.
+- The `cch` attestation anchors on the request's top-level `system` array, so a tool input with its own `system` array no longer leaves `cch=00000` in the body.
+- When a single prompt's tool loop outgrows the window, fitting drops its oldest complete tool exchanges and keeps the prompt.
+- Request fitting keeps the `tool_addition` and `tool_removal` blocks of a dropped prefix, so tools added mid-conversation stay defined.
+- Only Pi's summarization prompt, recognized by its opening sentence, triggers single-prompt summarization fitting. A system prompt that merely mentions a summarization assistant no longer truncates the user's first prompt.
+- Summarization fitting measures the text's cost under the calibrated bias, so it fits at the maximum bias of 2.
+- `typebox` is now a peer dependency, as in the other packages here. Token responses, Claude Code credentials, account responses, the rotation log, and request tools are parsed with TypeBox schemas instead of casts. A roles response with a non-string role, or a token response whose `refresh_token` is neither a string nor null, is now rejected as malformed.
+- Source-level API: `resolveClaudeOAuthEndpoints`, `rotateRefreshToken`, `tokenEndpointHttpError`, and `ClaudeCredentialReaders.readKeychain` take one object argument, and `assertTokenJsonShape` no longer takes a shape. `subscriptionAuth` returns both auth methods in its type, and `createAuthRecovery` takes `refresh`, a `recorded` lookup into the rotation log, and a `stored` reader of the host's stored credential. `subscriptionAuth`'s `rotation` takes that `stored` reader in place of `claimOptions.liveCredential`. `fetchOAuthProfile` reports `hasRequestId` instead of `stamped`.
+
 ## [0.1.9] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite and unbind the refresh lock in the cancellation test. Source changes are formatting and import order only.

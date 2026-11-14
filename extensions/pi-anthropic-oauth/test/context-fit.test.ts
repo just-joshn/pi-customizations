@@ -148,3 +148,50 @@ test('summarization detection reads the system prompt text', () => {
   expect(isSummarizationRequest(payload([], [{ type: 'text', text: 'You are helpful.' }]))).toBe(false);
   expect(isSummarizationRequest(null)).toBe(false);
 });
+
+test('a normal chat whose system prompt mentions a summarization assistant keeps its first prompt', () => {
+  const over = payload([{ role: 'user', content: 'a'.repeat(5000) }], [{ type: 'text', text: 'Project notes: our docs call the helper a summarization assistant.' }]);
+  expect(fitPayload(over, budget, estimate)).toBe(over);
+});
+
+test('a summarization request fits at the guard maximum bias of 2', () => {
+  const biased = (candidate: unknown) => Math.ceil(payloadTokens(candidate, budget.bytesPerToken) * 2);
+  const fitted = fitPayload(payload([{ role: 'user', content: 'a'.repeat(15_000) }], summarizationSystem), budget, biased);
+  expect(biased(fitted)).toBeLessThan(budget.blockAt);
+  expect(JSON.stringify(fitted)).toContain(OMITTED_MARKER);
+});
+
+test('a dropped prefix keeps the tool changes it declared', () => {
+  const addition = { type: 'tool_addition', tool: { type: 'tool_definition', definition: { name: 'Task', description: 'Spawn a task', input_schema: { type: 'object' } } } };
+  const removal = { type: 'tool_removal', tool: { type: 'tool_reference', name: 'Read' } };
+  const fitted = fitPayload(
+    payload([
+      { role: 'user', content: 'a'.repeat(3600) },
+      { role: 'system', content: [{ type: 'text', text: 'tools changed' }, addition, removal] },
+      { role: 'assistant', content: 'ok' },
+      { role: 'user', content: 'use Task' },
+    ]),
+    budget,
+    estimate,
+  );
+  const messages = fittedMessages(fitted);
+  expect(messages.map((message) => message.role)).toStrictEqual(['user', 'system']);
+  expect(messages[1]?.content).toStrictEqual([addition, removal]);
+  expect(estimate(fitted)).toBeLessThan(budget.blockAt);
+});
+
+test('a single prompt followed by a long tool loop drops its oldest tool exchanges', () => {
+  const messages: unknown[] = [{ role: 'user', content: 'fix the bug' }];
+  for (let index = 0; index < 6; index += 1) {
+    messages.push({ role: 'assistant', content: [{ type: 'tool_use', id: `t${index}`, name: 'read', input: { path: 'a' } }] });
+    messages.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: `t${index}`, content: 'x'.repeat(900) }] });
+  }
+  const fitted = fitPayload(payload(messages), budget, estimate);
+  const kept = fittedMessages(fitted);
+  const text = JSON.stringify(kept);
+  expect(estimate(fitted)).toBeLessThan(budget.blockAt);
+  expect(JSON.stringify(kept[0])).toContain('fix the bug');
+  expect(kept.map((message) => message.role)).toStrictEqual(['user', ...kept.slice(1).map((_, index) => (index % 2 === 0 ? 'assistant' : 'user'))]);
+  expect([...text.matchAll(/"tool_use_id":"(t\d)"/g)].map((match) => match[1])).toStrictEqual([...text.matchAll(/"type":"tool_use","id":"(t\d)"/g)].map((match) => match[1]));
+  expect(text).toContain('"tool_use_id":"t5"');
+});

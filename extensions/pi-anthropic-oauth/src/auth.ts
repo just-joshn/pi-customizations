@@ -1,6 +1,8 @@
-import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
+import type { ApiKeyAuth, AuthContext, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
+import type { CredentialRotation } from './auth-recovery.ts';
 import { createClaudeOAuth, isClaudeTokenEndpointError, LOGIN_CANCELLED, LOGIN_TIMED_OUT, PASTE_INVALID_CODE, PASTE_WRONG_SIGNIN } from './oauth.ts';
-import { type RefreshClaimOptions, rotateRefreshToken } from './refresh-claim.ts';
+import { clearRotationLog, isSuccessor, latestRecorded, type RefreshClaimOptions, rotateRefreshToken } from './refresh-claim.ts';
+import { type StoredCredential, storedOAuth } from './stored-credential.ts';
 
 export {
   buildAuthorizeUrl,
@@ -30,28 +32,53 @@ export {
 const AMBIENT_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
 const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
 
-function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {
+function tokenAuth({ value, source, env }: { value: string; source: string; env?: ProviderEnv | undefined }): AuthResult | undefined {
   if (!value) return undefined;
   const token = value.trim();
   if (!OAUTH_ACCESS_TOKEN.test(token)) throw new Error(`${source} must contain a Claude OAuth access token, not an API key.`);
   return { auth: { apiKey: token }, ...(env === undefined ? {} : { env }), source };
 }
 
-const subscriptionToken: ApiKeyAuth = {
-  name: 'Claude subscription token',
-  resolve: async ({ ctx, credential, signal }) => {
-    signal.throwIfAborted();
-    if (credential?.key !== undefined) return tokenAuth(credential.key, 'stored credential', credential.env);
-    for (const source of AMBIENT_TOKEN_VARIABLES) {
-      const value = await ctx.env(source);
+function subscriptionToken(options: SubscriptionAuthOptions): ApiKeyAuth {
+  return {
+    name: 'Claude subscription token',
+    resolve: async ({ ctx, credential, signal }) => {
       signal.throwIfAborted();
-      if (value) return tokenAuth(value, source);
-    }
-    return undefined;
-  },
-};
+      if (credential?.key !== undefined) return tokenAuth({ value: credential.key, source: 'stored credential', env: credential.env });
+      const ambient = await ambientToken(ctx, signal);
+      // Pi consults ambient auth only when nothing is stored, so a log left by the last login has nothing to lead from.
+      if (credential === undefined) {
+        options.onNoStoredCredential?.();
+        await clearUnstoredRotationLog(options);
+      }
+      return ambient === undefined ? undefined : tokenAuth(ambient);
+    },
+  };
+}
 
-function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
+async function ambientToken(ctx: AuthContext, signal: AbortSignal): Promise<{ value: string; source: string } | undefined> {
+  for (const source of AMBIENT_TOKEN_VARIABLES) {
+    const value = await ctx.env(source);
+    signal.throwIfAborted();
+    if (value) return { value, source };
+  }
+  return undefined;
+}
+
+// Pi reported nothing stored, but another window may have logged in since. Only a host store that holds no login clears the log.
+async function clearUnstoredRotationLog(options: SubscriptionAuthOptions): Promise<void> {
+  const rotation = options.rotation;
+  const directory = rotation?.directory();
+  if (directory === undefined || rotation?.stored === undefined || storedOAuth(rotation.stored()) !== undefined) return;
+  await clearRotationLog(directory);
+}
+
+async function recordedCredential(credential: OAuthCredential, options: SubscriptionAuthOptions): Promise<OAuthCredential> {
+  const latest = await latestRecorded(options.rotation?.directory(), credential);
+  return isSuccessor(latest, credential) && latest.expires > Date.now() ? latest : credential;
+}
+
+function wrapLoginErrors(oauth: Pick<OAuthAuth, 'login'>): OAuthAuth['login'] {
   return async (interaction, options) => {
     interaction.signal.throwIfAborted();
     try {
@@ -81,7 +108,7 @@ export {
   toPiOAuthCredential,
 } from './claude-credentials.ts';
 
-function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
+function wrapRefreshErrors(oauth: Pick<OAuthAuth, 'refresh'>): OAuthAuth['refresh'] {
   return async (credential, signal) => {
     signal.throwIfAborted();
     try {
@@ -95,29 +122,42 @@ function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
 }
 
 export type SubscriptionAuthOptions = {
-  onCredential?: (credential: OAuthCredential) => void;
-  /** Cross-process rotation log. With no directory, refresh runs without claims. */
-  rotation?: { directory(): string | undefined; claimOptions?: RefreshClaimOptions };
+  onCredential?: (credential: OAuthCredential, rotation?: CredentialRotation) => void;
+  /** Called when Pi resolves auth with no stored credential, as after `/logout`. */
+  onNoStoredCredential?: () => void;
+  /** `stored` reads what the host has stored; the log sweep keeps the stored login's chain and logout clears the log. */
+  rotation?: { directory(): string | undefined; stored?: () => StoredCredential; claimOptions?: Omit<RefreshClaimOptions, 'liveCredential'> };
 };
 
-export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): ProviderAuth {
+function claimOptionsFor(rotation: NonNullable<SubscriptionAuthOptions['rotation']>): RefreshClaimOptions {
+  const stored = rotation.stored;
+  return stored === undefined ? { ...rotation.claimOptions } : { ...rotation.claimOptions, liveCredential: () => storedOAuth(stored()) };
+}
+
+export type ClaudeOAuthClient = Omit<OAuthAuth, 'name' | 'loginLabel'>;
+
+export type SubscriptionAuth = Required<Pick<ProviderAuth, 'apiKey' | 'oauth'>>;
+
+export function subscriptionAuth(oauth: ClaudeOAuthClient = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): SubscriptionAuth {
   const refresh = wrapRefreshErrors(oauth);
   return {
-    apiKey: subscriptionToken,
+    apiKey: subscriptionToken(options),
     oauth: {
       ...oauth,
       name: 'Claude subscription (Provider CLI)',
       loginLabel: 'Claude subscription (Provider CLI)',
       login: wrapLoginErrors(oauth),
       refresh: async (credential, signal) => {
-        const directory = options.rotation?.directory();
-        const next = directory === undefined ? await refresh(credential, signal) : await rotateRefreshToken(directory, credential, refresh, options.rotation?.claimOptions, signal);
-        options.onCredential?.(next);
+        const rotation = options.rotation;
+        const directory = rotation?.directory();
+        const next = rotation === undefined || directory === undefined ? await refresh(credential, signal) : await rotateRefreshToken({ directory, credential, refresh, options: claimOptionsFor(rotation), signal });
+        options.onCredential?.(next, { replaced: credential });
         return next;
       },
       toAuth: async (credential) => {
-        options.onCredential?.(credential);
-        return oauth.toAuth(credential);
+        const current = await recordedCredential(credential, options);
+        options.onCredential?.(current, current === credential ? undefined : { replaced: credential });
+        return oauth.toAuth(current);
       },
     },
   };

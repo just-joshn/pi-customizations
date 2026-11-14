@@ -1,11 +1,11 @@
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES, subscriptionAuth } from '../src/auth.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
+import { parseJson, StringFields } from './support/json.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
 test('subscription login offers paste, loopback, and Claude Code import, then defaults to paste-code authorize', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let selectOptions: { id: string; label: string }[] | undefined;
   let authorizeUrl: URL | undefined;
   const fetchCalls: unknown[] = [];
@@ -53,14 +53,13 @@ test('subscription login offers paste, loopback, and Claude Code import, then de
 
 test('subscription login posts the independent state with the authorization code', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
-  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let authorizeUrl: URL | undefined;
   let exchangeBody: Record<string, string> | undefined;
   onTestFinished(() => {
     vi.unstubAllGlobals();
   });
   vi.stubGlobal('fetch', async (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
-    exchangeBody = JSON.parse(String(init?.body)) as Record<string, string>;
+    exchangeBody = parseJson(StringFields, String(init?.body));
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
   });
   await oauth.login({

@@ -35,7 +35,7 @@ export const scenarios: readonly Scenario[] = [
     name: 'tool call maps Provider CLI names back',
     modelId: SONNET,
     context: ask('read a', { systemPrompt: 'SYS', tools: [readTool] }),
-    reply: sseReply(toolUseMessage('toolu_1', 'Read', ['{"path":', '"a.txt"}'])),
+    reply: sseReply(toolUseMessage({ id: 'toolu_1', name: 'Read', jsonChunks: ['{"path":', '"a.txt"}'] })),
   },
   {
     name: 'tool result history',
@@ -48,7 +48,7 @@ export const scenarios: readonly Scenario[] = [
     modelId: SONNET,
     context: ask('think'),
     options: { reasoning: 'medium' },
-    reply: sseReply([messageStart(), ...thinkingBlock(0, 'hmm', 'sig'), ...textBlock(1, 'answer'), ...finish('end_turn')]),
+    reply: sseReply([messageStart(), ...thinkingBlock({ index: 0, thinking: 'hmm', signature: 'sig' }), ...textBlock(1, 'answer'), ...finish('end_turn')]),
   },
   {
     name: 'budget thinking',

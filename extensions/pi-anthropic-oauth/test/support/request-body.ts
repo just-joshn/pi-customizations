@@ -3,7 +3,6 @@ import type { MessagesServer, RecordedRequest } from './messages-server.ts';
 export const BILLING_TEXT = 'x-anthropic-billing-header: cc_version=2.1.316.2e4; cc_entrypoint=sdk-cli;';
 const ATTRIBUTION_TAIL = /(cc_entrypoint=sdk-cli;).*$/;
 
-/** The billing block up to the entrypoint, without the per-request attribution tail. */
 export function billingCore(text: string): string {
   return text.replace(ATTRIBUTION_TAIL, '$1');
 }

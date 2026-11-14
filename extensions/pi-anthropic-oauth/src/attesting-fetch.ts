@@ -16,11 +16,6 @@ function pathOf(input: Parameters<FetchFunction>[0]): string {
   }
 }
 
-/**
- * Claude Code's HTTP layer, in Pi's fetch seam: it writes the `cch` body attestation,
- * adds the first-party betas and a per-request client id, and remembers the response
- * `request-id` for the next billing block.
- */
 export function attestingFetch(base: FetchFunction, sessionId: string | undefined): FetchFunction {
   return async (input, init) => {
     if (!pathOf(input).endsWith(MESSAGES_PATH)) return base(input, init);
@@ -29,7 +24,7 @@ export function attestingFetch(base: FetchFunction, sessionId: string | undefine
     if (!headers.has('x-client-request-id')) headers.set('x-client-request-id', randomUUID());
     const body = typeof init?.body === 'string' ? attestBody(init.body) : init?.body;
     const response = await base(input, { ...init, headers, ...(body === undefined || body === null ? {} : { body }) });
-    rememberRequestId(sessionId, response.headers.get('request-id'));
+    rememberRequestId({ sessionId, requestId: response.headers.get('request-id') });
     return response;
   };
 }

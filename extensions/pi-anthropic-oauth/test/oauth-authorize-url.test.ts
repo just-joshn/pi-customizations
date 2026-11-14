@@ -2,27 +2,32 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Type } from 'typebox';
 import { expect, test } from 'vitest';
 import { buildAuthorizeUrl, CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_AUTHORIZE_QUERY_ORDER, CLAUDE_COPY_CODE_REDIRECT_URI, CLAUDE_OAUTH_CLIENT_ID, CLAUDE_OAUTH_SCOPES, createPkcePair } from '../src/auth.ts';
+import { parseJson } from './support/json.ts';
 
 const FIXTURE = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)), 'authorize-url-2.1.312.json');
 
 test('authorize URL matches Claude 2.1.312 param order and fixed values', async () => {
-  const fixture = JSON.parse(await readFile(FIXTURE, 'utf8')) as {
-    authorize: {
-      origin: string;
-      pathname: string;
-      query_param_order: readonly string[];
-      params: {
-        code: string;
-        client_id: string;
-        response_type: string;
-        redirect_uri: string;
-        scope: string;
-        code_challenge_method: string;
-      };
-    };
-  };
+  const fixture = parseJson(
+    Type.Object({
+      authorize: Type.Object({
+        origin: Type.String(),
+        pathname: Type.String(),
+        query_param_order: Type.Array(Type.String()),
+        params: Type.Object({
+          code: Type.String(),
+          client_id: Type.String(),
+          response_type: Type.String(),
+          redirect_uri: Type.String(),
+          scope: Type.String(),
+          code_challenge_method: Type.String(),
+        }),
+      }),
+    }),
+    await readFile(FIXTURE, 'utf8'),
+  );
   const { challenge, state } = createPkcePair();
   const url = new URL(buildAuthorizeUrl({ challenge, state }));
   expect(url.origin).toBe(fixture.authorize.origin);

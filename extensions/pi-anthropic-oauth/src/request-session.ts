@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import type { TranscriptContext } from '@earendil-works/pi-ai';
-import { type BillingAttribution, isRequestId } from './identity.ts';
+import { type BillingAttribution, isRequestId, type RequestId } from './identity.ts';
 
-type SessionState = { previousRequestId?: string; promptIds: Map<number, string> };
+type SessionState = { previousRequestId?: RequestId; promptIds: Map<number, string> };
 
 const MAX_SESSIONS = 64;
 const MAX_PROMPTS = 256;
@@ -24,12 +24,10 @@ function stateFor(sessionId: string | undefined): SessionState {
   return created;
 }
 
-/** Claude's turn position: the 1-based ordinal of the user turn the request answers. */
 export function turnIndexOf(context: TranscriptContext): number {
   return Math.max(1, context.messages.filter((message) => message.role === 'user').length);
 }
 
-/** One prompt id per user turn, shared by every request of that turn's tool loop. */
 export function attributionFor(sessionId: string | undefined, context: TranscriptContext): BillingAttribution {
   const state = stateFor(sessionId);
   const turnIndex = turnIndexOf(context);
@@ -43,6 +41,6 @@ export function attributionFor(sessionId: string | undefined, context: Transcrip
   return { promptId, turnIndex, ...(state.previousRequestId === undefined ? {} : { previousRequestId: state.previousRequestId }) };
 }
 
-export function rememberRequestId(sessionId: string | undefined, requestId: string | null): void {
+export function rememberRequestId({ sessionId, requestId }: { sessionId: string | undefined; requestId: string | null }): void {
   if (isRequestId(requestId)) stateFor(sessionId).previousRequestId = requestId;
 }
