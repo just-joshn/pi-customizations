@@ -46,6 +46,26 @@ test('a settle collected before the poll sees it sends no wake, and an uncollect
   expect(wokenFor('seen')).toEqual([]);
 });
 
+test('a worker collected during the parent turn causes no late follow-up, while an uncollected worker still triggers one', async () => {
+  await parent.stop();
+  let idle = false;
+  parent = makeParent(project, [], { pollMs: 60_000, isIdle: () => idle });
+  await parent.start();
+  await spawn('seen', '@@say DONE');
+  await spawn('unseen', '@@say DONE');
+  await settled('seen', 1);
+  await settled('unseen', 1);
+
+  await parent.fire('session_tree');
+  await call('collect', 'seen');
+  idle = true;
+  await parent.fire('session_tree');
+
+  expect(wokenFor('seen')).toEqual([]);
+  expect(wokenFor('unseen')).toHaveLength(1);
+  expect(parent.messages[0]?.options).toEqual({ triggerTurn: true, deliverAs: 'followUp' });
+});
+
 test('a settle that comes after the collect wakes the parent again', async () => {
   await spawn('again', '@@say FIRST');
   await settled('again', 1);

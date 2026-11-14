@@ -878,6 +878,8 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         }
         for (const transition of transitions) {
           if (delivered.has(transition.transitionId) || sent.has(transition.transitionId) || isCollected(workerDir, transition.transitionId)) continue;
+          // Pi cannot retract queued follow-ups. Keep the transition in host state until delivery cannot race an in-turn collect.
+          if (!ctx.isIdle()) continue;
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
           // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
