@@ -90,9 +90,12 @@ const artifactPath = (base: string, path: string): string => (isAbsolute(path) ?
 
 const RECEIPT_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json$/;
 
+class UnrecordedReceiptError extends Error {}
+
 function readRecorded(scope: EvidenceScope, runId: RunId, file: string): RecordedReceipt {
   const path = join(scope.receipts, file);
   const raw = readJson(path) as Partial<RecordedReceipt>;
+  if (typeof raw !== 'object' || raw === null || !('receipt' in raw)) throw new UnrecordedReceiptError(`${path} is not a recorded receipt envelope; save the source under evidence/ and use pstack_evidence record to create the inbox entry. Move this source out of receipts/ before recording with the same id`);
   const receipt = parseReceipt(raw.receipt, runId, path);
   if (`${receipt.id}.json` !== file || typeof raw.receiptPath !== 'string' || typeof raw.recordedAt !== 'string') throw new Error(`${path} is not a recorded receipt`);
   return { receipt, receiptPath: raw.receiptPath, recordedAt: raw.recordedAt };
@@ -105,7 +108,15 @@ function readAll(runRoot: string | EvidenceScope, runId: RunId): { receipts: Rec
   if (!existsSync(scope.receipts)) return { receipts: [], rejected };
   const receipts = readdirSync(scope.receipts)
     .filter((file) => RECEIPT_FILE.test(file))
-    .map((file) => readRecorded(scope, runId, file))
+    .flatMap((file) => {
+      try {
+        return [readRecorded(scope, runId, file)];
+      } catch (error) {
+        if (typeof runRoot === 'string' || !(error instanceof UnrecordedReceiptError)) throw error;
+        rejected.push({ workerId: basename(scope.root), file, reason: error.message });
+        return [];
+      }
+    })
     .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt) || a.receipt.id.localeCompare(b.receipt.id));
   return { receipts, rejected };
 }
@@ -306,13 +317,18 @@ export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, targ
   if (matching.length === 0) return { kind: 'inconclusive', reason: `No receipt recorded for ${target}${rejected.length === 0 ? '' : `; container receipts rejected: ${describeRejected(rejected)}`}`, receipts: [] };
   const defects: string[] = [];
   const unverifiable: string[] = [];
-  for (const { receipt } of matching) {
+  for (const { receipt, receiptPath } of matching) {
     if (COMMIT.test(target) && receipt.commit !== target) defects.push(`${receipt.id}: examined commit ${receipt.commit ?? '(none)'}, not ${target}`);
     for (const artifact of receipt.artifacts) {
       const path = artifactPath(base, artifact.path);
       if (!isInside(root, path)) defects.push(`${receipt.id}: artifact ${artifact.path} is outside the run`);
-      else if (!existsSync(path)) defects.push(`${receipt.id}: artifact ${artifact.path} is missing`);
-      else {
+      else if (!existsSync(path)) {
+        const source = relative(workers, receiptPath).split(/[\\/]/);
+        const workerDir = join(workers, source[0] ?? '');
+        const output = join(workerDir, 'out', relative(workerDir, path));
+        const hidden = typeof runRoot === 'string' && isInside(workers, receiptPath) && source.length === 4 && source[1] === 'out' && source[2] === 'receipts' && isInside(workerDir, path) && existsSync(output);
+        defects.push(`${receipt.id}: artifact ${artifact.path} is missing${hidden ? `; it exists at ${output}, which is not exported at the recorded path. Save artifacts under evidence/ (which the host sees) and record from there` : ''}`);
+      } else {
         let digest: string | undefined;
         try {
           digest = sha256(path);
@@ -387,7 +403,7 @@ export function registerEvidenceTool(pi: ExtensionAPI): void {
       if (params.action === 'record') {
         if (params.receiptPath === undefined) throw new Error('receiptPath is required');
         const recorded = recordReceipt(scope, runId, params.receiptPath, ctx.cwd);
-        const pending = typeof scope === 'string' ? '' : ' The parent takes it into the run when it next reads the receipts.';
+        const pending = typeof scope === 'string' ? '' : ' The parent takes it into the run when it next reads the receipts. Only evidence/, session/ and report.md are visible to the host. Save artifacts under evidence/ and record from there.';
         return text(`Recorded receipt ${recorded.receipt.id} for ${recorded.receipt.target} (${recorded.receipt.verdict}).${pending}`, recorded);
       }
       if (params.action === 'verify') {

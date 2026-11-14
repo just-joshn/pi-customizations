@@ -54,7 +54,7 @@ export default function pstack(pi: ExtensionAPI): void {
     systemPrompt: `${event.systemPrompt}\n\nThe installed pi-pstack package root (<pi-pstack>) is ${PACKAGE_ROOT}. Package-relative scripts and generated files resolve from this directory. The poteto-mode skill is ${PACKAGE_ROOT}/generated/skills/poteto-mode/SKILL.md. Use these absolute paths without searching for the package.`,
   }));
   if (process.env['PSTACK_WORKER'] === '1') {
-    registerWorkerSideTools(pi, process.env);
+    registerWorkerSideTools(pi, process.env, { resolveModel: roleModelResolver() });
     return;
   }
   registerWorkerTools(pi, { resolveModel: roleModelResolver() });

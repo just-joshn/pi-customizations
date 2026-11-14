@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { evidenceScope, ingestContainerReceipts, listReceipts, recordReceipt, verifyTarget } from '../../src/evidence.ts';
 import type { HostState, RunId, WorkerId } from '../../src/run-files.ts';
 import { makeParent, makeProject, makeRun, type Project, writeAssignment } from '../worker-lifecycle/harness.ts';
@@ -18,7 +18,10 @@ beforeEach(() => {
   project = makeProject();
   runRoot = makeRun(project, RUN);
 });
-afterEach(() => project.dispose());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  project.dispose();
+});
 
 /** What a container worker's evidence tool sees: the run root's name, and only its own directory behind it. */
 function inContainer(workerId: string) {
@@ -68,6 +71,38 @@ describe('a receipt recorded inside a container worker', () => {
     expect(existsSync(join(runRoot, 'verification'))).toBe(false);
   });
 
+  test('a raw source saved in the inbox is reported without poisoning other worker evidence', () => {
+    const worker = inContainer('v1');
+    worker.record('good');
+    const source = readFileSync(join(worker.out, 'evidence', 'good.json'), 'utf8');
+    writeFileSync(join(worker.out, 'receipts', 'misplaced.json'), source);
+
+    expect(listReceipts(worker.scope, RUN).map(({ receipt }) => receipt.id)).toEqual(['good']);
+    expect(verifyTarget(worker.scope, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['good'] });
+    expect(verifyTarget(worker.scope, RUN, 'missing')).toMatchObject({ kind: 'inconclusive', reason: expect.stringMatching(/misplaced\.json.*save.*evidence\/.*pstack_evidence record/i) });
+    expect(worker.record('next').receipt.id).toBe('next');
+    expect(() => recordReceipt(worker.scope, RUN, join(worker.out, 'receipts', 'misplaced.json'))).not.toThrow();
+  });
+
+  test('recording over a raw source names the collision and how to recover', () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    const source = readFileSync(join(worker.out, 'evidence', 'r1.json'), 'utf8');
+    const misplaced = join(worker.out, 'receipts', 'r1.json');
+    writeFileSync(misplaced, source);
+    expect(() => recordReceipt(worker.scope, RUN, misplaced)).toThrow(/r1\.json.*save.*evidence\/.*Move.*out of receipts\//);
+    rmSync(misplaced);
+    expect(worker.record('r1').receipt.id).toBe('r1');
+    expect(verifyTarget(worker.scope, RUN, 'step-1')).toEqual({ kind: 'pass', receipts: ['r1'] });
+  });
+
+  test('a malformed recorded envelope still prevents worker verification', () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    writeFileSync(join(worker.out, 'receipts', 'r1.json'), JSON.stringify({ receipt: { tampered: true } }));
+    expect(() => verifyTarget(worker.scope, RUN, 'step-1')).toThrow(/Invalid receipt.*r1\.json/);
+  });
+
   test('the worker cannot record outside its own directory, and the exclusive-link rule holds in the inbox', () => {
     const worker = inContainer('v1');
     writeFileSync(join(runRoot, 'elsewhere.json'), '{}');
@@ -89,6 +124,41 @@ describe('a receipt recorded inside a container worker', () => {
     const inbox = join(worker.out, 'receipts', 'r1.json');
     expect(statSync(stored).ino).not.toBe(statSync(inbox).ino);
     expect(statSync(stored).nlink).toBe(1);
+  });
+
+  test.each([true, false])('host verification stays failed and hints at an unexported artifact only when it exists in out (%s)', (inOutput) => {
+    const worker = inContainer('v1');
+    worker.record('seed');
+    const path = join(worker.workerDir, 'comment.md');
+    const source = join(worker.out, 'evidence', 'root.json');
+    const raw = JSON.parse(readFileSync(join(worker.out, 'evidence', 'seed.json'), 'utf8'));
+    writeFileSync(source, JSON.stringify({ ...raw, id: 'root', target: 'root-step', artifacts: [{ path, sha256: digest('all green\n') }] }));
+    if (inOutput) writeFileSync(join(worker.out, 'comment.md'), 'all green\n');
+    recordReceipt(worker.scope, RUN, source);
+
+    const verdict = verifyTarget(runRoot, RUN, 'root-step');
+
+    expect(verdict).toMatchObject({ kind: 'fail', receipts: ['root'] });
+    if (inOutput) {
+      expect(verdict).toMatchObject({ defects: [expect.stringContaining(join(worker.out, 'comment.md'))] });
+      expect(verdict).toMatchObject({ defects: [expect.stringMatching(/save artifacts under evidence\/.*host.*record/i)] });
+    } else expect(verdict).toEqual({ kind: 'fail', receipts: ['root'], defects: [`root: artifact ${path} is missing`] });
+  });
+
+  test('the container record reply names the host-visible paths', async () => {
+    const worker = inContainer('v1');
+    worker.record('r1');
+    vi.stubEnv('PSTACK_CONTAINER', '1');
+    vi.stubEnv('PSTACK_WORKER_ID', 'v1');
+    vi.stubEnv('PSTACK_RUN_ROOT', runRoot);
+    const parent = makeParent(project, []);
+    try {
+      const result = await parent.call('pstack_evidence', { action: 'record', runId: RUN, receiptPath: join(worker.workerDir, 'evidence', 'r1.json') });
+      expect(result.text).toMatch(/only evidence\/, session\/ and report\.md are visible to the host/i);
+      expect(result.details.receipt.id).toBe('r1');
+    } finally {
+      await parent.stop();
+    }
   });
 
   test('ingesting twice stores nothing new, and a later rewrite of the inbox file does not change the recorded receipt', () => {

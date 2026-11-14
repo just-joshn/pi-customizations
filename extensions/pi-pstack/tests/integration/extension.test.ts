@@ -1,14 +1,15 @@
-import { mkdtempSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { Api, Model } from '@earendil-works/pi-ai';
-import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { ExtensionContext, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import pstack, { roleModelResolver } from '../../src/extension.ts';
 import { parseModelsConfig } from '../../src/models.ts';
 import { STYLE_MESSAGE } from '../../src/style.ts';
+import { makeProject, makeRun, writeAssignment } from '../worker-lifecycle/harness.ts';
 import { type FakePi, fakePi } from './fake-pi.ts';
 
 let cwd: string;
@@ -26,6 +27,39 @@ describe('entry', () => {
     pstack(fake.pi);
     expect([...fake.tools.keys()].sort()).toEqual(['pstack_evidence', 'pstack_worker']);
     expect([...fake.commands.keys()]).toEqual(['pstack']);
+  });
+
+  test('a sub-coordinator resolves suffixes before launch and leaves resolution errors unclaimed', async () => {
+    const project = makeProject();
+    const session = SessionManager.create(project.dir, join(project.dir, 'sessions'));
+    session.appendMessage({ role: 'user', content: 'coordinate', timestamp: Date.now() });
+    makeRun(project, 'run1', session.getSessionFile());
+    process.env['PSTACK_WORKER'] = '1';
+    const previousSpawn = process.env['PSTACK_SPAWN'];
+    process.env['PSTACK_SPAWN'] = '1';
+    const model = { provider: 'openai', id: 'gpt-6.1-sol', reasoning: true };
+    const fake = fakePi({ cwd: project.dir, session, model, thinkingLevel: 'medium', modelRegistry: { getAvailable: () => [model] } });
+    const launches: { model: { provider: string; id: string }; thinkingLevel: string }[] = [];
+    fake.pi.exec = async (_command, args) => {
+      launches.push(JSON.parse(args.at(-1) as string));
+      return { code: 1, stdout: '', stderr: 'fixture launch refused', killed: false, truncated: false };
+    };
+    pstack(fake.pi);
+    const path = writeAssignment(project, 'run1', 'leaf', 'task', { model: 'openai/gpt-6.1-sol:high', thinkingLevel: 'low' });
+    const tool = fake.tools.get('pstack_worker') as ToolDefinition;
+    const spawn = () => tool.execute('spawn', { action: 'spawn', runId: 'run1', assignmentPath: path }, undefined, undefined, fake.ctx() as unknown as ExtensionToolContext);
+    try {
+      await expect(spawn()).rejects.toThrow(/conflicting thinking levels.*suffix high.*thinkingLevel low/);
+      expect(launches).toEqual([]);
+      expect(existsSync(join(path, '..', 'claim'))).toBe(false);
+      writeAssignment(project, 'run1', 'leaf', 'task', { model: 'openai/gpt-6.1-sol:high', thinkingLevel: null });
+      await expect(spawn()).rejects.toThrow(/fixture launch refused/);
+      expect(launches).toMatchObject([{ model: { provider: 'openai', id: 'gpt-6.1-sol' }, thinkingLevel: 'high' }]);
+    } finally {
+      if (previousSpawn === undefined) delete process.env['PSTACK_SPAWN'];
+      else process.env['PSTACK_SPAWN'] = previousSpawn;
+      project.dispose();
+    }
   });
 
   test('a worker (PSTACK_WORKER=1) gets only pstack_evidence and package paths, with no command, style, or routing', async () => {
