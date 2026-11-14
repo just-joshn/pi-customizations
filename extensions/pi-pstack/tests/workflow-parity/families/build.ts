@@ -435,7 +435,7 @@ export const tddFamily: Family = {
     promptRoutes('tdd'),
     parentReads('tdd.reads-skill', 'the parent opens the tdd skill', src('tdd/SKILL.md', '# TDD Bug Fix'), ['tdd']),
     check('tdd.test-first-red-then-fix-then-green', 'a regression test is written or added to a test file first, run and seen failing, then the source is edited, then the suite is run and passes', src('tdd/SKILL.md', '**Run the new test before fixing.**'), (view) => {
-      const calls = view.parent.toolCalls;
+      const calls = view.parent.toolCalls.map((call, order) => ({ ...call, order }));
       const wrote = calls.find((call) => isTestEdit(call, view));
       const fixed = calls.find((call) => (call.name === 'edit' || call.name === 'write') && !isTestEdit(call, view) && isRepoSource(call, view) && wrote !== undefined && call.order > wrote.order);
       const runs = calls.filter((call) => call.name === 'bash' && TEST_RUN.test(String(call.args['command'])) && !/git (add|commit)/.test(String(call.args['command'])));
