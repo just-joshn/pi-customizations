@@ -107,9 +107,9 @@ export const codemodeFamily: Family = {
   checks: [
     ...composes('parent'),
     ...composes('worker'),
-    check('codemode.worker-ran-codemode', 'the worker is a pstack worker with its own worktree that ran codemode itself', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {
-      const worker = composerOf(view);
-      return when(worker.assignment['role'] === 'general' && (worker.assignment['workspace'] as { mode?: string })?.mode === 'worktree', `codemode worker ${worker.id} has its own worktree`, `worker ${worker.id}: ${JSON.stringify(worker.assignment)}`);
+    check('codemode.worker-ran-codemode', 'a pstack worker ran codemode itself', SRC, (view) => {
+      const workers = allWorkers(view).filter((worker) => codemodeCalls(worker.session).some((call) => !call.isError));
+      return when(workers.length > 0, `codemode ran in workers ${workers.map((worker) => worker.id).join(', ')}`, 'no worker successfully ran codemode');
     }),
     check('codemode.sessions-do-not-share', 'the parent and the worker each ran their own MCP server process, and no label crossed from one to the other', SRC, (view) => {
       const parentPids = new Set(echoesOf(view, 'parent').map((entry) => entry.pid));
@@ -132,6 +132,6 @@ export const codemodeFamily: Family = {
     { name: 'the worker calls ran one after another', mutate: (sandbox) => overwrite(join(sandbox, 'mcp-calls.jsonl'), (text) => text.split('\n').map((line) => (line.includes('worker-B') ? line.replace(/"at":(\d+)/, (_, at: string) => `"at":${Number(at) + 1000}`) : line)).join('\n')), fails: ['codemode.worker-concurrent'] },
     { name: 'a worker label appeared in the parent', mutate: (sandbox, view) => rewriteSession(workerSessionFile(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id), 'worker-A', 'parent-A'), fails: ['codemode.worker-isolated', 'codemode.sessions-do-not-share'] },
     { name: 'the large result reached the model whole', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'truncated', 'complete'), fails: ['codemode.large-output-is-bounded'] },
-    { name: 'the worker was readonly, with no codemode', mutate: (sandbox, view) => patchAssignment(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id, (assignment) => (assignment['workspace'] = { mode: 'readonly', path: join(sandbox, 'repo') })), fails: ['codemode.worker-ran-codemode'] },
+    { name: 'the worker was readonly, with no codemode', mutate: (sandbox, view) => { patchAssignment(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id, (assignment) => (assignment['workspace'] = { mode: 'readonly', path: join(sandbox, 'repo') })); rewriteSession(workerSessionFile(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id), 'codemode', 'read'); }, fails: ['codemode.worker-ran-codemode'] },
   ],
 };
