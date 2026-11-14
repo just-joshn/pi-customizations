@@ -173,6 +173,7 @@ function scenarioOf(ctx: Ctx, store: Store) {
 // ---- reading the tree a run left behind
 
 interface Tree {
+  missing?: string;
   subWorker: WorkerView | undefined;
   subRun: RunDir | undefined;
   leaves: WorkerView[];
@@ -182,7 +183,7 @@ interface Tree {
 function treeOf(view: RunView): Tree {
   const rootRun = view.runs[0];
   const candidates = rootRun?.workers.filter((worker) => (worker.assignment as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true) ?? [];
-  if (candidates.length !== 1) return { subWorker: undefined, subRun: undefined, leaves: [], rootSessionFile: view.parent.file };
+  if (candidates.length !== 1) return { missing: `expected one subcoordinator; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`, subWorker: undefined, subRun: undefined, leaves: [], rootSessionFile: view.parent?.file ?? '' };
   const subWorker = candidates[0];
   const worktree = subWorker?.worktree;
   const runsDir = worktree ? join(worktree, '.pi', 'pstack', 'runs') : '';
@@ -231,7 +232,7 @@ export const orchestrateSubFamily: Family = {
     ...playbookReads('orchestrate'),
     check('orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns', 'the root spawned only the coordinator (the one worker with capabilities.spawn), the coordinator made every leaf spawn call from its own session into its own run, the leaves are owned by the coordinator\'s session and hold no spawn capability, a spawn of a fourth level was refused and left no claim, and the root got wakes for the coordinator only', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
-      if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
+      if (tree.subWorker === undefined || tree.subRun === undefined) return fail(tree.missing ?? 'expected one subcoordinator with its own run; none or ambiguous');
       const rootSpawns = spawnsOf(view.parent).map(idFromPath);
       const subSpawns = spawnsOf(tree.subWorker?.session);
       const spawned = subSpawns.filter((call) => !call.isError).map(idFromPath);

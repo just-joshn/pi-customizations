@@ -41,7 +41,6 @@ const watcherRun = (view: Parameters<typeof watchers>[0], worker: ReturnType<typ
   if (run === undefined) throw new Error(`missing run for ${worker.id}`);
   return run.id;
 };
-const firstRequestArmedWatcher = (view: Parameters<typeof watchers>[0]): boolean => watchers(view).some((worker) => callsInTurn(view, 0).some((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/workers/${worker.id}/`)));
 const BASE_ARGS = (pr: number | string) => ['--owner', 'acme', '--repo', 'widgets', '--pr', String(pr)];
 
 const withForge = (build: (ctx: Ctx) => ForgeHandle, store: { handle?: ForgeHandle }) => ({
@@ -865,7 +864,7 @@ export const babysitSingleWatcherFamily: Family = {
     modeDeclared('babysit.single.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
     forgeResolvedOnce('babysit.single.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found the existing watcher live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
-      if (!firstRequestArmedWatcher(view)) return { inconclusive: 'the first request armed no watcher, so reuse on a second request was not exercised' };
+      if (watchers(view).length === 0) return { inconclusive: 'no watcher was armed or adopted, so reuse on a second request was not exercised' };
       const turns = view.parent.messages.filter((message) => message.role === 'user').length;
       const second = callsInTurn(view, 1);
       const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
@@ -875,7 +874,7 @@ export const babysitSingleWatcherFamily: Family = {
       return when(turns === 2 && spawns.length === 0 && (found?.resultText ?? '').includes(`/workers/${worker.id}/`) && /running/.test(inspect?.resultText ?? ''), `the repeat request saw ${worker.id} in the assignments and running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; search saw the watcher ${(found?.resultText ?? '').includes(`/workers/${worker.id}/`)}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
     }),
     check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
-      if (!firstRequestArmedWatcher(view)) return { inconclusive: 'the first request armed no watcher, so duplicate polling was not exercised' };
+      if (watchers(view).length === 0) return { inconclusive: 'no watcher was armed or adopted, so duplicate polling was not exercised' };
       const { actions } = readForge(view);
       const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.pr === 16 && action.worker !== '').map((action) => action.worker))];
       const worker = observedWatcher(view, '16');
