@@ -34,7 +34,7 @@ const events = (shot: OneShot): Record<string, unknown>[] =>
 function headless(mode: 'print' | 'json'): Family {
   const id = `headless-${mode}`;
   const runId = `headless-${mode}`;
-  const waitForWake = (parent: Parent) => `until grep -q '"kind":"wake"' ${JSON.stringify(join(parent.runDir, 'events.jsonl'))} 2>/dev/null; do sleep 0.2; done; sleep 1`;
+  const waitForSettle = (parent: Parent) => `until node -e ${JSON.stringify("const fs = require('node:fs'); const p = process.argv[1]; process.exit(fs.existsSync(p) && JSON.parse(fs.readFileSync(p, 'utf8')).settles.length > 0 ? 0 : 1)")} ${JSON.stringify(join(parent.runDir, 'workers/explorer/state.json'))}; do sleep 0.2; done`;
   return {
     id,
     title: `a pstack playbook start under pi ${mode === 'print' ? '-p' : '--mode json'}: TODO.md, a worker that settles, a delivered wake (MX-HEADLESS)`,
@@ -49,7 +49,7 @@ function headless(mode: 'print' | 'json'): Family {
         const parent = new Parent(ctx);
         parent.beginPlaybook('investigation', 'Investigation: headless checkout totals');
         parent.spawn('explorer', { role: 'explorer', model: String(SCRIPTED_ROLES['how explorer']), workspace: parent.readonly() }, 'Explain how total() in src/cart.js works.');
-        parent.bash(waitForWake(parent)).wait('explorer').collect('explorer').text(`${ANSWER} (${mode})`);
+        parent.bash(waitForSettle(parent)).wait('explorer').collect('explorer').text(`${ANSWER} (${mode})`);
         return scenario(parent, { explorer: new Worker().read(join(ctx.repo, 'src/cart.js')).text(ANSWER_MARK) });
       },
     },

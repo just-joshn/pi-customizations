@@ -66,6 +66,32 @@ test('a worker collected during the parent turn causes no late follow-up, while 
   expect(parent.messages[0]?.options).toEqual({ triggerTurn: true, deliverAs: 'followUp' });
 });
 
+test.each(['print', 'json', 'rpc', 'tui'] as const)('%s delivers needed follow-ups before final settlement without waking for an in-turn collect', async (mode) => {
+  await parent.stop();
+  let tmuxGate = Promise.resolve();
+  parent = makeParent(project, [], { mode, pollMs: 60_000, isIdle: () => false, beforeTmux: () => tmuxGate });
+  await parent.start();
+  await spawn('seen', '@@say DONE');
+  await spawn('unseen', '@@say DONE');
+  await settled('seen', 1);
+  await settled('unseen', 1);
+
+  let release = () => {};
+  tmuxGate = new Promise<void>((resolve) => { release = resolve; });
+  const scanning = parent.fire('session_tree');
+  await call('collect', 'seen');
+  const boundary = parent.fire('agent_before_settle', { outcome: 'completed' });
+  release();
+  await scanning;
+  await boundary;
+
+  expect(wokenFor('seen')).toEqual([]);
+  expect(wokenFor('unseen')).toHaveLength(1);
+  expect(parent.messages[0]?.options).toEqual({ triggerTurn: true, deliverAs: 'followUp' });
+  await parent.fire('agent_before_settle', { outcome: 'completed' });
+  expect(wokenFor('unseen')).toHaveLength(1);
+});
+
 test('a settle that comes after the collect wakes the parent again', async () => {
   await spawn('again', '@@say FIRST');
   await settled('again', 1);
