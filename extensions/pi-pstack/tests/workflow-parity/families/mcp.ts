@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { type Check, check, fail, src, when } from '../lib/check.ts';
+import { type Check, check, fail, scriptedProbe, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, repoUntouched, settledAndCollected, workersCheck } from '../lib/checks.ts';
 import { PI, PKG, SCRIPTED_ROLES } from '../lib/driver.ts';
 import { overwrite, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
@@ -135,7 +135,7 @@ function whyMcp(withServer: boolean): Family {
         });
       },
     },
-    checks,
+    checks: checks.map((entry) => /worker-discovers-and-calls|readonly-holds-beside-mcp/.test(entry.id) ? scriptedProbe(entry) : entry),
     negatives: [
       { name: 'an investigator was spawned with MCP off', mutate: (sandbox) => patchAssignment(sandbox, id, 'docs-investigator', (assignment) => (assignment['capabilities'] = { mcp: 'none', env: 'inherit', externalWrite: false })), fails: [`${id}.investigators-readonly-with-mcp`] },
       { name: 'a host was launched with --no-mcp', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs', id, 'events.jsonl'), (text) => text.replace('"--tools"', '"--no-mcp","--tools"')), fails: [`${id}.worker-launch-keeps-mcp`] },

@@ -48,6 +48,12 @@ export function check(id: string, title: string, src: Src | Src[], run: Check['r
 /** Marks a check whose PASS rests on the absence of an action. Applied here once, so no family re-implements the guard. */
 export const absence = (entry: Check): Check => ({ ...entry, absence: true });
 
+export const scriptedProbe = (entry: Check): Check => ({
+  ...entry,
+  scope: 'adaptation',
+  run: (view) => view.driver === 'real' ? { inconclusive: 'this fixture probe was not requested by the real-run prompt' } : entry.run(view),
+});
+
 /** `check` for a PASS that rests on the absence of an action. */
 export const checkAbsence = (...args: Parameters<typeof check>): Check => absence(check(...args));
 
