@@ -18,31 +18,48 @@ const textContent = (value: unknown): string =>
         .join('\n')
     : '';
 
+function eventShape(event: Record<string, unknown> | undefined): boolean {
+  if (!event || typeof event['type'] !== 'string') return false;
+  switch (event['type']) {
+    case 'agent_start':
+      return Object.keys(event).every((key) => key === 'type');
+    case 'agent_settled':
+      return typeof event['aborted'] === 'boolean';
+    case 'message_end': {
+      const message = object(event['message']);
+      return typeof message?.['role'] === 'string' && (typeof message['content'] === 'string' || Array.isArray(message['content']));
+    }
+    case 'tool_execution_start':
+      return typeof event['toolCallId'] === 'string' && typeof event['toolName'] === 'string' && object(event['args']) !== undefined;
+    case 'tool_execution_end':
+      return typeof event['toolCallId'] === 'string' && typeof event['isError'] === 'boolean' && Array.isArray(object(event['result'])?.['content']);
+    default:
+      return true;
+  }
+}
+
 export function routeEvidence(jsonl: string, expected: ExpectedRoute, exitCode: number | null) {
   const events = jsonl
     .split('\n')
     .filter((line) => line.trim())
     .map((line) => object(JSON.parse(line)));
-  if (events.some((event) => !event || typeof event['type'] !== 'string')) throw new Error('Malformed Pi JSONL event');
-  const completed = exitCode === 0 && events.filter((event) => event?.['type'] === 'agent_settled').at(-1)?.['aborted'] === false;
-  const messages = events
-    .filter((event) => event?.['type'] === 'message_end')
-    .map((event) => object(event?.['message']))
-    .filter((message) => message?.['role'] === 'assistant');
-  const final = messages.at(-1);
-  const failed = final?.['stopReason'] === 'error' || final?.['stopReason'] === 'aborted';
+  if (events.some((event) => !eventShape(event))) throw new Error('Malformed Pi JSONL event');
+  const finalIndex = events.findLastIndex((event) => event?.['type'] === 'message_end' && object(event['message'])?.['role'] === 'assistant');
+  const final = object(events[finalIndex]?.['message']);
+  const settledIndex = events.findLastIndex((event) => event?.['type'] === 'agent_settled');
+  const completed = exitCode === 0 && finalIndex >= 0 && settledIndex > finalIndex && events[settledIndex]?.['aborted'] === false && final?.['stopReason'] === 'stop';
   let decision: Record<string, unknown> | undefined;
   try {
     decision = object(JSON.parse(textContent(final?.['content'])));
   } catch {
     /* Unstructured replies require manual review, not a guessed route. */
   }
-  const valid = completed && !failed && typeof decision?.['route'] === 'string' && typeof decision['path'] === 'string' && (!expected.noPr || typeof decision['prRequired'] === 'boolean');
+  const valid = completed && typeof decision?.['route'] === 'string' && typeof decision['path'] === 'string' && (!expected.noPr || typeof decision['prRequired'] === 'boolean');
   const source = expected.source.trimEnd();
   const lines = source.split('\n');
   const reads = new Map<string, number>();
   const ranges: [number, number][] = [];
-  for (const event of events) {
+  for (const event of events.slice(0, finalIndex)) {
     if (!event) continue;
     const args = object(event['args']);
     if (event['type'] === 'tool_execution_start' && typeof event['toolCallId'] === 'string') reads.delete(event['toolCallId']);
