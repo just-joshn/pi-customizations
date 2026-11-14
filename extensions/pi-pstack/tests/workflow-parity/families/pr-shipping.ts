@@ -370,7 +370,7 @@ export const shippingFamily: Family = {
         const verdict = verdicts.find((entry) => entry.pr === pr);
         return verdict === undefined || !chunks.some((chunk) => chunk.startsWith(`PR ${pr}`) && chunk.includes(verdict.verdict) && chunk.includes(verdict.verifier));
       });
-      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|read it back as MERGED|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|read(?: it)? back as MERGED|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
       missing.push(...producers.map((pr) => `PR ${pr} verdict and producer`));
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
