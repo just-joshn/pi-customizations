@@ -89,6 +89,13 @@ test('credential leaks fail closed while unavailable probes leave family scoring
   expect(unexpectedFailures(run, family)).toEqual(['container-credentials.run.worker']);
 });
 
+test('worker provider errors remain scoreable so parent recovery can be judged', () => {
+  const view = { driver: 'real', parent: { errors: [], messages: [], toolCalls: [{ name: 'pstack_worker' }] }, runs: [{ workers: [{ session: { errors: ['unknown model'] } }] }] } as unknown as RunView;
+  expect(assess(view)).toBeUndefined();
+  view.parent.errors = ['429 Usage limit reached'];
+  expect(assess(view)).toEqual({ kind: 'provider-error', message: '429 Usage limit reached' });
+});
+
 test('a healthy parent is scored', async () => {
   const outcome = await run('parent-healthy.jsonl');
   expect(outcome.meta.inconclusive).toBeUndefined();
@@ -143,7 +150,7 @@ test('the same abort text on a worker nobody aborted, and any other error on an 
   expect(workerErrors([{ sequence: 1, phase: 'aborted', at: T2 }], abortedTurn('error', '429 Usage limit reached', T1))).toEqual(['429 Usage limit reached']);
 });
 
-test('an unexpected abort error in turn 1 and an intentional cancellation in turn 2: only the second is dropped, and the run stays INCONCLUSIVE', () => {
+test('an unexpected worker abort stays recorded without suppressing parent recovery scoring', () => {
   const settles = [
     { sequence: 1, phase: 'idle', reason: null, at: T2 },
     { sequence: 2, phase: 'aborted', reason: 'Stopped by request', at: T4 },
@@ -151,7 +158,7 @@ test('an unexpected abort error in turn 1 and an intentional cancellation in tur
   const turns = abortedTurn('error', 'This operation was aborted', T1) + abortedTurn('error', 'This operation was aborted', T3);
   const errors = workerErrors(settles, turns);
   expect(errors).toEqual(['This operation was aborted']);
-  expect(assess({ parent: { errors: [] }, runs: [{ workers: [{ session: { errors } }] }] } as unknown as RunView)?.kind).toBe('provider-error');
+  expect(assess({ parent: { errors: [], messages: [], toolCalls: [] }, runs: [{ workers: [{ session: { errors } }] }] } as unknown as RunView)).toBeUndefined();
 });
 
 test('an abort error the records cannot tie to the cancellation (no timestamps) is kept', () => {
