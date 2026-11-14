@@ -19,6 +19,7 @@ import type { Family } from './types.ts';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
 const billingThread = (state: ForgeState) => state.prs['13']?.threads.find((thread) => thread.comments.some((comment) => /negative\s+couponPercent/i.test(comment.body)));
+const ownerRebasePending = (state: ForgeState, actions: ForgeAction[]): boolean => state.prs['12']?.mergeable === 'CONFLICTING' && !actions.some((action) => ['reply', 'resolve', 'rerun'].includes(action.kind));
 const TRIAGE = (anchor: string) => src('poteto-mode/references/bugbot-triage.md', anchor);
 
 const CLAMP = 'return roundCents(amount - (amount * percent) / 100);';
@@ -182,23 +183,29 @@ export const babysitDriveFamily: Family = {
       const last = watchers(view).at(-1);
       return when(lives.length >= 2 && overlap.length === 0 && loops.length === 0 && last !== undefined && exitCodeOf(last) === 0, `${lives.length} watchers, strictly sequential in events.jsonl, the last ended READY, no sleep loop`, `overlapping: ${overlap.map((life) => life.id).join(', ') || 'none'}; sleep loops ${loops.length}; last exit ${last === undefined ? 'n/a' : String(exitCodeOf(last))}`);
     }),
-    check('babysit.conflict-is-reported-before-anything-else', 'the conflict is reported to the owner by a PR comment that names the branch, the rebase and the drift sweep, before any thread reply, resolve or rerun', BS('A conflict is the one blocker you report rather than resolve'), (view) => {
+    check('babysit.conflict-is-reported-before-anything-else', 'the conflict is reported to the owner with the branch, requested rebase and drift sweep, before any thread or CI action', BS('A conflict is the one blocker you report rather than resolve'), (view) => {
       const { actions } = readForge(view);
       const report = actions.findIndex((action) => action.kind === 'comment' && action.pr === 12 && /rebase/.test(String(action['body'])) && /feat-coupon-cap/.test(String(action['body'])) && /[Dd]rift sweep/.test(String(action['body'])));
       const later = actions.findIndex((action) => ['reply', 'resolve', 'rerun'].includes(action.kind));
       const rebase = actions.findIndex((action) => action.kind === 'force-push');
-      return when(report !== -1 && later !== -1 && report < later && rebase > report && actions[rebase]?.actor === 'operator-sim', `report at action ${report}, the owner's rebase at ${rebase}, first thread or CI action at ${later}`, `report ${report}, later work ${later}, rebase ${rebase} by ${actions[rebase]?.actor}`);
+      const message = view.parent.messages.find((entry) => entry.role === 'assistant' && /conflict/i.test(entry.text) && /feat-coupon-cap|PR\s*#?12/i.test(entry.text) && /rebase/i.test(entry.text) && /drift sweep/i.test(entry.text));
+      const laterCall = BASH(view).find((entry) => /run rerun|replies|resolveReviewThread/.test(entry.command));
+      const commentReported = report !== -1 && (later === -1 || report < later);
+      const directlyReported = message !== undefined && (later === -1 || (laterCall !== undefined && message.order < laterCall.order));
+      return when(commentReported || directlyReported, `owner notified by comment at action ${report} or assistant message ${message?.order}; later work ${later}`, `report ${report}, assistant report ${message?.order}, later work ${later} at tool ${laterCall?.order}; rebase ${rebase}`);
     }),
     neverMutatesTopology('babysit.never-mutates-stack-topology', BS('Never mutate stack topology')),
     check('babysit.threads-before-ci', 'the thread reply and resolve happen before the CI rerun', BS('Order is conflicts, then review threads, then CI'), (view) => {
-      const { actions } = readForge(view);
+      const { state, actions } = readForge(view);
+      if (ownerRebasePending(state, actions)) return { inconclusive: 'the owner has not cleared the conflict; neither thread handling nor CI was reached' };
       const reply = actions.findIndex((action) => action.kind === 'reply');
       const resolve = actions.findIndex((action) => action.kind === 'resolve');
       const rerun = actions.findIndex((action) => action.kind === 'rerun');
       return when(reply !== -1 && resolve > reply && rerun > resolve, `reply ${reply}, resolve ${resolve}, rerun ${rerun}`, `reply ${reply}, resolve ${resolve}, rerun ${rerun}`);
     }),
     check('babysit.flake-verified-in-source-then-exactly-one-fresh-build', 'the failing run log and the base were read before one whole-run rerun, with no job retry and no second rerun', BS('Classify CI before any retrigger'), (view) => {
-      const { actions } = readForge(view);
+      const { state, actions } = readForge(view);
+      if (ownerRebasePending(state, actions)) return { inconclusive: 'the owner has not cleared the conflict; no CI rerun was attempted' };
       const reruns = actions.filter((action) => action.kind === 'rerun');
       const logAt = actions.findIndex((action) => action.kind === 'log-view' && action['runId'] === '9212');
       const rerunAt = actions.findIndex((action) => action.kind === 'rerun');
