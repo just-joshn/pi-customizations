@@ -48,7 +48,15 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       ...old.map((sha, index) => verdict(index, sha)),
       ...heads.map((_, index) => ({ kind: 'force-push', actor: 'operator-sim', ref: `refs/heads/s-${index + 1}` })),
       ...(fresh ? [verdict(2, heads[2] as string)] : []),
-      ...heads.flatMap((head, index) => [...(index === 0 ? [] : [{ kind: 'edit-base', pr: 21 + index, from: `s-${index}`, to: 'main' }, { kind: 'force-push', ref: `refs/heads/s-${index + 1}`, old: head, worker: '', actor: '' }]), { kind: 'merge', pr: 21 + index, head }]),
+      ...heads.flatMap((head, index) => [
+        ...(index === 0
+          ? []
+          : [
+              { kind: 'edit-base', pr: 21 + index, from: `s-${index}`, to: 'main' },
+              { kind: 'force-push', ref: `refs/heads/s-${index + 1}`, old: head, worker: '', actor: '' },
+            ]),
+        { kind: 'merge', pr: 21 + index, head },
+      ]),
     ];
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify(state));
     writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
@@ -79,7 +87,13 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       report.text = report.text.replace('Ceiling: PR 23.', '');
       expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: false });
     }
-    const comparison = { name: 'bash', order: -1, args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' }, resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'), isError: false };
+    const comparison = {
+      name: 'bash',
+      order: -1,
+      args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' },
+      resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'),
+      isError: false,
+    };
     view.parent.toolCalls.unshift(comparison);
     expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });
     comparison.resultText = 'PR 21 verdict-sha=old head=new same-patch\nPR 22 verdict-sha=old head=new same-patch\nPR 23 verdict-sha=old head=new changed-patch';

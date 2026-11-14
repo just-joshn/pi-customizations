@@ -548,7 +548,7 @@ export const shippingFreshnessFamily: Family = {
         return verdict !== undefined && verdict.verdict !== 'FAIL' && verdict.patch === patchIdOf(bareOf(view.sandbox), head);
       };
       const moved = merges.filter((merge) => verdicts.find((verdict) => verdict.pr === merge.pr)?.head !== merge['head']).map((merge) => merge.pr);
-      const uncovered = merges.filter((merge) => !valid(merge.pr, String(merge['head']), actions.indexOf(merge))).map((merge) => merge.pr);
+      const uncovered = merges.filter((merge) => merge.pr === undefined || !valid(merge.pr, String(merge['head']), actions.indexOf(merge))).map((merge) => merge.pr);
       const armed = Object.values(state.prs).filter((pr) => (pr.autoMerge === true || pr.queued === true) && !valid(pr.number, pr.mergedHead ?? headAt(view, state)(pr.number))).map((pr) => pr.number);
       return when(moved.length > 0 && uncovered.length === 0 && armed.length === 0, `rebased verdicts survived for ${moved.join(', ')}; every landed or armed patch has a covering verdict`, `merged at a new head: ${moved.join(', ')}; uncovered merges ${uncovered.join(', ')}; uncovered armed PRs ${armed.join(', ')}`);
     }),
@@ -591,7 +591,7 @@ export const shippingFreshnessFamily: Family = {
       const chunks = reply.split(/(?=\bPR\s+#?\d+\b)/i).map((text) => (text.split(/[.\n]/)[0] ?? '').replace(/\b(?:not|never)(?:\s+\w+){0,2}\s+(?:shipped|landed|merged)\b/gi, ''));
       const lists = reply.match(/(?:landed|merged|shipped)[ \t:—-]+[^\n.]+/gi) ?? [];
       const merged = mergesIn(actions).map((action) => action.pr);
-      const reported = merged.every((pr) => lists.some((text) => mentions(pr, text)) || chunks.some((text) => new RegExp(`^PR\\s+#?${pr}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text)));
+      const reported = merged.every((pr) => pr !== undefined && (lists.some((text) => mentions(pr, text)) || chunks.some((text) => new RegExp(`^PR\\s+#?${pr}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text))));
       const falseShipping = Object.values(state.prs).filter((pr) => pr.state !== 'MERGED').some((pr) => chunks.some((text) => new RegExp(`^PR\\s+#?${pr.number}\\b`, 'i').test(text) && /\b(?:shipped|landed|merged)\b/i.test(text)));
       const missing = [ceiling === undefined || !new RegExp(`ceiling[^.\\n]{0,80}\\b${ceiling}\\b`, 'i').test(reply) ? 'current ceiling' : '', !/patch|rebas/i.test(reply) ? 'patch freshness' : '', !reported ? 'what landed' : '', !/next gap|remaining gap|no (?:further |remaining )?gap|next (?:step|action)/i.test(reply) ? 'next gap' : '', falseShipping ? 'an unmerged PR is claimed shipped' : ''].filter(Boolean);
       return when(missing.length === 0, `current ceiling ${ceiling}, patch freshness, landed PRs and next gap reported`, `missing or contradictory: ${missing.join(', ')}`);

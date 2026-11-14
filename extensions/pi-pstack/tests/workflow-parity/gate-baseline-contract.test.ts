@@ -37,13 +37,24 @@ test.for([false, true])('a gate raise is measured across the PR, including a lat
     writeFileSync(join(owner.dir, 'out/decisions.tsv'), `countersign budget.json ${head}\n`);
     const lanes = ['gates', 'live', 'audit'].map((lane) => ({ id: `verify-${lane}`, dir: join(dir, `workers/verify-${lane}`), brief: `${lane} lane`, assignment: { role: 'verifier', workspace: { inputCommit: head } } }));
     const proof = { id: 'proof', runId: 'r', verdict: 'pass', target: 'pr-33', artifacts: [{ path: join(dir, 'workers/verify-audit/proof.txt') }] };
-    const actions = [...lanes.map((lane) => ({ kind: 'comment', pr: 33, worker: lane.id, body: `PASS head ${head}` })), { kind: 'comment', pr: 33, worker: 'verify-audit', body: `Gate budget.json raised from 10 to 20 at ${head}. Proof receipt proof.` }, { kind: 'comment', pr: 33, worker: '', actor: '', container: false, body: `Countersign at ${head}. budget.json raised from 10 to 20. Proof receipt proof.` }, { kind: 'merge', pr: 33, worker: 'owner', head }];
+    const countersign = { kind: 'comment', pr: 33, worker: '', actor: '', container: false, body: `Countersign at ${head}. budget.json raised from 10 to 20. Proof receipt proof.` };
+    const actions = [
+      ...lanes.map((lane) => ({ kind: 'comment', pr: 33, worker: lane.id, body: `PASS head ${head}` })),
+      { kind: 'comment', pr: 33, worker: 'verify-audit', body: `Gate budget.json raised from 10 to 20 at ${head}. Proof receipt proof.` },
+      countersign,
+      { kind: 'merge', pr: 33, worker: 'owner', head },
+    ];
     const save = () => writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
     save();
-    const view = { sandbox, base, runs: [{ id: 'r', dir, workers: [owner, ...lanes], receipts: [proof] }], parent: { toolCalls: [{ name: 'pstack_worker', args: { action: 'steer', workerId: 'owner', message: 'Countersign is ready.' } }] } } as unknown as RunView;
+    const view = {
+      sandbox,
+      base,
+      runs: [{ id: 'r', dir, workers: [owner, ...lanes], receipts: [proof] }],
+      parent: { toolCalls: [{ name: 'pstack_worker', args: { action: 'steer', workerId: 'owner', message: 'Countersign is ready.' } }] },
+    } as unknown as RunView;
     const check = autopilotLanesFamily.checks.find((entry) => entry.id === 'autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign');
     expect(check?.run(view)).toMatchObject({ ok: true });
-    actions[4]!.body = actions[4]!.body?.replace('from 10 to 20', 'from 20 to 20');
+    countersign.body = countersign.body.replace('from 10 to 20', 'from 20 to 20');
     save();
     expect(check?.run(view)).toMatchObject({ ok: false });
   } finally {

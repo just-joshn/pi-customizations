@@ -12,8 +12,15 @@ test.for([true, false])('pickup reports facts and the opened route without manda
     const worker = join(sandbox, '.pi/pstack/runs/prior-run/workers/old-worker');
     mkdirSync(worker, { recursive: true });
     writeFileSync(join(worker, 'report.md'), 'Pending: 3. exportCsv item rows.\n');
-    const report = { role: 'assistant', order: 1, text: `The prior agent completed units 1 and 2. I inherited those commits and redid nothing. Unit 3, exportCsv item rows, is next. I will continue under Feature.${outcome ? ' I verified the inherited claim; its tests passed.' : ''}` };
-    const view = { repo: sandbox, parent: { messages: [report], toolCalls: [{ name: 'read', args: { path: '/pkg/generated/skills/poteto-mode/playbooks/feature.md' }, order: 0, isError: false, resultText: 'Feature' }] } } as unknown as RunView;
+    const report = {
+      role: 'assistant',
+      order: 1,
+      text: `The prior agent completed units 1 and 2. I inherited those commits and redid nothing. Unit 3, exportCsv item rows, is next. I will continue under Feature.${outcome ? ' I verified the inherited claim; its tests passed.' : ''}`,
+    };
+    const view = {
+      repo: sandbox,
+      parent: { messages: [report], toolCalls: [{ name: 'read', args: { path: '/pkg/generated/skills/poteto-mode/playbooks/feature.md' }, order: 0, isError: false, resultText: 'Feature' }] },
+    } as unknown as RunView;
     const run = (id: string) => pickupFamily.checks.find((check) => check.id === `pickup.${id}`)?.run(view);
     expect(run('resume-point-is-the-first-unfinished-unit')).toMatchObject({ ok: true });
     expect(run('verdict-and-route')).toMatchObject({ ok: true });
