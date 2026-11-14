@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 244,
-    "spans": 309
+    "rules": 245,
+    "spans": 310
   },
   "skills": [
     "architect",
@@ -974,6 +974,15 @@
       ],
       "files": {
         "vendor/upstream-pstack/agents/poteto-agent.md": 1
+      }
+    },
+    {
+      "id": "comment-sicko.readonly-scope",
+      "primitives": [
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/agents/comment-sicko.md": 1
       }
     },
     {
@@ -2393,6 +2402,21 @@
     },
     {
       "file": "vendor/upstream-pstack/agents/comment-sicko.md",
+      "rule": "comment-sicko.readonly-scope",
+      "offset": [
+        2051,
+        2130
+      ],
+      "lines": [
+        30,
+        30
+      ],
+      "original": "I touch comments and identify refactor targets. I never write application code.",
+      "replacement": "I propose comment deletions and identify refactor targets. I never edit files or write application code.",
+      "output": "generated/agents/comment-sicko.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/comment-sicko.md",
       "rule": "comment-sicko.worker-contract",
       "offset": [
         2132,
@@ -2403,7 +2427,7 @@
         32
       ],
       "original": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n",
-      "replacement": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets `capabilities.spawn: true`, as for a sub-coordinator, you have `pstack_worker` and own your children's runs. They live under your workspace's `.pi/pstack/runs/`, their wakes come to you, and you collect and read their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get `capabilities.spawn: true`. A readonly worker (a workspace of mode `readonly`, with only read tools and `bash_readonly`) cannot write files, so it writes no `report.md` and records no receipts. Its final reply is its report, and it names each check it ran there, with the command and its result. Every other worker writes its final report to `report.md` in the worker directory the brief names, saves each check it ran as a receipt under that directory's `evidence/`, and registers it with `pstack_evidence` `record`. The receipt's fields and `kind` values are listed in the `pstack_evidence` tool description and in the \"Evidence receipt\" section of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. A check that is meant to fail before the fix is a receipt with `expectedFail: true`. In a container you record the same way, with paths in your worker directory, and the parent takes the receipt into the run when it next reads the run's receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
+      "replacement": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n\nIn Pi you are a read-only critic. Do not edit files, including comments. Every kill is a proposal: return the scoped unified diff and findings in your final reply. The coordinator inspects and applies only accepted comment deletions.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets `capabilities.spawn: true`, as for a sub-coordinator, you have `pstack_worker` and own your children's runs. They live under your workspace's `.pi/pstack/runs/`, their wakes come to you, and you collect and read their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get `capabilities.spawn: true`. A readonly worker (a workspace of mode `readonly`, with only read tools and `bash_readonly`) cannot write files, so it writes no `report.md` and records no receipts. Its final reply is its report, and it names each check it ran there, with the command and its result. Every other worker writes its final report to `report.md` in the worker directory the brief names, saves each check it ran as a receipt under that directory's `evidence/`, and registers it with `pstack_evidence` `record`. The receipt's fields and `kind` values are listed in the `pstack_evidence` tool description and in the \"Evidence receipt\" section of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. A check that is meant to fail before the fix is a receipt with `expectedFail: true`. In a container you record the same way, with paths in your worker directory, and the parent takes the receipt into the run when it next reads the run's receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
       "output": "generated/agents/comment-sicko.md"
     },
     {
@@ -4188,7 +4212,7 @@
         19
       ],
       "original": "1. Spawn `Task` with `subagent_type: \"comment-sicko\"`. Pass the scope.",
-      "replacement": "1. Write the scope as a patch without committing anything. `<inputCommit>` is the commit the scope's diff starts from, the merge base with the base branch or `HEAD` for the caller's files. Save `git diff <inputCommit> -- <scoped paths>`, followed by `git diff --no-index /dev/null <file>` for each untracked file in scope, as `scope.patch` in the worker directory. Spawn a `pstack_worker` worker with `role: \"comment-sicko\"` and `workspace: { mode: \"worktree\", inputCommit }`. Pass the scope in its brief, which first has it run `git apply --index <worker dir>/scope.patch` in its worktree. After `collect`, `git -C <its worktree> diff` holds its comment changes alone. Review them per step 2, then apply the accepted patch in the caller's checkout with `git apply`, which leaves unrelated and uncommitted caller state untouched.",
+      "replacement": "1. Write the scope as a patch without committing anything. `<inputCommit>` is the commit the scope's diff starts from, the merge base with the base branch or `HEAD` for the caller's files. Save `git diff <inputCommit> -- <scoped paths>`, followed by `git diff --no-index /dev/null <file>` for each untracked file in scope, as `scope.patch` in the worker directory. Spawn a `pstack_worker` worker with `role: \"comment-sicko\"` and `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }`. Its brief names the scoped files, base SHA and absolute scope.patch path. The critic reads that patch and nearby code without modifying files, then returns its findings and proposed unified diff in its final reply. After `collect`, review the proposal per step 2; only the coordinator applies the accepted patch in the caller's checkout with `git apply`, which leaves unrelated and uncommitted caller state untouched.",
       "output": "generated/skills/no-comments/SKILL.md"
     },
     {

@@ -240,6 +240,7 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   else if (workspace['mode'] === 'readonly' && Object.keys(workspace).every((key) => key === 'mode' || key === 'path') && (workspace['path'] === undefined || (typeof workspace['path'] === 'string' && isAbsolute(workspace['path']))))
     parsedWorkspace = { mode: 'readonly', path: (workspace['path'] as string | undefined) ?? defaults.projectRoot };
   else throw new Error("Assignment workspace must be { mode: 'worktree' | 'container', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
+  if (role === 'comment-sicko' && (kind !== 'pi' || parsedWorkspace.mode !== 'readonly')) throw new Error('Assignment role comment-sicko requires a readonly workspace and a Pi critic process');
   const skills = raw['skills'] ?? [];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];
