@@ -349,7 +349,7 @@ export function loadRun(project: string, id: string): RunDir {
       : [],
     workers: existsSync(workersDir)
       ? readdirSync(workersDir)
-          .filter((name) => statSync(join(workersDir, name)).isDirectory())
+          .filter((name) => statSync(join(workersDir, name)).isDirectory() && existsSync(join(workersDir, name, 'assignment.json')))
           .sort()
           .map((name) => loadWorker(join(workersDir, name), name))
       : [],
