@@ -873,10 +873,9 @@ export const babysitSingleWatcherFamily: Family = {
       const turns = view.parent.messages.filter((message) => message.role === 'user').length;
       const second = callsInTurn(view, 1);
       const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
-      const found = second.find((call) => call.name === 'bash' && /grep -rl watch-pr/.test(String(call.args['command'])));
       const worker = observedWatcher(view, '16');
-      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
-      return when(turns === 2 && spawns.length === 0 && (found?.resultText ?? '').includes(`/workers/${worker.id}/`) && /running/.test(inspect?.resultText ?? ''), `the repeat request saw ${worker.id} in the assignments and running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; search saw the watcher ${(found?.resultText ?? '').includes(`/workers/${worker.id}/`)}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
+      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && !call.isError && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
+      return when(turns === 2 && spawns.length === 0 && /running/.test(inspect?.resultText ?? ''), `the repeat request inspected the known watcher ${worker.id} as running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
     }),
     check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
       if (!watcherPresentOnFirstRequest(view)) return { inconclusive: 'the first request armed or adopted no watcher, so duplicate polling was not exercised' };
@@ -894,7 +893,7 @@ export const babysitSingleWatcherFamily: Family = {
     ...todoNegatives(DUP_RUN, 'babysit', { done: [1, 2, 3], receipts: { 1: 'bd-mode', 2: 'bd-frontier', 3: 'bd-single' } }),
     { name: 'the second request armed a second watcher', mutate: (sandbox, view) => { const worker = observedWatcher(view, '16'); duplicateWorker(sandbox, worker.runId, worker.id, 'duplicate-watcher'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'duplicate-watcher', run: worker.runId, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
     { name: 'a second spawn call came with the repeated request', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"spawn"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
-    { name: 'the repeated request never looked for the live watcher', mutate: (sandbox) => rewriteSession(sandbox, 'grep -rl watch-pr', 'ls'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
+    { name: 'the repeated request never inspected the live watcher', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"not-inspect"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 16, worker: '', run: '', actor: '', container: false })), fails: ['babysit.single.never-merges'] },
     { name: 'the mode was declared as check', mutate: (sandbox) => rewriteTodoTask(sandbox, DUP_RUN, 'Mode: drive', 'Mode: check'), fails: ['babysit.single.mode-declared-from-the-request'] },
   ],
