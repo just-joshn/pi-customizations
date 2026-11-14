@@ -116,15 +116,9 @@ function byPath(id: string, title: string, sources: Src[], simple: (view: RunVie
  */
 function presentedHow(view: RunView): string {
   const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
-  // The explainer may open with a sentence before its first section ("All checks done. ..."); a light edit drops it (how SKILL.md: "Light
-  // edits for clarity ... are fine"), so the opening that must survive is the first how section's.
-  const body = (text: string) => {
-    const section = new RegExp(`^#{1,4}\\s*(${HOW_SECTIONS.join('|')})\\b`, 'im').exec(text);
-    return text.slice(section?.index ?? 0);
-  };
-  const probe = (text: string) => body(text).replace(/\s+/g, ' ').trim().slice(0, 60);
-  if (explainer === undefined || probe(explainer.finalText) === '') return '';
-  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.replace(/\s+/g, ' ').includes(probe(explainer.finalText)))?.text ?? '';
+  if (explainer === undefined || explainer.finalText.trim() === '') return '';
+  const section = new RegExp(`^#{1,4}\\s*(${HOW_SECTIONS.join('|')})\\b`, 'im');
+  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && section.test(message.text))?.text ?? '';
 }
 
 const notAnExplorerPath = (what: string) => (): Outcome => pass(`${what} applies only to the complex path, and no explorer ran`);
