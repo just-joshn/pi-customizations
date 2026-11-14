@@ -15,6 +15,10 @@ test.each(['worktree', 'container'])('the comment critic refuses a writable %s w
   expect(() => parseAssignment({ ...critic, workspace: { mode, inputCommit: 'abcdef1' } }, defaults)).toThrow(/comment-sicko requires a readonly workspace/);
 });
 
+test('the critic refuses a watch command in place of an independent Pi process', () => {
+  expect(() => parseAssignment({ ...critic, kind: 'watch', workspace: { mode: 'readonly' }, watch: { argv: ['echo', 'not a critic'] } }, defaults)).toThrow(/comment-sicko requires a readonly workspace and a Pi critic process/);
+});
+
 test('the read-only critic uses the scoped repository without gaining a writing workspace', () => {
   expect(parseAssignment({ ...critic, workspace: { mode: 'readonly' } }, defaults).workspace).toEqual({ mode: 'readonly', path: process.cwd() });
 });

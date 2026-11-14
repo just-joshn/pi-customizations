@@ -18,6 +18,8 @@ const model = (line: string) => String(SCRIPTED_ROLES[line]);
 const DESLOP = src('poteto-mode/SKILL.md', 'Before commit → the `deslop` skill');
 const NOCOMMENTS = src('poteto-mode/SKILL.md', 'Before review → the **no-comments** skill');
 const KEPT_COMMENT = '// percent is clamped to 0..100';
+const LICENSE_COMMENT = '// SPDX-License-Identifier: MIT';
+const PROPOSED_DIFF = /(?:^|\n)(diff --git [\s\S]*?)(?:\n```|$)/;
 
 const SLOPPY = `// Clamp the percent value between zero and one hundred
 // Check if the percent is a number
@@ -30,11 +32,12 @@ export function clampPercent(percent) {
   }
 }
 `;
-const CLEAN = `${KEPT_COMMENT}\nexport function clampPercent(percent) {\n  return Math.min(100, Math.max(0, percent));\n}\n`;
+const CLEAN = `${LICENSE_COMMENT}\n${KEPT_COMMENT}\nexport function clampPercent(percent) {\n  return Math.min(100, Math.max(0, percent));\n}\n`;
 const COMMENT_PATCH = `diff --git a/src/coupon.js b/src/coupon.js
 --- a/src/coupon.js
 +++ b/src/coupon.js
-@@ -1,4 +1,3 @@
+@@ -1,5 +1,4 @@
+ ${LICENSE_COMMENT}
 -${KEPT_COMMENT}
  export function clampPercent(percent) {
    return Math.min(100, Math.max(0, percent));
@@ -61,16 +64,28 @@ export const gatesFamily: Family = {
       parent.beginPlaybook('feature', 'Feature: clampPercent');
       parent.spawn('impl', { role: 'poteto', model: model('feature, refactoring'), workspace: parent.worktree(), skills: ['poteto-mode'] }, 'Write clampPercent(percent) in src/coupon.js. Remove AI slop with the deslop skill before you commit.').wait('impl').collect('impl');
       parent.bash(`git -C ${JSON.stringify(ctx.repo)} merge --ff-only pstack-run/${RUN}/impl`);
+      parent.bash(`cd ${shQuote(ctx.repo)} && printf '\\nstaged user note\\n' >> README.md && git add README.md && printf 'unstaged user note\\n' >> README.md`);
+      parent.write(join(ctx.repo, 'unrelated.txt'), 'untracked user note\n');
       parent.readSkill('no-comments');
-      const scope = (id: string) => `git -C ${JSON.stringify(ctx.repo)} diff ${ctx.base} HEAD > ${JSON.stringify(join(dir(id), 'scope.patch'))}`;
+      const scope = (id: string) => `git -C ${JSON.stringify(ctx.repo)} diff ${ctx.base} HEAD -- src/coupon.js > ${JSON.stringify(join(dir(id), 'scope.patch'))}`;
       parent.bash(`mkdir -p ${JSON.stringify(dir('sicko-1'))} && ${scope('sicko-1')}`);
       spawnSicko('sicko-1', `Scope: src/coupon.js. Base SHA: ${ctx.base}. Read ${join(dir('sicko-1'), 'scope.patch')} and nearby code. Return proposed comment deletions as a unified diff; do not edit files.`).wait('sicko-1').collect('sicko-1');
       parent.bash(`mkdir -p ${JSON.stringify(dir('sicko-2'))} && ${scope('sicko-2')}`);
       spawnSicko('sicko-2', `Scope: src/coupon.js. Base SHA: ${ctx.base}. Read ${join(dir('sicko-2'), 'scope.patch')} and nearby code. Your previous report was rejected: it proposed changing application code in src/coupon.js, which is outside comment scope. Return only proposed comment deletions as a unified diff; do not edit files.`).wait('sicko-2').collect('sicko-2');
-      parent.write(join(dir('sicko-2'), 'accepted.patch'), COMMENT_PATCH);
+      const extract = `import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { loadAssignment } from ${JSON.stringify(join(ctx.pkg, 'src/run-files.ts'))};
+import { workerFinalText } from ${JSON.stringify(join(ctx.pkg, 'src/workers.ts'))};
+const dir = process.argv[1];
+const state = JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8'));
+const report = workerFinalText(loadAssignment(join(dir, 'assignment.json')), state.sessionFile) ?? '';
+const patch = report.match(new RegExp(${JSON.stringify(PROPOSED_DIFF.source)}))?.[1];
+if (!patch) throw new Error('The critic returned no unified diff proposal');
+writeFileSync(join(dir, 'accepted.patch'), patch.endsWith('\\n') ? patch : patch + '\\n');`;
+      parent.bash(`node --input-type=module -e ${shQuote(extract)} ${shQuote(dir('sicko-2'))}`);
       parent.bash(`git -C ${JSON.stringify(ctx.repo)} apply ${JSON.stringify(join(dir('sicko-2'), 'accepted.patch'))}`);
       parent.spawn('review', { role: 'reviewer', model: model('judgment and prose'), workspace: parent.readonly() }, 'Review the comment-free change to src/coupon.js.').wait('review').collect('review');
-      parent.text('Comment Sicko deleted 1 comment after one rejected report was reverted and rerun, no comments were restored, and no architect sketch was needed. The change is deslopped and reviewed.');
+      parent.text('The coordinator applied 1 comment deletion proposed by the read-only critic. The first report proposed an application-code edit and was rejected without applying it; the critic was rerun once. The second proposal was accepted. No comments were restored, the license header was retained, and no architect sketch was needed. No fixes or constraint encodings were proposed, and there are no open findings. Unrelated staged, unstaged and untracked user work is unchanged. The change is deslopped and reviewed.');
       const sicko = (id: string, proposal: string) => new Worker().read(join(dir(id), 'scope.patch')).read(join(ctx.repo, 'src/coupon.js')).text(`${id}: proposed comment deletion in src/coupon.js\n${proposal}`);
       return scenario(parent, {
         impl: new Worker().write(join(impl, 'src/coupon.js'), SLOPPY).read(ctx.skill('deslop')).write(join(impl, 'src/coupon.js'), CLEAN).bash(`cd ${impl} && node -e "import('./src/coupon.js').then((m)=>{if(m.clampPercent(150)!==100)process.exit(1)})" && git add -A && git -c user.name=w -c user.email=w@example.com commit -q -m "feat: clampPercent"`).text('clampPercent committed after deslop'),
@@ -120,11 +135,23 @@ export const gatesFamily: Family = {
     }),
     check('gates.only-the-accepted-patch-is-applied', 'the caller\'s checkout holds exactly the accepted comment deletion: one removed comment line and no other change', src('no-comments/SKILL.md', 'only the coordinator applies the accepted patch in the caller\'s checkout with `git apply`'), (view) => {
       const diff = git(view.repo, 'diff', 'HEAD', '--', 'src/coupon.js').split('\n').filter((line) => /^[-+][^-+]/.test(line));
-      return when(diff.length === 1 && diff[0] === `-${KEPT_COMMENT}` && !view.git.dirty.some((path) => path !== 'src/coupon.js'), `only ${diff[0]} changed`, `changed lines: ${JSON.stringify(diff)}; dirty ${view.git.dirty.join(',')}`);
+      const second = ofRole(view, 'comment-sicko')[1];
+      const proposal = second?.finalText.match(PROPOSED_DIFF)?.[1]?.trimEnd();
+      const acceptedPath = second === undefined ? '' : join(second.dir, 'accepted.patch');
+      const accepted = existsSync(acceptedPath) ? readFileSync(acceptedPath, 'utf8').trimEnd() : '';
+      const linked = proposal !== undefined && proposal === accepted;
+      return when(linked && diff.length === 1 && diff[0] === `-${KEPT_COMMENT}` && readFileSync(join(view.repo, 'src/coupon.js'), 'utf8').includes(LICENSE_COMMENT), `the applied patch matches the second critic's proposal; only ${diff[0]} changed and the license remains`, `proposal linked ${linked}; changed lines: ${JSON.stringify(diff)}`);
+    }),
+    check('gates.unrelated-dirty-state-preserved', 'unrelated staged, unstaged and untracked user changes survive the accepted comment patch', src('no-comments/SKILL.md', 'unrelated and uncommitted caller state untouched'), (view) => {
+      const staged = git(view.repo, 'show', ':README.md');
+      const working = readFileSync(join(view.repo, 'README.md'), 'utf8');
+      const untracked = join(view.repo, 'unrelated.txt');
+      const kept = staged === '# cart\n\nTotals a shopping cart.\n\nstaged user note\n' && working === `${staged}unstaged user note\n` && existsSync(untracked) && readFileSync(untracked, 'utf8') === 'untracked user note\n' && git(view.repo, 'ls-files', '--', 'unrelated.txt') === '';
+      return when(kept, 'staged README bytes, additional unstaged bytes and untracked file are unchanged', 'unrelated staged/unstaged/untracked state changed');
     }),
     check('gates.report-has-the-counts', 'the reply reports the deletion count, the rerun and that nothing was restored', src('no-comments/SKILL.md', '6. Report the deletion count, restored comments, reruns'), (view) => {
       const reply = finalReply(view);
-      return when(/1 comment/.test(reply) && /rerun/i.test(reply) && /restored/i.test(reply), 'deletion count, rerun and restored are in the reply', `reply: ${reply.slice(0, 160)}`);
+      return when(/coordinator applied 1 comment deletion/i.test(reply) && /rejected without applying/i.test(reply) && /rerun/i.test(reply) && /no comments were restored/i.test(reply) && /license header was retained/i.test(reply), 'the reply correctly attributes application to the coordinator and reports rejection, rerun, restoration count and protected header', `reply: ${reply.slice(0, 200)}`);
     }),
     settledAndCollected('gates.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
@@ -135,6 +162,12 @@ export const gatesFamily: Family = {
     { name: 'a Comment Sicko received a writable workspace', mutate: (sandbox) => patchAssignment(sandbox, RUN, 'sicko-2', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: 'deadbeef' })), fails: ['gates.comment-sicko-is-readonly'] },
     { name: 'a critic did not read the scoped patch', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), 'scope.patch', 'unrelated.patch'), fails: ['gates.scope-patch-read-only'] },
     { name: 'the rerun brief did not name the failure', mutate: (sandbox) => writeBrief(sandbox, 'sicko-2', 'Scope: src/coupon.js. Delete comments.'), fails: ['gates.rejected-report-is-rerun-once'] },
+    { name: 'the second critic supplies no patch', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), 'diff --git', 'not-a-patch'), fails: ['gates.only-the-accepted-patch-is-applied'] },
+    { name: 'the second critic proposes an out-of-scope patch', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), 'src/coupon.js', 'README.md'), fails: ['gates.only-the-accepted-patch-is-applied'] },
+    { name: 'the second critic proposes deleting a protected license header', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), ` ${LICENSE_COMMENT}`, `-${LICENSE_COMMENT}`), fails: ['gates.only-the-accepted-patch-is-applied'] },
+    { name: 'the unrelated staged user change was lost', mutate: (sandbox) => execFileSync('git', ['-C', join(sandbox, 'repo'), 'reset', '-q', 'HEAD', '--', 'README.md']), fails: ['gates.unrelated-dirty-state-preserved'] },
+    { name: 'the unrelated unstaged user change was lost', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/README.md'), '# cart\n\nTotals a shopping cart.\n\nstaged user note\n'), fails: ['gates.unrelated-dirty-state-preserved'] },
+    { name: 'the unrelated untracked user change was lost', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/unrelated.txt'), ''), fails: ['gates.unrelated-dirty-state-preserved'] },
     { name: 'the report omits the counts', mutate: (sandbox) => rewriteFinalReply(sandbox, '1 comment', 'some comments'), fails: ['gates.report-has-the-counts'] },
   ],
 };
