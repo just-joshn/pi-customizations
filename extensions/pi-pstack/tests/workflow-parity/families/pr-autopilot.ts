@@ -441,7 +441,15 @@ export const autopilotHoldFamily: Family = {
   id: 'autopilot-hold',
   requires: 'container',
   title: 'autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)',
-  spec: specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL, ['/poteto-mode hold everything: stop all writes now, do not merge anything']),
+  spec: {
+    ...specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
+    interrupt: (_ctx, event) => {
+      const args = event['args'] as Record<string, unknown> | undefined;
+      if (event.type !== 'tool_execution_start' || event['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn') return undefined;
+      const assignment = JSON.parse(readFileSync(String(args['assignmentPath']), 'utf8')) as { role?: string };
+      return assignment.role === 'owner' ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
+    },
+  },
   checks: [
     ...fullChecks('autopilot.hold', HOLD_STORE),
     ...todoChecks({ playbook: 'autopilot-full', skipReason: { 4: /held|hold/, 5: /held|hold/, 6: /held|hold/, 7: /./ } }),

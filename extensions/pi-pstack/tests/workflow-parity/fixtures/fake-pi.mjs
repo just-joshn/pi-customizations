@@ -21,6 +21,25 @@ createInterface({ input: process.stdin }).on('line', (line) => {
   const command = JSON.parse(line);
   if (mode === 'silent') return;
   const answer = (data) => console.log(JSON.stringify({ type: 'response', id: command.id, success: true, data }));
+  if (mode === 'interrupt') {
+    const target = `${sandbox}/sessions/never-written.jsonl`;
+    if (command.type === 'prompt') {
+      streaming = true;
+      writeFileSync(target, `${JSON.stringify({ type: 'session', id: 'x', cwd: process.cwd() })}\n`);
+      answer({});
+      console.log(JSON.stringify({ type: 'tool_execution_start', toolName: 'pstack_worker', args: { action: 'spawn' } }));
+      return;
+    }
+    if (command.type === 'steer') {
+      writeFileSync(`${sandbox}/interrupt.json`, JSON.stringify({ message: command.message, streaming }));
+      streaming = false;
+      return answer({});
+    }
+    if (command.type === 'get_state') {
+      streaming = false;
+      return answer({ sessionFile: target, isStreaming: false, pendingMessageCount: 0 });
+    }
+  }
   if (command.type === 'prompt' && (mode === 'busy' || mode === 'stalled')) {
     answer({});
     streaming = true;
