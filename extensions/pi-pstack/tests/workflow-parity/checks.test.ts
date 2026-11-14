@@ -66,6 +66,9 @@ describe('file references', () => {
   test('a line past the end of the file fails', () => {
     expect(check('See src/cart.js:2 and src/money.js:9.')).toBe('FAIL');
   });
+  test('no presented text leaves reference resolution inconclusive', () => {
+    expect(check('')).toBe('INCONCLUSIVE');
+  });
   test('too few files fails', () => {
     expect(check('Only src/cart.js here.')).toBe('FAIL');
   });

@@ -518,6 +518,7 @@ export function replySections(id: string, title: string, source: Src | Src[], se
 export function fileReferencesResolve(id: string, source: Src | Src[], options: { min: number; from?: (view: RunView) => string }): Check {
   return check(id, `the reply references at least ${options.min} repository files, and every file it names exists and every line it gives is inside its file`, source, (view) => {
     const text = (options.from ?? finalReply)(view);
+    if (text.trim() === '') return { inconclusive: 'no presented text to resolve references from' };
     const tracked = readdirSync(view.repo, { recursive: true }).map(String).filter((path) => !path.startsWith('.') && !path.includes('node_modules') && /\.[a-z]+$/.test(path));
     const resolve = (file: string) => (file.includes('/') ? (existsSync(join(view.repo, file)) ? file : undefined) : tracked.find((path) => path === file || path.endsWith(`/${file}`)));
     // A bare name that is no repository file (Node.js, a library) is prose; a path with a directory is a claim about this repository.
