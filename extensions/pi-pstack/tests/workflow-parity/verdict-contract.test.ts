@@ -26,6 +26,10 @@ test('an explicit verdict for another PR or head is not silently assigned to thi
   expect(verdictsOf(state, [action('PASS at bbbbbbb')], view)[0]?.head).not.toBe(head);
 });
 
+test.each(['ISSUES', 'BLOCKED'])('a swarm %s verdict is not a clean shipping verdict', (verdict) => {
+  expect(verdictsOf(state, [action(`${verdict} at ${head}`)], view)).toMatchObject([{ verdict: 'FAIL', head }]);
+});
+
 test('a stray mention or an unidentified reviewer does not establish a verdict at a head', () => {
   expect(verdictsOf(state, [action('CI says PASS, not a user verdict')], view)).toEqual([]);
   expect(verdictsOf(state, [action('PASS: works', 'unknown')], view)).toEqual([]);

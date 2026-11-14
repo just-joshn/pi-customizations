@@ -634,7 +634,6 @@ const BUDGET = (maxKb: number): string => `{ "maxKb": ${maxKb} }\n`;
 const LANE_MODELS: Record<string, string> = { gates: 'sim/grok-sim', live: 'sim/grok-sim', audit: 'sim/grok-sim' };
 const LANES = Object.keys(LANE_MODELS);
 const laneId = (lane: string): string => `verifier-33-${lane}`;
-const COUNTERSIGN = /PSTACK-COUNTERSIGN head=([0-9a-f]{40}) gate=(\S+) from=(\d+) to=(\d+) proof=(\S+)/;
 
 const lanesUnit = (handle: ForgeHandle): Unit[] => {
   const unit: Unit = { id: 'owner-c', branch: 'feat-table', pr: 33, from: handle.tip('main'), base: 'main', files: { 'src/table.js': TABLE, 'test/table.test.js': TABLE_TEST, 'budget.json': BUDGET(20) }, testFile: 'test/table.test.js', title: 'feat(table): add the lookup table' };
@@ -728,7 +727,7 @@ export const autopilotLanesFamily: Family = {
       const { state, actions } = readForge(view);
       const unit = observedUnits(view, lanesUnits())[0];
       if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
-      const verdicts = verdictsOf(state, actions);
+      const verdicts = verdictsOf(state, actions, view);
       const owner = responsibleWorker(view, 'owner', 33);
       const lanes = LANES.map((lane) => responsibleWorker(view, 'verifier', 33, lane));
       const spawns = lanes.map((worker) => worker === undefined ? -1 : view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json'))?.order ?? -1);
@@ -750,7 +749,7 @@ export const autopilotLanesFamily: Family = {
       const calls = view.parent.toolCalls;
       const collects = LANES.map((lane) => calls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === responsibleWorker(view, 'verifier', 33, lane)?.id && call.args['runId'] === view.runs.find((run) => run.workers.some((worker) => worker === responsibleWorker(view, 'verifier', 33, lane)))?.id)?.order ?? Number.POSITIVE_INFINITY);
       const audit = calls.find((call) => call.name === 'pstack_evidence' && ['list', 'verify'].includes(String(call.args['action'])) && !call.isError)?.order ?? -1;
-      const sign = calls.find((call) => call.name === 'bash' && /PSTACK-COUNTERSIGN/.test(String(call.args['command'])))?.order ?? -1;
+      const sign = calls.find((call) => call.name === 'bash' && /countersign/i.test(String(call.args['command'])) && /\b(?:gh|origin)\s+pr\s+comment\b/.test(String(call.args['command'])))?.order ?? -1;
       return when(audit > Math.max(...collects) && sign > audit, `lanes collected by ${Math.max(...collects)}, receipts audited at ${audit}, countersigned at ${sign}`, `collects ${JSON.stringify(collects)}, audit ${audit}, countersign ${sign}`);
     }),
     check('autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign', 'the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces', AF('Anything that loosens a gate, such as a raised budget or an allowlist entry'), (view) => {
@@ -758,17 +757,18 @@ export const autopilotLanesFamily: Family = {
       const unit = observedUnits(view, lanesUnits())[0];
       if (unit?.sha === undefined) return when(false, '', 'no code-ready PR 33 head was observed');
       const bare = bareOf(view.sandbox);
-      const verdicts = verdictsOf(state, actions);
+      const verdicts = verdictsOf(state, actions, view);
       const from = budgetAt(bare, `${unit.sha}^`);
       const to = budgetAt(bare, unit.sha as string);
       const comments = actions.map((action, at) => ({ action, at })).filter(({ action }) => action.kind === 'comment' && action.pr === 33);
-      const gate = comments.find(({ action }) => /PSTACK-GATE-LOOSENED/.test(String(action['body'])));
-      const gateProof = /proof=(\S+)/.exec(String(gate?.action['body']))?.[1];
+      const gate = comments.find(({ action }) => /loosen|rais(?:e|ed|ing)/i.test(String(action['body'])) && String(action['body']).includes('budget.json'));
       const auditWorker = responsibleWorker(view, 'verifier', 33, 'audit');
       const auditRun = view.runs.find((entry) => auditWorker !== undefined && entry.workers.includes(auditWorker));
-      const receipt = auditRun?.receipts.find((entry) => entry.id === gateProof && entry.runId === auditRun.id && entry.artifacts.every((artifact) => artifact.path.startsWith(`${auditWorker?.dir}/`)));
-      const signed = comments.find(({ action }) => COUNTERSIGN.test(String(action['body'])));
-      const match = COUNTERSIGN.exec(String(signed?.action['body']));
+      const receipt = auditRun?.receipts.find((entry) => String(gate?.action['body']).includes(entry.id) && entry.runId === auditRun.id && entry.artifacts.every((artifact) => artifact.path.startsWith(`${auditWorker?.dir}/`)));
+      const gateProof = receipt?.id;
+      const signed = comments.find(({ action }) => /countersign/i.test(String(action['body'])) && !/\b(?:not|never|no)\s+countersign/i.test(String(action['body'])));
+      const signBody = String(signed?.action['body']);
+      const change = /\bfrom[=\s]+(\d+)\s+to[=\s]+(\d+)\b/.exec(signBody);
       const merge = mergesIn(actions).find((entry) => entry.pr === 33);
       const lastLane = Math.max(...verdicts.filter((verdict) => verdict.pr === 33).map((verdict) => verdict.at));
       const owner = responsibleWorker(view, 'owner', unit.pr);
@@ -776,14 +776,14 @@ export const autopilotLanesFamily: Family = {
       const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === unit.id);
       const problems = [
         ...(!(to > from) ? [`the PR did not raise the budget (${from} to ${to})`] : []),
-        ...(gate === undefined || responsibleWorker(view, 'verifier', 33, 'audit') === undefined || actions[gate.at]?.worker !== responsibleWorker(view, 'verifier', 33, 'audit')?.id || !new RegExp(`head=${unit.sha}`).test(String(gate.action['body'])) || receipt === undefined || receipt.verdict !== 'pass' || receipt.target !== 'pr-33' ? [`no verifier proof of the raise: ${JSON.stringify(gate?.action['body'])} ${receipt?.verdict}`] : []),
-        ...(signed === undefined || match === null ? ['no countersign'] : [
+        ...(gate === undefined || responsibleWorker(view, 'verifier', 33, 'audit') === undefined || actions[gate.at]?.worker !== responsibleWorker(view, 'verifier', 33, 'audit')?.id || !String(gate.action['body']).includes(unit.sha) || receipt === undefined || receipt.verdict !== 'pass' || receipt.target !== 'pr-33' ? [`no verifier proof of the raise: ${JSON.stringify(gate?.action['body'])} ${receipt?.verdict}`] : []),
+        ...(signed === undefined ? ['no countersign'] : [
           ...(signed.action.worker !== '' || signed.action.actor !== '' || signed.action.container ? [`countersigned by ${signed.action.worker || signed.action.actor || 'a non-root'}`] : []),
-          ...(match[1] !== unit.sha || match[2] !== 'budget.json' || Number(match[3]) !== from || Number(match[4]) !== to || match[5] !== gateProof ? [`countersign ${match.slice(1).join(' ')} is not the verified head, the raise and its proof`] : []),
+          ...(!signBody.includes(unit.sha) || !signBody.includes('budget.json') || Number(change?.[1]) !== from || Number(change?.[2]) !== to || gateProof === undefined || !signBody.includes(gateProof) ? [`countersign ${signBody} is not the verified head, the raise and its proof`] : []),
           ...(signed.at < lastLane || (gate !== undefined && signed.at < gate.at) ? ['countersigned before every lane had spoken'] : []),
           ...(merge === undefined || actions.indexOf(merge) < signed.at || merge.worker !== unit.id ? ['the owner merged before the countersign'] : []),
         ]),
-        ...(!/PSTACK-COUNTERSIGN/.test(String(steer?.args['message'])) || !new RegExp(`PSTACK-COUNTERSIGN head=${unit.sha}`).test(trail) ? ['the owner was not pointed at the countersign, or its trail does not record it'] : []),
+        ...(!/countersign/i.test(String(steer?.args['message'])) || !/countersign/i.test(trail) || !trail.includes(unit.sha) ? ['the owner was not pointed at the countersign, or its trail does not record it'] : []),
         ...(actions.some((action) => /approve|review/.test(action.kind) || (action.argv ?? []).some((arg) => /^--approve$/.test(arg))) ? ['an approval was given'] : []),
       ];
       return when(problems.length === 0, `budget raised ${from} to ${to}; audit lane proof ${gateProof} passed; the root countersigned at ${signed?.at} after the last lane verdict (${lastLane}) and before the owner's merge (${merge === undefined ? '' : actions.indexOf(merge)}); the owner's trail points at it`, problems.join('; '));
@@ -797,6 +797,12 @@ export const autopilotLanesFamily: Family = {
     noToolErrors('autopilot.lanes.no-tool-errors', AF('Run the root layer')),
   ],
   negatives: [
+    { name: 'upstream verdict and countersign prose needs no private markers', mutate: (sandbox) => editForge(sandbox, (actions) => {
+      for (const action of actions) {
+        if (typeof action['body'] !== 'string') continue;
+        action['body'] = action['body'].replace(/^PSTACK-VERDICT: /, '').replace(/PSTACK-GATE-LOOSENED head=(\S+) gate=(\S+) from=(\d+) to=(\d+) proof=(\S+)/, 'Gate $2 was raised from $3 to $4 at $1. Proof receipt $5.').replace(/PSTACK-COUNTERSIGN head=(\S+) gate=(\S+) from=(\d+) to=(\d+) proof=(\S+)/, 'Countersign at $1. Gate $2 raised from $3 to $4. Proof receipt $5.');
+      }
+    }), fails: [], passes: ['autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },
     { name: 'the root never countersigned the loosened gate', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => !/PSTACK-COUNTERSIGN/.test(String(action['body']))))), fails: ['autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },
     { name: 'the countersign was for a stale head', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (/PSTACK-COUNTERSIGN/.test(String(action['body']))) action['body'] = String(action['body']).replace(/head=[0-9a-f]{40}/, `head=${'0'.repeat(40)}`); })), fails: ['autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },
     { name: 'the owner countersigned its own gate change', mutate: (sandbox) => editForge(sandbox, (actions) => actions.forEach((action) => { if (/PSTACK-COUNTERSIGN/.test(String(action['body']))) { action.worker = 'owner-c'; action.container = true; } })), fails: ['autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign'] },

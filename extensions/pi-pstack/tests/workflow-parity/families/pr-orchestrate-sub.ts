@@ -271,7 +271,7 @@ export const orchestrateSubFamily: Family = {
       const tree = treeOf(view);
       if (tree.subWorker === undefined || tree.subRun === undefined) return fail('expected one subcoordinator with its own run; none or ambiguous');
       const { state, actions } = readForge(view);
-      const verdicts = verdictsOf(state, actions);
+      const verdicts = verdictsOf(state, actions, { ...view, runs: [...view.runs, tree.subRun] });
       const steers = spawnsOfSteer(tree);
       const problems = ([61, 62] as const).flatMap((pr, index) => {
         const ownerId = state.prs[String(pr)]?.author;

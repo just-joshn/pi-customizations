@@ -45,7 +45,7 @@ export function verdictsOf(state: ForgeState, actions: ForgeAction[], view?: Run
     const match = VERDICT.exec(String(action['body']));
     if (match !== null) return [{ pr: action.pr, verdict: match[1] as Verdict['verdict'], head: match[2] as string, author: action.worker || action.actor || 'operator', verifier: match[3] as string, patch: match[4] as string, at }];
     const body = String(action['body']).replace(/\*\*|`/g, '');
-    const plain = /^\s*(?:#+\s*)?(?:PR\s+(\d+)\s+verification:\s*)?(PASS\+NOTES|PASS|FAIL)\b/i.exec(body);
+    const plain = /^\s*(?:#+\s*)?(?:PR\s+(\d+)\s+verification:\s*)?(PASS\+NOTES|PASS|FAIL|ISSUES|BLOCKED)\b/i.exec(body);
     if (plain?.[1] !== undefined && Number(plain[1]) !== action.pr) return [];
     const workers = view === undefined ? [] : allWorkers(view).filter((worker) => worker.id === action.worker && assignmentOf(worker).role === 'verifier');
     const worker = workers.length === 1 ? workers[0] : undefined;
@@ -53,7 +53,7 @@ export function verdictsOf(state: ForgeState, actions: ForgeAction[], view?: Run
     if (plain === null || assignedHead === undefined || view === undefined) return [];
     const statedHead = /\b(?:at|head(?:\s+verified)?\s*:?)\s+([0-9a-f]{7,40})\b/i.exec(body)?.[1];
     const head = statedHead === undefined || assignedHead.startsWith(statedHead) ? assignedHead : statedHead;
-    return [{ pr: action.pr, verdict: plain[2]?.toUpperCase() as Verdict['verdict'], head, author: action.worker, verifier: action.worker, patch: patchIdOf(bareOf(view.sandbox), head), at }];
+    return [{ pr: action.pr, verdict: /ISSUES|BLOCKED/i.test(plain[2] ?? '') ? 'FAIL' : plain[2]?.toUpperCase() as Verdict['verdict'], head, author: action.worker, verifier: action.worker, patch: patchIdOf(bareOf(view.sandbox), head), at }];
   }).filter((verdict) => state.prs[String(verdict.pr)] !== undefined);
 }
 
