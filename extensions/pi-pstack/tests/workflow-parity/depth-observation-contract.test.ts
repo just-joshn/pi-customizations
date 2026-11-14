@@ -1,10 +1,12 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { orchestrateFamily } from './families/pr-orchestrate.ts';
-import { forgeDirOf } from './fixtures/forge.ts';
 import { orchestrateSubFamily } from './families/pr-orchestrate-sub.ts';
+import { forgeDirOf } from './fixtures/forge.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 test('missing unrequested runtime-depth probes are inconclusive, not failed observations', () => {
@@ -25,7 +27,7 @@ test('a reported wrong depth still fails while absent runtime reports stay incon
     expect(check?.run(view)).toHaveProperty('inconclusive');
     for (const worker of workers) worker.report = 'depth=2';
     expect(check?.run(view)).toMatchObject({ ok: true });
-    workers[0]!.report = 'depth=4';
+    required(workers[0]).report = 'depth=4';
     expect(check?.run(view)).toMatchObject({ ok: false });
   } finally {
     rmSync(sandbox, { recursive: true, force: true });

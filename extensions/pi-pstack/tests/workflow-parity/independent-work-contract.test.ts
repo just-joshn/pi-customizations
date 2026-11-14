@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { concurrencyFamily } from './families/concurrency.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 test('waiting for a wake is inconclusive when no independent task was requested', () => {
@@ -10,6 +11,6 @@ test('waiting for a wake is inconclusive when no independent task was requested'
   expect(check?.run(view)).toHaveProperty('inconclusive');
   view.parent.toolCalls.push({ order: 10, name: 'bash', args: { command: 'sleep 30' }, resultText: '', isError: false });
   expect(check?.run(view)).toMatchObject({ ok: false });
-  view.parent.toolCalls[4]!.args = { command: 'git diff' };
+  required(view.parent.toolCalls[4]).args = { command: 'git diff' };
   expect(check?.run(view)).toMatchObject({ ok: true });
 });

@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { autopilotStackFamily } from './families/pr-autopilot.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
@@ -11,7 +12,10 @@ test('stack handoff follows the report, not the first verdict comment', () => {
   try {
     mkdirSync(forgeDirOf(sandbox), { recursive: true });
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), '{"prs":{"41":{"state":"OPEN"},"42":{"state":"OPEN"}}}');
-    const actions = [{ kind: 'create', pr: 41, ts: '2026-11-14T01:00:00Z' }, { kind: 'create', pr: 42, ts: '2026-11-14T02:00:00Z' }];
+    const actions = [
+      { kind: 'create', pr: 41, ts: '2026-11-14T01:00:00Z' },
+      { kind: 'create', pr: 42, ts: '2026-11-14T02:00:00Z' },
+    ];
     const save = () => writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
     save();
     const message = { role: 'assistant', order: 3, at: '2026-11-14T03:00:00Z', text: 'PR 41 gates PASS, live PASS. PR 42 gates PASS, live PASS. Nothing has merged.' };

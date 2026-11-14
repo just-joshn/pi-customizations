@@ -85,7 +85,13 @@ export function loadSession(file: string): Session {
     if (entry['type'] !== 'message') continue;
     const message = entry['message'] as Json;
     const role = String(message['role']);
-    messages.push({ order: order++, role, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}), text: textOf(message['content']), ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}) });
+    messages.push({
+      order: order++,
+      role,
+      text: textOf(message['content']),
+      ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}),
+      ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}),
+    });
     if (role === 'assistant') {
       if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) {
         errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
@@ -350,7 +356,7 @@ export function loadRun(project: string, id: string): RunDir {
       : [],
     workers: existsSync(workersDir)
       ? readdirSync(workersDir)
-          .filter((name) => statSync(join(workersDir, name)).isDirectory() && existsSync(join(workersDir, name, 'assignment.json')))
+          .filter((name) => statSync(join(workersDir, name)).isDirectory() && ['assignment.json', 'state.json', 'claim'].some((file) => existsSync(join(workersDir, name, file))))
           .sort()
           .map((name) => loadWorker(join(workersDir, name), name))
       : [],

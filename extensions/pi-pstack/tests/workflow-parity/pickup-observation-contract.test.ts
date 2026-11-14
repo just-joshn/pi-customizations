@@ -2,8 +2,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { pickupFamily } from './families/ops.ts';
+import { required } from './lib/required.ts';
 import type { RunView } from './lib/view.ts';
 
 test('pickup recognizes session reads after cd, not session listings', () => {
@@ -14,7 +16,7 @@ test('pickup recognizes session reads after cd, not session listings', () => {
   const view = { parent: { messages: [], toolCalls: calls } } as unknown as RunView;
   const check = pickupFamily.checks.find((entry) => entry.id === 'pickup.trail-read-inside-this-workspace');
   expect(check?.run(view)).toMatchObject({ ok: true });
-  calls[1]!.args.command = 'cd /repo/.pi/pstack/runs/prior-run/workers/old-worker/session && ls *.jsonl';
+  required(calls[1]).args.command = 'cd /repo/.pi/pstack/runs/prior-run/workers/old-worker/session && ls *.jsonl';
   expect(check?.run(view)).toMatchObject({ ok: false });
 });
 

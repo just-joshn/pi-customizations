@@ -9,6 +9,6 @@ const view = { sandbox: '/nonexistent', runs: [{ workers: [{ id: 'verifier', ass
 const state = { prs: { 22: {} } } as unknown as ForgeState;
 
 test.for([head, base])('a verdict names its head, not the earlier base (%s)', (stated) => {
-  const actions = [{ kind: 'comment', pr: 22, worker: 'verifier', body: `PASS+NOTES\nVerdict (base s-1 at ${base.slice(0, 7)}, head s-2 at ${stated.slice(0, 7)}).` }] as ForgeAction[];
+  const actions = [{ kind: 'comment', pr: 22, worker: 'verifier', run: 'run', actor: '', container: true, body: `PASS+NOTES\nVerdict (base s-1 at ${base.slice(0, 7)}, head s-2 at ${stated.slice(0, 7)}).` }] as ForgeAction[];
   expect(verdictsOf(state, actions, view)[0]?.head).toBe(stated === head ? head : base.slice(0, 7));
 });

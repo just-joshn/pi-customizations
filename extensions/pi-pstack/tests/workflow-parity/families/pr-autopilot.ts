@@ -191,7 +191,7 @@ function onePerPrOwners(id: string, source: Src | Src[], units: (view: RunView) 
       const caps = assignment.capabilities ?? {};
       const run = view.runs.find((entry) => entry.workers.includes(worker));
       const create = actions.find((action) => action.kind === 'create' && action.pr === unit.pr);
-      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && (call.args['assignmentPath'] === join(worker.dir, 'assignment.json') || String(call.args['assignmentPath']).endsWith(`/workers/${worker.id}/assignment.json`)));
+      const spawn = options.from !== 'trunk' ? undefined : view.parent?.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && ((worker.dir !== undefined && call.args['assignmentPath'] === join(worker.dir, 'assignment.json')) || String(call.args['assignmentPath']).endsWith(`/workers/${worker.id}/assignment.json`)));
       const trunkChanges = actions.filter((action) => (action.kind === 'merge' && action['base'] === state.repo.trunk) || (['push', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${state.repo.trunk}`));
       const nextTrunkChange = trunkChanges.find((action) => Date.parse(String(action['ts'])) > Date.parse(spawn?.at ?? ''));
       const start = options.from !== 'trunk' ? unit.from : nextTrunkChange === undefined ? revParse(bareOf(view.sandbox), `refs/heads/${state.repo.trunk}`) : String(nextTrunkChange['tipBefore'] ?? nextTrunkChange['old']);
@@ -495,9 +495,12 @@ export const autopilotHoldFamily: Family = {
           if (['read', 'grep', 'find', 'ls', 'bash_readonly'].includes(call.name)) return false;
           if (call.name !== 'bash') return true;
           const command = String(call.args['command']).replace(/2>&1/g, '');
-          return /[>|`]|\$\(/.test(command) || command.split(/;|&&|\n/).filter((part) => part.trim() !== '').some((part) => !/^\s*(?:cd\s+\S+|echo\b[^<>]*|git\s+(?:rev-parse|ls-remote|log|show|diff|status)\b[^<>]*|(?:gh|origin)\s+pr\s+view\b[^<>]*)$/.test(part));
+          return /[>`]|\$\(/.test(command) || command.split(/;|&&|\n|\|/).map((part) => part.trim()).filter(Boolean).some((part) => {
+            if (/^(?:gh|origin)\s+api\b/.test(part)) return /(?:^|\s)(?:-X|--method|-f|-F|--field|--raw-field|--input)(?:\s|=|[A-Z])/.test(part.replace(/(?:-X\s*GET|--method[= ]GET)\b/g, ''));
+            return !/^(?:cd\s+\S+|echo\b[^<>]*|(?:head|tail)\b[^<>]*|git\s+(?:rev-parse|ls-remote|log|show|diff|status)\b[^<>]*|(?:gh|origin)\s+pr\s+(?:view|checks(?![^\n]*--watch))\b[^<>]*)$/.test(part);
+          });
         });
-        const reply = [...after].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '')?.text ?? '';
+        const reply = ([...after].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '')?.text ?? '').replace(/[*`]/g, '');
         return [...(steer === -1 ? [`${worker.id} never received the hold`] : []), ...(calls.length > 0 ? [`${worker.id} ran ${calls.map((call) => call.name).join(', ')} after the hold`] : []), ...(!/standing down|stand down|paused|on hold|holding|no writes|stopp?ed/i.test(reply) || !/head(?:\s+SHA|RefOid)?\s*[*`]*\s*[:=]?(?:\s+is)?\s*[`*]*[0-9a-f]{7,40}\b/i.test(reply) || !(typeof worker.brief === 'string' && worker.brief.trim() !== '') ? [`${worker.id} reply or retained brief missing: ${reply.slice(0, 80)}`] : [])];
       });
       return when(ownerWorkers(view).length === 2 && problems.length === 0, 'both owners reported their heads with no further writes', problems.join('; '));

@@ -64,7 +64,7 @@ export const concurrencyFamily: Family = {
       const lastSpawn = Math.max(...spawns);
       const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
       const independent = allWorkers(view).length === 4 && !spawns.includes(-1) && next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
-      if (allWorkers(view).length === 4 && !spawns.includes(-1) && (next === undefined || next.name === 'pstack_worker')) return { inconclusive: 'the fixture requested only delegated work; no independent parent task was available to observe' };
+      if (allWorkers(view).length === 4 && !spawns.includes(-1) && (next === undefined || (next.name === 'pstack_worker' && view.parent.messages?.some((message) => message.customType === 'pstack-worker' && message.order > lastSpawn && message.order < next.order)))) return { inconclusive: 'the fixture requested only delegated work; no independent parent task was available to observe' };
       return when(independent, `the parent continued with ${next?.name}`, `next action ${next?.name} ${String(next?.args['action'] ?? '')}, independent work ${independent}`);
     }, 'adaptation'),
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: each recorded by the host and in the worker session', SRC, (view) => {

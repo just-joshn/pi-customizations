@@ -127,6 +127,6 @@ for (const [family, id, prepare] of cases) {
     }
     const worker = required(required(view.runs[0]).workers[0]);
     required(view.runs[0]).workers.push({ ...worker, id: 'second-candidate' });
-    expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'FAIL', evidence: expect.stringMatching(/candidates:.*observed-worker.*second-candidate/) });
+    expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'FAIL', evidence: expect.stringMatching(/(?:candidates:|observed).*observed-worker.*second-candidate/) });
   });
 }
