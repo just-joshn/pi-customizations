@@ -23,6 +23,26 @@ PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash node --disable-warning=Experimenta
 PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash npx vitest run tests/workflow-parity/build.test.ts -t feature
 ```
 
+## Benny live application evidence
+
+`tests/automation/benny-live.test.ts` runs a scripted Pi worker through the real Benny completion path. It uses fake Slack and tracker fixtures, plus a local git mirror of Real World App PR #5. It never pushes to the public application repository.
+
+The app cache defaults to `~/pstack-runs/app-cache/realworld-app`. It must contain commits `39d86229dd9966a441821d85fed11bb6d01bac57` and `035b8d947f86fbbe666efa1e7fa8d8ca358af393`, installed dependencies, and the app's checked-in react-virtualized dependency patch applied by its postinstall. The fixture archives each commit into a separate temporary directory and seeds it from that commit's `database-seed.json`. Cached source edits cannot change either build. Node 24 must be installed through mise or selected with `PSTACK_RWA_NODE`. Playwright defaults to `~/.cache/verify-rwa/node_modules/playwright`, overridable with `PSTACK_RWA_PLAYWRIGHT`. Its Chromium executable must already be installed. `PSTACK_RWA_CACHE` overrides the cache location. None of these dependencies are downloaded by the test.
+
+Run the local proof with an external temporary directory:
+
+```sh
+TMPDIR="$HOME/pstack-runs/u55" PSTACK_RWA_KEEP_EVIDENCE=1 npx vitest run tests/automation/benny-live.test.ts
+```
+
+The retained directory contains server identities, server logs, an independent API gateway log, the worker transcript, two browser traces and paired screenshots and DOM captures per build. Entering `12.34` produces `Paid $12.00` and a stored amount of `1200` on the baseline. The patched build produces `Paid $12.34` and stores `1234`.
+
+The reusable control adapter is `tests/automation/rwa-fixture.cjs`. Its `serve <cache> <output> <commit>` command starts an independently owned API, recording gateway and Vite build on free localhost ports. It prints the server identity when ready. Its `drive <server.json> <playwright-module> <output>` command drives two fresh Chromium sessions. Set `PSTACK_RWA_CHROMIUM` to the installed browser's absolute executable path when the worker has an isolated HOME. Its `record <baseline-output> <patched-output> <artifact-directory>` command writes the ordinary Benny proof record. The server owner stops the manager with SIGTERM after the worker finishes.
+
+A later real-model Benny family can use these same commands and `rwa-evidence.ts` checkers. Keep server ownership in the driver, give the model the fake thread and tracker files and local mirror ref, and expose only the local control commands. Audit actual successful tool results with `auditLiveWorker`, not commands copied from a prompt. The existing `run-family.ts` registry does not yet have a Benny entry. Registering that entry and supplying explicit model credentials are still needed to run it through that real-model runner. The current proof establishes the deterministic worker path, not a real model's compliance rate.
+
+On cacheless Linux CI, the live test skips with the missing prerequisite in its reason. It does not pass. The requirements link that test, so Linux-only evidence leaves both requirements INCONCLUSIVE. The manifest can merge a local passing run with CI results and records `resultsSource: local`. `check-release.mjs` still checks the recorded source digest and clean-tree identity, and every mandatory requirement must be PASS.
+
 ## Inconclusive runs and exit codes
 
 A real-model run reports only what it observed. After the run the harness reads every assistant message in the parent and worker sessions. A run is INCONCLUSIVE, not scored, in three cases.

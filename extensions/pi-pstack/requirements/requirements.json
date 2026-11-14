@@ -2459,6 +2459,14 @@
       "file": "tests/automation/proof.test.ts",
       "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
+    "bn.live.1": {
+      "file": "tests/automation/benny-live.test.ts",
+      "name": "captures alone do not establish a live application reproduction"
+    },
+    "bn.live.2": {
+      "file": "tests/automation/benny-live.test.ts",
+      "name": "a scripted Benny worker reproduces real cents loss twice and verifies the mirrored existing fix without authoring"
+    },
     "bn.benny-tmux.9": {
       "file": "tests/automation/benny-tmux.test.ts",
       "name": "a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix"
@@ -6151,7 +6159,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation: the dispatch, the phase gate and the fix gate, and tests/automation/proof.test.ts for the proof record. No test reproduces a symptom through a real UI.",
+      "verification": "tests/automation/proof.test.ts checks the record. benny-live.test.ts drives a pinned real application twice through Chromium and checks trace DOM, session-specific API traffic and stored cents independently. Local app-cache evidence is required; a cacheless run skips, not passes.",
       "tests": [
         "par.trusted",
         "auto.worktree",
@@ -6181,9 +6189,10 @@
         "bn.proof.22",
         "bn.proof.23",
         "bn.proof.24",
-        "bn.benny-tmux.9"
-      ],
-      "coverageGap": "The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs."
+        "bn.benny-tmux.9",
+        "bn.live.1",
+        "bn.live.2"
+      ]
     },
     {
       "id": "BENNY-EXISTING-FIX",
@@ -6207,7 +6216,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/proof.test.ts and repro-window.test.ts check the record and the brief. No test covers a worker running against a real open pull request or merged commit.",
+      "verification": "tests/automation/proof.test.ts and repro-window.test.ts check the record and brief. benny-live.test.ts observes successful searches of fake thread/tracker data and a local mirror of PR #5, then verifies twice through the UI against each pinned build without authoring. Local app-cache evidence is required; a cacheless run skips, not passes.",
       "tests": [
         "bn.repro-window.1",
         "bn.proof.25",
@@ -6220,9 +6229,10 @@
         "bn.proof.32",
         "bn.proof.33",
         "bn.proof.34",
-        "bn.proof.35"
-      ],
-      "coverageGap": "The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs."
+        "bn.proof.35",
+        "bn.live.1",
+        "bn.live.2"
+      ]
     },
     {
       "id": "BENNY-DRAFT-ONLY",
