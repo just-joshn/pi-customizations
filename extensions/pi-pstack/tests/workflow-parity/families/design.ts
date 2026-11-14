@@ -168,8 +168,15 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
   }),
   whenJudged(check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
-    // The skill sets the rubric's size (3 to 6 criteria) and no list syntax: a dash, a star, or a number each counts; a candidate's path label does not.
-    const criteria = (judge?.brief ?? '').split('\n').filter((line) => /^\s*(?:[-*]|\d+[.)])\s+\S/.test(line) && !/^\s*[-*]\s+\W*candidate/i.test(line) && !/worktree/i.test(line)).map((line) => line.replace(/^\s*(?:[-*]|\d+[.)])\s+/, ''));
+    const lines = (judge?.brief ?? '').split('\n');
+    const start = lines.findIndex((line) => /\brubric\b/i.test(line));
+    if (start === -1) return fail('no rubric section in the judge brief');
+    const criteria: string[] = [];
+    for (const line of lines.slice(start + 1)) {
+      const item = /^\s*(?:[-*]|\d+[.)])\s+(\S.*)/.exec(line);
+      if (item !== null) criteria.push(item[1] as string);
+      else if (line.trim() !== '' && criteria.length > 0) break;
+    }
     if (criteria.length < 3 || criteria.length > 6) return fail(`the judge brief carries ${criteria.length} rubric criteria, want 3 to 6`);
     const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && criteria.some((criterion) => (worker.brief ?? '').includes(criterion)));
     return when(leaked.length === 0, `${criteria.length} criteria in the judge brief, none in ${allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').length} candidate briefs`, `rubric leaked to ${leaked.map((worker) => worker.id).join(', ')}`);
