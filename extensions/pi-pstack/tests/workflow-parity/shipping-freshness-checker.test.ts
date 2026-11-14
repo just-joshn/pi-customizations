@@ -48,7 +48,7 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       ...old.map((sha, index) => verdict(index, sha)),
       ...heads.map((_, index) => ({ kind: 'force-push', actor: 'operator-sim', ref: `refs/heads/s-${index + 1}` })),
       ...(fresh ? [verdict(2, heads[2] as string)] : []),
-      ...heads.map((head, index) => ({ kind: 'merge', pr: 21 + index, head })),
+      ...heads.flatMap((head, index) => [...(index === 0 ? [] : [{ kind: 'edit-base', pr: 21 + index, from: `s-${index}`, to: 'main' }, { kind: 'force-push', ref: `refs/heads/s-${index + 1}`, old: head, worker: '', actor: '' }]), { kind: 'merge', pr: 21 + index, head }]),
     ];
     writeFileSync(join(forgeDirOf(sandbox), 'state.json'), JSON.stringify(state));
     writeFileSync(join(forgeDirOf(sandbox), 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n'));
@@ -57,10 +57,15 @@ test.for([true, false])('a changed patch can land only after fresh verification 
       runs: [],
       parent: { messages: [], toolCalls: heads.map((_, index) => ({ name: 'bash', order: index, args: { command: `gh pr view ${21 + index} --json baseRefName,state,mergedAt` }, resultText: '', isError: false })) },
     } as unknown as RunView;
+    const leaseCommands = [1, 2].map((index) => ({ name: 'bash', order: 4 + index, args: { command: `git push origin HEAD:refs/heads/s-${index + 1} --force-with-lease=s-${index + 1}:${heads[index]}` }, resultText: '', isError: false }));
+    view.parent.toolCalls.push(...leaseCommands);
     const check = (suffix: string) => shippingFreshnessFamily.checks.find((entry) => entry.id === `ship.fresh.${suffix}`)?.run(view);
     expect(check('the-chain-rebase-moved-every-head-and-changed-one-patch')).toMatchObject({ ok: true });
     expect(check('only-the-patches-a-verdict-covers-merged')).toMatchObject({ ok: fresh });
     expect(check('a-kept-verdict-survives-a-new-sha-and-a-changed-patch-is-not-merged')).toMatchObject({ ok: fresh });
+    expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: fresh });
+    for (const call of leaseCommands) call.args.command = call.args.command.replace(/--force-with-lease=\S+/, '--force');
+    expect(check('only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease')).toMatchObject({ ok: false });
     const comparison = { name: 'bash', order: -1, args: { command: 'for c in old head; do git show "$c" | git patch-id --stable; done' }, resultText: old.flatMap((sha, index) => [sha, heads[index] as string].map((head) => `${head} ${patchIdOf(bareOf(sandbox), head)}`)).join('\n'), isError: false };
     view.parent.toolCalls.unshift(comparison);
     expect(check('the-parent-compared-patch-ids-before-trusting-a-verdict')).toMatchObject({ ok: true });

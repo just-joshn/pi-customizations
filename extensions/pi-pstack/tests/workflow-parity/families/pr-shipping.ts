@@ -546,16 +546,28 @@ export const shippingFreshnessFamily: Family = {
       const armed = Object.values(state.prs).filter((pr) => (pr.autoMerge === true || pr.queued === true) && !valid(pr.number, pr.mergedHead ?? headAt(view, state)(pr.number))).map((pr) => pr.number);
       return when(moved.length > 0 && uncovered.length === 0 && armed.length === 0, `rebased verdicts survived for ${moved.join(', ')}; every landed or armed patch has a covering verdict`, `merged at a new head: ${moved.join(', ')}; uncovered merges ${uncovered.join(', ')}; uncovered armed PRs ${armed.join(', ')}`);
     }),
-    check('ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease', 'after PR 21 merged, the shipper retargeted PR 22 to trunk and pushed its moved patch with --force-with-lease pinned to the SHA it fetched, and changed no other branch or base', SH('After a merge lands, retarget the PR whose base was the merged branch to trunk'), (view) => {
-      const { actions } = readForge(view);
+    check('ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease', 'after each merge only its verified successor moves to trunk, with a lease-protected push before that successor lands', SH('After a merge lands, retarget the PR whose base was the merged branch to trunk'), (view) => {
+      const { state, actions } = readForge(view);
+      const verdicts = verdictsOf(state, actions, view);
       const parentRefs = actions.filter((action) => ['push', 'force-push', 'ref-create', 'ref-delete'].includes(action.kind) && action.worker === '' && action.actor === '');
       const edits = actions.filter((action) => action.kind === 'edit-base');
-      const merge21 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 21);
-      const merge22 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 22);
-      const edit = actions.findIndex((action) => action.kind === 'edit-base');
-      const push = actions.findIndex((action) => action.kind === 'force-push' && action.worker === '' && action.actor === '');
-      const lease = BASH(view).some((entry) => /git push -q --force-with-lease=s-2:\$OLD origin HEAD:refs\/heads\/s-2/.test(entry.command)) || view.parent.toolCalls.some((call) => call.name === 'write' && /--force-with-lease=s-2:\$OLD/.test(String(call.args['content'])));
-      return when(parentRefs.length === 1 && parentRefs[0]?.['ref'] === 'refs/heads/s-2' && edits.length === 1 && edits[0]?.pr === 22 && edits[0]?.['to'] === 'main' && merge21 < edit && edit < push && push < merge22 && lease, `merge 21 (${merge21}), retarget 22 (${edit}), forced push of s-2 (${push}), merge 22 (${merge22}); one ref update by the shipper, one retarget, lease pinned`, `shipper ref updates ${parentRefs.map((action) => String(action['ref'])).join(', ')}; retargets ${edits.map((action) => `#${action.pr}->${String(action['to'])}`).join(', ')}; order ${merge21}, ${edit}, ${push}, ${merge22}; lease ${lease}`);
+      const commands = BASH(view).map((entry) => entry.command);
+      const scripts = view.parent.toolCalls.filter((call) => call.name === 'write' && commands.some((command) => command.includes(String(call.args['path'])))).map((call) => String(call.args['content']));
+      const used = new Set<ForgeAction>();
+      const problems = edits.flatMap((edit) => {
+        const pr = state.prs[String(edit.pr)];
+        const at = actions.indexOf(edit);
+        const previous = actions.findIndex((action, index) => index < at && action.kind === 'merge' && state.prs[String(action.pr)]?.head === edit['from']);
+        const push = parentRefs.find((action) => action['ref'] === `refs/heads/${pr?.head}`);
+        const pushed = push === undefined ? -1 : actions.indexOf(push);
+        const landed = actions.findIndex((action) => action.kind === 'merge' && action.pr === edit.pr);
+        const verdict = verdicts.filter((entry) => entry.pr === edit.pr && entry.at < at).at(-1);
+        const covered = push !== undefined && verdict !== undefined && verdict.verdict !== 'FAIL' && verdict.patch === patchIdOf(bareOf(view.sandbox), String(push['old']));
+        const lease = [...commands, ...scripts].some((command) => /\bgit\b[^\n;]*\bpush\b/.test(command) && /--force-with-lease(?:[=\s]|$)/.test(command) && (command.includes(`:refs/heads/${pr?.head}`) || command.includes(`:${pr?.head}`)));
+        if (push !== undefined) used.add(push);
+        return previous !== -1 && edit['to'] === state.repo.trunk && at < pushed && (landed === -1 || pushed < landed) && covered && lease ? [] : [`PR ${edit.pr}: predecessor ${previous}, edit ${at}, push ${pushed}, merge ${landed}, covering verdict ${covered}, lease ${lease}`];
+      });
+      return when(edits.length > 0 && used.size === parentRefs.length && problems.length === 0, `${edits.length} verified successors retargeted and pushed with a lease after their predecessors landed`, problems.join('; ') || `retargets ${edits.length}; accounted ref updates ${used.size}/${parentRefs.length}`);
     }),
     check('ship.fresh.ceiling-watched-until-COMPLETE', 'the landing run was watched with the queued watcher over 21,22 until COMPLETE', SH('until it reports `COMPLETE` at the ceiling'), (view) => {
       const found = watchers(view);
