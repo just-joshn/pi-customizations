@@ -46,6 +46,15 @@ test('concurrent 401s share one refresh and each retry once', async ({ models, m
   await expect(credentials.read(model.provider)).resolves.toMatchObject({ access: REFRESHED_ACCESS_TOKEN });
 });
 
+test('a 401 on an explicit API key is not retried with the stored credential', async ({ models, model, server, tokenEndpoint }) => {
+  const explicit = 'sk-ant-oat01-explicit-request-key';
+  server.respond(rejectStaleBearerThenSucceed(explicit));
+  const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0, apiKey: explicit }));
+  expect(message.stopReason).toBe('error');
+  expect(server.requests.map((request) => authorization(request))).toStrictEqual([`Bearer ${explicit}`]);
+  expect(tokenEndpoint.requests).toHaveLength(0);
+});
+
 test('a second 401 after refresh is not retried again', async ({ models, model, server, tokenEndpoint }) => {
   server.respond(errorReply(401, 'still rejected'));
   const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0 }));
@@ -67,4 +76,19 @@ test('a 403 with revoked OAuth body refreshes once then retries the request', as
     access: REFRESHED_ACCESS_TOKEN,
     refresh: REFRESHED_REFRESH_TOKEN,
   });
+});
+
+test('a 401 after the stored account switches is not retried as the new account', async ({ models, model, server, credentials, tokenEndpoint }) => {
+  const otherAccess = 'sk-ant-oat01-other-account';
+  server.respond((res, request) => {
+    if (authorization(request) !== `Bearer ${OAUTH_ACCESS_TOKEN}`) {
+      sseReply(textMessage('ok'))(res, request);
+      return;
+    }
+    void credentials.modify(model.provider, async () => ({ type: 'oauth', access: otherAccess, refresh: 'other-refresh', expires: Date.now() + 3_600_000 })).then(() => errorReply(401, 'invalid bearer token')(res, request));
+  });
+  const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0 }));
+  expect(server.requests.map((request) => authorization(request))).toStrictEqual([`Bearer ${OAUTH_ACCESS_TOKEN}`]);
+  expect(message.stopReason).toBe('error');
+  expect(tokenEndpoint.requests).toHaveLength(0);
 });

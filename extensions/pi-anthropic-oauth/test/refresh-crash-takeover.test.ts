@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import type { RefreshClaimOptions } from '../src/refresh-claim.ts';
+import { refreshingClient } from './support/oauth-client.ts';
+import { hostStoreUnavailable, noRotationLog } from './support/recovery.ts';
 
 vi.mock(import('node:fs/promises'), async (importOriginal) => {
   const real = await importOriginal();
@@ -16,12 +18,13 @@ vi.mock(import('node:fs/promises'), async (importOriginal) => {
             for (let turns = Math.floor(Math.random() * 8); turns > 0; turns -= 1) {
               await new Promise((resolve) => setImmediate(resolve));
             }
-            return (value as (...values: unknown[]) => unknown)(...args);
+            const result: unknown = Reflect.apply(value, undefined, args);
+            return result;
           }
         : value,
     ]),
   );
-  return { ...real, ...yieldingLikeSeparateProcesses, default: { ...real, ...yieldingLikeSeparateProcesses } } as typeof real;
+  return { ...real, ...yieldingLikeSeparateProcesses, default: { ...real, ...yieldingLikeSeparateProcesses } };
 });
 
 const { createAuthRecovery } = await import('../src/auth-recovery.ts');
@@ -34,13 +37,13 @@ function staleCredential(): OAuthCredential {
   return { type: 'oauth', access: 'old-access', refresh: 'old-refresh', expires: Date.now() + 3_600_000 };
 }
 
-function recoveryFor(oauth: OAuthAuth, authPath: string, lock: RefreshClaimOptions) {
+function recoveryFor(oauth: Pick<OAuthAuth, 'refresh'>, authPath: string, lock: RefreshClaimOptions) {
   let recovery: ReturnType<typeof createAuthRecovery> | undefined;
-  const auth = subscriptionAuth(oauth, {
-    onCredential: (credential) => recovery?.remember(credential),
+  const auth = subscriptionAuth(refreshingClient(oauth.refresh), {
+    onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
     rotation: { directory: () => refreshClaimDirectoryFor(authPath), claimOptions: lock },
   });
-  recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth: auth.oauth as OAuthAuth });
+  recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth: auth.oauth, recorded: noRotationLog, stored: hostStoreUnavailable });
   recovery.remember(staleCredential());
   return recovery;
 }
@@ -67,7 +70,7 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))('recoveries that take 
         crasherEntered = true;
         return crashed;
       },
-    } as unknown as OAuthAuth,
+    },
     authPath,
     lock,
   );
@@ -82,7 +85,7 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))('recoveries that take 
       sentRefreshTokens.push(credential.refresh);
       return { ...credential, access: 'new-access', refresh: 'new-refresh', expires: Date.now() + 3_600_000 };
     },
-  } as unknown as OAuthAuth;
+  };
   const survivors = Array.from({ length: 8 }, () => recoveryFor(oauth, authPath, lock).wrapFetch(baseFetch));
   const responses = await Promise.all(survivors.map((fetch) => fetch(URL, { headers: { authorization: 'Bearer old-access' } })));
   crash();

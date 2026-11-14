@@ -2,13 +2,14 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
+import type { FetchFunction, OAuthCredential } from '@earendil-works/pi-ai';
 import { createModels, createProvider } from '@earendil-works/pi-ai/models';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
-import { subscriptionAuth } from '../src/auth.ts';
+import { type ClaudeOAuthClient, subscriptionAuth } from '../src/auth.ts';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
 import { refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
+import { hostStoreUnavailable, noRotationLog } from './support/recovery.ts';
 
 const PROVIDER_ID = 'claude-subscription';
 const HOUR = 3_600_000;
@@ -29,7 +30,7 @@ function oauthServer(lifetimeMs = 8 * HOUR, firstRotationLifetimeMs = lifetimeMs
       return { type: 'oauth', access: `access-${generation}`, refresh: `refresh-${generation}`, expires: Date.now() + (generation === 2 ? firstRotationLifetimeMs : lifetimeMs) };
     },
     toAuth: async (credential: OAuthCredential) => ({ apiKey: credential.access }),
-  } as unknown as OAuthAuth;
+  } satisfies ClaudeOAuthClient;
   const currentAccess = () => `access-${generation}`;
   return { oauth, reused, currentAccess };
 }
@@ -43,10 +44,10 @@ test('an expiry refresh after a 401 recovery never resends the rotated refresh t
   const server = oauthServer();
   let recovery: ReturnType<typeof createAuthRecovery> | undefined;
   const auth = subscriptionAuth(server.oauth, {
-    onCredential: (credential) => recovery?.remember(credential),
+    onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
     rotation: { directory: () => refreshClaimDirectoryFor(authPath) },
   });
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth, recorded: noRotationLog, stored: hostStoreUnavailable });
   const models = createModels({ credentials: store });
   models.setProvider(
     createProvider({
@@ -61,7 +62,7 @@ test('an expiry refresh after a 401 recovery never resends the rotated refresh t
           throw new Error('not streamed');
         },
       },
-    } as unknown as Parameters<typeof createProvider>[0]),
+    }),
   );
   const revokedFirstAccess: FetchFunction = async (_input, init) => {
     const authorization = new Headers(init?.headers).get('authorization');
@@ -88,10 +89,10 @@ test('a bearer token export after a 401 recovery gets a token valid for its 30 m
   const server = oauthServer(8 * HOUR, 20 * 60_000);
   let recovery: ReturnType<typeof createAuthRecovery> | undefined;
   const auth = subscriptionAuth(server.oauth, {
-    onCredential: (credential) => recovery?.remember(credential),
+    onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
     rotation: { directory: () => refreshClaimDirectoryFor(authPath) },
   });
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth, recorded: noRotationLog, stored: hostStoreUnavailable });
   const models = createModels({ credentials: store });
   models.setProvider(
     createProvider({
@@ -106,7 +107,7 @@ test('a bearer token export after a 401 recovery gets a token valid for its 30 m
           throw new Error('not streamed');
         },
       },
-    } as unknown as Parameters<typeof createProvider>[0]),
+    }),
   );
   const revokedFirstAccess: FetchFunction = async (_input, init) => {
     const authorization = new Headers(init?.headers).get('authorization');
@@ -143,10 +144,10 @@ test('a recovery holding an already rotated token refreshes the newest token aft
   const recoveries = [0, 1].map(() => {
     let recovery: ReturnType<typeof createAuthRecovery> | undefined;
     const auth = subscriptionAuth(server.oauth, {
-      onCredential: (credential) => recovery?.remember(credential),
+      onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
       rotation: { directory: () => refreshClaimDirectoryFor(authPath), claimOptions: lock },
     });
-    recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
+    recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth, recorded: noRotationLog, stored: hostStoreUnavailable });
     recovery.remember(original);
     return recovery.wrapFetch(revokedFirstAccess);
   });

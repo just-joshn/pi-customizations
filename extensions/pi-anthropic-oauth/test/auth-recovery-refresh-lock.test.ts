@@ -7,7 +7,9 @@ import { expect, onTestFinished, test, vi } from 'vitest';
 import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
 import { subscriptionAuth } from '../src/auth.ts';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
-import { type RefreshClaimOptions, refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
+import { followChain, type RefreshClaimOptions, refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
+import { refreshingClient } from './support/oauth-client.ts';
+import { hostStoreUnavailable, noRotationLog } from './support/recovery.ts';
 
 const PROVIDER_ID = 'claude-subscription';
 
@@ -37,13 +39,13 @@ async function tempDir(): Promise<string> {
   return dir;
 }
 
-function recoveryFor(oauth: OAuthAuth, authPath: string, claimOptions?: RefreshClaimOptions) {
+function recoveryFor(oauth: Pick<OAuthAuth, 'refresh'>, authPath: string, claimOptions?: RefreshClaimOptions) {
   let recovery: ReturnType<typeof createAuthRecovery> | undefined;
-  const auth = subscriptionAuth(oauth, {
-    onCredential: (credential) => recovery?.remember(credential),
+  const auth = subscriptionAuth(refreshingClient(oauth.refresh), {
+    onCredential: (credential, rotation) => recovery?.remember(credential, rotation),
     rotation: { directory: () => refreshClaimDirectoryFor(authPath), ...(claimOptions === undefined ? {} : { claimOptions }) },
   });
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth, recorded: (credential) => followChain(refreshClaimDirectoryFor(authPath), credential), stored: hostStoreUnavailable });
   recovery.remember(staleCredential());
   return recovery;
 }
@@ -77,7 +79,7 @@ test('two recoveries on one auth file send one refresh POST and both retry 200',
   const holdFirst = new Promise<void>((resolve) => {
     release = resolve;
   });
-  const oauth = { refresh: fetching(posts, holdFirst) } as unknown as OAuthAuth;
+  const oauth = { refresh: fetching(posts, holdFirst) };
   const lock = { retries: 200, retryDelayMs: () => 5 };
   const signal = AbortSignal.timeout(3_000);
   const recoveries = [storeA, storeB].map((store) => {
@@ -107,7 +109,7 @@ test('AuthStorage refresh completes beside the rotation log', async () => {
       posts.count += 1;
       return rotated(credential);
     },
-  } as unknown as OAuthAuth;
+  };
   const recovery = recoveryFor(oauth, authPath);
   recovery.bindCredentials(store);
   const response = await recovery.wrapFetch(baseFetch())('https://api.anthropic.invalid/v1/messages', {
@@ -130,7 +132,7 @@ test('two recoveries without a store send one refresh POST under one claim', asy
     refresh: fetching(posts, holdFirst, async () => {
       await expect(stat(join(dir, 'auth.json.lock'))).rejects.toMatchObject({ code: 'ENOENT' });
     }),
-  } as unknown as OAuthAuth;
+  };
   const lock = { retries: 200, retryDelayMs: () => 5 };
   const recoveries = [0, 1].map(() => recoveryFor(oauth, authPath, lock).wrapFetch(baseFetch()));
   const pending = Promise.all(
@@ -167,7 +169,7 @@ test('expired leftover share file still refreshes once and retries 200', async (
       posts.count += 1;
       return rotated(credential);
     },
-  } as unknown as OAuthAuth;
+  };
   const recovery = recoveryFor(oauth, authPath);
   const response = await recovery.wrapFetch(async (_input, init) => {
     const authorization = new Headers(init?.headers).get('authorization');
@@ -178,4 +180,40 @@ test('expired leftover share file still refreshes once and retries 200', async (
   });
   expect(posts.count).toBe(1);
   expect(response.status).toBe(200);
+});
+
+test('logging out during a refresh ends recovery for the logged-out account', async () => {
+  let refreshes = 0;
+  let release: () => void = () => {};
+  const holdFirst = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const recovery = createAuthRecovery({
+    providerId: PROVIDER_ID,
+    oauth: {
+      refresh: async (credential) => {
+        refreshes += 1;
+        if (refreshes === 1) await holdFirst;
+        return { ...credential, access: `access-${refreshes}`, refresh: `refresh-${refreshes}` };
+      },
+    },
+    recorded: noRotationLog,
+    stored: hostStoreUnavailable,
+  });
+  recovery.remember(staleCredential());
+  const sent: string[] = [];
+  const fetch = recovery.wrapFetch(async (_input, init) => {
+    sent.push(new Headers(init?.headers).get('authorization') ?? '');
+    return new Response('', { status: 401 });
+  });
+  const pending = fetch('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer old-access' } });
+  await vi.waitFor(() => {
+    if (refreshes < 1) throw new Error('refresh has not started');
+  });
+  recovery.forget();
+  release();
+  await pending;
+  await fetch('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer access-1' } });
+  expect(sent).toStrictEqual(['Bearer old-access', 'Bearer access-1']);
+  expect(refreshes).toBe(1);
 });

@@ -38,7 +38,7 @@ async function claimDuringFetch(directory: string): Promise<'present' | 'absent'
   try {
     return (await readdir(directory)).length > 0 ? 'present' : 'absent';
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 'absent';
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return 'absent';
     throw error;
   }
 }
