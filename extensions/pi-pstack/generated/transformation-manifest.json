@@ -5073,7 +5073,7 @@
         12
       ],
       "original": "start a decision trail in the root agent's store (path in the system prompt) per",
-      "replacement": "start a decision trail in your worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names) per",
+      "replacement": "start a decision trail at `<workerDir>/decisions.tsv` in your own worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names). Worktree owners write there outside their git worktree. Container owners write to the same absolute path through their existing output mount, backed by `<workerDir>/out/decisions.tsv` on the host. Never commit the trail into the PR branch or write to the root's shared log. Follow",
       "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
     },
     {
@@ -6678,7 +6678,7 @@
         46
       ],
       "original": "Keep it at `decisions.tsv` in the work dir, or",
-      "replacement": "Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or",
+      "replacement": "As a writable worker, keep it at `<workerDir>/decisions.tsv`, using the absolute worker directory from your brief. Worktree owners write outside their git worktree. Container owners write through the existing output mount; the parent sees the same path backed by `<workerDir>/out/decisions.tsv` on the host, even after the container ends. Do not commit the trail into the PR branch or write another owner's trail. For the root agent, the default follows. Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or",
       "output": "generated/skills/show-me-your-work/SKILL.md"
     },
     {

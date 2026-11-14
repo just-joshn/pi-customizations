@@ -552,7 +552,7 @@ function prepareOutput(workerDir) {
   const out = outDirOf(workerDir);
   for (const name of ["session", "evidence", "receipts"])
     mkdirSync2(join3(out, name), { recursive: true, mode: 448 });
-  for (const name of ["session", "evidence", "report.md"])
+  for (const name of ["session", "evidence", "report.md", "decisions.tsv"])
     if (lstatSync2(join3(workerDir, name), { throwIfNoEntry: false }) === undefined)
       symlinkSync(join3("out", name), join3(workerDir, name));
 }

@@ -134,7 +134,15 @@ describe('self-audit fixes', () => {
   test('autopilot-full keeps its decision trail in the worker directory, not a Cursor agent store', () => {
     const text = line('skills/poteto-mode/playbooks/autopilot-full.md', 12);
     expect(text).not.toMatch(/agent's store|system prompt|that store/);
-    expect(text).toContain('start a decision trail in your worker directory under the root\'s run (`.pi/pstack/runs/<runId>/workers/<workerId>/`');
+    expect(text).toContain('start a decision trail at `<workerDir>/decisions.tsv`');
+    for (const path of ['skills/poteto-mode/playbooks/autopilot-full.md', 'skills/show-me-your-work/SKILL.md', 'skills/poteto-mode/references/worker-assignment.md']) {
+      const guidance = gen(path);
+      expect(guidance).toContain('<workerDir>/decisions.tsv');
+      expect(guidance).toContain('<workerDir>/out/decisions.tsv');
+      expect(guidance).toMatch(/[Ww]orktree owners?|worktree owner/);
+      expect(guidance).toMatch(/[Cc]ontainer owners?|container owner/);
+      expect(guidance).toContain('PR branch');
+    }
   });
 
   test('worktree-cleanup runs the slow scan as a one-shot watch that writes a file, and names no Cursor sidebar', () => {

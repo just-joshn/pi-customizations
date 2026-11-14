@@ -375,18 +375,21 @@ export function workerFinalText(loaded: LoadedAssignment, sessionFile: string | 
   return finalAssistantText(file.kind === 'ok' ? file.bytes.toString('utf8') : null);
 }
 
-function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
+function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; decisions: string | null; finalText: string | null; evidence: string[] } {
   const { workerDir, assignment } = loaded;
   const finalText = workerFinalText(loaded, sessionFile);
-  if (assignment.workspace.mode === 'readonly') return { report: finalText, finalText, evidence: [] };
+  if (assignment.workspace.mode === 'readonly') return { report: finalText, decisions: null, finalText, evidence: [] };
   if (assignment.workspace.mode !== 'container') {
     const report = join(workerDir, 'report.md');
-    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText, evidence: listFiles(join(workerDir, 'evidence')) };
+    const decisions = join(workerDir, 'decisions.tsv');
+    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, decisions: existsSync(decisions) ? readFileSync(decisions, 'utf8') : null, finalText, evidence: listFiles(join(workerDir, 'evidence')) };
   }
   const out = outDirOf(workerDir);
   const report = readFileBelow(out, 'report.md');
+  const decisions = readFileBelow(out, 'decisions.tsv');
   return {
     report: report.kind === 'ok' ? report.bytes.toString('utf8') : report.kind === 'missing' ? null : '(refused: report.md leaves the worker output directory)',
+    decisions: decisions.kind === 'ok' ? decisions.bytes.toString('utf8') : decisions.kind === 'missing' ? null : '(refused: decisions.tsv leaves the worker output directory)',
     finalText,
     evidence: listFilesBelow(out, 'evidence'),
   };
@@ -849,6 +852,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
+  const aborting = new Set<string>();
   // Bumped on every session_start and session_tree. A pass that began under an older version is discarded and rerun,
   // so it never sends wakes chosen for another session or branch.
   let branchVersion = 0;
@@ -870,6 +874,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     for (const { runId, runRoot } of runs) {
       for (const workerId of workerIds(runRoot)) {
         const workerDir = workerDirOf(runRoot, workerId);
+        if (aborting.has(workerDir)) continue;
         let transitions: Transition[];
         try {
           transitions = workerTransitions(runId, workerId, readHostState(workerDir), readClaim(workerDir), live?.has(tmuxSessionName(project, runId, workerId)));
@@ -1032,8 +1037,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        const receipt = await abortWorker(project, loaded, { exec, tmuxSocket: socket, startCheckMs });
-        return text(`Aborted worker ${workerId}.`, receipt);
+        const before = readHostState(loaded.workerDir);
+        aborting.add(loaded.workerDir);
+        try {
+          const receipt = await abortWorker(project, loaded, { exec, tmuxSocket: socket, startCheckMs });
+          if (typeof receipt === 'object' && receipt !== null && 'disposition' in receipt && (receipt.disposition === 'stopped' || receipt.disposition === 'session-ended')) {
+            const state = readHostState(loaded.workerDir);
+            const cancellations = workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined).filter(
+              (transition) => transition.phase === 'aborted' && transition.reason === 'Stopped by request' && !workerTransitions(runId, workerId, before, undefined, undefined).some((previous) => previous.transitionId === transition.transitionId),
+            );
+            markCollected(loaded.workerDir, cancellations);
+          }
+          return text(`Aborted worker ${workerId}.`, receipt);
+        } finally {
+          aborting.delete(loaded.workerDir);
+        }
       }
       const inspected = await inspectWorker(loaded);
       const state = inspected.available ? inspected.state : inspected.lastState;
@@ -1057,11 +1075,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         ...(receipts === undefined ? {} : { receipts }),
         sessionFile: state.sessionFile,
       };
+      const trail = result.decisions === null ? '' : `\n\ndecisions.tsv:\n${result.decisions}`;
       const rejected = receipts === undefined || receipts.rejected.length === 0 ? '' : `\n\nContainer receipts rejected: ${receipts.rejected.map(({ workerId: from, file, reason }) => `${from}/${file}: ${reason}`).join('; ')}`;
       const settledLine = `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).`;
       if (loaded.assignment.workspace.mode === 'readonly') return text(`${settledLine}\n\nReport (a readonly worker's final reply, since it cannot write report.md):\n${result.finalText ?? '(none)'}${rejected}`, result);
       return text(
-        `${settledLine}\n\nreport.md:\n${result.report ?? (briefAsksForReport(loaded.workerDir) ? '(missing: the brief asked for it and the worker did not write it)' : '(none requested: the brief never names report.md; the final assistant text below is the report)')}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
+        `${settledLine}\n\nreport.md:\n${result.report ?? (briefAsksForReport(loaded.workerDir) ? '(missing: the brief asked for it and the worker did not write it)' : '(none requested: the brief never names report.md; the final assistant text below is the report)')}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}${trail}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },
