@@ -48,6 +48,24 @@ const ESCAPED_PATCH = COMMENT_PATCH.replace('   return Math.min(100, Math.max(0,
 const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8' });
 const ofRole = (view: RunView, role: string) => allWorkers(view).filter((worker) => assignmentOf(worker).role === role);
 
+function replaceAcceptedProposal(sandbox: string, patch: string): void {
+  const session = workerSessionFile(sandbox, RUN, 'sicko-2');
+  const encoded = JSON.stringify(COMMENT_PATCH).slice(1, -1);
+  if (!readFileSync(session, 'utf8').includes(encoded)) throw new Error('The coherent counterexample did not find the second critic proposal');
+  rewriteSession(session, encoded, JSON.stringify(patch).slice(1, -1));
+  writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/sicko-2/accepted.patch'), patch);
+}
+
+function applyScopeEscape(sandbox: string, commit: boolean): void {
+  const repo = join(sandbox, 'repo');
+  const cart = join(repo, 'src/cart.js');
+  writeFileSync(cart, `${readFileSync(cart, 'utf8')}\nexport const outOfScope = true;\n`);
+  const extra = git(repo, 'diff', '--', 'src/cart.js');
+  if (!extra.includes('diff --git')) throw new Error('The coherent scope-escape counterexample did not change src/cart.js');
+  replaceAcceptedProposal(sandbox, COMMENT_PATCH + extra);
+  if (commit) git(repo, 'commit', '--only', '-m', 'incorrectly accepted out-of-scope critic edit', '--', 'src/cart.js');
+}
+
 export const gatesFamily: Family = {
   id: 'commit-review-gates',
   title: 'deslop before the commit and read-only no-comments review: reject an application-code proposal, rerun once and apply only accepted comment deletions',
@@ -140,7 +158,15 @@ writeFileSync(join(dir, 'accepted.patch'), patch.endsWith('\\n') ? patch : patch
       const acceptedPath = second === undefined ? '' : join(second.dir, 'accepted.patch');
       const accepted = existsSync(acceptedPath) ? readFileSync(acceptedPath, 'utf8').trimEnd() : '';
       const linked = proposal !== undefined && proposal === accepted;
-      return when(linked && diff.length === 1 && diff[0] === `-${KEPT_COMMENT}` && readFileSync(join(view.repo, 'src/coupon.js'), 'utf8').includes(LICENSE_COMMENT), `the applied patch matches the second critic's proposal; only ${diff[0]} changed and the license remains`, `proposal linked ${linked}; changed lines: ${JSON.stringify(diff)}`);
+      const impl = allWorkers(view).find((worker) => worker.id === 'impl');
+      const run = primaryRun(view);
+      const beforeCritic = impl === undefined || run === undefined ? undefined : branchCommits(view, run.id, impl.id).at(-1);
+      if (beforeCritic === undefined) return fail('the implementation commit before the critic is missing');
+      const changed = git(view.repo, 'diff', '--name-only', beforeCritic).split('\n').filter(Boolean);
+      const scoped = changed.every((path) => ['src/coupon.js', 'README.md'].includes(path)) && view.git.dirty.every((path) => ['src/coupon.js', 'README.md', 'unrelated.txt'].includes(path));
+      const original = git(view.repo, 'show', `${beforeCritic}:src/coupon.js`);
+      const commentOnly = readFileSync(join(view.repo, 'src/coupon.js'), 'utf8') === original.replace(`${KEPT_COMMENT}\n`, '');
+      return when(linked && scoped && commentOnly && diff.length === 1 && diff[0] === `-${KEPT_COMMENT}`, `the applied patch matches the second critic's proposal; only ${diff[0]} changed outside preserved user work and the license remains`, `proposal linked ${linked}; scope preserved ${scoped}; comment-only ${commentOnly}; changed files: ${changed.join(', ')}; changed lines: ${JSON.stringify(diff)}`);
     }),
     check('gates.unrelated-dirty-state-preserved', 'unrelated staged, unstaged and untracked user changes survive the accepted comment patch', src('no-comments/SKILL.md', 'unrelated and uncommitted caller state untouched'), (view) => {
       const staged = git(view.repo, 'show', ':README.md');
@@ -164,6 +190,17 @@ writeFileSync(join(dir, 'accepted.patch'), patch.endsWith('\\n') ? patch : patch
     { name: 'the rerun brief did not name the failure', mutate: (sandbox) => writeBrief(sandbox, 'sicko-2', 'Scope: src/coupon.js. Delete comments.'), fails: ['gates.rejected-report-is-rerun-once'] },
     { name: 'the second critic supplies no patch', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), 'diff --git', 'not-a-patch'), fails: ['gates.only-the-accepted-patch-is-applied'] },
     { name: 'the second critic proposes an out-of-scope patch', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), 'src/coupon.js', 'README.md'), fails: ['gates.only-the-accepted-patch-is-applied'] },
+    { name: 'an out-of-scope proposal matches its applied patch and checkout', mutate: (sandbox) => applyScopeEscape(sandbox, false), fails: ['gates.only-the-accepted-patch-is-applied'], passes: ['gates.unrelated-dirty-state-preserved'] },
+    { name: 'a coherently applied out-of-scope proposal was committed', mutate: (sandbox) => applyScopeEscape(sandbox, true), fails: ['gates.only-the-accepted-patch-is-applied'], passes: ['gates.unrelated-dirty-state-preserved'] },
+    { name: 'committing an application edit inside the scoped file cannot hide it behind the comment deletion', mutate: (sandbox) => {
+      const repo = join(sandbox, 'repo');
+      const path = join(repo, 'src/coupon.js');
+      const changed = CLEAN.replace('Math.min(100, Math.max(0, percent))', 'Math.max(0, percent)');
+      writeFileSync(path, changed);
+      git(repo, 'commit', '--only', '-m', 'incorrectly accepted executable critic edit', '--', 'src/coupon.js');
+      writeFileSync(path, changed.replace(`${KEPT_COMMENT}\n`, ''));
+      replaceAcceptedProposal(sandbox, git(repo, 'diff', `pstack-run/${RUN}/impl`, '--', 'src/coupon.js'));
+    }, fails: ['gates.only-the-accepted-patch-is-applied'], passes: ['gates.unrelated-dirty-state-preserved'] },
     { name: 'the second critic proposes deleting a protected license header', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'sicko-2'), ` ${LICENSE_COMMENT}`, `-${LICENSE_COMMENT}`), fails: ['gates.only-the-accepted-patch-is-applied'] },
     { name: 'the unrelated staged user change was lost', mutate: (sandbox) => execFileSync('git', ['-C', join(sandbox, 'repo'), 'reset', '-q', 'HEAD', '--', 'README.md']), fails: ['gates.unrelated-dirty-state-preserved'] },
     { name: 'the unrelated unstaged user change was lost', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/README.md'), '# cart\n\nTotals a shopping cart.\n\nstaged user note\n'), fails: ['gates.unrelated-dirty-state-preserved'] },
