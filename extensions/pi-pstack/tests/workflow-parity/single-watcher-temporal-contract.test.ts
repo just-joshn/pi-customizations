@@ -193,6 +193,52 @@ test('a reaped owned child with ESRCH supports a sequential replacement', async 
   }
 });
 
+test('late ESRCH observations cannot prove end-before-start when actual overlap is withheld', async () => {
+  const children: ReturnType<typeof spawn>[] = [];
+  const exits: Promise<unknown>[] = [];
+  const start = async (id: string) => {
+    const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
+    children.push(child);
+    exits.push(once(child, 'exit'));
+    await once(child, 'spawn');
+    const pid = required(child.pid);
+    const started = required(processStartTime(pid));
+    return { ...observation(id), childPid: pid, childStarted: started, before: started, after: started };
+  };
+  try {
+    const original = await start('w');
+    const delivery = { ...original };
+    expect(processStartTime(original.childPid)).toBe(original.childStarted);
+    const replacement = await start('replacement');
+    const truth = [original, replacement].map((worker) => ({ ...worker, before: processStartTime(worker.childPid) }));
+    for (const worker of truth) {
+      expect(worker.before).toBe(worker.childStarted);
+      expect(processStartTime(worker.childPid)).toBe(worker.childStarted);
+    }
+    required(children[0]).kill('SIGTERM');
+    await exits[0];
+    const sample = () => {
+      const started = processStartTime(original.childPid) ?? null;
+      expect(() => process.kill(original.childPid, 0)).toThrow(expect.objectContaining({ code: 'ESRCH' }));
+      return started;
+    };
+    const late = { ...original, phase: 'exited', before: sample(), after: sample(), absentBefore: true, absentAfter: true };
+    expect(late.before).toBeNull();
+    expect(late.after).toBeNull();
+    fixture((view, save) => {
+      const run = required(view.runs[0]);
+      run.workers.push({ ...required(run.workers[0]), id: 'replacement', dir: '/workers/replacement', state: { kind: 'watch', phase: 'running' } });
+      required(view.parent.toolCalls[1]).resultText = 'Worker w: running';
+      view.parent.toolCalls.push({ order: 4, name: 'pstack_worker', args: { action: 'spawn', assignmentPath: '/workers/replacement/assignment.json' }, resultText: 'Worker replacement: running', isError: false });
+      save([delivery], [[late, { ...replacement, before: required(processStartTime(replacement.childPid)), after: required(processStartTime(replacement.childPid)) }]]);
+      expect(results(view)).toEqual(['INCONCLUSIVE', 'INCONCLUSIVE']);
+    });
+  } finally {
+    for (const child of children) if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
+    await Promise.allSettled(exits);
+  }
+});
+
 test('a proved sequential replacement after a valid repeat request is allowed', () =>
   fixture((view, save) => {
     const run = required(view.runs[0]);
