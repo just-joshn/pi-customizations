@@ -7,6 +7,7 @@ import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, settledAndCollected, spawnedTogether, spawnOrder } from '../lib/checks.ts';
 import { overwrite, patchAssignment, setSessionCwd, workerSessionFile } from '../lib/mutate.ts';
+import type { PaneIdentity } from '../lib/pane-identity.ts';
 import type { RunView } from '../lib/view.ts';
 import { writes } from './shared.ts';
 import type { Family } from './types.ts';
@@ -107,7 +108,18 @@ export const concurrencyFamily: Family = {
       return when(allWorkers(view).length === 4 && inputs.size === 1 && !inputs.has(undefined) && roles.size === 1, 'one input commit and one role', `${inputs.size} input commits, ${roles.size} roles`);
     }),
     check('worker-concurrency.workers-get-their-own-pane-env', "each worker's $TMUX_PANE names its own pane, not the pane its parent runs in", SRC, (view) => {
-      const rows = view.runs[0]?.workers.map((worker) => ({ id: worker.id, row: identity(worker.dir) })) ?? [];
+      let captured: PaneIdentity[] = [];
+      if (view.driver === 'real') {
+        try {
+          captured = JSON.parse(readFileSync(join(view.sandbox, 'worker-pane-identities.json'), 'utf8')) as PaneIdentity[];
+        } catch {
+          captured = [];
+        }
+      }
+      const rows = view.runs.flatMap((run) => run.workers.map((worker) => {
+        const host = captured.find((entry) => entry.runId === run.id && entry.workerId === worker.id && entry.session === worker.state?.['tmuxSession']);
+        return { id: worker.id, row: view.driver === 'real' ? (host === undefined ? [] : [host.session, host.pane, host.envPane]) : identity(worker.dir) };
+      }));
       if (view.driver === 'real' && rows.some(({ row }) => row.length < 3)) return { inconclusive: 'the live run did not record its pane environment; no TMUX_PANE claim can be verified' };
       const wrong = rows.filter(({ row }) => row.length < 3 || row[2] !== row[1]);
       return when(rows.length === 4 && wrong.length === 0, 'every worker sees its own pane id', `${wrong.map(({ id, row }) => `${id} is in pane ${row[1]} but $TMUX_PANE is ${row[2]}`).join('; ')}`);
