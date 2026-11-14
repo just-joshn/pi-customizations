@@ -468,12 +468,13 @@ export function worktreeIsolation(id: string, source: Src | Src[]): Check {
       if (paths.has(own)) problems.push(`${worker.id} shares ${own}`);
       paths.add(own);
       const registered = view.git.worktrees.find((tree) => tree.path === own);
-      if (registered === undefined) problems.push(`${worker.id}: git has no worktree at ${own}`);
-      else if (registered.branch !== `pstack-run/${run?.id}/${worker.id}`) problems.push(`${worker.id}: branch ${registered.branch} is not pstack-run/${run?.id}/${worker.id}`);
+      const branch = `pstack-run/${run?.id}/${worker.id}`;
+      if (registered === undefined && (worker.session?.cwd !== own || view.git.branchCommits[branch] === undefined)) problems.push(`${worker.id}: no registered worktree or session and retained branch evidence at ${own}`);
+      else if (registered !== undefined && registered.branch !== branch) problems.push(`${worker.id}: branch ${registered.branch} is not ${branch}`);
       const sessionCwd = worker.session?.cwd;
       if (sessionCwd !== undefined && sessionCwd !== null && sessionCwd !== own) problems.push(`${worker.id}: session ran in ${sessionCwd}, not its worktree ${own}`);
     }
-    const branches = writable.map((worker) => view.git.worktrees.find((tree) => tree.path === join(worker.dir, 'worktree'))?.branch);
+    const branches = writable.map((worker) => view.git.worktrees.find((tree) => tree.path === join(worker.dir, 'worktree'))?.branch ?? `pstack-run/${view.runs.find((run) => run.workers.includes(worker))?.id}/${worker.id}`);
     if (new Set(branches).size !== branches.length) problems.push('two workers share a branch');
     return when(problems.length === 0, `${writable.length} worktree workers, ${paths.size} distinct worktrees and branches`, problems.join('; '));
   });
