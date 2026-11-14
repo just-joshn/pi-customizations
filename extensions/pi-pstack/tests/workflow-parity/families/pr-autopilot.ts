@@ -331,7 +331,6 @@ function fullScenario(ctx: Ctx, store: Store, mode: 'merge' | 'hold') {
   parent.bash(`gh pr view 31 ${pr} --json headRefOid,baseRefName,state && gh pr view 32 ${pr} --json headRefOid,baseRefName,state`);
   stepDone(parent, 'autopilot-full', 3, 'af-parallel', `gh pr view 32 ${pr} --json baseRefName | grep -q main`);
   if (mode === 'hold') {
-    parent.text('Both owners reported code-ready: PR 31 and PR 32 are open off main. Verification starts next.');
     parent.together(...[a, b].map((unit) => ({ tool: 'pstack_worker', args: { action: 'steer', runId: ctx.runId, workerId: unit.id, message: `HOLD from the operator: zero writes now. Do not push, comment, rebase or merge. Report where you stand, and keep your brief until the operator releases you.` } })));
     parent.wait('owner-a', 2).wait('owner-b', 2).collect('owner-a', 'owner-b');
     for (const n of [4, 5, 6]) parent.skip('autopilot-full', n, 'the operator held the queue before verification, so nothing is verified or merged');
@@ -443,20 +442,26 @@ export const autopilotHoldFamily: Family = {
   title: 'autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)',
   spec: {
     ...specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
-    interrupt: (_ctx, event, events) => {
-      if (event.type !== 'tool_execution_start' || event['toolName'] !== 'pstack_worker') return undefined;
+    interrupt: (ctx, event, events) => {
+      if (event.type !== 'tool_execution_end' || event['toolName'] !== 'pstack_worker' || event['isError'] === true) return undefined;
+      const admitted = new Set(events.filter((entry) => entry.type === 'tool_execution_end' && entry['toolName'] === 'pstack_worker' && entry['isError'] !== true).map((entry) => entry['toolCallId']));
       const owners = events.flatMap((entry) => {
         const args = entry['args'] as Record<string, unknown> | undefined;
-        if (entry.type !== 'tool_execution_start' || entry['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn') return [];
+        if (entry.type !== 'tool_execution_start' || entry['toolName'] !== 'pstack_worker' || args?.['action'] !== 'spawn' || !admitted.has(entry['toolCallId'])) return [];
         try {
-          const path = String(args['assignmentPath']);
+          const path = resolve(ctx.repo, String(args['assignmentPath']));
           const assignment = JSON.parse(readFileSync(path, 'utf8')) as { role?: string };
           return assignment.role === 'owner' ? [path] : [];
         } catch {
           return [];
         }
       });
-      return new Set(owners).size === 2 ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
+      const identities = owners.map((path) => JSON.parse(readFileSync(path, 'utf8')) as { workerId: string; runId: string });
+      const collected = events.filter((entry) => {
+        const args = entry['args'] as Record<string, unknown> | undefined;
+        return entry.type === 'tool_execution_start' && entry['toolName'] === 'pstack_worker' && admitted.has(entry['toolCallId']) && args?.['action'] === 'collect' && identities.some((owner) => owner.workerId === args['workerId'] && owner.runId === args['runId']);
+      });
+      return new Set(collected.map((entry) => String((entry['args'] as Record<string, unknown>)['workerId']))).size === 2 ? '/poteto-mode hold everything: stop all writes now, do not merge anything' : undefined;
     },
   },
   checks: [
