@@ -1,7 +1,7 @@
 // Families: session-pickup, pause-safely, autonomous-run, worktree-cleanup.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { BENCH_JS, cartHistory, DEDUPE_JS, perfHistory, SET_DEDUPE_JS } from '../fixtures/repos.ts';
@@ -144,7 +144,7 @@ export const pickupFamily: Family = {
       return when(pending !== '' && resume.includes(pending.replace(/^\d+\. /, '')), `pending "${pending}" is the resume point "${resume}"`, `pending "${pending}", reply resume point "${resume}"`);
     }),
     check('pickup.nothing-redone', 'completed work is not redone: no parent write into the files the prior commits made, no commit, and the prior repro command is not re-run before verification', src('poteto-mode/playbooks/session-pickup.md', 'do not re-run the prior repro or redo completed work'), (view) => {
-      const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /\/(src|test)\//.test(String(call.args['path'])));
+      const rewrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && /^(src|test)\//.test(String(call.args['path']).startsWith('/') ? relative(view.repo, String(call.args['path'])) : String(call.args['path'])));
       const rerun = view.parent.toolCalls.filter((call) => call.name === 'bash' && /node --test/.test(String(call.args['command'])) && !/pick-verify/.test(String(call.args['command'])));
       return when(rewrites.length === 0 && rerun.length === 0 && view.git.commitsSinceBase.length === 0 && view.git.dirty.length === 0, 'nothing in src or test was written, nothing committed, the repro ran only as the final verification', `rewrites ${rewrites.length}, extra repro runs ${rerun.length}, commits ${view.git.commitsSinceBase.length}`);
     }),
