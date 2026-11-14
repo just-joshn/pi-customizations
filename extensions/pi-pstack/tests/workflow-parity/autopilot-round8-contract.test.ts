@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
-import { autopilotFullFamily, autopilotStackFamily } from './families/pr-autopilot.ts';
+import { autopilotFullFamily, autopilotLanesFamily, autopilotStackFamily } from './families/pr-autopilot.ts';
 import { forgeDirOf } from './fixtures/forge.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -66,6 +66,15 @@ test('stack handoff reports each actual verdict without mandatory producer or go
   const run = () => autopilotStackFamily.checks.find((entry) => entry.id === 'autopilot.stack.reply-lists-each-pr-with-its-verdict')?.run(view);
   expect(run()).toMatchObject({ ok: true });
   report.text = report.text.replace('Both PRs remain open.', 'All merged.');
+  expect(run()).toMatchObject({ ok: false });
+});
+
+test('lane catch-up names all lanes and explains the countersign without fixed labels', () => {
+  const report = { role: 'assistant', order: 1, text: 'Merged PR 33. Verifiers: gates / live / audit. I signed off budget.json because the audit receipt proved the raise was needed. Operator decisions: none. Remaining work: none.' };
+  const view = { parent: { toolCalls: [], messages: [report] } } as unknown as RunView;
+  const run = () => autopilotLanesFamily.checks.find((entry) => entry.id === 'autopilot.lanes.reply-names-the-lanes-and-the-countersign')?.run(view);
+  expect(run()).toMatchObject({ ok: true });
+  report.text = report.text.replace('budget.json', 'the change');
   expect(run()).toMatchObject({ ok: false });
 });
 

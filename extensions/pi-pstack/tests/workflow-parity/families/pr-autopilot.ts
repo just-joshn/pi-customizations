@@ -805,7 +805,7 @@ export const autopilotLanesFamily: Family = {
     mergesAreAuthorizedAndVerified('autopilot.lanes.no-merge-without-a-verdict-at-that-head', AF('The owner merges only what you verified')),
     check('autopilot.lanes.reply-names-the-lanes-and-the-countersign', 'the reply catches the operator up on the PR, the three lanes, the gate that was loosened and why it was countersigned, open gates and follow-ups', AF('**Reply:** catch the operator up'), (view) => {
       const reply = finalReply(view);
-      const missing = [/PR 33.*merged/, /gates, live and audit/, /budget\.json/, /countersigned/, /Open operator gates/, /Parked follow-ups/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/PR\s*#?33[^.\n]*merged|merged[^.\n]*PR\s*#?33/i, ...LANES.map((lane) => new RegExp(`\\b${lane}\\b`, 'i')), /budget\.json/i, /counter[ -]?sign|signed off/i, /operator[^.\n]*(?:gates|decisions)|decisions[^.\n]*(?:you|operator)|waiting[^.\n]*(?:you|operator)/i, /follow.ups|remaining work|next steps?/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0, 'every part present', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('autopilot.lanes.no-tool-errors', AF('Run the root layer')),
