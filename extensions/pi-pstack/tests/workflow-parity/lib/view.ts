@@ -10,6 +10,7 @@ export interface ToolCall {
   /** Position of the assistant message in the session, for ordering across tools. */
   order: number;
   name: string;
+  contentIndex?: number;
   args: Json;
   resultText: string;
   isError: boolean;
@@ -21,6 +22,7 @@ export interface Message {
   order: number;
   role: string;
   text: string;
+  parts?: Json[];
   customType?: string;
   details?: Json;
 }
@@ -76,16 +78,16 @@ export function loadSession(file: string): Session {
     if (entry['type'] !== 'message') continue;
     const message = entry['message'] as Json;
     const role = String(message['role']);
-    messages.push({ order: order++, role, text: textOf(message['content']) });
+    messages.push({ order: order++, role, text: textOf(message['content']), ...(Array.isArray(message['content']) ? { parts: message['content'] as Json[] } : {}) });
     if (role === 'assistant') {
       if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) {
         errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
         errorTimes.push(typeof entry['timestamp'] === 'string' ? entry['timestamp'] : null);
       }
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
-      for (const part of message['content'] as Json[]) {
+      for (const [contentIndex, part] of (message['content'] as Json[]).entries()) {
         if (part['type'] !== 'toolCall') continue;
-        const call: ToolCall = { order: order - 1, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}) };
+        const call: ToolCall = { order: order - 1, contentIndex, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}) };
         calls.set(String(part['id']), call);
         toolCalls.push(call);
       }

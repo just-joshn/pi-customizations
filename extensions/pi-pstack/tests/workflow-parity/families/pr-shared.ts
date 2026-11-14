@@ -110,8 +110,11 @@ export function modeDeclared(id: string, source: Src | Src[], expected: 'check' 
     const writtenAt = parentCommandOrder(view, /Mode: (check|threads-only|drive|background)/);
     const spokenAt = view.parent.messages.find((message) => message.role === 'assistant' && modeInText(message.text) === expected)?.order ?? -1;
     const declaredAt = Math.min(...[writtenAt, spokenAt].filter((order) => order !== -1));
-    const firstPoll = view.parent.toolCalls.find((call) => (call.name === 'bash' && /\b(gh|origin) |watch-pr/.test(String(call.args['command'])) && !/Mode:|command -v/.test(String(call.args['command']))) || (call.name === 'pstack_worker' && call.args['action'] === 'spawn'))?.order ?? Number.POSITIVE_INFINITY;
-    return when(declared === expected && table === expected && Number.isFinite(declaredAt) && declaredAt < firstPoll, `request routes to ${table}; TODO.md declares ${declared} at ${declaredAt}, before the first poll at ${firstPoll}`, `declared ${declared}; the table says ${table}; expected ${expected}; declared at ${declaredAt}, first poll at ${firstPoll}`);
+    const operation = view.parent.toolCalls.find((call) => (call.name === 'bash' && /\b(gh|origin) |watch-pr/.test(String(call.args['command'])) && !/Mode:|command -v/.test(String(call.args['command']))) || (call.name === 'pstack_worker' && call.args['action'] === 'spawn'));
+    const firstPoll = operation?.order ?? Number.POSITIVE_INFINITY;
+    const declarationPart = view.parent.messages.find((message) => message.role === 'assistant' && message.order === spokenAt)?.parts?.findIndex((part) => part['type'] === 'text' && modeInText(String(part['text'])) === expected);
+    const beforeInMessage = declaredAt === firstPoll && declarationPart !== undefined && declarationPart >= 0 && operation?.contentIndex !== undefined && declarationPart < operation.contentIndex;
+    return when(declared === expected && table === expected && Number.isFinite(declaredAt) && (declaredAt < firstPoll || beforeInMessage), `request routes to ${table}; TODO.md declares ${declared} at ${declaredAt}, before the first poll at ${firstPoll}`, `declared ${declared}; the table says ${table}; expected ${expected}; declared at ${declaredAt}, first poll at ${firstPoll}`);
   });
 }
 
