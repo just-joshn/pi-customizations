@@ -87,10 +87,13 @@ test.for([true, false])('a changed patch can land only after fresh verification 
     watcher.state.exit.code = 2;
     expect(watchCheck?.run(watched)).toMatchObject({ ok: false });
     if (fresh) {
-      const report = { role: 'assistant', order: 20, text: 'Verified run: PR 21, PR 22, PR 23. Ceiling: PR 23. The changed patch got a fresh verdict. Landed: PR 21, PR 22, PR 23. Next gap: none.' };
+      const report = { role: 'assistant', order: 20, text: 'The run covered PR 21 through PR 23. PR 23 was the ceiling. All three are merged. Each PR reads MERGED with base main. PR 21: PASS from v0. PR 22: PASS from v1. PR 23: PASS from v2. The changed patch got a fresh verdict. Next gap: none.' };
       view.parent.messages.push(report);
       expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: true });
-      report.text = report.text.replace('Ceiling: PR 23.', '');
+      const originalReport = report.text;
+      report.text = originalReport.replace('PR 23 was the ceiling.', '');
+      expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: false });
+      report.text = originalReport.replace('from v2', '');
       expect(check('reply-says-the-changed-patch-needs-a-fresh-verdict')).toMatchObject({ ok: false });
     }
     const comparison = {
