@@ -20,7 +20,7 @@ test.for([false, true])('a zero-write hold and stance report do not require fixt
       session: {
         messages: [
           { order: 1, role: 'user', text: 'Operator HOLD. Zero writes until released.' },
-          { order: 2, role: 'assistant', text: `**Head SHA:** \`${'a'.repeat(40)}\`. I have made no writes since the hold.` },
+          { order: 2, role: 'assistant', text: `The headRefOid is still \`${'a'.repeat(40)}\`. I have made no writes since the hold.` },
         ],
         toolCalls: [
           {
