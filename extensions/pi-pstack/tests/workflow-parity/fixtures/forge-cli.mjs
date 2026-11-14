@@ -113,6 +113,9 @@ function sync(state) {
       pr.ci.sha = head;
       pr.checks = clone(pr.ci.waves[Math.min(pr.ci.wave, pr.ci.waves.length - 1)] ?? []);
     }
+    for (const check of pr.checks) {
+      if (check.pendingUntil) check.state = existsSync(check.pendingUntil) ? (check.then ?? 'SUCCESS') : 'PENDING';
+    }
   }
 }
 

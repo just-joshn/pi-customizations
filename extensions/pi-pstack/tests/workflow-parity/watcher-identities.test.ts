@@ -1,7 +1,12 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { codemodeFamily } from './families/codemode.ts';
 import { cleanupFamily } from './families/ops.ts';
 import { babysitBackgroundFamily, babysitQueuedFamily, babysitSingleWatcherFamily } from './families/pr-babysit.ts';
+import { observationsPath } from './families/pr-watcher-observation.ts';
 import { evaluate } from './lib/check.ts';
 import type { RunView } from './lib/view.ts';
 
@@ -102,6 +107,13 @@ const cases = [
         { order: 3, role: 'user', text: 'babysit again' },
       ];
       v.parent.toolCalls = [{ order: 4, name: 'bash', args: { command: 'grep -rl watch-pr assignments' }, resultText: '/runs/observed-run/workers/observed-worker/assignment.json', isError: false }, call(5, 'inspect', 'running')];
+      writeFileSync(
+        observationsPath(v.sandbox),
+        JSON.stringify({
+          deliveries: [{ message: 'babysit again', workers: [{ runId: 'observed-run', id: 'observed-worker', instance: 'i', phase: 'running', childPid: 101, childStarted: 'start', before: 'start', after: 'start' }] }],
+          spawns: [],
+        }),
+      );
     },
   ],
   [
@@ -116,17 +128,27 @@ const cases = [
 for (const [family, id, prepare] of cases) {
   test(`watcher-identities ${id} accepts renamed evidence and rejects ambiguity`, () => {
     const view = evidence();
-    prepare(view);
-    const check = required(family.checks.find((c) => c.id === id));
-    expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'PASS' });
-    const identityCall = view.parent.toolCalls.find((c) => c.name === 'pstack_worker' && c.args['action'] === 'inspect');
-    if (identityCall !== undefined) {
-      identityCall.args['runId'] = 'other-run';
-      expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'FAIL' });
-      identityCall.args['runId'] = 'observed-run';
+    const sandbox = family === babysitSingleWatcherFamily ? mkdtempSync(join(tmpdir(), 'renamed-watcher-')) : undefined;
+    if (sandbox !== undefined) view.sandbox = sandbox;
+    try {
+      prepare(view);
+      const check = required(family.checks.find((c) => c.id === id));
+      expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'PASS' });
+      const identityCall = view.parent.toolCalls.find((c) => c.name === 'pstack_worker' && c.args['action'] === 'inspect');
+      if (identityCall !== undefined) {
+        identityCall.args['runId'] = 'other-run';
+        expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'FAIL' });
+        identityCall.args['runId'] = 'observed-run';
+      }
+      const worker = required(required(view.runs[0]).workers[0]);
+      required(view.runs[0]).workers.push({ ...worker, id: 'second-candidate' });
+      expect(evaluate([check], view)[0]).toMatchObject(
+        family === babysitSingleWatcherFamily
+          ? { verdict: 'INCONCLUSIVE', evidence: expect.stringContaining('additional watcher') }
+          : { verdict: 'FAIL', evidence: expect.stringMatching(/(?:candidates:|observed).*observed-worker.*second-candidate/) },
+      );
+    } finally {
+      if (sandbox !== undefined) rmSync(sandbox, { recursive: true, force: true });
     }
-    const worker = required(required(view.runs[0]).workers[0]);
-    required(view.runs[0]).workers.push({ ...worker, id: 'second-candidate' });
-    expect(evaluate([check], view)[0]).toMatchObject({ verdict: 'FAIL', evidence: expect.stringMatching(/(?:candidates:|observed).*observed-worker.*second-candidate/) });
   });
 }
