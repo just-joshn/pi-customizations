@@ -83,7 +83,7 @@ describe('real Pi Models runtime', () => {
       { type: 'toolCall', id: 'call-1', name: 'read', arguments: { path: 'a.ts' } },
     ]);
     expect(message.usage).toMatchObject({ input: 100, output: 40, cacheRead: 20, reasoning: 10, totalTokens: 160 });
-    expect(message.usage.cost.total).toBeGreaterThan(0.00001);
+    expect(message.usage.cost.total).toBe(0);
   });
 
   test('refreshes a near-expiry credential and keeps its projectId', async () => {

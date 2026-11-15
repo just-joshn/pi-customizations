@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { type Api, getCurrentSystemPrompt, getCurrentTools, type Model, type SimpleStreamOptions, type ToolCall, type TranscriptContext, toToolDeclaration } from '@earendil-works/pi-ai';
+import { type Api, clampThinkingLevel, getCurrentSystemPrompt, getCurrentTools, type Model, type ModelThinkingLevel, type SimpleStreamOptions, type ToolCall, type TranscriptContext, toToolDeclaration } from '@earendil-works/pi-ai';
 
 interface WirePart {
   text?: string;
@@ -16,8 +16,6 @@ interface WireContent {
   parts: WirePart[];
 }
 
-type Effort = 'low' | 'medium' | 'high';
-
 export interface CodeAssistRequestBody {
   model: string;
   project: string;
@@ -29,13 +27,12 @@ export interface CodeAssistRequestBody {
     systemInstruction?: { role: 'user'; parts: WirePart[] };
     tools?: { functionDeclarations: { name: string; description: string; parametersJsonSchema: unknown }[] }[];
     toolConfig?: { functionCallingConfig: { mode: 'NONE' } };
-    generationConfig: { temperature?: number; maxOutputTokens?: number; thinkingConfig: { includeThoughts: true; thinkingLevel: string } };
+    generationConfig: { temperature?: number; maxOutputTokens?: number; thinkingConfig?: { includeThoughts: true; thinkingLevel: string } };
     sessionId?: string;
   };
 }
 
-const DEFAULT_EFFORT: Effort = 'medium';
-const EFFORT_BY_LEVEL: Record<NonNullable<SimpleStreamOptions['reasoning']>, Effort> = { minimal: 'low', low: 'low', medium: 'medium', high: 'high', xhigh: 'high', max: 'high' };
+const THINKING_LEVEL: Record<ModelThinkingLevel, string | undefined> = { off: undefined, minimal: 'LOW', low: 'LOW', medium: 'MEDIUM', high: 'HIGH', xhigh: 'HIGH', max: 'HIGH' };
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
 const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);
 const JSON_SCHEMA_SUBSCHEMAS = new Set([
@@ -61,10 +58,11 @@ export function buildCodeAssistRequest(input: { model: Model<Api>; context: Tran
   const { model, context, project, options } = input;
   const systemPrompt = getCurrentSystemPrompt(context.messages);
   const tools = getCurrentTools(context.messages);
-  const effort = options.reasoning ? EFFORT_BY_LEVEL[options.reasoning] : DEFAULT_EFFORT;
+  const level = clampThinkingLevel(model, options.reasoning ?? 'medium');
+  const thinkingLevel = THINKING_LEVEL[level];
 
   return {
-    model: `${model.id}-${effort}`,
+    model: model.thinkingLevelMap?.[level] ?? model.id,
     project,
     requestId: randomUUID(),
     userAgent: 'antigravity',
@@ -88,7 +86,7 @@ export function buildCodeAssistRequest(input: { model: Model<Api>; context: Tran
       generationConfig: {
         ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
         ...(options.maxTokens === undefined ? {} : { maxOutputTokens: options.maxTokens }),
-        thinkingConfig: { includeThoughts: true, thinkingLevel: effort.toUpperCase() },
+        ...(thinkingLevel ? { thinkingConfig: { includeThoughts: true as const, thinkingLevel } } : {}),
       },
       ...(options.sessionId === undefined ? {} : { sessionId: options.sessionId }),
     },

@@ -1,10 +1,12 @@
+import { readFileSync } from 'node:fs';
+
 import type { AssistantMessage, Message, Model, SimpleStreamOptions, ToolResultMessage, TranscriptContext } from '@earendil-works/pi-ai';
 import { describe, expect, test } from 'vitest';
 import { API_ID, PROVIDER_ID } from './constants.ts';
-import { createCodeAssistModels } from './models.ts';
+import { catalogModels } from './models.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
-const models = createCodeAssistModels();
+const models = catalogModels(JSON.parse(readFileSync(new URL('../test/catalog-fixture.json', import.meta.url), 'utf8')));
 const model = (id: string): Model<string> => {
   const found = models.find((candidate) => candidate.id === id);
   if (!found) throw new Error(`no model ${id}`);
@@ -204,21 +206,39 @@ describe('tools', () => {
 });
 
 describe('effort', () => {
+  const hydrogen = model('gemini-4-hydrogen');
+  const argon = model('gemini-4-argon');
+  const gptOss = model('gpt-oss-120b');
+
   test.for([
-    [undefined, 'medium'],
-    ['minimal', 'low'],
-    ['low', 'low'],
-    ['medium', 'medium'],
-    ['high', 'high'],
-    ['xhigh', 'high'],
-    ['max', 'high'],
-  ] as const)('reasoning %s sends the %s model id and thinking level', ([reasoning, effort]) => {
-    const body = build([user('hi')], reasoning === undefined ? {} : { reasoning });
-    expect(body.model).toBe(`gemini-3.8-flash-${effort}`);
-    expect(body.request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: effort.toUpperCase() });
+    [undefined, 'gemini-4-hydrogen-medium', 'MEDIUM'],
+    ['minimal', 'gemini-4-hydrogen-low', 'LOW'],
+    ['low', 'gemini-4-hydrogen-low', 'LOW'],
+    ['medium', 'gemini-4-hydrogen-medium', 'MEDIUM'],
+    ['high', 'gemini-4-hydrogen-high', 'HIGH'],
+    ['xhigh', 'gemini-4-hydrogen-xhigh', 'HIGH'],
+  ] as const)('reasoning %s on gemini-4-hydrogen sends %s and thinking level %s', ([reasoning, wire, thinkingLevel]) => {
+    const body = build([user('hi')], reasoning === undefined ? {} : { reasoning }, hydrogen);
+    expect(body.model).toBe(wire);
+    expect(body.request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel });
   });
 
-  test('keeps the Pi model id as the base family', () => {
-    expect(build([user('hi')], { reasoning: 'high' }, model('gemini-4-argon')).model).toBe('gemini-4-argon-high');
+  test('clamps a level the model lacks to the nearest wire id', () => {
+    expect(build([user('hi')], { reasoning: 'xhigh' }, argon).model).toBe('gemini-4-argon-high');
+    expect(build([user('hi')], { reasoning: 'max' }, argon).model).toBe('gemini-4-argon-high');
+    expect(build([user('hi')], { reasoning: 'high' }, gptOss).model).toBe('gpt-oss-120b-medium');
+    expect(build([user('hi')], { reasoning: 'low' }, gptOss).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: 'MEDIUM' });
+  });
+
+  test('sends the wire id as the model, not the Pi base id', () => {
+    expect(build([user('hi')], { reasoning: 'low' }, model('gemini-pro-orchestrator-g1-pro')).model).toBe('gemini-pro-orchestrator-g1-pro');
+  });
+
+  test('omits thinkingConfig and sends the wire id for a model without thinking', () => {
+    const [plain] = catalogModels({ models: { 'plain-model': { displayName: 'Plain', maxTokens: 10, maxOutputTokens: 5 } }, agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }] });
+    if (!plain) throw new Error('no model');
+    const body = build([user('hi')], { reasoning: 'high' }, plain);
+    expect(body.model).toBe('plain-model');
+    expect(body.request.generationConfig).not.toHaveProperty('thinkingConfig');
   });
 });
