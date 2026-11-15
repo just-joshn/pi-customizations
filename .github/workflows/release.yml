@@ -5,7 +5,7 @@ name: release
 # Publishing follows npm's trusted publishing (OIDC) flow, which needs no
 # long-lived token: https://docs.npmjs.com/trusted-publishers
 #   - npm CLI >= 11.5.1 and Node >= 22.14.0 (this workflow pins Node 26.13.0,
-#     npm 11.x, matching .github/workflows/pi-pstack.yml).
+#     npm 11.x).
 #   - permissions: id-token: write (required for OIDC).
 #   - `npm publish` with no auth token; provenance attestations are generated
 #     automatically. https://docs.npmjs.com/generating-provenance-statements
@@ -77,21 +77,12 @@ jobs:
             fi
           done
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
-      - name: Install transcript search tool
-        if: contains(steps.detect.outputs.packages, 'extensions/pi-pstack')
-        run: brew install ripgrep tmux
+      - name: Install tmux for the pi-pstack-v2 tests
+        if: contains(steps.detect.outputs.packages, 'extensions/pi-pstack-v2')
+        run: brew install tmux
       - name: Install workspace dependencies
         if: steps.detect.outputs.packages != ''
         run: bun install --frozen-lockfile
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
-        if: contains(steps.detect.outputs.packages, 'extensions/pi-rea')
-        with:
-          go-version: '1.26.8'
-          cache: false
-      - name: Prepare native analyzer fixtures
-        if: contains(steps.detect.outputs.packages, 'extensions/pi-rea')
-        run: |
-          bun -e "import { ensureGoMachoFixtures, ensureMinimalElfCoreFixture } from './parity/pi-rea/scripts/lib/ensure-fixtures.mjs'; ensureGoMachoFixtures(); ensureMinimalElfCoreFixture();"
       - name: Configure npm token auth (fallback path)
         if: env.HAS_NPM_TOKEN == 'true'
         run: |
@@ -127,9 +118,6 @@ jobs:
               fi
               if jq -e '.scripts.test' "$dir/package.json" > /dev/null; then
                 (cd "$dir" && bun run test)
-              fi
-              if jq -e '.scripts["check:helpers"]' "$dir/package.json" > /dev/null; then
-                (cd "$dir" && bun run check:helpers)
               fi
               if [ "$HAS_NPM_TOKEN" = "true" ]; then
                 (cd "$dir" && NODE_AUTH_TOKEN="${NPM_TOKEN}" npm publish --provenance --access public)

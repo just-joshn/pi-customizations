@@ -1,1 +1,0 @@
-STATUS=fail-closed reason=incomplete config missing control adapter and feature map

@@ -1,2 +1,0 @@
-cd parity/evidence/correct/fixture-app && node scripts/check-store-boundary.js history/past-mistake-1.js
-exit code: 1

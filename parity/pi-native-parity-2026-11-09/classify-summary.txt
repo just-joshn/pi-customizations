@@ -1,2 +1,0 @@
-{"PACKAGING":2,"HOST_TRANSLATION":72,"NO_DIFF_FILE":1}
-NO_DIFF_FILE	0	pstack/skills/poteto-mode/scripts/bun.lock	host=undefined other=undefined

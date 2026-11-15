@@ -1,3 +1,0 @@
-triage_exit=2
-thread_safety_exit=2
-creation_boundary_exit=2

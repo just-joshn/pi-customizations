@@ -1,6 +1,0 @@
-SOURCE_WAVE=done
-FEATURES=2
-CONCURRENT_CHILDREN=yes
-FIELDS=summary,entrypoints,drift,recipe
-CHILDREN_DROVE=no
-CHILDREN_EDITED=no

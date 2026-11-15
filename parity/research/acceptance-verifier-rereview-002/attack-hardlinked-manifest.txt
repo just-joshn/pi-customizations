@@ -1,1 +1,0 @@
-FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root

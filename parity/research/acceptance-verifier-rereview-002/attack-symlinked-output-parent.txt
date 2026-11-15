@@ -1,1 +1,0 @@
-FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root

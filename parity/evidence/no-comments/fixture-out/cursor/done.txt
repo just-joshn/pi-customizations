@@ -1,1 +1,0 @@
-delete-count=7 sicko=yes catchphrase=yes

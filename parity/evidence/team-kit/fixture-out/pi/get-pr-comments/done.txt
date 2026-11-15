@@ -1,1 +1,0 @@
-STATUS=verified reason=comment fetched and summarized

@@ -1,1 +1,0 @@
-STATUS=settings-ok reason=pstack enabled and validated

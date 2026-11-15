@@ -1,1 +1,0 @@
-TEST-OK input="Hello, World!" expected=hello-world

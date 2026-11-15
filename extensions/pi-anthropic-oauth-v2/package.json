@@ -31,9 +31,7 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p .",
-    "prove": "scripts/prove.sh",
-    "prove:live": "scripts/prove.sh --live"
+    "typecheck": "tsc -p ."
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

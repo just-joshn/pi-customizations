@@ -1,5 +1,0 @@
-# `parity/.gitignore` excludes regenerable `fixtures/` trees for the pstack program.
-# These fixtures are a frozen target that extensions/pi-rea's tests read, so they
-# are re-included here. `fixtures/` inside this directory wins over the parent rule.
-!fixtures/
-!fixtures/**

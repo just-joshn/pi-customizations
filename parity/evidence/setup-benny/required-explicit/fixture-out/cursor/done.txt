@@ -1,1 +1,0 @@
-STATUS=fail-closed reason=source-slack-channel-id-unknown

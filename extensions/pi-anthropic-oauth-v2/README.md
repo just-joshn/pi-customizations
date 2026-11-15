@@ -24,8 +24,6 @@ pi auth logout claude-subscription
 pi auth logout anthropic
 ```
 
-`scripts/prove.sh` checks that bare model names reach `anthropic-oauth-v2` when it is the only Claude login.
-
 ## Install and use
 
 Install the package and start Pi:
@@ -59,6 +57,4 @@ The command is `/claude-usage`, not `/usage`, because `pi-x-subscription-oauth` 
 
 ```bash
 bun run test            # OAuth-only rule through pi-ai's real auth and stream paths
-scripts/prove.sh        # real pi: registration, OAuth-only refusals, leanness, /claude-usage without a login
-scripts/prove.sh --live # also a real /claude-usage, a real request, a tool call, and a forced token refresh (needs /login first)
 ```

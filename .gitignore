@@ -1,15 +1,3 @@
-__pycache__/
-*.pyc
 node_modules/
 .DS_Store
-.audit/
-artifacts/
-
-# pstack-for-Pi parity program: regenerable trees (see parity/source-lock.json and the maintainer guide)
-parity/node_modules/
-parity/reference/
-parity/fixtures/candidate-baseline/
-
-# pi-rea session store (working state, not a deliverable)
-.rea/
 coverage/

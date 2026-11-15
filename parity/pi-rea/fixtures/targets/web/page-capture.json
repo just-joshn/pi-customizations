@@ -1,1 +1,0 @@
-{"evidence_id":"ev_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","operation":"inspect_web_page","normalized_result":{"script_sources":[{"url":"https://example.com/app.js","text":"export const x = 1;\n"}]}}
