@@ -1,0 +1,81 @@
+{
+  "data": [
+    {
+      "id": "grok-4.7",
+      "name": "Grok 4.7",
+      "context_window": 256000,
+      "api_backend": "responses",
+      "reasoning_efforts": [
+        {
+          "value": "xhigh"
+        },
+        {
+          "value": "high"
+        },
+        {
+          "value": "medium"
+        },
+        {
+          "value": "low"
+        }
+      ]
+    },
+    {
+      "id": "grok-4.7-build-fast",
+      "name": "Grok 4.7 Fast",
+      "context_window": 256000,
+      "api_backend": "responses",
+      "reasoning_efforts": [
+        {
+          "value": "xhigh"
+        },
+        {
+          "value": "high"
+        },
+        {
+          "value": "medium"
+        },
+        {
+          "value": "low"
+        }
+      ]
+    },
+    {
+      "id": "grok-4.6",
+      "name": "Grok 4.6",
+      "context_window": 256000,
+      "api_backend": "responses",
+      "reasoning_efforts": [
+        {
+          "value": "xhigh"
+        },
+        {
+          "value": "high"
+        },
+        {
+          "value": "medium"
+        },
+        {
+          "value": "low"
+        }
+      ]
+    },
+    {
+      "id": "grok-4.5",
+      "name": "Grok 4.5",
+      "context_window": 256000,
+      "api_backend": "responses",
+      "reasoning_efforts": [
+        {
+          "value": "high"
+        },
+        {
+          "value": "medium"
+        },
+        {
+          "value": "low"
+        }
+      ]
+    }
+  ]
+}
