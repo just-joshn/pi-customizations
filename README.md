@@ -1,12 +1,15 @@
 # pi-customizations
 
-Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This repository is a personal setup, published as is. Every extension installs separately, so you can take one or all of them.
+Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This repository is a personal setup, published as is. Every extension installs separately. Choose one OAuth extension per service and read its migration notes before switching.
 
 ## What is inside
 
 | Package | What it does |
 | --- | --- |
 | [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | pstack 0.15.36 for Pi: the `/poteto-mode` workflows and principle skills, plus the host features they call: `/mode`, `/plan`, `/loop`, the `Task` subagent tool with cloud agents on their own machines, `/in-cloud`, `TodoWrite`, `AskQuestion`, `GenerateImage`, `SwitchMode`, the model rule, subscriptions with Slack triggers and automations (`/automate`, `/automations`), Projects, `request_secret`, and `visualize`. |
+| [`extensions/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2/README.md) | Claude subscription OAuth through `anthropic-oauth-v2`, with `/claude-usage`. Replaces the older Claude login. |
+| [`extensions/pi-google-oauth-v2`](extensions/pi-google-oauth-v2/README.md) | Google AI subscription OAuth through `google-oauth-v2`. |
+| [`extensions/pi-spacex-oauth-v2`](extensions/pi-spacex-oauth-v2/README.md) | X subscription sign-ins through `spacex-grok` and `spacex-cursor`, with `/spacex-usage`. |
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-x-subscription-oauth`](extensions/pi-x-subscription-oauth/README.md) | Lets The X Subscription answer in Pi through the `grok-build` and `cursor` providers, and check plan usage with `/usage`. |
@@ -17,11 +20,21 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 
 ## Install
 
-Every package installs from npm, from git, or from a local checkout.
+Packages install from npm, git, or a local checkout.
 
 ### Install from npm
 
-Each package publishes separately. Install the ones you want:
+Each package publishes separately. Install the v2 OAuth packages you want:
+
+```sh
+pi install npm:@justjoshn/pi-anthropic-oauth-v2
+pi install npm:@justjoshn/pi-google-oauth-v2
+pi install npm:@justjoshn/pi-spacex-oauth-v2
+```
+
+The older OAuth packages below are alternatives, not additional required logins. Keep only one Claude login as described in the [Anthropic v2 migration notes](extensions/pi-anthropic-oauth-v2/README.md#replaces-the-old-claude-login).
+
+Other packages install with:
 
 ```sh
 pi install npm:@justjoshn/pi-pstack
@@ -36,7 +49,7 @@ To release a new version, bump `version` in that package's `package.json` and me
 
 ### Install from git
 
-One source installs all six extensions, their skills, the skills in `skills/`, and pi-rea's prompt templates:
+One source installs all nine extensions, their skills, the skills in `skills/`, and pi-rea's prompt templates:
 
 ```sh
 pi install git:github.com/just-joshn/pi-customizations
@@ -68,7 +81,7 @@ git clone https://github.com/just-joshn/pi-customizations.git
 cd pi-customizations
 bun install
 pi install ./extensions/pi-pstack   # one package
-pi install .                        # or the repository root, for all six
+pi install .                        # or the repository root, for all nine
 ```
 
 To update an installed source, run `pi update --extensions`. After `git pull --ff-only` in a local checkout, run `bun install` again and `/reload` in Pi.
@@ -84,7 +97,7 @@ bun install
 make verify
 ```
 
-`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh), Go (to build the Mach-O fixtures) and Node 24.15 or newer (pi-rea's SQLite inspector needs it). `mise install` reads `mise.toml` and provides all three. On Linux the read-only shell sandbox also needs `bubblewrap` (`sudo apt install bubblewrap`); macOS uses the built-in `sandbox-exec`. Every extension targets Pi 1.5.0.
+`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh), Go (to build the Mach-O fixtures) and Node 24.15 or newer (pi-rea's SQLite inspector needs it). `mise install` reads `mise.toml` and provides all three. On Linux the read-only shell sandbox also needs `bubblewrap` (`sudo apt install bubblewrap`); macOS uses the built-in `sandbox-exec`. The v2 OAuth extensions need Pi 1.5.2 or later. Check each package's README for its requirements.
 
 `make verify-sources` installs every package from npm, git, and a local path. It needs network access, so it stays out of `make verify`.
 

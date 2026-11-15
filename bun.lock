@@ -187,6 +187,10 @@
         "@vitest/coverage-v8": "5.1.0",
         "vitest": "5.1.0",
       },
+      "peerDependencies": {
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
+      },
     },
     "extensions/pi-x-subscription-oauth": {
       "name": "@justjoshn/pi-x-subscription-oauth",

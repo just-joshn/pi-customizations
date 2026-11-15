@@ -1,12 +1,19 @@
 {
   "name": "@justjoshn/pi-google-oauth-v2",
   "version": "0.1.1",
-  "private": true,
   "description": "Use a Google AI plan in Pi through its OAuth tokens, signing in as the Antigravity CLI.",
   "keywords": [
     "pi-package"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-google-oauth-v2"
+  },
   "type": "module",
   "engines": {
     "node": ">=22.19.0"

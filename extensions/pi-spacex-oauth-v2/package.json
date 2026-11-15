@@ -3,8 +3,15 @@
   "version": "0.1.0",
   "description": "Use your X/SpaceX subscription in pi through Grok Build and Cursor CLI sign-ins.",
   "type": "module",
-  "private": true,
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-spacex-oauth-v2"
+  },
   "keywords": [
     "pi-package"
   ],
@@ -12,6 +19,17 @@
     "extensions": [
       "./src/index.ts"
     ]
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
   },
   "scripts": {
     "test": "vitest run",
