@@ -772,3 +772,96 @@ Paired by round: config minus stock, median (min..max), and rounds where the con
 | storm PTY bytes | -586 (-586..-586), lower 6/6 |
 | Exit PTY bytes | -1046992 (-1046992..-1046992), lower 6/6 |
 | Steps with output | 0 (0..0), lower 0/6 |
+
+
+## Generic rows, 2026-11-15
+
+One unit ran against the look above: compact rows for tools with no renderer of their own (hypothesis 5, uncovered tools). It was kept.
+
+### What Pi does with these tools
+
+`registerToolRenderer`'s `next()` returns one of two things for a tool that ships no renderer. When the tool is registered, as pstack registers `codemode`, `pi_spawn`, and `tmux_run`, `next()` returns the tool definition with no `renderCall` or `renderResult`. `ToolExecutionComponent` then draws a padded `Box` holding the tool name with its arguments (`formatToolCallWithArgs`, collapsed to 100 characters) and the first 10 lines of output with a "more lines" hint (`components/tool-execution.js:96-115`, `:236-276`). When the tool is not registered at all (filtered out by `--tools`, or an MCP tool before its server connects), `next()` returns `undefined` and the row is a `Text` with the name, the pretty-printed JSON arguments, and the complete output (`formatToolExecution`, `:343-354`). Snoop now replaces both: the resolver in `src/tool-rows.ts` returns `compactRenderers(genericSpec(name), {})` whenever `next()` has neither renderer, and returns `next()` untouched when it has either.
+
+### Change
+
+- `genericSpec(toolName)` in `src/rows/specs.ts` is the registry's fallback entry. Its verb is the tool name. Its target is the first of `command`, `path`, `code`, `brief`, `name`, `query`, `url` that holds a string, else the first string argument, cut to its first line. Its meta is `N lines`, `image`, `failed`, or `exit N` when a failed output ends in `exit code N`. Failures show the same 5-line head preview as `read`.
+- `compactRenderers` draws the expanded body of a tool with no native `renderResult` as a `Text` in the existing panel: the compact JSON arguments in `dim`, a blank line, and the sanitized output. `Text` caches its wrap by width, so the panel's identity check hits on every later frame.
+- `layoutHeader` pads the verb to the verb column and then always adds two spaces, so a verb longer than the column (`codemode`, `pi_spawn`, `tmux_run`) keeps its gap.
+
+### How these runs were made
+
+`--workload mixed` restores 300 tool rows, half of them `codemode`, `pi_spawn`, and `tmux_run` registered without renderers by `bench-provider.ts` and enabled through `--tools`, so both configs take the registered-tool path above. The long workload's rule check now accepts rules inset by the editor gutter, so `full` long runs no longer report problems. Neither change touches what is measured.
+
+Each side is a copy of the package with the same frozen `bench/` (base: the `test(pi-snoop-tui): add mixed-tool session workload` commit, generic: base plus this change). A driver ran `run.py --runs 1` per side per round, swapped the side order and the config order (`stock,full` or `full,stock`) every round, and renumbered `round`. Five rounds of `mixed`, then five of `long`. Load average was 3.3 to 4.2 on 10 cores throughout (`generic-uptime.txt`). All 40 runs finished with no problems and 6 steps with output. Records are in `generic-{base,after}-{mixed,long}.jsonl`.
+
+### Result
+
+Mixed session, medians (min..max) over 5 runs:
+
+| Metric | stock | full before | full after |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | 1019 (1012..1151) | 946 (910..1133) | 700 (698..895) |
+| Collapsed echo latency p50 ms | 1.19 (1.05..1.32) | 1.05 (1.00..1.07) | 0.82 (0.71..1.01) |
+| Expanded echo latency p50 ms | 1.51 (1.39..1.77) | 1.90 (1.74..2.22) | 1.33 (1.24..1.55) |
+| startup settle ms | 379 (377..502) | 373 (372..473) | 343 (338..445) |
+| narrow settle ms | 24.3 (23.9..24.6) | 19.2 (18.1..19.7) | 5.89 (5.57..6.09) |
+| expand settle ms | 179 (177..184) | 185 (180..190) | 152 (151..156) |
+| collapse settle ms | 23.3 (22.3..23.4) | 16.1 (15.8..16.8) | 2.44 (2.29..2.73) |
+| storm settle ms | 23.1 (21.6..23.3) | 16.7 (16.3..17.1) | 5.08 (4.93..5.58) |
+| startup PTY bytes | 13356 | 15282 | 11048 |
+| Exit PTY bytes | 624358 | 458869 | 117657 |
+
+The stock column comes from the base invocations. Stock in the generic invocations had identical bytes and timing medians within 6%, with whole-run CPU within 0.2%.
+
+Paired by round. The first two columns are `full − stock` inside one invocation. The last is generic `full` minus base `full` from the same round, with the rounds where generic was lower.
+
+| Metric | base full−stock | generic full−stock | generic full − base full (lower generic) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -66 (-113..-19) | -312 (-325..-199) | -233 (-257..-210), 5/5 |
+| Collapsed echo latency p50 ms | -0.17 (-0.27..0.00) | -0.30 (-0.50..-0.22) | -0.25 (-0.34..0.01), 4/5 |
+| Collapsed echo latency p95 ms | -0.10 (-0.41..0.40) | -0.35 (-0.55..0.23) | -0.14 (-0.47..0.01), 4/5 |
+| Burst of 50 keys, ms to full echo | -0.17 (-0.82..0.06) | -0.38 (-0.55..-0.14) | -0.27 (-0.39..-0.05), 5/5 |
+| Expanded echo latency p50 ms | 0.30 (0.15..0.59) | -0.23 (-0.40..0.17) | -0.49 (-0.89..-0.37), 5/5 |
+| Expanded echo latency p95 ms | 0.06 (-0.37..0.64) | -0.44 (-0.59..-0.13) | -0.62 (-0.82..-0.30), 5/5 |
+| startup settle ms | -7.3 (-29.0..-0.7) | -35.5 (-44.6..8.7) | -28.9 (-39.3..-27.5), 5/5 |
+| narrow settle ms | -5.08 (-5.77..-4.93) | -19.2 (-19.6..-18.5) | -13.4 (-13.6..-12.5), 5/5 |
+| wide settle ms | -6.26 (-6.45..-5.19) | -18.4 (-19.1..-18.0) | -12.4 (-12.6..-11.9), 5/5 |
+| expand settle ms | 5.9 (0.2..10.4) | -28.5 (-33.0..-25.0) | -32.2 (-37.6..-28.9), 5/5 |
+| collapse settle ms | -6.80 (-7.28..-6.52) | -20.9 (-21.1..-20.4) | -13.6 (-14.2..-13.3), 5/5 |
+| storm settle ms | -6.41 (-6.75..-5.33) | -18.5 (-18.7..-16.8) | -11.4 (-12.0..-11.0), 5/5 |
+| startup PTY bytes | 1926 | -2308 | -4234, 5/5 |
+| narrow PTY bytes | 102 | -1347 | -1449, 5/5 |
+| wide PTY bytes | 96 | -1756 | -1852, 5/5 |
+| expand PTY bytes | 271 | 248 | -23, 5/5 |
+| collapse PTY bytes | 1292 | -449 | -1741, 5/5 |
+| storm PTY bytes | 111 | -1257 | -1368, 5/5 |
+| Exit PTY bytes | -165489 | -506701 | -341212, 5/5 |
+
+Long session, the regression check:
+
+| Metric | base full−stock | generic full−stock | generic full − base full (lower generic) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -350 (-367..-323) | -352 (-371..-322) | -1.8 (-18.8..12.2), 3/5 |
+| Collapsed echo latency p50 ms | -0.46 (-0.61..-0.05) | -0.83 (-1.17..-0.57) | 0.00 (-0.67..0.10), 2/5 |
+| Burst of 50 keys, ms to full echo | -0.81 (-1.47..-0.25) | -0.48 (-0.61..-0.17) | 0.07 (-0.41..0.67), 2/5 |
+| Expanded echo latency p50 ms | 0.29 (-0.18..0.53) | 0.61 (0.33..0.73) | 0.08 (-0.39..0.65), 2/5 |
+| startup settle ms | -73.9 (-82.6..-68.1) | -70.4 (-75.0..-66.0) | 1.71 (-1.87..3.41), 1/5 |
+| narrow settle ms | -29.9 (-30.2..-27.9) | -30.4 (-31.3..-29.5) | -0.09 (-0.15..0.13), 3/5 |
+| wide settle ms | -31.0 (-32.9..-30.7) | -30.5 (-31.9..-28.9) | 0.07 (0.04..0.41), 0/5 |
+| expand settle ms | -1.75 (-2.82..0.47) | -0.71 (-3.76..7.63) | 0.16 (-2.79..2.87), 2/5 |
+| collapse settle ms | -28.6 (-29.7..-26.8) | -27.2 (-28.8..-27.1) | 0.28 (-0.39..0.48), 2/5 |
+| storm settle ms | -27.6 (-27.9..-25.7) | -27.4 (-27.5..-26.4) | -0.15 (-0.35..0.25), 4/5 |
+| PTY bytes, every step and exit | identical | identical | 0 (0..0) |
+
+Verdict: faster on the mixed session, no measurable difference on the long session. Mixed whole-run CPU went from 946 to 700 ms (−233 ms paired, lower in 5 of 5 rounds, range −257..−210, outside base full's run-to-run spread). Against stock, full now saves 312 ms instead of 66. Resize, collapse, and storm settle in 5 to 6 ms instead of 16 to 19, and expanded typing went from 0.30 ms slower than stock to 0.23 ms faster. Exit bytes fell by 341 KB because each generic row prints one line instead of up to 13. The long fixture has no renderer-less tools, its bytes are identical in every step, and every timing difference sits inside its range.
+
+The limiter, from one unreported `--cpu-prof` run per side on the mixed session: in base full's storm window, `ToolExecutionComponent` and `Box` held 13.5 ms of 18 ms busy, with `Text` (rewrapping the fallback output) 7.5 ms self. In the generic run the storm window held 3 ms busy and no tool row class. In the restore window, base full spent 50 ms inclusive in `ToolExecutionComponent` and 23.7 ms self in `Text`. Neither appears in the generic run's top six, and busy time fell from 377 to 345 ms.
+
+### Look
+
+Captures are in `bench/results/visual/generic-*.png` (100x40, `pty-capture.py` on a 10-turn mixed session): `generic-collapsed`, `generic-expanded` (Ctrl+O, then three PageUps to a `tmux_run` panel), and `generic-stock-collapsed` for comparison. In the collapsed capture every row starts its marker at column 2 and its verb at column 5, and every meta ends at column 99, one gutter from the right edge. Generic verbs are longer than the 5-column verb column, so their targets start at column 15 instead of 12. Truncating the tool name to fit would hide which tool ran, so the verb overflows instead. Expanded generic panels use the same indent, background, and blank-line trimming as built-in panels.
+
+### Not measured
+
+- The unregistered path (`next()` returns `undefined`), where stock prints the full JSON and the full output for every row. Snoop takes the same compact path there, so the saving is likely larger. That is a guess, since no fixture restores unregistered tools.
+- Live streaming of a renderer-less tool. A running generic row shows its marker and target with no preview or meta until the result is final.

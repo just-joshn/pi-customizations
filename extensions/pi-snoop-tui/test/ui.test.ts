@@ -245,7 +245,7 @@ test('footer keeps the same gutter on both sides', () => {
   }
 });
 
-test('resolver preserves unknown tools and absent native renderers', () => {
+test('resolver keeps tool renderers and compacts tools without one', () => {
   let resolver: ToolRendererResolver | undefined;
   const api = {
     registerToolRenderer: (value: ToolRendererResolver) => {
@@ -253,8 +253,16 @@ test('resolver preserves unknown tools and absent native renderers', () => {
     },
   } as ExtensionAPI;
   toolRows(api);
-  const native = {};
-  expect(resolver?.('mcp__custom', () => native)).toBe(native);
+  const own = { renderCall: () => ({ render: () => ['own'], invalidate: () => {} }) };
+  const ownResult = { renderResult: () => ({ render: () => ['own'], invalidate: () => {} }) };
+  expect(resolver?.('mcp__custom', () => own)).toBe(own);
+  expect(resolver?.('mcp__custom', () => ownResult)).toBe(ownResult);
+  for (const native of [undefined, {}]) {
+    const row = resolver?.('codemode', () => native);
+    expect(row?.renderShell).toBe('self');
+    const ctx = { args: { code: 'return 1;' }, state: {}, cwd: '/project', outputPad: 1, isPartial: true, executionStarted: true, isError: false } as unknown as Parameters<NonNullable<NonNullable<typeof row>['renderCall']>>[2];
+    expect(plain(row?.renderCall?.(ctx.args, stubTheme(), ctx).render(80)[0] ?? '')).toMatch(/^ • {2}codemode {2}return 1;/);
+  }
   expect(resolver?.('read', () => undefined)).toBeUndefined();
-  expect(resolver?.('read', () => native)?.renderShell).toBe('self');
+  expect(resolver?.('read', () => ({}))?.renderShell).toBe('self');
 });

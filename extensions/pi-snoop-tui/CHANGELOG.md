@@ -5,5 +5,6 @@
 - Add paired `snoop-dark` and `snoop-light` themes.
 - Add compact rows for read, edit, write, bash, grep, find, and ls.
 - Keep native tool detail rendering on expansion.
+- Add compact rows for tools without renderers, with their arguments and plain output on expansion.
 - Add a single-line footer, workspace header, and static working indicator.
 - Cache rendered lines and tool summaries without extension-owned timers or render-time I/O.

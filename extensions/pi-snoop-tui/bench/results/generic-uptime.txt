@@ -1,0 +1,12 @@
+round 0 14:37:01 14:37  up 3 days,  8:58, 3 users, load averages: 3.40 3.66 4.20
+round 1 14:37:43 14:37  up 3 days,  8:58, 3 users, load averages: 3.97 3.79 4.23
+round 2 14:38:24 14:38  up 3 days,  8:59, 3 users, load averages: 3.52 3.71 4.17
+round 3 14:39:06 14:39  up 3 days, 9 hrs, 3 users, load averages: 3.54 3.68 4.14
+round 4 14:39:47 14:39  up 3 days,  9:01, 3 users, load averages: 3.30 3.61 4.09
+end 14:40:29 14:40  up 3 days,  9:01, 3 users, load averages: 3.42 3.60 4.06
+round 0 14:40:29 14:40  up 3 days,  9:01, 3 users, load averages: 3.42 3.60 4.06
+round 1 14:41:11 14:41  up 3 days,  9:02, 3 users, load averages: 3.81 3.68 4.07
+round 2 14:41:52 14:41  up 3 days,  9:03, 3 users, load averages: 4.13 3.79 4.09
+round 3 14:42:34 14:42  up 3 days,  9:03, 3 users, load averages: 3.86 3.76 4.06
+round 4 14:43:16 14:43  up 3 days,  9:04, 3 users, load averages: 3.75 3.73 4.04
+end 14:43:58 14:43  up 3 days,  9:05, 3 users, load averages: 4.21 3.87 4.07
