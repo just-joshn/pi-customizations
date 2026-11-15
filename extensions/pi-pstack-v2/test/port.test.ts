@@ -23,7 +23,7 @@ const prose = ['skills', 'agents', 'docs/guide', 'rules'].flatMap((dir) => walk(
 // Each pattern names a Cursor or Claude Code mechanism that Pi replaces. `allow` admits lines that only name the
 // mechanism to say what replaced it, or that refer to an external service that still exists under Pi.
 const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
-  { pattern: /\bsub-?agents?\b/i, why: 'Pi has no sub-agents; spawn a Pi instance with pi_spawn' },
+  { pattern: /\bsub-?agents?\b/i, why: 'Pi has no sub-agents; spawn a Pi instance with pi_spawn', allow: /Pi has no sub-?agents/i },
   { pattern: /`Task`|\bTask (call|tool|spawn|subagent)s?\b/, why: 'Cursor Task tool; use pi_spawn' },
   { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use pi_spawn parameters' },
   { pattern: /todolist|todo list|TodoWrite/i, why: 'Pi has no built-in to-dos; use TODO.md' },
@@ -35,6 +35,9 @@ const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /claude-opus-|grok-\d|gpt-\d|composer-\d|\bfast mode\b|-fast\b/i, why: 'Cursor model slug or fast mode; use provider/id and thinking' },
   { pattern: /\bCursor\b/, why: 'Cursor-only mechanism', allow: /Bugbot|cursor\/plugins|security review|built for Cursor|ported from Cursor/ },
 ];
+
+const skillNames = readdirSync(join(root, 'skills'));
+banned.push({ pattern: new RegExp(`(^|[\\s\`(])/(${skillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' });
 
 describe('the Pi port of pstack', () => {
   test('every skill loads through Pi with no diagnostics', () => {
