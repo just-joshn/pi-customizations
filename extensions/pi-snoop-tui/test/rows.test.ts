@@ -5,7 +5,7 @@ import { isCompactTool, type ResultInput, TOOL_SPECS } from '../src/rows/specs.t
 import { countLines, fitPath, fitPlain, headLines, sanitizeLine, tailLines } from '../src/text.ts';
 import { driveRow, output, plain, recordingNative, stubTheme } from './harness.ts';
 
-const input = (text: string, extra: Partial<ResultInput> = {}): ResultInput => ({ args: {}, text, details: undefined, isError: false, isPartial: false, ...extra });
+const input = (text: string, extra: Partial<ResultInput> = {}): ResultInput => ({ args: {}, text, images: 0, details: undefined, isError: false, isPartial: false, ...extra });
 
 describe('text', () => {
   test.for(['', 'one', 'one\n', '\n', '\n\n', 'one\r\ntwo\r\n', 'one\n\ntwo', 'a\nb\nc\nd'])('scans bounded lines in %j', (text) => {
@@ -92,6 +92,44 @@ describe('specs', () => {
 });
 
 describe('rows', () => {
+  test('labels image reads without counting their text as lines', () => {
+    const row = driveRow(compactRenderers(TOOL_SPECS.read, {}), stubTheme());
+    row.apply({
+      result: {
+        content: [
+          { type: 'text', text: 'Read image file' },
+          { type: 'image', data: '', mimeType: 'image/png' },
+        ],
+      },
+      isPartial: false,
+    });
+    expect(plain(row.lines(80)[0] ?? '')).toMatch(/\simage$/);
+  });
+  test.for([
+    ['read', '1 line'],
+    ['write', '1 line'],
+    ['grep', '1 match'],
+    ['find', '1 file'],
+    ['ls', '1 entry'],
+  ] as const)('renders singular units for %s', ([tool, meta]) => {
+    const row = driveRow(compactRenderers(TOOL_SPECS[tool], {}), stubTheme());
+    row.apply({ args: { content: 'one' }, result: output('one'), isPartial: false });
+    expect(plain(row.lines(80)[0] ?? '').trimEnd()).toMatch(new RegExp(`${meta}$`));
+  });
+  test.for([
+    ['bash', true, false, ['… 4 earlier · ctrl+o', '5', '6', '7']],
+    ['bash', false, true, ['… 2 earlier · ctrl+o', '3', '4', '5', '6', '7']],
+    ['read', false, true, ['1', '2', '3', '4', '5', '… 2 more · ctrl+o']],
+  ] as const)('orders %s preview hints for partial=%s error=%s', ([tool, isPartial, isError, expected]) => {
+    const row = driveRow(compactRenderers(TOOL_SPECS[tool], {}), stubTheme());
+    row.apply({ executionStarted: true, result: output('1\n2\n3\n4\n5\n6\n7', isError), isPartial });
+    expect(
+      row
+        .lines(80)
+        .slice(1)
+        .map((line) => plain(line).trim()),
+    ).toEqual(expected);
+  });
   test('derives every phase flag combination', () => {
     for (const executionStarted of [false, true])
       for (const isPartial of [false, true])

@@ -117,7 +117,8 @@ function summarizeOnce(state: RowState, spec: ToolSpec, result: AgentToolResult<
     .filter((c) => c.type === 'text')
     .map((c) => c.text)
     .join('\n');
-  const value = spec.summarize({ args: parseArgs(ctx.args), text, details: result.details, isError: ctx.isError, isPartial: options.isPartial });
+  const images = result.content.filter((c) => c.type === 'image').length;
+  const value = spec.summarize({ args: parseArgs(ctx.args), text, images, details: result.details, isError: ctx.isError, isPartial: options.isPartial });
   state.summary = { content: result.content, details: result.details, args: ctx.args, isPartial: options.isPartial, isError: ctx.isError, value };
   return value;
 }
@@ -178,7 +179,21 @@ class RowBody implements Component {
         const indent = Math.min(view.pad + 3, Math.max(0, width - 1));
         const line = (text: string, tone: 'error' | 'toolOutput' | 'dim') => ' '.repeat(indent) + this.theme.fg(tone, fitPlain(sanitizeLine(text), width - indent));
         const lines = body.preview.lines.map((text) => line(text, body.preview.tone === 'error' ? 'error' : 'toolOutput'));
-        if (body.hint) lines.push(line(`… ${body.preview.hidden} more · ${body.hint}`, 'dim'));
+        if (body.hint) {
+          const from = body.preview.from;
+          switch (from) {
+            case 'head':
+              lines.push(line(`… ${body.preview.hidden} more · ${body.hint}`, 'dim'));
+              break;
+            case 'tail':
+              lines.unshift(line(`… ${body.preview.hidden} earlier · ${body.hint}`, 'dim'));
+              break;
+            default: {
+              const unreachable: never = from;
+              return unreachable;
+            }
+          }
+        }
         this.cache = { width, view, lines };
         return lines;
       }

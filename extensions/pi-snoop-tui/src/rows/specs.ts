@@ -3,6 +3,7 @@ import { countLines, headLines, type LineSlice, tailLines } from '../text.ts';
 
 export interface Preview extends LineSlice {
   readonly tone: 'output' | 'error';
+  readonly from: 'head' | 'tail';
 }
 export interface ResultSummary {
   readonly meta: string | undefined;
@@ -19,6 +20,7 @@ export interface ToolArgs {
 export interface ResultInput {
   readonly args: ToolArgs;
   readonly text: string;
+  readonly images: number;
   readonly details: unknown;
   readonly isError: boolean;
   readonly isPartial: boolean;
@@ -55,17 +57,21 @@ function summary(meta: string): ResultSummary {
   return { meta, preview: undefined };
 }
 function checked(input: ResultInput, ok: () => ResultSummary): ResultSummary {
-  return input.isError ? { meta: 'failed', preview: { ...headLines(input.text, ERROR_PREVIEW_LINES), tone: 'error' } } : ok();
+  return input.isError ? { meta: 'failed', preview: { ...headLines(input.text, ERROR_PREVIEW_LINES), tone: 'error', from: 'head' } } : ok();
 }
 function withoutNotice(text: string): string {
   const start = text.lastIndexOf('\n\n[');
   return start === -1 ? text : text.slice(0, start);
 }
-function listing(input: ResultInput, unit: string, limit: string, empty: string): ResultSummary {
+function units(count: number, unit: 'line' | 'match' | 'file' | 'entry', limited = false): string {
+  const plurals = { line: 'lines', match: 'matches', file: 'files', entry: 'entries' };
+  return `${count}${limited ? '+' : ''} ${count === 1 ? unit : plurals[unit]}`;
+}
+function listing(input: ResultInput, unit: 'match' | 'file' | 'entry', limit: string, empty: string): ResultSummary {
   return checked(input, () => {
     const total = field(field(input.details, 'truncation'), 'totalLines');
     const count = input.text.startsWith(empty) ? 0 : typeof total === 'number' ? total : countLines(withoutNotice(input.text));
-    return summary(`${count}${field(input.details, limit) ? '+' : ''} ${unit}`);
+    return summary(units(count, unit, Boolean(field(input.details, limit))));
   });
 }
 
@@ -78,8 +84,9 @@ export const TOOL_SPECS = {
     }),
     summarize: (input) =>
       checked(input, () => {
+        if (input.images > 0) return summary('image');
         const total = field(field(input.details, 'truncation'), 'totalLines');
-        return summary(`${typeof total === 'number' ? total : countLines(withoutNotice(input.text))} lines`);
+        return summary(units(typeof total === 'number' ? total : countLines(withoutNotice(input.text)), 'line'));
       }),
   },
   edit: {
@@ -102,7 +109,7 @@ export const TOOL_SPECS = {
   write: {
     verb: 'write',
     target: pathTarget,
-    summarize: (input) => checked(input, () => summary(`${countLines(str(input.args.content))} lines`)),
+    summarize: (input) => checked(input, () => summary(units(countLines(str(input.args.content)), 'line'))),
   },
   bash: {
     verb: 'bash',
@@ -112,7 +119,7 @@ export const TOOL_SPECS = {
       return { kind: 'plain', text: (end === -1 ? command : command.slice(0, end)).replace(/\s+/g, ' ') + (end === -1 ? '' : '…') };
     },
     summarize: (input) => {
-      if (input.isPartial) return { meta: undefined, preview: { ...tailLines(input.text, RUNNING_TAIL_LINES), tone: 'output' } };
+      if (input.isPartial) return { meta: undefined, preview: { ...tailLines(input.text, RUNNING_TAIL_LINES), tone: 'output', from: 'tail' } };
       if (!input.isError) return summary('exit 0');
       const rawTail = input.text.slice(-200);
       const tail = rawTail.trimEnd();
@@ -120,23 +127,23 @@ export const TOOL_SPECS = {
       const meta = exit ? `exit ${exit[1]}` : /Command timed out/.test(tail) ? 'timeout' : /Command aborted$/.test(tail) ? 'aborted' : 'failed';
       const status = /Command (?:exited with code \d+|timed out[^\n]*|aborted)$/.exec(tail);
       const text = status ? input.text.slice(0, input.text.length - rawTail.length + status.index).trimEnd() : input.text;
-      return { meta, preview: { ...tailLines(text, ERROR_PREVIEW_LINES), tone: 'error' } };
+      return { meta, preview: { ...tailLines(text, ERROR_PREVIEW_LINES), tone: 'error', from: 'tail' } };
     },
   },
   grep: {
     verb: 'grep',
     target: (args) => ({ kind: 'plain', text: str(args?.pattern) + (typeof args?.path === 'string' ? `  ${args.path}` : '') }),
-    summarize: (input) => (input.text === 'No matches found' && !input.isError ? summary('no matches') : listing(input, 'matches', 'matchLimitReached', 'No matches found')),
+    summarize: (input) => (input.text === 'No matches found' && !input.isError ? summary('no matches') : listing(input, 'match', 'matchLimitReached', 'No matches found')),
   },
   find: {
     verb: 'find',
     target: (args) => ({ kind: 'plain', text: str(args?.pattern) }),
-    summarize: (input) => listing(input, 'files', 'resultLimitReached', 'No files found'),
+    summarize: (input) => listing(input, 'file', 'resultLimitReached', 'No files found'),
   },
   ls: {
     verb: 'ls',
     target: (args, cwd) => pathTarget({ path: args?.path ?? '.' }, cwd),
-    summarize: (input) => listing(input, 'entries', 'entryLimitReached', '(empty directory)'),
+    summarize: (input) => listing(input, 'entry', 'entryLimitReached', '(empty directory)'),
   },
 } satisfies Record<string, ToolSpec>;
 
