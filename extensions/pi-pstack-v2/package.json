@@ -1,0 +1,46 @@
+{
+  "name": "@justjoshn/pi-pstack-v2",
+  "version": "0.1.0",
+  "description": "pstack and cursor-team-kit for Pi, built on Pi's own mechanisms: Pi instances in tmux, a Seatbelt or bubblewrap sandbox, plan files, and TODO.md.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "pstack",
+    "poteto-mode"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "files": [
+    "src",
+    "skills",
+    "agents",
+    "rules",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "test": "vitest run --coverage && bun test skills/poteto-mode/scripts/check-plan.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.5.2",
+    "@vitest/coverage-v8": "5.1.0",
+    "typebox": "1.3.27",
+    "vitest": "5.1.0"
+  }
+}
