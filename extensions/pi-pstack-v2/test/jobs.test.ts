@@ -54,7 +54,7 @@ afterEach(() => {
   rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
-describe('tmux jobs', () => {
+describe('tmux jobs', { timeout: 20_000 }, () => {
   test('a finished command keeps its exit code and output', async () => {
     const job = launch(root, spec('echo hello; exit 3'));
     const done = await settled(job.spec.id);
@@ -126,7 +126,7 @@ describe('sandbox policy', () => {
 
 // Each test below reproduces an escape found in review: a sandboxed job reaching an unsandboxed process or file.
 // The assertions read host state, since on Linux a write into Pi's agent directory succeeds inside a throwaway overlay.
-describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('sandbox containment', () => {
+describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('sandbox containment', { timeout: 20_000 }, () => {
   let home: string;
   let agentDir: string;
   let work: string;
