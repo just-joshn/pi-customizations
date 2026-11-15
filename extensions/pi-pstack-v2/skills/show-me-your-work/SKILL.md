@@ -54,7 +54,7 @@ Commit it only when the work is ambitious enough that a reviewer needs the trail
 
 ## Audit the log against the transcript
 
-At the end of the run, before handing back, check the log told the truth. Read this run's transcript in the Pi session directory for the working directory, `~/.pi/agent/sessions/--<cwd with / as ->--/`. A spawned worker's session is under `~/.pi/agent/pstack-v2/jobs/<id>/session/`. Don't glob across `~/.pi/agent/sessions/*/`. That reads unrelated private sessions. Walk this run's rows against what actually happened. Each stretch of them begins at one of this run's `start` rows, or at the first row if this run created the log, and ends at the next `start` row of another run:
+At the end of the run, before handing back, check the log told the truth. Read this run's transcript in the Pi session directory for the working directory. By default that is `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/`, or under where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points. A spawned worker's session is under `~/.pi/agent/pstack-v2/jobs/<id>/session/` in the Pi agent directory (`~/.pi/agent`, or `$PI_CODING_AGENT_DIR` when set). Read only the job ids this run started. Don't glob across `~/.pi/agent/sessions/*/`. That reads unrelated private sessions. Walk this run's rows against what actually happened. Each stretch of them begins at one of this run's `start` rows, or at the first row if this run created the log, and ends at the next `start` row of another run:
 
 - Check that every row maps to a real decision or action.
 - Check that each row's evidence resolves and shows what the row claims.

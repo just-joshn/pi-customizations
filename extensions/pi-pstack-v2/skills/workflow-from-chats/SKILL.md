@@ -10,7 +10,7 @@ Infer durable working preferences from recent chats. Do not summarize chats; ext
 ## Scope
 
 - Default to the last 7 days unless the user asks for a different window.
-- Read main session transcripts in `~/.pi/agent/sessions/--<cwd with / as ->--/*.jsonl` and relevant worker sessions in `~/.pi/agent/pstack-v2/jobs/*/session/`. Use worker content as evidence, but cite only main sessions.
+- Read main session transcripts in `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/*.jsonl` (under the session directory (`~/.pi/agent/sessions`, or where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points)) and relevant worker sessions in `~/.pi/agent/pstack-v2/jobs/*/session/` (under the Pi agent directory (`~/.pi/agent`, or `$PI_CODING_AGENT_DIR` when set)), keeping only jobs whose `job.json` `cwd` is inside this workspace. Use worker content as evidence, but cite only main sessions.
 - Do not expose local transcript paths, secrets, customer data, private chat content, or credentials.
 
 ## Workflow

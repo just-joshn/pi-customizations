@@ -3,10 +3,10 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSy
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionContext, getAgentDir, parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { commandProviders, jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { brokeredSession, claimWake, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readEnd, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
+import { brokeredSession, claimWake, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
 
@@ -15,6 +15,8 @@ const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-c
 const THINKING = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 const POLL_MS = 2000;
 const REPORT_LIMIT = 20000;
+// A report's first lines hold its verdict, so they are kept ahead of the end when a report is cut.
+const REPORT_HEAD = 4000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
 const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
@@ -30,7 +32,9 @@ const jobsRoot = (env: NodeJS.ProcessEnv = process.env): string => {
 const stringEnum = <T extends readonly string[]>(values: T, description?: string) => Type.Unsafe<T[number]>({ type: 'string', enum: [...values], ...(description ? { description } : {}) });
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
 
-const stripFrontmatter = (markdown: string): string => markdown.replace(/^---\n[\s\S]*?\n---\n/, '').trim();
+const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
+const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
+const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
 function git(cwd: string, args: string[]): string {
@@ -104,8 +108,7 @@ function addWorktree(cwd: string, path: string, branch: string, base: string | u
 function report(job: Job): string {
   const state = job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)';
   const output = outputPath(job.spec.out);
-  const full = readEnd(output, REPORT_LIMIT);
-  const body = job.spec.kind === 'pi' ? full.slice(-REPORT_LIMIT) : tail(output, 60);
+  const body = job.spec.kind === 'pi' ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD) : tail(output, 60);
   // A worker that fails at startup, such as on a bad model or credential, says why only on stderr.
   const failed = job.status.state !== 'exited' || job.status.code !== 0 || !body.trim();
   const errors = failed ? tail(join(job.spec.out, 'stderr.log'), 40).trim() : '';
@@ -359,7 +362,7 @@ export default function pstack(pi: ExtensionAPI) {
 
   pi.on('before_agent_start', async (event) => {
     const options = event.systemPromptOptions;
-    for (const rule of rules) if (!options.promptGuidelines.includes(rule)) options.promptGuidelines.push(rule);
+    for (const rule of [...rules, skillsHint]) if (!options.promptGuidelines.includes(rule)) options.promptGuidelines.push(rule);
     const models = modelsFile(getAgentDir());
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });
@@ -378,12 +381,12 @@ export default function pstack(pi: ExtensionAPI) {
       parameters: Type.Object({
         name: Type.String({ description: 'Short label for the job, such as "explorer-auth" or "runner-2".' }),
         brief: Type.String({ description: 'The complete standalone prompt for the spawned Pi.' }),
-        agent: Type.Optional(stringEnum(AGENTS, 'Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt.')),
+        agent: Type.Optional(stringEnum(AGENTS, `Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt. Roles:\n${agentRoles.join('\n')}`)),
         model: Type.Optional(Type.String({ description: 'provider/id as `pi --list-models` prints it. Omit to use this session model.' })),
         thinking: Type.Optional(stringEnum(THINKING, 'Thinking level. Omit to use the model default.')),
         readonly: Type.Optional(Type.Boolean({ description: 'Deny writes to the project and remove the edit and write tools. Temp directories stay writable. Default false.' })),
         worktree: Type.Optional(Type.String({ description: 'Branch for a new git worktree the spawned Pi works in, created from base. Writes are confined to that worktree.' })),
-        base: Type.Optional(Type.String({ description: 'Ref the new worktree branch starts from. Default HEAD.' })),
+        base: Type.Optional(Type.String({ description: "Ref the new worktree branch starts from. Default is this session's current HEAD, not the repository's default branch, so pass the default branch to start from it." })),
         cwd: Type.Optional(Type.String({ description: 'Working directory inside this project when no worktree is requested. Default this session cwd.' })),
         resume: Type.Optional(Type.String({ description: 'Job id of a finished pi_spawn job whose session the brief continues. Use only when that session holds state too costly to move.' })),
         wake: Type.Optional(Type.Boolean({ description: 'Wake this session with the report when the job exits. Default true.' })),
@@ -398,7 +401,11 @@ export default function pstack(pi: ExtensionAPI) {
           throw new Error(`resume needs a finished pi_spawn job id from this session, got "${params.resume}".`);
         }
         if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
-        const model = resolveModel(ctx, params.model);
+        // A resumed worker keeps the model, thinking level, role, and readonly it started with unless the call says otherwise.
+        const earlier = prior?.spec.command ?? [];
+        const model = resolveModel(ctx, params.model ?? flagValue(earlier, '--model'));
+        const thinking = params.thinking ?? flagValue(earlier, '--thinking');
+        const priorRole = flagValue(earlier, '--append-system-prompt') && prior ? join(prior.dir, 'agent.md') : undefined;
         // Refreshing the worker's credentials now, under Pi's lock, means a worker rarely has to refresh one itself.
         const provider = model?.slice(0, model.indexOf('/'));
         const chosen = model && provider ? ctx.modelRegistry.find(provider, model.slice(model.indexOf('/') + 1)) : undefined;
@@ -410,10 +417,9 @@ export default function pstack(pi: ExtensionAPI) {
           if (key) resolved[provider] = key;
         }
         const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
-        // A resumed worker keeps the readonly it started with unless the call says otherwise.
-        const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
+        const readonly = params.readonly ?? earlier.includes('--exclude-tools');
         // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
-        const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
+        const sessionDir = (prior && flagValue(earlier, '--session-dir')) || join(dir, 'session');
         const writable = [sessionDir, join(dir, 'nested')];
         let createdBranch = false;
         try {
@@ -431,14 +437,15 @@ export default function pstack(pi: ExtensionAPI) {
             sessionDir,
             ...(prior ? ['--continue'] : []),
             ...(model ? ['--model', model] : []),
-            ...(params.thinking ? ['--thinking', params.thinking] : []),
-            ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
+            ...(thinking ? ['--thinking', thinking] : []),
+            ...(params.agent || priorRole ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
             ...(readonly ? ['--exclude-tools', 'edit,write'] : []),
             ctx.isProjectTrusted() ? '--approve' : '--no-approve',
             `@${join(dir, 'brief.md')}`,
           ];
           const files: Record<string, string> = { 'brief.md': params.brief };
           if (params.agent) files['agent.md'] = stripFrontmatter(readFileSync(join(packageRoot, 'agents', `${params.agent}.md`), 'utf8'));
+          else if (priorRole) files['agent.md'] = readFileSync(priorRole, 'utf8');
           const spec: JobSpec = {
             id,
             name: params.name,

@@ -4,21 +4,19 @@ In this page you install the package, pick which models pstack uses, and run you
 
 ## Install the package
 
-Install pstack as a Pi package:
-
-```text
-pi install npm:@justjoshn/pi-pstack-v2
-```
-
-To install from a checkout instead, pass a local path:
+Install pstack as a Pi package from a checkout, by passing its local path:
 
 ```text
 pi install ./extensions/pi-pstack-v2
 ```
 
+The npm package `@justjoshn/pi-pstack-v2` is not published yet. Once it is, `pi install npm:@justjoshn/pi-pstack-v2` works too.
+
 Add `--local` to write the declaration to the project's `.pi/settings.json` instead of your personal settings. `pi list` shows what is installed. Pi runs each skill as `/skill:<name>`, so every command in this guide takes that prefix.
 
 The package adds three tools. `pi_spawn` starts a separate Pi in its own tmux session. `tmux_run` runs a shell command in its own tmux session. `tmux_jobs` lists, waits on, and stops both kinds of job. Pi has no sub-agents and no detached shell, so every parallel worker and every watcher in this guide is one of these jobs.
+
+**Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a follow-up message, so you can end your turn and wait.
 
 ## Check tmux and the sandbox
 

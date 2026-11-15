@@ -32,7 +32,7 @@ Before spawning investigators, build the seed context inline: file paths and lin
 
 ### Discovery
 
-Before spawning investigators, list the available MCPs. Run `pi mcp` to list the configured servers, and read `.pi/mcp.json` for their names and tools. Use the tools this session already has when they are present.
+Before spawning investigators, list the available MCPs. Run `pi mcp list --json`. It reads `~/.pi/agent/mcp.json` and, in a trusted project, `.pi/mcp.json`. The session's own `mcp__<server>__<tool>` tools are the authoritative set, so use them when they are present.
 
 Map each available MCP to one evidence category:
 

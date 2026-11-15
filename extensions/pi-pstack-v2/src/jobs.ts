@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,7 +8,7 @@ import { jobAgentDir } from './credentials.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
-const sweepScript = fileURLToPath(new URL('./sweep.ts', import.meta.url));
+const sweepSource = fileURLToPath(new URL('./sweep.ts', import.meta.url));
 
 export type JobKind = 'pi' | 'command';
 
@@ -100,7 +100,12 @@ function tmux(socket: string, args: string[]): void {
   const env = { ...process.env };
   delete env['TMUX'];
   delete env['TMUX_PANE'];
-  execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
+  try {
+    execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
+    throw error;
+  }
 }
 
 function write(dir: string, spec: JobSpec, files: Record<string, string>): void {
@@ -161,6 +166,9 @@ function run(job: Run): void {
   const exit = shellQuote(exitPath(job.out));
   // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
   const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
+  // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
+  // job's results directory, which the job cannot write.
+  const sweepCopy = join(job.out, 'sweep.ts');
   const script = [
     'set -m',
     `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
@@ -169,7 +177,7 @@ function run(job: Run): void {
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
-    `  ${shellQuote(process.execPath)} ${shellQuote(sweepScript)} ${shellQuote(inventoryFile(job.out))}`,
+    `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))}`,
     `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
     '}',
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
@@ -182,6 +190,7 @@ function run(job: Run): void {
   // since a long list of protected paths would not fit on a tmux command line.
   const file = join(job.out, 'wrapper.sh');
   writeFileSync(inventoryFile(job.out), JSON.stringify(job.inventory));
+  copyFileSync(sweepSource, sweepCopy);
   writeFileSync(file, `${script}\n`);
   tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
@@ -313,19 +322,45 @@ export function claimWake(job: Job): boolean {
   }
 }
 
+function readRange(path: string, start: number, length: number): Buffer {
+  const buffer = Buffer.alloc(length);
+  const fd = openSync(path, 'r');
+  try {
+    readSync(fd, buffer, 0, length, start);
+  } finally {
+    closeSync(fd);
+  }
+  return buffer;
+}
+
 /** The end of a file, read without loading the whole of it, since a job's output can be very large. */
 export function readEnd(path: string, bytes: number): string {
   if (!existsSync(path)) return '';
   const size = statSync(path).size;
   const length = Math.min(size, bytes);
-  const buffer = Buffer.alloc(length);
-  const fd = openSync(path, 'r');
-  try {
-    readSync(fd, buffer, 0, length, size - length);
-  } finally {
-    closeSync(fd);
-  }
-  return buffer.toString('utf8');
+  return readRange(path, size - length, length).toString('utf8');
+}
+
+const isContinuation = (byte: number | undefined): boolean => byte !== undefined && (byte & 0xc0) === 0x80;
+
+/**
+ * The start and the end of a file with a note of how many bytes lie between, so a verdict on its first line survives a
+ * long output. Both cuts fall on character boundaries.
+ */
+export function excerpt(path: string, head: number, tailBytes: number): string {
+  if (!existsSync(path)) return '';
+  const size = statSync(path).size;
+  if (size <= head + tailBytes) return readEnd(path, size);
+  const first = readRange(path, 0, head);
+  let lead = first.length - 1;
+  while (lead > 0 && isContinuation(first[lead])) lead--;
+  const byte = first[lead] ?? 0;
+  const end = lead + (byte >= 0xf0 ? 4 : byte >= 0xe0 ? 3 : byte >= 0xc0 ? 2 : 1) > first.length ? lead : first.length;
+  const last = readRange(path, size - tailBytes, tailBytes);
+  let from = 0;
+  while (isContinuation(last[from])) from++;
+  const omitted = size - end - (last.length - from);
+  return `${first.subarray(0, end).toString('utf8')}\n[... ${omitted} bytes omitted, full output at ${path} ...]\n${last.subarray(from).toString('utf8')}`;
 }
 
 export function tail(path: string, lines: number): string {

@@ -12,7 +12,7 @@ Build a page the user clicks. A server on this computer receives the button's PO
 
 ## Write the bot's instructions
 
-Pick the UI's directory. Its folder slug is the kebab-case form of the name. Use that slug later as the job name suffix and the environment variable prefix.
+Pick the UI's directory, inside the project, because `tmux_run` rejects a `cwd` outside it. Its folder slug is the kebab-case form of the name. Use that slug later as the job name suffix. Use the slug upper-cased, with hyphens turned into underscores, as the environment variable prefix.
 
 Write `bot.md` in that directory. It is the prompt every wake sends before the event:
 
@@ -29,11 +29,11 @@ The bot is a Pi session stored in the UI's directory, so a sandboxed job can wri
 pi -p --session-dir <ui dir>/session --session-id <slug> @<ui dir>/bot.md "<event>"
 ```
 
-`--session-id` opens the session if it exists and creates it otherwise, so the first wake and every later wake use the same command. The event is the JSON text the browser sent, wrapped as in the last section. Run one wake at a time, so two clicks never write the session together.
+`--session-id` opens the session if it exists and creates it otherwise, so the first wake and every later wake use the same command. The event is the JSON text the browser sent, wrapped as in the last section. Run one wake at a time, so two clicks never write the session together. The woken Pi is a child of the sandboxed server, so it can write only what the server can, which is the project.
 
 ## Request secrets
 
-Do not accept a secret in chat. If the bot's actions need one, such as a token for a service the bot calls, tell the user the environment variable name to set, such as `<SLUG>_KEY`, and have them export it in the shell that starts Pi. Then stop. That message is the whole turn.
+Do not accept a secret in chat. If the bot's actions need one, such as a token for a service the bot calls, tell the user the environment variable name to set, such as `<SLUG>_KEY`, and have them export it in the shell that starts Pi, then restart Pi or resume the session, because the tmux server inherits its environment only when it starts. Then stop. That message is the whole turn.
 
 You never see the value. The server and the woken Pi read it from the environment. Do not print the value. Do not log the value. Do not write the value into any file.
 

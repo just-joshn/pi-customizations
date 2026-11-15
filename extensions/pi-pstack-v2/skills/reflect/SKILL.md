@@ -12,13 +12,13 @@ Invoke when the user says "reflect" or "/skill:reflect". Skip when the conversat
 
 ## 1. Locate the active transcript
 
-Before fanning out, find this conversation's transcript in the Pi session directory for the working directory, `~/.pi/agent/sessions/--<cwd with / as ->--/`. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private sessions from unrelated projects.
+Before fanning out, find this conversation's transcript in the Pi session directory for the working directory. By default that is `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/`, or under where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private sessions from unrelated projects.
 
 ```bash
 ls -t <session-dir>/*.jsonl ~/.pi/agent/pstack-v2/jobs/*/session/*.jsonl 2>/dev/null | head -10
 ```
 
-That covers this session's files and the sessions of spawned workers, which live under `~/.pi/agent/pstack-v2/jobs/<id>/session/`. For each candidate, read its first user message. Take the file whose first user message contains the conversation's opening user prompt. If none matches, pass a tight digest of the session instead.
+That covers this session's files and the sessions of spawned workers, which live under `~/.pi/agent/pstack-v2/jobs/<id>/session/` in the Pi agent directory (`~/.pi/agent`, or `$PI_CODING_AGENT_DIR` when set). Keep only jobs whose `job.json` `cwd` is inside this workspace. For each candidate, read its first user message. Take the file whose first user message contains the conversation's opening user prompt. If none matches, pass a tight digest of the session instead.
 
 ## 2. Spawn three reviewers in parallel
 
@@ -48,7 +48,7 @@ Present the synthesizer's full Accepted / Rejected / Backlog output and wait for
 
 File each Backlog item to your team's devex or backlog tracker without waiting. Only the Accepted list waits for approval.
 
-Never edit a skill inside an installed Pi package. Before approval, show its destination, `.pi/skills/<skill>/` or `~/.pi/agent/skills/<skill>/`. After approval, copy the skill folder there and edit the copy. Never open a PR or push.
+Never edit a skill inside an installed Pi package. Before approval, show its destination, `.pi/skills/<skill>/` or `<Pi agent directory>/skills/<skill>/`. After approval, copy the skill folder there and edit the copy. Never open a PR or push.
 
 Follow each approved row's Routing exactly:
 

@@ -69,10 +69,16 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Pi session transcripts: interactive sessions, plus the sessions of workers that pi_spawn started.
+# Pi session transcripts, scoped to this repository: its own session directories, plus the job
+# session of each audited job worktree. Other projects' sessions are never read.
 agent_dir="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
-transcripts=()
-for d in "$agent_dir/sessions" "$agent_dir/pstack-v2/jobs"; do [ -d "$d" ] && transcripts+=("$d"); done
+sessions_root="${PI_CODING_AGENT_SESSION_DIR:-$agent_dir/sessions}"
+[ -d "$sessions_root" ] || sessions_root="$HOME/.pi/agent/sessions"
+jobs_root="$agent_dir/pstack-v2/jobs"
+[ -d "$jobs_root" ] || jobs_root="$HOME/.pi/agent/pstack-v2/jobs"
+repo_slug="--$(printf '%s' "${main_wt#/}" | tr '/' '-')"
+repo_sessions=()
+for d in "$sessions_root/$repo_slug"*; do [ -d "$d" ] && repo_sessions+=("$d"); done
 now=$(date +%s)
 
 echo "# base: $base"
@@ -112,6 +118,11 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 	# Most recent chat whose transcript operated in this worktree. Match path
 	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
 	last="-"; last_ts=0
+	transcripts=()
+	[ "${#repo_sessions[@]}" -gt 0 ] && transcripts=("${repo_sessions[@]}")
+	case "$wt" in "$jobs_root"/*/worktree)
+		job_session="${wt%/worktree}/session"; [ -d "$job_session" ] && transcripts+=("$job_session") ;;
+	esac
 	if [ "${#transcripts[@]}" -gt 0 ]; then
 		f=$(rg -l -g '*.jsonl' -e "${wt}/" -e "${wt}\"" "${transcripts[@]}" 2>/dev/null \
 			| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)

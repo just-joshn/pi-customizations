@@ -38,17 +38,18 @@ Use a repeatable local harness to exercise an interactive CLI instead of poking 
 
 ```bash
 SESSION="cli-harness-$(date +%s)"
-tmux new-session -d -s "$SESSION" -- <command-under-test>
-tmux capture-pane -pt "$SESSION"
-tmux send-keys -t "$SESSION" "help" Enter
-tmux capture-pane -pt "$SESSION"
-tmux kill-session -t "$SESSION"
+SOCK="${TMPDIR:-/tmp}/cli-harness.sock"
+tmux -S "$SOCK" new-session -d -s "$SESSION" -- <command-under-test>
+tmux -S "$SOCK" capture-pane -pt "$SESSION"
+tmux -S "$SOCK" send-keys -t "$SESSION" "help" Enter
+tmux -S "$SOCK" capture-pane -pt "$SESSION"
+tmux -S "$SOCK" kill-session -t "$SESSION"
 ```
 
 For Node CLIs:
 
 ```bash
-NODE_OPTIONS="--inspect=127.0.0.1:0" tmux new-session -d -s "$SESSION" -- <node-cli-command>
+NODE_OPTIONS="--inspect=127.0.0.1:0" tmux -S "$SOCK" new-session -d -s "$SESSION" -- <node-cli-command>
 ```
 
 Read the terminal output to find the inspector URL, then use Chrome DevTools-compatible tooling if profiling is needed.
@@ -104,6 +105,6 @@ If the CLI needs richer terminal control, use `pty.fork()` or an existing PTY li
 
 - Prefer deterministic waits over sleeps. If you must sleep, explain why.
 - Do not send credentials or destructive commands into a controlled session.
-- Keep the harness in `/tmp` unless the repo already has a testing/demo harness.
+- Keep the harness in `$TMPDIR` (or `/tmp` outside a worker) unless the repo already has a testing/demo harness.
 - Do not hard-code paths from another repository. Adapt commands to the current repo's scripts and runtime.
 - Clean up tmux sessions, temp dirs, inspector processes, and demo artifacts unless the user asks to keep them.

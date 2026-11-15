@@ -2,6 +2,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -9,7 +10,7 @@ import pstack, { modelsFile, serveRequests } from '../src/index.ts';
 import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
-type Tool = { execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }> };
+type Tool = { parameters?: { properties: Record<string, { description?: string }> }; execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }> };
 
 const owner = `ext${process.pid}`;
 let agentDir: string;
@@ -25,7 +26,13 @@ const jobs = () => {
   const root = join(agentDir, 'pstack-v2', 'jobs');
   return existsSync(root) ? readdirSync(root) : [];
 };
-const spec = (id: string) => JSON.parse(readFileSync(join(agentDir, 'pstack-v2', 'jobs', id, 'job.json'), 'utf8')) as { argv: string[] };
+const spec = (id: string) => JSON.parse(readFileSync(join(agentDir, 'pstack-v2', 'jobs', id, 'job.json'), 'utf8')) as { argv: string[]; command: string[] };
+const wrapperEnv = (dir: string) => {
+  const wrapper = readFileSync(join(dir, 'wrapper.sh'), 'utf8');
+  const pick = (name: string) => new RegExp(`${name}='([^']*)'`).exec(wrapper)?.[1];
+  return { job: pick('PSTACK_V2_JOB_DIR'), top: pick('PSTACK_V2_TOP_DIR') };
+};
+const jobsRoot = () => join(agentDir, 'pstack-v2', 'jobs');
 const call = (name: string, params: Record<string, unknown>) => tools[name]?.execute('call', params, undefined, undefined, ctx);
 
 beforeEach(() => {
@@ -82,6 +89,16 @@ afterEach(async () => {
 });
 
 describe('pi_spawn', { timeout: 20_000 }, () => {
+  test('the agent parameter tells the model what each role is for', () => {
+    const description = tools['pi_spawn']?.parameters?.properties['agent']?.description ?? '';
+    expect(description).toContain('ci-watcher: Watch PR CI for the current branch');
+    expect(description).toContain('comment-sicko: A deranged comment-hater');
+  });
+
+  test('the base parameter says it defaults to the session HEAD', () => {
+    expect(tools['pi_spawn']?.parameters?.properties['base']?.description).toMatch(/current HEAD.*default branch/s);
+  });
+
   test('an unknown model is rejected before any job is created', async () => {
     await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Unknown model "nope\/none"/);
     expect(jobs()).toEqual([]);
@@ -115,6 +132,70 @@ describe('pi_spawn', { timeout: 20_000 }, () => {
     const result = (await handlers['agent_before_settle']?.({ entries: [] }, ctx)) as { entries: { content: string }[]; continue: boolean };
     expect(result.continue).toBe(true);
     expect(result.entries.map((entry) => entry.content).join('\n')).toContain('fake worker report');
+  });
+});
+
+describe('pi_spawn resume and reports', { timeout: 20_000 }, () => {
+  const finished = async (id: string) => {
+    await expect.poll(() => read(jobsRoot(), id, owner)?.status.state, { timeout: 10_000 }).toBe('exited');
+  };
+
+  test('a resumed worker keeps its model, thinking, role, and readonly unless the call overrides them', async () => {
+    await call('pi_spawn', { name: 'first', brief: 'one', agent: 'ci-watcher', readonly: true, model: 'prov/model', thinking: 'high' });
+    const [first = ''] = jobs();
+    await finished(first);
+    await call('pi_spawn', { name: 'second', brief: 'two', resume: first });
+    const second = jobs().find((id) => id !== first) ?? '';
+    const resumed = spec(second);
+    expect(resumed.command).toEqual(expect.arrayContaining(['--continue', '--model', 'prov/model', '--thinking', 'high', '--exclude-tools', 'edit,write', '--append-system-prompt', join(jobsRoot(), second, 'agent.md')]));
+    expect(readFileSync(join(jobsRoot(), second, 'agent.md'), 'utf8')).toBe(readFileSync(join(jobsRoot(), first, 'agent.md'), 'utf8'));
+    await finished(second);
+    await call('pi_spawn', { name: 'third', brief: 'three', resume: second, thinking: 'low', readonly: false });
+    const third = spec(jobs().find((id) => id !== first && id !== second) ?? '');
+    expect(third.command).toEqual(expect.arrayContaining(['--thinking', 'low', '--model', 'prov/model']));
+    expect(third.command).not.toContain('--exclude-tools');
+    expect(third.command).toEqual(expect.arrayContaining(['--session-dir', join(jobsRoot(), first, 'session')]));
+  });
+
+  test('a long report keeps the verdict at its head and the end of the output, without splitting a character', async () => {
+    writeFileSync(process.argv[1] ?? '', "process.stdout.write('PASS verdict\\n' + '€'.repeat(20000) + 'END');\n");
+    await call('pi_spawn', { name: 'long', brief: 'hi' });
+    const [id = ''] = jobs();
+    const report = (await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 10 }))?.content[0]?.text ?? '';
+    const body = /<output>\n([\s\S]*)\n<\/output>/.exec(report)?.[1] ?? '';
+    expect(body.startsWith('PASS verdict')).toBe(true);
+    expect(body.endsWith('END')).toBe(true);
+    expect(body).toMatch(/\[\.\.\. \d+ bytes omitted, full output at .*output\.log \.\.\.\]/);
+    expect(body).not.toContain('\uFFFD');
+  });
+});
+
+describe('launch paths and the nesting limit', { timeout: 20_000 }, () => {
+  test('a root pi_spawn and tmux_run each run as their own top-level job', async () => {
+    await call('pi_spawn', { name: 'w', brief: 'hi' });
+    await call('tmux_run', { name: 'c', command: 'true' });
+    expect(jobs()).toHaveLength(2);
+    for (const id of jobs()) {
+      const { job, top } = wrapperEnv(join(jobsRoot(), id));
+      expect([job, top]).toEqual([join(jobsRoot(), id), join(jobsRoot(), id)]);
+    }
+  });
+
+  test.runIf(process.platform !== 'darwin')('a job started from inside a worker keeps the worker top-level job and has its own directory', async () => {
+    const top = join(agentDir, 'top');
+    const worker = join(top, 'nested', 'child');
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', worker);
+    vi.stubEnv('PSTACK_V2_TOP_DIR', top);
+    await call('tmux_run', { name: 'grandchild', command: 'true' });
+    const [id = ''] = readdirSync(join(worker, 'nested'));
+    const { job, top: seenTop } = wrapperEnv(join(worker, 'nested', id));
+    expect([job, seenTop]).toEqual([join(worker, 'nested', id), top]);
+    try {
+      execFileSync('tmux', ['-S', tmuxSocket(owner, process.env), 'kill-server'], { stdio: 'ignore' });
+    } catch {
+      // No server was started.
+    }
   });
 });
 
@@ -187,6 +268,16 @@ describe('system prompt', () => {
     expect(event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes('never'))).toHaveLength(1);
     expect(event.systemPromptOptions.promptGuidelines.some((rule) => rule.includes('top of the module'))).toBe(true);
     expect(event.systemPromptOptions.sections['pstack-models']).toContain('swarm workers: prov/model high');
+  });
+
+  test('says where every pstack skill lives, once, since Pi hides some from the skill list', async () => {
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    await handlers['before_agent_start']?.(event, ctx);
+    const skills = event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes('/<name>/SKILL.md'));
+    expect(skills).toHaveLength(1);
+    expect(skills[0]).toContain(join(dirname(dirname(fileURLToPath(import.meta.url))), 'skills'));
+    expect(skills[0]).toMatch(/read that file and follow it/);
   });
 });
 
@@ -262,6 +353,8 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
     const dir = nestedRequest(top.dir, 'inner', [repo], `touch ${repo}/brokered.txt`);
     await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('0');
     expect(existsSync(join(repo, 'brokered.txt'))).toBe(true);
+    const requestDir = join(top.dir, 'nested', 'inner-000001');
+    expect(wrapperEnv(dir)).toEqual({ job: requestDir, top: top.dir });
   });
 
   test('the root refuses a request that writes outside what it granted', async () => {

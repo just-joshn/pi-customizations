@@ -1,11 +1,11 @@
 ---
 name: setup-pstack
-description: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes ~/.pi/agent/pstack-v2-models.md, which overrides the skill defaults. Use for /skill:setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
+description: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes pstack-v2-models.md in the Pi agent directory, which overrides the skill defaults. Use for /skill:setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
 ---
 
 # Setup pstack
 
-Write `~/.pi/agent/pstack-v2-models.md`, a file whose role lines the pstack extension shows to the model in every session. It sets pstack's model and thinking level per role.
+Write `pstack-v2-models.md` in the Pi agent directory (`~/.pi/agent`, or `$PI_CODING_AGENT_DIR` when set), a file whose role lines the pstack extension shows to the model in every session. It sets pstack's model and thinking level per role.
 
 ## Steps
 
@@ -15,7 +15,7 @@ Run `pi --list-models`. It prints one line per model, with the provider and mode
 
 ### 2. Load current state
 
-The default role-to-model mapping is the file shape shown in step 5 below. With no file, every role runs on the model this session runs on, so the starting table gives every single role that model. A panel role starts with two entries, which are this session's model and the strongest detected model from another provider, or from another family when only one provider is detected. If `~/.pi/agent/pstack-v2-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `how critics`, is from a retired role. Drop it.
+The default role-to-model mapping is the file shape shown in step 5 below. With no file, every role runs on the model this session runs on, so the starting table gives every single role that model. A panel role starts with two entries, which are this session's model and the strongest detected model from another provider, or from another family when only one provider is detected. If that file already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `how critics`, is from a retired role. Drop it.
 
 ### 3. Budget, map, and confirm
 
@@ -36,7 +36,7 @@ Every real model written must be in the detected set. `inherit-parent` and `auto
 
 ### 5. Write the file
 
-Write `~/.pi/agent/pstack-v2-models.md` with a `# budget` line holding the chosen budget name and its target thinking level, as in `large (xhigh)`, and one line per role, using the same labels poteto-mode uses. Each line is `<role>[, <role>]: <provider>/<id> <thinking>[, <provider>/<id> <thinking>]`, or `inherit-parent`. Overwrite the whole file so re-runs stay idempotent. Shape:
+Write `pstack-v2-models.md` in the Pi agent directory with a `# budget` line holding the chosen budget name and its target thinking level, as in `large (xhigh)`, and one line per role, using the same labels poteto-mode uses. Each line is `<role>[, <role>]: <provider>/<id> <thinking>[, <provider>/<id> <thinking>]`, or `inherit-parent`. Overwrite the whole file so re-runs stay idempotent. Shape:
 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.

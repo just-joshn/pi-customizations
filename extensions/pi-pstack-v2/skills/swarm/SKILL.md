@@ -24,7 +24,7 @@ Write `TODO.md` with one `- [ ]` entry per phase before launching anything.
 
 ## Phase B: Fan out
 
-Spawn all N workers in one message with N `pi_spawn` calls, each with a `worktree` branch of its own and the step 3 model, left unset for `auto` or `inherit-parent`. Omit `worktree` only when the worker needs access to something in the working directory that a fresh worktree lacks, such as uncommitted changes.
+Spawn all N workers in one message with N `pi_spawn` calls, each with a `worktree` branch of its own, named `swarm/<slug>-<n>`, and the step 3 model, left unset for `auto` or `inherit-parent`. Omit `worktree` when the worker needs access to something in the working directory that a fresh worktree lacks, such as uncommitted changes, or when the directory is not a git repository.
 
 When a worker must start from a non-default branch, pass `base`.
 
@@ -34,8 +34,8 @@ If a worker drops out, proceed with N-1 and note it.
 
 ## Phase C: Aggregate
 
-Read the terminal results. Drop a result that does not record the SHAs and method its brief names, and respawn that worker once. After a second miss, record a gap. A gap does not count as a pass. For coverage, every required slice needs a result. For a race, apply the selection rule declared up front. Use first pass, rank all, or best-of. Do not paste raw worker dumps.
+Each worker wakes you with its report when it exits. End your turn and let the wakes arrive, or call `tmux_jobs` with `action: "wait"`. Then read the terminal results. Drop a result that does not record the SHAs and method its brief names, and respawn that worker once. After a second miss, record a gap. A gap does not count as a pass. For coverage, every required slice needs a result. For a race, apply the selection rule declared up front. Use first pass, rank all, or best-of. Do not paste raw worker dumps.
 
 ## Phase D: Report
 
-Return one consolidated report in your reply with a result table, issue one-liners, gaps or dropouts, and the race rule when used.
+Return one consolidated report in your reply with a result table, issue one-liners, gaps or dropouts, and the race rule when used. Name each kept worktree branch in the report and delete the rest.

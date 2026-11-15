@@ -80,20 +80,32 @@ export function inventory(roots: string[], protect: string[], quarantine: string
 /** Moves each path that appeared during the job into quarantine, never following a link, and returns what it moved. */
 export function sweep(inv: Inventory): string[] {
   const moved: string[] = [];
+  // Moving a path out needs write permission on its parent, and a directory also on itself, which a job can take away.
+  // chmod follows links, so only real directories are touched.
+  const writable = (path: string): void => {
+    const stat = lstatSync(path);
+    if (stat.isDirectory()) chmodSync(path, (stat.mode & 0o7777) | 0o700);
+  };
   const move = (path: string, reason: string): void => {
     if (!exists(path)) return;
-    mkdirSync(inv.quarantine, { recursive: true });
-    const target = join(inv.quarantine, `${Date.now()}-${moved.length}-${basename(path)}`);
     try {
-      renameSync(path, target);
+      mkdirSync(inv.quarantine, { recursive: true });
+      const target = join(inv.quarantine, `${Date.now()}-${moved.length}-${basename(path)}`);
+      writable(dirname(path));
+      writable(path);
+      try {
+        renameSync(path, target);
+      } catch (error) {
+        // Quarantine can sit on another filesystem than the checkout. Copying keeps links as links and removing never follows one.
+        if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error;
+        cpSync(path, target, { recursive: true, verbatimSymlinks: true });
+        rmSync(path, { recursive: true, force: true });
+      }
+      moved.push(path);
+      appendFileSync(inv.output, `pstack quarantined ${path}, ${reason}, in ${inv.quarantine}.\n`);
     } catch (error) {
-      // Quarantine can sit on another filesystem than the checkout. Copying keeps links as links and removing never follows one.
-      if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error;
-      cpSync(path, target, { recursive: true, verbatimSymlinks: true });
-      rmSync(path, { recursive: true, force: true });
+      appendFileSync(inv.output, `pstack could not quarantine ${path}, ${reason}: ${String(error)}. Check it before you start Pi in this checkout.\n`);
     }
-    moved.push(path);
-    appendFileSync(inv.output, `pstack quarantined ${path}, ${reason}, in ${inv.quarantine}.\n`);
   };
   for (const { path, parentWasLink } of inv.absent) {
     const parent = dirname(path);

@@ -25,7 +25,7 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 | `subagent_type: generalPurpose`, `"shell"`, `"explore"` | `pi_spawn` with no `agent`. |
 | `readonly: true` (Ask mode) | `pi_spawn` with `readonly: true`. The sandbox denies writes outside the job directory and the edit and write tools are removed. MCP stays available, so a reviewer that needs MCP can still be readonly. |
 | `readonly: false` (agent mode) | Leave `readonly` unset. |
-| `environment: "cloud"`, Cursor cloud agent, `cloud_base_branch` | `pi_spawn` with `worktree: "<branch>"` and `base: "<ref>"`. The worker gets its own git worktree, and the sandbox confines its writes there. |
+| `environment: "cloud"`, Cursor cloud agent, `cloud_base_branch` | `pi_spawn` with `worktree: "<branch>"` and `base: "<ref>"`. The worker gets its own git worktree, and the sandbox confines its writes there. Cursor cloud agents start from the repository's default branch. A worktree here starts from the session's current `HEAD` unless `base` names another ref, so pass the default branch as `base` to start from it. |
 | `environment: "local"` | Omit `worktree`. |
 | `run_in_background: true` | Nothing to set. Every `pi_spawn` runs in parallel, and you are woken when it exits. Keep working or end your turn. |
 | Spawn N in one message | N `pi_spawn` calls in one message. |
@@ -44,6 +44,7 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 | A shell command run in the background | `tmux_run`. |
 | Plan mode, a plan to approve | A plan file. |
 | `/<skill>` | `/skill:<skill>`. |
+| A skill that says to run another skill by name | Pi hides skills marked `disable-model-invocation` from the skill list. The extension adds one system-prompt line giving the absolute path of the package's `skills/` directory. The model reads `<dir>/<name>/SKILL.md` and follows it. |
 | `.cursor/skills/`, `~/.cursor/skills/` | `.pi/skills/`, `~/.pi/agent/skills/`, or the Agent Skills paths `.agents/skills/` and `~/.agents/skills/`. |
 | `.cursor/rules/*.mdc`, always-applied rules | `AGENTS.md` (project) or `~/.pi/agent/AGENTS.md` (user). |
 | `~/.cursor/plugins/`, `.cursor-plugin/plugin.json`, `/add-plugin` | A Pi package: `pi install <source>`, listed by `pi list`. |
@@ -53,7 +54,12 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 | Cursor canvas | A self-contained HTML file opened in the browser. |
 | Cursor Bugbot, agentic security review | Unchanged. They are GitHub reviewers whose comments any harness reads from the forge. |
 | Cursor's built-in PR tool | `gh`. |
-| MCP tools | Pi's built-in MCP (`pi mcp`, `.pi/mcp.json`) and Codemode. |
+| MCP tools | Pi's built-in MCP (`pi mcp list`, `~/.pi/agent/mcp.json`, `.pi/mcp.json`) and Codemode (`"defaultTools": ["+codemode"]` in settings). Workers get a copy of your settings, so they have the same MCP servers and Codemode. |
+| Cursor's agent store, project store, project tracker | Files in the checkout: `decisions.tsv` and `plans/`. A worker keeps its `decisions.tsv` in its worktree, which the root reads at `<agent dir>/pstack-v2/jobs/<id>/worktree/`. |
+| Orchestrate's `notes.md` | A file at the checkout root, never staged, like `TODO.md`. |
+| Origin (`origin pr`) | Kept as is when `command -v origin` succeeds and Origin resolves the repository, otherwise `gh`. Graphite is never required. |
+| Hold or stand-down order to running agents | `tmux_jobs` `stop` after each worker commits a `wip:` checkpoint, then a fresh `pi_spawn` to release. |
+| A lane that needs a simulator, `open`, a local display or socket, or auth that exists only on this machine | Run it in the root session, which is not sandboxed. |
 
 ## Sandbox details
 
@@ -83,6 +89,7 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 - Until a job exits, a protected path it created by rename or link still exists, and an unsandboxed process started in that checkout during the job could use it.
 - On macOS a job process that detaches into its own session with `setsid` survives `stop` and keeps its sandbox rights, still inside its sandbox. It can keep writing what the job could write, including a protected path after cleanup ran. The credential check still reverts any command key it plants. Linux has no such gap, because the PID namespace ends every process.
 - A job can hold the lock on its credentials copy, which pauses token sync for that job until it ends.
+- A job's agent directory is read-only apart from its credentials copy and locks, so Pi state a worker would write there does not persist from a worker. That covers an MCP OAuth refresh in `mcp-auth.json`, a model catalog refresh, and package installs. An OAuth MCP server may need a login from the root session first, since a worker cannot save a refreshed token.
 
 ## Jobs on disk
 

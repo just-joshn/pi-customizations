@@ -15,13 +15,13 @@ Every candidate gets the same prompt, so the prompt is the contract.
 1. State the artifact each candidate is producing.
 2. Derive the rubric, 3-6 concrete gradeable criteria for what success looks like on *this* task. It is the picker's tool in Phase D. Candidates only see the task.
 3. Pick the runners. Use the `arena runners` line in the `pstack-models` system-prompt section. Each entry is a `provider/id` model and a thinking level. If that line is missing, every runner runs on the session model, so omit `model`, and the arena is one model sampled N times. Say so plainly and never present it as a diverse panel. An `auto` or `inherit-parent` entry in this line means the session model, so omit `model` for it. If `pi_spawn` rejects a configured entry, run that seat on the session model and say so. Families go by the provider and model name, such as `anthropic/claude-*` or `openai/gpt-*`. If dropped seats leave fewer than two runners, add runners until there are two, or one when the line has one entry. Run each added runner on a remaining runner's model, or on the session model when none remain, and say so. Spawn more runners when the arena covers multiple design directions. Use the same model N times when the work is generation-bound rather than judgment-sensitive. Pick each worker's `thinking` level for the job, per the Spawned Pi workers section of the **poteto-mode** skill.
-4. Give each candidate its own output location (a git worktree where possible, otherwise `/tmp/arena-<slug>/candidate-<n>/`), per the **separate-before-serializing-shared-state** principle skill.
+4. Give each candidate its own output location (a git worktree where possible, otherwise a directory inside the project that you pass as `cwd`). A worker cannot write shared `/tmp`. For a worktree, spawn the runner with `worktree: "arena-<slug>-<n>"` and `base: "<ref>"`. The worker commits its output there, and the worktree is at `<agent dir>/pstack-v2/jobs/<job id>/worktree`, per the **separate-before-serializing-shared-state** principle skill.
 
 ## Phase B: Fan out
 
 Spawn all N workers in one message with N `pi_spawn` calls, each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected.
 
-If a candidate produces no output, proceed with N-1 and note the dropout.
+Each runner wakes you with its report when it exits. End your turn and let the wakes arrive, or call `tmux_jobs` with `action: "wait"`, before Phase C. If a candidate produces no output, proceed with N-1 and note the dropout.
 
 ## Phase C: Cross-judge
 

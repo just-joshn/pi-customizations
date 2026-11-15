@@ -2,10 +2,11 @@
 name: typescript-best-practices
 description: TypeScript best practices. Use when reading or editing any .ts or .tsx file.
 paths: ["**/*.ts", "**/*.tsx"]
-disable-model-invocation: true
 ---
 
 # TypeScript best practices
+
+Bundled skills live at `../<name>/SKILL.md` from this file.
 
 Apply the **type-system-discipline** principle skill first.
 

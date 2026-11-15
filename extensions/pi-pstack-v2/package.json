@@ -30,7 +30,7 @@
     ]
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && bun test skills/poteto-mode/scripts/check-plan.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:coverage": "vitest run --coverage"
   },

@@ -15,7 +15,7 @@
 **Steps:**
 
 1. **Frame.** State what variant is under test and what behavior counts as success. Write the rubric (3-6 concrete criteria) for the judge only. Hold it back from candidates.
-2. **Set up sanitized environments.** Per-candidate working dir with the variant in place. Plant any context an organic task would have: a project skeleton, the skills the candidate would naturally read.
+2. **Set up sanitized environments.** Per-candidate working dir with the variant in place. `cwd` must be inside the session's project, so use a gitignored subdirectory. A worker still loads your whole Pi configuration, skills, and the `pstack-models` section, so blinding is limited to what the dir and the prompt hide. Plant any context an organic task would have: a project skeleton, the skills the candidate would naturally read.
 3. **Author one organic prompt.** What a user would type. No leakage of what's being measured.
 4. **Spawn N parallel candidates** with `pi_spawn` on different models per the **arena** skill's Phase B. Each gets a project-shaped `name` and works in its own sanitized dir (`cwd`). Same prompt to each. Pick each worker's thinking level for the job, per the Spawned Pi workers section.
 5. **Spawn one blinded judge** with `pi_spawn` on a different model family per the **arena** skill's Phase C. Judge sees outputs by sanitized label and the rubric, never a model name.

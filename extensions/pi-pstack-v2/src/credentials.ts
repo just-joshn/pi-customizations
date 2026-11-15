@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
 /**
@@ -93,32 +93,41 @@ function isLink(path: string): boolean {
   }
 }
 
-// Pi guards auth.json with a lock directory beside it. Both files are locked before either is written, and a busy lock
-// means waiting for the next sync rather than writing over a refresh in progress.
-function withLocks(dirs: string[], fn: () => void): boolean {
+// Pi guards auth.json with a lock directory beside the file, resolved through links as proper-lockfile does, so a symlinked
+// auth.json shares one lock. Both files are locked before either is written, and a busy lock means waiting for the next
+// sync rather than writing over a refresh in progress.
+const resolved = (file: string): string => (existsSync(file) ? realpathSync(file) : file);
+
+export function withLocks(files: string[], fn: () => void): boolean {
   const held: string[] = [];
   try {
-    for (const dir of dirs) {
-      mkdirSync(join(dir, 'auth.json.lock'));
-      held.push(dir);
+    for (const file of files) {
+      const lock = `${resolved(file)}.lock`;
+      mkdirSync(lock);
+      held.push(lock);
     }
     fn();
     return true;
   } catch {
     return false;
   } finally {
-    for (const dir of held) rmdirSync(join(dir, 'auth.json.lock'));
+    // A job that shares a lock directory may have removed it already, which force tolerates.
+    for (const lock of held) rmSync(lock, { recursive: true, force: true });
   }
 }
 
-const expiry = (entry: Record<string, unknown> | undefined): number => (entry?.['type'] === 'oauth' && typeof entry['expires'] === 'number' ? entry['expires'] : -1);
+// Pi rejects the whole file when an OAuth entry lacks string tokens or a finite expiry.
+const validOauth = (entry: Record<string, unknown> | undefined): entry is Record<string, unknown> =>
+  entry?.['type'] === 'oauth' && typeof entry['access'] === 'string' && entry['access'] !== '' && typeof entry['refresh'] === 'string' && entry['refresh'] !== '' && typeof entry['expires'] === 'number' && Number.isFinite(entry['expires']);
+
+const expiry = (entry: Record<string, unknown> | undefined): number => (validOauth(entry) ? (entry['expires'] as number) : -1);
 
 /**
  * Carries refreshed OAuth tokens both ways between the real auth.json and a job's copy, the later expiry winning. Only OAuth
  * entries move, so nothing a job writes as a key or command ever reaches the real file. Returns false when a lock was busy.
  */
 export function syncTokens(realAgentDir: string, jobDir: string): boolean {
-  return withLocks([realAgentDir, jobDir], () => {
+  return withLocks([join(realAgentDir, 'auth.json'), join(jobDir, 'auth.json')], () => {
     const real = readCredentials(realAgentDir);
     const copy = readCredentials(jobDir);
     if (!real || !copy) return;
@@ -135,7 +144,13 @@ export function syncTokens(realAgentDir: string, jobDir: string): boolean {
         copyChanged = true;
       }
     }
-    if (realChanged) writeFileSync(join(realAgentDir, 'auth.json'), `${JSON.stringify(real, null, 2)}\n`, { mode: 0o600 });
+    if (realChanged) {
+      // Renamed into place so Pi never reads a half-written file. The job's copy is written in place instead, since the
+      // job may have that file bound to its own view, and a new file would leave it holding the old one.
+      const path = resolved(join(realAgentDir, 'auth.json'));
+      writeFileSync(`${path}.pstack-tmp`, `${JSON.stringify(real, null, 2)}\n`, { mode: 0o600 });
+      renameSync(`${path}.pstack-tmp`, path);
+    }
     if (copyChanged) writeFileSync(join(jobDir, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
   });
 }

@@ -1,9 +1,9 @@
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { commandProviders, makeJobAgentDir, syncTokens } from '../src/credentials.ts';
+import { commandProviders, makeJobAgentDir, syncTokens, withLocks } from '../src/credentials.ts';
 
 let real: string;
 let job: string;
@@ -86,5 +86,34 @@ describe('token sync', () => {
     mkdirSync(lock);
     expect(syncTokens(real, job)).toBe(false);
     expect(read(real)['oauth']?.['refresh']).toBe('r1');
+  });
+
+  test.for([
+    ['a non-string access', '{"type":"oauth","access":1,"refresh":"r","expires":900}'],
+    ['an empty refresh', '{"type":"oauth","access":"a","refresh":"","expires":900}'],
+    ['a string expiry', '{"type":"oauth","access":"a","refresh":"r","expires":"900"}'],
+    ['an expiry that overflows to infinity', '{"type":"oauth","access":"a","refresh":"r","expires":1e999}'],
+  ])('leaves your login alone when a job writes %s', ([, entry]) => {
+    const copy = readFileSync(join(job, 'auth.json'), 'utf8');
+    writeFileSync(join(job, 'auth.json'), copy.replace(/"oauth": \{[^}]*\}/, `"oauth": ${entry}`));
+    syncTokens(real, job);
+    expect(read(real)['oauth']).toEqual({ type: 'oauth', access: 'a1', refresh: 'r1', expires: 100 });
+  });
+
+  test('locks the file a symlinked auth.json points at, as Pi does', () => {
+    const target = join(realpathSync(mkdtempSync(join(tmpdir(), 'pstack-target-'))), 'auth.json');
+    renameSync(join(real, 'auth.json'), target);
+    symlinkSync(target, join(real, 'auth.json'));
+    write(job, { ...read(job), oauth: { type: 'oauth', access: 'a6', refresh: 'r6', expires: 600 } });
+    mkdirSync(`${target}.lock`);
+    expect(syncTokens(real, job)).toBe(false);
+    rmSync(`${target}.lock`, { recursive: true });
+    expect(syncTokens(real, job)).toBe(true);
+    expect([lstatSync(join(real, 'auth.json')).isSymbolicLink(), JSON.parse(readFileSync(target, 'utf8')).oauth.refresh]).toEqual([true, 'r6']);
+    rmSync(join(target, '..'), { recursive: true, force: true });
+  });
+
+  test('a job removing the lock directory it shares does not make the sync throw', () => {
+    expect(withLocks([join(job, 'auth.json')], () => rmSync(join(job, 'auth.json.lock'), { recursive: true }))).toBe(true);
   });
 });

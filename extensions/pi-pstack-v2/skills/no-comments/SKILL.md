@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 # No comments
 
+Bundled skills live at `../<name>/SKILL.md` from this file.
+
 Spawn Comment Sicko. Act on accepted findings.
 
 Defer to Comment Sicko's fresh perspective.

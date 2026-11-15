@@ -53,7 +53,7 @@ Other tools can read the skills, because they use the Agent Skills format. But m
 
 `/skill:poteto-mode` attaches the skill to one message. It fades as the session moves on, and Pi has no custom modes. Start each new task with `/skill:poteto-mode`.
 
-Point the user to Pi's skills documentation when this comes up. Mid-session, "new task" makes the skill match a fresh playbook. `/skill:poteto-mode` already uses `poteto-agent` for the workers its playbook steps spawn. To get the same style from a worker of your own, spawn it with `pi_spawn` and `agent: "poteto-agent"`.
+Point the user to Pi's skills documentation (`docs/skills.md` in the Pi package, or Pi's docs site) when this comes up. Mid-session, "new task" makes the skill match a fresh playbook. `/skill:poteto-mode` already uses `poteto-agent` for the workers its playbook steps spawn. To get the same style from a worker of your own, spawn it with `pi_spawn` and `agent: "poteto-agent"`.
 
 ## Pick a skill
 

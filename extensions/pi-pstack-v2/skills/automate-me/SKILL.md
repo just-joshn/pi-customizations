@@ -26,7 +26,7 @@ Update mode changes the rest of the flow:
 
 ### 1. Mine their history
 
-Locate the active workspace's sessions before fanning out. They are the `*.jsonl` files in `~/.pi/agent/sessions/--<cwd with / as ->--/`, and each spawned worker keeps its own in `~/.pi/agent/pstack-v2/jobs/<id>/session/`. Use only that directory. Don't glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
+Locate the active workspace's sessions before fanning out. They are the `*.jsonl` files in `~/.pi/agent/sessions/--<cwd with / as ->--/` (unless `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` moves sessions), and each spawned worker keeps its own in `~/.pi/agent/pstack-v2/jobs/<id>/session/`. Keep only jobs whose `job.json` `cwd` is inside this workspace. Use only that directory. Don't glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
 
 Survey recent agent conversations within that scope for recurring patterns. Spawn multiple parallel Pi workers with `pi_spawn` across slices of history (e.g. last 2-4 weeks, split into 3 slices so each has enough material). Pick each worker's model and thinking level for the job, per the Spawned Pi workers section of the **poteto-mode** skill. Each slice mining worker reads sessions from the workspace-scoped path the brief names, looks for the signals below, and returns a short structured list of patterns it saw with evidence pointers. Default signals worth hunting:
 
@@ -64,7 +64,7 @@ The **poteto-mode** skill shows the shape. Read it for granularity. Don't copy i
 
 ### 4. Draft the skill
 
-Write the skill to Pi's skills spec (the Agent Skills format), then check it loads with `/skill:<handle>-mode`. Placement:
+Write the skill to Pi's skills spec (the Agent Skills format), run `/reload`, then check it loads with `/skill:<handle>-mode`. Placement:
 
 - Path: preserve an existing mode skill's category. For a new mode, use `.pi/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle. Otherwise default to `.pi/skills/<handle>-mode/SKILL.md` in the project (or `~/.pi/agent/skills/<handle>-mode/` if the user prefers a personal skill).
 - Handle: the user's first name or chosen identifier.

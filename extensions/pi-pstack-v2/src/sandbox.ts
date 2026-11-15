@@ -44,6 +44,7 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
   const subpaths = (paths: string[]): string => paths.map((path) => `(subpath ${quote(real(path))})`).join(' ');
   // A protected path that is itself a symlink is guarded at the link as well as at its target, so it cannot be swapped.
   const guarded = [...policy.protect.map((path) => `(subpath ${quote(real(path))}) (literal ${quote(entry(path))})`), ...policy.lock.map((path) => `(literal ${quote(real(path))}) (literal ${quote(entry(path))})`)];
+  const inAgentDir = policy.writable.filter((path) => real(path) === real(policy.agentDir) || real(path).startsWith(`${real(policy.agentDir)}/`));
   const lines = [
     '(version 1)',
     '(allow default)',
@@ -55,7 +56,7 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
     // Inside Pi's agent directory only the job's own paths are writable, its session, nested jobs, temp, and its own agent
     // directory with its credentials copy. Your real auth.json and settings are never writable.
-    `(allow file-write* ${subpaths(policy.writable.filter((path) => real(path) === real(policy.agentDir) || real(path).startsWith(`${real(policy.agentDir)}/`)))})`,
+    ...(inAgentDir.length ? [`(allow file-write* ${subpaths(inAgentDir)})`] : []),
     ...(policy.credentials ? [`(allow file-write-data (literal ${quote(join(real(policy.credentials), 'auth.json'))}))`, `(allow file-write* (regex #"^${escapeRegex(real(policy.credentials))}/[^/]+\\.lock(/|$)"))`] : []),
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
     ...policy.checkouts.map((root) => `(deny file-write* (regex #"^${escapeRegex(real(root))}/(.*/)?(\\.git|\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`),
