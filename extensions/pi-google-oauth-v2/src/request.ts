@@ -1,4 +1,6 @@
-import { type Api, clampThinkingLevel, getCurrentSystemPrompt, getCurrentTools, type Model, type ModelThinkingLevel, type SimpleStreamOptions, type ToolCall, type TranscriptContext, toToolDeclaration, uuidv7 } from '@earendil-works/pi-ai';
+import { randomUUID } from 'node:crypto';
+
+import { type Api, clampThinkingLevel, getCurrentSystemPrompt, getCurrentTools, type Model, type ModelThinkingLevel, type SimpleStreamOptions, type ToolCall, type TranscriptContext, toToolDeclaration } from '@earendil-works/pi-ai';
 
 interface WirePart {
   text?: string;
@@ -14,28 +16,25 @@ interface WireContent {
   parts: WirePart[];
 }
 
-interface ThinkingConfig {
-  includeThoughts?: true;
-  thinkingLevel?: string;
-  thinkingBudget?: number;
-}
-
 export interface CodeAssistRequestBody {
   model: string;
   project: string;
-  user_prompt_id: string;
+  requestId: string;
+  userAgent: 'antigravity';
+  requestType: 'agent';
   request: {
     contents: WireContent[];
-    systemInstruction?: { parts: WirePart[] };
+    systemInstruction?: { role: 'user'; parts: WirePart[] };
     tools?: { functionDeclarations: { name: string; description: string; parametersJsonSchema: unknown }[] }[];
     toolConfig?: { functionCallingConfig: { mode: 'NONE' } };
-    generationConfig: { temperature?: number; maxOutputTokens?: number; thinkingConfig?: ThinkingConfig };
-    session_id?: string;
+    generationConfig: { temperature?: number; maxOutputTokens?: number; thinkingConfig?: { includeThoughts: true; thinkingLevel: string } };
+    sessionId?: string;
   };
 }
 
-const GOOGLE_THINKING_LEVELS = new Set(['MINIMAL', 'LOW', 'MEDIUM', 'HIGH']);
-const BUDGET_BY_LEVEL: Partial<Record<ModelThinkingLevel, number>> = { minimal: 128, low: 2048, medium: 8192, high: 32768 };
+const THINKING_LEVEL: Record<ModelThinkingLevel, string | undefined> = { off: undefined, minimal: 'LOW', low: 'LOW', medium: 'MEDIUM', high: 'HIGH', xhigh: 'HIGH', max: 'HIGH' };
+// Code Assist answers 429 RESOURCE_EXHAUSTED to any system prompt saying it runs "inside pi"; the same prompt without the clause gets a 200.
+const PI_HARNESS_CLAUSE = / running inside pi(?:, a coding agent harness)?(?=[.,])/gi;
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
 const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);
 const JSON_SCHEMA_SUBSCHEMAS = new Set([
@@ -61,15 +60,18 @@ export function buildCodeAssistRequest(input: { model: Model<Api>; context: Tran
   const { model, context, project, options } = input;
   const systemPrompt = getCurrentSystemPrompt(context.messages);
   const tools = getCurrentTools(context.messages);
-  const thinkingConfig = buildThinkingConfig(model, options);
+  const level = clampThinkingLevel(model, options.reasoning ?? 'medium');
+  const thinkingLevel = THINKING_LEVEL[level];
 
   return {
-    model: model.id,
+    model: model.thinkingLevelMap?.[level] ?? model.id,
     project,
-    user_prompt_id: uuidv7(),
+    requestId: randomUUID(),
+    userAgent: 'antigravity',
+    requestType: 'agent',
     request: {
       contents: convertMessages(model, context),
-      ...(systemPrompt ? { systemInstruction: { parts: [{ text: scrub(systemPrompt) }] } } : {}),
+      ...(systemPrompt ? { systemInstruction: { role: 'user' as const, parts: [{ text: scrub(systemPrompt.replace(PI_HARNESS_CLAUSE, '')) }] } } : {}),
       ...(tools.length > 0
         ? {
             tools: [
@@ -86,9 +88,9 @@ export function buildCodeAssistRequest(input: { model: Model<Api>; context: Tran
       generationConfig: {
         ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
         ...(options.maxTokens === undefined ? {} : { maxOutputTokens: options.maxTokens }),
-        ...(thinkingConfig === undefined ? {} : { thinkingConfig }),
+        ...(thinkingLevel ? { thinkingConfig: { includeThoughts: true as const, thinkingLevel } } : {}),
       },
-      ...(options.sessionId === undefined ? {} : { session_id: options.sessionId }),
+      ...(options.sessionId === undefined ? {} : { sessionId: options.sessionId }),
     },
   };
 }
@@ -166,26 +168,6 @@ function convertMessages(model: Model<Api>, context: TranscriptContext): WireCon
   }
   answerOrphans();
   return contents;
-}
-
-function buildThinkingConfig(model: Model<Api>, options: SimpleStreamOptions): CodeAssistRequestBody['request']['generationConfig']['thinkingConfig'] {
-  if (!model.reasoning) return undefined;
-  const levelStyle = model.thinkingLevelMap !== undefined;
-  const level = options.reasoning ? clampThinkingLevel(model, options.reasoning) : 'off';
-  if (level === 'off') {
-    const lowest = levelStyle ? clampThinkingLevel(model, 'off') : 'off';
-    return lowest === 'off' ? undefined : { thinkingLevel: googleLevel(model, lowest) };
-  }
-  if (levelStyle) return { includeThoughts: true, thinkingLevel: googleLevel(model, level) };
-  const budgets: Partial<Record<ModelThinkingLevel, number>> = { ...BUDGET_BY_LEVEL, ...options.thinkingBudgets };
-  return { includeThoughts: true, thinkingBudget: budgets[level] ?? -1 };
-}
-
-function googleLevel(model: Model<Api>, level: ModelThinkingLevel): string {
-  const mapped = model.thinkingLevelMap?.[level];
-  const wire = (typeof mapped === 'string' ? mapped : level).toUpperCase();
-  if (!GOOGLE_THINKING_LEVELS.has(wire)) throw new Error(`Unsupported Google thinking level for ${model.id}: ${level}`);
-  return wire;
 }
 
 /** Gemini ignores `const` inside parametersJsonSchema but honors a single-value `enum`. */

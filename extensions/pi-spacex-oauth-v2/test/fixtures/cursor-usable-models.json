@@ -1,0 +1,1124 @@
+{
+  "models": [
+    {
+      "modelId": "default",
+      "displayName": "Auto"
+    },
+    {
+      "modelId": "gpt-5.3-codex-low",
+      "displayName": "Codex 5.3 Low"
+    },
+    {
+      "modelId": "gpt-5.3-codex-low-fast",
+      "displayName": "Codex 5.3 Low Fast"
+    },
+    {
+      "modelId": "gpt-5.3-codex",
+      "displayName": "Codex 5.3"
+    },
+    {
+      "modelId": "gpt-5.3-codex-fast",
+      "displayName": "Codex 5.3 Fast"
+    },
+    {
+      "modelId": "gpt-5.3-codex-high",
+      "displayName": "Codex 5.3 High"
+    },
+    {
+      "modelId": "gpt-5.3-codex-high-fast",
+      "displayName": "Codex 5.3 High Fast"
+    },
+    {
+      "modelId": "gpt-5.3-codex-xhigh",
+      "displayName": "Codex 5.3 Extra High"
+    },
+    {
+      "modelId": "gpt-5.3-codex-xhigh-fast",
+      "displayName": "Codex 5.3 Extra High Fast"
+    },
+    {
+      "modelId": "gpt-5.2",
+      "displayName": "GPT-5.2"
+    },
+    {
+      "modelId": "composer-2.5",
+      "displayName": "Composer 2.5"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-high",
+      "displayName": "Claude Opus 5 1M Thinking"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-high-fast",
+      "displayName": "Claude Opus 5 1M Thinking Fast"
+    },
+    {
+      "modelId": "gpt-5.6-sol-high",
+      "displayName": "GPT-5.6 Sol 1M High"
+    },
+    {
+      "modelId": "gpt-5.6-sol-high-fast",
+      "displayName": "GPT-5.6 Sol 1M High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-sol-xhigh",
+      "displayName": "GPT-5.6 Sol 1M Extra High"
+    },
+    {
+      "modelId": "gpt-5.6-sol-xhigh-fast",
+      "displayName": "GPT-5.6 Sol 1M Extra High Fast"
+    },
+    {
+      "modelId": "claude-fable-5-thinking-high",
+      "displayName": "Claude Fable 5 1M Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-thinking-xhigh",
+      "displayName": "Claude Fable 5 1M Extra High Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "cursor-grok-4.5-high",
+      "displayName": "Grok 4.5"
+    },
+    {
+      "modelId": "cursor-grok-4.5-high-fast",
+      "displayName": "Grok 4.5 Fast"
+    },
+    {
+      "modelId": "claude-sonnet-5-thinking-high",
+      "displayName": "Claude Sonnet 5 1M Thinking"
+    },
+    {
+      "modelId": "claude-sonnet-5-thinking-xhigh",
+      "displayName": "Claude Sonnet 5 1M Extra High Thinking"
+    },
+    {
+      "modelId": "gpt-5.6-luna-high",
+      "displayName": "GPT-5.6 Luna 1M High"
+    },
+    {
+      "modelId": "grok-4.7-low",
+      "displayName": "Grok 4.7  Low"
+    },
+    {
+      "modelId": "grok-4.7-low-fast",
+      "displayName": "Grok 4.7  Low Fast​​"
+    },
+    {
+      "modelId": "grok-4.7-medium",
+      "displayName": "Grok 4.7  Medium"
+    },
+    {
+      "modelId": "grok-4.7-medium-fast",
+      "displayName": "Grok 4.7  Medium Fast​​"
+    },
+    {
+      "modelId": "grok-4.7-high",
+      "displayName": "Grok 4.7  High"
+    },
+    {
+      "modelId": "grok-4.7-high-fast",
+      "displayName": "Grok 4.7  High Fast​​"
+    },
+    {
+      "modelId": "grok-4.7-xhigh",
+      "displayName": "Grok 4.7  Extra High"
+    },
+    {
+      "modelId": "grok-4.7-xhigh-fast",
+      "displayName": "Grok 4.7  Extra High Fast​​"
+    },
+    {
+      "modelId": "cursor-grok-4.6-low",
+      "displayName": "Grok 4.6 Low"
+    },
+    {
+      "modelId": "cursor-grok-4.6-low-fast",
+      "displayName": "Grok 4.6 Low Fast"
+    },
+    {
+      "modelId": "cursor-grok-4.6-medium",
+      "displayName": "Grok 4.6 Medium"
+    },
+    {
+      "modelId": "cursor-grok-4.6-medium-fast",
+      "displayName": "Grok 4.6 Medium Fast"
+    },
+    {
+      "modelId": "cursor-grok-4.6-high",
+      "displayName": "Grok 4.6"
+    },
+    {
+      "modelId": "cursor-grok-4.6-high-fast",
+      "displayName": "Grok 4.6 Fast"
+    },
+    {
+      "modelId": "cursor-grok-4.6-xhigh",
+      "displayName": "Grok 4.6 Extra High"
+    },
+    {
+      "modelId": "cursor-grok-4.6-xhigh-fast",
+      "displayName": "Grok 4.6 Extra High Fast"
+    },
+    {
+      "modelId": "composer-2.5-fast",
+      "displayName": "Composer 2.5 Fast"
+    },
+    {
+      "modelId": "claude-opus-5-5-low",
+      "displayName": "Claude Opus 5.5 1M Low"
+    },
+    {
+      "modelId": "claude-opus-5-5-low-fast",
+      "displayName": "Claude Opus 5.5 1M Low Fast"
+    },
+    {
+      "modelId": "claude-opus-5-5-medium",
+      "displayName": "Claude Opus 5.5 1M"
+    },
+    {
+      "modelId": "claude-opus-5-5-medium-fast",
+      "displayName": "Claude Opus 5.5 1M Fast"
+    },
+    {
+      "modelId": "claude-opus-5-5-high",
+      "displayName": "Claude Opus 5.5 1M High"
+    },
+    {
+      "modelId": "claude-opus-5-5-high-fast",
+      "displayName": "Claude Opus 5.5 1M High Fast"
+    },
+    {
+      "modelId": "claude-opus-5-5-xhigh",
+      "displayName": "Claude Opus 5.5 1M Extra High"
+    },
+    {
+      "modelId": "claude-opus-5-5-xhigh-fast",
+      "displayName": "Claude Opus 5.5 1M Extra High Fast"
+    },
+    {
+      "modelId": "claude-opus-5-5-max",
+      "displayName": "Claude Opus 5.5 1M Max"
+    },
+    {
+      "modelId": "claude-opus-5-5-max-fast",
+      "displayName": "Claude Opus 5.5 1M Max Fast"
+    },
+    {
+      "modelId": "claude-opus-5-low",
+      "displayName": "Claude Opus 5 1M Low"
+    },
+    {
+      "modelId": "claude-opus-5-low-fast",
+      "displayName": "Claude Opus 5 1M Low Fast"
+    },
+    {
+      "modelId": "claude-opus-5-medium",
+      "displayName": "Claude Opus 5 1M Medium"
+    },
+    {
+      "modelId": "claude-opus-5-medium-fast",
+      "displayName": "Claude Opus 5 1M Medium Fast"
+    },
+    {
+      "modelId": "claude-opus-5-high",
+      "displayName": "Claude Opus 5 1M"
+    },
+    {
+      "modelId": "claude-opus-5-high-fast",
+      "displayName": "Claude Opus 5 1M Fast"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-low",
+      "displayName": "Claude Opus 5 1M Low Thinking"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-low-fast",
+      "displayName": "Claude Opus 5 1M Low Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-medium",
+      "displayName": "Claude Opus 5 1M Medium Thinking"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-medium-fast",
+      "displayName": "Claude Opus 5 1M Medium Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-xhigh",
+      "displayName": "Claude Opus 5 1M Extra High Thinking"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-xhigh-fast",
+      "displayName": "Claude Opus 5 1M Extra High Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-max",
+      "displayName": "Claude Opus 5 1M Max Thinking"
+    },
+    {
+      "modelId": "claude-opus-5-thinking-max-fast",
+      "displayName": "Claude Opus 5 1M Max Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-low",
+      "displayName": "Claude Opus 4.8 1M Low"
+    },
+    {
+      "modelId": "claude-opus-4-8-low-fast",
+      "displayName": "Claude Opus 4.8 1M Low Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-medium",
+      "displayName": "Claude Opus 4.8 1M Medium"
+    },
+    {
+      "modelId": "claude-opus-4-8-medium-fast",
+      "displayName": "Claude Opus 4.8 1M Medium Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-high",
+      "displayName": "Claude Opus 4.8 1M"
+    },
+    {
+      "modelId": "claude-opus-4-8-high-fast",
+      "displayName": "Claude Opus 4.8 1M Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-xhigh",
+      "displayName": "Claude Opus 4.8 1M Extra High"
+    },
+    {
+      "modelId": "claude-opus-4-8-xhigh-fast",
+      "displayName": "Claude Opus 4.8 1M Extra High Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-max",
+      "displayName": "Claude Opus 4.8 1M Max"
+    },
+    {
+      "modelId": "claude-opus-4-8-max-fast",
+      "displayName": "Claude Opus 4.8 1M Max Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-low",
+      "displayName": "Claude Opus 4.8 1M Low Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-low-fast",
+      "displayName": "Claude Opus 4.8 1M Low Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-medium",
+      "displayName": "Claude Opus 4.8 1M Medium Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-medium-fast",
+      "displayName": "Claude Opus 4.8 1M Medium Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-high",
+      "displayName": "Claude Opus 4.8 1M Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-high-fast",
+      "displayName": "Claude Opus 4.8 1M Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-xhigh",
+      "displayName": "Claude Opus 4.8 1M Extra High Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-xhigh-fast",
+      "displayName": "Claude Opus 4.8 1M Extra High Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-max",
+      "displayName": "Claude Opus 4.8 1M Max Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-8-thinking-max-fast",
+      "displayName": "Claude Opus 4.8 1M Max Thinking Fast"
+    },
+    {
+      "modelId": "gemini-4-carbon-low",
+      "displayName": "Gemini 4 Carbon Low"
+    },
+    {
+      "modelId": "gemini-4-carbon-medium",
+      "displayName": "Gemini 4 Carbon Medium"
+    },
+    {
+      "modelId": "gemini-4-carbon-high",
+      "displayName": "Gemini 4 Carbon High"
+    },
+    {
+      "modelId": "gemini-4-hydrogen-low",
+      "displayName": "Gemini 4 Hydrogen Low"
+    },
+    {
+      "modelId": "gemini-4-hydrogen-medium",
+      "displayName": "Gemini 4 Hydrogen Medium"
+    },
+    {
+      "modelId": "gemini-4-hydrogen-high",
+      "displayName": "Gemini 4 Hydrogen High"
+    },
+    {
+      "modelId": "gemini-4-hydrogen-xhigh",
+      "displayName": "Gemini 4 Hydrogen Extra High"
+    },
+    {
+      "modelId": "gemini-4-argon-low",
+      "displayName": "Gemini 4 Argon Low"
+    },
+    {
+      "modelId": "gemini-4-argon-medium",
+      "displayName": "Gemini 4 Argon Medium"
+    },
+    {
+      "modelId": "gemini-4-argon-high",
+      "displayName": "Gemini 4 Argon High"
+    },
+    {
+      "modelId": "muse-wonder-1.0-minimal",
+      "displayName": "Muse Wonder  Minimal"
+    },
+    {
+      "modelId": "muse-wonder-1.0-low",
+      "displayName": "Muse Wonder  Low"
+    },
+    {
+      "modelId": "muse-wonder-1.0-medium",
+      "displayName": "Muse Wonder  Medium"
+    },
+    {
+      "modelId": "muse-wonder-1.0-high",
+      "displayName": "Muse Wonder  High"
+    },
+    {
+      "modelId": "muse-wonder-1.0-xhigh",
+      "displayName": "Muse Wonder  Extra High"
+    },
+    {
+      "modelId": "muse-wonder-1.0-max",
+      "displayName": "Muse Wonder  Max"
+    },
+    {
+      "modelId": "gpt-5.6-sol-none",
+      "displayName": "GPT-5.6 Sol 1M None"
+    },
+    {
+      "modelId": "gpt-5.6-sol-none-fast",
+      "displayName": "GPT-5.6 Sol 1M None Fast"
+    },
+    {
+      "modelId": "gpt-5.6-sol-low",
+      "displayName": "GPT-5.6 Sol 1M Low"
+    },
+    {
+      "modelId": "gpt-5.6-sol-low-fast",
+      "displayName": "GPT-5.6 Sol 1M Low Fast"
+    },
+    {
+      "modelId": "gpt-5.6-sol-medium",
+      "displayName": "GPT-5.6 Sol 1M"
+    },
+    {
+      "modelId": "gpt-5.6-sol-medium-fast",
+      "displayName": "GPT-5.6 Sol 1M Fast"
+    },
+    {
+      "modelId": "gpt-5.6-sol-max",
+      "displayName": "GPT-5.6 Sol 1M Max"
+    },
+    {
+      "modelId": "gpt-5.6-sol-max-fast",
+      "displayName": "GPT-5.6 Sol 1M Max Fast"
+    },
+    {
+      "modelId": "gpt-5.5-none",
+      "displayName": "GPT-5.5 1M None"
+    },
+    {
+      "modelId": "gpt-5.5-none-fast",
+      "displayName": "GPT-5.5 None Fast"
+    },
+    {
+      "modelId": "gpt-5.5-low",
+      "displayName": "GPT-5.5 1M Low"
+    },
+    {
+      "modelId": "gpt-5.5-low-fast",
+      "displayName": "GPT-5.5 Low Fast"
+    },
+    {
+      "modelId": "gpt-5.5-medium",
+      "displayName": "GPT-5.5 1M"
+    },
+    {
+      "modelId": "gpt-5.5-medium-fast",
+      "displayName": "GPT-5.5 Fast"
+    },
+    {
+      "modelId": "gpt-5.5-high",
+      "displayName": "GPT-5.5 1M High"
+    },
+    {
+      "modelId": "gpt-5.5-high-fast",
+      "displayName": "GPT-5.5 High Fast"
+    },
+    {
+      "modelId": "gpt-5.5-extra-high",
+      "displayName": "GPT-5.5 1M Extra High"
+    },
+    {
+      "modelId": "gpt-5.5-extra-high-fast",
+      "displayName": "GPT-5.5 Extra High Fast"
+    },
+    {
+      "modelId": "claude-fable-5-2-low",
+      "displayName": "Claude Fable 5.2 1M Low (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-low-fast",
+      "displayName": "Claude Fable 5.2 1M Low Fast (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-medium",
+      "displayName": "Claude Fable 5.2 1M Medium (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-medium-fast",
+      "displayName": "Claude Fable 5.2 1M Medium Fast (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-high",
+      "displayName": "Claude Fable 5.2 1M (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-high-fast",
+      "displayName": "Claude Fable 5.2 1M Fast (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-xhigh",
+      "displayName": "Claude Fable 5.2 1M Extra High (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-xhigh-fast",
+      "displayName": "Claude Fable 5.2 1M Extra High Fast (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-max",
+      "displayName": "Claude Fable 5.2 1M Max (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-2-max-fast",
+      "displayName": "Claude Fable 5.2 1M Max Fast (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-low",
+      "displayName": "Claude Fable 5.1 1M Low (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-medium",
+      "displayName": "Claude Fable 5.1 1M Medium (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-high",
+      "displayName": "Claude Fable 5.1 1M (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-xhigh",
+      "displayName": "Claude Fable 5.1 1M Extra High (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-max",
+      "displayName": "Claude Fable 5.1 1M Max (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-thinking-low",
+      "displayName": "Claude Fable 5.1 1M Low Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-thinking-medium",
+      "displayName": "Claude Fable 5.1 1M Medium Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-thinking-high",
+      "displayName": "Claude Fable 5.1 1M Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-thinking-xhigh",
+      "displayName": "Claude Fable 5.1 1M Extra High Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-1-thinking-max",
+      "displayName": "Claude Fable 5.1 1M Max Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-low",
+      "displayName": "Claude Fable 5 1M Low (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-medium",
+      "displayName": "Claude Fable 5 1M Medium (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-high",
+      "displayName": "Claude Fable 5 1M (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-xhigh",
+      "displayName": "Claude Fable 5 1M Extra High (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-max",
+      "displayName": "Claude Fable 5 1M Max (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-thinking-low",
+      "displayName": "Claude Fable 5 1M Low Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-thinking-medium",
+      "displayName": "Claude Fable 5 1M Medium Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "claude-fable-5-thinking-max",
+      "displayName": "Claude Fable 5 1M Max Thinking (NO ZDR)"
+    },
+    {
+      "modelId": "cursor-grok-4.5-low",
+      "displayName": "Grok 4.5 Low"
+    },
+    {
+      "modelId": "cursor-grok-4.5-low-fast",
+      "displayName": "Grok 4.5 Low Fast"
+    },
+    {
+      "modelId": "cursor-grok-4.5-medium",
+      "displayName": "Grok 4.5 Medium"
+    },
+    {
+      "modelId": "cursor-grok-4.5-medium-fast",
+      "displayName": "Grok 4.5 Medium Fast"
+    },
+    {
+      "modelId": "gemini-3.8-flash-low",
+      "displayName": "Gemini 3.8 Flash Low"
+    },
+    {
+      "modelId": "gemini-3.8-flash-medium",
+      "displayName": "Gemini 3.8 Flash Medium"
+    },
+    {
+      "modelId": "gemini-3.8-flash-high",
+      "displayName": "Gemini 3.8 Flash High"
+    },
+    {
+      "modelId": "muse-spark-1.3-minimal",
+      "displayName": "Muse Spark 1.3 1M Minimal"
+    },
+    {
+      "modelId": "muse-spark-1.3-low",
+      "displayName": "Muse Spark 1.3 1M Low"
+    },
+    {
+      "modelId": "muse-spark-1.3-medium",
+      "displayName": "Muse Spark 1.3 1M Medium"
+    },
+    {
+      "modelId": "muse-spark-1.3-high",
+      "displayName": "Muse Spark 1.3 1M"
+    },
+    {
+      "modelId": "muse-spark-1.3-xhigh",
+      "displayName": "Muse Spark 1.3 1M Extra High"
+    },
+    {
+      "modelId": "muse-spark-1.3-max",
+      "displayName": "Muse Spark 1.3 1M Max"
+    },
+    {
+      "modelId": "gpt-5.6-terra-none",
+      "displayName": "GPT-5.6 Terra 1M None"
+    },
+    {
+      "modelId": "gpt-5.6-terra-none-fast",
+      "displayName": "GPT-5.6 Terra 1M None Fast"
+    },
+    {
+      "modelId": "gpt-5.6-terra-low",
+      "displayName": "GPT-5.6 Terra 1M Low"
+    },
+    {
+      "modelId": "gpt-5.6-terra-low-fast",
+      "displayName": "GPT-5.6 Terra 1M Low Fast"
+    },
+    {
+      "modelId": "gpt-5.6-terra-medium",
+      "displayName": "GPT-5.6 Terra 1M"
+    },
+    {
+      "modelId": "gpt-5.6-terra-medium-fast",
+      "displayName": "GPT-5.6 Terra 1M Fast"
+    },
+    {
+      "modelId": "gpt-5.6-terra-high",
+      "displayName": "GPT-5.6 Terra 1M High"
+    },
+    {
+      "modelId": "gpt-5.6-terra-high-fast",
+      "displayName": "GPT-5.6 Terra 1M High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-terra-xhigh",
+      "displayName": "GPT-5.6 Terra 1M Extra High"
+    },
+    {
+      "modelId": "gpt-5.6-terra-xhigh-fast",
+      "displayName": "GPT-5.6 Terra 1M Extra High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-terra-max",
+      "displayName": "GPT-5.6 Terra 1M Max"
+    },
+    {
+      "modelId": "gpt-5.6-terra-max-fast",
+      "displayName": "GPT-5.6 Terra 1M Max Fast"
+    },
+    {
+      "modelId": "claude-sonnet-5-5-low",
+      "displayName": "Claude Sonnet 5.5  Low"
+    },
+    {
+      "modelId": "claude-sonnet-5-5-medium",
+      "displayName": "Claude Sonnet 5.5  Medium"
+    },
+    {
+      "modelId": "claude-sonnet-5-5-high",
+      "displayName": "Claude Sonnet 5.5  High"
+    },
+    {
+      "modelId": "claude-sonnet-5-5-xhigh",
+      "displayName": "Claude Sonnet 5.5  Extra High"
+    },
+    {
+      "modelId": "claude-sonnet-5-5-max",
+      "displayName": "Claude Sonnet 5.5  Max"
+    },
+    {
+      "modelId": "claude-sonnet-5-low",
+      "displayName": "Claude Sonnet 5 1M Low"
+    },
+    {
+      "modelId": "claude-sonnet-5-medium",
+      "displayName": "Claude Sonnet 5 1M Medium"
+    },
+    {
+      "modelId": "claude-sonnet-5-high",
+      "displayName": "Claude Sonnet 5 1M"
+    },
+    {
+      "modelId": "claude-sonnet-5-xhigh",
+      "displayName": "Claude Sonnet 5 1M Extra High"
+    },
+    {
+      "modelId": "claude-sonnet-5-max",
+      "displayName": "Claude Sonnet 5 1M Max"
+    },
+    {
+      "modelId": "claude-sonnet-5-thinking-low",
+      "displayName": "Claude Sonnet 5 1M Low Thinking"
+    },
+    {
+      "modelId": "claude-sonnet-5-thinking-medium",
+      "displayName": "Claude Sonnet 5 1M Medium Thinking"
+    },
+    {
+      "modelId": "claude-sonnet-5-thinking-max",
+      "displayName": "Claude Sonnet 5 1M Max Thinking"
+    },
+    {
+      "modelId": "claude-4.6-sonnet-medium",
+      "displayName": "Claude Sonnet 4.6 1M"
+    },
+    {
+      "modelId": "claude-4.6-sonnet-medium-thinking",
+      "displayName": "Claude Sonnet 4.6 1M Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-low",
+      "displayName": "Claude Opus 4.7 1M Low"
+    },
+    {
+      "modelId": "claude-opus-4-7-low-fast",
+      "displayName": "Claude Opus 4.7 1M Low Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-medium",
+      "displayName": "Claude Opus 4.7 1M Medium"
+    },
+    {
+      "modelId": "claude-opus-4-7-medium-fast",
+      "displayName": "Claude Opus 4.7 1M Medium Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-high",
+      "displayName": "Claude Opus 4.7 1M High"
+    },
+    {
+      "modelId": "claude-opus-4-7-high-fast",
+      "displayName": "Claude Opus 4.7 1M High Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-xhigh",
+      "displayName": "Claude Opus 4.7 1M"
+    },
+    {
+      "modelId": "claude-opus-4-7-xhigh-fast",
+      "displayName": "Claude Opus 4.7 1M Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-max",
+      "displayName": "Claude Opus 4.7 1M Max"
+    },
+    {
+      "modelId": "claude-opus-4-7-max-fast",
+      "displayName": "Claude Opus 4.7 1M Max Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-low",
+      "displayName": "Claude Opus 4.7 1M Low Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-low-fast",
+      "displayName": "Claude Opus 4.7 1M Low Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-medium",
+      "displayName": "Claude Opus 4.7 1M Medium Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-medium-fast",
+      "displayName": "Claude Opus 4.7 1M Medium Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-high",
+      "displayName": "Claude Opus 4.7 1M High Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-high-fast",
+      "displayName": "Claude Opus 4.7 1M High Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-xhigh",
+      "displayName": "Claude Opus 4.7 1M Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-xhigh-fast",
+      "displayName": "Claude Opus 4.7 1M Thinking Fast"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-max",
+      "displayName": "Claude Opus 4.7 1M Max Thinking"
+    },
+    {
+      "modelId": "claude-opus-4-7-thinking-max-fast",
+      "displayName": "Claude Opus 4.7 1M Max Thinking Fast"
+    },
+    {
+      "modelId": "gpt-5.4-low",
+      "displayName": "GPT-5.4 1M Low"
+    },
+    {
+      "modelId": "gpt-5.4-medium",
+      "displayName": "GPT-5.4 1M"
+    },
+    {
+      "modelId": "gpt-5.4-medium-fast",
+      "displayName": "GPT-5.4 Fast"
+    },
+    {
+      "modelId": "gpt-5.4-high",
+      "displayName": "GPT-5.4 1M High"
+    },
+    {
+      "modelId": "gpt-5.4-high-fast",
+      "displayName": "GPT-5.4 High Fast"
+    },
+    {
+      "modelId": "gpt-5.4-xhigh",
+      "displayName": "GPT-5.4 1M Extra High"
+    },
+    {
+      "modelId": "gpt-5.4-xhigh-fast",
+      "displayName": "GPT-5.4 Extra High Fast"
+    },
+    {
+      "modelId": "claude-4.6-opus-high",
+      "displayName": "Claude Opus 4.6 1M"
+    },
+    {
+      "modelId": "claude-4.6-opus-max",
+      "displayName": "Claude Opus 4.6 1M Max"
+    },
+    {
+      "modelId": "claude-4.6-opus-high-thinking",
+      "displayName": "Claude Opus 4.6 1M Thinking"
+    },
+    {
+      "modelId": "claude-4.6-opus-max-thinking",
+      "displayName": "Claude Opus 4.6 1M Max Thinking"
+    },
+    {
+      "modelId": "claude-4.5-opus-high",
+      "displayName": "Claude Opus 4.5"
+    },
+    {
+      "modelId": "claude-4.5-opus-high-thinking",
+      "displayName": "Claude Opus 4.5 Thinking"
+    },
+    {
+      "modelId": "gpt-5.2-low",
+      "displayName": "GPT-5.2 Low"
+    },
+    {
+      "modelId": "gpt-5.2-low-fast",
+      "displayName": "GPT-5.2 Low Fast"
+    },
+    {
+      "modelId": "gpt-5.2-fast",
+      "displayName": "GPT-5.2 Fast"
+    },
+    {
+      "modelId": "gpt-5.2-high",
+      "displayName": "GPT-5.2 High"
+    },
+    {
+      "modelId": "gpt-5.2-high-fast",
+      "displayName": "GPT-5.2 High Fast"
+    },
+    {
+      "modelId": "gpt-5.2-xhigh",
+      "displayName": "GPT-5.2 Extra High"
+    },
+    {
+      "modelId": "gpt-5.2-xhigh-fast",
+      "displayName": "GPT-5.2 Extra High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-none",
+      "displayName": "GPT-5.6 Luna 1M None"
+    },
+    {
+      "modelId": "gpt-5.6-luna-none-fast",
+      "displayName": "GPT-5.6 Luna 1M None Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-low",
+      "displayName": "GPT-5.6 Luna 1M Low"
+    },
+    {
+      "modelId": "gpt-5.6-luna-low-fast",
+      "displayName": "GPT-5.6 Luna 1M Low Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-medium",
+      "displayName": "GPT-5.6 Luna 1M"
+    },
+    {
+      "modelId": "gpt-5.6-luna-medium-fast",
+      "displayName": "GPT-5.6 Luna 1M Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-high-fast",
+      "displayName": "GPT-5.6 Luna 1M High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-xhigh",
+      "displayName": "GPT-5.6 Luna 1M Extra High"
+    },
+    {
+      "modelId": "gpt-5.6-luna-xhigh-fast",
+      "displayName": "GPT-5.6 Luna 1M Extra High Fast"
+    },
+    {
+      "modelId": "gpt-5.6-luna-max",
+      "displayName": "GPT-5.6 Luna 1M Max"
+    },
+    {
+      "modelId": "gpt-5.6-luna-max-fast",
+      "displayName": "GPT-5.6 Luna 1M Max Fast"
+    },
+    {
+      "modelId": "gemini-3.1-pro",
+      "displayName": "Gemini 3.1 Pro"
+    },
+    {
+      "modelId": "gpt-5.4-mini-none",
+      "displayName": "GPT-5.4 Mini None"
+    },
+    {
+      "modelId": "gpt-5.4-mini-low",
+      "displayName": "GPT-5.4 Mini Low"
+    },
+    {
+      "modelId": "gpt-5.4-mini-medium",
+      "displayName": "GPT-5.4 Mini"
+    },
+    {
+      "modelId": "gpt-5.4-mini-high",
+      "displayName": "GPT-5.4 Mini High"
+    },
+    {
+      "modelId": "gpt-5.4-mini-xhigh",
+      "displayName": "GPT-5.4 Mini Extra High"
+    },
+    {
+      "modelId": "gpt-5.4-nano-none",
+      "displayName": "GPT-5.4 Nano None"
+    },
+    {
+      "modelId": "gpt-5.4-nano-low",
+      "displayName": "GPT-5.4 Nano Low"
+    },
+    {
+      "modelId": "gpt-5.4-nano-medium",
+      "displayName": "GPT-5.4 Nano"
+    },
+    {
+      "modelId": "gpt-5.4-nano-high",
+      "displayName": "GPT-5.4 Nano High"
+    },
+    {
+      "modelId": "gpt-5.4-nano-xhigh",
+      "displayName": "GPT-5.4 Nano Extra High"
+    },
+    {
+      "modelId": "claude-haiku-5-5-low",
+      "displayName": "Claude Haiku 5.5  Low No Thinking"
+    },
+    {
+      "modelId": "claude-haiku-5-5-medium",
+      "displayName": "Claude Haiku 5.5  Medium No Thinking"
+    },
+    {
+      "modelId": "claude-haiku-5-5-high",
+      "displayName": "Claude Haiku 5.5  High No Thinking"
+    },
+    {
+      "modelId": "claude-haiku-5-5-xhigh",
+      "displayName": "Claude Haiku 5.5  Extra High No Thinking"
+    },
+    {
+      "modelId": "claude-haiku-5-5-max",
+      "displayName": "Claude Haiku 5.5  Max No Thinking"
+    },
+    {
+      "modelId": "claude-haiku-5-5-thinking-low",
+      "displayName": "Claude Haiku 5.5  Low"
+    },
+    {
+      "modelId": "claude-haiku-5-5-thinking-medium",
+      "displayName": "Claude Haiku 5.5  Medium"
+    },
+    {
+      "modelId": "claude-haiku-5-5-thinking-high",
+      "displayName": "Claude Haiku 5.5  High"
+    },
+    {
+      "modelId": "claude-haiku-5-5-thinking-xhigh",
+      "displayName": "Claude Haiku 5.5  Extra High"
+    },
+    {
+      "modelId": "claude-haiku-5-5-thinking-max",
+      "displayName": "Claude Haiku 5.5  Max"
+    },
+    {
+      "modelId": "claude-4.5-sonnet",
+      "displayName": "Claude Sonnet 4.5"
+    },
+    {
+      "modelId": "claude-4.5-sonnet-thinking",
+      "displayName": "Claude Sonnet 4.5 Thinking"
+    },
+    {
+      "modelId": "gpt-5.1-low",
+      "displayName": "GPT-5.1 Low"
+    },
+    {
+      "modelId": "gpt-5.1",
+      "displayName": "GPT-5.1"
+    },
+    {
+      "modelId": "gpt-5.1-high",
+      "displayName": "GPT-5.1 High"
+    },
+    {
+      "modelId": "gemini-3-flash",
+      "displayName": "Gemini 3 Flash"
+    },
+    {
+      "modelId": "gemini-3.5-flash",
+      "displayName": "Gemini 3.5 Flash"
+    },
+    {
+      "modelId": "claude-4-sonnet",
+      "displayName": "Claude Sonnet 4"
+    },
+    {
+      "modelId": "claude-4-sonnet-thinking",
+      "displayName": "Claude Sonnet 4 Thinking"
+    },
+    {
+      "modelId": "gpt-5-mini",
+      "displayName": "GPT-5 Mini"
+    },
+    {
+      "modelId": "kimi-k3-low",
+      "displayName": "Kimi K3 Low"
+    },
+    {
+      "modelId": "kimi-k3-high",
+      "displayName": "Kimi K3 High"
+    },
+    {
+      "modelId": "kimi-k3-max",
+      "displayName": "Kimi K3"
+    },
+    {
+      "modelId": "kimi-k2.7-code",
+      "displayName": "Kimi K2.7 Code"
+    },
+    {
+      "modelId": "glm-5.2-high",
+      "displayName": "GLM 5.2"
+    },
+    {
+      "modelId": "glm-5.2-max",
+      "displayName": "GLM 5.2 Max"
+    },
+    {
+      "modelId": "deepseek-v41-flash-1017-none",
+      "displayName": "DeepSeek V4.1 Flash 1017 None"
+    },
+    {
+      "modelId": "deepseek-v41-flash-1017-low",
+      "displayName": "DeepSeek V4.1 Flash 1017 Low"
+    },
+    {
+      "modelId": "deepseek-v41-flash-1017-medium",
+      "displayName": "DeepSeek V4.1 Flash 1017 Medium"
+    },
+    {
+      "modelId": "deepseek-v41-flash-1017-high",
+      "displayName": "DeepSeek V4.1 Flash 1017 High"
+    },
+    {
+      "modelId": "deepseek-v41-flash-1017-max",
+      "displayName": "DeepSeek V4.1 Flash 1017 Max"
+    }
+  ]
+}

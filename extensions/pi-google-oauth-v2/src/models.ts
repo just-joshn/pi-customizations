@@ -1,30 +1,107 @@
-import type { Model } from '@earendil-works/pi-ai';
-import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all';
+import type { Model, ModelThinkingLevel, RefreshModelsContext, ThinkingLevelMap } from '@earendil-works/pi-ai';
+import { parseStoredCredential } from './auth.ts';
+import { fetchAvailableModels } from './code-assist.ts';
 import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 
-export const CODE_ASSIST_MODEL_IDS = ['gemini-2.5-pro', 'gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite'] as const;
+const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+type Effort = (typeof EFFORTS)[number];
+const EFFORT_SUFFIX = new RegExp(`-(${EFFORTS.join('|')})$`);
+const EFFORT_LABEL = / \((Low|Medium|High|XHigh|Max)\)$/;
+// Pi offers a level unless its map entry is null, and Google has no wire id for these.
+const LEVELS_WITHOUT_WIRE_ID: ModelThinkingLevel[] = ['off', 'minimal', 'low', 'medium', 'high'];
 
-const PI_CATALOG_ID: Partial<Record<(typeof CODE_ASSIST_MODEL_IDS)[number], string>> = { 'gemini-3-flash': 'gemini-3-flash-preview' };
+interface CatalogModel {
+  displayName?: string;
+  supportsImages?: boolean;
+  supportsThinking?: boolean;
+  maxTokens?: number;
+  maxOutputTokens?: number;
+}
 
-export function createCodeAssistModels(): Model<typeof API_ID>[] {
-  const catalog = getBuiltinModels('google');
-  return CODE_ASSIST_MODEL_IDS.map((id) => {
-    const catalogId = PI_CATALOG_ID[id] ?? id;
-    const source = catalog.find((model) => model.id === catalogId);
-    if (!source) throw new Error(`Pi's Google catalog has no entry for ${catalogId}`);
+/** The slice of Code Assist's `fetchAvailableModels` response that the extension reads. */
+export interface Catalog {
+  models?: Record<string, CatalogModel>;
+  agentModelSorts?: { groups?: { modelIds?: string[] }[] }[];
+}
+
+interface Variant {
+  wireId: string;
+  effort: Effort;
+  info: CatalogModel;
+}
+
+type CodeAssistModel = Model<typeof API_ID>;
+
+function splitWireId(wireId: string): { base: string; effort: Effort } {
+  const match = EFFORT_SUFFIX.exec(wireId);
+  if (!match) return { base: wireId, effort: 'medium' };
+  return { base: wireId.slice(0, match.index), effort: match[1] as Effort };
+}
+
+function thinkingLevelMap(variants: Variant[], reasoning: boolean): ThinkingLevelMap {
+  if (!reasoning) return { off: (variants.find((variant) => variant.effort === 'medium') ?? variants[0])?.wireId ?? null };
+  const map: ThinkingLevelMap = {};
+  for (const level of LEVELS_WITHOUT_WIRE_ID) map[level] = null;
+  for (const variant of variants) map[variant.effort] = variant.wireId;
+  return map;
+}
+
+/** One Pi model per base family. Its thinking levels map to Google's per-effort wire ids. */
+export function catalogModels(catalog: Catalog): CodeAssistModel[] {
+  const families = new Map<string, Variant[]>();
+  const shown = new Set((catalog.agentModelSorts ?? []).flatMap((sort) => (sort.groups ?? []).flatMap((group) => group.modelIds ?? [])));
+  for (const wireId of shown) {
+    const info = catalog.models?.[wireId];
+    if (!info || wireId.endsWith('-disabled')) continue;
+    const { base, effort } = splitWireId(wireId);
+    families.set(base, [...(families.get(base) ?? []), { wireId, effort, info }]);
+  }
+
+  return [...families].map(([id, variants]) => {
+    const reasoning = variants.some((variant) => variant.info.supportsThinking);
+    const first = variants[0]?.info;
     return {
       id,
-      name: source.name,
+      name: (first?.displayName ?? id).replace(EFFORT_LABEL, ''),
       api: API_ID,
       provider: PROVIDER_ID,
       baseUrl: CODE_ASSIST_BASE_URL,
-      input: source.input,
-      ...(source.inputLimits === undefined ? {} : { inputLimits: source.inputLimits }),
-      cost: source.cost,
-      reasoning: source.reasoning,
-      contextWindow: source.contextWindow,
-      maxTokens: source.maxTokens,
-      ...(source.thinkingLevelMap === undefined ? {} : { thinkingLevelMap: source.thinkingLevelMap }),
+      reasoning,
+      input: variants.some((variant) => variant.info.supportsImages) ? ['text', 'image'] : ['text'],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: Math.max(...variants.map((variant) => variant.info.maxTokens ?? 0)),
+      maxTokens: Math.max(...variants.map((variant) => variant.info.maxOutputTokens ?? 0)),
+      thinkingLevelMap: thinkingLevelMap(variants, reasoning),
     };
   });
+}
+
+const BASELINE_FAMILIES = [
+  ['gemini-4-argon', 'Gemini 4 Argon'],
+  ['gemini-3.8-flash', 'Gemini 3.8 Flash'],
+] as const;
+const BASELINE_EFFORTS = [
+  ['low', 'Low'],
+  ['medium', 'Medium'],
+  ['high', 'High'],
+] as const;
+const baselineWireIds = BASELINE_FAMILIES.flatMap(([id]) => BASELINE_EFFORTS.map(([effort]) => `${id}-${effort}`));
+
+// Shown until the first live refresh. A live model with the same id replaces its entry.
+export const BASELINE_MODELS: CodeAssistModel[] = catalogModels({
+  models: Object.fromEntries(
+    BASELINE_FAMILIES.flatMap(([id, name]) => BASELINE_EFFORTS.map(([effort, label]) => [`${id}-${effort}`, { displayName: `${name} (${label})`, supportsImages: true, supportsThinking: true, maxTokens: 1048576, maxOutputTokens: 65536 }])),
+  ),
+  agentModelSorts: [{ groups: [{ modelIds: baselineWireIds }] }],
+});
+
+export function createFetchModels(fetchImpl: typeof fetch = globalThis.fetch): (context: RefreshModelsContext) => Promise<CodeAssistModel[]> {
+  return async (context) => {
+    if (!context.allowNetwork || context.credential?.type !== 'oauth') return BASELINE_MODELS;
+    const { access, projectId } = parseStoredCredential(context.credential);
+    const catalog = (await fetchAvailableModels({ accessToken: access, project: projectId, signal: context.signal, fetchImpl })) as Catalog;
+    const models = catalogModels(catalog);
+    if (models.length === 0) throw new Error('Google returned no models for this account');
+    return models;
+  };
 }

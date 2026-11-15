@@ -1,46 +1,100 @@
-import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all';
-import { describe, expect, test } from 'vitest';
-import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
-import { CODE_ASSIST_MODEL_IDS, createCodeAssistModels } from './models.ts';
+import { readFileSync } from 'node:fs';
 
-describe('createCodeAssistModels', () => {
-  const models = createCodeAssistModels();
+import type { OAuthCredential, RefreshModelsContext } from '@earendil-works/pi-ai';
+import { describe, expect, test, vi } from 'vitest';
+import { ANTIGRAVITY_USER_AGENT, API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
+import { BASELINE_MODELS, type Catalog, catalogModels, createFetchModels } from './models.ts';
 
-  test('lists the seven plan models with gemini-2.5-pro first', () => {
-    expect(models.map((model) => model.id)).toEqual([...CODE_ASSIST_MODEL_IDS]);
-    expect(models.map((model) => model.id)).toEqual(['gemini-2.5-pro', 'gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
+const fixture: Catalog = JSON.parse(readFileSync(new URL('../test/catalog-fixture.json', import.meta.url), 'utf8'));
+const models = catalogModels(fixture);
+const byId = (id: string) => {
+  const found = models.find((model) => model.id === id);
+  if (!found) throw new Error(`no model ${id}`);
+  return found;
+};
+
+describe('catalogModels', () => {
+  test('makes one model per base family in the order Google lists them, skipping -disabled ids', () => {
+    expect(models.map((model) => model.id)).toEqual(['gemini-4-argon', 'gemini-4-hydrogen', 'gemini-pro-orchestrator-g1-pro', 'gemini-3.8-flash', 'claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-oss-120b']);
   });
 
-  test('points every model at the Code Assist api and provider', () => {
+  test('points every model at the Code Assist api and provider with zero cost', () => {
     for (const model of models) {
-      expect(model).toMatchObject({ api: API_ID, provider: PROVIDER_ID, baseUrl: CODE_ASSIST_BASE_URL });
+      expect(model).toMatchObject({ api: API_ID, provider: PROVIDER_ID, baseUrl: CODE_ASSIST_BASE_URL, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } });
     }
   });
 
-  test('takes limits, prices, and thinking maps from the Pi catalog', () => {
-    const catalog = getBuiltinModels('google');
-    for (const model of models) {
-      const source = catalog.find((candidate) => candidate.id === (model.id === 'gemini-3-flash' ? 'gemini-3-flash-preview' : model.id));
-      expect(model).toMatchObject({ name: source?.name, input: source?.input, cost: source?.cost, reasoning: source?.reasoning, contextWindow: source?.contextWindow, maxTokens: source?.maxTokens });
-      expect(model.thinkingLevelMap).toEqual(source?.thinkingLevelMap);
-    }
+  test('maps each present effort to its wire id and hides levels Google lacks', () => {
+    expect(byId('gemini-4-hydrogen')).toMatchObject({
+      name: 'Gemini 4 Hydrogen',
+      reasoning: true,
+      thinkingLevelMap: { off: null, minimal: null, low: 'gemini-4-hydrogen-low', medium: 'gemini-4-hydrogen-medium', high: 'gemini-4-hydrogen-high', xhigh: 'gemini-4-hydrogen-xhigh' },
+    });
+    expect(byId('gemini-4-argon').thinkingLevelMap).toEqual({ off: null, minimal: null, low: 'gemini-4-argon-low', medium: 'gemini-4-argon-medium', high: 'gemini-4-argon-high' });
   });
 
-  test('keeps null entries of a catalog thinking map', () => {
-    const pro = models.find((model) => model.id === 'gemini-3.1-pro-preview');
-    expect(pro?.thinkingLevelMap).toMatchObject({ off: null, minimal: null, low: 'low' });
+  test('treats an id without an effort suffix as a single medium variant', () => {
+    expect(byId('gemini-pro-orchestrator-g1-pro')).toMatchObject({
+      name: 'Orchestrator (Argon)',
+      thinkingLevelMap: { off: null, minimal: null, low: null, medium: 'gemini-pro-orchestrator-g1-pro', high: null },
+    });
+    expect(byId('gpt-oss-120b').thinkingLevelMap).toMatchObject({ medium: 'gpt-oss-120b-medium', low: null, high: null });
   });
 
-  test('has no thinking map key where the catalog has none', () => {
-    const pro25 = models.find((model) => model.id === 'gemini-2.5-pro');
-    expect(pro25).not.toHaveProperty('thinkingLevelMap');
+  test('takes input modalities and the largest limits across variants', () => {
+    expect(byId('gemini-4-hydrogen')).toMatchObject({ input: ['text', 'image'], contextWindow: 1048576, maxTokens: 262144 });
+    expect(byId('claude-sonnet-5-5')).toMatchObject({ name: 'Claude Sonnet 5.5', contextWindow: 1000000, maxTokens: 128000 });
+    expect(byId('gpt-oss-120b')).toMatchObject({ input: ['text'], contextWindow: 131072, maxTokens: 32768 });
   });
 
-  test('does not copy google-generative-ai headers or compat fields', () => {
-    for (const model of models) {
-      expect(Object.keys(model)).not.toContain('headers');
-      expect(Object.keys(model)).not.toContain('compat');
-      expect(Object.keys(model)).not.toContain('promptCache');
-    }
+  test('gives a model without thinking support only an off wire id', () => {
+    const [model] = catalogModels({
+      models: { 'plain-model': { displayName: 'Plain', supportsThinking: false, maxTokens: 10, maxOutputTokens: 5 } },
+      agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }],
+    });
+    expect(model).toMatchObject({ reasoning: false, thinkingLevelMap: { off: 'plain-model' } });
+  });
+
+  test('skips shown ids that have no model metadata', () => {
+    expect(catalogModels({ models: {}, agentModelSorts: [{ groups: [{ modelIds: ['gemini-4-argon-low'] }] }] })).toEqual([]);
+  });
+});
+
+describe('createFetchModels', () => {
+  const oauth: OAuthCredential = { type: 'oauth', access: 'tok', refresh: 'ref', expires: Date.now() + 3_600_000, projectId: 'proj-1' };
+  const context = (overrides: Partial<RefreshModelsContext>): RefreshModelsContext => ({ allowNetwork: true, signal: new AbortController().signal, publish: async () => true, credential: oauth, ...overrides });
+
+  test('returns the baseline without touching the network when offline', async () => {
+    const fetchImpl = vi.fn();
+    expect(await createFetchModels(fetchImpl)(context({ allowNetwork: false }))).toBe(BASELINE_MODELS);
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(BASELINE_MODELS.map((model) => model.id)).toEqual(['gemini-4-argon', 'gemini-3.8-flash']);
+  });
+
+  test('returns the baseline when there is no OAuth credential', async () => {
+    const fetchImpl = vi.fn();
+    const { credential: _, ...withoutCredential } = context({});
+    expect(await createFetchModels(fetchImpl)(withoutCredential)).toBe(BASELINE_MODELS);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  test('posts the project to fetchAvailableModels as Antigravity and builds models from the answer', async () => {
+    const fetchImpl = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => Response.json(fixture));
+    const result = await createFetchModels(fetchImpl)(context({}));
+    expect(result.map((model) => model.id)).toContain('claude-sonnet-5-5');
+    const [url, init] = fetchImpl.mock.calls[0] ?? [];
+    expect(url).toBe(`${CODE_ASSIST_BASE_URL}:fetchAvailableModels`);
+    expect(JSON.parse(String(init?.body))).toEqual({ project: 'proj-1' });
+    expect(Object.fromEntries(new Headers(init?.headers))).toMatchObject({ authorization: 'Bearer tok', 'user-agent': ANTIGRAVITY_USER_AGENT });
+  });
+
+  test('fails with Google message when the request is refused', async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ error: { message: 'nope' } }, { status: 403 }));
+    await expect(createFetchModels(fetchImpl)(context({}))).rejects.toThrow('nope');
+  });
+
+  test('fails when the account lists no models', async () => {
+    const fetchImpl = vi.fn(async () => Response.json({}));
+    await expect(createFetchModels(fetchImpl)(context({}))).rejects.toThrow('no models');
   });
 });

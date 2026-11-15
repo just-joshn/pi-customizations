@@ -67,14 +67,22 @@ async function startLogin(promptImpl: (prompt: AuthPrompt) => Promise<string>, b
 }
 
 describe('buildAuthUrl', () => {
-  test('requests offline PKCE consent with the three gemini-cli scopes', () => {
+  test('requests offline PKCE consent with the Antigravity scopes', () => {
     const url = new URL(buildAuthUrl({ redirectUri: 'http://127.0.0.1:1/oauth2callback', state: 's', codeChallenge: 'c' }));
     expect(`${url.origin}${url.pathname}`).toBe('https://accounts.google.com/o/oauth2/v2/auth');
     expect(Object.fromEntries(url.searchParams)).toEqual({
-      client_id: '681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com',
+      client_id: '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com',
       redirect_uri: 'http://127.0.0.1:1/oauth2callback',
       response_type: 'code',
-      scope: 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+      scope: [
+        'https://www.googleapis.com/auth/cloud-platform',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/cclog',
+        'https://www.googleapis.com/auth/experimentsandconfigs',
+        'https://www.googleapis.com/auth/aicode',
+        'openid',
+      ].join(' '),
       access_type: 'offline',
       prompt: 'consent',
       state: 's',
@@ -106,6 +114,8 @@ describe('login through the loopback callback', () => {
     expect(form?.get('grant_type')).toBe('authorization_code');
     expect(form?.get('code')).toBe('auth-code');
     expect(form?.get('redirect_uri')).toBe(redirectUri);
+    expect(form?.get('client_id')).toBe('1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com');
+    expect(form?.get('client_secret')).toMatch(/^GOCSPX-/);
     expect(
       createHash('sha256')
         .update(form?.get('code_verifier') ?? '')
@@ -130,7 +140,7 @@ describe('login through the loopback callback', () => {
     const info = login.events.filter((event) => event.type === 'info');
     const codePage = info[0]?.type === 'info' ? info[0].links?.[0] : undefined;
     expect(codePage?.label).toBe('Code page');
-    expect(new URL(codePage?.url ?? '').searchParams.get('redirect_uri')).toBe('https://codeassist.google.com/authcode');
+    expect(new URL(codePage?.url ?? '').searchParams.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
     expect(info.at(-1)).toMatchObject({ message: 'Google AI plan: Google AI Pro. Code Assist project: proj-server.' });
   });
 
@@ -158,7 +168,7 @@ describe('login through a pasted code', () => {
     await expect(login.result).resolves.toMatchObject({ access: 'access-new' });
     const form = login.backend.exchanges.find((exchange) => exchange.url === TOKEN_URL)?.form;
     expect(form?.get('code')).toBe('pasted-code');
-    expect(form?.get('redirect_uri')).toBe('https://codeassist.google.com/authcode');
+    expect(form?.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
   });
 
   test('closes the loopback listener when the pasted code wins', async () => {
@@ -293,7 +303,7 @@ describe('toAuth', () => {
   });
 
   test('declares a subscription login', () => {
-    expect(oauth).toMatchObject({ isSubscription: true, loginLabel: 'Sign in with Google AI Plus, Pro, or Ultra' });
+    expect(oauth).toMatchObject({ isSubscription: true, loginLabel: 'Sign in with your Google AI plan' });
   });
 });
 

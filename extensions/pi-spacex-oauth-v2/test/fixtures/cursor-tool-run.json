@@ -1,0 +1,361 @@
+{
+  "recordedAt": "2026-11-15T15:15:09.158Z",
+  "frames": [
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAQKAmoA"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAACoSKFImEiQxZDAyZTFjZC04ZTVlLTQ3NDUtYWNjNi1lOTRhZDVjNjlmZDA="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAEIKESIHCgNUaGUQAcgBpbCa/p00Qi0JAMtIvQd6hEARAKxT5fsKakAZAADXFTPC+T8hAPpnBjHIeUBBAAAAAI9mfUA="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABUKEyIJCgUgdXNlchAByAGlsJr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAJcKlAEiiQEKhAEgd2FudHMgdG8ga25vdyB0aGUgd2VhdGhlciBpbiBQYXJpcy4KCkknbGwgY2FsbCBnZXRfd2VhdGhlci4KCkknbGwgY2hlY2sgdGhlIGdldF93ZWF0aGVyIHRvb2wgc2NoZW1hIGZpcnN0LCB0aGVuIGNhbGwgaXQgd2l0aCBQYXJpcy4QAcgBpbCa/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCCE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAA8KDSoDCKwSyAGlsJr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABUKEwoJCgdJbnNwZWN0yAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABEKDwoFCgNpbmfIAdPCmv6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABIKEAoGCgQgdGhlyAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABAKDgoECgIgYMgB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABEKDwoFCgNnZXTIAdPCmv6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABEKDwoFCgNfd2XIAdPCmv6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABMKEQoHCgVhdGhlcsgB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAA8KDQoDCgFgyAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABMKEQoHCgUgdG9vbMgB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABUKEwoJCgcgc2NoZW1hyAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAA8KDQoDCgEsyAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABMKEQoHCgUgdGhlbsgB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABYKFAoKCgggY2FsbGluZ8gB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABEKDwoFCgMgaXTIAdPCmv6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABIKEAoGCgQgZm9yyAHTwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABQKEgoICgYgUGFyaXPIAdPCmv6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABAKDgoECgIuCsgB08Ka/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAVEKzgI6wwIKamNhbGwtZDZiNDg5NjgtZGVhMS00ZGFiLWJkYWItY2Y5MmE2MjIxZDEzLWNvbXBvc2VyX2NhbGxfQlcyZ0VIU0UKZmNfNmQ2NjZhNmItNWFlMS05MTgwLWIwNTUtMTczY2ZjNmU2MDYyXzASpwHiAi8KFiIUdW5rbm93bi10b29sLWNhbGwtaWQSFRITChFJbnZhbGlkIGFyZ3VtZW50c8oDamNhbGwtZDZiNDg5NjgtZGVhMS00ZGFiLWJkYWItY2Y5MmE2MjIxZDEzLWNvbXBvc2VyX2NhbGxfQlcyZ0VIU0UKZmNfNmQ2NjZhNmItNWFlMS05MTgwLWIwNTUtMTczY2ZjNmU2MDYyXzDYA9nCmv6dNCIrMGZkMTIzOTMtNDM4Zi00YWY1LWFhOTEtOWQyYWFlOGIzMTIxLTAtMWoxc8gB2cKa/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAs="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAaEKngMSkwMKamNhbGwtZDZiNDg5NjgtZGVhMS00ZGFiLWJkYWItY2Y5MmE2MjIxZDEzLWNvbXBvc2VyX2NhbGxfQlcyZ0VIU0UKZmNfNmQ2NjZhNmItNWFlMS05MTgwLWIwNTUtMTczY2ZjNmU2MDYyXzAS9wHiAn8KfQoCcGkSC2dldF93ZWF0aGVyImpjYWxsLWQ2YjQ4OTY4LWRlYTEtNGRhYi1iZGFiLWNmOTJhNjIyMWQxMy1jb21wb3Nlcl9jYWxsX0JXMmdFSFNFCmZjXzZkNjY2YTZiLTVhZTEtOTE4MC1iMDU1LTE3M2NmYzZlNjA2Ml8wygNqY2FsbC1kNmI0ODk2OC1kZWExLTRkYWItYmRhYi1jZjkyYTYyMjFkMTMtY29tcG9zZXJfY2FsbF9CVzJnRUhTRQpmY182ZDY2NmE2Yi01YWUxLTkxODAtYjA1NS0xNzNjZmM2ZTYwNjJfMNgD2cKa/p00GiswZmQxMjM5My00MzhmLTRhZjUtYWE5MS05ZDJhYWU4YjMxMjEtMC0xajFzyAHZwpr+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAEcSRQgBmgE2CiA2YTY2MjU1YmQyMDNkMWU4YzczZWJhZmUzNmE2MTQ0NxIQZmE1NzBlYzRiYmM4NmFjZhgAogIECgJwabgDAA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAcKBdoBAggB"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAlkK1gQaywQKamNhbGwtZDZiNDg5NjgtZGVhMS00ZGFiLWJkYWItY2Y5MmE2MjIxZDEzLWNvbXBvc2VyX2NhbGxfQlcyZ0VIU0UKZmNfNmQ2NjZhNmItNWFlMS05MTgwLWIwNTUtMTczY2ZjNmU2MDYyXzASrwPiAq4CCn0KAnBpEgtnZXRfd2VhdGhlciJqY2FsbC1kNmI0ODk2OC1kZWExLTRkYWItYmRhYi1jZjkyYTYyMjFkMTMtY29tcG9zZXJfY2FsbF9CVzJnRUhTRQpmY182ZDY2NmE2Yi01YWUxLTkxODAtYjA1NS0xNzNjZmM2ZTYwNjJfMBKsAQqpAQqmAXsidG9vbCI6ImdldF93ZWF0aGVyIiwiZGVzY3JpcHRpb24iOiJHZXQgdGhlIGN1cnJlbnQgd2VhdGhlciBmb3IgYSBjaXR5LiIsImlucHV0U2NoZW1hIjp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImNpdHkiOnsidHlwZSI6InN0cmluZyJ9fSwicmVxdWlyZWQiOlsiY2l0eSJdfX3KA2pjYWxsLWQ2YjQ4OTY4LWRlYTEtNGRhYi1iZGFiLWNmOTJhNjIyMWQxMy1jb21wb3Nlcl9jYWxsX0JXMmdFSFNFCmZjXzZkNjY2YTZiLTVhZTEtOTE4MC1iMDU1LTE3M2NmYzZlNjA2Ml8w2APZwpr+nTTgA4PDmv6dNBorMGZkMTIzOTMtNDM4Zi00YWY1LWFhOTEtOWQyYWFlOGIzMTIxLTAtMWoxc8gB2cKa/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCCk="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAQKAmoA"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAABUKEyIJCgVHb29kLBAByAH3g5v+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAGQKYiJYClQgSSBoYXZlIHRoZSBzY2hlbWEuIEkgbmVlZCB0byBwYXNzIGNpdHk6ICJQYXJpcyIgdG8gZ2V0X3dlYXRoZXIgdmlhIENhbGxEeW5hbWljVG9vbC4QAcgB94Ob/p00"
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCBU="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAA8KDSoDCKEByAH3g5v+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAAYKBEICCCU="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAASAKnQI6kgIKamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzASd3oAygNqY2FsbC0zODNmZGRkOS1kMjYxLTRiYjItYjhiNi05ZDA1ZDhmYWQ2NjItY29tcG9zZXJfY2FsbF8zMUVWRW43dwpmY19mZWZkNzE2ZC1kOTAxLTk3NzEtOGViOS04MmQ0OTk3MmFjNmFfMNgDnIWb/p00IiswZmQxMjM5My00MzhmLTRhZjUtYWE5MS05ZDJhYWU4YjMxMjEtMS1xZ2F2yAGchZv+nTQ="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAfQK8QMS5gMKamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzASygJ60gEKogEKDnBpLWdldF93ZWF0aGVyEg8KBGNpdHkSBxoFUGFyaXMaamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzAiAnBpKgtnZXRfd2VhdGhlckoCcGkaK0ZldGNoIGN1cnJlbnQgd2VhdGhlciBjb25kaXRpb25zIGZvciBQYXJpcy7KA2pjYWxsLTM4M2ZkZGQ5LWQyNjEtNGJiMi1iOGI2LTlkMDVkOGZhZDY2Mi1jb21wb3Nlcl9jYWxsXzMxRVZFbjd3CmZjX2ZlZmQ3MTZkLWQ5MDEtOTc3MS04ZWI5LTgyZDQ5OTcyYWM2YV8w2AOchZv+nTQaKzBmZDEyMzkzLTQzOGYtNGFmNS1hYTkxLTlkMmFhZThiMzEyMS0xLXFnYXbIAZyFm/6dNA=="
+    },
+    {
+      "phase": "before_tool",
+      "payload": "AAAAAQwSiQIIAlqiAQoOcGktZ2V0X3dlYXRoZXISDwoEY2l0eRIHGgVQYXJpcxpqY2FsbC0zODNmZGRkOS1kMjYxLTRiYjItYjhiNi05ZDA1ZDhmYWQ2NjItY29tcG9zZXJfY2FsbF8zMUVWRW43dwpmY19mZWZkNzE2ZC1kOTAxLTk3NzEtOGViOS04MmQ0OTk3MmFjNmFfMCICcGkqC2dldF93ZWF0aGVySgJwaXokMjZlNmE3OGItMzI3MC00ZDc2LWJjMTktNjA5ODY3OWFiNjZimgE2CiA2YTY2MjU1YmQyMDNkMWU4YzczZWJhZmUzNmE2MTQ0NxIQNGMyODM3MzAzNGVkZmYzNBgAuAMB"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAcKBdoBAggB"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAhAKjQQaggQKamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzAS5gJ65gEKogEKDnBpLWdldF93ZWF0aGVyEg8KBGNpdHkSBxoFUGFyaXMaamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzAiAnBpKgtnZXRfd2VhdGhlckoCcGkSEgoQCg4KDAoKU3VubnksIDIxQxorRmV0Y2ggY3VycmVudCB3ZWF0aGVyIGNvbmRpdGlvbnMgZm9yIFBhcmlzLsoDamNhbGwtMzgzZmRkZDktZDI2MS00YmIyLWI4YjYtOWQwNWQ4ZmFkNjYyLWNvbXBvc2VyX2NhbGxfMzFFVkVuN3cKZmNfZmVmZDcxNmQtZDkwMS05NzcxLThlYjktODJkNDk5NzJhYzZhXzDYA5yFm/6dNOADyIWb/p00GiswZmQxMjM5My00MzhmLTRhZjUtYWE5MS05ZDJhYWU4YjMxMjEtMS1xZ2F2yAGchZv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABMKESIHCgNUaGUQAcgB/Iib/p00"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABgKFiIMCgggd2VhdGhlchAByAH8iJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAACoKKCIeChogaW4gUGFyaXMgaXMgU3VubnksIDIxwrBDLhAByAH8iJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAc="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAA8KDSoDCP8HyAH8iJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABMKEQoHCgVQYXJpc8gB/ZCb/p00"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABEKDwoFCgMgaXPIAf2Qm/6dNA=="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABQKEgoICgYgc3VubnnIAf2Qm/6dNA=="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABIKEAoGCgQgYW5kyAH9kJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABQKEgoICgYgYWJvdXTIAf2Qm/6dNA=="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAI="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAA8KDQoDCgEgyAH9kJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABAKDgoECgIyMcgB/ZCb/p00"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABEKDwoFCgPCsEPIAf2Qm/6dNA=="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABQKEgoICgYgcmlnaHTIAf2Qm/6dNA=="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABIKEAoGCgQgbm93yAH9kJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAA8KDQoDCgEuyAH9kJv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAYKBEICCAE="
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAAAoKCIoBBQgHENRk"
+    },
+    {
+      "phase": "after_tool",
+      "payload": "AAAAABgKFnIUCJNxEMoBGMBOIAAoADDOkZv+nTQ="
+    },
+    {
+      "phase": "after_tool",
+      "end": "{}"
+    }
+  ]
+}

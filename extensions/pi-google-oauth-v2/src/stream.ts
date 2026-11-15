@@ -11,7 +11,7 @@ import {
   uuidv7,
 } from '@earendil-works/pi-ai';
 import { CodeAssistError, googleErrorMessage } from './code-assist.ts';
-import { PRIVATE_PROJECT_HEADER } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
 interface CodeAssistChunk {
@@ -30,6 +30,36 @@ interface ResponsePart {
   thought?: boolean;
   thoughtSignature?: string;
   functionCall?: { id?: string; name?: string; args?: ToolCall['arguments'] };
+}
+
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+
+// Google returns 429 RESOURCE_EXHAUSTED for a short-term capacity limit, so retry with the server's delay.
+function retryDelayMs(body: string, headers: Headers): number | undefined {
+  const retryAfter = headers.get('retry-after');
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds)) return seconds * 1000;
+    const when = Date.parse(retryAfter);
+    if (!Number.isNaN(when)) return Math.max(0, when - Date.now());
+  }
+  const hinted = body.match(/"retryDelay":\s*"([0-9.]+)s"/i) ?? body.match(/retry in ([0-9.]+)\s*s/i);
+  return hinted?.[1] ? Number(hinted[1]) * 1000 : undefined;
+}
+
+function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(new Error('Request was aborted'));
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(new Error('Request was aborted'));
+      },
+      { once: true },
+    );
+  });
 }
 
 /**
@@ -57,16 +87,32 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
       let body: unknown = buildCodeAssistRequest({ model, context, project, options });
       body = (await options.onPayload?.(body, model)) ?? body;
 
-      const response = await (options.fetch ?? globalThis.fetch)(`${model.baseUrl}:streamGenerateContent?alt=sse`, {
+      const doFetch = options.fetch ?? globalThis.fetch;
+      const url = `${model.baseUrl}:streamGenerateContent?alt=sse`;
+      const init: RequestInit = {
         method: 'POST',
-        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers },
+        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers, 'User-Agent': ANTIGRAVITY_USER_AGENT },
         body: JSON.stringify(body),
         ...(options.signal ? { signal: options.signal } : {}),
-      });
-      await options.onResponse?.({ status: response.status, headers: Object.fromEntries(response.headers) }, model);
-      if (!response.ok) {
-        const message = googleErrorMessage(await response.text().catch(() => ''));
-        throw new Error(`Google Code Assist error (${response.status}): ${message ?? (response.statusText || 'request failed')}`);
+      };
+      const baseRetries = options.maxRetries ?? 0;
+      const maxRetryDelayMs = options.maxRetryDelayMs ?? 60_000;
+      let response: Response;
+      for (let attempt = 0; ; attempt++) {
+        response = await doFetch(url, init);
+        await options.onResponse?.({ status: response.status, headers: Object.fromEntries(response.headers) }, model);
+        if (response.ok) break;
+        const text = await response.text().catch(() => '');
+        const message = googleErrorMessage(text) ?? (response.statusText || 'request failed');
+        const quotaExhausted = /QUOTA_EXHAUSTED|Individual quota reached/i.test(text);
+        const capacityThrottle = response.status === 429 && !quotaExhausted;
+        if (!RETRYABLE_STATUS.has(response.status) || quotaExhausted || attempt >= baseRetries) {
+          // Google says "check quota" for a shared-capacity throttle too, which misreads as the user's own quota.
+          if (capacityThrottle) throw new Error('Google Code Assist is temporarily at capacity (429). This is shared capacity, not your plan quota. Try again in a moment.');
+          throw new Error(`Google Code Assist error (${response.status}): ${message}`);
+        }
+        const delay = Math.min(retryDelayMs(text, response.headers) ?? 1000 * 2 ** attempt, maxRetryDelayMs);
+        await sleep(delay, options.signal);
       }
 
       stream.push({ type: 'start', partial: output });
@@ -95,7 +141,7 @@ function takePrivateProjectHeader(headers: SimpleStreamOptions['headers']): { pr
   const forwarded: Record<string, string> = {};
   for (const [name, value] of Object.entries(headers ?? {})) {
     if (name.toLowerCase() === PRIVATE_PROJECT_HEADER) project = value ?? undefined;
-    else if (value !== null) forwarded[name] = value;
+    else if (value !== null && name.toLowerCase() !== 'user-agent') forwarded[name] = value;
   }
   return { project, headers: forwarded };
 }

@@ -86,12 +86,19 @@ else
 fi
 VM="$(dirname "$(readlink -f "$(command -v pi)")")/../node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/virtual-modules.js"
 [ -f "$VM" ] || VM="$(ls -d "$HOME"/.pi/agent/install/releases/*/node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/virtual-modules.js | sort -V | tail -1)"
-bad=$( [ -f "$SRC" ] && grep -oE "from ['\"][^.'\"][^'\"]*['\"]" "$SRC" | sed -E "s/from ['\"]//; s/['\"]$//" | while read -r m; do grep -qE "^\s+\"?$m\"?: bundled" "$VM" || echo "$m"; done )
+bad=$( [ -f "$SRC" ] && cat "$PKG"/src/*.ts | grep -oE "from ['\"][^.'\"][^'\"]*['\"]" | sed -E "s/from ['\"]//; s/['\"]$//" | while read -r m; do grep -qE "^\s+\"?$m\"?: bundled" "$VM" || echo "$m"; done )
 [ -f "$SRC" ] && [ -z "$bad" ] && pass "D5 imports only pi-supplied modules" || fail "D5 imports not supplied by pi: ${bad:-src missing}"
+
+for auth in "" "{\"$ID\":{\"type\":\"api_key\",\"key\":\"sk-ant-api03-bogus\"}}"; do
+  out=$(run_pi "$(tmp_agent "$auth")" -p "/claude-usage")
+  grep -q "Claude is not logged in" <<<"$out" && pass "D6 /claude-usage without an OAuth login asks for /login" || fail "D6 /claude-usage: $(head -c 160 <<<"$out" | tr '\n' ' ')"
+done
 
 if [ "${1:-}" = "--live" ]; then
   AUTH="$HOME/.pi/agent/auth.json"
   ask() { PI_CODING_AGENT_DIR="$HOME/.pi/agent" timeout 180 pi -ne -e "$PKG" --no-session -p --model "$MODEL" "$1" </dev/null 2>&1; }
+  out=$(PI_CODING_AGENT_DIR="$HOME/.pi/agent" timeout 90 pi -ne -e "$PKG" --no-session -p "/claude-usage" </dev/null 2>&1)
+  grep -qE "^Current session: [0-9.]+% used" <<<"$out" && pass "D6 real /claude-usage" || fail "D6 /claude-usage: $(head -c 200 <<<"$out" | tr '\n' ' ')"
   out=$(ask "Reply with exactly the word OK and nothing else.")
   grep -qx "OK" <<<"$out" && pass "D2 real text reply" || fail "D2 text: $(head -c 200 <<<"$out" | tr '\n' ' ')"
   out=$(ask "Run the shell command 'echo PROBE_\$((40+2))' with your bash tool and reply with only its output.")
