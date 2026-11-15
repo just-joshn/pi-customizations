@@ -90,7 +90,7 @@ test('/mode rejects an unknown skill and lists the choices (MODE-002)', async ()
   const rpc = startRpc(sandbox, ['--no-session']);
   try {
     await command(rpc, '/mode no-such-skill');
-    const notice = await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify');
+    const notice = await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('No skill named'));
     expect(notice['notifyType']).toBe('error');
     expect(String(notice['message'])).toMatch(/^No skill named "no-such-skill"\. Skills that can back a mode: architect, arena, /);
   } finally {

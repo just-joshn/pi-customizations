@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.41]
+
+- Deprecated in favor of `@justjoshn/pi-pstack-v2`, a separate package. Pi now shows a migration notice at startup: run `pi install npm:@justjoshn/pi-pstack-v2`, then `pi remove npm:@justjoshn/pi-pstack`.
+
 ## [0.15.36-pi.40] - 2026-11-13
 
 - A webhook routine answers 404 to a malformed request target instead of crashing the listener that owns the routines port.

@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-rea",
-  "version": "0.2.2",
-  "description": "REA (Reverse Engineer Anything) for Pi: REA's published tool contract, its Evidence and session kernel, and its workflow skill, reimplemented on Pi's extension mechanisms.",
+  "version": "0.2.3",
+  "description": "Deprecated and no longer maintained.",
   "type": "module",
   "license": "MIT",
   "repository": {

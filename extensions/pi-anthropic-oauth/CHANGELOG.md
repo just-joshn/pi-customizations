@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.11]
+
+- Deprecated in favor of `@justjoshn/pi-anthropic-oauth-v2`, a separate package. Pi now shows a migration notice at startup: run `pi install npm:@justjoshn/pi-anthropic-oauth-v2`, then `pi remove npm:@justjoshn/pi-anthropic-oauth`.
+
 ## [0.1.10] - 2026-11-14
 
 - A 401 is retried only for a token this provider issued from its OAuth credential. A rejected ambient token or explicit API key is no longer resent as the stored or logged-out account.

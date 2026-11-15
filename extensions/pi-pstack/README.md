@@ -1,5 +1,13 @@
 # pstack for Pi (pi-pstack)
 
+> [!WARNING]
+> **Deprecated.** This package gets no more updates. [`@justjoshn/pi-pstack-v2`](https://www.npmjs.com/package/@justjoshn/pi-pstack-v2) replaces it. The replacement is a separate package, so updating this one never moves you to it. To switch:
+>
+> ```sh
+> pi install npm:@justjoshn/pi-pstack-v2
+> pi remove npm:@justjoshn/pi-pstack
+> ```
+
 pi-pstack is pstack 0.15.36 for Pi 1.5.0: rigorous agent workflows (`/poteto-mode` and its playbooks), the principle skills, and the review, research, and verification skills, plus the full soft-dependency team-kit set (`deslop`, `control-cli`, `control-ui`, CI/PR helpers, thermo-nuclear review, and the rest) vendored in so you do not install a separate team-kit package. A small extension provides the host features the skills call by name: `/name` skill commands, `/mode`, `/plan`, the `Task` subagent tool with cloud agents on their own machines, forks, and `agent_status`, `/in-cloud`, background shells (`bash_background` and `AwaitShell`), `TodoWrite`, `AskQuestion`, `GenerateImage`, `SwitchMode`, the model rule, `/loop`, subscriptions (timers, GitHub PRs, Slack channels, webhook routines), automations with memories (`/automate`, `/automations`), Projects (`/project`), Slack tools, `request_secret`, and `visualize`.
 
 ## Get set up

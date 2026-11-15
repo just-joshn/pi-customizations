@@ -1,5 +1,12 @@
 # pi-rea
 
+> [!WARNING]
+> **Deprecated.** This package gets no more updates, and nothing replaces it. The last version keeps working. To remove it:
+>
+> ```sh
+> pi remove npm:@justjoshn/pi-rea
+> ```
+
 REA (Reverse Engineer Anything) as a Pi-native extension: REA's tool interface,
 its session and Evidence kernel, and a reverse-engineering workflow skill,
 reimplemented with Pi's own mechanisms.

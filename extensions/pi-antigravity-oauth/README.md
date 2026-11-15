@@ -1,5 +1,13 @@
 # pi-antigravity-oauth
 
+> [!WARNING]
+> **Deprecated.** This package gets no more updates. [`@justjoshn/pi-google-oauth-v2`](https://www.npmjs.com/package/@justjoshn/pi-google-oauth-v2) replaces it. The replacement is a separate package, so updating this one never moves you to it. To switch:
+>
+> ```sh
+> pi install npm:@justjoshn/pi-google-oauth-v2
+> pi remove npm:@justjoshn/pi-antigravity-oauth
+> ```
+
 This Pi package lets a Google Antigravity subscription answer in Pi. It signs in the way the Antigravity CLI (`agy`) signs in, and it sends the requests that `agy` sends to the Cloud Code Assist API (`v1internal`). It registers the provider `google-antigravity`, which Pi removed from its built-in providers.
 
 The provider reuses Pi's own parts where the wire allows. Pi's transcript helpers and cost accounting come from `@earendil-works/pi-ai`, the entry point Pi supplies to extensions. Pi's Google message and tool conversion and stop-reason mapping build each request too, but Pi does not supply those modules to extensions. `src/pi-ai/` therefore holds verbatim copies of them from the `@earendil-works/pi-ai` 1.5.0 that the installed Pi loads. `bun run vendor` regenerates the copies from the `@earendil-works/pi-ai` devDependency, which must match the version the installed Pi loads, and `bun run check:vendor` fails when the copies drift or when those two versions differ. Pi stores the login in `auth.json` and refreshes it. The package adds the Cloud Code envelope, its streaming reader, and the login flow. Pi's `google-generative-ai` API cannot send the envelope, because it rejects a custom `fetch`.

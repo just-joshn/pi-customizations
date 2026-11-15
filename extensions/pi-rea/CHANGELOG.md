@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.3]
+
+- Deprecated and no longer maintained. The extension keeps working, and Pi now shows a notice at startup. Remove it with `pi remove npm:@justjoshn/pi-rea`.
+
 ## [0.2.2] - 2026-11-10
 
 - Validate persisted unknown records and updates before replay. Skip malformed or stale mutations without blocking later valid entries.

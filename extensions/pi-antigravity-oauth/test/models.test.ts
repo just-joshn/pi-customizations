@@ -42,6 +42,7 @@ test('the extension registers the Google Antigravity subscription provider and c
   extension({
     registerProvider: (provider: Provider) => providers.push(provider),
     registerCommand: (name: string) => commands.push(name),
+    on: () => undefined,
   } as unknown as ExtensionAPI);
   const [provider] = providers;
   expect(provider?.id).toBe('google-antigravity');

@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-x-subscription-oauth",
-  "version": "0.3.2",
-  "description": "Use The X Subscription in Pi with Grok Build models and Cursor CLI models, and check plan usage with /usage.",
+  "version": "0.3.3",
+  "description": "Deprecated. Use @justjoshn/pi-spacex-oauth-v2 instead. It is a separate package.",
   "type": "module",
   "license": "MIT",
   "repository": {

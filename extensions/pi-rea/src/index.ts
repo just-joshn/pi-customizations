@@ -26,7 +26,8 @@ export default function piRea(pi: ExtensionAPI): void {
     return session;
   };
 
-  pi.on('session_start', (_event, ctx: ExtensionContext) => {
+  pi.on('session_start', (event, ctx: ExtensionContext) => {
+    if (event.reason === 'startup') ctx.ui.notify('pi-rea is deprecated and gets no more updates. It keeps working, but nothing replaces it. Remove it with `pi remove npm:@justjoshn/pi-rea`.', 'warning');
     session = newSession(ctx.cwd);
     restoreBranchState(session, ctx.sessionManager.getBranch());
   });

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5]
+
+- Deprecated and no longer maintained. The extension keeps working, and Pi now shows a notice at startup. Remove it with `pi remove npm:@justjoshn/pi-maintainer`.
+
 ## [0.1.4] - 2026-11-10
 
 - Keep shell suggestions separate from file edits in the edit pipeline, without changing file authorization or suggestion handling.
