@@ -102,16 +102,43 @@ function tmux(socket: string, args: string[]): void {
 }
 
 function write(dir: string, spec: JobSpec, files: Record<string, string>): void {
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(join(dir, 'tmp'), { recursive: true });
   writeFileSync(join(dir, 'job.json'), `${JSON.stringify(spec, null, 2)}\n`);
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
 }
 
-/** Removes a protected path the job created, without ever following a link: a linked parent is removed as the link itself. */
-const revertStep = (path: string, out: string): string => {
-  const [p, parent, note] = [shellQuote(path), shellQuote(dirname(path)), shellQuote(`pstack removed ${path}, which the job created.`)];
-  return `if [ -L ${parent} ]; then rm -f -- ${parent}; echo ${note} >> ${out}; elif [ -e ${p} ] || [ -L ${p} ]; then rm -rf -- ${p}; echo ${note} >> ${out}; fi; `;
+/**
+ * Moves a protected path that appeared during the job into the job's quarantine, without ever following a link. A parent
+ * that became a link during the job is moved as the link itself. A parent that was already a link at launch is yours, so
+ * only the protected path is moved. Moving, not deleting, keeps it recoverable if you created it yourself meanwhile.
+ */
+const revertStep = (path: string, out: string, quarantine: string): string => {
+  const parent = dirname(path);
+  const parentWasLink = existsSync(parent) && lstatSync(parent).isSymbolicLink();
+  const note = shellQuote(`pstack quarantined ${path}, which appeared while the job ran, in ${quarantine}.`);
+  const into = (source: string) => `mkdir -p ${shellQuote(quarantine)} && mv -- ${shellQuote(source)} ${shellQuote(quarantine)}/$(date +%s)-$RANDOM-${shellQuote(basename(path))}; echo ${note} >> ${out}`;
+  const own = `[ -e ${shellQuote(path)} ] || [ -L ${shellQuote(path)} ]`;
+  return parentWasLink ? `if ${own}; then ${into(path)}; fi\n` : `if [ -L ${shellQuote(parent)} ]; then ${into(parent)}; elif ${own}; then ${into(path)}; fi\n`;
 };
+
+/**
+ * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
+ * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
+ */
+export const privateEnv = (tmp: string): Record<string, string> => ({
+  TMPDIR: tmp,
+  TMP: tmp,
+  TEMP: tmp,
+  XDG_CACHE_HOME: join(tmp, 'cache'),
+  npm_config_cache: join(tmp, 'npm'),
+  BUN_INSTALL_CACHE_DIR: join(tmp, 'bun'),
+  PIP_CACHE_DIR: join(tmp, 'pip'),
+  UV_CACHE_DIR: join(tmp, 'uv'),
+  GOCACHE: join(tmp, 'go-build'),
+  GOMODCACHE: join(tmp, 'go-mod'),
+  YARN_CACHE_FOLDER: join(tmp, 'yarn'),
+  DENO_DIR: join(tmp, 'deno'),
+});
 
 interface Run {
   kind: JobKind;
@@ -128,21 +155,43 @@ interface Run {
 }
 
 /**
- * Starts the wrapper that runs argv, captures its output, removes what it should not have created, and records its exit
- * code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the session
- * up, the trap fires at once, ends the whole group, and runs the same cleanup. Bash would defer a trap until a
- * foreground command finished.
+ * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
+ * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
+ * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
+ * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
+ * gets KILL after a short grace period.
  */
 function run(job: Run): void {
-  const env = `${SANDBOX_ENV}=1 ${JOB_DIR_ENV}=${shellQuote(job.dir)} ${TOP_DIR_ENV}=${shellQuote(job.top)}`;
+  const env = Object.entries({ [SANDBOX_ENV]: '1', [JOB_DIR_ENV]: job.dir, [TOP_DIR_ENV]: job.top, ...privateEnv(join(job.dir, 'tmp')) })
+    .map(([name, value]) => `${name}=${shellQuote(value)}`)
+    .join(' ');
   const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
-  const redirect = job.kind === 'pi' ? `> ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `> >(tee ${out}) 2>&1`;
-  const finish = `finished=0; finish() { [ "$finished" = 1 ] && return; finished=1; ${job.revert.map((path) => revertStep(path, out)).join('')}echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}; }`;
-  const stop = `kill -TERM -- -$pid 2>/dev/null; wait $pid 2>/dev/null; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}`;
-  const script = `set -m; ${finish}; trap ${shellQuote(stop)} HUP TERM INT; ${command} ${redirect} & pid=$!; wait $pid; finish "$?"`;
-  tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', '-c', script]);
+  const quarantine = join(job.out, 'quarantine');
+  // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
+  const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
+  const script = [
+    'set -m',
+    'finished=0',
+    'finish() {',
+    '  [ "$finished" = 1 ] && return',
+    '  finished=1',
+    '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
+    ...job.revert.map((path) => revertStep(path, out, quarantine).trimEnd()),
+    `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
+    '}',
+    `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
+    `${body} &`,
+    'pid=$!',
+    'wait $pid',
+    'finish "$?"',
+  ].join('\n');
+  // The script lives beside the job's results, where only the process that launched it can write, and runs from there,
+  // since a long list of protected paths would not fit on a tmux command line.
+  const file = join(job.out, 'wrapper.sh');
+  writeFileSync(file, `${script}\n`);
+  tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
 
 const inheritedTop = (dir: string): string => (process.env[SANDBOX_ENV] === '1' ? (process.env[TOP_DIR_ENV] ?? dir) : dir);
@@ -175,11 +224,11 @@ export function settleBrokered(out: string, code: number, message: string): void
 }
 
 /** Launches a brokered request on the root's tmux server. The caller has already sandboxed argv under a policy it clamped. */
-export function launchBrokered(top: string, dir: string, spec: JobSpec, argv: string[], socket: string): void {
+export function launchBrokered(top: string, dir: string, spec: JobSpec, argv: string[], revert: string[], socket: string): void {
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
-    run({ kind: spec.kind, cwd: spec.cwd, argv, revert: [], socket, session: brokeredSession(dir), dir, out, top });
+    run({ kind: spec.kind, cwd: spec.cwd, argv, revert, socket, session: brokeredSession(dir), dir, out, top });
     writeFileSync(join(out, 'launched'), '');
   } catch (error) {
     settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
@@ -228,7 +277,7 @@ export function list(root: string, owner: string): Job[] {
  * Ends a job. Hanging up its tmux session runs the wrapper's cleanup, and on Linux takes every process the job started
  * with it. A brokered job is ended by the root, which sees the stop marker on its next tick.
  */
-export function stop(job: Job): void {
+export async function stop(job: Job): Promise<void> {
   if (job.spec.brokered) {
     writeFileSync(join(job.dir, 'stop'), '');
   } else {
@@ -237,7 +286,11 @@ export function stop(job: Job): void {
     } catch {
       // Already gone.
     }
+    // The wrapper records the exit once it has ended the job and cleaned up. Only a wrapper that is already gone, and so
+    // can never record it, leaves that to stop.
     const exit = exitPath(job.spec.out);
+    const deadline = Date.now() + 6_000;
+    while (!existsSync(exit) && Date.now() < deadline) await new Promise((done) => setTimeout(done, 50));
     if (!existsSync(exit)) {
       writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
       renameSync(`${exit}.tmp`, exit);
@@ -260,5 +313,3 @@ export function tail(path: string, lines: number): string {
   if (!existsSync(path)) return '';
   return readFileSync(path, 'utf8').split('\n').slice(-lines).join('\n');
 }
-
-export const attachCommand = (spec: JobSpec): string => (spec.brokered ? 'runs on the root Pi tmux server' : `tmux -S ${spec.socket} attach -t ${spec.id}`);

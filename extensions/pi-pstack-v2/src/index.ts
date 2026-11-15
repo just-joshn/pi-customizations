@@ -1,33 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { readSnapshot, removeNewAuthCommands, snapshotAuthCommands } from './auth.ts';
-import {
-  attachCommand,
-  brokeredSession,
-  claimWake,
-  exitPath,
-  type Job,
-  type JobSpec,
-  launch,
-  launchBrokered,
-  list,
-  newJobId,
-  outputPath,
-  read,
-  readSpec,
-  request,
-  resultsDir,
-  settleBrokered,
-  status,
-  stop,
-  tail,
-  tmuxSocket,
-} from './jobs.ts';
+import { approveCredentials, guardCredentials } from './auth.ts';
+import { brokeredSession, claimWake, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed } from './sandbox.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -77,12 +56,10 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
  * finds those through `.git`, and in a linked worktree through its `commondir` and `gitdir` files, so each of those is
  * protected too. A job that could repoint any of them would make the next `git commit` run its own hooks unsandboxed.
  */
-function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; revert: string[]; lock: string[]; gitDirs: string[] } {
-  const pi = ['extensions', 'settings.json', 'mcp.json'].map((name) => join(cwd, '.pi', name));
-  // A protected path that does not exist yet can still appear: bubblewrap cannot bind it, and on either platform a job can
-  // rename a directory it built into place or link its parent elsewhere. The wrapper removes any such path at exit.
-  const absent = (paths: string[]): string[] => paths.filter((path) => !existsSync(path));
-  if (!common) return { protect: pi, revert: absent(pi), lock: [], gitDirs: [] };
+function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
+  // Pi loads code from project extensions, settings, MCP servers, and project-installed packages under npm and git.
+  const pi = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'].map((name) => join(cwd, '.pi', name));
+  if (!common) return { protect: pi, lock: [], gitDirs: [] };
   const own = gitPath(cwd, '--absolute-git-dir') ?? common;
   const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
   let hooksPath: string[] = [];
@@ -92,8 +69,8 @@ function protectedPaths(cwd: string, common: string | undefined): { protect: str
   } catch {
     // No custom hooks path.
   }
-  const protect = [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info'), ...worktree, ...hooksPath];
-  return { protect, revert: absent(protect), lock: [join(cwd, '.git'), own, common], gitDirs: [common] };
+  const protect = [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
+  return { protect, lock: [join(cwd, '.git'), own, common], gitDirs: [common] };
 }
 
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
@@ -122,7 +99,7 @@ function report(job: Job): string {
 
 function describe(job: Job): string {
   const state = job.status.state === 'exited' ? `exited ${job.status.code}` : job.status.state;
-  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  output: ${outputPath(job.spec.out)}\n  attach: ${attachCommand(job.spec)}`;
+  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}`;
 }
 
 function resolveModel(ctx: ExtensionContext, model: string | undefined): string | undefined {
@@ -153,30 +130,21 @@ const brokering = (): boolean => process.platform === 'darwin' && process.env[SA
 
 /** Starts a job under its own sandbox, or writes it as a request for the root Pi when this process cannot. */
 function start(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
-  const policy: SandboxPolicy = { ...spec.policy, jobDir: join(root, spec.id) };
+  const jobDir = join(root, spec.id);
+  // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load.
+  const policy: SandboxPolicy = { ...spec.policy, jobDir, writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp')])] };
+  // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
+  const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
+  if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
+  spec = { ...spec, revert: revertible(policy) };
+  // bubblewrap binds only paths that exist, so the private temp directory exists before the sandbox is built.
+  mkdirSync(join(jobDir, 'tmp'), { recursive: true });
   if (brokering()) return request(root, { ...spec, policy }, files);
-  // A top-level job records the credential commands present now, so any it plants can be removed later.
-  if (!insideJob()) snapshotAuthCommands(policy.agentDir, policy.jobDir);
   return launch(root, { ...spec, policy, argv: sandboxed(spec.command, policy) }, files);
 }
 
-/**
- * Removes credential commands planted while a top-level job, from any session, could write `auth.json`. The earliest
- * unchecked job's snapshot is the baseline, so a later job's snapshot cannot vouch for what an earlier one planted.
- */
-function guardCredentials(): string[] {
-  if (insideJob() || !existsSync(topJobsRoot())) return [];
-  const unchecked = readdirSync(topJobsRoot())
-    .map((id) => join(topJobsRoot(), id))
-    .map((dir) => ({ dir, spec: readSpec(dir), snapshot: readSnapshot(dir) }))
-    .filter((job): job is { dir: string; spec: JobSpec; snapshot: Record<string, string> } => job.spec !== undefined && job.snapshot !== undefined && !existsSync(join(job.dir, 'auth-checked')))
-    .sort((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
-  const earliest = unchecked[0];
-  if (!earliest) return [];
-  const removed = removeNewAuthCommands(getAgentDir(), earliest.snapshot);
-  for (const job of unchecked) if (status(job.dir, job.spec).state !== 'running') writeFileSync(join(job.dir, 'auth-checked'), '');
-  return removed;
-}
+/** Protected paths that do not exist yet but that the job could make appear, because they sit where it may write. */
+const revertible = (policy: SandboxPolicy): string[] => policy.protect.filter((path) => !existsSync(path) && within(path, policy.writable));
 
 const isStrings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string');
 
@@ -207,6 +175,8 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
   for (const name of readdirSync(nested)) {
     try {
       const dir = join(nested, name);
+      // A worker could link an entry back up its own tree, so only real directories are followed.
+      if (!lstatSync(dir).isDirectory()) continue;
       const spec = readSpec(dir);
       const policy = spec?.policy;
       // A worker writes these files, so anything malformed is skipped instead of stopping every other request.
@@ -225,7 +195,7 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       }
       if (requesterDone || stopped) continue;
       const writable = policy.writable.map(landing);
-      const refused = writable.filter((path) => !within(path, top.spec.policy.writable));
+      const refused = [...writable.filter((path) => !within(path, top.spec.policy.writable)), ...(within(spec.cwd, [top.spec.cwd, ...top.spec.policy.writable]) ? [] : [`cwd ${spec.cwd}`])];
       if (refused.length) {
         settleBrokered(out, 126, `pstack refused to launch this job. It asked to write outside what its top-level job may write: ${refused.join(', ')}`);
         continue;
@@ -239,7 +209,7 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         agentDir: getAgentDir(),
         jobDir: dir,
       };
-      launchBrokered(top.dir, dir, spec, sandboxed(spec.command, granted), socket);
+      launchBrokered(top.dir, dir, spec, sandboxed(spec.command, granted), revertible(granted), socket);
     } catch {
       // One request failing must not stop the others.
     }
@@ -284,10 +254,18 @@ export default function pstack(pi: ExtensionAPI) {
     for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
   };
 
+  // A sandboxed worker cannot write its own approval file, so only the root guards credentials.
   const guard = (ctx: ExtensionContext): void => {
-    const removed = guardCredentials();
-    if (removed.length === 0) return;
-    const message = `pstack removed credential commands that appeared while a job could write auth.json: ${removed.join(', ')}. They are saved in ${join(getAgentDir(), 'pstack-v2', 'auth-removed.json')}.`;
+    if (insideJob()) return;
+    const { restored, reverted } = guardCredentials(getAgentDir());
+    const notes = [
+      ...(restored ? ['auth.json had been replaced or garbled and was restored from its last good copy.'] : []),
+      ...(reverted.length
+        ? [`Credential commands you had not approved were reverted for ${reverted.join(', ')}. Each is saved in ${join(getAgentDir(), 'pstack-v2', 'auth-removed.json')}. Run /pstack-approve-credentials if you added one yourself.`]
+        : []),
+    ];
+    if (notes.length === 0) return;
+    const message = `pstack: ${notes.join(' ')}`;
     if (ctx.hasUI) ctx.ui.notify(message, 'warning');
     else process.stderr.write(`${message}\n`);
   };
@@ -303,8 +281,19 @@ export default function pstack(pi: ExtensionAPI) {
     }
   };
 
+  // Runs before Pi resolves any credential at startup and before every model request, so a planted command is gone first.
+  pi.on('turn_start', async (_event, ctx) => guard(ctx));
+
+  pi.registerCommand('pstack-approve-credentials', {
+    description: 'Approve the credential commands (auth.json keys starting with !) that auth.json holds now',
+    handler: async (_args, ctx) => {
+      if (insideJob()) throw new Error('Approve credentials from your own Pi session, not from a pstack job.');
+      const approved = approveCredentials(getAgentDir());
+      ctx.ui.notify(approved.length ? `Approved credential commands for ${approved.join(', ')}.` : 'auth.json holds no credential commands. None are approved.', 'info');
+    },
+  });
+
   pi.on('session_start', async (_event, ctx) => {
-    // Runs before Pi resolves any credential, so a command planted by a job is gone before it can run.
     guard(ctx);
     clearInterval(watcher);
     watcher = setInterval(() => tick(ctx), POLL_MS);
@@ -379,6 +368,8 @@ export default function pstack(pi: ExtensionAPI) {
       if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
       const model = resolveModel(ctx, params.model);
       const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
+      // A resumed worker keeps the readonly it started with unless the call says otherwise.
+      const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
       // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
       const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
       const writable = [sessionDir, join(dir, 'nested')];
@@ -388,7 +379,7 @@ export default function pstack(pi: ExtensionAPI) {
         const cwd = params.worktree !== undefined && prior === undefined ? join(dir, 'worktree') : base;
         if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
         const common = gitPath(cwd, '--git-common-dir');
-        if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
+        if (!readonly) writable.push(cwd, ...(common ? [common] : []));
         const guarded = protectedPaths(cwd, common);
         const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
         const argv = [
@@ -400,7 +391,7 @@ export default function pstack(pi: ExtensionAPI) {
           ...(model ? ['--model', model] : []),
           ...(params.thinking ? ['--thinking', params.thinking] : []),
           ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
-          ...(params.readonly ? ['--exclude-tools', 'edit,write'] : []),
+          ...(readonly ? ['--exclude-tools', 'edit,write'] : []),
           ctx.isProjectTrusted() ? '--approve' : '--no-approve',
           `@${join(dir, 'brief.md')}`,
         ];
@@ -420,7 +411,7 @@ export default function pstack(pi: ExtensionAPI) {
           repeat: false,
           series: id,
           socket: tmuxSocket(owner),
-          revert: params.readonly ? [] : guarded.revert,
+          revert: [],
           out: dir,
           createdAt: new Date().toISOString(),
         };
@@ -474,7 +465,7 @@ export default function pstack(pi: ExtensionAPI) {
         repeat: params.repeat ?? false,
         series: id,
         socket: tmuxSocket(owner),
-        revert: guarded.revert,
+        revert: [],
         out: join(root, id),
         createdAt: new Date().toISOString(),
       };
@@ -491,7 +482,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state, output path, and tmux attach command. output prints the last lines of one job. wait blocks until the named jobs (default all running) exit or the timeout passes, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output prints the last lines of one job. wait blocks until the named jobs (default all running) exit or the timeout passes, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
@@ -524,7 +515,7 @@ export default function pstack(pi: ExtensionAPI) {
           const series = new Set(named().map((job) => job.spec.series));
           // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
           const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
-          for (const job of jobs) stop(job);
+          await Promise.all(jobs.map(stop));
           return text(`Stopped ${jobs.map((job) => job.spec.id).join(', ')}.`);
         }
         case 'wait': {

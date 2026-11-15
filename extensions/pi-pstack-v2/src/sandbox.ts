@@ -31,7 +31,7 @@ const quote = (text: string): string => JSON.stringify(text);
 // tmux servers outside the sandbox run commands unsandboxed, so a job may not connect to their sockets or replace them.
 const TMUX_SOCKETS = '^/private/(tmp|var/folders/[^/]+/[^/]+/T)/(tmux|pstack-v2)-';
 // Files through which git finds a worktree's or submodule's hooks and config.
-const gitRedirects = (common: string): string => `^${escapeRegex(real(common))}/(worktrees/[^/]+/(commondir|gitdir|config\\.worktree)|modules/.+/(hooks|config|info|commondir|gitdir|config\\.worktree))(/|$)`;
+const gitRedirects = (common: string): string => `^${escapeRegex(real(common))}/(config\\.worktree|worktrees/[^/]+/(commondir|gitdir|config\\.worktree)|modules/.+/(hooks|config|info|commondir|gitdir|config\\.worktree))(/|$)`;
 
 export function seatbeltProfile(policy: SandboxPolicy): string {
   const agent = escapeRegex(real(policy.agentDir));
@@ -41,18 +41,24 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
   const lines = [
     '(version 1)',
     '(allow default)',
-    // Later rules win, so the order is temp directories, then Pi's agent directory closed even when it sits in a temp
-    // directory, then the job's own paths, then the paths an unsandboxed process would execute from.
+    // Later rules win, so the order is the job's own paths, then Pi's agent directory closed even when a job path holds
+    // it, then the job's own paths inside it, then the paths an unsandboxed process would execute from. Shared temp
+    // directories are not writable: unsandboxed programs load code cached there, so each job gets its own.
     '(deny file-write*)',
-    '(allow file-write* (literal "/dev/null") (literal "/dev/ptmx") (regex #"^/dev/tty") (regex #"^/dev/fd/") (subpath "/private/tmp") (subpath "/private/var/folders"))',
+    `(allow file-write* (literal "/dev/null") (literal "/dev/ptmx") (regex #"^/dev/tty") (regex #"^/dev/fd/") ${subpaths(policy.writable)})`,
     `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
-    // Pi refreshes credentials in place and takes lock directories beside its files. Nothing else in its agent directory is writable.
-    `(allow file-write* ${subpaths(policy.writable)} (literal ${quote(`${real(policy.agentDir)}/auth.json`)}) (regex #"^${agent}/[^/]+\\.lock(/|$)"))`,
+    // Inside the agent directory, only the job's own session and nested directories, Pi's lock directories, and the
+    // contents of auth.json, which Pi refreshes in place, are writable. auth.json itself cannot be removed or replaced.
+    `(allow file-write* (regex #"^${agent}/[^/]+\\.lock(/|$)") ${subpaths(policy.writable.filter((path) => real(path).startsWith(`${real(policy.agentDir)}/`)))})`,
+    `(allow file-write-data (literal ${quote(`${real(policy.agentDir)}/auth.json`)}))`,
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
     `(deny network-outbound (remote unix-socket (path-regex #"${TMUX_SOCKETS}")) (remote unix-socket (path-regex #"^${agent}/pstack-v2/")))`,
     `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
     // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
     '(deny appleevent-send)',
+    // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
+    '(deny signal)',
+    '(allow signal (target same-sandbox))',
     '(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd") (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
   ];
   return lines.join('\n');
@@ -62,6 +68,7 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
 function existingRedirects(common: string): string[] {
   const found: string[] = [];
   const worktrees = join(common, 'worktrees');
+  found.push(join(common, 'config.worktree'));
   if (existsSync(worktrees)) for (const name of readdirSync(worktrees)) for (const file of ['commondir', 'gitdir', 'config.worktree']) found.push(join(worktrees, name, file));
   const walk = (dir: string, depth: number): void => {
     if (depth > 6 || !existsSync(dir)) return;
@@ -77,9 +84,13 @@ function existingRedirects(common: string): string[] {
 
 export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = process.env, uid: number = process.getuid?.() ?? 0): string[] {
   // Its own PID namespace means every process a job starts dies with it, and none can signal the wrapper outside.
-  const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--bind', '/tmp', '/tmp'];
-  // Outside tmux servers and the user's session bus would run what a job sends them outside the sandbox.
-  for (const hidden of new Set([`/tmp/tmux-${uid}`, `/tmp/pstack-v2-${uid}`, `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden)) args.push('--tmpfs', hidden);
+  // A private /tmp, since unsandboxed programs load code they cached in the shared one. It also hides outside tmux sockets.
+  const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--tmpfs', '/tmp'];
+  const writable = policy.writable.filter(existsSync);
+  for (const path of writable) args.push('--bind', path, path);
+  // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
+  // The user's session bus would run what a job sends it outside the sandbox.
+  for (const hidden of new Set([`/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden)) args.push('--tmpfs', hidden);
   // Pi's agent directory becomes a throwaway tmpfs holding its real entries read-only, so Pi can still create its lock
   // directories. Credentials stay writable because Pi refreshes them in place. This nests, unlike an overlay mount.
   if (existsSync(policy.agentDir)) {
@@ -88,8 +99,8 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
       const path = join(policy.agentDir, name);
       args.push(name === 'auth.json' ? '--bind' : '--ro-bind', path, path);
     }
+    for (const path of writable.filter((path) => path.startsWith(`${policy.agentDir}/`))) args.push('--bind', path, path);
   }
-  for (const path of policy.writable.filter(existsSync)) args.push('--bind', path, path);
   for (const path of [...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync)) args.push('--ro-bind', path, path);
   // A locked directory cannot be renamed while read-only mounts sit inside it, so only a locked file needs its own mount.
   for (const path of policy.lock.filter((path) => existsSync(path) && !statSync(path).isDirectory())) args.push('--ro-bind', path, path);

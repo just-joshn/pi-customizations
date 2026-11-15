@@ -1,85 +1,115 @@
-import { existsSync, mkdirSync, readFileSync, rmdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
  * Pi runs an `auth.json` key that starts with `!` as a shell command whenever it needs that credential. Jobs must be able
- * to write `auth.json` so Pi can persist rotated OAuth tokens, which would otherwise log the user out, so a job could
- * also plant such a command for the user's next unsandboxed Pi. This guard removes any command key that appeared while
- * a job could write, before Pi uses it.
+ * to write `auth.json` so Pi can persist rotated OAuth tokens, which would otherwise log you out, so a job could also
+ * plant such a command for an unsandboxed Pi to run. This guard keeps the command keys exactly as you approved them.
+ * Approval lives in a file no job can write, so no job, and no process a job leaves behind, can approve its own command.
  */
 
 type Commands = Record<string, string>;
 
-const SNAPSHOT = 'auth-commands.json';
-
-function commandKeys(text: string | undefined): Commands {
-  if (!text) return {};
-  try {
-    const data = JSON.parse(text) as Record<string, { type?: unknown; key?: unknown }>;
-    return Object.fromEntries(Object.entries(data).flatMap(([provider, entry]) => (entry?.type === 'api_key' && typeof entry.key === 'string' && entry.key.startsWith('!') ? [[provider, entry.key]] : [])));
-  } catch {
-    return {};
-  }
-}
-
 const authPath = (agentDir: string): string => join(agentDir, 'auth.json');
-const readAuth = (agentDir: string): string | undefined => (existsSync(authPath(agentDir)) ? readFileSync(authPath(agentDir), 'utf8') : undefined);
+const stateDir = (agentDir: string): string => join(agentDir, 'pstack-v2');
+const approvedPath = (agentDir: string): string => join(stateDir(agentDir), 'auth-approved.json');
+const backupPath = (agentDir: string): string => join(stateDir(agentDir), 'auth-backup.json');
+const removedPath = (agentDir: string): string => join(stateDir(agentDir), 'auth-removed.json');
 
-/** Records the command keys present when a job starts, in a directory only the root can write. */
-export function snapshotAuthCommands(agentDir: string, out: string): void {
-  mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, SNAPSHOT), JSON.stringify(commandKeys(readAuth(agentDir))));
-}
-
-export const readSnapshot = (out: string): Commands | undefined => {
+function parse(text: string): Record<string, unknown> | undefined {
   try {
-    return JSON.parse(readFileSync(join(out, SNAPSHOT), 'utf8')) as Commands;
+    const data: unknown = JSON.parse(text);
+    return data !== null && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : undefined;
   } catch {
     return undefined;
   }
-};
+}
 
-// Pi guards auth.json with a lock directory beside it, so this takes the same lock before rewriting the file.
+function commandKeys(data: Record<string, unknown> | undefined): Commands {
+  if (!data) return {};
+  return Object.fromEntries(
+    Object.entries(data).flatMap(([provider, entry]) => {
+      const { type, key } = (entry ?? {}) as { type?: unknown; key?: unknown };
+      return type === 'api_key' && typeof key === 'string' && key.startsWith('!') ? [[provider, key]] : [];
+    }),
+  );
+}
+
+const readJson = <T>(path: string): T | undefined => (existsSync(path) ? (parse(readFileSync(path, 'utf8')) as T | undefined) : undefined);
+
+// Pi guards auth.json with a lock directory beside it, so this takes the same lock before rewriting the file. A job can
+// hold that lock, and a planted command is worse than a lost refresh, so a held lock never delays the guard.
 function withAuthLock<T>(agentDir: string, fn: () => T): T {
-  const lock = `${authPath(agentDir)}.lock`;
-  const deadline = Date.now() + 10_000;
   let held = false;
-  while (!held) {
-    try {
-      mkdirSync(lock);
-      held = true;
-    } catch {
-      // A planted command is worse than a lost refresh, so a lock held past the deadline does not stop the removal.
-      if (Date.now() > deadline) break;
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
-    }
+  try {
+    mkdirSync(`${authPath(agentDir)}.lock`);
+    held = true;
+  } catch {
+    // Held by Pi or by a job.
   }
   try {
     return fn();
   } finally {
-    if (held) rmdirSync(lock);
+    if (held) rmdirSync(`${authPath(agentDir)}.lock`);
   }
 }
 
+/** Approves the command keys auth.json holds now. Runs once on first use, and through `/pstack-approve-credentials`. */
+export function approveCredentials(agentDir: string): string[] {
+  mkdirSync(stateDir(agentDir), { recursive: true });
+  const text = existsSync(authPath(agentDir)) ? readFileSync(authPath(agentDir), 'utf8') : '{}';
+  const commands = commandKeys(parse(text));
+  writeFileSync(approvedPath(agentDir), JSON.stringify(commands), { mode: 0o600 });
+  return Object.keys(commands);
+}
+
+export interface GuardResult {
+  /** auth.json was a link or did not parse, and was restored from the last good copy. */
+  restored: boolean;
+  /** Providers whose unapproved command was reverted to the approved one or removed. */
+  reverted: string[];
+}
+
 /**
- * Removes every command key that is not in the snapshot, with the same value. Removed entries are kept in
- * `pstack-v2/auth-removed.json` so a command the user added on purpose while a job ran can be restored.
+ * Restores auth.json if a job replaced or garbled it, then reverts every command key that differs from what you approved.
+ * A changed approved command goes back to its approved value, and an unapproved one is removed, with each one kept in
+ * `auth-removed.json`. The last good file is copied each time, so a restore keeps Pi's latest token refresh.
  */
-export function removeNewAuthCommands(agentDir: string, snapshot: Commands): string[] {
-  const current = commandKeys(readAuth(agentDir));
-  if (Object.entries(current).every(([provider, key]) => snapshot[provider] === key)) return [];
+export function guardCredentials(agentDir: string): GuardResult {
+  const path = authPath(agentDir);
+  if (!existsSync(approvedPath(agentDir))) approveCredentials(agentDir);
+  const approved = readJson<Commands>(approvedPath(agentDir)) ?? {};
   return withAuthLock(agentDir, () => {
-    const text = readAuth(agentDir);
-    if (!text) return [];
-    const data = JSON.parse(text) as Record<string, unknown>;
-    const planted = Object.entries(commandKeys(text)).filter(([provider, key]) => snapshot[provider] !== key);
-    if (planted.length === 0) return [];
-    for (const [provider] of planted) delete data[provider];
-    const kept = join(agentDir, 'pstack-v2', 'auth-removed.json');
-    mkdirSync(join(agentDir, 'pstack-v2'), { recursive: true });
-    const previous = existsSync(kept) ? (JSON.parse(readFileSync(kept, 'utf8')) as unknown[]) : [];
-    writeFileSync(kept, JSON.stringify([...previous, ...planted.map(([provider, key]) => ({ provider, key, removedAt: new Date().toISOString() }))], null, 2), { mode: 0o600 });
-    writeFileSync(authPath(agentDir), JSON.stringify(data, null, 2), { mode: 0o600 });
-    return planted.map(([provider]) => provider);
+    let restored = false;
+    const linked = existsSync(path) && lstatSync(path).isSymbolicLink();
+    let data = existsSync(path) && !linked ? parse(readFileSync(path, 'utf8')) : undefined;
+    if ((linked || (existsSync(path) && !data)) && existsSync(backupPath(agentDir))) {
+      rmSync(path, { force: true });
+      copyFileSync(backupPath(agentDir), path);
+      data = parse(readFileSync(path, 'utf8'));
+      restored = true;
+    }
+    if (!data) return { restored, reverted: [] };
+    const current = commandKeys(data);
+    // An unapproved command, and an approved one a job changed or replaced with anything else.
+    const reverted = [...new Set([...Object.keys(current), ...Object.keys(approved)])].filter((provider) => current[provider] !== approved[provider]);
+    if (reverted.length) {
+      let removed: unknown[] = [];
+      try {
+        removed = JSON.parse(readFileSync(removedPath(agentDir), 'utf8')) as unknown[];
+      } catch {
+        // No history yet.
+      }
+      const at = new Date().toISOString();
+      writeFileSync(removedPath(agentDir), JSON.stringify([...removed, ...reverted.map((provider) => ({ provider, entry: data[provider] ?? null, at }))], null, 2), { mode: 0o600 });
+      for (const provider of reverted) {
+        const approvedKey = approved[provider];
+        if (approvedKey === undefined) delete data[provider];
+        else data[provider] = { type: 'api_key', key: approvedKey };
+      }
+      writeFileSync(path, JSON.stringify(data, null, 2), { mode: 0o600 });
+    }
+    copyFileSync(path, backupPath(agentDir));
+    return { restored, reverted };
   });
 }

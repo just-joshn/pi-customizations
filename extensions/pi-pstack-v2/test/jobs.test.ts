@@ -70,7 +70,7 @@ describe('tmux jobs', () => {
   test('stopping a running job records the stopped code without a wake', async () => {
     const job = launch(root, spec('sleep 30'));
     expect(read(root, job.spec.id, owner)?.status).toEqual({ state: 'running' });
-    stop(job);
+    await stop(job);
     const stopped = read(root, job.spec.id, owner);
     expect(stopped?.status).toEqual({ state: 'exited', code: STOPPED_EXIT_CODE });
     expect(stopped && claimWake(stopped)).toBe(false);
@@ -206,7 +206,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
     const argv = sandboxed(['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`], { writable: [work], protect: [created], lock: [], gitDirs: [], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work, revert: [created] })).spec.id, jobsIn());
     expect(existsSync(created)).toBe(false);
-    if (process.platform === 'linux') expect(tail(outputPath(done.dir), 5)).toContain(`pstack removed ${created}`);
+    if (process.platform === 'linux') expect(tail(outputPath(done.dir), 5)).toContain(`pstack quarantined ${created}`);
   });
 
   test.runIf(process.platform === 'linux')('the user session bus is hidden even without XDG_RUNTIME_DIR', async () => {
@@ -223,7 +223,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
     const argv = sandboxed(['bash', '-c', `setsid sleep 30 & sleep 0.2; pgrep -n -x sleep > ${pidFile}; sleep 30`], { writable: [work], protect: [], lock: [], gitDirs: [], agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
     const job = launch(jobsIn(), spec('', { id, argv, cwd: work }));
     await expect.poll(() => existsSync(pidFile), { timeout: 10_000 }).toBe(true);
-    stop(job);
+    await stop(job);
     const survivors = () => execFileSync('bash', ['-c', 'pgrep -c -f "^sleep 30$" || true'], { encoding: 'utf8' }).trim();
     await expect.poll(survivors, { timeout: 5_000 }).toBe('0');
   });

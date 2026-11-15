@@ -1,7 +1,7 @@
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawn } from 'node:child_process';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -16,6 +16,7 @@ let agentDir: string;
 let repo: string;
 let handlers: Record<string, Handler>;
 let tools: Record<string, Tool>;
+let commands: Record<string, { handler: (args: string, ctx: unknown) => Promise<void> }>;
 let sendMessage: ReturnType<typeof vi.fn>;
 let ctx: Record<string, unknown>;
 const savedArgv = process.argv[1] ?? '';
@@ -41,7 +42,11 @@ beforeEach(() => {
   handlers = {};
   tools = {};
   sendMessage = vi.fn();
+  commands = {};
   const api = {
+    registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => {
+      commands[name] = command;
+    },
     on: (event: string, handler: Handler) => {
       handlers[event] = handler;
     },
@@ -177,14 +182,14 @@ describe('tmux_jobs', () => {
     expect(sendMessage).not.toHaveBeenCalled();
   });
 
-  test('stop ends a running job, and list shows it stopped with its attach command', async () => {
+  test('stop ends a running job, and list shows it stopped with a way to follow its output', async () => {
     await call('tmux_run', { name: 'server', command: 'sleep 30' });
     const [id] = jobs();
     expect(await text({ action: 'list' })).toContain('running');
     await text({ action: 'stop', ids: [id] });
     const listing = await text({ action: 'list' });
     expect(listing).toContain('exited 143');
-    expect(listing).toContain(`tmux -S ${tmuxSocket(owner, {})} attach -t ${id}`);
+    expect(listing).toContain(`follow: tail -f ${join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'output.log')}`);
   });
 
   test('a job from another session is not visible', async () => {
@@ -432,16 +437,68 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
 });
 
 describe('credentials', { timeout: 20_000 }, () => {
-  test('a credential command a job plants is removed before Pi can run it, and an existing one is kept', async () => {
-    const auth = join(agentDir, 'auth.json');
-    writeFileSync(auth, JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' }, plain: { type: 'api_key', key: 'sk-x' } }));
+  const auth = () => join(agentDir, 'auth.json');
+  const read = () => JSON.parse(readFileSync(auth(), 'utf8')) as Record<string, { type?: string; key?: string }>;
+  const plant = (code: string) => call('tmux_run', { name: 'plant', command: `node -e "const f='${auth()}';const a=JSON.parse(require('fs').readFileSync(f));${code};require('fs').writeFileSync(f,JSON.stringify(a))"` });
+  const exited = async () => expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+
+  test('a planted credential command is removed and an approved one is kept', async () => {
+    writeFileSync(auth(), JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' }, plain: { type: 'api_key', key: 'sk-x' } }));
     await handlers['session_start']?.({}, ctx);
-    await call('tmux_run', { name: 'plant', command: `node -e "const f='${auth}';const a=JSON.parse(require('fs').readFileSync(f));a.evil={type:'api_key',key:'!touch /tmp/pwned'};require('fs').writeFileSync(f,JSON.stringify(a))"` });
-    const [id] = jobs();
-    await expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'auth-checked')), { timeout: 10_000 }).toBe(true);
-    const after = JSON.parse(readFileSync(auth, 'utf8')) as Record<string, { key: string }>;
-    expect([after['evil'], after['mine']?.key, after['plain']?.key]).toEqual([undefined, '!echo mine', 'sk-x']);
+    await plant("a.evil={type:'api_key',key:'!touch /tmp/pwned'}");
+    await exited();
+    await expect.poll(() => read()['evil'], { timeout: 10_000 }).toBeUndefined();
+    expect([read()['mine']?.key, read()['plain']?.key]).toEqual(['!echo mine', 'sk-x']);
     expect(readFileSync(join(agentDir, 'pstack-v2', 'auth-removed.json'), 'utf8')).toContain('!touch /tmp/pwned');
+  });
+
+  test('an approved command a job replaces is put back, not deleted', async () => {
+    writeFileSync(auth(), JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' } }));
+    await handlers['session_start']?.({}, ctx);
+    await plant("a.mine={type:'api_key',key:'!touch /tmp/pwned'}");
+    await exited();
+    await expect.poll(() => read()['mine']?.key, { timeout: 10_000 }).toBe('!echo mine');
+  });
+
+  test('a command you approve stays', async () => {
+    writeFileSync(auth(), JSON.stringify({}));
+    await handlers['session_start']?.({}, ctx);
+    writeFileSync(auth(), JSON.stringify({ added: { type: 'api_key', key: '!op read secret' } }));
+    await commands['pstack-approve-credentials']?.handler('', ctx);
+    await handlers['turn_start']?.({}, ctx);
+    expect(read()['added']?.key).toBe('!op read secret');
+  });
+
+  test('credentials a job garbles are restored from the last good copy', async () => {
+    writeFileSync(auth(), JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'garble', command: `printf 'not json' > ${auth()}` });
+    await exited();
+    await expect.poll(() => readFileSync(auth(), 'utf8'), { timeout: 10_000 }).not.toBe('not json');
+    expect(read()).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
+  });
+});
+
+describe('round five', { timeout: 20_000 }, () => {
+  const exited = async () => expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+  const output = () => readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8');
+
+  test('a job cannot write shared temp directories, where unsandboxed programs cache code, but has its own', async () => {
+    const shared = process.platform === 'darwin' ? realpathSync(tmpdir()) : '/tmp';
+    await call('tmux_run', { name: 'tmp', command: `touch ${shared}/pstack-shared-${process.pid} 2>/dev/null && echo SHARED-WRITTEN; touch "$TMPDIR/own" && echo OWN-WRITTEN` });
+    await exited();
+    // On Linux the write lands in the job's private /tmp, so what matters is that the shared one is untouched.
+    expect(output()).toContain('OWN-WRITTEN');
+    expect(existsSync(join(shared, `pstack-shared-${process.pid}`))).toBe(false);
+  });
+
+  test('your own .pi symlink survives a job', async () => {
+    // A target inside the project, where the job may write, so the protected paths under it are watched.
+    mkdirSync(join(repo, 'mypi'));
+    symlinkSync(join(repo, 'mypi'), join(repo, '.pi'));
+    await call('tmux_run', { name: 'benign', command: 'echo hi' });
+    await exited();
+    expect(lstatSync(join(repo, '.pi')).isSymbolicLink()).toBe(true);
   });
 });
 
@@ -453,4 +510,64 @@ test('a worker that fails at startup reports its stderr', { timeout: 20_000 }, a
   await call('pi_spawn', { name: 'broken', brief: 'hi' });
   const result = (await handlers['agent_before_settle']?.({ entries: [] }, ctx)) as { entries: { content: string }[] };
   expect(result.entries[0]?.content).toContain('No API key for provider');
+});
+
+describe('round four', { timeout: 20_000 }, () => {
+  const jobDir = () => join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '');
+  const exited = async () => expect.poll(() => existsSync(join(jobDir(), 'exit')), { timeout: 10_000 }).toBe(true);
+  const alive = (pid: number): boolean => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  test('a job may not write a directory that holds Pi itself', async () => {
+    ctx = { ...ctx, cwd: dirname(agentDir) };
+    await expect(call('tmux_run', { name: 'home', command: 'true' })).rejects.toThrow(/contains Pi's agent directory/);
+  });
+
+  test.runIf(process.platform === 'darwin')('a job cannot signal a process outside its sandbox, such as the wrapper or Pi', async () => {
+    const outside = spawn('sleep', ['30'], { stdio: 'ignore' });
+    await call('tmux_run', { name: 'killer', command: `kill -9 ${outside.pid} 2>/dev/null && echo KILLED || echo DENIED` });
+    await exited();
+    expect([readFileSync(join(jobDir(), 'output.log'), 'utf8').trim(), alive(outside.pid ?? 0)]).toEqual(['DENIED', true]);
+    outside.kill();
+  });
+
+  test('a job that ignores TERM is still ended by stop', async () => {
+    await call('tmux_run', { name: 'stubborn', command: "trap '' TERM; echo $$ > stubborn.pid; while :; do sleep 0.2; done" });
+    await expect.poll(() => existsSync(join(repo, 'stubborn.pid')), { timeout: 10_000 }).toBe(true);
+    const pid = Number(readFileSync(join(repo, 'stubborn.pid'), 'utf8'));
+    await call('tmux_jobs', { action: 'stop', ids: [jobs()[0] ?? ''] });
+    expect(alive(pid)).toBe(false);
+  });
+
+  test('a child left running when the job exits is ended with it', async () => {
+    await call('tmux_run', { name: 'leaver', command: '(sleep 30) & echo $! > child.pid; exit 0' });
+    await exited();
+    const pid = Number(readFileSync(join(repo, 'child.pid'), 'utf8'));
+    await expect.poll(() => alive(pid), { timeout: 5_000 }).toBe(false);
+  });
+
+  test('a protected path that appears during a job is quarantined, not deleted', async () => {
+    await call('tmux_run', { name: 'idle', command: `while [ ! -e ${repo}/.go ]; do sleep 0.1; done` });
+    mkdirSync(join(repo, '.pi'), { recursive: true });
+    writeFileSync(join(repo, '.pi', 'settings.json'), '{"mine":true}');
+    writeFileSync(join(repo, '.go'), '');
+    await exited();
+    const quarantine = join(jobDir(), 'quarantine');
+    expect(existsSync(join(repo, '.pi', 'settings.json'))).toBe(false);
+    expect(readdirSync(quarantine).some((name) => readFileSync(join(quarantine, name), 'utf8') === '{"mine":true}')).toBe(true);
+  });
+
+  test('project-installed Pi packages and the main config.worktree stay read-only', async () => {
+    mkdirSync(join(repo, '.pi', 'npm'), { recursive: true });
+    writeFileSync(join(repo, '.git', 'config.worktree'), '');
+    await call('tmux_run', { name: 'packages', command: 'echo evil > .pi/npm/x.js; printf "[core]\\n\\tfsmonitor = touch pwned\\n" > .git/config.worktree' });
+    await exited();
+    expect([existsSync(join(repo, '.pi', 'npm', 'x.js')), readFileSync(join(repo, '.git', 'config.worktree'), 'utf8')]).toEqual([false, '']);
+  });
 });

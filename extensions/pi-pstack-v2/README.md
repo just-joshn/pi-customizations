@@ -33,6 +33,7 @@ Don't install this alongside another pstack package. Skill names collide, and Pi
 | `pi_spawn` | Starts a sandboxed `pi -p` worker in its own tmux session with a standalone brief, an optional role from `agents/`, model, thinking level, git worktree, or readonly mode. Wakes the session with the worker's report when it exits. |
 | `tmux_run` | Runs a sandboxed shell command in tmux. Optionally wakes the session when it exits, or repeats it as a heartbeat. |
 | `tmux_jobs` | Lists, tails, waits on, or stops this session's jobs. |
+| `/pstack-approve-credentials` | Approves the `!command` credential keys `auth.json` holds now. pstack reverts any command key you have not approved, since a job could plant one. |
 
 It also appends the two cursor-team-kit rules (no inline imports, exhaustive switches) to the system prompt. When `~/.pi/agent/pstack-v2-models.md` exists, it shows those role lines to the model.
 
