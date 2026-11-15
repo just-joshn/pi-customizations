@@ -9,6 +9,8 @@ import select
 import shutil
 import signal
 import struct
+import subprocess
+import sys
 import tempfile
 import termios
 import time
@@ -18,6 +20,7 @@ from pathlib import Path
 BENCH = Path(__file__).resolve().parent
 PACKAGE = BENCH.parent
 PROVIDER = BENCH / "bench-provider.ts"
+FIXTURE = BENCH / "visual/mockup-fixture.py"
 ROWS, COLS = 40, 120
 PROMPT = "Run the replay benchmark workload."
 KEY = b"q"
@@ -26,13 +29,15 @@ KEY_INTERVAL_S = 0.25
 ECHO_BOUND_S = 1.0
 EXPECTED_TOOL_RESULTS = 4
 IDLE_SETTLE_S = 1.0
+LONG_REPEATS = 150
+NARROW_COLS = 90
+QUIET_S = 0.5
+STEP_FIRST_BYTE_S = 5.0
+STEP_CAP_S = 60.0
 
-COMMON_ARGS = [
-    "--no-extensions", "-e", str(PROVIDER),
-    "--provider", "bench", "--model", "replay",
-    "--no-session", "--offline", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-context-files",
-    "--tools", "read,bash,edit,grep",
-]
+SHARED_ARGS = ["--offline", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-context-files", "--tools", "read,bash,edit,grep"]
+COMMON_ARGS = ["--no-extensions", "-e", str(PROVIDER), "--provider", "bench", "--model", "replay", "--no-session", *SHARED_ARGS]
+LONG_ARGS = ["--no-extensions", *SHARED_ARGS]
 CONFIGS = {
     "stock": ["--use-theme", "dark"],
     "theme": ["--theme", str(PACKAGE / "themes"), "--use-theme", "snoop-dark"],
@@ -40,6 +45,7 @@ CONFIGS = {
     "spinner": ["-e", str(PACKAGE / "src/tool-rows.ts"), "-e", str(PACKAGE / "src/footer.ts"), "--theme", str(PACKAGE / "themes"), "--use-theme", "snoop-dark"],
 }
 SETTINGS = {"quietStartup": True, "collapseChangelog": True, "lastChangelogVersion": "1.5.2", "packages": []}
+RULE = re.compile("─+")
 ANSI = re.compile(rb"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[P^_][^\x1b]*\x1b\\|\x1b[@-Z\\-_]")
 
 
@@ -87,15 +93,19 @@ class Session:
         return sum(size for at, size in self.chunks if start_s <= at < end_s)
 
 
-def spawn(config: str, workspace: Path, agent_dir: Path, log: Path) -> Session:
+def set_winsize(fd: int, cols: int) -> None:
+    fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", ROWS, cols, 0, 0))
+
+
+def spawn(config: str, workspace: Path, agent_dir: Path, log: Path, args: list[str] = COMMON_ARGS) -> Session:
     env = dict(os.environ, PI_CODING_AGENT_DIR=str(agent_dir), TERM="xterm-256color", COLORTERM="truecolor", COLUMNS=str(COLS), LINES=str(ROWS))
     env["SNOOP_BENCH_OUT"] = str(agent_dir / "record.jsonl")
     pid, fd = pty.fork()
     if pid == 0:
-        fcntl.ioctl(0, termios.TIOCSWINSZ, struct.pack("HHHH", ROWS, COLS, 0, 0))
+        set_winsize(0, COLS)
         os.chdir(workspace)
-        os.execvpe("pi", ["pi", *COMMON_ARGS, *CONFIGS[config]], env)
-    fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", ROWS, COLS, 0, 0))
+        os.execvpe("pi", ["pi", *args, *CONFIGS[config]], env)
+    set_winsize(fd, COLS)
     return Session(pid=pid, fd=fd, log=log)
 
 
@@ -128,7 +138,7 @@ def wait_for_record(session: Session, record: Path, timeout: float) -> dict:
     raise RuntimeError(f"no record within {timeout}s")
 
 
-def reap(session: Session) -> int:
+def reap(session: Session) -> tuple[int, dict]:
     for action in (None, b"\x03", b"\x03", signal.SIGTERM, signal.SIGKILL):
         if isinstance(action, bytes):
             session.write(action)
@@ -137,10 +147,10 @@ def reap(session: Session) -> int:
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
             session.read(0.1)
-            done, status = os.waitpid(session.pid, os.WNOHANG)
+            done, status, usage = os.wait4(session.pid, os.WNOHANG)
             if done:
                 os.close(session.fd)
-                return os.waitstatus_to_exitcode(status)
+                return os.waitstatus_to_exitcode(status), {"user": usage.ru_utime * 1000, "sys": usage.ru_stime * 1000}
     raise RuntimeError("pi did not exit")
 
 
@@ -168,9 +178,69 @@ def run_once(config: str, round_index: int, keep: bool) -> dict:
         }
     except RuntimeError as error:
         result["error"] = str(error)
-    result["exitCode"] = reap(session)
+    result["exitCode"], _ = reap(session)
     result["editApplied"] = (workspace / "edit-target.txt").exists() and "status: final" in (workspace / "edit-target.txt").read_text()
     problems = check(result)
+    if problems:
+        result["problems"] = problems
+    if problems or keep:
+        result["artifacts"] = str(root)
+        (root / "chunks.json").write_text(json.dumps(session.chunks))
+    else:
+        shutil.rmtree(root)
+    return result
+
+
+def measure_step(session: Session, started: float, first_byte_s: float) -> dict:
+    deadline = started + STEP_CAP_S
+    last, output = None, b""
+    while True:
+        now = time.monotonic()
+        quiet_until = last + QUIET_S if last else started + first_byte_s
+        if now >= quiet_until:
+            rule_cols = max((len(run) for run in RULE.findall(output.decode("utf-8", "replace"))), default=0)
+            return {"ms": ((last or started) - started) * 1000, "bytes": len(output), "output": bool(output), "ruleCols": rule_cols}
+        if now >= deadline:
+            raise RuntimeError(f"output did not settle within {STEP_CAP_S}s")
+        data = session.read(min(quiet_until, deadline) - now)
+        if data:
+            last = time.monotonic()
+            output += data
+
+
+def run_long(config: str, round_index: int, keep: bool) -> dict:
+    root = Path(tempfile.mkdtemp(prefix=f"snoop-bench-long-{config}-", dir=os.environ.get("TMPDIR")))
+    workspace, agent_dir = root / "workspace", root / "agent"
+    workspace.mkdir()
+    agent_dir.mkdir()
+    (agent_dir / "settings.json").write_text(json.dumps(SETTINGS))
+    session_file = root / "session.jsonl"
+    subprocess.run([sys.executable, str(FIXTURE), str(session_file), str(workspace), str(LONG_REPEATS)], check=True)
+    steps: dict = {}
+    result: dict = {"workloadName": "long", "config": config, "round": round_index, "repeats": LONG_REPEATS, "steps": steps}
+    started = time.monotonic()
+    session = spawn(config, workspace, agent_dir, root / "pty.log", [*LONG_ARGS, "--session", str(session_file)])
+    actions = [
+        ("narrow", lambda: set_winsize(session.fd, NARROW_COLS)),
+        ("wide", lambda: set_winsize(session.fd, COLS)),
+        ("expand", lambda: session.write(b"\x0f")),
+        ("collapse", lambda: session.write(b"\x0f")),
+    ]
+    name = "startup"
+    try:
+        steps[name] = measure_step(session, started, STEP_CAP_S)
+        for name, action in actions:
+            at = time.monotonic()
+            action()
+            steps[name] = measure_step(session, at, STEP_FIRST_BYTE_S)
+    except RuntimeError as error:
+        result["error"] = f"{name}: {error}"
+    exit_at = time.time()
+    session.write(b"\x04")
+    result["exitCode"], result["cpuMs"] = reap(session)
+    result["exitBytes"] = session.bytes_between(exit_at, time.time())
+    problems = [result["error"]] if "error" in result else [f"{name}: no output" for name, step in steps.items() if not step["output"]]
+    problems += [f"{name}: widest rule {steps[name]['ruleCols']} != {cols}" for name, cols in (("narrow", NARROW_COLS), ("wide", COLS)) if name in steps and steps[name]["ruleCols"] != cols]
     if problems:
         result["problems"] = problems
     if problems or keep:
@@ -200,6 +270,7 @@ def check(result: dict) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Replay benchmark for pi-snoop-tui in a real Pi TUI.")
+    parser.add_argument("--workload", choices=["stream", "long"], default="stream", help="stream: replay a streamed turn; long: restore a long session, resize, toggle expansion")
     parser.add_argument("--runs", type=int, default=5)
     parser.add_argument("--configs", default="stock,theme,full")
     parser.add_argument("--out", default="results.jsonl")
@@ -212,10 +283,13 @@ def main() -> None:
     for round_index in range(args.runs):
         order = configs[round_index % len(configs):] + configs[:round_index % len(configs)]
         for config in order:
-            result = run_once(config, round_index, args.keep_artifacts)
+            result = (run_long if args.workload == "long" else run_once)(config, round_index, args.keep_artifacts)
             with open(args.out, "a") as handle:
                 handle.write(json.dumps(result) + "\n")
-            summary = result.get("problems") or f"cpu {result['workload']['cpuUserMs'] + result['workload']['cpuSystemMs']:.0f} ms"
+            if args.workload == "long":
+                summary = result.get("problems") or f"cpu {result['cpuMs']['user'] + result['cpuMs']['sys']:.0f} ms, " + ", ".join(f"{name} {step['ms']:.0f} ms" for name, step in result["steps"].items())
+            else:
+                summary = result.get("problems") or f"cpu {result['workload']['cpuUserMs'] + result['workload']['cpuSystemMs']:.0f} ms"
             print(f"round {round_index} {config}: {summary}", flush=True)
 
 
