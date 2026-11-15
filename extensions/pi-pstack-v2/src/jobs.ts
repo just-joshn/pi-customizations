@@ -161,6 +161,7 @@ function run(job: Run): void {
   const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
   const script = [
     'set -m',
+    `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
     'finished=0',
     'finish() {',
     '  [ "$finished" = 1 ] && return',
@@ -281,7 +282,17 @@ export async function stop(job: Job): Promise<void> {
     // can never record it, leaves that to stop.
     const exit = exitPath(job.spec.out);
     const deadline = Date.now() + 6_000;
-    while (!existsSync(exit) && Date.now() < deadline) await new Promise((done) => setTimeout(done, 50));
+    const wrapper = Number(readEnd(join(job.spec.out, 'wrapper.pid'), 32).trim());
+    const alive = (): boolean => {
+      try {
+        process.kill(wrapper, 0);
+        return wrapper > 0;
+      } catch {
+        return false;
+      }
+    };
+    // The wrapper keeps cleaning up after its session is gone, so waiting ends once it records the exit or is itself gone.
+    while (!existsSync(exit) && Date.now() < deadline && alive()) await new Promise((done) => setTimeout(done, 50));
     if (!existsSync(exit)) {
       writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
       renameSync(`${exit}.tmp`, exit);

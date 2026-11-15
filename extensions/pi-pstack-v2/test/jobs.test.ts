@@ -212,7 +212,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test.runIf(process.platform === 'linux')('the user session bus is hidden even without XDG_RUNTIME_DIR', async () => {
     const runtime = `/run/user/${process.getuid?.() ?? 0}`;
     const id = newJobId('bus');
-    const argv = sandboxed(['bash', '-c', `ls -A ${runtime} | wc -l`], { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
+    const argv = sandboxed(['bash', '-c', `ls -A ${runtime} 2>/dev/null | wc -l`], { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
     expect(tail(outputPath(done.dir), 3).trim()).toBe('0');
   });

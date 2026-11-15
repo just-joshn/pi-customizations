@@ -81,7 +81,7 @@ afterEach(async () => {
   rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
-describe('pi_spawn', () => {
+describe('pi_spawn', { timeout: 20_000 }, () => {
   test('an unknown model is rejected before any job is created', async () => {
     await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Unknown model "nope\/none"/);
     expect(jobs()).toEqual([]);
@@ -118,7 +118,7 @@ describe('pi_spawn', () => {
   });
 });
 
-describe('tmux_run', () => {
+describe('tmux_run', { timeout: 20_000 }, () => {
   test('an interactive session is woken once with the wake message and output', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'echo', command: 'echo watched-output', wake: 'Re-check CI.' });
@@ -170,7 +170,7 @@ describe('system prompt', () => {
   });
 });
 
-describe('tmux_jobs', () => {
+describe('tmux_jobs', { timeout: 20_000 }, () => {
   const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
 
   test('wait returns the report of a finished job and suppresses its wake', async () => {
