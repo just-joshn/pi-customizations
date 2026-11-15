@@ -1,7 +1,7 @@
 import { type Credential, createModels, InMemoryCredentialStore, type MutableModels, type Provider } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { PROJECT_HEADER, PROVIDER_ID } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER, PROVIDER_ID } from './constants.ts';
 import extension from './index.ts';
 
 const sse = (...chunks: object[]) => new Response(chunks.map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`).join(''), { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
@@ -61,7 +61,7 @@ describe('real Pi Models runtime', () => {
     expect(google.seen[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(google.seen[0]?.headers['authorization']).toBe('Bearer access-live');
     expect(google.seen[0]?.body.project).toBe('proj-77');
-    expect(Object.keys(google.seen[0]?.headers ?? {})).not.toContain(PROJECT_HEADER);
+    expect(Object.keys(google.seen[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(Object.values(google.seen[0]?.headers ?? {}).join('\n')).not.toContain('proj-77');
     expect(message).toMatchObject({ stopReason: 'toolUse', responseId: 'trace-9', responseModel: 'gemini-3.5-flash-001' });
     expect(message.content).toEqual([

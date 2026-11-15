@@ -35,7 +35,6 @@ export interface CodeAssistRequestBody {
 }
 
 const GOOGLE_THINKING_LEVELS = new Set(['MINIMAL', 'LOW', 'MEDIUM', 'HIGH']);
-/** Token budgets per level for Gemini 2.5 Pro, the only budget-style model served here (same table as Pi's Google adapter). */
 const BUDGET_BY_LEVEL: Partial<Record<ModelThinkingLevel, number>> = { minimal: 128, low: 2048, medium: 8192, high: 32768 };
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
 const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);
@@ -58,7 +57,6 @@ const JSON_SCHEMA_SUBSCHEMAS = new Set([
   'contentSchema',
 ]);
 
-/** Transcript to Code Assist envelope. Mirrors Pi's google-shared convertMessages and convertTools, which an extension cannot import. */
 export function buildCodeAssistRequest(input: { model: Model<Api>; context: TranscriptContext; project: string; options: SimpleStreamOptions }): CodeAssistRequestBody {
   const { model, context, project, options } = input;
   const systemPrompt = getCurrentSystemPrompt(context.messages);
@@ -175,8 +173,6 @@ function buildThinkingConfig(model: Model<Api>, options: SimpleStreamOptions): C
   const levelStyle = model.thinkingLevelMap !== undefined;
   const level = options.reasoning ? clampThinkingLevel(model, options.reasoning) : 'off';
   if (level === 'off') {
-    // Thinking cannot be switched off where the map has no "off": the lowest level stands in. Budget-style models
-    // (Gemini 2.5 Pro) reject a zero budget, so they keep Google's default.
     const lowest = levelStyle ? clampThinkingLevel(model, 'off') : 'off';
     return lowest === 'off' ? undefined : { thinkingLevel: googleLevel(model, lowest) };
   }

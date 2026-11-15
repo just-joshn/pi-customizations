@@ -1,6 +1,6 @@
 import { type AssistantMessage, type AssistantMessageEvent, calculateCost, type Message, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { describe, expect, test, vi } from 'vitest';
-import { PROJECT_HEADER } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { createCodeAssistModels } from './models.ts';
 import { streamCodeAssist } from './stream.ts';
 
@@ -29,7 +29,7 @@ function run(responder: Response | (() => Response | Promise<Response>), options
     sent.push({ url: String(input), headers: Object.fromEntries(new Headers(init?.headers)), body: JSON.parse(String(init?.body)) });
     return typeof responder === 'function' ? responder() : responder;
   });
-  const stream = streamCodeAssist(model, context, { apiKey: 'tok-abc', headers: { [PROJECT_HEADER]: 'proj-1' }, fetch: fetchImpl, ...options });
+  const stream = streamCodeAssist(model, context, { apiKey: 'tok-abc', headers: { [PRIVATE_PROJECT_HEADER]: 'proj-1' }, fetch: fetchImpl, ...options });
   return { stream, sent, fetchImpl };
 }
 
@@ -54,16 +54,16 @@ describe('request', () => {
     expect(sent).toHaveLength(1);
     expect(sent[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(sent[0]?.headers).toMatchObject({ authorization: 'Bearer tok-abc', 'content-type': 'application/json', accept: 'text/event-stream' });
-    expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PROJECT_HEADER);
+    expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(sent[0]?.body.project).toBe('proj-1');
   });
 
   test('forwards other caller headers and drops null ones', async () => {
-    const { stream, sent } = run(sseResponse(frame(stopChunk())), { headers: { [PROJECT_HEADER.toUpperCase()]: 'proj-1', 'x-extra': '1', 'x-drop': null } });
+    const { stream, sent } = run(sseResponse(frame(stopChunk())), { headers: { [PRIVATE_PROJECT_HEADER.toUpperCase()]: 'proj-1', 'x-extra': '1', 'x-drop': null } });
     await collect(stream);
     expect(sent[0]?.headers).toMatchObject({ 'x-extra': '1' });
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain('x-drop');
-    expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PROJECT_HEADER);
+    expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
   });
 
   test('posts the payload that onPayload returns', async () => {

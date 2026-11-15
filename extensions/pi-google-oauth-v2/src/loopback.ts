@@ -3,14 +3,8 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
 export interface LoopbackCallback {
-  /** Sent to Google as redirect_uri. */
   readonly redirectUri: string;
-  /**
-   * Resolves with the authorization code once a callback with the matching state arrives.
-   * Rejects on a Google error, a missing code, timeout, abort, or close().
-   */
   readonly code: Promise<string>;
-  /** Idempotent. Releases the port and rejects `code` if still pending. */
   close(): void;
 }
 
@@ -28,11 +22,6 @@ function statesMatch(received: string | null, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/**
- * Binds 127.0.0.1 on an OS-assigned port, so there is no probe-then-bind race. Requests that are
- * not this login's callback (other paths, wrong or missing state) get an error response and the
- * server keeps waiting, so a stray request cannot fail the login.
- */
 export async function startLoopbackCallback(input: { state: string; signal: AbortSignal }): Promise<LoopbackCallback> {
   let resolve!: (code: string) => void;
   let reject!: (error: Error) => void;

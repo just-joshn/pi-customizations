@@ -11,7 +11,7 @@ import {
   uuidv7,
 } from '@earendil-works/pi-ai';
 import { CodeAssistError, googleErrorMessage } from './code-assist.ts';
-import { PROJECT_HEADER } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
 interface CodeAssistChunk {
@@ -51,7 +51,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
 
   (async () => {
     try {
-      const { project, headers } = splitProjectHeader(options.headers);
+      const { project, headers } = takePrivateProjectHeader(options.headers);
       if (!options.apiKey || !project) throw new Error('Google AI login is incomplete; run /login again');
 
       let body: unknown = buildCodeAssistRequest({ model, context, project, options });
@@ -90,21 +90,16 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
   return stream;
 }
 
-/** The project id travels in a private header from toAuth(). It never goes to Google. */
-function splitProjectHeader(headers: SimpleStreamOptions['headers']): { project: string | undefined; headers: Record<string, string> } {
+function takePrivateProjectHeader(headers: SimpleStreamOptions['headers']): { project: string | undefined; headers: Record<string, string> } {
   let project: string | undefined;
   const forwarded: Record<string, string> = {};
   for (const [name, value] of Object.entries(headers ?? {})) {
-    if (name.toLowerCase() === PROJECT_HEADER) project = value ?? undefined;
+    if (name.toLowerCase() === PRIVATE_PROJECT_HEADER) project = value ?? undefined;
     else if (value !== null) forwarded[name] = value;
   }
   return { project, headers: forwarded };
 }
 
-/**
- * Each event is its `data:` lines joined with "\n"; a blank line ends it. Malformed JSON throws,
- * because skipping a chunk would ship a silently wrong answer.
- */
 async function* parseSse(body: ReadableStream<Uint8Array> | null, signal: AbortSignal | undefined): AsyncGenerator<CodeAssistChunk> {
   if (!body) throw new Error('Google Code Assist returned an empty response');
   const reader = body.getReader();
@@ -152,7 +147,6 @@ async function* parseSse(body: ReadableStream<Uint8Array> | null, signal: AbortS
 
 const withGoogleMessage = (summary: string, message: string | undefined): string => (message ? `${summary}: ${message}` : summary);
 
-/** Chunks to AssistantMessageEvents, with at most one open text or thinking block at a time. */
 class ResponseReducer {
   private readonly stream: AssistantMessageEventStream;
   private readonly output: AssistantMessage;
@@ -201,7 +195,6 @@ class ResponseReducer {
     }
   }
 
-  /** finishReason is read after the last chunk, because usage can arrive in a later chunk than the reason. */
   finish(): void {
     this.closeOpen();
     const reason = this.finishReason;

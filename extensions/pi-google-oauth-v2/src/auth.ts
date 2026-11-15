@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type { FetchFunction, ModelAuth, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { readProjectOverride, resolveProject } from './code-assist.ts';
-import { PROJECT_HEADER } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LoopbackExpiredError, startLoopbackCallback } from './loopback.ts';
 
 // gemini-cli's installed-app client. Google documents installed-app secrets as non-confidential.
@@ -11,10 +11,8 @@ const CLIENT_SECRET = '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';
 const SCOPES = ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'];
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-/** gemini-cli's headless flow: the page shows a code that the user pastes into Pi. */
 const MANUAL_REDIRECT_URI = 'https://codeassist.google.com/authcode';
 
-/** Written by login() only. refresh() spreads it, because Pi replaces the stored credential with refresh()'s result. */
 export type GoogleCredential = OAuthCredential & { projectId: string };
 
 export interface GoogleOAuthDeps {
@@ -110,7 +108,6 @@ async function login(interaction: ProviderAuthInteraction, fetchImpl: FetchFunct
       links: [{ url: buildAuthUrl({ redirectUri: MANUAL_REDIRECT_URI, state, codeChallenge }), label: 'Code page' }],
     });
     const pasted = interaction.prompt({ type: 'manual_code', message: 'Authorization code', signal: cancelPrompt.signal }).then((code) => ({ code: code.trim(), redirectUri: MANUAL_REDIRECT_URI }));
-    // The loser of the race is aborted or closed and rejects; that must not surface as an unhandled rejection.
     pasted.catch(() => undefined);
     const callback = loopback.code.then(
       (code) => ({ code, redirectUri: loopback.redirectUri }),
@@ -147,5 +144,5 @@ async function refresh(credential: OAuthCredential, signal: AbortSignal, fetchIm
 
 async function toAuth(credential: OAuthCredential): Promise<ModelAuth> {
   const stored = parseStoredCredential(credential);
-  return { apiKey: stored.access, headers: { [PROJECT_HEADER]: stored.projectId } };
+  return { apiKey: stored.access, headers: { [PRIVATE_PROJECT_HEADER]: stored.projectId } };
 }

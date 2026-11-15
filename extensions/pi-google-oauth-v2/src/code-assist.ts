@@ -1,13 +1,10 @@
 import type { FetchFunction } from '@earendil-works/pi-ai';
 import { CODE_ASSIST_BASE_URL } from './constants.ts';
 
-/** Message is Google's own error.message, verbatim. */
 export class CodeAssistError extends Error {}
 
-/** loadCodeAssist reported ineligible tiers and no project is available. Message is Google's reasonMessage text. */
 export class IneligibleTierError extends CodeAssistError {}
 
-/** Google requires account validation first. The user validates in a browser, then runs /login again. */
 export class ValidationRequiredError extends CodeAssistError {
   readonly validationUrl: string;
   constructor(reasonMessage: string, validationUrl: string) {
@@ -16,7 +13,6 @@ export class ValidationRequiredError extends CodeAssistError {
   }
 }
 
-/** No project from the server, onboarding, or the environment. */
 export class ProjectRequiredError extends CodeAssistError {}
 
 export interface ResolvedProject {
@@ -27,7 +23,6 @@ export interface ResolvedProject {
 
 export interface ResolveProjectInput {
   accessToken: string;
-  /** Used only when the server returns no project, as in gemini-cli setup.ts. */
   envProject: string | undefined;
   signal: AbortSignal;
   fetchImpl: FetchFunction;
@@ -68,7 +63,6 @@ const STANDARD_TIER = 'standard-tier';
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 60;
 
-/** GOOGLE_CLOUD_PROJECT, then GOOGLE_CLOUD_PROJECT_ID (gemini-cli order). Blank counts as unset. */
 export function readProjectOverride(env: NodeJS.ProcessEnv): string | undefined {
   const value = (env['GOOGLE_CLOUD_PROJECT'] || env['GOOGLE_CLOUD_PROJECT_ID'] || '').trim();
   if (!value) return undefined;
@@ -80,7 +74,6 @@ export function codeAssistUrl(method: string): string {
   return `${CODE_ASSIST_BASE_URL}:${method}`;
 }
 
-/** gemini-cli setup.ts as a straight line: load, validation check, then the onboarded or onboarding branch. */
 export async function resolveProject(input: ResolveProjectInput): Promise<ResolvedProject> {
   const { envProject } = input;
   const metadata = { ...METADATA, ...(envProject ? { duetProject: envProject } : {}) };
@@ -146,7 +139,6 @@ async function callCodeAssist<T>(input: ResolveProjectInput, method: 'GET' | 'PO
   }
 }
 
-/** The message from a Google `{error:{message}}` body, or undefined. Never echoes the rest of the body. */
 export function googleErrorMessage(text: string): string | undefined {
   try {
     const parsed: unknown = JSON.parse(text);

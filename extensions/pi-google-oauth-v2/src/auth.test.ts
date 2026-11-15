@@ -4,7 +4,7 @@ import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } 
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { buildAuthUrl, createGoogleOAuth, parseStoredCredential } from './auth.ts';
 import { IneligibleTierError } from './code-assist.ts';
-import { PROJECT_HEADER } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LOOPBACK_TIMEOUT_MS } from './loopback.ts';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -284,12 +284,12 @@ describe('toAuth', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test('returns the access token and the project header', async () => {
-    await expect(oauth.toAuth(stored)).resolves.toEqual({ apiKey: 'access-1', headers: { [PROJECT_HEADER]: 'proj-1' } });
+    await expect(oauth.toAuth(stored)).resolves.toEqual({ apiKey: 'access-1', headers: { [PRIVATE_PROJECT_HEADER]: 'proj-1' } });
   });
 
   test('ignores the environment', async () => {
     vi.stubEnv('GOOGLE_CLOUD_PROJECT', 'proj-env');
-    await expect(oauth.toAuth(stored)).resolves.toMatchObject({ headers: { [PROJECT_HEADER]: 'proj-1' } });
+    await expect(oauth.toAuth(stored)).resolves.toMatchObject({ headers: { [PRIVATE_PROJECT_HEADER]: 'proj-1' } });
   });
 
   test('declares a subscription login', () => {
