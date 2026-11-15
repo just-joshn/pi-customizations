@@ -57,7 +57,7 @@ def cell(values: list[float]) -> str:
 def table(runs: dict[str, list[dict]], failed: dict[str, int], metrics: list) -> None:
     configs = [c for c in CONFIG_ORDER if c in runs] + sorted(set(runs) - set(CONFIG_ORDER))
     print("Median (min..max) per config.\n")
-    print("| Metric | " + " | ".join(f"{c} (n={len(runs[c])}, failed={failed[c]})" for c in configs) + " |")
+    print("| Metric | " + " | ".join(f"{c} (n={len(runs[c])}, failed={failed[c]}, problems={sum('problems' in r for r in runs[c])})" for c in configs) + " |")
     print("|---|" + "---|" * len(configs))
     for name, extract in metrics:
         print(f"| {name} | " + " | ".join(cell([extract(r) for r in runs[c]]) for c in configs) + " |")
@@ -92,7 +92,11 @@ def main() -> None:
                 runs[workload][record["config"]].append(record)
     for workload in [w for w in METRICS if w in runs or w in failed]:
         print(f"### {workload} workload\n")
-        table(runs[workload], failed[workload], METRICS[workload])
+        records = [record for group in runs[workload].values() for record in group]
+        metrics = METRICS[workload]
+        if workload == "long" and any("echo" not in record for record in records):
+            metrics = [metric for metric in metrics if not metric[0].startswith("Expanded echo")]
+        table(runs[workload], failed[workload], metrics)
         print()
 
 

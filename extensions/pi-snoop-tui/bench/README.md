@@ -61,7 +61,7 @@ python3 report.py results-long.jsonl
 1. `startup`: from spawn.
 2. `narrow`: resize to 90x40 with `TIOCSWINSZ` on the master, which sends Pi `SIGWINCH`.
 3. `wide`: resize back to 120x40.
-4. `expand`: Ctrl+O, which expands every tool row.
+4. `expand`: Ctrl+O, which expands every tool row. After it settles, type ten `q` characters at 250 ms intervals and measure echo latency and misses as in the stream workload. Clear the editor with Ctrl+U.
 5. `collapse`: Ctrl+O again.
 
 A step settles when Pi writes nothing for 500 ms. Its time runs to the last byte before that quiet period. A step with no output within 5 s (60 s for startup) has no output and becomes a problem. A step still writing after 60 s is a timeout and fails the run. Each step records its bytes and the widest horizontal rule it drew, and a resize whose rule does not match the new width is a problem. The driver then sends Ctrl+D and reads the child's user and system CPU for the whole run from `os.wait4`, and the bytes Pi wrote on exit.

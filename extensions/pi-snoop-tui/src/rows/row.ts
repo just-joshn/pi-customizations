@@ -108,6 +108,7 @@ function sameBody(a: BodyView, b: BodyView): boolean {
 function commit(state: RowState, next: RowView): void {
   const prev = state.view;
   if (prev.phase === next.phase && prev.verb === next.verb && prev.pad === next.pad && prev.target.text === next.target.text && prev.target.kind === next.target.kind && prev.meta === next.meta && sameBody(prev.body, next.body)) return;
+  if (prev.pad !== next.pad) state.panel?.invalidate();
   state.view = Object.freeze(next);
 }
 function summarizeOnce(state: RowState, spec: ToolSpec, result: AgentToolResult<unknown>, options: ToolRenderResultOptions, ctx: ToolRenderContext): ResultSummary {
@@ -209,6 +210,7 @@ class RowBody implements Component {
   }
 }
 class Panel implements Component {
+  private cache: { width: number; source: readonly string[]; lines: string[] } | undefined;
   private readonly box = new Box(1, 0);
   private readonly theme: Theme;
   private readonly pad: () => number;
@@ -223,9 +225,14 @@ class Panel implements Component {
   }
   render(width: number): string[] {
     const indent = Math.min(this.pad() + 3, Math.max(0, width - 1));
-    return this.box.render(Math.max(1, width - indent - this.pad())).map((line) => truncateToWidth(' '.repeat(indent) + line, width, ''));
+    const source = this.box.render(Math.max(1, width - indent - this.pad()));
+    if (this.cache?.width === width && this.cache.source === source) return this.cache.lines;
+    const lines = source.map((line) => truncateToWidth(' '.repeat(indent) + line, width, ''));
+    this.cache = { width, source, lines };
+    return lines;
   }
   invalidate(): void {
+    this.cache = undefined;
     this.box.invalidate();
   }
 }
