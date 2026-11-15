@@ -33,6 +33,8 @@ export interface CodeAssistRequestBody {
 }
 
 const THINKING_LEVEL: Record<ModelThinkingLevel, string | undefined> = { off: undefined, minimal: 'LOW', low: 'LOW', medium: 'MEDIUM', high: 'HIGH', xhigh: 'HIGH', max: 'HIGH' };
+// Code Assist answers 429 RESOURCE_EXHAUSTED to any system prompt saying it runs "inside pi"; the same prompt without the clause gets a 200.
+const PI_HARNESS_CLAUSE = / running inside pi(?:, a coding agent harness)?(?=[.,])/gi;
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
 const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);
 const JSON_SCHEMA_SUBSCHEMAS = new Set([
@@ -69,7 +71,7 @@ export function buildCodeAssistRequest(input: { model: Model<Api>; context: Tran
     requestType: 'agent',
     request: {
       contents: convertMessages(model, context),
-      ...(systemPrompt ? { systemInstruction: { role: 'user' as const, parts: [{ text: scrub(systemPrompt) }] } } : {}),
+      ...(systemPrompt ? { systemInstruction: { role: 'user' as const, parts: [{ text: scrub(systemPrompt.replace(PI_HARNESS_CLAUSE, '')) }] } } : {}),
       ...(tools.length > 0
         ? {
             tools: [

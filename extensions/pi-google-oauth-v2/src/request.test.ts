@@ -55,6 +55,11 @@ describe('envelope', () => {
     expect(body.request.systemInstruction).toEqual({ role: 'user', parts: [{ text: 'Be brief.\n\nAlso be kind.' }] });
     expect(body.request.contents).toEqual([{ role: 'user', parts: [{ text: 'hi' }] }]);
   });
+
+  test('drops the sentence naming pi as the harness, which Google answers with a 429', () => {
+    const body = build([system('You are a coding assistant running inside pi, a coding agent harness. Help users inspect files.'), user('hi')]);
+    expect(body.request.systemInstruction).toEqual({ role: 'user', parts: [{ text: 'You are a coding assistant. Help users inspect files.' }] });
+  });
 });
 
 describe('user content', () => {
