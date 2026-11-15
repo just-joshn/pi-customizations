@@ -151,6 +151,7 @@ describe('failures before the first event', () => {
   test('retries a 429 capacity throttle and recovers', async () => {
     let call = 0;
     const { stream, fetchImpl } = run(() => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))), {
+      maxRetries: 2,
       maxRetryDelayMs: 0,
     });
     const events = await collect(stream);
@@ -159,10 +160,10 @@ describe('failures before the first event', () => {
     expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
   });
 
-  test('rides out a capacity 429 and then reports shared capacity, not quota', async () => {
-    const { stream, fetchImpl } = run(() => Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
+  test('a capacity 429 with no retry budget makes one request and reports shared capacity', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
     const events = await collect(stream);
-    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(message(events[0]).errorMessage).toContain('temporarily at capacity');
     expect(message(events[0]).errorMessage).toContain('not your plan quota');
   });
