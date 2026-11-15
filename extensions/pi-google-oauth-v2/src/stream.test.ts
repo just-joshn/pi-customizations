@@ -166,6 +166,15 @@ describe('failures before the first event', () => {
     expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
   });
 
+  test('a quota-exhausted 429 fails fast without retrying', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Individual quota reached for claude-sonnet-5-5. Resets in ~6h.' } }, { status: 429, statusText: 'Too Many Requests' }), {
+      maxRetryDelayMs: 0,
+    });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(message(events[0]).errorMessage).toContain('Individual quota reached');
+  });
+
   test('a rejected fetch ends with an error event', async () => {
     const { stream } = run(() => Promise.reject(new Error('socket hang up')));
     const events = await collect(stream);

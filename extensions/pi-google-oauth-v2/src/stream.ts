@@ -104,9 +104,10 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
         if (response.ok) break;
         const text = await response.text().catch(() => '');
         const message = googleErrorMessage(text) ?? (response.statusText || 'request failed');
-        // 429 is a short-term capacity throttle that clears with backoff, so retry it even when the caller allows none.
-        const limit = response.status === 429 ? Math.max(baseRetries, 4) : baseRetries;
-        if (!RETRYABLE_STATUS.has(response.status) || attempt >= limit) {
+        // A 429 RESOURCE_EXHAUSTED is a short capacity throttle worth retrying; QUOTA_EXHAUSTED resets in hours, so fail fast with Google's message.
+        const quotaExhausted = /QUOTA_EXHAUSTED|Individual quota reached/i.test(text);
+        const limit = response.status === 429 && !quotaExhausted ? Math.max(baseRetries, 4) : baseRetries;
+        if (!RETRYABLE_STATUS.has(response.status) || quotaExhausted || attempt >= limit) {
           throw new Error(`Google Code Assist error (${response.status}): ${message}`);
         }
         const delay = Math.min(retryDelayMs(text, response.headers) ?? 1000 * 2 ** attempt, maxRetryDelayMs);
