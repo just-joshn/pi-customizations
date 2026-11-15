@@ -360,9 +360,13 @@ export default function pstack(pi: ExtensionAPI) {
     };
   });
 
-  pi.on('before_agent_start', async (event) => {
+  pi.on('before_agent_start', async (event, ctx) => {
     const options = event.systemPromptOptions;
     for (const rule of [...rules, skillsHint]) if (!options.promptGuidelines.includes(rule)) options.promptGuidelines.push(rule);
+    const transcript = ctx.sessionManager.getSessionFile();
+    if (transcript)
+      options.sections['pstack-session'] =
+        `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
     const models = modelsFile(getAgentDir());
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });

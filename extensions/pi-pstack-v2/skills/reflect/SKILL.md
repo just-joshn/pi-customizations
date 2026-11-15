@@ -12,7 +12,7 @@ Invoke when the user says "reflect" or "/skill:reflect". Skip when the conversat
 
 ## 1. Locate the active transcript
 
-Before fanning out, find this conversation's transcript in the Pi session directory for the working directory. By default that is `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/`, or under where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private sessions from unrelated projects.
+Before fanning out, find this conversation's transcript. The `pstack-session` system-prompt section names it. Without that section, look in the Pi session directory for the working directory. By default that is `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/`, or under where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points. Do not glob across `~/.pi/agent/sessions/*/`. That crosses workspace boundaries and reads private sessions from unrelated projects.
 
 ```bash
 ls -t <session-dir>/*.jsonl ~/.pi/agent/pstack-v2/jobs/*/session/*.jsonl 2>/dev/null | head -10

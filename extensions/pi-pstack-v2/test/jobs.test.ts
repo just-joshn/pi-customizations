@@ -85,6 +85,24 @@ describe('tmux jobs', { timeout: 20_000 }, () => {
     expect(execFileSync(process.execPath, [script ?? '', join(job.dir, 'inventory.json')], { encoding: 'utf8' })).toBe('');
   });
 
+  test('a job whose tmux server dies still finishes when its sweep fails, instead of hanging on the closed terminal', async () => {
+    const job = launch(root, spec('sleep 30'));
+    await expect.poll(() => existsSync(join(job.dir, 'wrapper.pid')), { timeout: 5_000 }).toBe(true);
+    const wrapper = Number(readFileSync(join(job.dir, 'wrapper.pid'), 'utf8'));
+    rmSync(join(job.dir, 'inventory.json'));
+    execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
+    await expect.poll(() => read(root, job.spec.id, owner)?.status, { timeout: 10_000 }).toEqual({ state: 'exited', code: STOPPED_EXIT_CODE });
+    const alive = (): boolean => {
+      try {
+        process.kill(wrapper, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    await expect.poll(alive, { timeout: 5_000 }).toBe(false);
+  });
+
   test('stopping a running job records the stopped code without a wake', async () => {
     const job = launch(root, spec('sleep 30'));
     expect(read(root, job.spec.id, owner)?.status).toEqual({ state: 'running' });

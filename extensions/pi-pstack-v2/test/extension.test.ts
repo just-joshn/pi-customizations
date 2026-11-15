@@ -69,7 +69,7 @@ beforeEach(() => {
     ui: { setStatus: vi.fn(), notify: vi.fn((message: string) => process.stderr.write(`NOTIFY: ${message}\n`)) },
     cwd: repo,
     model: undefined,
-    sessionManager: { getSessionId: () => owner },
+    sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
     modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
     isProjectTrusted: () => true,
   };
@@ -278,6 +278,15 @@ describe('system prompt', () => {
     expect(skills).toHaveLength(1);
     expect(skills[0]).toContain(join(dirname(dirname(fileURLToPath(import.meta.url))), 'skills'));
     expect(skills[0]).toMatch(/read that file and follow it/);
+  });
+
+  test("names this session's transcript, since a worker's agent directory is its job's and holds no parent session", async () => {
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => '/sessions/run.jsonl' } });
+    expect(event.systemPromptOptions.sections['pstack-session']).toContain('/sessions/run.jsonl');
+    const ephemeral = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(ephemeral, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined } });
+    expect(ephemeral.systemPromptOptions.sections['pstack-session']).toBeUndefined();
   });
 });
 

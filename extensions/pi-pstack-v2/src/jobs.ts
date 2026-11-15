@@ -177,7 +177,8 @@ function run(job: Run): void {
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
-    `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))}`,
+    // Off the terminal: once tmux is gone, Node reopening the terminal to report an error blocks forever and holds a pty.
+    `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))} < /dev/null >> ${out} 2>&1`,
     `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
     '}',
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
