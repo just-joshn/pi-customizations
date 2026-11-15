@@ -167,6 +167,14 @@ describe('failures before the first event', () => {
     expect(message(events[0]).errorMessage).toContain('not your plan quota');
   });
 
+  test('a capacity 429 with no retry budget makes one request and reports shared capacity', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(message(events[0]).errorMessage).toContain('temporarily at capacity');
+    expect(message(events[0]).errorMessage).toContain('not your plan quota');
+  });
+
   test('a quota-exhausted 429 fails fast without retrying', async () => {
     const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Individual quota reached for claude-sonnet-5-5. Resets in ~6h.' } }, { status: 429, statusText: 'Too Many Requests' }), {
       maxRetryDelayMs: 0,
