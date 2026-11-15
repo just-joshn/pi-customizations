@@ -10,7 +10,7 @@ Start smaller than you think. You don't need many skills on day one, or even thi
 /skill:automate-me
 ```
 
-You don't describe your style, because [`/skill:automate-me`](../../skills/automate-me/SKILL.md) reads it out of your history. It mines your recent transcripts in the active workspace for repeated preferences, in how you like replies, delegation, verification, code, prose, and process, then asks you which patterns are really you. It drafts `.cursor/skills/<your-name>-mode/SKILL.md` through Cursor's built-in `create-skill` flow, runs the draft through [`/skill:unslop`](../../skills/unslop/SKILL.md), and opens a PR from a worktree so you review it like any other change.
+You don't describe your style, because [`/skill:automate-me`](../../skills/automate-me/SKILL.md) reads it out of your history. It mines your recent Pi sessions for the current working directory, under `~/.pi/agent/sessions/`, for repeated preferences, in how you like replies, delegation, verification, code, prose, and process, then asks you which patterns are really you. It drafts `.pi/skills/<your-name>-mode/SKILL.md` to Pi's skills spec, checks that it loads with `/skill:<your-name>-mode`, runs the draft through [`/skill:unslop`](../../skills/unslop/SKILL.md), and opens a PR from a worktree so you review it like any other change.
 
 Run it again whenever your habits drift:
 
@@ -45,7 +45,7 @@ Human review isn't on the list. A reviewer who must catch the same mistake on ev
 /skill:correct agents keep calling the database client directly instead of going through the repository layer
 ```
 
-It reads recent commits, reverts, review comments, and comments that explain workarounds, then groups the mistakes into classes. A class counts once it has happened twice. It fixes the most frequent classes one commit each, at the highest level that works, and proves each new check fails on a real past mistake. It also keeps a table in the agent instruction file that pairs each rule with what enforces it, so a rule that nothing enforces shows up as a repeat. The reply lists each class with its evidence, the level chosen, and why a higher level didn't work.
+It reads recent commits, reverts, review comments, and comments that explain workarounds, then groups the mistakes into classes. A class counts once it has happened twice. It fixes the most frequent classes one commit each, at the highest level that works, and proves each new check fails on a real past mistake. It also keeps a table in `AGENTS.md` that pairs each rule with what enforces it, so a rule that nothing enforces shows up as a repeat. The reply lists each class with its evidence, the level chosen, and why a higher level didn't work.
 
 Run it with no argument and it finds the classes from history on its own. `/skill:reflect` and `/skill:correct` split the work. `/skill:reflect` improves skills from one session. `/skill:correct` changes the repo so a mistake class can't come back. Pair it with `/skill:architect` when the fix is a new boundary. [Run many projects in parallel](./07-overnight.md#run-many-projects-in-parallel) has a prompt that does both across a whole repo.
 
@@ -57,7 +57,7 @@ When you already know the workflow you want to capture:
 /skill:poteto-mode write a skill for verifying database migrations in this repo
 ```
 
-Writing a skill matches the [Authoring or modifying a skill playbook](../../skills/poteto-mode/playbooks/authoring-a-skill.md), which routes through Cursor's built-in `create-skill`, validates the frontmatter and links, and ships the result through the Opening a PR playbook. Agent-facing prose has a higher bar than human prose, because an unhelpful sentence becomes an instruction some future agent follows. Let the playbook hold that bar rather than writing a `SKILL.md` freehand.
+Writing a skill matches the [Authoring or modifying a skill playbook](../../skills/poteto-mode/playbooks/authoring-a-skill.md), which writes the `SKILL.md` to Pi's skills spec, validates the frontmatter and links, checks that it loads with `/skill:<name>`, and ships the result through the Opening a PR playbook. Agent-facing prose has a higher bar than human prose, because an unhelpful sentence becomes an instruction some future agent follows. Let the playbook hold that bar rather than writing a `SKILL.md` freehand.
 
 Two special cases have their own generators. A skill that must drive your app and prove behavior is a verification skill, so use [`/skill:create-verification-skill`](../../skills/create-verification-skill/SKILL.md) and [`/skill:maintain-verification-skill`](../../skills/maintain-verification-skill/SKILL.md) instead. A skill that checks a property of your code with a model checker, a proof, or another verifier is a formal verification skill, so use [`/skill:create-formal-verification-skill`](../../skills/create-formal-verification-skill/SKILL.md) and [`/skill:maintain-formal-verification-skill`](../../skills/maintain-formal-verification-skill/SKILL.md). [Verify and ship](./06-verify-and-ship.md#prove-a-property-with-a-formal-verification-skill) covers both kinds.
 
@@ -91,9 +91,9 @@ The [Eval playbook](../../skills/poteto-mode/playbooks/eval.md) is built around 
 
 Read every output yourself before accepting the verdict. If you disagree with the judge, suspect the rubric before you suspect your judgment.
 
-## Build a bot UI with `/skill:make-bot-ui`
+## Build a wake UI with `/skill:make-bot-ui`
 
-One situational skill is for Grok Bot users. [`/skill:make-bot-ui`](../../skills/make-bot-ui/SKILL.md) builds a small page whose buttons wake a bot over a webhook routine. For example, you could swipe through a review queue and have each swipe ask the bot to act on that item. A server on your machine holds the webhook's sender key, so the key never reaches the browser or the chat. The skill also covers exposing the page on Tailscale.
+One situational skill is for people who want to wake an agent from a page. [`/skill:make-bot-ui`](../../skills/make-bot-ui/SKILL.md) builds a small page whose buttons wake a Pi session. For example, you could swipe through a review queue and have each swipe ask the session to act on that item. A server on your machine holds the sender key, so the key never reaches the browser or the chat. The key comes from an environment variable you set. The skill also covers exposing the page on Tailscale.
 
 **Pitfall:** don't edit a skill mid-task because it's misbehaving. Fix it in its own PR and keep the task moving. A skill edit that ships tangled into feature work is invisible to review and impossible to evaluate.
 

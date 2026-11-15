@@ -11,7 +11,7 @@ pstack gives you four ways in. `/skill:how` explains what the code does now. `/s
 When the cause is unclear, ask for findings, not a fix:
 
 ```text
-/skill:poteto-mode investigate why background jobs time out every few hours. give me what we know, what data you used, and your best hypotheses. don't change any code yet.
+/skill:poteto-mode investigate why the nightly jobs time out every few hours. give me what we know, what data you used, and your best hypotheses. don't change any code yet.
 ```
 
 "don't change any code yet" routes this to the [Investigation playbook](../../skills/poteto-mode/playbooks/investigation.md). It runs `/skill:how`, adds `/skill:why` for questions about motivation, and returns a cited explanation. For a choice between options, it returns a recommendation with a trade-offs table. Asking "what data you used" makes the agent separate its evidence from its guesses. When the findings point at a fix, start the fix as a new task.
@@ -22,7 +22,7 @@ When the cause is unclear, ask for findings, not a fix:
 /skill:how do we dedupe notifications? is there an n+1 when we look up subscribers?
 ```
 
-Ask the question you actually have. [`/skill:how`](../../skills/how/SKILL.md) reads the code and answers at the level of a senior engineer onboarding you onto the subsystem, with the runtime flow, the key types, and the non-obvious parts. For a big subsystem it fans out two to four read-only explorers first. For a narrow question it just reads and explains.
+Ask the question you actually have. [`/skill:how`](../../skills/how/SKILL.md) reads the code and answers at the level of a senior engineer onboarding you onto the subsystem, with the runtime flow, the key types, and the non-obvious parts. For a big subsystem it spawns two to four read-only explorers first. For a narrow question it just reads and explains.
 
 ## Dig up history with `/skill:why`
 
@@ -56,13 +56,13 @@ Teaching helps the agent as much as you. An agent that has to explain its work m
 /skill:recall catch me up on the export work from last week
 ```
 
-[`/skill:recall`](../../skills/recall/SKILL.md) mines your own recent chats plus the shared record (issues, prior fixes, errors still firing) and hands back a brief on where things stand and what's next. Your old chats hold context that a fresh agent lacks, so start new work on an old topic by loading it first, then hand over the new input:
+[`/skill:recall`](../../skills/recall/SKILL.md) mines your own recent Pi sessions plus the shared record (issues, prior fixes, errors still firing) and hands back a brief on where things stand and what's next. Your old sessions hold context that a fresh agent lacks, so start new work on an old topic by loading it first, then hand over the new input:
 
 ```text
 /skill:recall my work on the virtualized list from yesterday, then read this bug report.
 ```
 
-If you want to resume one specific chat, that's the Session pickup playbook below, not `/skill:recall`.
+If you want to resume one specific session, that's the Session pickup playbook below, not `/skill:recall`.
 
 ## Take over prior work with Session pickup
 

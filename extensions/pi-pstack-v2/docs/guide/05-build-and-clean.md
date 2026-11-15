@@ -56,7 +56,7 @@ In context, that's enough. [`/skill:tdd`](../../skills/tdd/SKILL.md) writes the 
 
 ## Clean before you commit
 
-The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before each commit and applies [`/skill:unslop`](../../skills/unslop/SKILL.md) to the PR description and commit bodies. `/skill:deslop` ships in the `cursor-team-kit` plugin, not in pstack. If you don't have it, ask for the same outcome in plain words: remove narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.
+The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before each commit and applies [`/skill:unslop`](../../skills/unslop/SKILL.md) to the PR description and commit bodies. `/skill:deslop` comes from cursor-team-kit and ships in this package. It removes narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.
 
 For prose, `/skill:unslop` takes a target and any extra rules you have:
 
@@ -74,7 +74,7 @@ Comments need their own pass, and not from the agent that wrote them. An author 
 /skill:no-comments the diff
 ```
 
-[`/skill:no-comments`](../../skills/no-comments/SKILL.md) spawns [Comment Sicko](../../agents/comment-sicko.md), a read-only reviewer with a short keep list: license headers, doc comments on a public API, links that explain what code can't, behavior forced by an external dependency you can't reshape. Everything else goes. A surprise in your own code gets no such pass. The comment comes back as a refactor flag, and `/skill:no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint, "do not remove", the skill offers to encode the claim as a type, test, or lint. Either way, the comment comes out.
+[`/skill:no-comments`](../../skills/no-comments/SKILL.md) spawns [Comment Sicko](../../agents/comment-sicko.md) as a read-only Pi, a reviewer with a short keep list: license headers, doc comments on a public API, links that explain what code can't, behavior forced by an external dependency you can't reshape. Everything else goes. A surprise in your own code gets no such pass. The comment comes back as a refactor flag, and `/skill:no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint, "do not remove", the skill offers to encode the claim as a type, test, or lint. Either way, the comment comes out.
 
 The division of labor is worth keeping straight. `/skill:deslop` cleans slop out of the code, `/skill:unslop` cleans it out of prose, and `/skill:no-comments` hands the comments to a reviewer who didn't write them.
 

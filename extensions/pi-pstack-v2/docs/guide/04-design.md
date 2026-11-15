@@ -28,7 +28,7 @@ The design isn't sacred once code starts. If implementation shows the same worka
 /skill:arena take my prompt to the arena verbatim. i want to compare their proposals with yours.
 ```
 
-[`/skill:arena`](../../skills/arena/SKILL.md) is the general tool underneath. N subagents attempt the same design or code brief in parallel, each writing to its own worktree or directory. A read-only judge from a different model family scores every candidate against a rubric. When no model from another family can run, the coordinator skips the judge and picks the base itself. The coordinator reads each candidate end to end, picks a base, grafts in the best ideas from the losers, and verifies the result.
+[`/skill:arena`](../../skills/arena/SKILL.md) is the general tool underneath. N spawned Pis attempt the same design or code brief in parallel, each writing to its own worktree or directory. A read-only judge from a different model family scores every candidate against a rubric. When no model from another family can run, the coordinator skips the judge and picks the base itself. The coordinator reads each candidate end to end, picks a base, grafts in the best ideas from the losers, and verifies the result.
 
 ```mermaid
 flowchart LR
@@ -56,7 +56,7 @@ The panel comes from your [`/skill:setup-pstack`](../../skills/setup-pstack/SKIL
 /skill:swarm check every package under packages/ against its check.sh. one worker per package. one report.
 ```
 
-[`/skill:swarm`](../../skills/swarm/SKILL.md) fans N workers across independent slices, coverage matrices, gauntlet lanes, exploration partitions, or declared race arms. Each worker gets its own scope and check, then reports `PASS`, `ISSUES`, or `BLOCKED`. The parent waits for the workers and returns one compact report with any gaps or dropouts.
+[`/skill:swarm`](../../skills/swarm/SKILL.md) fans N workers across independent slices, coverage matrices, gauntlet lanes, exploration partitions, or declared race arms. Each worker is a spawned Pi with its own scope and check, then reports `PASS`, `ISSUES`, or `BLOCKED`. The parent is woken as each worker exits and returns one compact report with any gaps or dropouts.
 
 Reach for it when parallelism buys coverage or lets independent checks race. `/skill:arena` gives every worker the same design or code brief, then picks a base and grafts the best parts. `/skill:swarm` covers slices or runs a race with a selection rule declared up front. It does not use the base-selection and grafting ceremony.
 
@@ -106,7 +106,7 @@ pstack has no planning skill, on purpose. When you do want a written plan, ask f
 /skill:poteto-mode turn this design into a plan. small verifiable PRs, each with its own verification steps.
 ```
 
-The [Multi-phase plan playbook](../../skills/poteto-mode/playbooks/multi-phase-plan.md) settles any remaining open questions by prototype, then writes one section per PR, each ending in proof that the change works. A passing test suite alone doesn't count as that proof. The plan is the deliverable. The playbook doesn't implement it, and it names which execution playbook should run it next.
+The [Multi-phase plan playbook](../../skills/poteto-mode/playbooks/multi-phase-plan.md) settles any remaining open questions by prototype, then writes one section per PR, each ending in proof that the change works. A passing test suite alone doesn't count as that proof. The plan is a Markdown file such as `plans/<slug>.md`, and you review the file. The plan is the deliverable. The playbook doesn't implement it, and it names which execution playbook should run it next.
 
 For a migration, state the bar in the prompt:
 
@@ -114,7 +114,7 @@ For a migration, state the bar in the prompt:
 /skill:poteto-mode plan the migration of our ui library to the new styling system. small verifiable PRs, each with visual regression checks. the result must match the original exactly, bugs included.
 ```
 
-"bugs included" keeps the migration from quietly fixing things on the way, which would make the old and new output impossible to compare. For a project that spans many days, you can commit the plan to the repo for a while so other agents see the work in progress. Delete it when the work lands.
+"bugs included" keeps the migration from quietly fixing things on the way, which would make the old and new output impossible to compare. For a project that spans many days, you can commit the plan file to the repo for a while so other agents see the work in progress. Delete it when the work lands.
 
 ## How much design work does a task deserve?
 

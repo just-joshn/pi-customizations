@@ -1,6 +1,6 @@
 # Run work while you sleep
 
-This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree or cloud agent, and a decision log you audit in the morning.
+This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree inside a sandbox, and a decision log you audit in the morning.
 
 ![She waves goodnight from the door while robots keep the factory running, one updating a DECISION LOG wall board under a BUILD LOOP ACTIVE sign.](./images/overnight.jpg)
 
@@ -23,7 +23,7 @@ A good handoff has the goal, the finish condition, permissions, and an escape ha
 /skill:poteto-mode im going to bed. migrate every caller to the new parser in a fresh worktree off <base>.
 done means zero old callers, all parser fixtures pass, old api deleted.
 keep a decision log. don't ask me before committing.
-/loop until done. if you're truly stuck after a few hours, stop and write up why.
+keep a heartbeat running until done. if you're truly stuck after a few hours, stop and write up why.
 ```
 
 Walk through what each line buys you:
@@ -32,12 +32,13 @@ Walk through what each line buys you:
 - "done means..." turns the goal into checks every iteration can run.
 - "fresh worktree off `<base>`" keeps the run from colliding with anything else you have open.
 - "don't ask me before committing" pre-answers the permission the agent would otherwise block on.
-- `/loop` is Cursor's built-in wake mechanism, not a pstack skill. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses it to re-check the finish condition on events or a heartbeat.
+- The heartbeat is a `tmux_run` job, not a pstack skill. A watcher runs with a `wake` message and wakes your session when it exits. A timer runs `sleep <seconds>` with `repeat: true`, and each tick wakes the session with the tick prompt. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses both to re-check the finish condition on events or on a timer. Stop a heartbeat with `tmux_jobs` and `action: "stop"`.
+- The sandbox is the permission model. Pi has no permission popups, so a job can write only to its own worktree, the repository's git directory, and temp directories. Run the main session in a container too, as the [setup page](./01-setup.md#check-tmux-and-the-sandbox) says.
 - The escape hatch lets it stop at a genuine dead end and write up why, which beats eight hours of creative goal reinterpretation.
 
 Because you'll review this work after stepping away, `/skill:poteto-mode` routes it through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs the run's phases before any code and wires in the decision log.
 
-To stop a run on purpose, tell the agent to pause, or that you're about to go offline or restart Cursor. The [Pause safely playbook](../../skills/poteto-mode/playbooks/pause-safely.md) finishes or backs out of the current step, commits a work-in-progress checkpoint, and writes a resume note. A fresh chat picks the work up from that note through the Session pickup playbook. Saying "keep going" never triggers a pause.
+To stop a run on purpose, tell the agent to pause, or that you're about to go offline or restart Pi. The [Pause safely playbook](../../skills/poteto-mode/playbooks/pause-safely.md) finishes or backs out of the current step, commits a work-in-progress checkpoint, and writes a resume note. A fresh session picks the work up from that note through the Session pickup playbook. Saying "keep going" never triggers a pause.
 
 ## What the loop does all night
 
@@ -67,7 +68,7 @@ When you're back, ask for the run in review form:
 
 Before the skill hands back its summary, it spawns a reviewer on a different model family to read the trail and the transcript, and the reply ends with an Attention section listing what deserves your scrutiny. Read that section first, then the log rows it points at. You're auditing decisions, not re-reading the whole night.
 
-For a quick status instead of an audit, run [`/skill:ketchup`](../../skills/ketchup/SKILL.md) in the chat that ran the work. It reads only, and tells you in plain words what changed since your last message, with the screenshots and small diagrams the work produced. Then it lists each call waiting on you, such as a merge, an approval, or a choice between options, with its pick, the evidence, and the risk, so you can decide from the reply alone.
+For a quick status instead of an audit, run [`/skill:ketchup`](../../skills/ketchup/SKILL.md) in the session that ran the work. It reads only, and tells you in plain words what changed since your last message, with the screenshots and small diagrams the work produced. Then it lists each call waiting on you, such as a merge, an approval, or a choice between options, with its pick, the evidence, and the risk, so you can decide from the reply alone.
 
 ## When the night holds a queue, not a task
 
@@ -85,7 +86,7 @@ The contract above drives one task to one finish condition. Some nights hold mor
 /skill:poteto-mode autopilot these five changes, but don't merge. i'll land them in the morning.
 ```
 
-[Orchestrate](../../skills/poteto-mode/playbooks/orchestrate.md) is for a program that outlives any single agent: multi-day, many stacked PRs, fleets of subagents under one standing coordinator chat. The coordinator decides which agent does each piece of work, checks what each one produces, and never writes code itself. If one agent could finish the work in a session, the playbook itself routes you back to the overnight contract above:
+[Orchestrate](../../skills/poteto-mode/playbooks/orchestrate.md) is for a program that outlives any single agent: multi-day, many stacked PRs, fleets of spawned Pis under one standing coordinator session. The coordinator decides which worker does each piece of work, checks what each one produces, and never writes code itself. If one agent could finish the work in a session, the playbook itself routes you back to the overnight contract above:
 
 ```text
 /skill:poteto-mode orchestrate the store migration. own it until every package is converted and merged. i'll check in twice a day.
@@ -93,30 +94,28 @@ The contract above drives one task to one finish condition. Some nights hold mor
 
 ## Run many projects in parallel
 
-A [Cursor Project](https://cursor.com/blog/projects) gives one coordinator agent a persistent thread. The coordinator doesn't write code. It directs subagents, which run in the cloud by default, so the work continues when your laptop is closed. That's the shape the Orchestrate playbook expects. Start your prompts to the coordinator with `/skill:poteto-mode`, and the subagents it spawns follow the playbooks.
+A coordinator session is the Project. It doesn't write code. It directs spawned Pis, each in its own worktree and sandbox, and each one wakes the coordinator with its report when it exits. That's the shape the Orchestrate playbook expects. Run the coordinator inside a container, as Pi's containerization guide describes, so it can sit through the night. Start your prompts to the coordinator with `/skill:poteto-mode`, and the Pis it spawns follow the playbooks.
 
 A few habits help:
 
-- Give each body of work its own Project, such as a feature, a migration, a perf push, or a tech-debt cleanup. Several can run side by side.
-- Drag related chats into the Project, finished ones included. They become context for every agent in it.
+- Give each body of work its own coordinator session, such as a feature, a migration, a perf push, or a tech-debt cleanup. Several can run side by side, each in its own checkout with its own `TODO.md`.
+- Point the coordinator at related sessions, finished ones included. Pi keeps them under `~/.pi/agent/sessions/`, and they become context for every worker it spawns.
 - Give each PR a verification swarm before it merges, and let Autopilot-stack or Autopilot-full carry the queue.
-- Ask the coordinator for a plan backed by data, and have it answer open questions with prototypes before it asks you.
+- Ask the coordinator for a plan file backed by data, and have it answer open questions with prototypes before it asks you.
 
-One prompt can carry a whole Project, from research through execution:
+One prompt can carry a whole body of work, from research through execution:
 
 ```text
-/skill:poteto-mode refactor this repo so its architecture is more agent friendly. use /skill:correct and /skill:architect on past commits and review comments to find the mistakes agents make most here. use /skill:recall for context from past chats. answer open questions with prototypes instead of asking me. come back with a plan backed by real data. once i approve it, run it with autopilot-stack or autopilot-full, and ask me which.
+/skill:poteto-mode refactor this repo so its architecture is more agent friendly. use /skill:correct and /skill:architect on past commits and review comments to find the mistakes agents make most here. use /skill:recall for context from past sessions. answer open questions with prototypes instead of asking me. come back with a plan file backed by real data. once i approve it, run it with autopilot-stack or autopilot-full, and ask me which.
 ```
 
 ## Let loops start themselves
 
-Every loop above still waits for you to start it. A scheduled or event-driven automation removes that step. Software maintenance splits into stages that suit this well: triage a report, reproduce it, fix it, verify the fix. Two rules keep such a line trustworthy:
+Every loop above still waits for you to start it. A scheduled or event-driven run removes that step. In Pi that's a tmux job that runs `pi -p` against a session, or Pi's RPC mode. Any secret it needs comes from an environment variable you set, never from chat. Software maintenance splits into stages that suit this well: triage a report, reproduce it, fix it, verify the fix. Two rules keep such a line trustworthy:
 
 - Every stage can stop the line. Triage can decide the report is expected behavior, repro can fail to reproduce it, and the fixer can judge the change too risky. Each of those outcomes is useful, because it keeps bad work from reaching the next stage, where it costs more to undo.
 - Every stage hands over evidence. Repro attaches screenshots and video of the broken state, and the fix attaches before-and-after proof. A human can then check that the agent fixed the right thing before reading a line of code.
 
-pstack ships this as a dormant [automation pack](https://github.com/cursor/plugins/blob/main/pstack/automations/benny/README.md) for Slack issue reports. One automation triages each report. The other reproduces confirmed bugs and may prepare a small draft fix. Point an agent at its [`FOR_AGENTS.md`](https://github.com/cursor/plugins/blob/main/pstack/automations/benny/FOR_AGENTS.md) and name the target repository to set it up.
-
-**Pitfall:** a duration is not a finish condition. "work on this for 4 hours" gives the agent nothing to check, and you'll wake up to four hours of motion instead of a result. Give `/loop` a predicate that can pass or fail.
+**Pitfall:** a duration is not a finish condition. "work on this for 4 hours" gives the agent nothing to check, and you'll wake up to four hours of motion instead of a result. Give the heartbeat a predicate that can pass or fail.
 
 Next: [Steer with principle names](./08-principles.md).

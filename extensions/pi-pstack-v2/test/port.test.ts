@@ -32,7 +32,7 @@ const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /\bplan mode\b/i, why: 'Pi has no plan mode; write a plan file' },
   { pattern: /\b(in|to) the background\b|\bbackground (bash|shell|job|process|agent|task)/i, why: 'Pi has no background bash; use tmux_run' },
   { pattern: /\.cursor\b|\.mdc\b|cursor-plugin|\/add-plugin|~\/\.claude|Claude Code|\.claude-plugin/, why: 'Cursor or Claude Code path or command' },
-  { pattern: /claude-opus-|grok-\d|gpt-\d|composer-\d|\bfast mode\b|-fast\b/i, why: 'Cursor model slug or fast mode; use provider/id and thinking' },
+  { pattern: /claude-(opus|sonnet|haiku|fable)-\d|grok-\d|composer-\d|\bfast mode\b|(?<!fail)-fast\b/i, why: 'Cursor model slug or fast mode; use provider/id and thinking' },
   { pattern: /\bCursor\b/, why: 'Cursor-only mechanism', allow: /Bugbot|cursor\/plugins|security review|built for Cursor|ported from Cursor/ },
 ];
 
@@ -51,10 +51,20 @@ describe('the Pi port of pstack', () => {
     expect(upstream.filter((path) => !existsSync(join(root, path)))).toEqual([]);
   });
 
-  test('upstream scripts and assets are byte-identical', () => {
+  test('upstream scripts and assets are byte-identical except the ones that named a Cursor mechanism', () => {
+    const ported = new Set([
+      'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
+      'skills/poteto-mode/scripts/check-plan.mjs', // required a /loop marker; now the tmux_run heartbeat
+      'skills/poteto-mode/scripts/check-plan.test.ts',
+    ]);
     const changed = upstream
-      .filter((path) => !/\.(md|tsv)$/.test(path))
-      .filter((path) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex') !== lock.files[path]);
+      .filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path))
+      .filter(
+        (path) =>
+          createHash('sha256')
+            .update(readFileSync(join(root, path)))
+            .digest('hex') !== lock.files[path],
+      );
     expect(changed).toEqual([]);
   });
 
@@ -62,9 +72,7 @@ describe('the Pi port of pstack', () => {
     const hits = prose.flatMap((path) =>
       readFileSync(path, 'utf8')
         .split('\n')
-        .flatMap((line, index) =>
-          banned.filter(({ pattern, allow }) => pattern.test(line) && !allow?.test(line)).map(({ why }) => `${relative(root, path)}:${index + 1} ${why}: ${line.trim().slice(0, 160)}`),
-        ),
+        .flatMap((line, index) => banned.filter(({ pattern, allow }) => pattern.test(line) && !allow?.test(line)).map(({ why }) => `${relative(root, path)}:${index + 1} ${why}: ${line.trim().slice(0, 160)}`)),
     );
     expect(hits).toEqual([]);
   });

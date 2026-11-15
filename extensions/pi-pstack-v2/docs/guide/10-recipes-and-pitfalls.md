@@ -2,7 +2,7 @@
 
 Prompts worth copying, then the mistakes everyone makes once. Swap in your own paths and finish conditions. The recipes are deliberately informal. That's how they get typed in practice, and the skills read intent fine.
 
-![She tastes a finished dish while robots cook from a recipe box, with pinned cards reading /skill:how, /skill:tdd, and /loop above the counter.](./images/recipes.jpg)
+![She tastes a finished dish while robots cook from a recipe box, with pinned cards reading /skill:how, /skill:tdd, and a loop card above the counter.](./images/recipes.jpg)
 
 ## Understand an unfamiliar subsystem
 
@@ -79,7 +79,7 @@ The qualifiers do real work. "don't change anything yet" keeps it read-only, and
 ## Repro and fix a report with proof
 
 ```text
-/skill:poteto-mode repro this with /verify-<app>. if it repros on main, fix it and show me a video as proof.
+/skill:poteto-mode repro this with /skill:verify-<app>. if it repros on main, fix it and show me a video as proof.
 ```
 
 "if it repros on main" lets the run stop early when the bug is already gone. The video lets you check the fix before you read the diff.
@@ -163,17 +163,17 @@ To watch the catch-up instead, run [`/skill:ketchup-video`](../../skills/ketchup
 ## The pitfalls
 
 - **Enumerating skills in the prompt.** "use /skill:how then /skill:architect then /skill:arena" reorders steps the playbook already sequences. State the goal and constraints. Name a skill only to override a default.
-- **A vague finish condition.** "make it better" gives `/loop` nothing to check. Give a command or artifact that can pass or fail.
+- **A vague finish condition.** "make it better" gives a heartbeat nothing to check. Give a command or artifact that can pass or fail.
 - **Leading with your theory of the cause.** The agent searches wherever you pointed. Ask it to restate the problem first, then share your hunch.
 - **Taking the first design.** One attempt locks in the first shape the model thought of. Ask for prototypes or `/skill:architect` and pick from evidence.
 - **Polishing an abstract plan.** Adversarial review of a plan with no code behind it invents risks that will never happen. Settle the open questions with prototypes, then review what got built.
-- **Parallel agents in one worktree.** They overwrite each other, and nobody can tell which agent changed what. Run them as cloud agents, or say "own worktree per attempt".
+- **Parallel agents in one worktree.** They overwrite each other, and nobody can tell which agent changed what. Spawn each with its own `worktree`, or say "own worktree per attempt".
 - **Looping before you trust the loop.** A loop that can't verify its own work only makes unchecked work faster. Get the verification skill working first.
 - **Trusting an unvetted number.** A warm cache or a skipped code path can fake a speedup. Run `/skill:benchmark-checklist` before the number goes anywhere.
 - **Correcting the same mistake by hand.** A correction in chat helps one run. `/skill:correct` fixes the repo so no later run repeats it.
 - **Using `/skill:arena` for coverage.** `/skill:arena` repeats one design or code brief, then picks a base and grafts the best parts. `/skill:swarm` partitions slices or declared race arms and aggregates one report.
 - **Accepting every review comment.** Bots and humans both file real catches and noise in one list. `/skill:interrogate` keeps only the findings a rerun proves and lists what it dropped and why, and you can override either way.
-- **Treating `auto` as a model slug.** `auto` and `inherit-parent` mean "omit the model field so the subagent inherits the parent chat model." [Setup](./01-setup.md) covers the roles.
+- **Treating `auto` as a model.** `auto` and `inherit-parent` mean "omit the model so the spawned Pi runs on your session model." [Setup](./01-setup.md) covers the roles.
 - **Reporting success off a green build.** A build proves it compiles. Ask for the real command, flow, stored value, or profile, and expect the evidence in the reply.
 - **Writing a `SKILL.md` freehand.** Route it through the [Authoring or modifying a skill playbook](../../skills/poteto-mode/playbooks/authoring-a-skill.md) so validation and review happen.
 

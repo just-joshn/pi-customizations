@@ -1,6 +1,6 @@
 # Route work through `/skill:poteto-mode`
 
-`/skill:poteto-mode` is the front door. You give it a goal, it matches one of twenty-three playbooks, copies that playbook's steps into the todo list, and calls the other skills as the steps need them. In this page you learn what a good prompt looks like, and how little of one you actually need.
+`/skill:poteto-mode` is the front door. You give it a goal, it matches one of twenty-three playbooks, copies that playbook's steps into `TODO.md`, and calls the other skills as the steps need them. In this page you learn what a good prompt looks like, and how little of one you actually need.
 
 ![A dispatcher pulls a switch lever to route robots on rail handcars toward lit gates, under a /skill:poteto-mode departure board listing BUG FIX, FEATURE, and INVESTIGATION.](./images/router.jpg)
 
@@ -35,7 +35,7 @@ You don't write a spec. You say what's wrong or what you want, plus anything you
 /skill:poteto-mode users get two notifications after a retry. repro first, then fix and verify.
 ```
 
-That's a Bug fix prompt. "repro first" is a real constraint, not politeness, and the playbook honors it. Watch the todo list fill with the Bug fix steps. A skipped step stays visible with `skip: <reason>`.
+That's a Bug fix prompt. "repro first" is a real constraint, not politeness, and the playbook honors it. Watch `TODO.md` fill with the Bug fix steps. A skipped step stays visible with `skip: <reason>`.
 
 ## What goes in a prompt
 
@@ -90,7 +90,7 @@ continue
 keep going until done
 ```
 
-Short works because the playbook holds the structure, and a Custom Mode keeps `/skill:poteto-mode` in context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) shows how to start one. Your words carry the intent, and the skill carries the rigor.
+Short works because the playbook holds the structure, and the skill's text stays in your session's context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) says when to send it again. Your words carry the intent, and the skill carries the rigor.
 
 ## Switch tasks with "new task"
 
@@ -102,11 +102,9 @@ A long chat accumulates context from the last task. When you change subjects, sa
 
 "new task" tells `/skill:poteto-mode` to re-match rather than continue the prior playbook. "don't change any code yet" pins this one to Investigation. Without those two phrases, a mode mid-Feature tends to treat your question as the next feature step.
 
-## Give parallel work its own machine
+## Give parallel work its own worktree
 
-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a [cloud subagent](https://cursor.com/docs/subagents#cloud-subagents). Each one gets its own VM and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.
-
-When the work has to stay local, ask for a worktree up front:
+If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a git worktree per worker. A spawned Pi started with a `worktree` branch gets its own checkout, and its sandbox confines its writes there, so it can install dependencies, run your app, and record video of the result without touching your working tree. The coordinator does this on its own for parallel code work. You can also ask for a worktree up front:
 
 ```text
 /skill:poteto-mode new task. branch off <base> in a fresh worktree, then port the parser change there.
