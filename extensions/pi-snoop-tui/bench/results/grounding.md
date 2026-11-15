@@ -888,3 +888,83 @@ A separate prototype profile showed Node module compilation and file loading. It
 After reverting the prototype, the five-round [long run](js-entry-long.jsonl) produced output for all steps and no echo misses. All five full runs failed the existing width checks: the widest rules measured 88 and 118 columns rather than 90 and 120, and the storm ended at 88 rather than 90. The checks are therefore not evidence of a clean long-workload pass. The restored code was unchanged from baseline.
 
 The machine has 10 cores. `uptime` load averages were 4.83, 4.18, 4.66 before baseline; 4.48, 4.16, 4.63 after baseline; 9.69, 5.83, 5.22 after the prototype; and 4.08, 4.98, 4.96 after the long run. Other work shared the machine. Interleaving limits drift but does not eliminate noise.
+
+## Editor cache, 2026-11-15
+
+Hypothesis 7 ran as one unit against `b75ce80b`. It was reverted. The editor's render path costs about 0.3 ms per streamed turn in `full`, so caching it cannot move workload CPU past the run-to-run range.
+
+### What the unit changed
+
+`RuleEditor.render(width)` returned its previous array when a key built from these inputs matched the last render:
+
+- the render width
+- `tui.terminal.rows`, which sets the 30% visible-line limit
+- `getPaddingX()`
+- `focused`, which decides whether the hardware cursor marker is emitted
+- `borderColor` by identity, which bash mode swaps
+- the snoop theme by identity, and `invalidate()` dropped the frame
+- the embedded status (`ready` and `working` are shared constants)
+- `getCursor()` line and column
+- `getLines()`, compared line by line against a copy
+
+`Editor.render` also reads three private fields that a subclass cannot observe through Pi's types. Frames that depend on them were never stored or reused:
+
+- autocomplete state and list selection. Any frame while `isShowingAutocomplete()` is true rendered fresh.
+- paste-marker IDs, which change how `layoutText` segments the text. Any frame whose text contains `[paste #` rendered fresh.
+- `scrollOffset`, which carries over between renders. Any frame whose top or bottom rule had a hidden-line count rendered fresh. Without hidden lines, `Editor.render` clamps the offset to 0, so its earlier value cannot change the output.
+
+Pi's own `pi` statuses (retry, compaction) also rendered fresh, because `renderInBorder` can return new text from the same indicator. Every render that did not store a frame dropped the stored one, so a reused frame always followed a full render with the same inputs, and `lastWidth`, `renderedVisibleLineCount`, and `renderedAutocompleteHeight` stayed what that render set. The TUI never mutates the array the editor returns, because `Container.render` copies every child line into a new array (`pi-tui/dist/tui.js:138-150`).
+
+Behavior tests drove the real `RuleEditor`. They checked that an unchanged editor returns the same array, and that a new frame follows typing, a cursor move, a focus change, a width change, a terminal height change, a border color change, a status change, a theme change with `invalidate()`, a Pi status whose label changes, and an autocomplete list opening and moving its selection. Reusing any frame at the same width failed 9 of the 15 tests that existed then. Dropping only the autocomplete rule failed the autocomplete test, and dropping only the `pi` status rule failed the Pi status test. `bun run ci`, the package typecheck, and `vitest run --coverage` (83 tests, `editor.ts` 95.45% branches) passed with the change.
+
+### How these runs were made
+
+The harness was not changed. `base` is a `git archive` copy of `b75ce80b` and `cache` is the same tree with the change. A driver ran one `run.py --runs 1` per side per round. It reversed the side order every round and the config order (`stock,full` or `full,stock`) every two rounds, then renumbered `round` so each side's `stock` and `full` pair within one invocation. Load averages were 2.9 to 4.1 on 10 cores (`editor-cache-uptime.txt`). Records are in `editor-cache-base-*.jsonl` and `editor-cache-new-*.jsonl`.
+
+A probe build counted renders in one `full` stream run. 224 of 241 editor renders returned the stored frame, and none were uncacheable. So the cache did run on the streaming path.
+
+### Results
+
+Stream, 7 rounds. No run had problems.
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -68.8 (-77.5..-46.9) | -74.9 (-79.1..-49.0) | 1.2 (-28.1..27.9), 2/7 |
+| Echo latency p50 ms | 0.00 (-0.06..0.01) | 0.10 (-0.07..0.14) | 0.08 (0.01..0.16), 0/7 |
+| Echo latency p95 ms | -0.08 (-0.15..0.17) | 0.02 (-0.15..0.52) | 0.11 (-0.07..0.65), 1/7 |
+| Echo misses | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/7 |
+| PTY bytes, workload | -6589 (-27426..9238) | -9591 (-26652..15511) | 3547 (-20231..27985), 3/7 |
+| Clean idle CPU ms over 10 s, no sampler | -0.10 (-0.42..0.05) | -0.15 (-0.40..0.34) | -0.00 (-0.04..0.63), 4/7 |
+| Tool errors | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/7 |
+
+Medium, 5 rounds. No run had problems.
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -125 (-130..-117) | -139 (-145..-125) | 2.8 (-5.3..13.0), 2/5 |
+| Echo latency p50 ms | -0.11 (-0.27..0.09) | -0.10 (-0.27..-0.05) | 0.04 (-0.20..0.08), 2/5 |
+| Echo latency p95 ms | -0.09 (-0.28..0.12) | -0.34 (-0.63..0.08) | 0.00 (-0.29..0.14), 2/5 |
+| Echo misses | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/5 |
+| PTY bytes, workload | -10984 (-27472..31) | -5169 (-16373..7771) | 4414 (-5986..28973), 1/5 |
+
+Long session, 5 rounds. Every `full` run on both sides carried only the known rule-width problems (`widest rule 88 != 90`, `118 != 120`, `last rule 88 != 90`).
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -274 (-294..-252) | -279 (-289..-263) | 12.2 (-32.3..20.9), 1/5 |
+| Collapsed echo latency p50 ms | -0.36 (-0.70..0.00) | -0.77 (-0.88..-0.27) | -0.12 (-0.51..0.36), 3/5 |
+| Collapsed echo latency p95 ms | -0.57 (-0.65..-0.32) | -0.84 (-1.04..-0.70) | -0.26 (-0.57..0.54), 3/5 |
+| Burst of 50 keys, ms to full echo | -0.61 (-0.92..-0.16) | -0.59 (-0.78..0.29) | 0.01 (-0.48..0.78), 2/5 |
+| Expanded echo latency p50 ms | 0.39 (0.28..0.58) | 0.47 (0.09..0.83) | 0.05 (-0.10..0.33), 2/5 |
+| Expanded echo latency p95 ms | 0.44 (0.31..0.71) | 0.41 (-0.04..1.27) | 0.15 (-0.46..0.67), 1/5 |
+| storm settle ms | -28.6 (-29.7..-26.6) | -28.6 (-29.6..-28.0) | -0.01 (-0.13..0.72), 3/5 |
+
+### Why it did not move
+
+Two unreported `full` stream runs per side were profiled at 100 µs sampling (`--cpu-prof-interval 100`), with the workload window cut by `profile-summary.py --record`. Busy time was 110 to 117 ms per run. `RuleEditor` inclusive time was 0.3 ms in both base runs and 0.5 to 0.6 ms in both cache runs. `Editor` inclusive, which also covers handling the ten typed keys, was 0.8 ms in base and 0.6 to 0.9 ms in cache. At this sampling rate each figure is 3 to 9 samples, so the two sides are indistinguishable.
+
+The 4.4 ms figure for `full` in hypothesis 7 was measured before Unit 2, when `full` still ran Pi's stock editor. Unit 2's `RuleEditor` already caches both rules and the prompt marker, so its full render is a `layoutText` of a one-line editor. Removing 0.3 ms from a 183 ms workload can save at most 0.2%, against a run-to-run range of 56 ms in the paired stream column.
+
+Stream echo p50 was 0.08 ms higher with the cache in all 7 rounds (range 0.01 to 0.16). Medium (+0.04, lower in 2 of 5) and long collapsed echo (−0.12, lower in 3 of 5) do not show it. Building the key on a render that misses is a short array copy and a few comparisons, which should cost microseconds, not 80 µs. That is an inference, and the stream echo difference is unexplained. Either way the unit failed the keep rule: workload CPU did not improve past noise.
+
+Verdict: no measurable difference in workload CPU on stream (+1.2 ms, range −28 to +28) or medium (+2.8 ms, range −5 to +13), and a possible 0.08 ms stream echo regression. Reverted. Stock's 15 ms editor cost belongs to stock's own editor and is not a lever for this package.
