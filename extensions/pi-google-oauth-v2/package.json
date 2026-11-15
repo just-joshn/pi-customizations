@@ -1,8 +1,8 @@
 {
   "name": "@justjoshn/pi-google-oauth-v2",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
-  "description": "Use a Google AI Plus, Pro, or Ultra plan in Pi through its OAuth tokens.",
+  "description": "Use a Google AI plan in Pi through its OAuth tokens, signing in as the Antigravity CLI.",
   "keywords": [
     "pi-package"
   ],
