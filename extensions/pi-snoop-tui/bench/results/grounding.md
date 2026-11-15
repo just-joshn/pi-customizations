@@ -466,3 +466,309 @@ These metrics cannot improve through a documented extension mechanism, with the 
 - Terminal paint time. All latencies stop at the pseudo-terminal.
 - Real terminals answer the color query, so real startup is about 100 ms shorter in every configuration.
 - No fixture contains `write`, `find`, `ls`, `codemode`, MCP, or thinking blocks, so items 5 and the hidden-thinking label are unmeasured.
+
+
+## Look and entry, 2026-11-15
+
+Two units ran against this baseline: one extension entry instead of three (hypothesis 1), and variant A of the visual prototypes built into `src/`. Unit 1 was reverted. Unit 2 was kept.
+
+### How these runs were made
+
+The harness was not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`, so the base, Unit 1, and Unit 2 packages could run in alternating order. A driver ran one `run.py --runs 1 --configs stock,full` per side per round, reversed the side order each round, and renumbered `round` so `report.py` pairs stock and full from the same invocation. Every config in a round runs back to back, so `full−stock` is paired within one invocation. The last column compares the two packages' `full` runs from the same round.
+
+The machine was shared with other jobs. Load averages ranged from 3.6 to 24 on 10 cores (`look-uptime.txt`, `final-uptime.txt`). Two earlier Unit 1 startup sets, measured at loads of 8 to 24, were discarded because stock's own extension load swung from 9 to 108 ms. Rounds in a noisy window move both configs, so the paired `full−stock` columns are the primary statistic. The cross-package column is reported, but it is confounded when load changes between invocations.
+
+### Unit 1: one extension entry, reverted
+
+`src/index.ts` called the three default exports and was the only `pi.extensions` entry. Startup workload, 9 interleaved rounds (`quiet-*-startup.jsonl`, load 3.6 to 8.0).
+
+| Metric | quiet-base full−stock | quiet-u1 full−stock | quiet-u1 full − quiet-base full (lower quiet-u1) |
+|---|---|---|---|
+| First settled frame ms | 9 (-276..328) | 8 (-116..219) | 5 (-93..408), 3/9 |
+| First frame PTY bytes | 1311 (1311..1311) | 1311 (1311..1311) | 0 (0..0), 0/9 |
+| Process CPU ms (user+sys), spawn to exit | 5 (-187..171) | 10 (-39..156) | 2 (-89..250), 2/9 |
+| Exit PTY bytes | -15 (-15..-15) | -15 (-15..-15) | 0 (0..0), 0/9 |
+| PI_TIMING main TOTAL ms | 9 (3..314) | 5 (-138..57) | -2 (-317..1), 6/9 |
+| PI_TIMING createAgentSessionRuntime ms | 7 (5..279) | 6 (-70..50) | -1 (-245..2), 5/9 |
+| PI_TIMING initTheme ms | 0 (-5..11) | -1 (-14..4) | -1 (-16..1), 5/9 |
+| PI_TIMING interactiveMode.init ms | -1 (-23..7) | -1 (-41..0) | -1 (-19..1), 5/9 |
+| PI_TIMING extensions TOTAL ms | 6 (4..30) | 4 (-9..26) | 0 (-23..3), 4/9 |
+| PI_STARTUP_BENCHMARK process CPU ms | 2.5 (-21.5..93.8) | 4 (-224..30) | -37 (-178..9), 7/9 |
+
+Snoop's own import and factory time, summed from `PI_TIMING` entries under `src/`, was 3 ms (2..7) with three entries and 2 ms (2..9) with one. A second set at load 12 (`look-base-startup.jsonl`, `look-u1-startup.jsonl`, 7 rounds) gave 3 ms (2..16) and 2 ms (2..5).
+
+Verdict: no measurable difference. Full−stock process CPU went from 5 ms to 10 ms, `extensions TOTAL` from 6 to 4 ms, and the first settled frame from 9 to 8 ms, all inside run-to-run ranges of ±100 ms or more. The limiter explains it. Snoop's three modules import and run in 2 to 3 ms in total, so one jiti instance per entry can save about 1 ms at most. The rest of full's +5 ms in `extensions TOTAL` and +6 ms in `createAgentSessionRuntime` is not snoop's module load. The commit was dropped, and `package.json` still lists three entries.
+
+### Unit 2: aligned gutter, rule editor, mockup palette, kept
+
+Captures are in `bench/results/visual/final-*.png` (100x40, `snoop-dark`): `collapsed`, `expanded`, and `working` on the full mockup fixture, and `collapsed-short`, `expanded-short`, `collapsed-short-slash`, `collapsed-short-wrap`, and `collapsed-short-bash` on the three-tool fixture. `symmetry.py` on `collapsed-short` gives the same result as prototype A: every non-blank row starts at column 1, and 6 rows end one column from the right edge. In bash mode both rules are `#d6c79c`, the theme's `bashMode`.
+
+The long workload's frozen harness checks that the widest rule after a resize equals the new width. The new editor rules are inset by the gutter, so every `full` long run reports `widest rule 88 != 90`, `118 != 120`, and `last rule 88 != 90` as problems. All runs still recorded every step. The rules were 88 and 118 columns in every run, which is the new width minus two gutters, so each resize re-laid out the frame.
+
+#### Regressions found and fixed before the commit
+
+**Expanded typing.** The first build trimmed blank native lines in a wrapper around each panel's child, on every frame. Native result components return a new array each frame, so every expanded row copied its lines on every frame. Long session, 5 rounds (`look-u1-long.jsonl` against `look-u2-long.jsonl`, load 4.7 to 7.7). Both packages in this set still had Unit 1's single entry, which made no measurable difference:
+
+| Metric | look-u1 full−stock | look-u2 full−stock | look-u2 full − look-u1 full (lower look-u2) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -386 (-508..-183) | -299 (-310..-243) | 65.6 (-63.8..80.9), 1/5 |
+| Collapsed echo latency p50 ms | -0.83 (-1.28..-0.26) | -0.40 (-0.58..-0.10) | 0.16 (0.03..0.51), 0/5 |
+| Expanded echo latency p50 ms | 0.69 (0.12..1.24) | 2.85 (2.37..3.21) | 2.14 (1.29..2.54), 0/5 |
+| Expanded echo latency p95 ms | 0.66 (0.10..2.38) | 4.17 (3.73..4.72) | 3.51 (1.13..3.64), 0/5 |
+
+The fix trims inside `Panel` on its cache miss, after `Box` returns its cached array. Expanded echo p50 went from +2.14 ms to +0.21 ms against base (lower in 1 of 6 rounds, range −0.60..2.14).
+**Expand.** The blank test then used `stripTerminalSequences`, which cost 8 ms per Ctrl+O over 1050 rows (`isBlank`, `ansiCodeLength`, `visibleWidth` in the expand window, 3 profiles per side at 100 µs sampling). A regex that accepts only spaces and SGR codes replaced it. In 3 more profiles per side, expand-window CPU differs by at most 1 ms per function.
+
+#### Remaining cost: the `›` on user messages
+
+A Markdown line that contains any non-ASCII character takes a slower path in Pi's lexer and width code. A micro-benchmark of 300 user-message `Markdown` renders took 1.0 to 1.2 ms in 4 of 5 warm passes with no transformer, 3.3 to 5.1 ms with `› ` prepended, 3.3 to 3.8 ms with ` ›` appended, and 1.1 to 1.2 ms with the ASCII text `&rsaquo; ` prepended. So the cost comes from the non-ASCII glyph, not from running a transformer. Across two sets of long-workload profiles, `UserMessageComponent` took 6.5 to 6.9 ms more per run and `Markdown` 7.2 to 9.5 ms more, almost all of it in the restore window. Whole-process busy time on warm runs was 491 to 493 ms for base and 507 to 508 ms for Unit 2. The restore settles 10.7 ms later (lower in 0 of 6 rounds) and whole-run CPU is 45 ms higher (8..263, lower in 0 of 6). The profiles explain about 15 ms of that per run. The rest falls in rounds with outliers on both sides. The mockup asks for the glyph, so it stays. Deleting the `registerMarkdownTransformer` line in `src/chrome.ts` would remove this cost.
+
+#### Unit 2 against the package before it
+
+Paired `full−stock` for each package and the direct full-against-full difference. Startup, stream, and medium come from `final-*.jsonl` (7, 5, and 5 rounds, load 4.0 to 6.0 at the start of each workload and 11.7 at the end of medium). Long comes from `recheck2-*.jsonl` (6 rounds, load 4.0 to 4.8), which ran the committed code. The startup, stream, and medium runs used an earlier blank test that only runs when tool rows are expanded, and those workloads never expand them.
+
+Startup:
+
+| Metric | final-base full−stock | final-look full−stock | final-look full − final-base full (lower final-look) |
+|---|---|---|---|
+| First settled frame ms | 5.9 (-20.9..9.2) | 10.3 (6.5..36.7) | 1.4 (-51.9..9.4), 3/7 |
+| First frame PTY bytes | 1312 (1312..1312) | 1342 (1342..1342) | 30 (30..30), 0/7 |
+| Process CPU ms (user+sys), spawn to exit | 7.7 (2.8..10.5) | 10.4 (5.1..95.4) | 2.2 (-48.1..21.2), 3/7 |
+| PI_TIMING main TOTAL ms | 6 (4..6) | 6 (3..8) | 2 (0..4), 0/7 |
+| PI_TIMING extensions TOTAL ms | 5 (3..6) | 6 (5..7) | 1 (-1..3), 1/7 |
+| PI_STARTUP_BENCHMARK process CPU ms | 7.1 (0.5..30.8) | 9.8 (-2.3..14.5) | 1.8 (-18.1..10.5), 3/7 |
+
+Stream:
+
+| Metric | final-base full−stock | final-look full−stock | final-look full − final-base full (lower final-look) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -112 (-373..-85) | -81 (-167..-45) | 4.3 (-24.1..36.4), 2/5 |
+| Echo latency p50 ms | -0.04 (-1.20..0.03) | -0.06 (-0.12..0.34) | 0.06 (-0.10..0.13), 1/5 |
+| Echo latency p95 ms | -0.24 (-4.22..-0.08) | 0.00 (-0.43..0.17) | -0.01 (-0.57..0.24), 3/5 |
+| PTY bytes, workload | -10114 (-21535..-5977) | -12051 (-29621..-1078) | -7061 (-13102..19407), 4/5 |
+| Clean idle CPU ms over 10 s, no sampler | 0.05 (-0.62..0.06) | 0.00 (-0.05..0.03) | 0.01 (-0.13..0.02), 2/5 |
+| PTY bytes, clean idle 10 s | 0 (0..0) | 0 (0..0) | 0 (-4..0), 1/5 |
+
+Medium:
+
+| Metric | final-base full−stock | final-look full−stock | final-look full − final-base full (lower final-look) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -125 (-152..6) | -123 (-129..-20) | -0.3 (-53.7..91.1), 3/5 |
+| Echo latency p50 ms | -0.02 (-0.26..1.79) | -0.02 (-0.25..0.51) | -0.01 (-0.50..0.13), 3/5 |
+| Echo latency p95 ms | -0.10 (-0.77..6.66) | -0.1 (-0.4..15.2) | 0.1 (-0.5..10.9), 2/5 |
+| PTY bytes, workload | 1763 (-15484..5641) | -6201 (-22097..-226) | -4982 (-27508..8111), 3/5 |
+| Clean idle CPU ms over 10 s, no sampler | -0.20 (-0.34..-0.06) | -0.05 (-0.87..0.38) | -0.07 (-0.11..0.43), 3/5 |
+| PTY bytes, clean idle 10 s | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/5 |
+
+Long session:
+
+| Metric | recheck2-base full−stock | recheck2-look full−stock | recheck2-look full − recheck2-base full (lower recheck2-look) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -346 (-444..-271) | -301 (-354..28) | 45 (8..263), 0/6 |
+| Collapsed echo latency p50 ms | -0.58 (-1.18..-0.41) | -0.63 (-0.92..2.54) | 0.01 (-0.13..3.05), 3/6 |
+| Collapsed echo latency p95 ms | -0.55 (-0.63..0.35) | -0.6 (-1.1..12.7) | -0.2 (-0.9..12.5), 4/6 |
+| Burst of 50 keys, ms to full echo | -1.38 (-2.80..0.23) | -0.78 (-4.71..4.89) | 0.2 (-0.3..15.0), 2/6 |
+| Expanded echo latency p50 ms | 0.47 (0.16..0.96) | 0.64 (-1.41..1.42) | 0.21 (-0.60..2.14), 1/6 |
+| Expanded echo latency p95 ms | 0.71 (-0.14..0.95) | 1.0 (-12.2..2.4) | 0.42 (0.08..6.17), 0/6 |
+| startup settle ms | -78.7 (-87.5..-50.6) | -70 (-78..101) | 10.7 (5.8..83.0), 0/6 |
+| narrow settle ms | -30.2 (-31.7..-28.9) | -28.0 (-32.0..1.7) | 0.7 (0.1..31.9), 0/6 |
+| wide settle ms | -30.5 (-32.3..-29.1) | -30.0 (-31.7..-11.1) | 0.3 (-0.0..24.8), 1/6 |
+| expand settle ms | -1.6 (-29.6..2.9) | 8 (1..224) | 8 (-1..293), 1/6 |
+| collapse settle ms | -30 (-143..-29) | -29 (-178..-28) | 0.55 (0.08..8.75), 0/6 |
+| storm settle ms | -27.6 (-46.3..-27.0) | -26 (-222..-26) | 0.43 (0.11..1.52), 0/6 |
+
+Verdict: no measurable difference on stream, medium, and startup. The full-against-base column stays inside the run-to-run range for every metric. Startup `main TOTAL` (+2 ms) and `interactiveMode.init` (+1 ms) were higher in all 7 rounds, but both are within one millisecond of PI_TIMING's resolution. The first frame writes 30 more bytes and exit writes 56 more, for the gutter spaces and the rule labels. On the long session, collapsed typing, bursts, resizes, and collapse are unchanged. Restore and whole-run CPU are higher, as described above. Expand settles 8 ms later (lower in 1 of 6, range −1..293), while the expand-window CPU profiles match, so that one is inconclusive. Against stock, Unit 2 is still lower on every CPU number and every long-session latency that was lower before. Stream echo p95 moved from −0.24 ms to 0.00 ms against stock, inside its range. Expanded echo was already above stock before Unit 2 (+0.47 ms) and is +0.64 ms now.
+
+#### Stock against full after Unit 2
+
+`report.py` output for the committed look. Startup, stream, and medium come from `final-look-*.jsonl`, and long from `recheck2-look-long.jsonl`.
+
+#### startup workload
+
+Median (min..max) per config.
+
+| Metric | stock (n=7, failed=0, problems=0) | full (n=7, failed=0, problems=0) |
+|---|---|---|
+| First settled frame ms | 292 (291..361) | 305 (298..398) |
+| First frame PTY bytes | 2422 (2422..2422) | 3764 (3764..3764) |
+| Process CPU ms (user+sys), spawn to exit | 257 (251..347) | 271 (260..442) |
+| Exit PTY bytes | 1520 (1520..1520) | 1533 (1533..1533) |
+| PI_TIMING main TOTAL ms | 161 (159..165) | 167 (167..168) |
+| PI_TIMING createAgentSessionRuntime ms | 30 (28..31) | 37 (36..38) |
+| PI_TIMING initTheme ms | 9 (8..10) | 9 (8..9) |
+| PI_TIMING interactiveMode.init ms | 119 (117..120) | 118 (117..119) |
+| PI_TIMING extensions TOTAL ms | 10 (9..10) | 15 (14..17) |
+| PI_STARTUP_BENCHMARK process CPU ms | 242 (240..251) | 252 (248..260) |
+
+Paired by round: config minus stock, median (min..max), and rounds where the config was lower.
+
+| Metric | full |
+|---|---|
+| First settled frame ms | 10.3 (6.5..36.7), lower 0/7 |
+| First frame PTY bytes | 1342 (1342..1342), lower 0/7 |
+| Process CPU ms (user+sys), spawn to exit | 10.4 (5.1..95.4), lower 0/7 |
+| Exit PTY bytes | 13 (13..13), lower 0/7 |
+| PI_TIMING main TOTAL ms | 6 (3..8), lower 0/7 |
+| PI_TIMING createAgentSessionRuntime ms | 7 (6..8), lower 0/7 |
+| PI_TIMING initTheme ms | 0 (-2..1), lower 2/7 |
+| PI_TIMING interactiveMode.init ms | -1 (-2..1), lower 5/7 |
+| PI_TIMING extensions TOTAL ms | 6 (5..7), lower 0/7 |
+| PI_STARTUP_BENCHMARK process CPU ms | 9.8 (-2.3..14.5), lower 1/7 |
+
+#### stream workload
+
+Median (min..max) per config.
+
+| Metric | stock (n=5, failed=0, problems=0) | full (n=5, failed=0, problems=0) |
+|---|---|---|
+| Workload CPU ms (user+sys) | 279 (252..338) | 175 (172..206) |
+| Idle CPU ms over 10 s | 5.0 (4.8..11.9) | 5.4 (4.8..10.4) |
+| Workload event-loop delay p50 ms | 11.3 (11.3..11.5) | 11.7 (11.3..11.8) |
+| Workload event-loop delay p99 ms | 12.7 (12.6..12.9) | 12.8 (12.6..13.1) |
+| Idle event-loop delay p50 ms | 12.0 (12.0..12.0) | 12.0 (12.0..12.0) |
+| Idle event-loop delay p99 ms | 12.0 (12.0..13.4) | 12.0 (12.0..12.7) |
+| Echo latency p50 ms | 0.53 (0.47..0.63) | 0.54 (0.47..0.83) |
+| Echo latency p95 ms | 0.83 (0.74..1.19) | 0.76 (0.74..1.12) |
+| Echo misses | 0 (0..0) | 0 (0..0) |
+| PTY bytes, workload | 302362 (295920..307873) | 284211 (278252..305562) |
+| PTY bytes, idle 10 s | 791 (791..6014) | 841 (841..6214) |
+| PTY bytes, idle after first 1 s | 0 (0..0) | 0 (0..0) |
+| Clean idle CPU ms over 10 s, no sampler | 0.26 (0.23..0.36) | 0.26 (0.20..0.36) |
+| Clean idle involuntary context switches | 4 (4..7) | 4 (4..6) |
+| PTY bytes, clean idle 10 s | 0 (0..0) | 0 (0..0) |
+| Tool results | 4 (4..4) | 4 (4..4) |
+| Tool errors | 0 (0..0) | 0 (0..0) |
+| Workload wall ms | 3570 (3550..3582) | 3579 (3552..3590) |
+
+Paired by round: config minus stock, median (min..max), and rounds where the config was lower.
+
+| Metric | full |
+|---|---|
+| Workload CPU ms (user+sys) | -81 (-167..-45), lower 5/5 |
+| Idle CPU ms over 10 s | 0.17 (-6.74..5.41), lower 2/5 |
+| Workload event-loop delay p50 ms | 0.30 (-0.07..0.36), lower 1/5 |
+| Workload event-loop delay p99 ms | 0.09 (-0.08..0.24), lower 1/5 |
+| Idle event-loop delay p50 ms | 0.00 (0.00..0.01), lower 0/5 |
+| Idle event-loop delay p99 ms | 0.00 (-1.40..0.72), lower 1/5 |
+| Echo latency p50 ms | -0.06 (-0.12..0.34), lower 3/5 |
+| Echo latency p95 ms | 0.00 (-0.43..0.17), lower 2/5 |
+| Echo misses | 0 (0..0), lower 0/5 |
+| PTY bytes, workload | -12051 (-29621..-1078), lower 5/5 |
+| PTY bytes, idle 10 s | 50 (-5173..5423), lower 1/5 |
+| PTY bytes, idle after first 1 s | 0 (0..0), lower 0/5 |
+| Clean idle CPU ms over 10 s, no sampler | 0.00 (-0.05..0.03), lower 2/5 |
+| Clean idle involuntary context switches | 0 (-1..0), lower 1/5 |
+| PTY bytes, clean idle 10 s | 0 (0..0), lower 0/5 |
+| Tool results | 0 (0..0), lower 0/5 |
+| Tool errors | 0 (0..0), lower 0/5 |
+| Workload wall ms | 8.1 (-22.6..31.0), lower 2/5 |
+
+#### medium workload
+
+Median (min..max) per config.
+
+| Metric | stock (n=5, failed=0, problems=0) | full (n=5, failed=0, problems=0) |
+|---|---|---|
+| Workload CPU ms (user+sys) | 354 (346..509) | 225 (223..490) |
+| Idle CPU ms over 10 s | 6.6 (6.4..16.2) | 9.6 (5.7..20.7) |
+| Workload event-loop delay p50 ms | 11.3 (11.3..11.4) | 11.6 (11.3..11.8) |
+| Workload event-loop delay p99 ms | 12.7 (12.6..15.2) | 12.6 (12.6..23.7) |
+| Idle event-loop delay p50 ms | 12.0 (12.0..12.0) | 12.0 (12.0..12.0) |
+| Idle event-loop delay p99 ms | 12.0 (12.0..14.5) | 12.0 (12.0..14.9) |
+| Echo latency p50 ms | 0.81 (0.69..1.43) | 0.73 (0.65..1.94) |
+| Echo latency p95 ms | 1.37 (1.07..3.86) | 1.1 (0.9..19.0) |
+| Echo misses | 0 (0..0) | 0 (0..0) |
+| PTY bytes, workload | 348822 (340688..366264) | 341073 (334868..348596) |
+| PTY bytes, idle 10 s | 793 (793..6016) | 841 (841..6214) |
+| PTY bytes, idle after first 1 s | 0 (0..0) | 0 (0..0) |
+| Clean idle CPU ms over 10 s, no sampler | 0.30 (0.26..1.12) | 0.28 (0.25..0.64) |
+| Clean idle involuntary context switches | 4 (4..9) | 4 (3..5) |
+| PTY bytes, clean idle 10 s | 0 (0..0) | 0 (0..0) |
+| Tool results | 4 (4..4) | 4 (4..4) |
+| Tool errors | 0 (0..0) | 0 (0..0) |
+| Workload wall ms | 3570 (3567..3605) | 3581 (3558..3935) |
+
+Paired by round: config minus stock, median (min..max), and rounds where the config was lower.
+
+| Metric | full |
+|---|---|
+| Workload CPU ms (user+sys) | -123 (-129..-20), lower 5/5 |
+| Idle CPU ms over 10 s | 1.36 (-2.90..4.44), lower 2/5 |
+| Workload event-loop delay p50 ms | 0.22 (0.05..0.42), lower 0/5 |
+| Workload event-loop delay p99 ms | -0.11 (-0.25..8.46), lower 3/5 |
+| Idle event-loop delay p50 ms | 0.00 (0.00..0.01), lower 0/5 |
+| Idle event-loop delay p99 ms | 0.01 (-0.63..0.47), lower 2/5 |
+| Echo latency p50 ms | -0.02 (-0.25..0.51), lower 3/5 |
+| Echo latency p95 ms | -0.1 (-0.4..15.2), lower 3/5 |
+| Echo misses | 0 (0..0), lower 0/5 |
+| PTY bytes, workload | -6201 (-22097..-226), lower 5/5 |
+| PTY bytes, idle 10 s | 48 (-5175..5421), lower 1/5 |
+| PTY bytes, idle after first 1 s | 0 (0..0), lower 0/5 |
+| Clean idle CPU ms over 10 s, no sampler | -0.05 (-0.87..0.38), lower 3/5 |
+| Clean idle involuntary context switches | 0 (-5..1), lower 2/5 |
+| PTY bytes, clean idle 10 s | 0 (0..0), lower 0/5 |
+| Tool results | 0 (0..0), lower 0/5 |
+| Tool errors | 0 (0..0), lower 0/5 |
+| Workload wall ms | -10 (-31..367), lower 3/5 |
+
+#### long workload
+
+Median (min..max) per config.
+
+| Metric | stock (n=6, failed=0, problems=0) | full (n=6, failed=0, problems=6) |
+|---|---|---|
+| Process CPU ms (user+sys), whole run | 1304 (1254..1573) | 981 (952..1332) |
+| Collapsed echo latency p50 ms | 2.19 (2.13..2.31) | 1.58 (1.39..4.70) |
+| Collapsed echo latency p95 ms | 2.82 (2.60..3.09) | 2.2 (2.0..15.6) |
+| Collapsed echo latency max ms | 4.71 (4.49..5.14) | 3.9 (3.6..17.6) |
+| Collapsed echo misses | 0 (0..0) | 0 (0..0) |
+| Burst of 50 keys, ms to full echo | 4.5 (4.0..13.6) | 3.6 (3.5..18.5) |
+| Burst PTY bytes | 359 (359..360) | 412 (206..412) |
+| Burst echoed | 1 (1..1) | 1 (1..1) |
+| Expanded echo latency p50 ms | 2.71 (2.28..7.14) | 3.30 (2.87..5.73) |
+| Expanded echo latency p95 ms | 3.4 (3.1..22.5) | 4.4 (4.1..10.4) |
+| Expanded echo misses | 0 (0..0) | 0 (0..0) |
+| startup settle ms | 437 (431..461) | 363 (358..542) |
+| narrow settle ms | 39.7 (37.8..42.5) | 10.6 (10.2..42.0) |
+| wide settle ms | 39.8 (38.2..44.9) | 9.0 (8.7..33.8) |
+| expand settle ms | 130 (128..205) | 138 (129..428) |
+| collapse settle ms | 35 (33..192) | 5.5 (5.2..14.1) |
+| storm settle ms | 36 (35..233) | 10.1 (9.7..11.3) |
+| startup PTY bytes | 12601 (12601..12601) | 11364 (11364..11364) |
+| narrow PTY bytes | 5401 (5401..5401) | 4635 (4635..4635) |
+| wide PTY bytes | 6763 (6763..6763) | 5319 (5319..5319) |
+| expand PTY bytes | 4826 (4826..4826) | 5500 (5500..5500) |
+| collapse PTY bytes | 451 (451..451) | 3107 (3107..3107) |
+| storm PTY bytes | 5245 (5245..5245) | 4659 (4659..4659) |
+| Exit PTY bytes | 1524440 (1524440..1524440) | 477448 (477448..477448) |
+| Steps with output | 6 (6..6) | 6 (6..6) |
+
+Paired by round: config minus stock, median (min..max), and rounds where the config was lower.
+
+| Metric | full |
+|---|---|
+| Process CPU ms (user+sys), whole run | -301 (-354..28), lower 5/6 |
+| Collapsed echo latency p50 ms | -0.63 (-0.92..2.54), lower 5/6 |
+| Collapsed echo latency p95 ms | -0.6 (-1.1..12.7), lower 4/6 |
+| Collapsed echo latency max ms | -0.9 (-0.9..12.4), lower 5/6 |
+| Collapsed echo misses | 0 (0..0), lower 0/6 |
+| Burst of 50 keys, ms to full echo | -0.78 (-4.71..4.89), lower 5/6 |
+| Burst PTY bytes | 53 (-154..53), lower 1/6 |
+| Burst echoed | 0 (0..0), lower 0/6 |
+| Expanded echo latency p50 ms | 0.64 (-1.41..1.42), lower 1/6 |
+| Expanded echo latency p95 ms | 1.0 (-12.2..2.4), lower 1/6 |
+| Expanded echo misses | 0 (0..0), lower 0/6 |
+| startup settle ms | -70 (-78..101), lower 5/6 |
+| narrow settle ms | -28.0 (-32.0..1.7), lower 5/6 |
+| wide settle ms | -30.0 (-31.7..-11.1), lower 6/6 |
+| expand settle ms | 8 (1..224), lower 0/6 |
+| collapse settle ms | -29 (-178..-28), lower 6/6 |
+| storm settle ms | -26 (-222..-26), lower 6/6 |
+| startup PTY bytes | -1237 (-1237..-1237), lower 6/6 |
+| narrow PTY bytes | -766 (-766..-766), lower 6/6 |
+| wide PTY bytes | -1444 (-1444..-1444), lower 6/6 |
+| expand PTY bytes | 674 (674..674), lower 0/6 |
+| collapse PTY bytes | 2656 (2656..2656), lower 0/6 |
+| storm PTY bytes | -586 (-586..-586), lower 6/6 |
+| Exit PTY bytes | -1046992 (-1046992..-1046992), lower 6/6 |
+| Steps with output | 0 (0..0), lower 0/6 |
