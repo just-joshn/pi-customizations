@@ -63,11 +63,12 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
  * protected too. A job that could repoint any of them would make the next `git commit` run its own hooks unsandboxed.
  */
 function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
-  // Every .pi directory and git pointer file already in the checkout, at any depth, since Pi and git find them anywhere.
+  // Every .pi directory and .git entry already in the checkout, at any depth, since Pi and git find them anywhere.
   const found = codePaths([cwd]);
   const piDirs = [...new Set([join(cwd, '.pi'), ...found.filter((path) => basename(dirname(path)) === '.pi').map(dirname)])];
   const pi = piDirs.flatMap((dir) => PI_CODE.map((name) => join(dir, name)));
-  const pointers = found.filter((path) => basename(path) === '.git');
+  // The checkout's own .git is its git directory, which the job may write. Any other is a repository git would run hooks from.
+  const pointers = found.filter((path) => basename(path) === '.git' && path !== join(cwd, '.git'));
   let protect = [...pi, ...pointers];
   let lock: string[] = [];
   if (common) {
@@ -143,8 +144,9 @@ const within = (path: string, roots: string[]): boolean =>
     return inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside);
   });
 
-// macOS cannot apply a second Seatbelt profile inside a sandbox, so a sandboxed worker there asks the root Pi to launch for it.
-const brokering = (): boolean => process.platform === 'darwin' && process.env[SANDBOX_ENV] === '1';
+// A sandboxed worker asks the root Pi to launch for it on every platform, so nested jobs get the same sandbox everywhere
+// and no job needs a tmux server of its own. macOS could not apply a second Seatbelt profile anyway.
+const brokering = (): boolean => insideJob();
 
 /** Starts a job under its own sandbox, or writes it as a request for the root Pi when this process cannot. */
 function start(root: string, spec: JobSpec, files: Record<string, string> = {}, resolved: Record<string, string> = {}): Job {
@@ -300,9 +302,8 @@ export default function pstack(pi: ExtensionAPI) {
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 
-  // Only macOS brokers nested jobs. On Linux a worker starts its own under bubblewrap, so a request there is never served.
   const serve = (ctx: ExtensionContext): void => {
-    if (process.platform !== 'darwin' || brokering()) return;
+    if (brokering()) return;
     const owner = ctx.sessionManager.getSessionId();
     for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
   };
@@ -463,7 +464,7 @@ export default function pstack(pi: ExtensionAPI) {
             wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
             repeat: false,
             series: id,
-            socket: tmuxSocket(owner),
+            socket: brokering() ? '' : tmuxSocket(owner),
             sweep: { roots: [], protect: [] },
             out: dir,
             createdAt: new Date().toISOString(),
@@ -518,7 +519,7 @@ export default function pstack(pi: ExtensionAPI) {
         wake: params.wake ?? null,
         repeat: params.repeat ?? false,
         series: id,
-        socket: tmuxSocket(owner),
+        socket: brokering() ? '' : tmuxSocket(owner),
         sweep: { roots: [], protect: [] },
         out: join(root, id),
         createdAt: new Date().toISOString(),

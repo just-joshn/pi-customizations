@@ -80,7 +80,7 @@ afterEach(async () => {
   process.argv[1] = savedArgv;
   vi.unstubAllEnvs();
   try {
-    execFileSync('tmux', ['-S', tmuxSocket(owner, {}), 'kill-server'], { stdio: 'ignore' });
+    execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
   } catch {
     // No server was started.
   }
@@ -178,23 +178,6 @@ describe('launch paths and the nesting limit', { timeout: 20_000 }, () => {
     for (const id of jobs()) {
       const { job, top } = wrapperEnv(join(jobsRoot(), id));
       expect([job, top]).toEqual([join(jobsRoot(), id), join(jobsRoot(), id)]);
-    }
-  });
-
-  test.runIf(process.platform !== 'darwin')('a job started from inside a worker keeps the worker top-level job and has its own directory', async () => {
-    const top = join(agentDir, 'top');
-    const worker = join(top, 'nested', 'child');
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
-    vi.stubEnv('PSTACK_V2_JOB_DIR', worker);
-    vi.stubEnv('PSTACK_V2_TOP_DIR', top);
-    await call('tmux_run', { name: 'grandchild', command: 'true' });
-    const [id = ''] = readdirSync(join(worker, 'nested'));
-    const { job, top: seenTop } = wrapperEnv(join(worker, 'nested', id));
-    expect([job, seenTop]).toEqual([join(worker, 'nested', id), top]);
-    try {
-      execFileSync('tmux', ['-S', tmuxSocket(owner, process.env), 'kill-server'], { stdio: 'ignore' });
-    } catch {
-      // No server was started.
     }
   });
 });
@@ -320,7 +303,7 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
   });
 });
 
-describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout: 20_000 }, () => {
+describe('nested jobs', { timeout: 20_000 }, () => {
   const topJob = async () => {
     const slowPi = join(agentDir, 'slow-pi.mjs');
     writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
@@ -415,7 +398,7 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
     await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
   });
 
-  test.runIf(process.platform === 'darwin')('a sandboxed macOS worker writes a request instead of launching', async () => {
+  test('a sandboxed worker writes a request instead of launching', async () => {
     vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
     vi.stubEnv('PSTACK_V2_JOB_DIR', join(agentDir, 'fake-worker'));
     vi.stubEnv('PSTACK_V2_TOP_DIR', join(agentDir, 'fake-worker'));
@@ -428,7 +411,7 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
   });
 });
 
-test.runIf(process.platform === 'darwin')('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
+test('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
   ctx = { ...ctx, mode: 'print', hasUI: false };
   await call('pi_spawn', { name: 'done', brief: 'hi', wake: false });
   const [id] = jobs();
@@ -456,7 +439,7 @@ test.runIf(process.platform === 'darwin')('a request from a worker that has fini
     out: '',
     createdAt: '',
   });
-  serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
+  serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), true);
   expect(existsSync(join(resultsDir(top.dir, join(top.dir, 'nested', reqId)), 'launched'))).toBe(false);
 });
 
@@ -620,7 +603,7 @@ describe('round four', { timeout: 20_000 }, () => {
     await expect(call('tmux_run', { name: 'home', command: 'true' })).rejects.toThrow(/contains Pi's agent directory/);
   });
 
-  test.runIf(process.platform === 'darwin')('a job cannot signal a process outside its sandbox, such as the wrapper or Pi', async () => {
+  test('a job cannot signal a process outside its sandbox, such as the wrapper or Pi', async () => {
     const outside = spawn('sleep', ['30'], { stdio: 'ignore' });
     await call('tmux_run', { name: 'killer', command: `kill -9 ${outside.pid} 2>/dev/null && echo KILLED || echo DENIED` });
     await exited();
@@ -688,7 +671,7 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     expect([readFileSync(join(repo, 'sub', '.git'), 'utf8'), existsSync(join(repo, 'sub2', '.git'))]).toEqual(['gitdir: ../.git/modules/sub\n', false]);
   });
 
-  test.runIf(process.platform === 'darwin')('a job cannot connect to a local service socket', async () => {
+  test('a job cannot connect to a local service socket', async () => {
     const socket = join(homedir(), `.pstack-svc-${process.pid}.sock`);
     const server = (await import('node:net')).createServer((connection) => connection.end('reached\n')).listen(socket);
     await new Promise((done) => server.once('listening', done));
@@ -696,38 +679,6 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     await exited();
     expect(readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8').trim()).toBe('refused');
     server.close();
-  });
-
-  test.runIf(process.platform === 'linux')('on Linux, where workers start their own jobs, a request is never served', async () => {
-    const slowPi = join(agentDir, 'slow-pi.mjs');
-    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
-    process.argv[1] = slowPi;
-    await handlers['session_start']?.({}, ctx);
-    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
-    const top = read(join(agentDir, 'pstack-v2', 'jobs'), jobs()[0] ?? '', owner);
-    if (!top) throw new Error('top job missing');
-    vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
-    request(join(top.dir, 'nested'), {
-      id: 'forged-000001',
-      name: 'forged',
-      kind: 'command',
-      cwd: repo,
-      argv: [],
-      command: ['bash', '-c', `touch ${repo}/served`],
-      policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(top.dir, 'nested', 'forged-000001') },
-      brokered: true,
-      owner: 'w',
-      wake: null,
-      repeat: false,
-      series: 'forged-000001',
-      socket: '',
-      sweep: { roots: [], protect: [] },
-      out: '',
-      createdAt: '',
-    });
-    const out = resultsDir(top.dir, join(top.dir, 'nested', 'forged-000001'));
-    await expect.poll(() => existsSync(join(out, 'launched')), { timeout: 4_500 }).toBe(false);
-    expect(existsSync(join(repo, 'served'))).toBe(false);
   });
 
   test('a worker cannot freeze the root with a loop of nested links', async () => {
@@ -741,7 +692,7 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
       symlinkSync(join(top.dir, 'nested'), join(top.dir, 'nested', name, 'nested'));
     }
     const started = Date.now();
-    serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
+    serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), true);
     expect(Date.now() - started).toBeLessThan(2_000);
   });
 });
@@ -765,7 +716,7 @@ describe('interrogate round', { timeout: 30_000 }, () => {
   const jobsRoot = () => join(agentDir, 'pstack-v2', 'jobs');
   const exitIn = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
 
-  test.runIf(process.platform === 'darwin')('a readonly worker cannot hand its own nested job more than it was granted', async () => {
+  test('a readonly worker cannot hand its own nested job more than it was granted', async () => {
     const slowPi = join(agentDir, 'slow-pi.mjs');
     writeFileSync(slowPi, 'setTimeout(() => {}, 60_000);\n');
     process.argv[1] = slowPi;

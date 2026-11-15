@@ -11,7 +11,7 @@ export interface Inventory {
   roots: string[];
   /** Protected paths absent at launch, each with whether its parent was already a link. */
   absent: { path: string; parentWasLink: boolean }[];
-  /** Pi code entries and git pointer files present at launch, which the sweep leaves alone. */
+  /** Pi code entries and .git entries present at launch, which the sweep leaves alone. */
   present: string[];
   /** Where swept paths go, and where the job's output notes them. */
   quarantine: string;
@@ -31,7 +31,7 @@ const exists = (path: string): boolean => {
 };
 
 /**
- * Pi code entries and git pointer files under the roots, found without following links or descending into heavy or git
+ * Pi code entries and .git entries under the roots, found without following links or descending into heavy or git
  * directories. With `repair`, a directory the job made unreadable gets its owner permissions back so it can be searched,
  * and anything still unreadable lands in `unreadable`, since a job could otherwise hide code from the sweep that way.
  */
@@ -59,7 +59,7 @@ export function codePaths(roots: string[], repair = false, unreadable: string[] 
       const stat = attempt(dir, () => lstatSync(path));
       if (!stat) continue;
       if (name === '.git') {
-        if (!stat.isDirectory()) found.push(path);
+        found.push(path);
       } else if (name === '.pi') {
         if (stat.isSymbolicLink()) found.push(path);
         else if (stat.isDirectory()) for (const code of attempt(path, () => readdirSync(path)) ?? []) if ((PI_CODE as readonly string[]).includes(code)) found.push(join(path, code));

@@ -8,7 +8,7 @@ import { claimWake, type JobSpec, launch, list, newJobId, outputPath, read, STOP
 import { bwrapArgs, SANDBOX_ENV, type SandboxPolicy, sandboxed, seatbeltProfile } from '../src/sandbox.ts';
 
 const owner = `test${process.pid}`;
-const socket = tmuxSocket(owner, {});
+const socket = tmuxSocket(owner);
 let root: string;
 
 const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => {
@@ -131,7 +131,7 @@ describe('tmux jobs', { timeout: 20_000 }, () => {
   });
 
   test('sessions with a shared id prefix get separate tmux servers', () => {
-    expect(tmuxSocket('01a1dd30-aaaa', {})).not.toBe(tmuxSocket('01a1dd30-bbbb', {}));
+    expect(tmuxSocket('01a1dd30-aaaa')).not.toBe(tmuxSocket('01a1dd30-bbbb'));
   });
 });
 
@@ -193,11 +193,11 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
     return settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
   };
 
-  test('a job can run its own jobs on a tmux server inside its sandbox', async () => {
+  test('a job cannot run a tmux server of its own, since the root starts every job a worker asks for', async () => {
     const id = newJobId('nester');
     const own = join(jobsIn(), id, 'nested', 'tmux.sock');
-    await run(`tmux -S ${own} new-session -d 'touch ${work}/nested.txt; touch ${home}/nested-escape.txt' && sleep 1; tmux -S ${own} kill-server`, id);
-    expect([existsSync(join(work, 'nested.txt')), existsSync(join(home, 'nested-escape.txt'))]).toEqual([true, false]);
+    await run(`tmux -S ${own} new-session -d 'touch ${work}/nested.txt' && sleep 1; tmux -S ${own} kill-server`, id);
+    expect(existsSync(join(work, 'nested.txt'))).toBe(false);
   });
 
   test('a job writes its working directory but not outside it', async () => {
@@ -304,6 +304,6 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
 
   test('a job cannot rewrite its own spec', async () => {
     const done = await run(`for f in ${jobsIn()}/*/job.json; do echo '{}' > "$f"; done`);
-    expect(done.spec.argv[0]).toMatch(/^(sandbox-exec|bwrap)$/);
+    expect(done.spec.argv.join(' ')).toMatch(/sandbox-exec|exec bwrap/);
   });
 });

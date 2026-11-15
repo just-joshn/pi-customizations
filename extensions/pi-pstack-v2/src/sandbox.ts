@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
-/** The job directory of the sandboxed process. Jobs it starts, and their tmux socket, live under its writable `nested/` directory. */
+/** The job directory of the sandboxed process. Jobs it asks the root to start are requested under its writable `nested/` directory. */
 export const JOB_DIR_ENV = 'PSTACK_V2_JOB_DIR';
 /** The directory of the top-level job a process descends from. Its `brokered/` directory holds what the root launched for descendants. */
 export const TOP_DIR_ENV = 'PSTACK_V2_TOP_DIR';
@@ -25,7 +25,7 @@ export interface SandboxPolicy {
    * copy and Pi's lock directories are writable, so no job can change what another job's Pi loads.
    */
   credentials: string;
-  /** The job's own directory. Only its `nested/` tmux socket is reachable; every other tmux server stays out of reach. */
+  /** The job's own directory. Jobs it asks the root to start are requested under its `nested/` directory. */
   jobDir: string;
 }
 
@@ -39,6 +39,21 @@ const quote = (text: string): string => JSON.stringify(text);
 const TMUX_SOCKETS = '^/private/(tmp|var/folders/[^/]+/[^/]+/T)/(tmux|pstack-v2)-';
 // Files through which git finds a worktree's or submodule's hooks and config.
 const gitRedirects = (common: string): string => `^${escapeRegex(real(common))}/(config\\.worktree|worktrees/[^/]+/(commondir|gitdir|config\\.worktree)|modules/.+/(hooks|config|info|commondir|gitdir|config\\.worktree))(/|$)`;
+
+/** The git directories of the linked worktrees the job works in, which it may write apart from their redirection files. */
+const ownWorktrees = (policy: SandboxPolicy): string[] => policy.lock.filter((path) => policy.gitDirs.some((common) => dirname(path) === join(common, 'worktrees')));
+
+/**
+ * bubblewrap can only make read-only what exists, so the git paths a job may not create are created first, empty. Git
+ * reads an empty `config.worktree` as no settings, and empty `hooks`, `info`, `worktrees`, and `modules` directories as none.
+ */
+function placeholders(policy: SandboxPolicy): void {
+  for (const common of policy.gitDirs) {
+    if (!existsSync(common)) continue;
+    for (const name of ['hooks', 'info', 'worktrees', 'modules']) mkdirSync(join(common, name), { recursive: true });
+    for (const dir of [common, ...ownWorktrees(policy)]) if (existsSync(dir) && !existsSync(join(dir, 'config.worktree'))) writeFileSync(join(dir, 'config.worktree'), '');
+  }
+}
 
 export function seatbeltProfile(policy: SandboxPolicy): string {
   const subpaths = (paths: string[]): string => paths.map((path) => `(subpath ${quote(real(path))})`).join(' ');
@@ -58,12 +73,20 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     // directory with its credentials copy. Your real auth.json and settings are never writable.
     ...(inAgentDir.length ? [`(allow file-write* ${subpaths(inAgentDir)})`] : []),
     ...(policy.credentials ? [`(allow file-write-data (literal ${quote(join(real(policy.credentials), 'auth.json'))}))`, `(allow file-write* (regex #"^${escapeRegex(real(policy.credentials))}/[^/]+\\.lock(/|$)"))`] : []),
+    // A job may not add or change a worktree or submodule, apart from the metadata of the worktree it works in.
+    ...policy.gitDirs.map((common) => `(deny file-write* (subpath ${quote(real(join(common, 'worktrees')))}) (subpath ${quote(real(join(common, 'modules')))}))`),
+    ...(ownWorktrees(policy).length ? [`(allow file-write* ${subpaths(ownWorktrees(policy))})`] : []),
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
-    ...policy.checkouts.map((root) => `(deny file-write* (regex #"^${escapeRegex(real(root))}/(.*/)?(\\.git|\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`),
-    // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS and the job's own tmux server are reachable.
+    // Any .git a checkout gains is a repository git would run hooks from, apart from the checkout's own git directory.
+    ...policy.checkouts.map((root) => {
+      const git = existsSync(join(root, '.git')) && statSync(join(root, '.git')).isDirectory() ? '.+/\\.git' : '(.*/)?\\.git';
+      return `(deny file-write* (regex #"^${escapeRegex(real(root))}/(${git}|(.*/)?\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`;
+    }),
+    // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS is reachable.
     '(deny network-outbound (remote unix-socket))',
     '(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))',
-    `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
+    // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
+    '(deny network-bind (local unix-socket))',
     // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
     '(deny appleevent-send)',
     // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
@@ -118,8 +141,65 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
   }
   // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
   for (const path of policy.lock.filter(existsSync)) args.push(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path, path);
+  for (const common of policy.gitDirs) for (const name of ['worktrees', 'modules']) if (existsSync(join(common, name))) args.push('--ro-bind', join(common, name), join(common, name));
+  for (const own of ownWorktrees(policy)) args.push('--bind', own, own);
   for (const path of [...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync)) args.push('--ro-bind', path, path);
-  return [...args, '--die-with-parent', '--'];
+  // Shared /tmp is read-only, as on macOS, once everything under it is mounted.
+  return [...args, '--remount-ro', '/tmp', '--die-with-parent', '--'];
+}
+
+/** Linux syscall numbers and audit architecture for the seccomp filter, per Node architecture. */
+const SYSCALLS: Partial<Record<NodeJS.Architecture, { audit: number; socket: number; ioUringSetup: number }>> = {
+  x64: { audit: 0xc000003e, socket: 41, ioUringSetup: 425 },
+  arm64: { audit: 0xc00000b7, socket: 198, ioUringSetup: 425 },
+};
+
+/**
+ * A classic BPF program for bubblewrap's `--seccomp`: a job may not open a Unix socket, the way macOS denies binding or
+ * connecting one, so it reaches no local service, abstract socket, or tmux server. Socket pairs, which child processes
+ * use for pipes, stay allowed. io_uring could open a socket around the filter, and another architecture's syscall
+ * numbers around its checks, so both are refused.
+ */
+export function seccompFilter(arch: NodeJS.Architecture = process.arch): Buffer {
+  const nr = SYSCALLS[arch];
+  if (!nr) throw new Error(`pstack's Linux sandbox supports x64 and arm64, not ${arch}.`);
+  const LD = 0x20;
+  const JEQ = 0x15;
+  const JGE = 0x35;
+  const RET = 0x06;
+  const ALLOW = 0x7fff0000;
+  const DENY = 0x00050001;
+  const program: [number, number, number, number][] = [
+    [LD, 0, 0, 4],
+    [JEQ, 0, 7, nr.audit],
+    [LD, 0, 0, 0],
+    [JGE, 5, 0, 0x40000000],
+    [JEQ, 4, 0, nr.ioUringSetup],
+    [JEQ, 0, 2, nr.socket],
+    [LD, 0, 0, 16],
+    [JEQ, 1, 0, 1],
+    [RET, 0, 0, ALLOW],
+    [RET, 0, 0, DENY],
+  ];
+  const bytes = Buffer.alloc(program.length * 8);
+  program.forEach(([code, jt, jf, k], index) => {
+    bytes.writeUInt16LE(code, index * 8);
+    bytes.writeUInt8(jt, index * 8 + 2);
+    bytes.writeUInt8(jf, index * 8 + 3);
+    bytes.writeUInt32LE(k, index * 8 + 4);
+  });
+  return bytes;
+}
+
+/** The filter's file in Pi's agent directory, which no job may write, so none can loosen the filter before a launch. */
+function seccompFile(agentDir: string): string {
+  const path = join(agentDir, 'pstack-v2', `seccomp-${process.arch}.bpf`);
+  const filter = seccompFilter();
+  if (!existsSync(path) || !readFileSync(path).equals(filter)) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, filter);
+  }
+  return path;
 }
 
 function available(command: string): boolean {
@@ -136,7 +216,14 @@ function available(command: string): boolean {
  * narrower one. macOS refuses a second Seatbelt profile, so a sandboxed macOS worker asks the root Pi to launch instead.
  */
 export function sandboxed(argv: string[], policy: SandboxPolicy, platform: NodeJS.Platform = process.platform, env: NodeJS.ProcessEnv = process.env): string[] {
-  if (platform === 'darwin' && available('command -v sandbox-exec')) return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
-  if (platform === 'linux' && available('command -v bwrap')) return ['bwrap', ...bwrapArgs(policy, env), ...argv];
+  if (platform === 'darwin' && available('command -v sandbox-exec')) {
+    placeholders(policy);
+    return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
+  }
+  if (platform === 'linux' && available('command -v bwrap')) {
+    placeholders(policy);
+    // bubblewrap reads the filter from a file descriptor, which the shell opens just before it becomes bwrap.
+    return ['/bin/sh', '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', seccompFile(policy.agentDir), ...bwrapArgs(policy, env), ...argv];
+  }
   throw new Error(`pstack runs every job in a sandbox and found none on ${platform}. Install bubblewrap (bwrap) on Linux or WSL2, or use macOS, where Seatbelt (sandbox-exec) is built in.`);
 }

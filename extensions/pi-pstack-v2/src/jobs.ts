@@ -80,11 +80,8 @@ export function newJobId(name: string): string {
 /**
  * One tmux server per owning session, started with that session's environment so jobs inherit PATH and credentials.
  * Its socket sits where sandboxed jobs cannot connect, since the server runs whatever it is sent outside the sandbox.
- * Inside a sandboxed job, the server lives under the job's own `nested/` directory instead.
  */
-export function tmuxSocket(owner: string, env: NodeJS.ProcessEnv = process.env): string {
-  const parent = env[JOB_DIR_ENV];
-  if (env[SANDBOX_ENV] === '1' && parent) return join(parent, 'nested', 'tmux.sock');
+export function tmuxSocket(owner: string): string {
   const uid = process.getuid?.() ?? 0;
   const dir = `/tmp/pstack-v2-${uid}`;
   mkdirSync(dir, { recursive: true, mode: 0o700 });
