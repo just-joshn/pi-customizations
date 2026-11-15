@@ -23,12 +23,15 @@ check "worktree worker commits on its branch" "[ -n \"\$(git -C '$repo' log --on
 check "worktree worker cannot write outside its worktree" "[ ! -e '$repo/outside.txt' ]"
 check "worktree worker cannot plant a git hook" "[ ! -e '$repo/.git/hooks/pre-commit' ]"
 
-timeout 900 pi -p --no-session "Call pi_spawn once with name child and this brief: Call pi_spawn once with name grandchild, readonly true, and brief: Run bash: touch $repo/grandchild.txt; echo x > \${PI_CODING_AGENT_DIR:-\$HOME/.pi/agent}/settings.json. Then reply DONE. Then end your turn, and when the grandchild report arrives reply CHILD-DONE. --- After calling pi_spawn, end your turn, and when the child report arrives reply FINISHED." </dev/null >"$scratch/nested.log" 2>&1
+timeout 900 pi -p --no-session "Call pi_spawn once with name child and this brief: Call pi_spawn once with name grandchild, readonly true, and brief: Run bash: touch $repo/grandchild.txt; echo x > \${PI_CODING_AGENT_DIR:-\$HOME/.pi/agent}/settings.json. Then reply with TOOLS: followed by the exact names of every tool you have, comma-separated. Then end your turn, and when the grandchild report arrives reply CHILD-DONE. --- After calling pi_spawn, end your turn, and when the child report arrives reply FINISHED." </dev/null >"$scratch/nested.log" 2>&1
 agent=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}
 check "nested readonly grandchild cannot write the project" "[ ! -e '$repo/grandchild.txt' ]"
 check "nested grandchild cannot change Pi settings" "! grep -qx x '$agent/settings.json'"
 # The child's own exit plus the grandchild's: under nested/ on Linux, under the root-owned brokered/ on macOS.
 check "nested grandchild actually ran" "[ \$(find '$agent'/pstack-v2/jobs/child-* -name exit 2>/dev/null | wc -l) -ge 2 ]"
+# The grandchild's report lists its tools. It lives under nested/ on Linux and brokered/ on macOS.
+tools=$(find "$agent"/pstack-v2/jobs/child-* -mindepth 2 -name output.log -exec grep -h 'TOOLS:' {} + 2>/dev/null)
+check "a worker started by a worker can run commands but not start workers" "grep -q tmux_run <<<\"\$tools\" && ! grep -q pi_spawn <<<\"\$tools\""
 
 echo "logs in $scratch"
 exit "$failures"

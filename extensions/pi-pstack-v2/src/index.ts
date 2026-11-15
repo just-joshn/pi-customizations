@@ -18,6 +18,8 @@ const REPORT_LIMIT = 20000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
 const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
+// As in Cursor, the root and the workers it starts may start workers, and a worker started by another worker may not.
+const startedByWorker = (): boolean => insideJob() && process.env[JOB_DIR_ENV] !== process.env[TOP_DIR_ENV];
 const topJobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
 // A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
 const jobsRoot = (env: NodeJS.ProcessEnv = process.env): string => {
@@ -228,6 +230,10 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         continue;
       }
       if (requesterDone || stopped) continue;
+      if (spec.kind === 'pi' && depth > 0) {
+        settleBrokered(out, 126, 'pstack refused to start this Pi worker. A worker started by another worker cannot start workers of its own.');
+        continue;
+      }
       const writable = policy.writable.map(landing);
       const refused = [...writable.filter((path) => !within(path, grant)), ...(within(spec.cwd, [top.spec.cwd, ...grant]) ? [] : [`cwd ${spec.cwd}`])];
       if (refused.length) {
@@ -358,110 +364,112 @@ export default function pstack(pi: ExtensionAPI) {
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });
 
-  pi.registerTool({
-    name: 'pi_spawn',
-    label: 'Spawn Pi',
-    description:
-      'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message.',
-    promptSnippet: 'Start a parallel Pi instance in tmux with a standalone brief, then get woken with its report',
-    promptGuidelines: [
-      'Use pi_spawn wherever a pstack skill says to spawn a worker, delegate, explorer, reviewer, or Pi instance. Pi has no subagents.',
-      'Write each pi_spawn brief so it stands alone. The spawned Pi sees only the brief, never this conversation.',
-    ],
-    parameters: Type.Object({
-      name: Type.String({ description: 'Short label for the job, such as "explorer-auth" or "runner-2".' }),
-      brief: Type.String({ description: 'The complete standalone prompt for the spawned Pi.' }),
-      agent: Type.Optional(stringEnum(AGENTS, 'Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt.')),
-      model: Type.Optional(Type.String({ description: 'provider/id as `pi --list-models` prints it. Omit to use this session model.' })),
-      thinking: Type.Optional(stringEnum(THINKING, 'Thinking level. Omit to use the model default.')),
-      readonly: Type.Optional(Type.Boolean({ description: 'Deny writes to the project and remove the edit and write tools. Temp directories stay writable. Default false.' })),
-      worktree: Type.Optional(Type.String({ description: 'Branch for a new git worktree the spawned Pi works in, created from base. Writes are confined to that worktree.' })),
-      base: Type.Optional(Type.String({ description: 'Ref the new worktree branch starts from. Default HEAD.' })),
-      cwd: Type.Optional(Type.String({ description: 'Working directory inside this project when no worktree is requested. Default this session cwd.' })),
-      resume: Type.Optional(Type.String({ description: 'Job id of a finished pi_spawn job whose session the brief continues. Use only when that session holds state too costly to move.' })),
-      wake: Type.Optional(Type.Boolean({ description: 'Wake this session with the report when the job exits. Default true.' })),
-    }),
-    async execute(_id, params, _signal, _update, ctx) {
-      const root = jobsRoot();
-      const id = newJobId(params.name);
-      const dir = join(root, id);
-      const owner = ctx.sessionManager.getSessionId();
-      const prior = params.resume === undefined ? undefined : read(root, params.resume, owner);
-      if (params.resume !== undefined && (prior === undefined || prior.spec.kind !== 'pi' || prior.status.state === 'running')) {
-        throw new Error(`resume needs a finished pi_spawn job id from this session, got "${params.resume}".`);
-      }
-      if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
-      const model = resolveModel(ctx, params.model);
-      // Refreshing the worker's credentials now, under Pi's lock, means a worker rarely has to refresh one itself.
-      const provider = model?.slice(0, model.indexOf('/'));
-      const chosen = model && provider ? ctx.modelRegistry.find(provider, model.slice(model.indexOf('/') + 1)) : undefined;
-      if (chosen) await ctx.modelRegistry.getApiKeyAndHeaders(chosen).catch(() => undefined);
-      // A job's credentials copy holds no commands, so the worker's own provider gets its command resolved here, once.
-      const resolved: Record<string, string> = {};
-      if (provider && !insideJob() && commandProviders(getAgentDir()).includes(provider)) {
-        const key = await ctx.modelRegistry.getApiKeyForProvider(provider).catch(() => undefined);
-        if (key) resolved[provider] = key;
-      }
-      const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
-      // A resumed worker keeps the readonly it started with unless the call says otherwise.
-      const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
-      // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
-      const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
-      const writable = [sessionDir, join(dir, 'nested')];
-      let createdBranch = false;
-      try {
-        for (const path of writable) mkdirSync(path, { recursive: true });
-        const cwd = params.worktree !== undefined && prior === undefined ? join(dir, 'worktree') : base;
-        if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
-        const common = gitPath(cwd, '--git-common-dir');
-        if (!readonly) writable.push(cwd, ...(common ? [common] : []));
-        const guarded = protectedPaths(cwd, common);
-        const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
-        const argv = [
-          ...piCommand,
-          '-p',
-          '--session-dir',
-          sessionDir,
-          ...(prior ? ['--continue'] : []),
-          ...(model ? ['--model', model] : []),
-          ...(params.thinking ? ['--thinking', params.thinking] : []),
-          ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
-          ...(readonly ? ['--exclude-tools', 'edit,write'] : []),
-          ctx.isProjectTrusted() ? '--approve' : '--no-approve',
-          `@${join(dir, 'brief.md')}`,
-        ];
-        const files: Record<string, string> = { 'brief.md': params.brief };
-        if (params.agent) files['agent.md'] = stripFrontmatter(readFileSync(join(packageRoot, 'agents', `${params.agent}.md`), 'utf8'));
-        const spec: JobSpec = {
-          id,
-          name: params.name,
-          kind: 'pi',
-          cwd,
-          argv: [],
-          command: argv,
-          policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: dir },
-          brokered: false,
-          owner,
-          wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
-          repeat: false,
-          series: id,
-          socket: tmuxSocket(owner),
-          sweep: { roots: [], protect: [] },
-          out: dir,
-          createdAt: new Date().toISOString(),
-        };
-        const job = start(root, spec, files, resolved);
-        return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
-      } catch (error) {
-        rmSync(dir, { recursive: true, force: true });
-        if (params.worktree !== undefined && gitPath(base, '--git-common-dir')) {
-          git(base, ['worktree', 'prune']);
-          if (createdBranch) git(base, ['branch', '-D', params.worktree]);
+  if (!startedByWorker()) {
+    pi.registerTool({
+      name: 'pi_spawn',
+      label: 'Spawn Pi',
+      description:
+        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot.',
+      promptSnippet: 'Start a parallel Pi instance in tmux with a standalone brief, then get woken with its report',
+      promptGuidelines: [
+        'Use pi_spawn wherever a pstack skill says to spawn a worker, delegate, explorer, reviewer, or Pi instance. Pi has no subagents.',
+        'Write each pi_spawn brief so it stands alone. The spawned Pi sees only the brief, never this conversation.',
+      ],
+      parameters: Type.Object({
+        name: Type.String({ description: 'Short label for the job, such as "explorer-auth" or "runner-2".' }),
+        brief: Type.String({ description: 'The complete standalone prompt for the spawned Pi.' }),
+        agent: Type.Optional(stringEnum(AGENTS, 'Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt.')),
+        model: Type.Optional(Type.String({ description: 'provider/id as `pi --list-models` prints it. Omit to use this session model.' })),
+        thinking: Type.Optional(stringEnum(THINKING, 'Thinking level. Omit to use the model default.')),
+        readonly: Type.Optional(Type.Boolean({ description: 'Deny writes to the project and remove the edit and write tools. Temp directories stay writable. Default false.' })),
+        worktree: Type.Optional(Type.String({ description: 'Branch for a new git worktree the spawned Pi works in, created from base. Writes are confined to that worktree.' })),
+        base: Type.Optional(Type.String({ description: 'Ref the new worktree branch starts from. Default HEAD.' })),
+        cwd: Type.Optional(Type.String({ description: 'Working directory inside this project when no worktree is requested. Default this session cwd.' })),
+        resume: Type.Optional(Type.String({ description: 'Job id of a finished pi_spawn job whose session the brief continues. Use only when that session holds state too costly to move.' })),
+        wake: Type.Optional(Type.Boolean({ description: 'Wake this session with the report when the job exits. Default true.' })),
+      }),
+      async execute(_id, params, _signal, _update, ctx) {
+        const root = jobsRoot();
+        const id = newJobId(params.name);
+        const dir = join(root, id);
+        const owner = ctx.sessionManager.getSessionId();
+        const prior = params.resume === undefined ? undefined : read(root, params.resume, owner);
+        if (params.resume !== undefined && (prior === undefined || prior.spec.kind !== 'pi' || prior.status.state === 'running')) {
+          throw new Error(`resume needs a finished pi_spawn job id from this session, got "${params.resume}".`);
         }
-        throw error;
-      }
-    },
-  });
+        if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
+        const model = resolveModel(ctx, params.model);
+        // Refreshing the worker's credentials now, under Pi's lock, means a worker rarely has to refresh one itself.
+        const provider = model?.slice(0, model.indexOf('/'));
+        const chosen = model && provider ? ctx.modelRegistry.find(provider, model.slice(model.indexOf('/') + 1)) : undefined;
+        if (chosen) await ctx.modelRegistry.getApiKeyAndHeaders(chosen).catch(() => undefined);
+        // A job's credentials copy holds no commands, so the worker's own provider gets its command resolved here, once.
+        const resolved: Record<string, string> = {};
+        if (provider && !insideJob() && commandProviders(getAgentDir()).includes(provider)) {
+          const key = await ctx.modelRegistry.getApiKeyForProvider(provider).catch(() => undefined);
+          if (key) resolved[provider] = key;
+        }
+        const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
+        // A resumed worker keeps the readonly it started with unless the call says otherwise.
+        const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
+        // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
+        const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
+        const writable = [sessionDir, join(dir, 'nested')];
+        let createdBranch = false;
+        try {
+          for (const path of writable) mkdirSync(path, { recursive: true });
+          const cwd = params.worktree !== undefined && prior === undefined ? join(dir, 'worktree') : base;
+          if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
+          const common = gitPath(cwd, '--git-common-dir');
+          if (!readonly) writable.push(cwd, ...(common ? [common] : []));
+          const guarded = protectedPaths(cwd, common);
+          const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
+          const argv = [
+            ...piCommand,
+            '-p',
+            '--session-dir',
+            sessionDir,
+            ...(prior ? ['--continue'] : []),
+            ...(model ? ['--model', model] : []),
+            ...(params.thinking ? ['--thinking', params.thinking] : []),
+            ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
+            ...(readonly ? ['--exclude-tools', 'edit,write'] : []),
+            ctx.isProjectTrusted() ? '--approve' : '--no-approve',
+            `@${join(dir, 'brief.md')}`,
+          ];
+          const files: Record<string, string> = { 'brief.md': params.brief };
+          if (params.agent) files['agent.md'] = stripFrontmatter(readFileSync(join(packageRoot, 'agents', `${params.agent}.md`), 'utf8'));
+          const spec: JobSpec = {
+            id,
+            name: params.name,
+            kind: 'pi',
+            cwd,
+            argv: [],
+            command: argv,
+            policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: dir },
+            brokered: false,
+            owner,
+            wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
+            repeat: false,
+            series: id,
+            socket: tmuxSocket(owner),
+            sweep: { roots: [], protect: [] },
+            out: dir,
+            createdAt: new Date().toISOString(),
+          };
+          const job = start(root, spec, files, resolved);
+          return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
+        } catch (error) {
+          rmSync(dir, { recursive: true, force: true });
+          if (params.worktree !== undefined && gitPath(base, '--git-common-dir')) {
+            git(base, ['worktree', 'prune']);
+            if (createdBranch) git(base, ['branch', '-D', params.worktree]);
+          }
+          throw error;
+        }
+      },
+    });
+  }
 
   pi.registerTool({
     name: 'tmux_run',

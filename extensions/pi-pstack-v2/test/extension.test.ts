@@ -118,6 +118,26 @@ describe('pi_spawn', { timeout: 20_000 }, () => {
   });
 });
 
+describe('who may start workers', () => {
+  const registered = (jobDir: string, topDir: string) => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', jobDir);
+    vi.stubEnv('PSTACK_V2_TOP_DIR', topDir);
+    const names: string[] = [];
+    pstack({ registerCommand: () => {}, on: () => {}, registerTool: (tool: { name: string }) => names.push(tool.name), sendMessage } as unknown as ExtensionAPI);
+    return names;
+  };
+
+  test('a worker the root started can start workers', () => {
+    expect(registered(join(agentDir, 'top'), join(agentDir, 'top'))).toContain('pi_spawn');
+  });
+
+  test('a worker started by another worker cannot, but can still run commands', () => {
+    expect(registered(join(agentDir, 'top', 'nested', 'child'), join(agentDir, 'top'))).toEqual(expect.arrayContaining(['tmux_run', 'tmux_jobs']));
+    expect(registered(join(agentDir, 'top', 'nested', 'child'), join(agentDir, 'top'))).not.toContain('pi_spawn');
+  });
+});
+
 describe('tmux_run', { timeout: 20_000 }, () => {
   test('an interactive session is woken once with the wake message and output', async () => {
     await handlers['session_start']?.({}, ctx);
@@ -212,17 +232,17 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
     const dir = join(agentDir, 'pstack-v2', 'jobs', id ?? '');
     return { dir, granted: spec(id ?? '') as unknown as { policy: { writable: string[] } } };
   };
-  const nestedRequest = (topDir: string, name: string, writable: string[], command: string) => {
+  const nestedRequest = (topDir: string, name: string, writable: string[], command: string, kind: 'pi' | 'command' = 'command', nested = join(topDir, 'nested')) => {
     const id = `${name}-000001`;
     vi.stubEnv('PSTACK_V2_TOP_DIR', topDir);
-    request(join(topDir, 'nested'), {
+    request(nested, {
       id,
       name,
-      kind: 'command',
+      kind,
       cwd: repo,
       argv: [],
       command: ['bash', '-c', command],
-      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(topDir, 'nested', id) },
+      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(nested, id) },
       brokered: true,
       owner: 'top-worker',
       wake: 'done',
@@ -233,7 +253,7 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
       out: '',
       createdAt: new Date().toISOString(),
     });
-    return resultsDir(topDir, join(topDir, 'nested', id));
+    return resultsDir(topDir, join(nested, id));
   };
   const exitOf = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
 
@@ -271,6 +291,18 @@ describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout:
     for (const name of ['output.log', 'exit', 'launched', 'stderr.log']) symlinkSync(victim, join(requestDir, name));
     await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
     expect(readFileSync(victim, 'utf8')).toBe('original\n');
+  });
+
+  test('a worker started by another worker cannot get a Pi worker launched, but can get a command launched', async () => {
+    const top = await topJob();
+    nestedRequest(top.dir, 'child', [join(top.dir, 'nested')], 'sleep 20');
+    const grandchildNested = join(top.dir, 'nested', 'child-000001', 'nested');
+    await expect.poll(() => existsSync(join(resultsDir(top.dir, join(top.dir, 'nested', 'child-000001')), 'launched')), { timeout: 10_000 }).toBe(true);
+    const pi = nestedRequest(top.dir, 'grandchild', [grandchildNested], 'true', 'pi', grandchildNested);
+    const command = nestedRequest(top.dir, 'tick', [grandchildNested], 'true', 'command', grandchildNested);
+    await expect.poll(() => exitOf(pi), { timeout: 10_000 }).toBe('126');
+    expect(readFileSync(join(pi, 'output.log'), 'utf8')).toContain('cannot start workers of its own');
+    await expect.poll(() => exitOf(command), { timeout: 10_000 }).toBe('0');
   });
 
   test('a malformed request does not stop the next one', async () => {

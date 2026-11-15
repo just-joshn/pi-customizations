@@ -29,6 +29,7 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 | `environment: "local"` | Omit `worktree`. |
 | `run_in_background: true` | Nothing to set. Every `pi_spawn` runs in parallel, and you are woken when it exits. Keep working or end your turn. |
 | Spawn N in one message | N `pi_spawn` calls in one message. |
+| Nested subagents, launched by a subagent | The same limit as Cursor. The root Pi and the workers it starts have `pi_spawn`. A worker started by another worker does not, and on macOS the root refuses a Pi request from one. Every worker keeps `tmux_run` and `tmux_jobs`. |
 | `resume` an agent | `pi_spawn` with `resume: "<job id>"` continues that job's Pi session. |
 | Steer or stop a running agent | `tmux_jobs` with `action: "stop"`, then a fresh `pi_spawn` with consolidated scope. A print-mode Pi takes no mid-run input. |
 | Wait for agents | End your turn and let the wake arrive, or call `tmux_jobs` with `action: "wait"`. A spawned Pi running in print mode waits for its own jobs automatically before it finishes. |
