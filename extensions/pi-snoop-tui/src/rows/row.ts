@@ -151,7 +151,7 @@ class RowHeader implements Component {
       this.theme.fg(view.phase === 'pending' ? 'dim' : 'text', layout.target) +
       ' '.repeat(layout.gap) +
       this.theme.fg('dim', layout.meta);
-    const lines = [truncateToWidth(line, width, '')];
+    const lines = [width < pad + 3 ? truncateToWidth(line, width, '') : line];
     this.cache = { width, view, lines };
     return lines;
   }
@@ -225,9 +225,11 @@ class Panel implements Component {
   }
   render(width: number): string[] {
     const indent = Math.min(this.pad() + 3, Math.max(0, width - 1));
-    const source = this.box.render(Math.max(1, width - indent - this.pad()));
+    const boxWidth = Math.max(1, width - indent - this.pad());
+    const source = this.box.render(boxWidth);
     if (this.cache?.width === width && this.cache.source === source) return this.cache.lines;
-    const lines = source.map((line) => truncateToWidth(' '.repeat(indent) + line, width, ''));
+    const prefix = ' '.repeat(indent);
+    const lines = source.map((line) => (boxWidth < 3 ? truncateToWidth(prefix + line, width, '') : prefix + line));
     this.cache = { width, source, lines };
     return lines;
   }

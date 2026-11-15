@@ -92,6 +92,18 @@ describe('specs', () => {
 });
 
 describe('rows', () => {
+  test('keeps collapsed headers and expanded native panels within every width', () => {
+    for (const outputPad of [0, 1, 2]) {
+      const row = driveRow(compactRenderers(TOOL_SPECS.read, recordingNative()), stubTheme(), { outputPad });
+      row.apply({ args: { path: '/project/a/very/long/path/漢字/🙂/filename.ts' }, result: output('one\ntwo'), isPartial: false });
+      for (const expanded of [false, true]) {
+        row.apply({ expanded });
+        for (let width = 1; width <= 120; width++) {
+          for (const line of row.lines(width)) expect(visibleWidth(line)).toBeLessThanOrEqual(width);
+        }
+      }
+    }
+  });
   test('labels image reads without counting their text as lines', () => {
     const row = driveRow(compactRenderers(TOOL_SPECS.read, {}), stubTheme());
     row.apply({
