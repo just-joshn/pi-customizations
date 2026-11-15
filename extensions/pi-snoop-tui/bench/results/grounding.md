@@ -865,3 +865,26 @@ Captures are in `bench/results/visual/generic-*.png` (100x40, `pty-capture.py` o
 
 - The unregistered path (`next()` returns `undefined`), where stock prints the full JSON and the full output for every row. Snoop takes the same compact path there, so the saving is likely larger. That is a guess, since no fixture restores unregistered tools.
 - Live streaming of a renderer-less tool. A running generic row shows its marker and target with no preview or meta until the result is final.
+
+## Startup: prebuilt JavaScript entry experiment
+
+Verdict: reverted. The prebuilt entry made startup substantially slower in this checkout. The existing TypeScript entries remain in the package.
+
+The startup harness alternates stock and full, starts each run with a new agent directory, checks output and exit status, and takes Pi's timings on a second launch. Both launches share `TMPDIR`, so jiti's `TMPDIR/jiti` cache is warm after the first round, despite fresh agent directories. Node also uses `TMPDIR/node-compile-cache`. The cold first round remains in the table. Pi 1.5.2 documents `.js` extension discovery in `docs/extensions.md`.
+
+The prototype bundled one entry with `bun build src/index.ts --target=node --format=esm --external '@earendil-works/*'` and changed `pi.extensions` to the bundle. Each table value is the median and min..max of nine interleaved rounds. The paired columns are full minus stock in each round. All startup runs exited successfully and reported complete timing groups. Raw records are [before](js-entry-before.jsonl) and [prototype](js-entry-prototype.jsonl).
+
+| Metric | Before stock | Before full | Before paired | Prototype stock | Prototype full | Prototype paired |
+|---|---:|---:|---:|---:|---:|---:|
+| Process CPU ms | 258 (252..453) | 262 (256..447) | 4.5 (-6.7..19.4) | 255 (253..266) | 539 (526..814) | 283 (272..548) |
+| Extension load ms | 10 (9..10) | 14 (14..16) | 5 (4..6) | 10 (9..10) | 226 (223..235) | 217 (213..225) |
+| First settled frame ms | 291 (289..436) | 298 (293..398) | 5.1 (-38.0..14.1) | 292 (290..295) | 511 (507..822) | 219 (215..526) |
+| Pi startup benchmark process CPU ms | 244 (240..251) | 252 (246..254) | 8.4 (1.5..10.7) | 244 (242..253) | 523 (512..556) | 276 (259..310) |
+
+Before the prototype, Pi's timed session runtime was 7 ms higher paired (6..9), while interactive initialization was 2 ms lower (-2..0) and theme initialization was 1 ms lower (-1..1). The three snoop imports totaled 3 ms in one timed full run. A warm CPU profile per side sampled 172 ms busy for stock and 178 ms for full, with zero samples in snoop source in both. The largest stock and full self-time buckets included Pi bundle code and `spawnSync`, not snoop rendering. Sampling is too coarse to assign the remaining few milliseconds to a specific function.
+
+A separate prototype profile showed Node module compilation and file loading. Its frames include both Pi's installed bundle and the checkout's separate `node_modules` copy of `@earendil-works/pi-coding-agent`. Native JavaScript imports resolve that separate copy instead of reusing the bundled Pi modules. This is the observed cause of the large prototype load, not an estimate of TypeScript transpilation cost. The profile also explains why a prebuilt entry is not a win in this installation.
+
+After reverting the prototype, the five-round [long run](js-entry-long.jsonl) produced output for all steps and no echo misses. All five full runs failed the existing width checks: the widest rules measured 88 and 118 columns rather than 90 and 120, and the storm ended at 88 rather than 90. The checks are therefore not evidence of a clean long-workload pass. The restored code was unchanged from baseline.
+
+The machine has 10 cores. `uptime` load averages were 4.83, 4.18, 4.66 before baseline; 4.48, 4.16, 4.63 after baseline; 9.69, 5.83, 5.22 after the prototype; and 4.08, 4.98, 4.96 after the long run. Other work shared the machine. Interleaving limits drift but does not eliminate noise.
