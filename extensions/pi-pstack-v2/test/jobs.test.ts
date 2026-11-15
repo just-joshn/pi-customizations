@@ -105,6 +105,22 @@ describe('sandbox', () => {
     expect(args.indexOf(tmpdir())).toBeGreaterThan(2);
   });
 
+  test.runIf(process.platform === 'darwin')('a sandboxed job cannot rewrite its own spec', async () => {
+    const home = realpathSync(mkdtempSync(join(homedir(), '.pstack-jobs-')));
+    const tmpRoot = root;
+    root = home;
+    try {
+      const id = newJobId('tamper');
+      const argv = sandboxed(['bash', '-c', `echo '{}' > ${join(home, id, 'job.json')}`], { writable: [tmpRoot], agentDir: join(tmpRoot, 'agent') }, 'darwin', {});
+      const done = await settled(launch(home, spec('', { id, argv, cwd: tmpRoot })).spec.id);
+      expect(done.status).toEqual({ state: 'exited', code: 1 });
+      expect(done.spec.argv[0]).toBe('sandbox-exec');
+    } finally {
+      root = tmpRoot;
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
   test.runIf(process.platform === 'darwin')('seatbelt blocks a write outside the writable paths', () => {
     const outside = join(homedir(), `.pstack-sandbox-probe-${process.pid}`);
     const inside = join(root, 'inside.txt');

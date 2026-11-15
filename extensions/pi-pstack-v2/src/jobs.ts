@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { SANDBOX_ENV } from './sandbox.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV } from './sandbox.ts';
 
 export type JobKind = 'pi' | 'command';
 
@@ -63,7 +63,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'job.json'), `${JSON.stringify(spec, null, 2)}\n`);
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
-  const command = `${SANDBOX_ENV}=1 ${spec.argv.map(shellQuote).join(' ')} < /dev/null`;
+  const command = `${SANDBOX_ENV}=1 ${JOB_DIR_ENV}=${shellQuote(dir)} ${spec.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(dir));
   const capture = spec.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(dir, 'stderr.log'))}; code=$?` : `${command} 2>&1 | tee ${out}; code=\${PIPESTATUS[0]}`;
   const exit = shellQuote(join(dir, 'exit'));

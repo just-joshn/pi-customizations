@@ -3,6 +3,8 @@ import { existsSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
+/** The job directory of the sandboxed process. Jobs it starts live under its writable `nested/` directory. */
+export const JOB_DIR_ENV = 'PSTACK_V2_JOB_DIR';
 
 // Files in the Pi agent directory that would let a sandboxed process change what a later, unsandboxed Pi loads.
 const PROTECTED_AGENT_FILES = ['settings.json', 'trust.json', 'mcp.json', 'models.json', 'keybindings.json', 'AGENTS.md', 'SYSTEM.md', 'APPEND_SYSTEM.md'];

@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { attachCommand, claimWake, type Job, type JobSpec, launch, list, newJobId, outputPath, read, STOPPED_EXIT_CODE, stop, tail } from './jobs.ts';
-import { sandboxed } from './sandbox.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, sandboxed } from './sandbox.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'] as const;
@@ -15,7 +15,11 @@ const POLL_MS = 2000;
 const REPORT_LIMIT = 20000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
-const jobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
+// A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
+const jobsRoot = (env: NodeJS.ProcessEnv = process.env): string => {
+  const parent = env[JOB_DIR_ENV];
+  return env[SANDBOX_ENV] === '1' && parent ? join(parent, 'nested') : join(getAgentDir(), 'pstack-v2', 'jobs');
+};
 // A plain string enum, which every provider accepts, typed for TypeBox inference.
 const stringEnum = <T extends readonly string[]>(values: T, description?: string) => Type.Unsafe<T[number]>({ type: 'string', enum: [...values], ...(description ? { description } : {}) });
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
@@ -138,7 +142,7 @@ export default function pstack(pi: ExtensionAPI) {
       agent: Type.Optional(stringEnum(AGENTS, 'Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt.')),
       model: Type.Optional(Type.String({ description: 'provider/id as `pi --list-models` prints it. Omit to use this session model.' })),
       thinking: Type.Optional(stringEnum(THINKING, 'Thinking level. Omit to use the model default.')),
-      readonly: Type.Optional(Type.Boolean({ description: 'Deny every write outside the job directory and remove the edit and write tools. Default false.' })),
+      readonly: Type.Optional(Type.Boolean({ description: 'Deny every write except to the worker session and remove the edit and write tools. Default false.' })),
       worktree: Type.Optional(Type.String({ description: 'Branch for a new git worktree the spawned Pi works in, created from base. Writes are confined to that worktree.' })),
       base: Type.Optional(Type.String({ description: 'Ref the new worktree branch starts from. Default HEAD.' })),
       cwd: Type.Optional(Type.String({ description: 'Working directory when no worktree is requested. Default this session cwd.' })),
@@ -156,15 +160,16 @@ export default function pstack(pi: ExtensionAPI) {
       }
       const base = params.cwd === undefined ? ctx.cwd : resolve(ctx.cwd, params.cwd);
       let cwd = prior?.spec.cwd ?? base;
-      const writable = [dir];
+      // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
+      const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
+      const writable = [sessionDir, join(dir, 'nested')];
+      for (const path of writable) mkdirSync(path, { recursive: true });
       if (params.worktree !== undefined && prior === undefined) {
         cwd = join(dir, 'worktree');
         addWorktree(base, cwd, params.worktree, params.base);
       }
       const common = gitCommonDir(cwd);
       if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
-      const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
-      if (prior) writable.push(sessionDir);
       const model = resolveModel(ctx, params.model);
       const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
       const argv = [
@@ -223,7 +228,7 @@ export default function pstack(pi: ExtensionAPI) {
         name: params.name,
         kind: 'command',
         cwd,
-        argv: sandboxed(['bash', '-c', params.command], { writable: [join(root, id), cwd, ...(common ? [common] : [])], agentDir: getAgentDir() }),
+        argv: sandboxed(['bash', '-c', params.command], { writable: [cwd, ...(common ? [common] : [])], agentDir: getAgentDir() }),
         owner: ctx.sessionManager.getSessionId(),
         wake: params.wake ?? null,
         repeat: params.repeat ?? false,

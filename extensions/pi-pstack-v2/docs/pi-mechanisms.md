@@ -9,7 +9,7 @@ Pi skips sub-agents, permission popups, plan mode, built-in to-dos, and backgrou
 | Pi rule | What pstack does |
 | --- | --- |
 | No sub-agents. Spawn Pi instances via tmux. | `pi_spawn` starts a separate `pi -p` process in its own tmux session with a standalone brief. It runs in parallel and wakes the spawning session with its report when it exits. |
-| No permission popups. Run in a container. | Every `pi_spawn` and `tmux_run` job runs inside Seatbelt (`sandbox-exec`) on macOS or bubblewrap (`bwrap`) on Linux and WSL2. Writes are limited to the job's own directory, its worktree or working directory, the repository's git directory, and temp directories. Pi's own configuration stays read-only. No job runs unsandboxed. |
+| No permission popups. Run in a container. | Every `pi_spawn` and `tmux_run` job runs inside Seatbelt (`sandbox-exec`) on macOS or bubblewrap (`bwrap`) on Linux and WSL2. Writes are limited to the worker's own session directory, its worktree or working directory, the repository's git directory, and temp directories. Pi's own configuration stays read-only. No job runs unsandboxed. |
 | No plan mode. Write plans to files. | A plan is a Markdown file, such as `plans/<slug>.md`. The human reviews the file. |
 | No built-in to-dos. Use a TODO.md file. | Each checklist pstack used to keep in a todo tool lives in `TODO.md` at the root of the checkout you work in, as `- [ ]` and `- [x]` lines. It is working state. Never stage it unless the repository already tracks it. |
 | No background bash. Use tmux. | Watchers, dev servers, long builds, and heartbeat ticks run through `tmux_run`. Nothing uses `&`, `nohup`, `setsid`, or `disown`. |
@@ -64,4 +64,4 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 
 ## Jobs on disk
 
-Each job lives in `~/.pi/agent/pstack-v2/jobs/<id>/`: `job.json` (the spec), `brief.md`, `output.log`, `exit`, and for Pi workers `session/` and `stderr.log`. Each spawning session runs its own tmux server, named `pstack-v2-<first 8 characters of the session id>`. `tmux_jobs` `list` prints the attach command for each job. A wake is claimed once through a `woken` marker file, so restarting Pi never delivers a report twice.
+Each job lives in `~/.pi/agent/pstack-v2/jobs/<id>/`: `job.json` (the spec), `brief.md`, `output.log`, `exit`, and for Pi workers `session/`, `nested/`, and `stderr.log`. The job directory is read-only to the job, so a job cannot rewrite its own spec or exit code. The unsandboxed tmux wrapper writes `output.log` and `exit`. A Pi worker can write only `session/` and `nested/`, and the jobs it starts live in `nested/`. Each spawning session runs its own tmux server, named `pstack-v2-<first 8 characters of the session id>`. `tmux_jobs` `list` prints the attach command for each job. A wake is claimed once through a `woken` marker file, so restarting Pi never delivers a report twice.
