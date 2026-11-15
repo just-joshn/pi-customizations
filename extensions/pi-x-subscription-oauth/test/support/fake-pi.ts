@@ -1,7 +1,7 @@
 import type { Provider } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext, ExtensionVirtualModel, ProviderConfig } from '@earendil-works/pi-coding-agent';
 
-type Registering = Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand'>;
+type Registering = Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand' | 'on'>;
 
 export type RegisteredCommandCapture = {
   readonly name: string;
@@ -28,7 +28,7 @@ export function register(factory: (pi: Registering) => void): Registrations {
   const registerCommand: ExtensionAPI['registerCommand'] = (name, options) => {
     commands.push({ name, ...(options.description !== undefined ? { description: options.description } : {}) });
   };
-  factory({ registerProvider, registerVirtualModel, registerCommand });
+  factory({ registerProvider, registerVirtualModel, registerCommand, on: () => () => undefined });
   return { providers, virtualModels, commands };
 }
 

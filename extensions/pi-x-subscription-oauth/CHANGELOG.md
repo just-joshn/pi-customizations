@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.3]
+
+- Deprecated in favor of `@justjoshn/pi-spacex-oauth-v2`, a separate package. Pi now shows a migration notice at startup: run `pi install npm:@justjoshn/pi-spacex-oauth-v2`, then `pi remove npm:@justjoshn/pi-x-subscription-oauth`.
+
 ## [0.3.2] - 2026-11-11
 
 - Show the reason Cursor gives when it refuses an ask, such as the weekly usage limit, instead of `Error`.

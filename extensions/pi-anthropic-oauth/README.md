@@ -1,5 +1,13 @@
 # pi-anthropic-oauth
 
+> [!WARNING]
+> **Deprecated.** This package gets no more updates. [`@justjoshn/pi-anthropic-oauth-v2`](https://www.npmjs.com/package/@justjoshn/pi-anthropic-oauth-v2) replaces it. The replacement is a separate package, so updating this one never moves you to it. To switch:
+>
+> ```sh
+> pi install npm:@justjoshn/pi-anthropic-oauth-v2
+> pi remove npm:@justjoshn/pi-anthropic-oauth
+> ```
+
 Use a Claude subscription in Pi through its native provider, login, credential storage, and Anthropic streaming mechanisms.
 
 The package registers `claude-subscription`. Existing credentials and saved model selections keep that provider ID. After login, Pi's `auth.json` is the only store this package uses for requests and refresh.

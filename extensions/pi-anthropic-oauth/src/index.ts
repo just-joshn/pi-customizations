@@ -192,6 +192,10 @@ function guardedStream<TOptions extends StreamOptions>({
 export type ExtensionHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'appendEntry' | 'getAllTools' | 'getActiveTools' | 'getSettings'>;
 
 export default function (pi: ExtensionHost) {
+  pi.on('session_start', (event, ctx) => {
+    if (event.reason === 'startup')
+      ctx.ui.notify('pi-anthropic-oauth is deprecated and gets no more updates. Its replacement is a separate package: run `pi install npm:@justjoshn/pi-anthropic-oauth-v2`, then `pi remove npm:@justjoshn/pi-anthropic-oauth`.', 'warning');
+  });
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   if (!anthropic) throw new Error("Pi's built-in anthropic provider is not available.");
   const oauth = createClaudeOAuth();

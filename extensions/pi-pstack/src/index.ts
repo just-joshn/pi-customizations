@@ -110,6 +110,10 @@ function watchParent(pi: ExtensionAPI, parentPid: number): void {
 }
 
 export default function piPstack(pi: ExtensionAPI): void {
+  pi.on('session_start', (event, ctx) => {
+    if (event.reason === 'startup')
+      ctx.ui.notify('pi-pstack is deprecated and gets no more updates. Its replacement is a separate package: run `pi install npm:@justjoshn/pi-pstack-v2`, then `pi remove npm:@justjoshn/pi-pstack`.', 'warning');
+  });
   const agents = loadAgentDefinitions();
   // A cloud agent on a container machine runs every tool there; its own Pi process stays on the host.
   const machine = childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine);

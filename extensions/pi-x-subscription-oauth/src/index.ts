@@ -49,7 +49,14 @@ function routeAlias({ target, effort }: EffortAlias, ctx: RouteContext) {
   return { model, thinkingLevel: effort };
 }
 
-export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand'>) {
+export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand' | 'on'>) {
+  pi.on('session_start', (event, ctx) => {
+    if (event.reason === 'startup')
+      ctx.ui.notify(
+        'pi-x-subscription-oauth is deprecated and gets no more updates. Its replacement is a separate package: run `pi install npm:@justjoshn/pi-spacex-oauth-v2`, then `pi remove npm:@justjoshn/pi-x-subscription-oauth`.',
+        'warning',
+      );
+  });
   const xai = builtinProviders().find((provider) => provider.id === 'xai');
   if (!xai) throw new Error(XAI_MISSING);
   pi.registerProvider(createGrokBuildProvider(xai));

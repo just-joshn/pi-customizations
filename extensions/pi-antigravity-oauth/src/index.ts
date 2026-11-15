@@ -23,6 +23,10 @@ export function createAntigravityProvider(oauth: OAuthEndpoints = GOOGLE_OAUTH, 
 }
 
 export default function (pi: ExtensionAPI) {
+  pi.on('session_start', (event, ctx) => {
+    if (event.reason === 'startup')
+      ctx.ui.notify('pi-antigravity-oauth is deprecated and gets no more updates. Its replacement is a separate package: run `pi install npm:@justjoshn/pi-google-oauth-v2`, then `pi remove npm:@justjoshn/pi-antigravity-oauth`.', 'warning');
+  });
   pi.registerProvider(createAntigravityProvider(GOOGLE_OAUTH, { offerKeychainImport: keychainImportAvailable() }));
   pi.registerCommand('antigravity', createAntigravityCommand(GOOGLE_OAUTH));
 }

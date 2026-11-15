@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.6]
+
+- Deprecated in favor of `@justjoshn/pi-google-oauth-v2`, a separate package. Pi now shows a migration notice at startup: run `pi install npm:@justjoshn/pi-google-oauth-v2`, then `pi remove npm:@justjoshn/pi-antigravity-oauth`.
+
 ## [0.1.5] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. Source changes are formatting and import order only.

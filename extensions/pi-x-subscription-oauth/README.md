@@ -1,5 +1,13 @@
 # pi-x-subscription-oauth
 
+> [!WARNING]
+> **Deprecated.** This package gets no more updates. [`@justjoshn/pi-spacex-oauth-v2`](https://www.npmjs.com/package/@justjoshn/pi-spacex-oauth-v2) replaces it. The replacement is a separate package, so updating this one never moves you to it. To switch:
+>
+> ```sh
+> pi install npm:@justjoshn/pi-spacex-oauth-v2
+> pi remove npm:@justjoshn/pi-x-subscription-oauth
+> ```
+
 This Pi package lets The X Subscription answer in Pi. It registers two providers, and Pi stores a separate credential for each one.
 
 `grok-build` calls `https://cli-chat-proxy.grok.com/v1`. That proxy lists the models Grok Build serves, including `grok-4.7-build-fast`. `cursor` lists models from Cursor's `GetUsableModels` endpoint. Native HTTPS to `https://api2.cursor.sh` is the default transport for a Cursor ask. Pi's built-in `xai` provider is unchanged. It keeps calling `https://api.x.ai/v1`, which does not serve the fast model.
