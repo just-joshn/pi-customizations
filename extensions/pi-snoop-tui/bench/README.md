@@ -12,7 +12,7 @@ python3 run.py --runs 7 --out results.jsonl
 python3 report.py results.jsonl
 ```
 
-`run.py` appends one JSON object per run to `--out`. `report.py` prints a Markdown table of the median and min..max per configuration, then a table of per-round differences from `stock`. Use `--configs stock,full` to run a subset and `--keep-artifacts` to keep each run's workspace, raw `pty.log`, and chunk timings.
+`run.py` appends one JSON object per run to `--out`. Records from `--workload long` carry `"workloadName": "long"`. `report.py` prints a Markdown table of the median and min..max per configuration, then a table of per-round differences from `stock`. Use `--configs stock,full` to run a subset and `--keep-artifacts` to keep each run's workspace, raw `pty.log`, and chunk timings.
 
 Each round runs every configuration once. The order rotates each round, so warmup and drift do not favor one configuration.
 
@@ -48,6 +48,25 @@ All in-process numbers come from the Pi process itself. The workload phase runs 
 - **Workload wall ms.** Wall time of the workload phase. The script's sleeps set most of it, so it mostly shows that the run did the scripted work.
 
 The benchmark does not measure the terminal emulator's paint time or how a real terminal handles the bytes. Echo latency stops at the pseudo-terminal, not at pixels on screen.
+
+## Run the long-session benchmark
+
+```sh
+python3 run.py --workload long --runs 5 --out results-long.jsonl
+python3 report.py results-long.jsonl
+```
+
+`--workload long` measures a restored session instead of a streamed turn. Each run writes `visual/mockup-fixture.py`'s conversation repeated 150 times (1050 tool calls) into a fresh workspace and starts Pi on it with `--session <file>`. It drops the bench provider and `--no-session` but keeps the other shared flags, the configs, the 120x40 pseudo-terminal, and the fresh `PI_CODING_AGENT_DIR`. The driver then runs five steps and times each one until the output settles:
+
+1. `startup`: from spawn.
+2. `narrow`: resize to 90x40 with `TIOCSWINSZ` on the master, which sends Pi `SIGWINCH`.
+3. `wide`: resize back to 120x40.
+4. `expand`: Ctrl+O, which expands every tool row.
+5. `collapse`: Ctrl+O again.
+
+A step settles when Pi writes nothing for 500 ms. Its time runs to the last byte before that quiet period. A step with no output within 5 s (60 s for startup) has no output and becomes a problem. A step still writing after 60 s is a timeout and fails the run. Each step records its bytes and the widest horizontal rule it drew, and a resize whose rule does not match the new width is a problem. The driver then sends Ctrl+D and reads the child's user and system CPU for the whole run from `os.wait4`, and the bytes Pi wrote on exit.
+
+`report.py` prints one section per workload.
 
 ## Profile a run
 
