@@ -27,12 +27,11 @@ class RowState {
   summary: SummaryMemo | undefined;
   readonly native: Record<string, unknown> = {};
   nativeResult: Component | undefined;
-  readonly panel: Panel;
+  panel: Panel | undefined;
   readonly header: RowHeader;
   readonly body: RowBody;
   constructor(spec: ToolSpec, theme: Theme, ctx: ToolRenderContext) {
     this.view = Object.freeze<RowView>({ phase: derivePhase(ctx), verb: spec.verb, target: spec.target(parseArgs(ctx.args), ctx.cwd), meta: undefined, body: { kind: 'none' }, pad: ctx.outputPad });
-    this.panel = new Panel(theme, () => this.view.pad);
     this.header = new RowHeader(this, theme);
     this.body = new RowBody(this, theme);
   }
@@ -70,6 +69,7 @@ export function compactRenderers(spec: ToolSpec, native: ToolRenderers): ToolRen
             0,
           );
         const tone = ctx.isError ? 'error' : 'ok';
+        state.panel ??= new Panel(theme, () => state.view.pad);
         state.panel.set(state.nativeResult, tone);
         body = { kind: 'native', panel: state.panel, tone };
       } else if (summary.preview) {
@@ -190,7 +190,7 @@ class RowBody implements Component {
   }
   invalidate(): void {
     this.cache = undefined;
-    this.state.panel.invalidate();
+    this.state.panel?.invalidate();
   }
 }
 class Panel implements Component {
