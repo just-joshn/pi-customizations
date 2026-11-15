@@ -141,7 +141,7 @@ class RowHeader implements Component {
     const view = this.state.view;
     if (this.cache?.width === width && this.cache.view === view) return this.cache.lines;
     const pad = Math.min(view.pad, Math.max(0, width - 1));
-    const layout = layoutHeader(view, width - pad);
+    const layout = layoutHeader(view, width - 2 * pad);
     const [color, marker] = MARKERS[view.phase];
     const line =
       ' '.repeat(pad) +
@@ -229,7 +229,11 @@ class Panel implements Component {
     const source = this.box.render(boxWidth);
     if (this.cache?.width === width && this.cache.source === source) return this.cache.lines;
     const prefix = ' '.repeat(indent);
-    const lines = source.map((line) => (boxWidth < 3 ? truncateToWidth(prefix + line, width, '') : prefix + line));
+    let start = 0;
+    let end = source.length;
+    while (start < end && isBlank(source[start])) start++;
+    while (end > start && isBlank(source[end - 1])) end--;
+    const lines = source.slice(start, end).map((line) => (boxWidth < 3 ? truncateToWidth(prefix + line, width, '') : prefix + line));
     this.cache = { width, source, lines };
     return lines;
   }
@@ -237,4 +241,9 @@ class Panel implements Component {
     this.cache = undefined;
     this.box.invalidate();
   }
+}
+// biome-ignore lint/suspicious/noControlCharactersInRegex: a blank panel line holds only spaces and SGR color codes
+const BLANK_LINE = /^(?:\s|\x1b\[[0-9;:]*m)*$/;
+function isBlank(line: string | undefined): boolean {
+  return BLANK_LINE.test(line ?? '');
 }

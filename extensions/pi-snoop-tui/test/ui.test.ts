@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext, ReadonlyFooterDataProvider, ToolRendererResolver } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, MarkdownTransformer, ReadonlyFooterDataProvider, ToolRendererResolver } from '@earendil-works/pi-coding-agent';
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { expect, test, vi } from 'vitest';
 import chrome, { HeaderLine } from '../src/chrome.ts';
@@ -8,9 +8,16 @@ import { plain, stubTheme } from './harness.ts';
 
 function events() {
   const handlers = new Map<string, (event: unknown, ctx: ExtensionContext) => void>();
-  const api = { on: vi.fn((name: string, handler: (event: unknown, ctx: ExtensionContext) => void) => handlers.set(name, handler)), getThinkingLevel: () => 'medium' } as unknown as ExtensionAPI;
+  const transformers: MarkdownTransformer[] = [];
+  const api = {
+    on: vi.fn((name: string, handler: (event: unknown, ctx: ExtensionContext) => void) => handlers.set(name, handler)),
+    getThinkingLevel: () => 'medium',
+    getSettings: () => ({ outputPad: 1 }),
+    registerMarkdownTransformer: vi.fn((transformer: MarkdownTransformer) => transformers.push(transformer)),
+  } as unknown as ExtensionAPI;
   return {
     api,
+    transformers,
     fire(name: string, ctx: ExtensionContext) {
       const handler = handlers.get(name);
       expect(handler).toBeDefined();
@@ -24,7 +31,16 @@ function context(hasUI = true) {
     cwd: '/project/workspace',
     model: { id: 'model', reasoning: true },
     getContextUsage: vi.fn(() => ({ percent: 18 })),
-    ui: { theme: stubTheme(), setFooter: vi.fn(), setHeader: vi.fn(), setWorkingIndicator: vi.fn() },
+    ui: {
+      theme: stubTheme(),
+      setFooter: vi.fn(),
+      setHeader: vi.fn(),
+      setWorkingIndicator: vi.fn(),
+      setWorkingMessage: vi.fn(),
+      setHiddenThinkingLabel: vi.fn(),
+      getEditorComponent: vi.fn(() => undefined),
+      setEditorComponent: vi.fn(),
+    },
   } as unknown as ExtensionContext;
 }
 function dataProvider() {
@@ -52,6 +68,7 @@ test('fits footer segments in priority order without wrapping', () => {
     provider.data,
     () => snapshot,
     () => {},
+    0,
   );
   for (let width = 0; width < 160; width++) {
     const fitted = fitSegments(segments, width);
@@ -70,7 +87,7 @@ test('footer caches snapshot and reads branch and statuses live', () => {
   const provider = dataProvider();
   let current: FooterSnapshot | undefined = snapshot;
   const disposed = vi.fn();
-  const footer = new SnoopFooter(theme, provider.data, () => current, disposed);
+  const footer = new SnoopFooter(theme, provider.data, () => current, disposed, 0);
   const first = footer.render(120);
   const count = vi.mocked(theme.fg).mock.calls.length;
   expect(footer.render(120)).toEqual(first);
@@ -142,37 +159,90 @@ test('footer events refresh only on changes and dispose stops render requests', 
   expect(tui.requestRender).toHaveBeenCalledOnce();
 });
 
-test('chrome is UI-only and resets its static indicator on each agent start', () => {
+test('chrome is UI-only and installs a quiet working state, inset header, and the rule editor', () => {
   const ev = events();
   chrome(ev.api);
   const nonUI = context(false);
   ev.fire('session_start', nonUI);
-  ev.fire('agent_start', nonUI);
   expect(nonUI.ui.setHeader).not.toHaveBeenCalled();
-  expect(nonUI.ui.setWorkingIndicator).not.toHaveBeenCalled();
+  expect(nonUI.ui.setEditorComponent).not.toHaveBeenCalled();
   const ctx = context();
   ev.fire('session_start', ctx);
-  ev.fire('agent_start', ctx);
-  expect(ctx.ui.setWorkingIndicator).toHaveBeenCalledTimes(2);
-  expect(vi.mocked(ctx.ui.setWorkingIndicator).mock.calls[0]?.[0]?.frames).toHaveLength(1);
+  expect(ctx.ui.setWorkingIndicator).toHaveBeenCalledWith({ frames: [] });
+  expect(ctx.ui.setWorkingMessage).toHaveBeenCalledWith('working');
+  expect(ctx.ui.setHiddenThinkingLabel).toHaveBeenCalledWith('thinking');
   const factory = vi.mocked(ctx.ui.setHeader).mock.calls[0]?.[0];
   expect(
     factory?.({} as never, ctx.ui.theme)
       .render(80)
       .map(plain),
-  ).toEqual(['pi / workspace']);
+  ).toEqual(['', ' pi / workspace', '']);
+  expect(ctx.ui.setEditorComponent).toHaveBeenCalledOnce();
 });
 
-test('header fits wide text and invalidates theme cache', () => {
+test('chrome replaces its own editor on a new session and leaves another extension editor in place', () => {
+  const ev = events();
+  chrome(ev.api);
+  const ctx = context();
+  ev.fire('session_start', ctx);
+  const own = vi.mocked(ctx.ui.setEditorComponent).mock.calls[0]?.[0];
+  vi.mocked(ctx.ui.getEditorComponent).mockReturnValue(own);
+  ev.fire('session_start', ctx);
+  expect(ctx.ui.setEditorComponent).toHaveBeenCalledTimes(2);
+  vi.mocked(ctx.ui.getEditorComponent).mockReturnValue(() => ({}) as never);
+  ev.fire('session_start', ctx);
+  expect(ctx.ui.setEditorComponent).toHaveBeenCalledTimes(2);
+});
+
+test('user messages get a prompt marker unless they start with Markdown block syntax', () => {
+  const ev = events();
+  chrome(ev.api);
+  expect(vi.mocked(ev.api.registerMarkdownTransformer).mock.calls[0]?.[1]).toEqual({ messageTypes: ['user'] });
+  const transform = ev.transformers[0];
+  if (!transform) throw new Error('no transformer');
+  const run = (markdown: string) => transform(markdown, { messageType: 'user', isStreaming: false, availableWidth: 80 });
+  expect(run('Make the cache refresh cancelable.')).toBe('› Make the cache refresh cancelable.');
+  expect(run('Fix it\n\n- then test')).toBe('› Fix it\n\n- then test');
+  for (const markdown of ['# Title', '- item', '* item', '+ item', '1. step', '2) step', '> quote', '```ts\ncode\n```', '~~~\ncode', '| a | b |', '    indented code', '\tcode', '  - nested', '', '  \n'])
+    expect(run(markdown)).toBe(markdown);
+});
+
+test('header keeps the gutter, fits wide text, and invalidates theme cache', () => {
   const theme = stubTheme();
-  const header = new HeaderLine(theme, 'workspace 漢字 🙂');
-  for (let width = 0; width < 120; width++) expect(visibleWidth(header.render(width)[0] ?? '')).toBeLessThanOrEqual(width);
+  const header = new HeaderLine(theme, 'workspace 漢字 🙂', 1);
+  for (let width = 0; width < 120; width++) {
+    const lines = header.render(width);
+    expect(lines).toHaveLength(3);
+    for (const line of lines) expect(visibleWidth(line)).toBeLessThanOrEqual(width);
+    if (width >= 3) expect(plain(lines[1] ?? '')).toMatch(/^ \S/);
+    if (width >= 3) expect(visibleWidth(lines[1] ?? '')).toBeLessThanOrEqual(width - 1);
+  }
   const count = vi.mocked(theme.fg).mock.calls.length;
   header.render(119);
   expect(vi.mocked(theme.fg).mock.calls).toHaveLength(count);
   header.invalidate();
   header.render(119);
   expect(vi.mocked(theme.fg).mock.calls.length).toBeGreaterThan(count);
+});
+
+test('footer keeps the same gutter on both sides', () => {
+  const provider = dataProvider();
+  const footer = new SnoopFooter(
+    stubTheme(),
+    provider.data,
+    () => snapshot,
+    () => {},
+    1,
+  );
+  const line = plain(footer.render(100)[0] ?? '');
+  expect(line.startsWith(' workspace')).toBe(true);
+  expect(line.endsWith('ctx 18%')).toBe(true);
+  expect(visibleWidth(line)).toBe(99);
+  for (let width = 3; width < 120; width++) {
+    const fitted = plain(footer.render(width)[0] ?? '');
+    expect(fitted.startsWith(' ')).toBe(true);
+    expect(visibleWidth(fitted)).toBeLessThanOrEqual(width - 1);
+  }
 });
 
 test('resolver preserves unknown tools and absent native renderers', () => {

@@ -1,3 +1,4 @@
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { replaceControlCharacters, stripTerminalSequences, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 
 export interface LineSlice {
@@ -36,6 +37,14 @@ export function tailLines(text: string, max: number): LineSlice {
 
 export function sanitizeLine(line: string): string {
   return replaceControlCharacters(stripTerminalSequences(line.replace(/\t/g, '  ').replace(/[\r\n]/g, ' ')));
+}
+
+export function gutterOf(pi: Pick<ExtensionAPI, 'getSettings'>): number {
+  return pi.getSettings().outputPad ?? 1;
+}
+
+export function gutterAt(gutter: number, width: number): number {
+  return Math.min(gutter, Math.max(0, Math.floor((width - 1) / 2)));
 }
 
 export function fitPlain(text: string, width: number): string {
