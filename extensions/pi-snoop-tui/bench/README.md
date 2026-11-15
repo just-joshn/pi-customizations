@@ -25,6 +25,7 @@ Each round runs every configuration once. The order rotates each round, so warmu
 | `stock` | `--use-theme dark` |
 | `theme` | `--theme <package>/themes --use-theme snoop-dark` |
 | `full` | `-e <package> --use-theme snoop-dark` |
+| `spinner` | `full` without `chrome.ts`, so Pi keeps its animated spinner. Not in the default set. |
 
 `bench-provider.ts` registers the `bench/replay` model through Pi's custom streaming API. On `session_start` it writes `fixture.txt` (2000 lines) and `edit-target.txt` into the workspace. The script picks a turn by the number of assistant messages in context:
 

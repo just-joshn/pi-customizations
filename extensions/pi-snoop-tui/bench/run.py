@@ -37,6 +37,7 @@ CONFIGS = {
     "stock": ["--use-theme", "dark"],
     "theme": ["--theme", str(PACKAGE / "themes"), "--use-theme", "snoop-dark"],
     "full": ["-e", str(PACKAGE), "--use-theme", "snoop-dark"],
+    "spinner": ["-e", str(PACKAGE / "src/tool-rows.ts"), "-e", str(PACKAGE / "src/footer.ts"), "--theme", str(PACKAGE / "themes"), "--use-theme", "snoop-dark"],
 }
 SETTINGS = {"quietStartup": True, "collapseChangelog": True, "lastChangelogVersion": "1.5.2", "packages": []}
 ANSI = re.compile(rb"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[P^_][^\x1b]*\x1b\\|\x1b[@-Z\\-_]")
