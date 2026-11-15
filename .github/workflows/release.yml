@@ -79,7 +79,7 @@ jobs:
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
       - name: Install transcript search tool
         if: contains(steps.detect.outputs.packages, 'extensions/pi-pstack')
-        run: brew install ripgrep
+        run: brew install ripgrep tmux
       - name: Install workspace dependencies
         if: steps.detect.outputs.packages != ''
         run: bun install --frozen-lockfile
