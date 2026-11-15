@@ -44,6 +44,6 @@ bun run --filter @justjoshn/pi-pstack-v2 test
 bun run --filter @justjoshn/pi-pstack-v2 typecheck
 ```
 
-`test/port.test.ts` loads every skill through Pi's own loader and checks that every upstream file is still present. It also checks that upstream scripts and assets are byte-identical, and that no prose names a Cursor or Claude Code mechanism. `upstream.lock.json` pins the upstream source.
+`test/port.test.ts` loads every skill through Pi's own loader and checks that every upstream file is still present. It also checks that upstream scripts and assets are byte-identical, and that no prose names a Cursor or Claude Code mechanism. `upstream.lock.json` pins the upstream source. It covers everything upstream installs, which is pstack's `skills/` and `agents/` and cursor-team-kit's skills, agents, and rules, plus pstack's guide. It leaves out the plugin manifests, which `package.json` replaces, the Claude Code adapter, and pstack's Benny automation sources, which upstream ships dormant and never installs as skills.
 
 License: MIT, from upstream pstack.

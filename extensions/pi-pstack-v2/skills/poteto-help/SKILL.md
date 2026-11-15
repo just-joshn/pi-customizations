@@ -45,7 +45,7 @@ If cost is the worry, say where the tokens go and how to spend fewer. pstack spe
 
 pstack was ported from Cursor and runs on Pi as a Pi package. [How pstack maps onto Pi](../../docs/pi-mechanisms.md) lists what each part uses.
 
-Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/skill:poteto-mode`, `/skill:how`, `/skill:why`, and `/skill:teach`, spawn Pi workers with `pi_spawn` and per-role models, and watchers and heartbeats run through `tmux_run`. Those tools come from this package's extension, so those parts may not work elsewhere.
+Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/skill:poteto-mode`, `/skill:how`, and `/skill:teach`, spawn Pi workers with `pi_spawn`, some with per-role models, and watchers and heartbeats run through `tmux_run`. Those tools come from this package's extension, so those parts may not work elsewhere.
 
 ## Start a task with `/skill:poteto-mode`
 

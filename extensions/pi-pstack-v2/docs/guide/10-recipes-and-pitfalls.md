@@ -162,7 +162,7 @@ To watch the catch-up instead, run [`/skill:ketchup-video`](../../skills/ketchup
 
 ## The pitfalls
 
-- **Enumerating skills in the prompt.** "use /skill:how then /skill:architect then /skill:arena" reorders steps the playbook already sequences. State the goal and constraints. Name a skill only to override a default.
+- **Enumerating skills in the prompt.** "use /skill:architect then /skill:arena then /skill:interrogate" reorders steps the playbook already sequences. State the goal and constraints. Name a skill only to override a default.
 - **A vague finish condition.** "make it better" gives a heartbeat nothing to check. Give a command or artifact that can pass or fail.
 - **Leading with your theory of the cause.** The agent searches wherever you pointed. Ask it to restate the problem first, then share your hunch.
 - **Taking the first design.** One attempt locks in the first shape the model thought of. Ask for prototypes or `/skill:architect` and pick from evidence.

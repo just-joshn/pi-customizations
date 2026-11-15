@@ -39,9 +39,9 @@ Run:
 
 Each role line names a model as `provider/id`, exactly as `pi --list-models` prints it, and a thinking level.
 
-The defaults run at `xhigh` thinking, the same as the `large` budget. `unlimited` lifts each model to its highest level, up to `max`. A model that tops out lower stays at its top. `medium` and `small` lower the thinking and spend fewer tokens.
+The defaults are the same as the `large` budget. Most roles run at `xhigh` thinking. The hardest changes run at `max`, and the review panels and swarm workers run at `high`. `unlimited` raises each role one level, up to `max`. A model that tops out lower stays at its top. `medium` lowers each role one level and `small` lowers it two, and both spend fewer tokens.
 
-You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps any role whose model differs from the default. When a default changes, a file written before the change still pins the old default, so delete those role lines, or delete the file, then run `/skill:setup-pstack` again.
+You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps any role whose model differs from the default. When a default changes, a file written before the change still pins the old default until you run `/skill:setup-pstack` again. That run replaces the old defaults it recognizes, tells you which, and keeps your other choices. To drop a pin it does not recognize, delete that role's line or the file first.
 
 You might be wondering what happens if you want a role to follow whatever model you're using. Set it to `inherit-parent` or `auto` and pstack omits the model on that role's `pi_spawn` call, so the spawned Pi runs on your session model. Both values mean the same thing, and neither is a model. For a panel role the value is a list, and one spawned Pi runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
 
