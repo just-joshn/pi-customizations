@@ -1,49 +1,54 @@
 # pi-google-oauth-v2
 
-Use a Google AI plan in Pi. The extension signs in with your Google account the way Google's Antigravity CLI does and sends requests to Code Assist, so they count against your plan's quota, not an API key.
+Use a Google AI plan in Pi. The extension signs in with your Google account the way Google's Antigravity CLI does and sends requests to Code Assist, so they count against your plan's quota and not an API key. It is for people with a Google AI Free, Pro, or Ultra plan who want to use its Gemini models in Pi.
 
 ## Install
-
-This extension needs Pi 1.5.2 or later. Install it with:
 
 ```sh
 pi install npm:@justjoshn/pi-google-oauth-v2
 ```
 
-To try it from this checkout, use `pi -e extensions/pi-google-oauth-v2`.
+Built and tested against Pi 1.5.2.
 
 ## Sign in
 
 1. Start Pi and run `/login`.
-2. Select **Sign in with an account**, then **Google AI subscription**.
+2. Choose **Google AI subscription**.
 3. Sign in in the browser with the Google account that has your plan.
 
-Pi shows the plan tier and the Code Assist project that Google reports. Pi stores the tokens in `~/.pi/agent/auth.json` and refreshes them when they are about to expire.
+Pi then shows the plan tier and the Code Assist project that Google reports. Pi refreshes the tokens when they are about to expire.
 
-If Pi runs on a machine without a browser, open the **Code page** link on another machine, sign in, and paste the code that the page shows.
+If Pi runs on a machine without a browser, open the **Code page** link on another machine, sign in, and paste the code the page shows.
 
-`pi auth login` does not work for this provider. That command loads only Pi's built-in providers, not extension providers.
+Run `/model` and pick a `google-oauth-v2` model. Pi asks Google which models your plan serves and lists one entry per model family. Until the first refresh after sign-in, it lists `gemini-4-argon` and `gemini-3.8-flash`. Google serves each thinking effort as its own model id, such as `gemini-4-argon-high`, and Pi's thinking level picks the id. Pi offers only the levels Google serves for the model.
 
-## Pick a model
+## Commands
 
-Run `/model` and pick a `google-oauth-v2` model. Pi asks Google for the models your plan serves and lists one entry per model family, such as `gemini-4-hydrogen` or `claude-sonnet-5-5`. Until the first refresh after sign-in, Pi lists `gemini-4-argon` and `gemini-3.8-flash`. Plan usage is not metered per token, so Pi shows no price.
+The extension adds no commands. It adds the provider `google-oauth-v2` and its login.
 
-Google serves each effort as its own model id, such as `gemini-4-hydrogen-high`. Pi's thinking level picks the id. Pi offers only the levels the family has, and no level sends `medium`. Google rejects a model it does not serve with its own error text, and Pi shows that text.
+## Notes
 
-## Set a project
+- **Cost.** Plan usage is not metered per token, so Pi shows no price.
+- **Project.** Most personal accounts need no project. If `/login` fails and asks for `GOOGLE_CLOUD_PROJECT`, set it to your Google Cloud project ID (the string, not the number) and run `/login` again. `GOOGLE_CLOUD_PROJECT_ID` also works. Pi reads the variable only during `/login`.
 
-Most personal accounts need no project. If `/login` fails and asks for `GOOGLE_CLOUD_PROJECT`, set it to your Google Cloud project ID (the string, not the number) and run `/login` again:
+  ```sh
+  GOOGLE_CLOUD_PROJECT=my-project-id pi
+  ```
+
+- **Plans.** Google's Antigravity documentation lists the Free, Google AI Pro, and Google AI Ultra plans, and does not list Google AI Plus. The extension blocks no plan. If Google refuses your account, `/login` shows Google's message. If Google asks you to validate the account, `/login` shows the validation link. Validate in the browser, then run `/login` again.
+- **Unsupported client.** Google accepts requests only from the Antigravity CLI's public OAuth client, with its `User-Agent`, at `daily-cloudcode-pa.googleapis.com/v1internal`. Google can restrict that client, change the header it checks, or retire the endpoint without notice. If sign-in says the client is no longer supported, Google changed the check.
+
+## Replaces `@justjoshn/pi-antigravity-oauth`
 
 ```sh
-GOOGLE_CLOUD_PROJECT=my-project-id pi
+pi install npm:@justjoshn/pi-google-oauth-v2
+pi remove npm:@justjoshn/pi-antigravity-oauth
 ```
 
-Pi reads the variable only during `/login`. To change the project later, run `/login` again.
+Then run `/login` again.
 
-## Plan support
+## Develop
 
-Google's Antigravity documentation lists the Free, Google AI Pro, and Google AI Ultra plans. It does not list Google AI Plus. The extension does not block any plan. Google decides, and if it refuses your account, `/login` shows Google's message. If Google asks you to validate the account, `/login` shows the validation link. Validate the account in the browser, then run `/login` again.
-
-## How it works
-
-Google retired Gemini CLI's OAuth client for individual plans. The extension now reuses the Antigravity CLI's public OAuth client and calls the same Code Assist endpoint, `daily-cloudcode-pa.googleapis.com/v1internal`, with the `User-Agent` and request shape that the Antigravity CLI sends. Google accepts a request only when it carries that `User-Agent`. Google can restrict this client, change the header it checks, or retire the endpoint without notice. If sign-in fails with a message that the client is no longer supported, Google changed the gate.
+```sh
+bun run --filter @justjoshn/pi-google-oauth-v2 test
+```
