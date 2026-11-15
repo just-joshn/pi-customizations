@@ -1,4 +1,0 @@
-[tools]
-node = "24"
-bun = "latest"
-go = "latest"

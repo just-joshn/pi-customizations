@@ -1,1 +1,0 @@
-SUBTRACT-OK plain="hello, world" shout="HELLO, WORLD" files=core.js,greet.js

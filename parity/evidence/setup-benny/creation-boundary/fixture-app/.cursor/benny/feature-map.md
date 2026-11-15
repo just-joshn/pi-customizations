@@ -1,1 +1,0 @@
-# feature map fixture

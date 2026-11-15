@@ -1,3 +1,0 @@
-OUTCOME=clean
-PR=none
-BLOCKER=none

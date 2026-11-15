@@ -1,1 +1,0 @@
-FAIL MANIFEST.sha256 is a symlink; hash files must be regular files inside the acceptance root

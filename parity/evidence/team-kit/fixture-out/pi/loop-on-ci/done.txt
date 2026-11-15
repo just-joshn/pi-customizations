@@ -1,1 +1,0 @@
-STATUS=verified reason=PR checks green after fixing hello.js VALUE

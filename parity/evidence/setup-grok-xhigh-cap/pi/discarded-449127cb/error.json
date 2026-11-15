@@ -1,4 +1,0 @@
-{
-  "message": "Error: Timed out waiting for unlimited budget-apply write (screen or rule file).",
-  "code": "WRITE_TIMEOUT"
-}

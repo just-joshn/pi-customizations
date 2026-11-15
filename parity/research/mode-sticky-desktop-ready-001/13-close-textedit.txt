@@ -1,1 +1,0 @@
-textedit quit; cursor activated

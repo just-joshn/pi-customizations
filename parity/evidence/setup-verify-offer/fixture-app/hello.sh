@@ -1,2 +1,0 @@
-#!/bin/sh
-echo HELLO-SETUP-VERIFY-OFFER

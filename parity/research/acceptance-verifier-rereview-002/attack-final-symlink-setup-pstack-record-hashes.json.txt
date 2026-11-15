@@ -1,1 +1,0 @@
-FAIL setup-pstack/record-hashes.json is a symlink; hash files must be regular files inside the acceptance root

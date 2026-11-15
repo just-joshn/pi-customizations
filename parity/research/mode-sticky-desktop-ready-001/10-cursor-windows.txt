@@ -1,2 +1,0 @@
-windowCount=0
-

@@ -1,1 +1,0 @@
-STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map

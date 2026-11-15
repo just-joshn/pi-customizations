@@ -1,3 +1,0 @@
-ok invalid-locator rejected (exit 1)
-  FAIL ACC-SETUP-BADLOC has invalid locator not-a-line; positive ordered integer locators only
-exit=0

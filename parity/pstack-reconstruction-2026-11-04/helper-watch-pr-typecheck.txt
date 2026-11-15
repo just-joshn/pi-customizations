@@ -1,1 +1,0 @@
-$ tsc --project watch-pr/tsconfig.json --noEmit --strict

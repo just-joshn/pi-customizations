@@ -6,43 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "**",
-      "!!**/dist",
-      "!!**/build",
-      "!!**/coverage",
-      "!!parity/reference",
-      "!!parity/fixtures",
-      "!!parity/evidence",
-      "!!parity/*/evidence",
-      "!!parity/corpus-*",
-      "!!parity/pi-rea/rea-6.8.0-*.json",
-      "!!extensions/pi-rea/schemas/tool-contracts.json",
-      "!!parity/private",
-      "!!parity/oauth-rea-2026-10-31/*/extracted-js",
-      "!!parity/oauth-rea-2026-10-31/**/*.json",
-      "!!parity/artifacts",
-      "!!parity/research",
-      "!!parity/reviews",
-      "!!parity/configurations.json",
-      "!!parity/dependencies.json",
-      "!!parity/inventory.json",
-      "!!parity/mismatches.json",
-      "!!parity/requirements.json",
-      "!!parity/source-lock.json",
-      "!!parity/scenarios",
-      "!!extensions/pi-pstack/skills",
-      "!!extensions/pi-pstack-v2/skills",
-      "!!extensions/pi-pstack/automations",
-      "!!extensions/pi-pstack/upstream.lock.json",
-      "!!extensions/pi-maintainer/parity/coverage.json",
-      "!!extensions/pi-maintainer/parity/ledger.json",
-      "!!extensions/pi-maintainer/test/fixtures/watch",
-      "!!extensions/pi-claude-default-dark/development/results",
-      "!!extensions/pi-claude-default-dark/development/captures",
-      "!!extensions/pi-claude-default-dark/development/theme-provenance.json",
-      "!!extensions/pi-claude-default-dark/development/reference-lock.json"
-    ]
+    "includes": ["**", "!!**/coverage", "!!extensions/pi-pstack-v2/skills"]
   },
   "formatter": {
     "enabled": true,
@@ -94,92 +58,11 @@
   },
   "overrides": [
     {
-      "includes": ["parity/**"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "noUselessTernary": "off"
-          },
-          "correctness": {
-            "noUnusedFunctionParameters": "off"
-          },
-          "style": {
-            "useTemplate": "off"
-          },
-          "suspicious": {
-            "noAssignInExpressions": "off",
-            "noControlCharactersInRegex": "off",
-            "noShadowRestrictedNames": "off",
-            "noTemplateCurlyInString": "off"
-          },
-          "security": {
-            "noSecrets": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["**/test/**", "extensions/pi-pstack/scripts/**"],
+      "includes": ["**/test/**"],
       "linter": {
         "rules": {
           "suspicious": {
             "noControlCharactersInRegex": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["extensions/pi-anthropic-oauth/**"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "useMaxParams": { "level": "error", "options": { "max": 3 } }
-          },
-          "nursery": {
-            "noMisusedPromises": "error",
-            "noUnsafeTypeAssertion": "error",
-            "useExhaustiveSwitchCases": "error"
-          },
-          "style": {
-            "noNonNullAssertion": "error"
-          },
-          "suspicious": {
-            "noEvolvingTypes": "error",
-            "noExplicitAny": "error",
-            "noImplicitAnyLet": "error"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["extensions/pi-claude-default-dark/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "error"
-          },
-          "style": {
-            "noNonNullAssertion": "error"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["extensions/pi-claude-default-dark/development/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noControlCharactersInRegex": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["extensions/pi-claude-default-dark/development/lib/schemas.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noTemplateCurlyInString": "off"
           }
         }
       }

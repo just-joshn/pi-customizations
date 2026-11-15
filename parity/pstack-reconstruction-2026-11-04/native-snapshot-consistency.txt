@@ -1,4 +1,0 @@
-{
-  "checked": 706,
-  "mismatches": []
-}

@@ -1,1 +1,0 @@
-GREET-FAIL format=none choice=missing value=null error=not implemented

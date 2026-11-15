@@ -1,1 +1,0 @@
-STATUS=settings-ok reason=pstack enabled with comments and other plugins preserved
