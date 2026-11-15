@@ -14,6 +14,9 @@ export interface LoopbackCallback {
   close(): void;
 }
 
+/** The listener ended without a verdict from Google or the user, so another sign-in path may still finish. */
+export class LoopbackExpiredError extends Error {}
+
 export const LOOPBACK_TIMEOUT_MS = 5 * 60 * 1000;
 
 const CALLBACK_PATH = '/oauth2callback';
@@ -62,7 +65,7 @@ export async function startLoopbackCallback(input: { state: string; signal: Abor
   });
 
   const timer = setTimeout(() => {
-    reject(new Error('Google sign-in timed out'));
+    reject(new LoopbackExpiredError('Google sign-in timed out'));
     close();
   }, LOOPBACK_TIMEOUT_MS);
   const onAbort = () => {
@@ -77,7 +80,7 @@ export async function startLoopbackCallback(input: { state: string; signal: Abor
     closed = true;
     clearTimeout(timer);
     input.signal.removeEventListener('abort', onAbort);
-    reject(new Error('Google sign-in listener closed'));
+    reject(new LoopbackExpiredError('Google sign-in listener closed'));
     server.closeAllConnections();
     server.close();
   }
