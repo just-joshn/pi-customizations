@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
@@ -30,9 +30,12 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     '(version 1)',
     '(allow default)',
     '(deny file-write*)',
-    `(allow file-write* (literal "/dev/null") (regex #"^/dev/tty") (regex #"^/dev/fd/") (subpath "/private/tmp") (subpath "/private/var/folders") ${subpaths(policy.writable)})`,
+    // Later rules win, so the order is temp directories, then Pi's agent directory closed even when it sits in a temp
+    // directory, then the job's own paths, then the paths an unsandboxed process would execute from.
+    '(allow file-write* (literal "/dev/null") (literal "/dev/ptmx") (regex #"^/dev/tty") (regex #"^/dev/fd/") (subpath "/private/tmp") (subpath "/private/var/folders"))',
+    `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
     // Pi refreshes credentials in place and takes lock directories beside its files. Nothing else in its agent directory is writable.
-    `(allow file-write* (literal ${quote(`${real(policy.agentDir)}/auth.json`)}) (regex #"^${agent}/[^/]+\\.lock(/|$)"))`,
+    `(allow file-write* ${subpaths(policy.writable)} (literal ${quote(`${real(policy.agentDir)}/auth.json`)}) (regex #"^${agent}/[^/]+\\.lock(/|$)"))`,
     `(deny file-write* (regex #"${TMUX_SOCKETS}")${policy.protect.length ? ` ${subpaths(policy.protect)}` : ''})`,
     `(deny network-outbound (remote unix-socket (path-regex #"${TMUX_SOCKETS}")) (remote unix-socket (path-regex #"^${agent}/pstack-v2/")))`,
     `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
@@ -43,10 +46,15 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
 export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = process.env, uid: number = process.getuid?.() ?? 0): string[] {
   const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--bind', '/tmp', '/tmp'];
   for (const hidden of [`/tmp/tmux-${uid}`, `/tmp/pstack-v2-${uid}`, env['XDG_RUNTIME_DIR']]) if (hidden && existsSync(hidden)) args.push('--tmpfs', hidden);
-  // Writes to Pi's agent directory land in a throwaway overlay, except credentials, which Pi refreshes in place.
-  args.push('--overlay-src', policy.agentDir, '--tmp-overlay', policy.agentDir);
-  const auth = join(policy.agentDir, 'auth.json');
-  if (existsSync(auth)) args.push('--bind', auth, auth);
+  // Pi's agent directory becomes a throwaway tmpfs holding its real entries read-only, so Pi can still create its lock
+  // directories. Credentials stay writable because Pi refreshes them in place. This nests, unlike an overlay mount.
+  if (existsSync(policy.agentDir)) {
+    args.push('--tmpfs', policy.agentDir);
+    for (const name of readdirSync(policy.agentDir)) {
+      const path = join(policy.agentDir, name);
+      args.push(name === 'auth.json' ? '--bind' : '--ro-bind', path, path);
+    }
+  }
   for (const path of policy.writable.filter(existsSync)) args.push('--bind', path, path);
   for (const path of policy.protect.filter(existsSync)) args.push('--ro-bind', path, path);
   return [...args, '--die-with-parent', '--'];
@@ -61,16 +69,11 @@ function available(command: string): string | undefined {
 }
 
 /**
- * Wraps argv so it runs with writes limited to the policy. A process that is already inside a pstack sandbox
- * inherits it, because macOS refuses to apply a second Seatbelt profile.
+ * Wraps argv so it runs with writes limited to the policy. bubblewrap nests, so a Linux job inside a sandbox gets its own
+ * narrower one. macOS refuses a second Seatbelt profile, so a sandboxed macOS worker asks the root Pi to launch instead.
  */
 export function sandboxed(argv: string[], policy: SandboxPolicy, platform: NodeJS.Platform = process.platform, env: NodeJS.ProcessEnv = process.env): string[] {
-  if (env[SANDBOX_ENV] === '1') return argv;
   if (platform === 'darwin' && available('command -v sandbox-exec')) return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
-  if (platform === 'linux') {
-    const help = available('bwrap --help 2>&1');
-    if (help?.includes('--tmp-overlay')) return ['bwrap', ...bwrapArgs(policy, env), ...argv];
-    if (help) throw new Error('pstack needs bubblewrap 0.10 or newer (for --tmp-overlay) so jobs cannot change Pi configuration. Upgrade bwrap.');
-  }
+  if (platform === 'linux' && available('command -v bwrap')) return ['bwrap', ...bwrapArgs(policy, env), ...argv];
   throw new Error(`pstack runs every job in a sandbox and found none on ${platform}. Install bubblewrap (bwrap) on Linux or WSL2, or use macOS, where Seatbelt (sandbox-exec) is built in.`);
 }

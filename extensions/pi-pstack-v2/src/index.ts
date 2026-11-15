@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { attachCommand, claimWake, type Job, type JobSpec, launch, list, newJobId, outputPath, read, stop, tail, tmuxSocket } from './jobs.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, sandboxed } from './sandbox.ts';
+import { attachCommand, brokeredSession, claimWake, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, stop, tail, tmuxSocket } from './jobs.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed } from './sandbox.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'] as const;
@@ -89,6 +89,67 @@ function resolveModel(ctx: ExtensionContext, model: string | undefined): string 
   return model;
 }
 
+/** Resolves symlinks in the longest existing prefix, so a path that does not exist yet still compares by where it would land. */
+function landing(path: string): string {
+  const absolute = resolve(path);
+  if (existsSync(absolute)) return realpathSync(absolute);
+  const parent = dirname(absolute);
+  return parent === absolute ? absolute : join(landing(parent), relative(parent, absolute));
+}
+
+const within = (path: string, roots: string[]): boolean =>
+  roots.some((root) => {
+    const inside = relative(landing(root), landing(path));
+    return !inside.startsWith('..') && !isAbsolute(inside);
+  });
+
+// macOS cannot apply a second Seatbelt profile inside a sandbox, so a sandboxed worker there asks the root Pi to launch for it.
+const brokering = (): boolean => process.platform === 'darwin' && process.env[SANDBOX_ENV] === '1';
+
+/** Starts a job under its own sandbox, or writes it as a request for the root Pi when this process cannot. */
+function start(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
+  const policy: SandboxPolicy = { ...spec.policy, jobDir: join(root, spec.id) };
+  if (brokering()) return request(root, { ...spec, policy }, files);
+  return launch(root, { ...spec, policy, argv: sandboxed(spec.command, policy) }, files);
+}
+
+const tmuxKill = (socket: string, session: string): void => {
+  try {
+    execFileSync('tmux', ['-S', socket, 'kill-session', '-t', `=${session}`], { stdio: 'ignore' });
+  } catch {
+    // Already gone.
+  }
+};
+
+/**
+ * Launches the requests that sandboxed workers under one of this session's jobs wrote. A request may write only inside
+ * what the root granted the top-level job, so no worker can hand a descendant more than it was given.
+ */
+export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean): void {
+  if (!existsSync(nested)) return;
+  for (const name of readdirSync(nested)) {
+    const dir = join(nested, name);
+    const spec = readSpec(dir);
+    if (!spec) continue;
+    const done = existsSync(join(dir, 'exit'));
+    serveRequests(top, socket, join(dir, 'nested'), requesterDone || done);
+    if (!spec.brokered) continue;
+    const launched = existsSync(join(dir, 'launched'));
+    if (launched && (requesterDone || existsSync(join(dir, 'stop')))) tmuxKill(socket, brokeredSession(dir));
+    if (launched || done || requesterDone) continue;
+    const allowed = top.spec.policy.writable;
+    const refused = spec.policy.writable.filter((path) => !within(path, allowed));
+    if (refused.length) {
+      writeFileSync(join(dir, 'launched'), '');
+      writeFileSync(outputPath(dir), `pstack refused to launch this job. It asked to write outside what its top-level job may write: ${refused.join(', ')}\n`);
+      writeFileSync(join(dir, 'exit'), '126\n');
+      continue;
+    }
+    const policy: SandboxPolicy = { writable: spec.policy.writable, protect: [...spec.policy.protect, ...top.spec.policy.protect], agentDir: getAgentDir(), jobDir: dir };
+    launchBrokered(dir, spec, sandboxed(spec.command, policy), [], socket);
+  }
+}
+
 export default function pstack(pi: ExtensionAPI) {
   let watcher: ReturnType<typeof setInterval> | undefined;
   // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
@@ -100,7 +161,7 @@ export default function pstack(pi: ExtensionAPI) {
       if (job.spec.wake === null || job.status.state === 'running' || awaited.has(job.spec.id) || !claimWake(job)) continue;
       // A heartbeat repeats only while it exits cleanly, so a failing command cannot wake the session in a tight loop.
       const again = job.spec.repeat && job.status.state === 'exited' && job.status.code === 0;
-      if (again) launch(jobsRoot(), { ...job.spec, id: newJobId(job.spec.name), createdAt: new Date().toISOString() });
+      if (again) start(jobsRoot(), { ...job.spec, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
       const note = job.spec.repeat && !again ? '\n\nThis heartbeat did not exit cleanly, so it was not restarted.' : '';
       pi.sendMessage({ customType: 'pstack-job', content: report(job) + note, display: true }, { triggerTurn: true, deliverAs: 'followUp' });
     }
@@ -112,12 +173,18 @@ export default function pstack(pi: ExtensionAPI) {
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 
+  const serve = (ctx: ExtensionContext): void => {
+    if (brokering()) return;
+    const owner = ctx.sessionManager.getSessionId();
+    for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
+  };
+
   pi.on('session_start', async (_event, ctx) => {
-    if (!interactive(ctx)) return;
     clearInterval(watcher);
     watcher = setInterval(() => {
       try {
-        deliverFinished(ctx);
+        serve(ctx);
+        if (interactive(ctx)) deliverFinished(ctx);
       } catch (error) {
         if (ctx.hasUI) ctx.ui.notify(`pstack job watcher: ${error instanceof Error ? error.message : String(error)}`, 'error');
       }
@@ -223,7 +290,10 @@ export default function pstack(pi: ExtensionAPI) {
           name: params.name,
           kind: 'pi',
           cwd,
-          argv: sandboxed(argv, { writable, protect: guarded.protect, agentDir: getAgentDir(), jobDir: dir }),
+          argv: [],
+          command: argv,
+          policy: { writable, protect: guarded.protect, agentDir: getAgentDir(), jobDir: dir },
+          brokered: false,
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
           repeat: false,
@@ -232,7 +302,7 @@ export default function pstack(pi: ExtensionAPI) {
           revert: params.readonly ? [] : guarded.revert,
           createdAt: new Date().toISOString(),
         };
-        const job = launch(root, spec, files);
+        const job = start(root, spec, files);
         return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
       } catch (error) {
         rmSync(dir, { recursive: true, force: true });
@@ -273,7 +343,10 @@ export default function pstack(pi: ExtensionAPI) {
         name: params.name,
         kind: 'command',
         cwd,
-        argv: sandboxed(['bash', '-c', params.command], policy),
+        argv: [],
+        command: ['bash', '-c', params.command],
+        policy,
+        brokered: false,
         owner,
         wake: params.wake ?? null,
         repeat: params.repeat ?? false,
@@ -282,7 +355,7 @@ export default function pstack(pi: ExtensionAPI) {
         revert: guarded.revert,
         createdAt: new Date().toISOString(),
       };
-      return text(`Started ${describe(launch(root, spec))}`);
+      return text(`Started ${describe(start(root, spec))}`);
     },
   });
 

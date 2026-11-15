@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,7 +13,24 @@ let root: string;
 
 const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => {
   const id = overrides.id ?? newJobId('t');
-  return { id, name: 't', kind: 'command', cwd: root, argv: ['bash', '-c', command], owner, wake: 'done', repeat: false, series: id, socket, revert: [], createdAt: new Date().toISOString(), ...overrides };
+  return {
+    id,
+    name: 't',
+    kind: 'command',
+    cwd: root,
+    argv: ['bash', '-c', command],
+    command: [],
+    policy: { writable: [], protect: [], agentDir: root, jobDir: root },
+    brokered: false,
+    owner,
+    wake: 'done',
+    repeat: false,
+    series: id,
+    socket,
+    revert: [],
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  };
 };
 
 async function settled(id: string, jobsRoot = root) {
@@ -84,10 +101,6 @@ describe('tmux jobs', () => {
 describe('sandbox policy', () => {
   const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
 
-  test('a process already inside the sandbox is not wrapped again', () => {
-    expect(sandboxed(['pi'], policy, 'darwin', { [SANDBOX_ENV]: '1' })).toEqual(['pi']);
-  });
-
   test('a platform without a sandbox refuses to run', () => {
     expect(() => sandboxed(['pi'], policy, 'win32', {})).toThrow(/found none on win32/);
   });
@@ -98,13 +111,18 @@ describe('sandbox policy', () => {
     expect(profile).not.toMatch(/agent\/\[\^\/\]\+\$/);
   });
 
-  test('bwrap overlays the agent directory and hides outside tmux servers', () => {
+  test('bwrap keeps Pi config read-only, credentials writable, and outside tmux servers hidden', () => {
     const agentDir = mkdtempSync(join(tmpdir(), 'pstack-agent-'));
+    writeFileSync(join(agentDir, 'auth.json'), '{}');
+    writeFileSync(join(agentDir, 'settings.json'), '{}');
     const hidden = mkdtempSync(join(tmpdir(), 'pstack-runtime-'));
     const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, 501);
+    const auth = join(agentDir, 'auth.json');
+    const settings = join(agentDir, 'settings.json');
     expect(args.slice(0, 3)).toEqual(['--ro-bind', '/', '/']);
-    expect(args).toEqual(expect.arrayContaining(['--overlay-src', agentDir, '--tmp-overlay', agentDir, '--tmpfs', hidden]));
-    expect(args.indexOf(tmpdir(), 10)).toBeGreaterThan(args.indexOf('--tmp-overlay'));
+    expect(args).toEqual(expect.arrayContaining(['--tmpfs', hidden, '--tmpfs', agentDir]));
+    expect(args.slice(args.indexOf(auth) - 1, args.indexOf(auth) + 2)).toEqual(['--bind', auth, auth]);
+    expect(args.slice(args.indexOf(settings) - 1, args.indexOf(settings) + 2)).toEqual(['--ro-bind', settings, settings]);
     rmSync(agentDir, { recursive: true });
     rmSync(hidden, { recursive: true });
   });
@@ -130,11 +148,19 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   });
 
   const jobsIn = () => join(agentDir, 'pstack-v2', 'jobs');
-  const run = async (command: string) => {
-    const id = newJobId('probe');
-    const argv = sandboxed(['bash', '-c', command], { writable: [work], protect: [join(work, '.git', 'hooks')], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+  const run = async (command: string, id = newJobId('probe')) => {
+    const nested = join(jobsIn(), id, 'nested');
+    mkdirSync(nested, { recursive: true });
+    const argv = sandboxed(['bash', '-c', command], { writable: [work, nested], protect: [join(work, '.git', 'hooks')], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
     return settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
   };
+
+  test('a job can run its own jobs on a tmux server inside its sandbox', async () => {
+    const id = newJobId('nester');
+    const own = join(jobsIn(), id, 'nested', 'tmux.sock');
+    await run(`tmux -S ${own} new-session -d 'touch ${work}/nested.txt; touch ${home}/nested-escape.txt' && sleep 1; tmux -S ${own} kill-server`, id);
+    expect([existsSync(join(work, 'nested.txt')), existsSync(join(home, 'nested-escape.txt'))]).toEqual([true, false]);
+  });
 
   test('a job writes its working directory but not outside it', async () => {
     await run(`touch ${work}/ok.txt; touch ${home}/outside.txt`);
@@ -149,6 +175,18 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test('a job cannot swap out Pi extensions or write role lines', async () => {
     await run(`mv ${agentDir}/extensions ${agentDir}/old; echo injected > ${agentDir}/pstack-v2-models.md`);
     expect([existsSync(join(agentDir, 'extensions')), existsSync(join(agentDir, 'old')), existsSync(join(agentDir, 'pstack-v2-models.md'))]).toEqual([true, false, false]);
+  });
+
+  test('Pi config stays read-only even when the agent directory is in a temp directory', async () => {
+    const tempAgent = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-tmp-agent-')));
+    writeFileSync(join(tempAgent, 'settings.json'), '{}');
+    writeFileSync(join(tempAgent, 'auth.json'), '{}');
+    const id = newJobId('tmp-agent');
+    const argv = sandboxed(['bash', '-c', `echo x > ${tempAgent}/settings.json; echo '{"k":1}' > ${tempAgent}/auth.json`], { writable: [work], protect: [], agentDir: tempAgent, jobDir: join(jobsIn(), id) }, process.platform, {});
+    await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
+    expect(readFileSync(join(tempAgent, 'settings.json'), 'utf8')).toBe('{}');
+    expect(readFileSync(join(tempAgent, 'auth.json'), 'utf8').trim()).toBe('{"k":1}');
+    rmSync(tempAgent, { recursive: true, force: true });
   });
 
   test('a job cannot plant a git hook in a checkout it may write', async () => {

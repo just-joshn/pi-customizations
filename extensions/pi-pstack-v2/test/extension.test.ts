@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import pstack, { modelsFile } from '../src/index.ts';
-import { tmuxSocket } from '../src/jobs.ts';
+import pstack, { modelsFile, serveRequests } from '../src/index.ts';
+import { read, request, tmuxSocket } from '../src/jobs.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 type Tool = { execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }> };
@@ -29,7 +29,8 @@ const call = (name: string, params: Record<string, unknown>) => tools[name]?.exe
 
 beforeEach(() => {
   agentDir = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-agent-')));
-  repo = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-repo-')));
+  // Under home, not a temp directory, since every sandbox may write temp directories.
+  repo = realpathSync(mkdtempSync(join(homedir(), '.pstack-repo-')));
   execFileSync('git', ['init', '-q', repo]);
   execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
   vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
@@ -192,4 +193,106 @@ describe('tmux_jobs', () => {
     ctx = { ...ctx, sessionManager: { getSessionId: () => 'someone-else' } };
     await expect(call('tmux_jobs', { action: 'output', ids: [id] })).rejects.toThrow(/No job/);
   });
+});
+
+describe('nested jobs on macOS', { timeout: 20_000 }, () => {
+  const topJob = async () => {
+    const slowPi = join(agentDir, 'slow-pi.mjs');
+    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
+    process.argv[1] = slowPi;
+    ctx = { ...ctx, mode: 'print', hasUI: false };
+    await handlers['session_start']?.({}, ctx);
+    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
+    const [id] = jobs();
+    const dir = join(agentDir, 'pstack-v2', 'jobs', id ?? '');
+    return { dir, granted: spec(id ?? '') as unknown as { policy: { writable: string[] } } };
+  };
+  const nestedRequest = (topDir: string, name: string, writable: string[], command: string) => {
+    const id = `${name}-000001`;
+    request(join(topDir, 'nested'), {
+      id,
+      name,
+      kind: 'command',
+      cwd: repo,
+      argv: [],
+      command: ['bash', '-c', command],
+      policy: { writable, protect: [], agentDir, jobDir: join(topDir, 'nested', id) },
+      brokered: true,
+      owner: 'top-worker',
+      wake: 'done',
+      repeat: false,
+      series: id,
+      socket: '',
+      revert: [],
+      createdAt: new Date().toISOString(),
+    });
+    return join(topDir, 'nested', id);
+  };
+  const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
+
+  test('the root launches a sandboxed worker request inside what it granted', async () => {
+    const top = await topJob();
+    const dir = nestedRequest(top.dir, 'inner', [repo], `touch ${repo}/brokered.txt`);
+    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('0');
+    expect(existsSync(join(repo, 'brokered.txt'))).toBe(true);
+  });
+
+  test('the root refuses a request that writes outside what it granted', async () => {
+    const top = await topJob();
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-outside-')));
+    const dir = nestedRequest(top.dir, 'greedy', [outside], `touch ${outside}/escaped.txt`);
+    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('126');
+    expect(readFileSync(join(dir, 'output.log'), 'utf8')).toContain('refused');
+    expect(existsSync(join(outside, 'escaped.txt'))).toBe(false);
+    rmSync(outside, { recursive: true, force: true });
+  });
+
+  test('a request is launched under its own narrower sandbox', async () => {
+    const top = await topJob();
+    expect(top.granted.policy.writable).toEqual(expect.arrayContaining([repo]));
+    const dir = nestedRequest(top.dir, 'narrow', [join(top.dir, 'nested')], `touch ${repo}/narrow.txt`);
+    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('1');
+    expect(existsSync(join(repo, 'narrow.txt'))).toBe(false);
+  });
+
+  test.runIf(process.platform === 'darwin')('a sandboxed macOS worker writes a request instead of launching', async () => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', join(agentDir, 'fake-worker'));
+    await call('tmux_run', { name: 'asked', command: 'true' });
+    const nested = join(agentDir, 'fake-worker', 'nested');
+    const [id] = readdirSync(nested);
+    const asked = JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8')) as { brokered: boolean; argv: string[] };
+    expect([asked.brokered, asked.argv]).toEqual([true, []]);
+    expect(existsSync(join(nested, id ?? '', 'launched'))).toBe(false);
+  });
+});
+
+test('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
+  ctx = { ...ctx, mode: 'print', hasUI: false };
+  await call('pi_spawn', { name: 'done', brief: 'hi', wake: false });
+  const [id] = jobs();
+  const root = join(agentDir, 'pstack-v2', 'jobs');
+  await expect.poll(() => read(root, id ?? '', owner)?.status.state, { timeout: 10_000 }).toBe('exited');
+  const top = read(root, id ?? '', owner);
+  if (!top) throw new Error('top job missing');
+  const reqId = 'late-000001';
+  request(join(top.dir, 'nested'), {
+    id: reqId,
+    name: 'late',
+    kind: 'command',
+    cwd: repo,
+    argv: [],
+    command: ['bash', '-c', `touch ${repo}/late.txt`],
+    policy: { writable: [repo], protect: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
+    brokered: true,
+    owner: 'w',
+    wake: null,
+    repeat: false,
+    series: reqId,
+    socket: '',
+    revert: [],
+    createdAt: '',
+  });
+  serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
+  expect(existsSync(join(top.dir, 'nested', reqId, 'launched'))).toBe(false);
 });

@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { JOB_DIR_ENV, SANDBOX_ENV } from './sandbox.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy } from './sandbox.ts';
 
 export type JobKind = 'pi' | 'command';
 
@@ -12,8 +12,16 @@ export interface JobSpec {
   name: string;
   kind: JobKind;
   cwd: string;
-  /** The sandboxed command. */
+  /** What tmux runs: the command wrapped in its sandbox. Empty for a brokered request until the root launches it. */
   argv: string[];
+  /** The command before sandboxing, and the policy it asked for. A broker launches from these after clamping the policy. */
+  command: string[];
+  policy: SandboxPolicy;
+  /**
+   * Launched by the root Pi on a sandboxed worker's behalf, because macOS cannot nest Seatbelt profiles. The worker cannot
+   * reach the root's tmux server, so it reads the job's state from files only.
+   */
+  brokered: boolean;
   /** Session id of the Pi process that owns the job and receives its wake message. */
   owner: string;
   /** Message delivered to the owner when the job exits. Null means the owner is not woken. */
@@ -76,20 +84,45 @@ function tmux(socket: string, args: string[]): void {
   execFileSync('tmux', ['-S', socket, ...args], { stdio: 'ignore', env });
 }
 
-/** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
-export function launch(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
-  const dir = jobDir(root, spec.id);
+function write(dir: string, spec: JobSpec, files: Record<string, string>): void {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'job.json'), `${JSON.stringify(spec, null, 2)}\n`);
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
-  const command = `${SANDBOX_ENV}=1 ${JOB_DIR_ENV}=${shellQuote(dir)} ${spec.argv.map(shellQuote).join(' ')} < /dev/null`;
+}
+
+/** Starts the wrapper that runs argv, captures its output, removes what it should not have created, and records its exit code. */
+function run(dir: string, kind: JobKind, cwd: string, argv: string[], revertPaths: string[], socket: string, session: string): void {
+  const command = `${SANDBOX_ENV}=1 ${JOB_DIR_ENV}=${shellQuote(dir)} ${argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(dir));
-  const capture = spec.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(dir, 'stderr.log'))}; code=$?` : `${command} 2>&1 | tee ${out}; code=\${PIPESTATUS[0]}`;
+  const capture = kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(dir, 'stderr.log'))}; code=$?` : `${command} 2>&1 | tee ${out}; code=\${PIPESTATUS[0]}`;
   const exit = shellQuote(join(dir, 'exit'));
-  const revert = spec.revert.map((path) => `if [ -e ${shellQuote(path)} ] || [ -L ${shellQuote(path)} ]; then rm -rf ${shellQuote(path)}; echo ${shellQuote(`pstack removed ${path}, which the job created.`)} >> ${out}; fi; `).join('');
+  const revert = revertPaths.map((path) => `if [ -e ${shellQuote(path)} ] || [ -L ${shellQuote(path)} ]; then rm -rf ${shellQuote(path)}; echo ${shellQuote(`pstack removed ${path}, which the job created.`)} >> ${out}; fi; `).join('');
   const script = `${capture}; ${revert}echo $code > ${exit}.tmp && mv ${exit}.tmp ${exit}`;
-  tmux(spec.socket, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', '-c', script]);
+  tmux(socket, ['new-session', '-d', '-s', session, '-c', cwd, 'bash', '-c', script]);
+}
+
+/** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
+export function launch(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
+  const dir = jobDir(root, spec.id);
+  write(dir, spec, files);
+  run(dir, spec.kind, spec.cwd, spec.argv, spec.revert, spec.socket, spec.id);
   return { spec, dir, status: { state: 'running' } };
+}
+
+/** Writes a job for the root Pi to launch, from inside a macOS sandbox that cannot start a narrower one itself. */
+export function request(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
+  const dir = jobDir(root, spec.id);
+  write(dir, { ...spec, argv: [], socket: '', brokered: true }, files);
+  return { spec, dir, status: { state: 'running' } };
+}
+
+/** The tmux session a brokered job runs as on the root's server, named from its directory so a worker cannot pick another job's name. */
+export const brokeredSession = (dir: string): string => `brokered-${createHash('sha256').update(dir).digest('hex').slice(0, 16)}`;
+
+/** Launches a brokered request on the root's tmux server. The caller has already sandboxed argv under a policy it clamped. */
+export function launchBrokered(dir: string, spec: JobSpec, argv: string[], revert: string[], socket: string): void {
+  writeFileSync(join(dir, 'launched'), '');
+  run(dir, spec.kind, spec.cwd, argv, revert, socket, brokeredSession(dir));
 }
 
 export function status(dir: string, spec: JobSpec): JobStatus {
@@ -97,6 +130,7 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   const exited = (): JobStatus | undefined => (existsSync(exit) ? { state: 'exited', code: Number(readFileSync(exit, 'utf8').trim()) } : undefined);
   const before = exited();
   if (before) return before;
+  if (spec.brokered) return { state: 'running' };
   try {
     tmux(spec.socket, ['has-session', '-t', `=${spec.id}`]);
     return { state: 'running' };
@@ -106,7 +140,7 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   }
 }
 
-function readSpec(dir: string): JobSpec | undefined {
+export function readSpec(dir: string): JobSpec | undefined {
   try {
     return JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')) as JobSpec;
   } catch {
@@ -130,6 +164,8 @@ export function list(root: string, owner: string): Job[] {
 }
 
 export function stop(job: Job): void {
+  // The root's broker sees this marker and ends the session, which the worker that requested it cannot reach.
+  if (job.spec.brokered) writeFileSync(join(job.dir, 'stop'), '');
   try {
     tmux(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
   } catch {
