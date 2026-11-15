@@ -216,7 +216,7 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
       cwd: repo,
       argv: [],
       command: ['bash', '-c', command],
-      policy: { writable, protect: [], agentDir, jobDir: join(topDir, 'nested', id) },
+      policy: { writable, protect: [], lock: [], agentDir, jobDir: join(topDir, 'nested', id) },
       brokered: true,
       owner: 'top-worker',
       wake: 'done',
@@ -283,7 +283,7 @@ test('a request from a worker that has finished is never launched', { timeout: 2
     cwd: repo,
     argv: [],
     command: ['bash', '-c', `touch ${repo}/late.txt`],
-    policy: { writable: [repo], protect: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
+    policy: { writable: [repo], protect: [], lock: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
     brokered: true,
     owner: 'w',
     wake: null,
@@ -295,4 +295,40 @@ test('a request from a worker that has finished is never launched', { timeout: 2
   });
   serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
   expect(existsSync(join(top.dir, 'nested', reqId, 'launched'))).toBe(false);
+});
+
+describe('git cannot be repointed at planted hooks', { timeout: 20_000 }, () => {
+  const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const finished = async () => {
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+  };
+  // The job builds its own gitdir with a pre-commit hook, then tries to make the checkout use it.
+  const plant = (fake: string, marker: string) =>
+    `mkdir -p ${fake}/hooks && cp -R .git/objects .git/refs .git/HEAD ${fake}/ 2>/dev/null; cp -R $(git rev-parse --git-common-dir)/objects $(git rev-parse --git-common-dir)/refs ${fake}/ 2>/dev/null; printf 'ref: refs/heads/main\\n' > ${fake}/HEAD; printf '#!/bin/sh\\ntouch ${marker}\\n' > ${fake}/hooks/pre-commit; chmod +x ${fake}/hooks/pre-commit`;
+
+  test('a job in a linked worktree cannot repoint its .git file', async () => {
+    git(repo, 'branch', '-m', 'main');
+    const worktree = join(repo, 'wt');
+    git(repo, 'worktree', 'add', '-q', '-b', 'side', worktree);
+    ctx = { ...ctx, cwd: worktree };
+    const marker = join(homedir(), `.pstack-hook-fired-${process.pid}`);
+    await call('tmux_run', {
+      name: 'repoint',
+      command: `${plant(join(worktree, '.fake'), marker)}; printf 'gitdir: ${join(worktree, '.fake')}\\n' > .git; for f in commondir gitdir; do echo ${join(worktree, '.fake')} > $(git rev-parse --absolute-git-dir)/$f; done`,
+    });
+    await finished();
+    git(worktree, 'commit', '-q', '--allow-empty', '-m', 'after');
+    expect(existsSync(marker)).toBe(false);
+    rmSync(marker, { force: true });
+  });
+
+  test('a job in the main checkout cannot swap out its .git directory', async () => {
+    const marker = join(homedir(), `.pstack-hook-fired-main-${process.pid}`);
+    await call('tmux_run', { name: 'swap', command: `${plant(join(repo, '.fake'), marker)}; mv .git .git-old && mv .fake .git` });
+    await finished();
+    git(repo, 'commit', '-q', '--allow-empty', '-m', 'after');
+    expect(existsSync(marker)).toBe(false);
+    rmSync(marker, { force: true });
+  });
 });

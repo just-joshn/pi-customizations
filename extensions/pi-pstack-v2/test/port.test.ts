@@ -13,6 +13,7 @@ const upstream = Object.keys(lock.files);
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
+    if (name === 'node_modules') return [];
     const path = join(dir, name);
     return statSync(path).isDirectory() ? walk(path) : [path];
   });

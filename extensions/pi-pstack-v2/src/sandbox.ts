@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, realpathSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
@@ -11,6 +11,8 @@ export interface SandboxPolicy {
   writable: string[];
   /** Paths inside `writable` that stay read-only because an unsandboxed process would execute what they hold, such as git hooks. */
   protect: string[];
+  /** Paths whose own entry may not be renamed, removed, or replaced, while writes inside them stay allowed, such as `.git`. */
+  lock: string[];
   agentDir: string;
   /** The job's own directory. Only its `nested/` tmux socket is reachable; every other tmux server stays out of reach. */
   jobDir: string;
@@ -36,7 +38,7 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
     // Pi refreshes credentials in place and takes lock directories beside its files. Nothing else in its agent directory is writable.
     `(allow file-write* ${subpaths(policy.writable)} (literal ${quote(`${real(policy.agentDir)}/auth.json`)}) (regex #"^${agent}/[^/]+\\.lock(/|$)"))`,
-    `(deny file-write* (regex #"${TMUX_SOCKETS}")${policy.protect.length ? ` ${subpaths(policy.protect)}` : ''})`,
+    `(deny file-write* (regex #"${TMUX_SOCKETS}") ${subpaths(policy.protect)} ${policy.lock.map((path) => `(literal ${quote(real(path))})`).join(' ')})`,
     `(deny network-outbound (remote unix-socket (path-regex #"${TMUX_SOCKETS}")) (remote unix-socket (path-regex #"^${agent}/pstack-v2/")))`,
     `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
   ];
@@ -57,6 +59,8 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
   }
   for (const path of policy.writable.filter(existsSync)) args.push('--bind', path, path);
   for (const path of policy.protect.filter(existsSync)) args.push('--ro-bind', path, path);
+  // A locked directory cannot be renamed while read-only mounts sit inside it, so only a locked file needs its own mount.
+  for (const path of policy.lock.filter((path) => existsSync(path) && !statSync(path).isDirectory())) args.push('--ro-bind', path, path);
   return [...args, '--die-with-parent', '--'];
 }
 

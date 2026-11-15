@@ -20,7 +20,7 @@ const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => {
     cwd: root,
     argv: ['bash', '-c', command],
     command: [],
-    policy: { writable: [], protect: [], agentDir: root, jobDir: root },
+    policy: { writable: [], protect: [], lock: [], agentDir: root, jobDir: root },
     brokered: false,
     owner,
     wake: 'done',
@@ -99,7 +99,7 @@ describe('tmux jobs', () => {
 });
 
 describe('sandbox policy', () => {
-  const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
+  const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], lock: [], agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
 
   test('a platform without a sandbox refuses to run', () => {
     expect(() => sandboxed(['pi'], policy, 'win32', {})).toThrow(/found none on win32/);
@@ -116,7 +116,7 @@ describe('sandbox policy', () => {
     writeFileSync(join(agentDir, 'auth.json'), '{}');
     writeFileSync(join(agentDir, 'settings.json'), '{}');
     const hidden = mkdtempSync(join(tmpdir(), 'pstack-runtime-'));
-    const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, 501);
+    const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], lock: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, 501);
     const auth = join(agentDir, 'auth.json');
     const settings = join(agentDir, 'settings.json');
     expect(args.slice(0, 3)).toEqual(['--ro-bind', '/', '/']);
@@ -151,7 +151,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   const run = async (command: string, id = newJobId('probe')) => {
     const nested = join(jobsIn(), id, 'nested');
     mkdirSync(nested, { recursive: true });
-    const argv = sandboxed(['bash', '-c', command], { writable: [work, nested], protect: [join(work, '.git', 'hooks')], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const argv = sandboxed(['bash', '-c', command], { writable: [work, nested], protect: [join(work, '.git', 'hooks')], lock: [], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
     return settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
   };
 
@@ -182,7 +182,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
     writeFileSync(join(tempAgent, 'settings.json'), '{}');
     writeFileSync(join(tempAgent, 'auth.json'), '{}');
     const id = newJobId('tmp-agent');
-    const argv = sandboxed(['bash', '-c', `echo x > ${tempAgent}/settings.json; echo '{"k":1}' > ${tempAgent}/auth.json`], { writable: [work], protect: [], agentDir: tempAgent, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const argv = sandboxed(['bash', '-c', `echo x > ${tempAgent}/settings.json; echo '{"k":1}' > ${tempAgent}/auth.json`], { writable: [work], protect: [], lock: [], agentDir: tempAgent, jobDir: join(jobsIn(), id) }, process.platform, {});
     await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
     expect(readFileSync(join(tempAgent, 'settings.json'), 'utf8')).toBe('{}');
     expect(readFileSync(join(tempAgent, 'auth.json'), 'utf8').trim()).toBe('{"k":1}');
@@ -197,7 +197,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test('a protected path the job created is removed when it exits', async () => {
     const created = join(work, '.pi', 'extensions');
     const id = newJobId('create');
-    const argv = sandboxed(['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`], { writable: [work], protect: [created], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const argv = sandboxed(['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`], { writable: [work], protect: [created], lock: [], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work, revert: [created] })).spec.id, jobsIn());
     expect(existsSync(created)).toBe(false);
     if (process.platform === 'linux') expect(tail(done.dir, 5)).toContain(`pstack removed ${created}`);

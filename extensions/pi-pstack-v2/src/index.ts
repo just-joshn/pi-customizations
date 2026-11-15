@@ -31,7 +31,7 @@ function git(cwd: string, args: string[]): string {
   return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
-function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel'): string | undefined {
+function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--absolute-git-dir'): string | undefined {
   try {
     return resolve(cwd, git(cwd, ['rev-parse', flag]));
   } catch {
@@ -48,11 +48,18 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   return target;
 }
 
-/** Paths an unsandboxed process later executes from: git hooks and config, and Pi's project extensions and settings. */
-function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; revert: string[] } {
+/**
+ * Paths an unsandboxed process later executes from: git hooks and config, and Pi's project extensions and settings. Git
+ * finds those through `.git`, and in a linked worktree through its `commondir` and `gitdir` files, so each of those is
+ * protected too. A job that could repoint any of them would make the next `git commit` run its own hooks unsandboxed.
+ */
+function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; revert: string[]; lock: string[] } {
   const pi = ['extensions', 'settings.json', 'mcp.json'].map((name) => join(cwd, '.pi', name));
-  const protect = common ? [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info')] : pi;
-  return { protect, revert: protect.filter((path) => !existsSync(path)) };
+  if (!common) return { protect: pi, revert: pi.filter((path) => !existsSync(path)), lock: [] };
+  const own = gitPath(cwd, '--absolute-git-dir') ?? common;
+  const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
+  const protect = [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info'), ...worktree];
+  return { protect, revert: protect.filter((path) => !existsSync(path)), lock: [join(cwd, '.git'), own, common] };
 }
 
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
@@ -130,7 +137,8 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
   for (const name of readdirSync(nested)) {
     const dir = join(nested, name);
     const spec = readSpec(dir);
-    if (!spec) continue;
+    // A worker writes these files, so a malformed one is skipped instead of stopping every other request.
+    if (!spec || !Array.isArray(spec.command) || !Array.isArray(spec.policy?.writable) || !Array.isArray(spec.policy.protect) || !Array.isArray(spec.policy.lock)) continue;
     const done = existsSync(join(dir, 'exit'));
     serveRequests(top, socket, join(dir, 'nested'), requesterDone || done);
     if (!spec.brokered) continue;
@@ -145,7 +153,13 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       writeFileSync(join(dir, 'exit'), '126\n');
       continue;
     }
-    const policy: SandboxPolicy = { writable: spec.policy.writable, protect: [...spec.policy.protect, ...top.spec.policy.protect], agentDir: getAgentDir(), jobDir: dir };
+    const policy: SandboxPolicy = {
+      writable: spec.policy.writable,
+      protect: [...spec.policy.protect, ...top.spec.policy.protect],
+      lock: [...spec.policy.lock, ...top.spec.policy.lock],
+      agentDir: getAgentDir(),
+      jobDir: dir,
+    };
     launchBrokered(dir, spec, sandboxed(spec.command, policy), [], socket);
   }
 }
@@ -292,7 +306,7 @@ export default function pstack(pi: ExtensionAPI) {
           cwd,
           argv: [],
           command: argv,
-          policy: { writable, protect: guarded.protect, agentDir: getAgentDir(), jobDir: dir },
+          policy: { writable, protect: guarded.protect, lock: guarded.lock, agentDir: getAgentDir(), jobDir: dir },
           brokered: false,
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
@@ -337,7 +351,7 @@ export default function pstack(pi: ExtensionAPI) {
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
       const guarded = protectedPaths(cwd, common);
-      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, agentDir: getAgentDir(), jobDir: join(root, id) };
+      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
         name: params.name,
