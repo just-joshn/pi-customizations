@@ -72,6 +72,8 @@ function resolveModel(ctx: ExtensionContext, model: string | undefined): string 
 
 export default function pstack(pi: ExtensionAPI) {
   let watcher: ReturnType<typeof setInterval> | undefined;
+  // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
+  const awaited = new Set<string>();
 
   const relaunch = (job: Job): void => {
     const spec: JobSpec = { ...job.spec, id: newJobId(job.spec.name), createdAt: new Date().toISOString() };
@@ -82,7 +84,7 @@ export default function pstack(pi: ExtensionAPI) {
     const owner = ctx.sessionManager.getSessionId();
     const jobs = list(jobsRoot(), owner);
     for (const job of jobs) {
-      if (job.spec.wake === null || job.status.state === 'running' || !claimWake(job)) continue;
+      if (job.spec.wake === null || job.status.state === 'running' || awaited.has(job.spec.id) || !claimWake(job)) continue;
       pi.sendMessage({ customType: 'pstack-job', content: report(job), display: true }, { triggerTurn: true, deliverAs: 'followUp' });
       if (job.spec.repeat && job.status.state === 'exited' && job.status.code !== STOPPED_EXIT_CODE) relaunch(job);
     }
@@ -294,13 +296,18 @@ export default function pstack(pi: ExtensionAPI) {
                 .map((job) => job.spec.id);
           const deadline = Date.now() + (params.timeout_seconds ?? 1800) * 1000;
           const current = () => ids.map((id) => read(root, id)).filter((job): job is Job => job !== undefined && job.spec.owner === owner);
-          while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted) {
-            update?.(text(`Waiting on ${current().filter((job) => job.status.state === 'running').length} job(s)...`));
-            await new Promise((done) => setTimeout(done, POLL_MS));
+          for (const id of ids) awaited.add(id);
+          try {
+            while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted) {
+              update?.(text(`Waiting on ${current().filter((job) => job.status.state === 'running').length} job(s)...`));
+              await new Promise((done) => setTimeout(done, POLL_MS));
+            }
+            const jobs = current();
+            for (const job of jobs) if (job.status.state !== 'running') claimWake(job);
+            return text(jobs.map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : report(job))).join('\n\n') || 'No jobs to wait on.');
+          } finally {
+            for (const id of ids) awaited.delete(id);
           }
-          const jobs = current();
-          for (const job of jobs) if (job.status.state !== 'running') claimWake(job);
-          return text(jobs.map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : report(job))).join('\n\n') || 'No jobs to wait on.');
         }
         default: {
           const unreachable: never = params.action;

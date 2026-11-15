@@ -24,12 +24,10 @@ const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => ({
 });
 
 async function settled(id: string) {
-  for (let i = 0; i < 100; i++) {
-    const job = read(root, id);
-    if (job && job.status.state !== 'running') return job;
-    await new Promise((done) => setTimeout(done, 100));
-  }
-  throw new Error(`job ${id} never exited`);
+  await expect.poll(() => read(root, id)?.status.state, { timeout: 10_000 }).not.toBe('running');
+  const job = read(root, id);
+  if (!job) throw new Error(`job ${id} has no spec`);
+  return job;
 }
 
 beforeEach(() => {
@@ -46,7 +44,7 @@ afterEach(() => {
 });
 
 describe('tmux jobs', () => {
-  test('a finished command records its exit code and output', async () => {
+  test('a finished command keeps its exit code and output', async () => {
     const job = launch(root, spec('echo hello; exit 3'));
     const done = await settled(job.spec.id);
     expect(done.status).toEqual({ state: 'exited', code: 3 });
@@ -58,7 +56,7 @@ describe('tmux jobs', () => {
     expect(tail((await settled(job.spec.id)).dir, 5)).toContain('marker=1');
   });
 
-  test('a running job reports running and stop ends it with the stopped code and no wake', async () => {
+  test('stopping a running job records the stopped code without a wake', async () => {
     const job = launch(root, spec('sleep 30'));
     expect(read(root, job.spec.id)?.status).toEqual({ state: 'running' });
     stop(job);
@@ -91,7 +89,7 @@ describe('sandbox', () => {
     expect(() => sandboxed(['pi'], policy, 'win32', {})).toThrow(/found none on win32/);
   });
 
-  test('seatbelt denies writes except the writable paths and keeps Pi config read-only', () => {
+  test('the seatbelt profile protects Pi config', () => {
     const profile = seatbeltProfile(policy);
     expect(profile).toContain('(deny file-write*)');
     expect(profile).toContain('(subpath "/work/tree")');

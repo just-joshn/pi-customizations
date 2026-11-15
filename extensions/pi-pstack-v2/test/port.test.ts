@@ -51,7 +51,7 @@ describe('the Pi port of pstack', () => {
     expect(upstream.filter((path) => !existsSync(join(root, path)))).toEqual([]);
   });
 
-  test('upstream scripts and assets are byte-identical except the ones that named a Cursor mechanism', () => {
+  test('unported upstream scripts are byte-identical', () => {
     const ported = new Set([
       'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
       'skills/poteto-mode/scripts/check-plan.mjs', // required a /loop marker; now the tmux_run heartbeat
