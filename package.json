@@ -13,6 +13,7 @@
   "pi": {
     "extensions": [
       "./extensions/pi-anthropic-oauth/src/index.ts",
+      "./extensions/pi-anthropic-oauth-v2/src/index.ts",
       "./extensions/pi-antigravity-oauth/src/index.ts",
       "./extensions/pi-maintainer/src/index.ts",
       "./extensions/pi-pstack/src/index.ts",

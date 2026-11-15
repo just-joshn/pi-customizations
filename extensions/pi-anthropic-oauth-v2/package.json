@@ -1,0 +1,43 @@
+{
+  "name": "@justjoshn/pi-anthropic-oauth-v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Use your Claude subscription in Pi through subscription OAuth only, built on Pi's own Anthropic login and Messages API.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p .",
+    "prove": "scripts/prove.sh",
+    "prove:live": "scripts/prove.sh --live"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.5.2",
+    "@earendil-works/pi-coding-agent": "1.5.2",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
