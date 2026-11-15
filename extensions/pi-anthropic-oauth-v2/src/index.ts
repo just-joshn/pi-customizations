@@ -2,6 +2,7 @@ import { anthropicMessagesApi, type ProviderStreams } from '@earendil-works/pi-a
 import { createProvider, hasApi } from '@earendil-works/pi-ai/models';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { createUsageCommand } from './usage.ts';
 
 const ID = 'anthropic-oauth-v2';
 
@@ -20,7 +21,7 @@ const assertOAuthOnly = (model: StreamArgs[0], options: StreamArgs[2]) => {
   }
 };
 
-export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
+export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerCommand'>) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   const oauth = anthropic?.auth.oauth;
   if (!anthropic || !oauth) throw new Error(`${ID}: this Pi build has no Anthropic OAuth login`);
@@ -48,4 +49,5 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider'>) {
       },
     }),
   );
+  pi.registerCommand('claude-usage', createUsageCommand(ID));
 }

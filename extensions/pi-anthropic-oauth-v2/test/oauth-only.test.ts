@@ -20,6 +20,7 @@ function registeredProvider(): Provider {
       if (typeof provider === 'string') throw new Error(`expected a native Provider, got the legacy form for ${provider}`);
       registered.push(provider);
     },
+    registerCommand: () => {},
   });
   const [provider, ...rest] = registered;
   if (!provider || rest.length > 0) throw new Error(`expected exactly one provider, got ${registered.length}`);
