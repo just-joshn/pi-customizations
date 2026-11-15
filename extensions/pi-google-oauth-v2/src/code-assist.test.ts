@@ -87,8 +87,19 @@ describe('resolveProject for an onboarded account', () => {
       url: `${CODE_ASSIST_BASE_URL}:loadCodeAssist`,
       method: 'POST',
       headers: { authorization: 'Bearer tok-123', 'content-type': 'application/json' },
-      body: { cloudaicompanionProject: 'proj-env', metadata: { ideType: 'IDE_UNSPECIFIED', platform: 'PLATFORM_UNSPECIFIED', pluginType: 'GEMINI', duetProject: 'proj-env' } },
+      body: { cloudaicompanionProject: 'proj-env', metadata: { ideType: 'ANTIGRAVITY', duetProject: 'proj-env' } },
     });
+  });
+
+  test('sends only the Antigravity ideType when no project is overridden', async () => {
+    const fake = fakeCodeAssist([{ currentTier: { id: 'free-tier', name: 'Antigravity' }, paidTier: { id: 'g1-pro-tier', name: 'Google AI Pro' }, cloudaicompanionProject: 'aicode-consumers' }]);
+    await expect(resolve(fake)).resolves.toEqual({ projectId: 'aicode-consumers', tierId: 'g1-pro-tier', tierName: 'Google AI Pro' });
+    expect(fake.calls[0]?.body).toEqual({ metadata: { ideType: 'ANTIGRAVITY' } });
+  });
+
+  test('falls back to the current tier name when there is no paid tier', async () => {
+    const fake = fakeCodeAssist([{ currentTier: { id: 'free-tier', name: 'Antigravity' }, cloudaicompanionProject: 'aicode-consumers' }]);
+    await expect(resolve(fake)).resolves.toMatchObject({ tierName: 'Antigravity' });
   });
 });
 
@@ -99,6 +110,17 @@ describe('resolveProject client identity', () => {
     expect(fake.calls.map((call) => call.method)).toEqual(['POST', 'POST', 'GET']);
     for (const call of fake.calls) expect(call.headers['user-agent']).toBe(USER_AGENT);
     expect(USER_AGENT).toMatch(/^antigravity\/cli\/\S+ \(aidev_client; os_type=(darwin|linux|windows|\w+); arch=\w+; cl=\d+; auth_method=consumer\)$/);
+  });
+});
+
+describe('resolveProject unsupported client', () => {
+  test('surfaces Google reasonMessage verbatim and never onboards', async () => {
+    const reasonMessage = 'This client is no longer supported. Please migrate to the Antigravity suite.';
+    const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'free-tier', isDefault: true }], ineligibleTiers: [{ reasonCode: 'UNSUPPORTED_CLIENT', reasonMessage }] }]);
+    const failure = await resolve(fake).catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(IneligibleTierError);
+    expect(failure).toHaveProperty('message', reasonMessage);
+    expect(fake.calls).toHaveLength(1);
   });
 });
 
@@ -130,7 +152,7 @@ describe('resolveProject onboarding', () => {
   test('omits the project for the free tier', async () => {
     const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'free-tier', name: 'Free', isDefault: true }] }, { done: true, response: { cloudaicompanionProject: { id: 'managed' } } }]);
     await resolve(fake, 'proj-env');
-    expect(fake.calls[1]?.body).toEqual({ tierId: 'free-tier', metadata: { ideType: 'IDE_UNSPECIFIED', platform: 'PLATFORM_UNSPECIFIED', pluginType: 'GEMINI' } });
+    expect(fake.calls[1]?.body).toEqual({ tierId: 'free-tier', metadata: { ideType: 'ANTIGRAVITY' } });
   });
 
   test('falls back to legacy-tier when no allowed tier is the default', async () => {
