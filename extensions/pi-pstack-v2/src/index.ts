@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -158,48 +158,58 @@ export default function pstack(pi: ExtensionAPI) {
       if (params.resume !== undefined && (prior === undefined || prior.spec.kind !== 'pi' || prior.status.state === 'running')) {
         throw new Error(`resume needs a finished pi_spawn job id, got "${params.resume}".`);
       }
-      const base = params.cwd === undefined ? ctx.cwd : resolve(ctx.cwd, params.cwd);
-      let cwd = prior?.spec.cwd ?? base;
-      // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
-      const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
-      const writable = [sessionDir, join(dir, 'nested')];
-      for (const path of writable) mkdirSync(path, { recursive: true });
-      if (params.worktree !== undefined && prior === undefined) {
-        cwd = join(dir, 'worktree');
-        addWorktree(base, cwd, params.worktree, params.base);
-      }
-      const common = gitCommonDir(cwd);
-      if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
       const model = resolveModel(ctx, params.model);
-      const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
-      const argv = [
-        ...piCommand,
-        '-p',
-        '--session-dir',
-        sessionDir,
-        ...(prior ? ['--continue'] : []),
-        ...(model ? ['--model', model] : []),
-        ...(params.thinking ? ['--thinking', params.thinking] : []),
-        ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
-        ...(params.readonly ? ['--exclude-tools', 'edit,write'] : []),
-        ctx.isProjectTrusted() ? '--approve' : '--no-approve',
-        `@${join(dir, 'brief.md')}`,
-      ];
-      const files: Record<string, string> = { 'brief.md': params.brief };
-      if (params.agent) files['agent.md'] = stripFrontmatter(readFileSync(join(packageRoot, 'agents', `${params.agent}.md`), 'utf8'));
-      const spec: JobSpec = {
-        id,
-        name: params.name,
-        kind: 'pi',
-        cwd,
-        argv: sandboxed(argv, { writable, agentDir: getAgentDir() }),
-        owner,
-        wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
-        repeat: false,
-        createdAt: new Date().toISOString(),
-      };
-      const job = launch(root, spec, files);
-      return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
+      const base = params.cwd === undefined ? ctx.cwd : resolve(ctx.cwd, params.cwd);
+      try {
+        return start();
+      } catch (error) {
+        rmSync(dir, { recursive: true, force: true });
+        if (params.worktree !== undefined) gitCommonDir(base) && git(base, ['worktree', 'prune']);
+        throw error;
+      }
+
+      function start() {
+        let cwd = prior?.spec.cwd ?? base;
+        // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
+        const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
+        const writable = [sessionDir, join(dir, 'nested')];
+        for (const path of writable) mkdirSync(path, { recursive: true });
+        if (params.worktree !== undefined && prior === undefined) {
+          cwd = join(dir, 'worktree');
+          addWorktree(base, cwd, params.worktree, params.base);
+        }
+        const common = gitCommonDir(cwd);
+        if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
+        const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
+        const argv = [
+          ...piCommand,
+          '-p',
+          '--session-dir',
+          sessionDir,
+          ...(prior ? ['--continue'] : []),
+          ...(model ? ['--model', model] : []),
+          ...(params.thinking ? ['--thinking', params.thinking] : []),
+          ...(params.agent ? ['--append-system-prompt', join(dir, 'agent.md')] : []),
+          ...(params.readonly ? ['--exclude-tools', 'edit,write'] : []),
+          ctx.isProjectTrusted() ? '--approve' : '--no-approve',
+          `@${join(dir, 'brief.md')}`,
+        ];
+        const files: Record<string, string> = { 'brief.md': params.brief };
+        if (params.agent) files['agent.md'] = stripFrontmatter(readFileSync(join(packageRoot, 'agents', `${params.agent}.md`), 'utf8'));
+        const spec: JobSpec = {
+          id,
+          name: params.name,
+          kind: 'pi',
+          cwd,
+          argv: sandboxed(argv, { writable, agentDir: getAgentDir() }),
+          owner,
+          wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
+          repeat: false,
+          createdAt: new Date().toISOString(),
+        };
+        const job = launch(root, spec, files);
+        return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
+      }
     },
   });
 
