@@ -159,11 +159,12 @@ describe('failures before the first event', () => {
     expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
   });
 
-  test('surfaces the 429 message after exhausting retries', async () => {
+  test('rides out a capacity 429 and then reports shared capacity, not quota', async () => {
     const { stream, fetchImpl } = run(() => Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(5);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
+    expect(message(events[0]).errorMessage).toContain('temporarily at capacity');
+    expect(message(events[0]).errorMessage).toContain('not your plan quota');
   });
 
   test('a quota-exhausted 429 fails fast without retrying', async () => {
