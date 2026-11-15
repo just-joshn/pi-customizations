@@ -1,0 +1,99 @@
+name: ci
+
+# Each pull request runs only the tests its changes reach. The checkout is the pull request's merge commit, whose
+# first parent is the base branch, so `HEAD^1` to `HEAD` is the pull request's diff. `plan` lists the packages the
+# diff touches, and each package runs `vitest --changed`, which selects new tests and tests whose imports reach a
+# changed file. A change to a root file that every package builds on (the lockfile, the root manifest or tsconfig,
+# or this workflow) runs every package's full suite.
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run ci
+
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      full: ${{ steps.plan.outputs.full }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      - id: plan
+        run: |
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          if grep -qxE 'bun\.lock|package\.json|tsconfig\.json|\.github/workflows/ci\.yml' <<< "$changed"; then
+            full=true
+            packages=$(ls extensions)
+          else
+            full=false
+            packages=$(sed -n 's#^extensions/\([^/]*\)/.*#\1#p' <<< "$changed" | sort -u)
+          fi
+          packages=$(for p in $packages; do [ -f "extensions/$p/package.json" ] && echo "$p"; done)
+          # pi-pstack-v2 sandboxes shells with Seatbelt on macOS and bubblewrap on Linux, so it runs on both.
+          matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-24.04"}, (select(. == "pi-pstack-v2") | {package: ., os: "macos-15"})]' <<< "$packages")
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "Packages: ${packages:-none}. Full suites: $full." >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    name: test ${{ matrix.package }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: extensions/${{ matrix.package }}
+    env:
+      CHANGED: ${{ needs.plan.outputs.full == 'false' && 'HEAD^1' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.13.0
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - if: matrix.package == 'pi-pstack-v2' && runner.os == 'Linux'
+        name: Install tmux and bubblewrap, and allow the unprivileged user namespaces bubblewrap needs
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tmux bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - if: matrix.package == 'pi-pstack-v2' && runner.os == 'macOS'
+        run: brew install tmux
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run typecheck
+      - run: npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+      # Vitest cannot see this Bun test, so it runs when the plan checker it covers changed.
+      - if: matrix.package == 'pi-pstack-v2'
+        run: |
+          if [ -n "$CHANGED" ] && git diff --quiet "$CHANGED" HEAD -- skills/poteto-mode/scripts; then exit 0; fi
+          bun test skills/poteto-mode/scripts/check-plan.test.ts
