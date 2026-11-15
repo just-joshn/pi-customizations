@@ -1,7 +1,7 @@
 import { type Credential, createModels, InMemoryCredentialStore, type MutableModels, type Provider } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { PRIVATE_PROJECT_HEADER, PROVIDER_ID } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER, PROVIDER_ID } from './constants.ts';
 import extension from './index.ts';
 
 const sse = (...chunks: object[]) => new Response(chunks.map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`).join(''), { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
@@ -13,7 +13,7 @@ const reply = sse(
     response: {
       candidates: [{ content: { role: 'model', parts: [{ functionCall: { id: 'call-1', name: 'read', args: { path: 'a.ts' } } }] }, finishReason: 'STOP' }],
       usageMetadata: { promptTokenCount: 120, cachedContentTokenCount: 20, candidatesTokenCount: 30, thoughtsTokenCount: 10, totalTokenCount: 160 },
-      modelVersion: 'gemini-3.5-flash-001',
+      modelVersion: 'gemini-3.8-flash-001',
     },
   },
 );
@@ -26,7 +26,7 @@ function runtime(credential: Credential) {
   const provider = providers[0];
   if (!provider) throw new Error('extension registered no provider');
   models.setProvider(provider);
-  const model = models.getModel(PROVIDER_ID, 'gemini-3.5-flash');
+  const model = models.getModel(PROVIDER_ID, 'gemini-3.8-flash');
   if (!model) throw new Error('model missing');
   return credentials.modify(PROVIDER_ID, async () => credential).then(() => ({ models, model, credentials }));
 }
@@ -34,7 +34,7 @@ function runtime(credential: Credential) {
 interface Seen {
   url: string;
   headers: Record<string, string>;
-  body: { project: string };
+  body: { project: string; model: string; requestId: string; userAgent: string; requestType: string; request: { systemInstruction?: { role: string }; generationConfig: { thinkingConfig: unknown } } };
 }
 
 function recordingFetch(response: Response) {
@@ -46,7 +46,12 @@ function recordingFetch(response: Response) {
   return { seen, fetchImpl };
 }
 
-const context = { messages: [{ role: 'user' as const, content: 'Read a.ts', timestamp: 1 }] };
+const context = {
+  messages: [
+    { role: 'system' as const, content: 'Be brief.', timestamp: 1 },
+    { role: 'user' as const, content: 'Read a.ts', timestamp: 1 },
+  ],
+};
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -55,15 +60,23 @@ describe('real Pi Models runtime', () => {
     const { models, model } = await runtime({ type: 'oauth', access: 'access-live', refresh: 'refresh-live', expires: Date.now() + 3_600_000, projectId: 'proj-77' });
     const google = recordingFetch(reply);
 
-    const message = await models.streamSimple(model, context, { fetch: google.fetchImpl }).result();
+    const message = await models.streamSimple(model, context, { fetch: google.fetchImpl, reasoning: 'xhigh', sessionId: 'sess-9' }).result();
 
     expect(google.seen).toHaveLength(1);
     expect(google.seen[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(google.seen[0]?.headers['authorization']).toBe('Bearer access-live');
-    expect(google.seen[0]?.body.project).toBe('proj-77');
+    expect(google.seen[0]?.headers['user-agent']).toBe(ANTIGRAVITY_USER_AGENT);
+    expect(google.seen[0]?.body).toMatchObject({
+      project: 'proj-77',
+      model: 'gemini-3.8-flash-high',
+      userAgent: 'antigravity',
+      requestType: 'agent',
+      request: { sessionId: 'sess-9', systemInstruction: { role: 'user' }, generationConfig: { thinkingConfig: { includeThoughts: true, thinkingLevel: 'HIGH' } } },
+    });
+    expect(google.seen[0]?.body.requestId).toEqual(expect.any(String));
     expect(Object.keys(google.seen[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(Object.values(google.seen[0]?.headers ?? {}).join('\n')).not.toContain('proj-77');
-    expect(message).toMatchObject({ stopReason: 'toolUse', responseId: 'trace-9', responseModel: 'gemini-3.5-flash-001' });
+    expect(message).toMatchObject({ stopReason: 'toolUse', responseId: 'trace-9', responseModel: 'gemini-3.8-flash-001' });
     expect(message.content).toEqual([
       { type: 'thinking', thinking: 'Need the file.' },
       { type: 'text', text: 'Reading it now.' },

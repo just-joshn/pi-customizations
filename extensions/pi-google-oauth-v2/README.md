@@ -1,6 +1,6 @@
 # pi-google-oauth-v2
 
-Use a Google AI Plus, Pro, or Ultra plan in Pi. The extension signs in with your Google account and sends requests to Gemini Code Assist, so they count against your plan's quota, not an API key.
+Use a Google AI plan in Pi. The extension signs in with your Google account the way Google's Antigravity CLI does and sends requests to Code Assist, so they count against your plan's quota, not an API key.
 
 ## Sign in
 
@@ -18,15 +18,10 @@ If Pi runs on a machine without a browser, open the **Code page** link on anothe
 
 Run `/model` and pick a `google-oauth-v2` model:
 
-- `gemini-2.5-pro`
-- `gemini-3.1-pro-preview`
-- `gemini-3.5-flash`
+- `gemini-4-argon` is Antigravity's default model. Pi's catalog may lack it, so its context window and prices can be stand-ins from a Gemini Pro model. They are unverified.
 - `gemini-3.8-flash`
-- `gemini-3-flash`
-- `gemini-3.1-flash-lite`
-- `gemini-3.5-flash-lite`
 
-Context windows, output limits, and thinking levels come from Pi's own Google model catalog.
+Pi's thinking level picks the model's effort. The extension sends `<model>-low`, `<model>-medium`, or `<model>-high`. Off and no level send `medium`, and `xhigh` and `max` send `high`. Google rejects a model it does not serve with its own error text, and Pi shows that text.
 
 ## Set a project
 
@@ -40,8 +35,8 @@ Pi reads the variable only during `/login`. To change the project later, run `/l
 
 ## Plan support
 
-Gemini CLI's quota documentation lists Google AI Pro and Google AI Ultra for this sign-in. It says that Google AI Plus is not supported. The extension does not block any plan. Google decides, and if it refuses your account, `/login` shows Google's message. If Google asks you to validate the account, `/login` shows the validation link. Validate the account in the browser, then run `/login` again.
+Google's Antigravity documentation lists the Free, Google AI Pro, and Google AI Ultra plans. It does not list Google AI Plus. The extension does not block any plan. Google decides, and if it refuses your account, `/login` shows Google's message. If Google asks you to validate the account, `/login` shows the validation link. Validate the account in the browser, then run `/login` again.
 
 ## How it works
 
-The extension reuses Gemini CLI's public OAuth client (`packages/core/src/code_assist/oauth2.ts` in `google-gemini/gemini-cli`) and calls the same Code Assist endpoint, `cloudcode-pa.googleapis.com/v1internal`. That endpoint is not a public Google API, so Google can change it without notice.
+Google retired Gemini CLI's OAuth client for individual plans. The extension now reuses the Antigravity CLI's public OAuth client and calls the same Code Assist endpoint, `cloudcode-pa.googleapis.com/v1internal`, with the `User-Agent` and request shape that the Antigravity CLI sends. Google accepts a request only when it carries that `User-Agent`. Google can restrict this client, change the header it checks, or retire the endpoint without notice. If sign-in fails with a message that the client is no longer supported, Google changed the gate.

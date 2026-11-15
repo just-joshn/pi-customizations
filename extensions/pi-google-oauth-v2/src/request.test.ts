@@ -10,8 +10,8 @@ const model = (id: string): Model<string> => {
   if (!found) throw new Error(`no model ${id}`);
   return found;
 };
-const gemini3 = model('gemini-3.5-flash');
-const gemini25 = model('gemini-2.5-pro');
+const gemini3 = model('gemini-3.8-flash');
+const gemini25 = { ...gemini3, id: 'gemini-2.5-pro' };
 
 function build(messages: Message[], options: SimpleStreamOptions = {}, target: Model<string> = gemini3) {
   return buildCodeAssistRequest({ model: target, context: { messages } as TranscriptContext, project: 'proj-1', options });
@@ -35,10 +35,13 @@ const call = (id: string, extra: object = {}) => ({ type: 'toolCall' as const, i
 const SIGNATURE = 'QUJDRA==';
 
 describe('envelope', () => {
-  test('carries model, project, a UUIDv7 prompt id, and the session id', () => {
+  test('carries the Antigravity identity, a request id, and the session id', () => {
     const body = build([user('hi')], { sessionId: 'sess-1' });
-    expect(body).toMatchObject({ model: 'gemini-3.5-flash', project: 'proj-1', request: { session_id: 'sess-1' } });
-    expect(body.user_prompt_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(body).toMatchObject({ model: 'gemini-3.8-flash-medium', project: 'proj-1', userAgent: 'antigravity', requestType: 'agent', request: { sessionId: 'sess-1' } });
+    expect(body.requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(build([user('hi')]).requestId).not.toBe(body.requestId);
+    expect(body).not.toHaveProperty('user_prompt_id');
+    expect(body.request).not.toHaveProperty('session_id');
   });
 
   test('maps temperature and maxTokens into generationConfig', () => {
@@ -47,7 +50,7 @@ describe('envelope', () => {
 
   test('replays system messages into systemInstruction only', () => {
     const body = build([system('Be brief.'), user('hi'), system('Also be kind.')]);
-    expect(body.request.systemInstruction).toEqual({ parts: [{ text: 'Be brief.\n\nAlso be kind.' }] });
+    expect(body.request.systemInstruction).toEqual({ role: 'user', parts: [{ text: 'Be brief.\n\nAlso be kind.' }] });
     expect(body.request.contents).toEqual([{ role: 'user', parts: [{ text: 'hi' }] }]);
   });
 });
@@ -200,26 +203,22 @@ describe('tools', () => {
   });
 });
 
-describe('thinking', () => {
-  test('maps the clamped level through the model thinking map', () => {
-    expect(build([user('hi')], { reasoning: 'high' }).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: 'HIGH' });
-    expect(build([user('hi')], { reasoning: 'minimal' }, model('gemini-3.1-pro-preview')).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: 'LOW' });
+describe('effort', () => {
+  test.for([
+    [undefined, 'medium'],
+    ['minimal', 'low'],
+    ['low', 'low'],
+    ['medium', 'medium'],
+    ['high', 'high'],
+    ['xhigh', 'high'],
+    ['max', 'high'],
+  ] as const)('reasoning %s sends the %s model id and thinking level', ([reasoning, effort]) => {
+    const body = build([user('hi')], reasoning === undefined ? {} : { reasoning });
+    expect(body.model).toBe(`gemini-3.8-flash-${effort}`);
+    expect(body.request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: effort.toUpperCase() });
   });
 
-  test('uses the lowest supported level when thinking is off', () => {
-    expect(build([user('hi')], {}, model('gemini-3.1-pro-preview')).request.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'LOW' });
-  });
-
-  test('uses a token budget on a model without a thinking map', () => {
-    expect(build([user('hi')], { reasoning: 'medium' }, gemini25).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingBudget: 8192 });
-    expect(build([user('hi')], { reasoning: 'medium', thinkingBudgets: { medium: 1234 } }, gemini25).request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingBudget: 1234 });
-  });
-
-  test('leaves thinking to Google when a budget-style model is set to off', () => {
-    expect(build([user('hi')], {}, gemini25).request.generationConfig).not.toHaveProperty('thinkingConfig');
-  });
-
-  test('sends no thinking config to a model without reasoning', () => {
-    expect(build([user('hi')], { reasoning: 'high' }, { ...gemini3, reasoning: false }).request.generationConfig).not.toHaveProperty('thinkingConfig');
+  test('keeps the Pi model id as the base family', () => {
+    expect(build([user('hi')], { reasoning: 'high' }, model('gemini-4-argon')).model).toBe('gemini-4-argon-high');
   });
 });

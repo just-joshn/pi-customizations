@@ -11,7 +11,7 @@ import {
   uuidv7,
 } from '@earendil-works/pi-ai';
 import { CodeAssistError, googleErrorMessage } from './code-assist.ts';
-import { PRIVATE_PROJECT_HEADER } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
 interface CodeAssistChunk {
@@ -59,7 +59,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
 
       const response = await (options.fetch ?? globalThis.fetch)(`${model.baseUrl}:streamGenerateContent?alt=sse`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers },
+        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers, 'User-Agent': ANTIGRAVITY_USER_AGENT },
         body: JSON.stringify(body),
         ...(options.signal ? { signal: options.signal } : {}),
       });
@@ -95,7 +95,7 @@ function takePrivateProjectHeader(headers: SimpleStreamOptions['headers']): { pr
   const forwarded: Record<string, string> = {};
   for (const [name, value] of Object.entries(headers ?? {})) {
     if (name.toLowerCase() === PRIVATE_PROJECT_HEADER) project = value ?? undefined;
-    else if (value !== null) forwarded[name] = value;
+    else if (value !== null && name.toLowerCase() !== 'user-agent') forwarded[name] = value;
   }
   return { project, headers: forwarded };
 }

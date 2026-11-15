@@ -5,13 +5,18 @@ import { readProjectOverride, resolveProject } from './code-assist.ts';
 import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LoopbackExpiredError, startLoopbackCallback } from './loopback.ts';
 
-// gemini-cli's installed-app client. Google documents installed-app secrets as non-confidential.
-const CLIENT_ID = '681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const SCOPES = ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'];
+const ANTIGRAVITY_CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
+const ANTIGRAVITY_CLIENT_SECRET = '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';
+const SCOPES = [
+  'https://www.googleapis.com/auth/cloud-platform',
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/cclog',
+  'https://www.googleapis.com/auth/experimentsandconfigs',
+];
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const MANUAL_REDIRECT_URI = 'https://codeassist.google.com/authcode';
+const MANUAL_REDIRECT_URI = 'https://antigravity.google/oauth-callback';
 
 export type GoogleCredential = OAuthCredential & { projectId: string };
 
@@ -39,7 +44,7 @@ export function createGoogleOAuth(deps: GoogleOAuthDeps = {}): OAuthAuth {
   return {
     name: 'Google AI subscription',
     isSubscription: true,
-    loginLabel: 'Sign in with Google AI Plus, Pro, or Ultra',
+    loginLabel: 'Sign in with your Google AI plan',
     login: (interaction) => login(interaction, fetchImpl, deps.env ?? process.env),
     refresh: (credential, signal) => refresh(credential, signal, fetchImpl),
     toAuth,
@@ -56,7 +61,7 @@ export function parseStoredCredential(credential: OAuthCredential): GoogleCreden
 
 export function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
   const params = new URLSearchParams({
-    client_id: CLIENT_ID,
+    client_id: ANTIGRAVITY_CLIENT_ID,
     redirect_uri: input.redirectUri,
     response_type: 'code',
     scope: SCOPES.join(' '),
@@ -74,7 +79,7 @@ async function postToken(body: Record<string, string>, fetchImpl: FetchFunction,
   const response = await fetchImpl(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ ...body, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }),
+    body: new URLSearchParams({ ...body, client_id: ANTIGRAVITY_CLIENT_ID, client_secret: ANTIGRAVITY_CLIENT_SECRET }),
     signal,
   });
   const payload: unknown = await response.json().catch(() => undefined);

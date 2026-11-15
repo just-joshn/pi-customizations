@@ -1,5 +1,5 @@
 import type { FetchFunction } from '@earendil-works/pi-ai';
-import { CODE_ASSIST_BASE_URL } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, CODE_ASSIST_BASE_URL } from './constants.ts';
 
 export class CodeAssistError extends Error {}
 
@@ -56,7 +56,7 @@ interface Operation {
   error?: { message?: string };
 }
 
-const METADATA = { ideType: 'IDE_UNSPECIFIED', platform: 'PLATFORM_UNSPECIFIED', pluginType: 'GEMINI' } as const;
+const METADATA = { ideType: 'ANTIGRAVITY' } as const;
 const FREE_TIER = 'free-tier';
 const LEGACY_TIER = 'legacy-tier';
 const STANDARD_TIER = 'standard-tier';
@@ -84,6 +84,8 @@ export async function resolveProject(input: ResolveProjectInput): Promise<Resolv
   });
 
   if (!load.currentTier) {
+    const unsupported = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'UNSUPPORTED_CLIENT');
+    if (unsupported) throw new IneligibleTierError(unsupported.reasonMessage ?? 'Google rejected this client (UNSUPPORTED_CLIENT).');
     const validation = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'VALIDATION_REQUIRED' && tier.validationUrl);
     if (validation?.validationUrl) throw new ValidationRequiredError(validation.reasonMessage ?? 'Account validation required.', validation.validationUrl);
   }
@@ -126,7 +128,7 @@ function missingProject(load: LoadCodeAssistResponse): CodeAssistError {
 async function callCodeAssist<T>(input: ResolveProjectInput, method: 'GET' | 'POST', url: string, body?: object): Promise<T> {
   const response = await input.fetchImpl(url, {
     method,
-    headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json', 'User-Agent': ANTIGRAVITY_USER_AGENT },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     signal: input.signal,
   });

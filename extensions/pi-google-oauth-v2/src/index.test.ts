@@ -19,7 +19,7 @@ test('registers exactly one native provider for the Code Assist api', () => {
   const [provider, ...rest] = register();
   expect(rest).toEqual([]);
   expect(provider).toMatchObject({ id: PROVIDER_ID, baseUrl: CODE_ASSIST_BASE_URL, auth: { oauth: { isSubscription: true } } });
-  expect(provider?.getModels()).toHaveLength(7);
+  expect(provider?.getModels()).toHaveLength(2);
 });
 
 test('starts no listener, timer, or request while loading', () => {
