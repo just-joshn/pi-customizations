@@ -233,6 +233,11 @@ def run_long(config: str, round_index: int, keep: bool) -> dict:
             at = time.monotonic()
             action()
             steps[name] = measure_step(session, at, STEP_FIRST_BYTE_S)
+            if name == "expand":
+                latencies, misses = measure_echo(session, time.monotonic())
+                result["echo"] = {"latenciesMs": latencies, "misses": misses}
+                session.write(b"\x15")
+                session.settle(quiet=QUIET_S, cap=STEP_CAP_S)
     except RuntimeError as error:
         result["error"] = f"{name}: {error}"
     exit_at = time.time()
@@ -241,6 +246,8 @@ def run_long(config: str, round_index: int, keep: bool) -> dict:
     result["exitBytes"] = session.bytes_between(exit_at, time.time())
     problems = [result["error"]] if "error" in result else [f"{name}: no output" for name, step in steps.items() if not step["output"]]
     problems += [f"{name}: widest rule {steps[name]['ruleCols']} != {cols}" for name, cols in (("narrow", NARROW_COLS), ("wide", COLS)) if name in steps and steps[name]["ruleCols"] != cols]
+    if result.get("echo", {}).get("misses"):
+        problems.append(f"echo misses {result['echo']['misses']}")
     if problems:
         result["problems"] = problems
     if problems or keep:

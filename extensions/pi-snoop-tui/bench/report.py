@@ -36,6 +36,9 @@ STREAM_METRICS = [
 LONG_STEPS = ["startup", "narrow", "wide", "expand", "collapse"]
 LONG_METRICS = [
     ("Process CPU ms (user+sys), whole run", lambda r: r["cpuMs"]["user"] + r["cpuMs"]["sys"]),
+    ("Expanded echo latency p50 ms", lambda r: percentile(r["echo"]["latenciesMs"], 50)),
+    ("Expanded echo latency p95 ms", lambda r: percentile(r["echo"]["latenciesMs"], 95)),
+    ("Expanded echo misses", lambda r: r["echo"]["misses"]),
     *[(f"{step} settle ms", lambda r, step=step: r["steps"][step]["ms"]) for step in LONG_STEPS],
     *[(f"{step} PTY bytes", lambda r, step=step: r["steps"][step]["bytes"]) for step in LONG_STEPS],
     ("Exit PTY bytes", lambda r: r["exitBytes"]),
