@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-spacex-oauth-v2",
   "version": "0.1.0",
-  "description": "Use your X/SpaceX subscription in pi through Grok Build and Cursor CLI sign-ins.",
+  "description": "Use your X subscription in Pi through Grok Build and Cursor sign-ins.",
   "type": "module",
   "license": "MIT",
   "publishConfig": {

@@ -1,6 +1,6 @@
 # How pstack maps onto Pi
 
-pstack 0.15.36 and cursor-team-kit were written for Cursor. This package keeps every skill, playbook, principle, agent, rule, script, and guide chapter, and replaces each Cursor or Claude Code mechanism with the Pi mechanism that does the same job. The skills name Pi mechanisms directly. There is no adapter to read at run time.
+pstack 0.15.42 and cursor-team-kit 1.2.0 were written for Cursor. `upstream.lock.json` pins the exact upstream commit. This package keeps every skill, playbook, principle, agent, rule, script, and guide chapter, and replaces each Cursor or Claude Code mechanism with the Pi mechanism that does the same job. The skills name Pi mechanisms directly. There is no adapter to read at run time.
 
 Pi skips sub-agents, permission popups, plan mode, built-in to-dos, and background bash on purpose. Each row below names what pstack does instead.
 

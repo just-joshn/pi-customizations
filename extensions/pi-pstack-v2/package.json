@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
   "version": "0.1.0",
-  "description": "pstack and cursor-team-kit for Pi, built on Pi's own mechanisms: Pi instances in tmux, a Seatbelt or bubblewrap sandbox, plan files, and TODO.md.",
+  "description": "Use the pstack skills and workflow in Pi, with sandboxed Pi workers and shell jobs running in tmux.",
   "type": "module",
   "license": "MIT",
   "repository": {

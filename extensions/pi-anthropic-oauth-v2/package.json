@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth-v2",
   "version": "0.1.0",
-  "description": "Use your Claude subscription in Pi through subscription OAuth only, built on Pi's own Anthropic login and Messages API.",
+  "description": "Use your Claude subscription in Pi, signing in with subscription OAuth only and never an API key.",
   "type": "module",
   "license": "MIT",
   "publishConfig": {
