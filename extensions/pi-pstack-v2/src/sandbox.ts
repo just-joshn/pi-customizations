@@ -20,6 +20,11 @@ export interface SandboxPolicy {
   /** Checkouts the job may write. No `.pi` code entry or `.git` entry anywhere in them may be written, even one that does not exist yet. */
   checkouts: string[];
   agentDir: string;
+  /**
+   * The job's own Pi agent directory, shared with every job its top-level job starts. Only the contents of its credentials
+   * copy and Pi's lock directories are writable, so no job can change what another job's Pi loads.
+   */
+  credentials: string;
   /** The job's own directory. Only its `nested/` tmux socket is reachable; every other tmux server stays out of reach. */
   jobDir: string;
 }
@@ -36,7 +41,6 @@ const TMUX_SOCKETS = '^/private/(tmp|var/folders/[^/]+/[^/]+/T)/(tmux|pstack-v2)
 const gitRedirects = (common: string): string => `^${escapeRegex(real(common))}/(config\\.worktree|worktrees/[^/]+/(commondir|gitdir|config\\.worktree)|modules/.+/(hooks|config|info|commondir|gitdir|config\\.worktree))(/|$)`;
 
 export function seatbeltProfile(policy: SandboxPolicy): string {
-  const agent = escapeRegex(real(policy.agentDir));
   const subpaths = (paths: string[]): string => paths.map((path) => `(subpath ${quote(real(path))})`).join(' ');
   // A protected path that is itself a symlink is guarded at the link as well as at its target, so it cannot be swapped.
   const guarded = [...policy.protect.map((path) => `(subpath ${quote(real(path))}) (literal ${quote(entry(path))})`), ...policy.lock.map((path) => `(literal ${quote(real(path))}) (literal ${quote(entry(path))})`)];
@@ -49,10 +53,10 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     '(deny file-write*)',
     `(allow file-write* (literal "/dev/null") (literal "/dev/ptmx") (regex #"^/dev/tty") (regex #"^/dev/fd/") ${subpaths(policy.writable)})`,
     `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
-    // Inside the agent directory, only the job's own session and nested directories, Pi's lock directories, and the
-    // contents of auth.json, which Pi refreshes in place, are writable. auth.json itself cannot be removed or replaced.
-    `(allow file-write* (regex #"^${agent}/[^/]+\\.lock(/|$)") ${subpaths(policy.writable.filter((path) => real(path).startsWith(`${real(policy.agentDir)}/`)))})`,
-    `(allow file-write-data (literal ${quote(`${real(policy.agentDir)}/auth.json`)}))`,
+    // Inside Pi's agent directory only the job's own paths are writable, its session, nested jobs, temp, and its own agent
+    // directory with its credentials copy. Your real auth.json and settings are never writable.
+    `(allow file-write* ${subpaths(policy.writable.filter((path) => real(path) === real(policy.agentDir) || real(path).startsWith(`${real(policy.agentDir)}/`)))})`,
+    ...(policy.credentials ? [`(allow file-write-data (literal ${quote(join(real(policy.credentials), 'auth.json'))}))`, `(allow file-write* (regex #"^${escapeRegex(real(policy.credentials))}/[^/]+\\.lock(/|$)"))`] : []),
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
     ...policy.checkouts.map((root) => `(deny file-write* (regex #"^${escapeRegex(real(root))}/(.*/)?(\\.git|\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`),
     // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS and the job's own tmux server are reachable.
@@ -94,21 +98,22 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
   // Its own PID namespace means every process a job starts dies with it, and none can signal the wrapper outside.
   // A private /tmp, since unsandboxed programs load code they cached in the shared one. It also hides outside tmux sockets.
   const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--tmpfs', '/tmp'];
+  // Pi's agent directory stays visible, read-only, even when it sits under the private /tmp.
+  if (existsSync(policy.agentDir)) args.push('--ro-bind', policy.agentDir, policy.agentDir);
   const writable = policy.writable.filter(existsSync);
   for (const path of writable) args.push('--bind', path, path);
   // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
   // Service sockets live under /run, such as Docker's and the system bus, so it is hidden, except the DNS resolver's files.
   for (const hidden of new Set(['/run', '/var/run', `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden) && !lstatSync(hidden).isSymbolicLink()) args.push('--tmpfs', hidden);
   for (const resolver of ['/run/systemd/resolve', '/run/resolvconf']) if (existsSync(resolver)) args.push('--ro-bind', resolver, resolver);
-  // Pi's agent directory becomes a throwaway tmpfs holding its real entries read-only, so Pi can still create its lock
-  // directories. Credentials stay writable because Pi refreshes them in place. This nests, unlike an overlay mount.
-  if (existsSync(policy.agentDir)) {
-    args.push('--tmpfs', policy.agentDir);
-    for (const name of readdirSync(policy.agentDir)) {
-      const path = join(policy.agentDir, name);
+  // The job's agent directory becomes a throwaway tmpfs holding its entries read-only, so Pi can create lock directories,
+  // and only its credentials copy is bound writable.
+  if (policy.credentials && existsSync(policy.credentials)) {
+    args.push('--tmpfs', policy.credentials);
+    for (const name of readdirSync(policy.credentials)) {
+      const path = join(policy.credentials, name);
       args.push(name === 'auth.json' ? '--bind' : '--ro-bind', path, path);
     }
-    for (const path of writable.filter((path) => path.startsWith(`${policy.agentDir}/`))) args.push('--bind', path, path);
   }
   // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
   for (const path of policy.lock.filter(existsSync)) args.push(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path, path);

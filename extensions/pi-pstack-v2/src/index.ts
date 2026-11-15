@@ -1,13 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { approveCredentials, guardCredentials } from './auth.ts';
+import { commandProviders, jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
 import { brokeredSession, claimWake, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readEnd, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed } from './sandbox.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -142,10 +142,14 @@ const within = (path: string, roots: string[]): boolean =>
 const brokering = (): boolean => process.platform === 'darwin' && process.env[SANDBOX_ENV] === '1';
 
 /** Starts a job under its own sandbox, or writes it as a request for the root Pi when this process cannot. */
-function start(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
+function start(root: string, spec: JobSpec, files: Record<string, string> = {}, resolved: Record<string, string> = {}): Job {
   const jobDir = join(root, spec.id);
-  // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load.
-  const policy: SandboxPolicy = { ...spec.policy, jobDir, writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp')])] };
+  // A job started from inside another uses its top-level job's agent directory, which that start already created.
+  const top = insideJob() ? (process.env[TOP_DIR_ENV] ?? jobDir) : jobDir;
+  if (!insideJob()) makeJobAgentDir(getAgentDir(), jobAgentDir(jobDir), resolved);
+  // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load, and writes
+  // credentials only to its top-level job's copy.
+  const policy: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp')])] };
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
   const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
   if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
@@ -159,9 +163,19 @@ function start(root: string, spec: JobSpec, files: Record<string, string> = {}):
 
 /** The checkouts a job may write, and the protected paths in them, which its wrapper sweeps after it for code that appeared. */
 const sweepFor = (policy: SandboxPolicy): JobSpec['sweep'] => ({
-  roots: policy.writable.filter((path) => !within(path, [policy.agentDir]) && !within(path, policy.gitDirs)),
+  // A job's own session, nested, temp, and agent directories live under Pi's agent directory. A worktree does too, and is a checkout.
+  roots: policy.writable.filter((path) => (basename(path) === 'worktree' || !within(path, [policy.agentDir])) && !within(path, policy.gitDirs)),
   protect: policy.protect.filter((path) => within(path, policy.writable)),
 });
+
+const readGrant = (out: string): string[] => {
+  try {
+    const grant: unknown = JSON.parse(readFileSync(join(out, 'granted.json'), 'utf8'));
+    return isStrings(grant) ? grant : [];
+  } catch {
+    return [];
+  }
+};
 
 const isStrings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string');
 
@@ -187,7 +201,7 @@ function hasSession(socket: string, session: string): boolean {
  * what the root granted the top-level job, so no worker can hand a descendant more than it was given. The root only
  * reads from the request directory, which a worker controls, and writes results under the top-level job.
  */
-export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean, depth = 0): void {
+export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean, depth = 0, grant: string[] = top.spec.policy.writable): void {
   // A worker could link its nested directory back up its own tree, so only real directories are followed, and not far.
   if (depth > 8 || !existsSync(nested) || !lstatSync(nested).isDirectory()) return;
   for (const name of readdirSync(nested)) {
@@ -203,7 +217,9 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       const out = resultsDir(top.dir, dir);
       const stopped = existsSync(join(dir, 'stop'));
       const done = existsSync(exitPath(out)) || stopped;
-      serveRequests(top, socket, join(dir, 'nested'), requesterDone || done, depth + 1);
+      // A request's own requests may write only what the root granted it, recorded where no worker can write.
+      const own = readGrant(out);
+      serveRequests(top, socket, join(dir, 'nested'), requesterDone || done, depth + 1, own);
       if (!spec.brokered || existsSync(exitPath(out))) continue;
       const session = brokeredSession(dir);
       if (existsSync(join(out, 'launched'))) {
@@ -213,9 +229,9 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       }
       if (requesterDone || stopped) continue;
       const writable = policy.writable.map(landing);
-      const refused = [...writable.filter((path) => !within(path, top.spec.policy.writable)), ...(within(spec.cwd, [top.spec.cwd, ...top.spec.policy.writable]) ? [] : [`cwd ${spec.cwd}`])];
+      const refused = [...writable.filter((path) => !within(path, grant)), ...(within(spec.cwd, [top.spec.cwd, ...grant]) ? [] : [`cwd ${spec.cwd}`])];
       if (refused.length) {
-        settleBrokered(out, 126, `pstack refused to launch this job. It asked to write outside what its top-level job may write: ${refused.join(', ')}`);
+        settleBrokered(out, 126, `pstack refused to launch this job. It asked to write outside what the job that requested it may write: ${refused.join(', ')}`);
         continue;
       }
       // The sandbox is built from the paths just validated, so swapping a link afterwards changes nothing.
@@ -225,10 +241,13 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         lock: [...policy.lock, ...top.spec.policy.lock],
         gitDirs: [...policy.gitDirs, ...top.spec.policy.gitDirs],
         checkouts: [],
+        credentials: jobAgentDir(top.dir),
         agentDir: getAgentDir(),
         jobDir: dir,
       };
       granted.checkouts = sweepFor(granted).roots;
+      mkdirSync(out, { recursive: true });
+      writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
       launchBrokered(top.dir, dir, spec, sweepFor(granted), sandboxed(spec.command, granted), socket);
     } catch {
       // One request failing must not stop the others.
@@ -272,31 +291,26 @@ export default function pstack(pi: ExtensionAPI) {
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 
+  // Only macOS brokers nested jobs. On Linux a worker starts its own under bubblewrap, so a request there is never served.
   const serve = (ctx: ExtensionContext): void => {
-    if (brokering()) return;
+    if (process.platform !== 'darwin' || brokering()) return;
     const owner = ctx.sessionManager.getSessionId();
     for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
   };
 
-  // A sandboxed worker cannot write its own approval file, so only the root guards credentials.
-  const guard = (ctx: ExtensionContext): void => {
+  // Carries refreshed OAuth tokens between your credentials and each top-level job's copy, once more after the job ends.
+  const syncCredentials = (ctx: ExtensionContext): void => {
     if (insideJob()) return;
-    const { restored, reverted } = guardCredentials(getAgentDir());
-    const notes = [
-      ...(restored ? ['auth.json had been replaced or garbled and was restored from its last good copy.'] : []),
-      ...(reverted.length
-        ? [`Credential commands you had not approved were reverted for ${reverted.join(', ')}. Each is saved in ${join(getAgentDir(), 'pstack-v2', 'auth-removed.json')}. Run /pstack-approve-credentials if you added one yourself.`]
-        : []),
-    ];
-    if (notes.length === 0) return;
-    const message = `pstack: ${notes.join(' ')}`;
-    if (ctx.hasUI) ctx.ui.notify(message, 'warning');
-    else process.stderr.write(`${message}\n`);
+    for (const job of list(jobsRoot(), ctx.sessionManager.getSessionId())) {
+      const copy = jobAgentDir(job.dir);
+      if (!existsSync(join(copy, 'auth.json')) || existsSync(join(job.dir, 'tokens-synced'))) continue;
+      if (syncTokens(getAgentDir(), copy) && job.status.state !== 'running') writeFileSync(join(job.dir, 'tokens-synced'), '');
+    }
   };
 
   // Each step runs on its own, so one failing does not stop the others.
   const tick = (ctx: ExtensionContext): void => {
-    for (const step of [() => guard(ctx), () => serve(ctx), () => interactive(ctx) && deliverFinished(ctx)]) {
+    for (const step of [() => syncCredentials(ctx), () => serve(ctx), () => interactive(ctx) && deliverFinished(ctx)]) {
       try {
         step();
       } catch (error) {
@@ -305,25 +319,7 @@ export default function pstack(pi: ExtensionAPI) {
     }
   };
 
-  // Runs before Pi resolves any credential at startup and before every model request, so a planted command is gone first.
-  pi.on('turn_start', async (_event, ctx) => guard(ctx));
-
-  pi.registerCommand('pstack-approve-credentials', {
-    description: 'Approve the credential commands (auth.json keys starting with !) that auth.json holds now',
-    handler: async (_args, ctx) => {
-      if (insideJob()) throw new Error('Approve credentials from your own Pi session, not from a pstack job.');
-      const approved = Object.entries(approveCredentials(getAgentDir()));
-      ctx.ui.notify(
-        approved.length
-          ? `Approved these credential commands. Pi runs each one when it needs that credential.\n${approved.map(([provider, key]) => `${provider}: ${key}`).join('\n')}`
-          : 'auth.json holds no credential commands. None are approved.',
-        'info',
-      );
-    },
-  });
-
   pi.on('session_start', async (_event, ctx) => {
-    guard(ctx);
     clearInterval(watcher);
     watcher = setInterval(() => tick(ctx), POLL_MS);
   });
@@ -347,7 +343,7 @@ export default function pstack(pi: ExtensionAPI) {
     const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !existsSync(join(job.dir, 'woken')));
     if (pending().length === 0) return;
     while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
-    guard(ctx);
+    syncCredentials(ctx);
     const finished = pending().filter(claimWake);
     return {
       entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(job), display: true }))],
@@ -397,8 +393,15 @@ export default function pstack(pi: ExtensionAPI) {
       if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
       const model = resolveModel(ctx, params.model);
       // Refreshing the worker's credentials now, under Pi's lock, means a worker rarely has to refresh one itself.
-      const chosen = model ? ctx.modelRegistry.find(model.slice(0, model.indexOf('/')), model.slice(model.indexOf('/') + 1)) : undefined;
+      const provider = model?.slice(0, model.indexOf('/'));
+      const chosen = model && provider ? ctx.modelRegistry.find(provider, model.slice(model.indexOf('/') + 1)) : undefined;
       if (chosen) await ctx.modelRegistry.getApiKeyAndHeaders(chosen).catch(() => undefined);
+      // A job's credentials copy holds no commands, so the worker's own provider gets its command resolved here, once.
+      const resolved: Record<string, string> = {};
+      if (provider && !insideJob() && commandProviders(getAgentDir()).includes(provider)) {
+        const key = await ctx.modelRegistry.getApiKeyForProvider(provider).catch(() => undefined);
+        if (key) resolved[provider] = key;
+      }
       const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
       // A resumed worker keeps the readonly it started with unless the call says otherwise.
       const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
@@ -436,7 +439,7 @@ export default function pstack(pi: ExtensionAPI) {
           cwd,
           argv: [],
           command: argv,
-          policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], agentDir: getAgentDir(), jobDir: dir },
+          policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: dir },
           brokered: false,
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
@@ -447,7 +450,7 @@ export default function pstack(pi: ExtensionAPI) {
           out: dir,
           createdAt: new Date().toISOString(),
         };
-        const job = start(root, spec, files);
+        const job = start(root, spec, files, resolved);
         return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
       } catch (error) {
         rmSync(dir, { recursive: true, force: true });
@@ -482,7 +485,7 @@ export default function pstack(pi: ExtensionAPI) {
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
       const guarded = protectedPaths(cwd, common);
-      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], agentDir: getAgentDir(), jobDir: join(root, id) };
+      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
         name: params.name,

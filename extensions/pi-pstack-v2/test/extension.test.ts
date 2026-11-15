@@ -200,7 +200,7 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
   });
 });
 
-describe('nested jobs on macOS', { timeout: 20_000 }, () => {
+describe.runIf(process.platform === 'darwin')('nested jobs on macOS', { timeout: 20_000 }, () => {
   const topJob = async () => {
     const slowPi = join(agentDir, 'slow-pi.mjs');
     writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
@@ -222,7 +222,7 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
       cwd: repo,
       argv: [],
       command: ['bash', '-c', command],
-      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(topDir, 'nested', id) },
+      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(topDir, 'nested', id) },
       brokered: true,
       owner: 'top-worker',
       wake: 'done',
@@ -294,7 +294,7 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
   });
 });
 
-test('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
+test.runIf(process.platform === 'darwin')('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
   ctx = { ...ctx, mode: 'print', hasUI: false };
   await call('pi_spawn', { name: 'done', brief: 'hi', wake: false });
   const [id] = jobs();
@@ -311,7 +311,7 @@ test('a request from a worker that has finished is never launched', { timeout: 2
     cwd: repo,
     argv: [],
     command: ['bash', '-c', `touch ${repo}/late.txt`],
-    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
+    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(top.dir, 'nested', reqId) },
     brokered: true,
     owner: 'w',
     wake: null,
@@ -433,49 +433,6 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
     await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: 10 });
     expect(jobs()).toHaveLength(2);
     await call('tmux_jobs', { action: 'stop', ids: [first] });
-  });
-});
-
-describe('credentials', { timeout: 20_000 }, () => {
-  const auth = () => join(agentDir, 'auth.json');
-  const read = () => JSON.parse(readFileSync(auth(), 'utf8')) as Record<string, { type?: string; key?: string }>;
-  const plant = (code: string) => call('tmux_run', { name: 'plant', command: `node -e "const f='${auth()}';const a=JSON.parse(require('fs').readFileSync(f));${code};require('fs').writeFileSync(f,JSON.stringify(a))"` });
-  const exited = async () => expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
-
-  test('a planted credential command is removed and an approved one is kept', async () => {
-    writeFileSync(auth(), JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' }, plain: { type: 'api_key', key: 'sk-x' } }));
-    await handlers['session_start']?.({}, ctx);
-    await plant("a.evil={type:'api_key',key:'!touch /tmp/pwned'}");
-    await exited();
-    await expect.poll(() => read()['evil'], { timeout: 10_000 }).toBeUndefined();
-    expect([read()['mine']?.key, read()['plain']?.key]).toEqual(['!echo mine', 'sk-x']);
-    expect(readFileSync(join(agentDir, 'pstack-v2', 'auth-removed.json'), 'utf8')).toContain('!touch /tmp/pwned');
-  });
-
-  test('an approved command a job replaces is put back, not deleted', async () => {
-    writeFileSync(auth(), JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' } }));
-    await handlers['session_start']?.({}, ctx);
-    await plant("a.mine={type:'api_key',key:'!touch /tmp/pwned'}");
-    await exited();
-    await expect.poll(() => read()['mine']?.key, { timeout: 10_000 }).toBe('!echo mine');
-  });
-
-  test('a command you approve stays', async () => {
-    writeFileSync(auth(), JSON.stringify({}));
-    await handlers['session_start']?.({}, ctx);
-    writeFileSync(auth(), JSON.stringify({ added: { type: 'api_key', key: '!op read secret' } }));
-    await commands['pstack-approve-credentials']?.handler('', ctx);
-    await handlers['turn_start']?.({}, ctx);
-    expect(read()['added']?.key).toBe('!op read secret');
-  });
-
-  test('credentials a job garbles are restored from the last good copy', async () => {
-    writeFileSync(auth(), JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
-    await handlers['session_start']?.({}, ctx);
-    await call('tmux_run', { name: 'garble', command: `printf 'not json' > ${auth()}` });
-    await exited();
-    await expect.poll(() => readFileSync(auth(), 'utf8'), { timeout: 10_000 }).not.toBe('not json');
-    expect(read()).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
   });
 });
 
@@ -607,6 +564,38 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     server.close();
   });
 
+  test.runIf(process.platform === 'linux')('on Linux, where workers start their own jobs, a request is never served', async () => {
+    const slowPi = join(agentDir, 'slow-pi.mjs');
+    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
+    process.argv[1] = slowPi;
+    await handlers['session_start']?.({}, ctx);
+    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
+    const top = read(join(agentDir, 'pstack-v2', 'jobs'), jobs()[0] ?? '', owner);
+    if (!top) throw new Error('top job missing');
+    vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
+    request(join(top.dir, 'nested'), {
+      id: 'forged-000001',
+      name: 'forged',
+      kind: 'command',
+      cwd: repo,
+      argv: [],
+      command: ['bash', '-c', `touch ${repo}/served`],
+      policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(top.dir, 'nested', 'forged-000001') },
+      brokered: true,
+      owner: 'w',
+      wake: null,
+      repeat: false,
+      series: 'forged-000001',
+      socket: '',
+      sweep: { roots: [], protect: [] },
+      out: '',
+      createdAt: '',
+    });
+    const out = resultsDir(top.dir, join(top.dir, 'nested', 'forged-000001'));
+    await expect.poll(() => existsSync(join(out, 'launched')), { timeout: 4_500 }).toBe(false);
+    expect(existsSync(join(repo, 'served'))).toBe(false);
+  });
+
   test('a worker cannot freeze the root with a loop of nested links', async () => {
     const root = join(agentDir, 'pstack-v2', 'jobs');
     await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
@@ -621,13 +610,105 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
     expect(Date.now() - started).toBeLessThan(2_000);
   });
+});
 
-  test('logging in over an approved credential command sticks', async () => {
-    const auth = join(agentDir, 'auth.json');
-    writeFileSync(auth, JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' } }));
+describe('a sweep a job cannot switch off', { timeout: 20_000 }, () => {
+  const exited = async () => expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+
+  test.for([
+    ['an unreadable directory', 'mkdir zz && touch zz/f && chmod 444 zz'],
+    ['an unlistable directory', 'mkdir zz && chmod 000 zz'],
+    ['a hidden directory holding the code', 'mkdir -p hide/.pix/extensions && echo evil > hide/.pix/extensions/h.ts && mv hide/.pix hide/.pi && chmod 000 hide'],
+    ['an unlistable .pi itself', 'mkdir -p hide/.pix/extensions && echo evil > hide/.pix/extensions/h.ts && mv hide/.pix hide/.pi && chmod 000 hide/.pi'],
+  ])('renamed-in Pi code is still quarantined behind %s', async ([, trap]) => {
+    await call('tmux_run', { name: 'trap', command: `mkdir -p packages/app/.pix/extensions && echo evil > packages/app/.pix/extensions/evil.ts && mv packages/app/.pix packages/app/.pi; ${trap}` });
+    await exited();
+    expect([existsSync(join(repo, 'packages', 'app', '.pi', 'extensions', 'evil.ts')), existsSync(join(repo, 'hide', '.pi', 'extensions'))]).toEqual([false, false]);
+  });
+});
+
+describe('interrogate round', { timeout: 30_000 }, () => {
+  const jobsRoot = () => join(agentDir, 'pstack-v2', 'jobs');
+  const exitIn = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
+
+  test.runIf(process.platform === 'darwin')('a readonly worker cannot hand its own nested job more than it was granted', async () => {
+    const slowPi = join(agentDir, 'slow-pi.mjs');
+    writeFileSync(slowPi, 'setTimeout(() => {}, 60_000);\n');
+    process.argv[1] = slowPi;
+    ctx = { ...ctx, mode: 'print', hasUI: false };
     await handlers['session_start']?.({}, ctx);
-    writeFileSync(auth, JSON.stringify({ mine: { type: 'oauth', access: 'a', refresh: 'r', expires: 1 } }));
-    await handlers['turn_start']?.({}, ctx);
-    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ mine: { type: 'oauth', access: 'a', refresh: 'r', expires: 1 } });
+    await call('pi_spawn', { name: 'writer', brief: 'hi', wake: false });
+    const top = read(jobsRoot(), jobs()[0] ?? '', owner);
+    if (!top) throw new Error('top job missing');
+    const brokered = (dir: string, id: string, writable: string[], command: string) => {
+      vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
+      request(dir, {
+        id,
+        name: id,
+        kind: 'command',
+        cwd: repo,
+        argv: [],
+        command: ['bash', '-c', command],
+        policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(dir, id) },
+        brokered: true,
+        owner: 'w',
+        wake: null,
+        repeat: false,
+        series: id,
+        socket: '',
+        sweep: { roots: [], protect: [] },
+        out: '',
+        createdAt: '',
+      });
+      return join(dir, id);
+    };
+    const readonlyWorker = brokered(join(top.dir, 'nested'), 'readonly-000001', [join(top.dir, 'nested', 'readonly-000001', 'nested')], 'sleep 60');
+    await expect.poll(() => existsSync(join(resultsDir(top.dir, readonlyWorker), 'launched')), { timeout: 10_000 }).toBe(true);
+    const forged = brokered(join(readonlyWorker, 'nested'), 'forged-000001', [repo], `touch ${repo}/PWNED`);
+    await expect.poll(() => exitIn(resultsDir(top.dir, forged)), { timeout: 10_000 }).toBeDefined();
+    expect(existsSync(join(repo, 'PWNED'))).toBe(false);
+  });
+
+  test('a job cannot write your credentials at all', async () => {
+    const auth = join(agentDir, 'auth.json');
+    writeFileSync(auth, JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
+    await call('tmux_run', { name: 'plant', command: `printf '{"evil":{"type":"api_key","key":"!touch /tmp/pwned"}}' > ${auth}; echo rc=$?` });
+    await expect.poll(() => existsSync(join(jobsRoot(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
+  });
+
+  test('Pi code a worker plants in its worktree is swept', async () => {
+    const planter = join(agentDir, 'planter-pi.mjs');
+    writeFileSync(planter, "import fs from 'node:fs';\nfs.mkdirSync('sub/.pix/extensions', { recursive: true });\nfs.writeFileSync('sub/.pix/extensions/evil.ts', 'x');\nfs.renameSync('sub/.pix', 'sub/.pi');\nconsole.log('planted');\n");
+    process.argv[1] = planter;
+    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'plant-branch' });
+    const dir = join(jobsRoot(), jobs()[0] ?? '');
+    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 10_000 }).toBe(true);
+    expect(existsSync(join(dir, 'worktree', 'sub', '.pi', 'extensions', 'evil.ts'))).toBe(false);
+  });
+
+  test('Pi code planted very deep is swept', async () => {
+    const deep = 'a/b/c/d/e/f/g/h/i/j/k/l/m/n/o';
+    await call('tmux_run', { name: 'deep', command: `mkdir -p ${deep}/.pix/extensions && echo x > ${deep}/.pix/extensions/evil.ts && mv ${deep}/.pix ${deep}/.pi` });
+    await expect.poll(() => existsSync(join(jobsRoot(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+    expect(existsSync(join(repo, deep, '.pi', 'extensions', 'evil.ts'))).toBe(false);
+  });
+});
+
+describe('a job agent directory', { timeout: 20_000 }, () => {
+  test('lets a job keep its credentials copy current but not change what Pi loads', async () => {
+    writeFileSync(join(agentDir, 'auth.json'), JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
+    mkdirSync(join(agentDir, 'extensions'));
+    await call('tmux_run', {
+      name: 'agent',
+      command:
+        'cd "$PI_CODING_AGENT_DIR" && echo \'{"plain":{"type":"api_key","key":"sk-y"}}\' > auth.json && mkdir auth.json.lock && rmdir auth.json.lock && echo COPY-OK; rm -f extensions; mkdir extensions 2>/dev/null; echo evil > extensions/e.ts 2>/dev/null && echo PLANTED; echo "{}" > settings.json 2>/dev/null && echo SETTINGS-WRITTEN',
+    });
+    const dir = join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '');
+    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 10_000 }).toBe(true);
+    // On Linux a write elsewhere in the directory lands in the job's own throwaway view, so the check is on what persists.
+    const shared = join(dir, 'agent');
+    expect(readFileSync(join(dir, 'output.log'), 'utf8')).toContain('COPY-OK');
+    expect([lstatSync(join(shared, 'extensions')).isSymbolicLink(), existsSync(join(shared, 'settings.json')), existsSync(join(agentDir, 'extensions', 'e.ts'))]).toEqual([true, false, false]);
   });
 });

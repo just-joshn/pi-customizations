@@ -1,4 +1,4 @@
-import { appendFileSync, cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, chmodSync, cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 /**
@@ -30,31 +30,45 @@ const exists = (path: string): boolean => {
   }
 };
 
-/** Pi code entries and git pointer files under the roots, found without following links or descending into heavy or git directories. */
-export function codePaths(roots: string[], depth = 12): string[] {
+/**
+ * Pi code entries and git pointer files under the roots, found without following links or descending into heavy or git
+ * directories. With `repair`, a directory the job made unreadable gets its owner permissions back so it can be searched,
+ * and anything still unreadable lands in `unreadable`, since a job could otherwise hide code from the sweep that way.
+ */
+export function codePaths(roots: string[], repair = false, unreadable: string[] = []): string[] {
   const found: string[] = [];
-  const walk = (dir: string, level: number): void => {
-    if (level > depth) return;
-    let names: string[];
+  const attempt = <T>(path: string, read: () => T): T | undefined => {
     try {
-      names = readdirSync(dir);
+      return read();
     } catch {
-      return;
+      if (!repair) return undefined;
     }
-    for (const name of names) {
+    try {
+      chmodSync(path, (lstatSync(path).mode & 0o7777) | 0o700);
+      return read();
+    } catch {
+      unreadable.push(path);
+      return undefined;
+    }
+  };
+  // Links are never followed, so the walk cannot loop and needs no depth limit.
+  const walk = (dir: string): void => {
+    const names = attempt(dir, () => readdirSync(dir));
+    for (const name of names ?? []) {
       const path = join(dir, name);
-      const stat = lstatSync(path);
+      const stat = attempt(dir, () => lstatSync(path));
+      if (!stat) continue;
       if (name === '.git') {
         if (!stat.isDirectory()) found.push(path);
       } else if (name === '.pi') {
         if (stat.isSymbolicLink()) found.push(path);
-        else if (stat.isDirectory()) for (const code of PI_CODE) if (exists(join(path, code))) found.push(join(path, code));
+        else if (stat.isDirectory()) for (const code of attempt(path, () => readdirSync(path)) ?? []) if ((PI_CODE as readonly string[]).includes(code)) found.push(join(path, code));
       } else if (stat.isDirectory() && name !== 'node_modules') {
-        walk(path, level + 1);
+        walk(path);
       }
     }
   };
-  for (const root of roots) walk(root, 0);
+  for (const root of roots) walk(root);
   return found;
 }
 
@@ -87,7 +101,9 @@ export function sweep(inv: Inventory): string[] {
     else move(path, 'which appeared while the job ran');
   }
   const present = new Set(inv.present);
-  for (const path of codePaths(inv.roots)) if (!present.has(path)) move(path, 'Pi or git code that appeared while the job ran');
+  const unreadable: string[] = [];
+  for (const path of codePaths(inv.roots, true, unreadable)) if (!present.has(path)) move(path, 'Pi or git code that appeared while the job ran');
+  for (const path of new Set(unreadable)) appendFileSync(inv.output, `pstack could not search ${path} for Pi or git code the job may have left there. Check it before you start Pi in this checkout.\n`);
   return moved;
 }
 
@@ -97,7 +113,7 @@ if (process.argv[1] && basename(process.argv[1]) === 'sweep.ts' && process.argv[
   try {
     sweep(inv);
   } catch (error) {
-    writeFileSync(`${inv.output}.sweep-error`, String(error));
+    appendFileSync(inv.output, `pstack could not finish checking this job's checkout for Pi or git code it left behind: ${String(error)}\n`);
   }
 }
 

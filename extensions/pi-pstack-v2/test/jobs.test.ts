@@ -20,7 +20,7 @@ const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => {
     cwd: root,
     argv: ['bash', '-c', command],
     command: [],
-    policy: { writable: [], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir: root, jobDir: root },
+    policy: { writable: [], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: root, jobDir: root },
     brokered: false,
     owner,
     wake: 'done',
@@ -100,30 +100,25 @@ describe('tmux jobs', () => {
 });
 
 describe('sandbox policy', () => {
-  const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], lock: [], gitDirs: [], checkouts: [], agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
+  const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
 
   test('a platform without a sandbox refuses to run', () => {
     expect(() => sandboxed(['pi'], policy, 'win32', {})).toThrow(/found none on win32/);
   });
 
-  test('seatbelt allows only credentials and locks in the Pi agent directory', () => {
+  test('seatbelt closes the Pi agent directory, credentials included', () => {
     const profile = seatbeltProfile(policy);
-    expect(profile).toContain('(literal "/home/u/.pi/agent/auth.json")');
-    expect(profile).not.toMatch(/agent\/\[\^\/\]\+\$/);
+    expect(profile).toContain('(deny file-write* (subpath "/home/u/.pi/agent"))');
+    expect(profile).not.toContain('auth.json');
   });
 
-  test('bwrap keeps Pi config read-only, credentials writable, and outside tmux servers hidden', () => {
+  test('bwrap leaves the Pi agent directory read-only and hides outside services', () => {
     const agentDir = mkdtempSync(join(tmpdir(), 'pstack-agent-'));
-    writeFileSync(join(agentDir, 'auth.json'), '{}');
-    writeFileSync(join(agentDir, 'settings.json'), '{}');
     const hidden = mkdtempSync(join(tmpdir(), 'pstack-runtime-'));
-    const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, 501);
-    const auth = join(agentDir, 'auth.json');
-    const settings = join(agentDir, 'settings.json');
+    const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, 501);
     expect(args.slice(0, 3)).toEqual(['--ro-bind', '/', '/']);
-    expect(args).toEqual(expect.arrayContaining(['--tmpfs', hidden, '--tmpfs', agentDir]));
-    expect(args.slice(args.indexOf(auth) - 1, args.indexOf(auth) + 2)).toEqual(['--bind', auth, auth]);
-    expect(args.slice(args.indexOf(settings) - 1, args.indexOf(settings) + 2)).toEqual(['--ro-bind', settings, settings]);
+    expect(args).toEqual(expect.arrayContaining(['--unshare-pid', '--tmpfs', hidden]));
+    expect(args.filter((arg, i) => arg === agentDir && args[i - 2] !== '--ro-bind' && args[i - 1] !== '--ro-bind')).toEqual([]);
     rmSync(agentDir, { recursive: true });
     rmSync(hidden, { recursive: true });
   });
@@ -152,7 +147,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   const run = async (command: string, id = newJobId('probe')) => {
     const nested = join(jobsIn(), id, 'nested');
     mkdirSync(nested, { recursive: true });
-    const argv = sandboxed(['bash', '-c', command], { writable: [work, nested], protect: [join(work, '.git', 'hooks')], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const argv = sandboxed(['bash', '-c', command], { writable: [work, nested], protect: [join(work, '.git', 'hooks')], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
     return settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
   };
 
@@ -178,20 +173,20 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
     expect([existsSync(join(agentDir, 'extensions')), existsSync(join(agentDir, 'old')), existsSync(join(agentDir, 'pstack-v2-models.md'))]).toEqual([true, false, false]);
   });
 
-  test('Pi config stays read-only even when the agent directory is in a temp directory', async () => {
+  test('Pi config and credentials stay read-only even when the agent directory is in a temp directory', async () => {
     const tempAgent = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-tmp-agent-')));
     writeFileSync(join(tempAgent, 'settings.json'), '{}');
     writeFileSync(join(tempAgent, 'auth.json'), '{}');
     const id = newJobId('tmp-agent');
     const argv = sandboxed(
       ['bash', '-c', `echo x > ${tempAgent}/settings.json; echo '{"k":1}' > ${tempAgent}/auth.json`],
-      { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir: tempAgent, jobDir: join(jobsIn(), id) },
+      { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: tempAgent, jobDir: join(jobsIn(), id) },
       process.platform,
       {},
     );
     await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
     expect(readFileSync(join(tempAgent, 'settings.json'), 'utf8')).toBe('{}');
-    expect(readFileSync(join(tempAgent, 'auth.json'), 'utf8').trim()).toBe('{"k":1}');
+    expect(readFileSync(join(tempAgent, 'auth.json'), 'utf8').trim()).toBe('{}');
     rmSync(tempAgent, { recursive: true, force: true });
   });
 
@@ -203,7 +198,12 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test('a protected path the job created is removed when it exits', async () => {
     const created = join(work, '.pi', 'extensions');
     const id = newJobId('create');
-    const argv = sandboxed(['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`], { writable: [work], protect: [created], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const argv = sandboxed(
+      ['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`],
+      { writable: [work], protect: [created], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(jobsIn(), id) },
+      process.platform,
+      {},
+    );
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work, sweep: { roots: [work], protect: [created] } })).spec.id, jobsIn());
     expect(existsSync(created)).toBe(false);
     if (process.platform === 'linux') expect(tail(outputPath(done.dir), 5)).toContain(`pstack quarantined ${created}`);
@@ -212,7 +212,7 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test.runIf(process.platform === 'linux')('the user session bus is hidden even without XDG_RUNTIME_DIR', async () => {
     const runtime = `/run/user/${process.getuid?.() ?? 0}`;
     const id = newJobId('bus');
-    const argv = sandboxed(['bash', '-c', `ls -A ${runtime} 2>/dev/null | wc -l`], { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
+    const argv = sandboxed(['bash', '-c', `ls -A ${runtime} 2>/dev/null | wc -l`], { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
     expect(tail(outputPath(done.dir), 3).trim()).toBe('0');
   });
@@ -220,7 +220,12 @@ describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('s
   test.runIf(process.platform === 'linux')('stopping a job ends processes that left its process group', async () => {
     const id = newJobId('escaper');
     const pidFile = join(work, 'escaped.pid');
-    const argv = sandboxed(['bash', '-c', `setsid sleep 30 & sleep 0.2; pgrep -n -x sleep > ${pidFile}; sleep 30`], { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(jobsIn(), id) }, 'linux', {});
+    const argv = sandboxed(
+      ['bash', '-c', `setsid sleep 30 & sleep 0.2; pgrep -n -x sleep > ${pidFile}; sleep 30`],
+      { writable: [work], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(jobsIn(), id) },
+      'linux',
+      {},
+    );
     const job = launch(jobsIn(), spec('', { id, argv, cwd: work }));
     await expect.poll(() => existsSync(pidFile), { timeout: 10_000 }).toBe(true);
     await stop(job);

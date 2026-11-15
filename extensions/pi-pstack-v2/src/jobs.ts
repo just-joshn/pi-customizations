@@ -4,6 +4,7 @@ import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, rea
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { jobAgentDir } from './credentials.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
@@ -151,7 +152,8 @@ interface Run {
  * gets KILL after a short grace period.
  */
 function run(job: Run): void {
-  const env = Object.entries({ [SANDBOX_ENV]: '1', [JOB_DIR_ENV]: job.dir, [TOP_DIR_ENV]: job.top, ...privateEnv(join(job.dir, 'tmp')) })
+  // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
+  const env = Object.entries({ [SANDBOX_ENV]: '1', [JOB_DIR_ENV]: job.dir, [TOP_DIR_ENV]: job.top, PI_CODING_AGENT_DIR: jobAgentDir(job.top), ...privateEnv(join(job.dir, 'tmp')) })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
   const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
