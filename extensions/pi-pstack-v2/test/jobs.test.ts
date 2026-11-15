@@ -3,9 +3,9 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync,
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { claimWake, type JobSpec, launch, list, newJobId, outputPath, read, STOPPED_EXIT_CODE, stop, tail, tmuxSocket } from '../src/jobs.ts';
-import { bwrapArgs, SANDBOX_ENV, type SandboxPolicy, sandboxed, seatbeltProfile } from '../src/sandbox.ts';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { claimWake, excerpt, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, request, STOPPED_EXIT_CODE, stop, tail, tmuxSocket } from '../src/jobs.ts';
+import { bwrapArgs, SANDBOX_ENV, type SandboxPolicy, sandboxed, seatbeltProfile, TOP_DIR_ENV } from '../src/sandbox.ts';
 
 const owner = `test${process.pid}`;
 const socket = tmuxSocket(owner);
@@ -140,6 +140,74 @@ describe('tmux jobs', { timeout: 20_000 }, () => {
 
   test('sessions with a shared id prefix get separate tmux servers', () => {
     expect(tmuxSocket('01a1dd30-aaaa')).not.toBe(tmuxSocket('01a1dd30-bbbb'));
+  });
+});
+
+describe('jobs a sandboxed macOS worker asks the root to start', { timeout: 20_000 }, () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  test('a worker without its top-level job directory cannot ask for a job', () => {
+    vi.stubEnv(TOP_DIR_ENV, '');
+    expect(() => request(join(root, 'nested'), spec('true'))).toThrow(/top-level job directory/);
+  });
+
+  test('a requested job waits for the root, and stopping it before the root acts records the stopped code without a wake', async () => {
+    vi.stubEnv(TOP_DIR_ENV, root);
+    const job = request(join(root, 'nested'), spec('true'));
+    expect(read(join(root, 'nested'), job.spec.id, owner)?.status).toEqual({ state: 'running' });
+    await stop(job);
+    expect(read(join(root, 'nested'), job.spec.id, owner)?.status).toEqual({ state: 'exited', code: STOPPED_EXIT_CODE });
+    expect(claimWake(job)).toBe(false);
+  });
+
+  test('a request the root launches runs to its exit code and output', async () => {
+    vi.stubEnv(TOP_DIR_ENV, root);
+    const job = request(join(root, 'nested'), spec('echo brokered; exit 4'));
+    launchBrokered(root, job.dir, job.spec, job.spec.sweep, ['bash', '-c', 'echo brokered; exit 4'], socket);
+    const done = await settled(job.spec.id, join(root, 'nested'));
+    expect(done.status).toEqual({ state: 'exited', code: 4 });
+    expect(tail(outputPath(done.spec.out), 5)).toContain('brokered');
+  });
+
+  test('a request the root cannot start ends at once with the reason, instead of running forever', () => {
+    vi.stubEnv(TOP_DIR_ENV, root);
+    const job = request(join(root, 'nested'), spec('true'));
+    vi.stubEnv('PATH', '/nonexistent');
+    launchBrokered(root, job.dir, job.spec, job.spec.sweep, ['true'], socket);
+    vi.stubEnv('PATH', process.env['PATH'] ?? '');
+    const done = read(join(root, 'nested'), job.spec.id, owner);
+    expect(done?.status).toEqual({ state: 'exited', code: 127 });
+    expect(tail(outputPath(done?.spec.out ?? ''), 5)).toMatch(/could not launch this job: .*needs tmux/);
+  });
+});
+
+describe('reports', () => {
+  test('a job named only with symbols still gets a readable id', () => {
+    expect(newJobId('***')).toMatch(/^job-[0-9a-f]{6}$/);
+    expect(newJobId('Fix: The Bug!')).toMatch(/^fix-the-bug-[0-9a-f]{6}$/);
+  });
+
+  test('a job that wrote no output reports nothing rather than failing', () => {
+    expect(excerpt(join(root, 'none.log'), 10, 10)).toBe('');
+  });
+
+  test('a short output is reported whole', () => {
+    writeFileSync(join(root, 'short.log'), 'verdict: PASS\n');
+    expect(excerpt(join(root, 'short.log'), 100, 100)).toBe('verdict: PASS\n');
+  });
+
+  test('a long output keeps its first line and its end, cut on whole characters, and says how much was left out', () => {
+    const path = join(root, 'long.log');
+    writeFileSync(path, `verdict: FAIL ${'é'.repeat(50)}${'x'.repeat(1000)}${'€'.repeat(20)} end`);
+    const report = excerpt(path, 16, 22);
+    const [head, note, end] = report.split('\n');
+    expect(head).toBe('verdict: FAIL é');
+    expect(note).toMatch(new RegExp(`^\\[\\.\\.\\. \\d+ bytes omitted, full output at ${path} \\.\\.\\.\\]$`));
+    expect(end).toBe(`${'€'.repeat(6)} end`);
+    const omitted = Number(/(\d+) bytes omitted/.exec(note ?? '')?.[1]);
+    expect(Buffer.byteLength(head ?? '') + omitted + Buffer.byteLength(end ?? '')).toBe(readFileSync(path).length);
   });
 });
 
