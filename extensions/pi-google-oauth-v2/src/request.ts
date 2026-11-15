@@ -35,7 +35,6 @@ export interface CodeAssistRequestBody {
 }
 
 const DEFAULT_EFFORT: Effort = 'medium';
-// Antigravity bakes the effort into the model id (gemini-3.8-flash-medium). Only low, medium, and high are known to be accepted.
 const EFFORT_BY_LEVEL: Record<NonNullable<SimpleStreamOptions['reasoning']>, Effort> = { minimal: 'low', low: 'low', medium: 'medium', high: 'high', xhigh: 'high', max: 'high' };
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
 const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);

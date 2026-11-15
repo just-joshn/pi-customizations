@@ -5,9 +5,8 @@ import { readProjectOverride, resolveProject } from './code-assist.ts';
 import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LoopbackExpiredError, startLoopbackCallback } from './loopback.ts';
 
-// Antigravity CLI's installed-app client. Google documents installed-app secrets as non-confidential.
-const CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
+const ANTIGRAVITY_CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
+const ANTIGRAVITY_CLIENT_SECRET = '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';
 const SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',
   'https://www.googleapis.com/auth/userinfo.email',
@@ -62,7 +61,7 @@ export function parseStoredCredential(credential: OAuthCredential): GoogleCreden
 
 export function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
   const params = new URLSearchParams({
-    client_id: CLIENT_ID,
+    client_id: ANTIGRAVITY_CLIENT_ID,
     redirect_uri: input.redirectUri,
     response_type: 'code',
     scope: SCOPES.join(' '),
@@ -80,7 +79,7 @@ async function postToken(body: Record<string, string>, fetchImpl: FetchFunction,
   const response = await fetchImpl(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ ...body, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }),
+    body: new URLSearchParams({ ...body, client_id: ANTIGRAVITY_CLIENT_ID, client_secret: ANTIGRAVITY_CLIENT_SECRET }),
     signal,
   });
   const payload: unknown = await response.json().catch(() => undefined);

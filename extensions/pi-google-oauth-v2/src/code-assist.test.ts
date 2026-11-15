@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { CodeAssistError, codeAssistUrl, IneligibleTierError, ProjectRequiredError, readProjectOverride, resolveProject, ValidationRequiredError } from './code-assist.ts';
-import { CODE_ASSIST_BASE_URL, USER_AGENT } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, CODE_ASSIST_BASE_URL } from './constants.ts';
 
 interface Call {
   url: string;
@@ -108,8 +108,8 @@ describe('resolveProject client identity', () => {
     const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'standard-tier', isDefault: true }] }, { name: 'operations/op-1', done: false }, { done: true, response: { cloudaicompanionProject: { id: 'p' } } }]);
     await resolve(fake);
     expect(fake.calls.map((call) => call.method)).toEqual(['POST', 'POST', 'GET']);
-    for (const call of fake.calls) expect(call.headers['user-agent']).toBe(USER_AGENT);
-    expect(USER_AGENT).toMatch(/^antigravity\/cli\/\S+ \(aidev_client; os_type=(darwin|linux|windows|\w+); arch=\w+; cl=\d+; auth_method=consumer\)$/);
+    for (const call of fake.calls) expect(call.headers['user-agent']).toBe(ANTIGRAVITY_USER_AGENT);
+    expect(ANTIGRAVITY_USER_AGENT).toMatch(/^antigravity\/cli\/\S+ \(aidev_client; os_type=(darwin|linux|windows|\w+); arch=\w+; cl=\d+; auth_method=consumer\)$/);
   });
 });
 

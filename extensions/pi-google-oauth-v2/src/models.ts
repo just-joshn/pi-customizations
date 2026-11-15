@@ -4,7 +4,6 @@ import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 
 export const CODE_ASSIST_MODEL_IDS = ['gemini-4-argon', 'gemini-3.8-flash'] as const;
 
-// Older Pi catalogs have no gemini-4-argon, so it borrows a current Gemini Pro's limits and prices. Those numbers are unverified.
 const STAND_IN_CATALOG_ID = 'gemini-3.1-pro-preview';
 
 export function createCodeAssistModels(catalog: readonly Model<string>[] = getBuiltinModels('google')): Model<typeof API_ID>[] {

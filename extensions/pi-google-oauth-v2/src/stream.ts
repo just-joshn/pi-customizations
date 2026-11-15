@@ -11,7 +11,7 @@ import {
   uuidv7,
 } from '@earendil-works/pi-ai';
 import { CodeAssistError, googleErrorMessage } from './code-assist.ts';
-import { PRIVATE_PROJECT_HEADER, USER_AGENT } from './constants.ts';
+import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
 interface CodeAssistChunk {
@@ -59,7 +59,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
 
       const response = await (options.fetch ?? globalThis.fetch)(`${model.baseUrl}:streamGenerateContent?alt=sse`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers, 'User-Agent': USER_AGENT },
+        headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json', Accept: 'text/event-stream', ...headers, 'User-Agent': ANTIGRAVITY_USER_AGENT },
         body: JSON.stringify(body),
         ...(options.signal ? { signal: options.signal } : {}),
       });

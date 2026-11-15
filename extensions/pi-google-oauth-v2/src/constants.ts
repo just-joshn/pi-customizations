@@ -11,5 +11,5 @@ export function antigravityUserAgent(platform: string = process.platform, arch: 
   return `antigravity/cli/1.5.9 (aidev_client; os_type=${OS_TYPES[platform] ?? platform}; arch=${ARCHITECTURES[arch] ?? arch}; cl=1021519450; auth_method=consumer)`;
 }
 
-// Google gates cloudcode-pa on this header, not on the OAuth client alone. Without it loadCodeAssist answers UNSUPPORTED_CLIENT.
-export const USER_AGENT = antigravityUserAgent();
+// Google rejects a Code Assist request without this header as UNSUPPORTED_CLIENT, so every call must send it.
+export const ANTIGRAVITY_USER_AGENT = antigravityUserAgent();
