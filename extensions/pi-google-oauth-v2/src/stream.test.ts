@@ -1,6 +1,6 @@
 import { type AssistantMessage, type AssistantMessageEvent, calculateCost, type Message, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { describe, expect, test, vi } from 'vitest';
-import { PRIVATE_PROJECT_HEADER } from './constants.ts';
+import { PRIVATE_PROJECT_HEADER, USER_AGENT } from './constants.ts';
 import { createCodeAssistModels } from './models.ts';
 import { streamCodeAssist } from './stream.ts';
 
@@ -56,6 +56,12 @@ describe('request', () => {
     expect(sent[0]?.headers).toMatchObject({ authorization: 'Bearer tok-abc', 'content-type': 'application/json', accept: 'text/event-stream' });
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(sent[0]?.body.project).toBe('proj-1');
+  });
+
+  test('sends the Antigravity User-Agent even when the caller sets another', async () => {
+    const { stream, sent } = run(sseResponse(frame(stopChunk())), { headers: { [PRIVATE_PROJECT_HEADER]: 'proj-1', 'user-agent': 'custom/1' } });
+    await collect(stream);
+    expect(sent[0]?.headers['user-agent']).toBe(USER_AGENT);
   });
 
   test('forwards other caller headers and drops null ones', async () => {

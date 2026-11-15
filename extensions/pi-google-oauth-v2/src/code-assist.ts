@@ -1,5 +1,5 @@
 import type { FetchFunction } from '@earendil-works/pi-ai';
-import { CODE_ASSIST_BASE_URL } from './constants.ts';
+import { CODE_ASSIST_BASE_URL, USER_AGENT } from './constants.ts';
 
 export class CodeAssistError extends Error {}
 
@@ -126,7 +126,7 @@ function missingProject(load: LoadCodeAssistResponse): CodeAssistError {
 async function callCodeAssist<T>(input: ResolveProjectInput, method: 'GET' | 'POST', url: string, body?: object): Promise<T> {
   const response = await input.fetchImpl(url, {
     method,
-    headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json', 'User-Agent': USER_AGENT },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     signal: input.signal,
   });

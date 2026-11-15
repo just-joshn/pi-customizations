@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { CodeAssistError, codeAssistUrl, IneligibleTierError, ProjectRequiredError, readProjectOverride, resolveProject, ValidationRequiredError } from './code-assist.ts';
-import { CODE_ASSIST_BASE_URL } from './constants.ts';
+import { CODE_ASSIST_BASE_URL, USER_AGENT } from './constants.ts';
 
 interface Call {
   url: string;
@@ -89,6 +89,16 @@ describe('resolveProject for an onboarded account', () => {
       headers: { authorization: 'Bearer tok-123', 'content-type': 'application/json' },
       body: { cloudaicompanionProject: 'proj-env', metadata: { ideType: 'IDE_UNSPECIFIED', platform: 'PLATFORM_UNSPECIFIED', pluginType: 'GEMINI', duetProject: 'proj-env' } },
     });
+  });
+});
+
+describe('resolveProject client identity', () => {
+  test('sends the Antigravity User-Agent on every Code Assist request', async () => {
+    const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'standard-tier', isDefault: true }] }, { name: 'operations/op-1', done: false }, { done: true, response: { cloudaicompanionProject: { id: 'p' } } }]);
+    await resolve(fake);
+    expect(fake.calls.map((call) => call.method)).toEqual(['POST', 'POST', 'GET']);
+    for (const call of fake.calls) expect(call.headers['user-agent']).toBe(USER_AGENT);
+    expect(USER_AGENT).toMatch(/^antigravity\/cli\/\S+ \(aidev_client; os_type=(darwin|linux|windows|\w+); arch=\w+; cl=\d+; auth_method=consumer\)$/);
   });
 });
 
