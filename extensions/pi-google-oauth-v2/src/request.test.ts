@@ -10,8 +10,8 @@ const model = (id: string): Model<string> => {
   if (!found) throw new Error(`no model ${id}`);
   return found;
 };
-const gemini3 = model('gemini-3.5-flash');
-const gemini25 = model('gemini-2.5-pro');
+const gemini3 = model('gemini-3.8-flash');
+const gemini25 = { ...gemini3, id: 'gemini-2.5-pro' };
 
 function build(messages: Message[], options: SimpleStreamOptions = {}, target: Model<string> = gemini3) {
   return buildCodeAssistRequest({ model: target, context: { messages } as TranscriptContext, project: 'proj-1', options });
@@ -37,7 +37,7 @@ const SIGNATURE = 'QUJDRA==';
 describe('envelope', () => {
   test('carries the Antigravity identity, a request id, and the session id', () => {
     const body = build([user('hi')], { sessionId: 'sess-1' });
-    expect(body).toMatchObject({ model: 'gemini-3.5-flash-medium', project: 'proj-1', userAgent: 'antigravity', requestType: 'agent', request: { sessionId: 'sess-1' } });
+    expect(body).toMatchObject({ model: 'gemini-3.8-flash-medium', project: 'proj-1', userAgent: 'antigravity', requestType: 'agent', request: { sessionId: 'sess-1' } });
     expect(body.requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     expect(build([user('hi')]).requestId).not.toBe(body.requestId);
     expect(body).not.toHaveProperty('user_prompt_id');
@@ -214,11 +214,11 @@ describe('effort', () => {
     ['max', 'high'],
   ] as const)('reasoning %s sends the %s model id and thinking level', ([reasoning, effort]) => {
     const body = build([user('hi')], reasoning === undefined ? {} : { reasoning });
-    expect(body.model).toBe(`gemini-3.5-flash-${effort}`);
+    expect(body.model).toBe(`gemini-3.8-flash-${effort}`);
     expect(body.request.generationConfig.thinkingConfig).toEqual({ includeThoughts: true, thinkingLevel: effort.toUpperCase() });
   });
 
-  test('keeps the Pi model id as the base family, whatever the thinking map', () => {
-    expect(build([user('hi')], { reasoning: 'high' }, model('gemini-3.1-pro-preview')).model).toBe('gemini-3.1-pro-preview-high');
+  test('keeps the Pi model id as the base family', () => {
+    expect(build([user('hi')], { reasoning: 'high' }, model('gemini-4-argon')).model).toBe('gemini-4-argon-high');
   });
 });

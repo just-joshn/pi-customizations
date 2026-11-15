@@ -5,7 +5,7 @@ import { createCodeAssistModels } from './models.ts';
 import { streamCodeAssist } from './stream.ts';
 
 const model =
-  createCodeAssistModels().find((candidate) => candidate.id === 'gemini-3.5-flash') ??
+  createCodeAssistModels().find((candidate) => candidate.id === 'gemini-3.8-flash') ??
   (() => {
     throw new Error('no model');
   })();
@@ -205,13 +205,13 @@ describe('block state machine', () => {
 describe('usage and finish', () => {
   test('maps usageMetadata, the last chunk winning, and prices it', async () => {
     const early = { response: { usageMetadata: { promptTokenCount: 1, totalTokenCount: 1 } } };
-    const late = { response: { usageMetadata: { promptTokenCount: 100, cachedContentTokenCount: 40, candidatesTokenCount: 20, thoughtsTokenCount: 5, totalTokenCount: 125 }, modelVersion: 'gemini-3.5-flash-001' } };
+    const late = { response: { usageMetadata: { promptTokenCount: 100, cachedContentTokenCount: 40, candidatesTokenCount: 20, thoughtsTokenCount: 5, totalTokenCount: 125 }, modelVersion: 'gemini-3.8-flash-001' } };
     const { stream } = run(sseResponse(frame(early) + frame(stopChunk()) + frame(late)));
     const final = message((await collect(stream)).at(-1));
     expect(final.usage).toMatchObject({ input: 60, output: 25, cacheRead: 40, cacheWrite: 0, reasoning: 5, totalTokens: 125 });
     expect(final.usage.cost.total).toBe(calculateCost(model, { ...final.usage, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } }).total);
     expect(final.usage.cost.total).toBeGreaterThan(0.00001);
-    expect(final.responseModel).toBe('gemini-3.5-flash-001');
+    expect(final.responseModel).toBe('gemini-3.8-flash-001');
   });
 
   test('MAX_TOKENS finishes with length', async () => {

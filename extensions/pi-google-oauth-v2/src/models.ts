@@ -2,19 +2,19 @@ import type { Model } from '@earendil-works/pi-ai';
 import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all';
 import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 
-export const CODE_ASSIST_MODEL_IDS = ['gemini-2.5-pro', 'gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite'] as const;
+export const CODE_ASSIST_MODEL_IDS = ['gemini-4-argon', 'gemini-3.8-flash'] as const;
 
-const PI_CATALOG_ID: Partial<Record<(typeof CODE_ASSIST_MODEL_IDS)[number], string>> = { 'gemini-3-flash': 'gemini-3-flash-preview' };
+// Older Pi catalogs have no gemini-4-argon, so it borrows a current Gemini Pro's limits and prices. Those numbers are unverified.
+const STAND_IN_CATALOG_ID = 'gemini-3.1-pro-preview';
 
-export function createCodeAssistModels(): Model<typeof API_ID>[] {
-  const catalog = getBuiltinModels('google');
+export function createCodeAssistModels(catalog: readonly Model<string>[] = getBuiltinModels('google')): Model<typeof API_ID>[] {
   return CODE_ASSIST_MODEL_IDS.map((id) => {
-    const catalogId = PI_CATALOG_ID[id] ?? id;
-    const source = catalog.find((model) => model.id === catalogId);
-    if (!source) throw new Error(`Pi's Google catalog has no entry for ${catalogId}`);
+    const exact = catalog.find((model) => model.id === id);
+    const source = exact ?? catalog.find((model) => model.id === STAND_IN_CATALOG_ID);
+    if (!source) throw new Error(`Pi's Google catalog has neither ${id} nor ${STAND_IN_CATALOG_ID}`);
     return {
       id,
-      name: source.name,
+      name: exact ? source.name : `${id} (limits unverified)`,
       api: API_ID,
       provider: PROVIDER_ID,
       baseUrl: CODE_ASSIST_BASE_URL,

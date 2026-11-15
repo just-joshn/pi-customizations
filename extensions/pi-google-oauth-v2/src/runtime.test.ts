@@ -13,7 +13,7 @@ const reply = sse(
     response: {
       candidates: [{ content: { role: 'model', parts: [{ functionCall: { id: 'call-1', name: 'read', args: { path: 'a.ts' } } }] }, finishReason: 'STOP' }],
       usageMetadata: { promptTokenCount: 120, cachedContentTokenCount: 20, candidatesTokenCount: 30, thoughtsTokenCount: 10, totalTokenCount: 160 },
-      modelVersion: 'gemini-3.5-flash-001',
+      modelVersion: 'gemini-3.8-flash-001',
     },
   },
 );
@@ -26,7 +26,7 @@ function runtime(credential: Credential) {
   const provider = providers[0];
   if (!provider) throw new Error('extension registered no provider');
   models.setProvider(provider);
-  const model = models.getModel(PROVIDER_ID, 'gemini-3.5-flash');
+  const model = models.getModel(PROVIDER_ID, 'gemini-3.8-flash');
   if (!model) throw new Error('model missing');
   return credentials.modify(PROVIDER_ID, async () => credential).then(() => ({ models, model, credentials }));
 }
@@ -68,7 +68,7 @@ describe('real Pi Models runtime', () => {
     expect(google.seen[0]?.headers['user-agent']).toBe(USER_AGENT);
     expect(google.seen[0]?.body).toMatchObject({
       project: 'proj-77',
-      model: 'gemini-3.5-flash-high',
+      model: 'gemini-3.8-flash-high',
       userAgent: 'antigravity',
       requestType: 'agent',
       request: { sessionId: 'sess-9', systemInstruction: { role: 'user' }, generationConfig: { thinkingConfig: { includeThoughts: true, thinkingLevel: 'HIGH' } } },
@@ -76,7 +76,7 @@ describe('real Pi Models runtime', () => {
     expect(google.seen[0]?.body.requestId).toEqual(expect.any(String));
     expect(Object.keys(google.seen[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(Object.values(google.seen[0]?.headers ?? {}).join('\n')).not.toContain('proj-77');
-    expect(message).toMatchObject({ stopReason: 'toolUse', responseId: 'trace-9', responseModel: 'gemini-3.5-flash-001' });
+    expect(message).toMatchObject({ stopReason: 'toolUse', responseId: 'trace-9', responseModel: 'gemini-3.8-flash-001' });
     expect(message.content).toEqual([
       { type: 'thinking', thinking: 'Need the file.' },
       { type: 'text', text: 'Reading it now.' },
