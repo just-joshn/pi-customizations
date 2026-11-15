@@ -1,0 +1,104 @@
+import { appendFileSync, cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
+
+/**
+ * What a checkout held when a job started, so that the unsandboxed wrapper can quarantine, after the job, every path an
+ * unsandboxed process would later execute from that the job made appear. A job can make one appear even where it may
+ * not write it directly, by renaming a directory it built into place or by linking a parent elsewhere.
+ */
+export interface Inventory {
+  /** Checkouts the job may write, walked without following links. */
+  roots: string[];
+  /** Protected paths absent at launch, each with whether its parent was already a link. */
+  absent: { path: string; parentWasLink: boolean }[];
+  /** Pi code entries and git pointer files present at launch, which the sweep leaves alone. */
+  present: string[];
+  /** Where swept paths go, and where the job's output notes them. */
+  quarantine: string;
+  output: string;
+}
+
+/** Pi loads code from these entries of any `.pi` directory, at any depth, once the project is trusted. */
+export const PI_CODE = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'] as const;
+
+const exists = (path: string): boolean => {
+  try {
+    lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** Pi code entries and git pointer files under the roots, found without following links or descending into heavy or git directories. */
+export function codePaths(roots: string[], depth = 12): string[] {
+  const found: string[] = [];
+  const walk = (dir: string, level: number): void => {
+    if (level > depth) return;
+    let names: string[];
+    try {
+      names = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const name of names) {
+      const path = join(dir, name);
+      const stat = lstatSync(path);
+      if (name === '.git') {
+        if (!stat.isDirectory()) found.push(path);
+      } else if (name === '.pi') {
+        if (stat.isSymbolicLink()) found.push(path);
+        else if (stat.isDirectory()) for (const code of PI_CODE) if (exists(join(path, code))) found.push(join(path, code));
+      } else if (stat.isDirectory() && name !== 'node_modules') {
+        walk(path, level + 1);
+      }
+    }
+  };
+  for (const root of roots) walk(root, 0);
+  return found;
+}
+
+export function inventory(roots: string[], protect: string[], quarantine: string, output: string): Inventory {
+  const absent = protect.filter((path) => !exists(path)).map((path) => ({ path, parentWasLink: exists(dirname(path)) && lstatSync(dirname(path)).isSymbolicLink() }));
+  return { roots, absent, present: codePaths(roots), quarantine, output };
+}
+
+/** Moves each path that appeared during the job into quarantine, never following a link, and returns what it moved. */
+export function sweep(inv: Inventory): string[] {
+  const moved: string[] = [];
+  const move = (path: string, reason: string): void => {
+    if (!exists(path)) return;
+    mkdirSync(inv.quarantine, { recursive: true });
+    const target = join(inv.quarantine, `${Date.now()}-${moved.length}-${basename(path)}`);
+    try {
+      renameSync(path, target);
+    } catch (error) {
+      // Quarantine can sit on another filesystem than the checkout. Copying keeps links as links and removing never follows one.
+      if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error;
+      cpSync(path, target, { recursive: true, verbatimSymlinks: true });
+      rmSync(path, { recursive: true, force: true });
+    }
+    moved.push(path);
+    appendFileSync(inv.output, `pstack quarantined ${path}, ${reason}, in ${inv.quarantine}.\n`);
+  };
+  for (const { path, parentWasLink } of inv.absent) {
+    const parent = dirname(path);
+    if (!parentWasLink && exists(parent) && lstatSync(parent).isSymbolicLink()) move(parent, 'a link that appeared over a protected path while the job ran');
+    else move(path, 'which appeared while the job ran');
+  }
+  const present = new Set(inv.present);
+  for (const path of codePaths(inv.roots)) if (!present.has(path)) move(path, 'Pi or git code that appeared while the job ran');
+  return moved;
+}
+
+// The wrapper runs this file directly once the job has ended: `node sweep.ts <inventory.json>`.
+if (process.argv[1] && basename(process.argv[1]) === 'sweep.ts' && process.argv[2]) {
+  const inv = JSON.parse(readFileSync(process.argv[2], 'utf8')) as Inventory;
+  try {
+    sweep(inv);
+  } catch (error) {
+    writeFileSync(`${inv.output}.sweep-error`, String(error));
+  }
+}
+
+export const inventoryFile = (out: string): string => join(out, 'inventory.json');

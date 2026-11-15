@@ -63,7 +63,7 @@ beforeEach(() => {
     cwd: repo,
     model: undefined,
     sessionManager: { getSessionId: () => owner },
-    modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined) },
+    modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
     isProjectTrusted: () => true,
   };
 });
@@ -222,14 +222,14 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
       cwd: repo,
       argv: [],
       command: ['bash', '-c', command],
-      policy: { writable, protect: [], lock: [], gitDirs: [], agentDir, jobDir: join(topDir, 'nested', id) },
+      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(topDir, 'nested', id) },
       brokered: true,
       owner: 'top-worker',
       wake: 'done',
       repeat: false,
       series: id,
       socket: '',
-      revert: [],
+      sweep: { roots: [], protect: [] },
       out: '',
       createdAt: new Date().toISOString(),
     });
@@ -311,14 +311,14 @@ test('a request from a worker that has finished is never launched', { timeout: 2
     cwd: repo,
     argv: [],
     command: ['bash', '-c', `touch ${repo}/late.txt`],
-    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
+    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
     brokered: true,
     owner: 'w',
     wake: null,
     repeat: false,
     series: reqId,
     socket: '',
-    revert: [],
+    sweep: { roots: [], protect: [] },
     out: '',
     createdAt: '',
   });
@@ -569,5 +569,65 @@ describe('round four', { timeout: 20_000 }, () => {
     await call('tmux_run', { name: 'packages', command: 'echo evil > .pi/npm/x.js; printf "[core]\\n\\tfsmonitor = touch pwned\\n" > .git/config.worktree' });
     await exited();
     expect([existsSync(join(repo, '.pi', 'npm', 'x.js')), readFileSync(join(repo, '.git', 'config.worktree'), 'utf8')]).toEqual([false, '']);
+  });
+});
+
+describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
+  const exited = async () => expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+
+  test('an existing .pi cannot be renamed away and replaced with new extensions', async () => {
+    mkdirSync(join(repo, '.pi', 'extensions'), { recursive: true });
+    writeFileSync(join(repo, '.pi', 'extensions', 'mine.ts'), 'mine');
+    await call('tmux_run', { name: 'swap', command: 'mv .pi .pi.bak; mkdir -p built/extensions && echo evil > built/extensions/e.ts && mv built .pi; echo evil > .pi/extensions/e.ts' });
+    await exited();
+    expect([existsSync(join(repo, '.pi', 'extensions', 'e.ts')), readFileSync(join(repo, '.pi', 'extensions', 'mine.ts'), 'utf8')]).toEqual([false, 'mine']);
+  });
+
+  test('Pi code planted in a subdirectory .pi does not survive the job', async () => {
+    await call('tmux_run', { name: 'deep', command: 'mkdir -p pkg/.pi/extensions; echo evil > pkg/.pi/extensions/x.ts; mkdir -p built/.pi/extensions && echo evil > built/.pi/extensions/y.ts && mv built pkg2' });
+    await exited();
+    expect([existsSync(join(repo, 'pkg', '.pi', 'extensions', 'x.ts')), existsSync(join(repo, 'pkg2', '.pi', 'extensions', 'y.ts'))]).toEqual([false, false]);
+  });
+
+  test('a git pointer file is neither repointed nor planted', async () => {
+    mkdirSync(join(repo, 'sub'));
+    writeFileSync(join(repo, 'sub', '.git'), 'gitdir: ../.git/modules/sub\n');
+    await call('tmux_run', { name: 'pointer', command: 'echo "gitdir: /tmp/evil" > sub/.git; mkdir -p built && echo "gitdir: /tmp/evil" > built/.git && mv built sub2' });
+    await exited();
+    expect([readFileSync(join(repo, 'sub', '.git'), 'utf8'), existsSync(join(repo, 'sub2', '.git'))]).toEqual(['gitdir: ../.git/modules/sub\n', false]);
+  });
+
+  test.runIf(process.platform === 'darwin')('a job cannot connect to a local service socket', async () => {
+    const socket = join(homedir(), `.pstack-svc-${process.pid}.sock`);
+    const server = (await import('node:net')).createServer((connection) => connection.end('reached\n')).listen(socket);
+    await new Promise((done) => server.once('listening', done));
+    await call('tmux_run', { name: 'connect', command: `node -e "require('net').connect('${socket}').on('data',d=>{console.log(String(d).trim());process.exit()}).on('error',()=>{console.log('refused');process.exit()})"` });
+    await exited();
+    expect(readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8').trim()).toBe('refused');
+    server.close();
+  });
+
+  test('a worker cannot freeze the root with a loop of nested links', async () => {
+    const root = join(agentDir, 'pstack-v2', 'jobs');
+    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
+    const top = read(root, jobs()[0] ?? '', owner);
+    if (!top) throw new Error('top job missing');
+    for (const name of ['a', 'b', 'c']) {
+      mkdirSync(join(top.dir, 'nested', name), { recursive: true });
+      writeFileSync(join(top.dir, 'nested', name, 'job.json'), JSON.stringify({ brokered: true, kind: 'command', cwd: repo, command: ['true'], policy: { writable: [], protect: [], lock: [], gitDirs: [] } }));
+      symlinkSync(join(top.dir, 'nested'), join(top.dir, 'nested', name, 'nested'));
+    }
+    const started = Date.now();
+    serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
+    expect(Date.now() - started).toBeLessThan(2_000);
+  });
+
+  test('logging in over an approved credential command sticks', async () => {
+    const auth = join(agentDir, 'auth.json');
+    writeFileSync(auth, JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' } }));
+    await handlers['session_start']?.({}, ctx);
+    writeFileSync(auth, JSON.stringify({ mine: { type: 'oauth', access: 'a', refresh: 'r', expires: 1 } }));
+    await handlers['turn_start']?.({}, ctx);
+    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ mine: { type: 'oauth', access: 'a', refresh: 'r', expires: 1 } });
   });
 });

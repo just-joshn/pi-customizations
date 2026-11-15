@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -18,7 +18,7 @@ const removedPath = (agentDir: string): string => join(stateDir(agentDir), 'auth
 
 function parse(text: string): Record<string, unknown> | undefined {
   try {
-    const data: unknown = JSON.parse(text);
+    const data: unknown = JSON.parse(text.replace(/^\uFEFF/, ''));
     return data !== null && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : undefined;
   } catch {
     return undefined;
@@ -54,26 +54,27 @@ function withAuthLock<T>(agentDir: string, fn: () => T): T {
   }
 }
 
-/** Approves the command keys auth.json holds now. Runs once on first use, and through `/pstack-approve-credentials`. */
-export function approveCredentials(agentDir: string): string[] {
+/** Approves the command keys auth.json holds now, and returns them. Runs once on first use, and through `/pstack-approve-credentials`. */
+export function approveCredentials(agentDir: string): Commands {
   mkdirSync(stateDir(agentDir), { recursive: true });
   const text = existsSync(authPath(agentDir)) ? readFileSync(authPath(agentDir), 'utf8') : '{}';
   const commands = commandKeys(parse(text));
   writeFileSync(approvedPath(agentDir), JSON.stringify(commands), { mode: 0o600 });
-  return Object.keys(commands);
+  return commands;
 }
 
 export interface GuardResult {
-  /** auth.json was a link or did not parse, and was restored from the last good copy. */
+  /** auth.json did not parse, and was restored from the last good copy. */
   restored: boolean;
   /** Providers whose unapproved command was reverted to the approved one or removed. */
   reverted: string[];
 }
 
 /**
- * Restores auth.json if a job replaced or garbled it, then reverts every command key that differs from what you approved.
- * A changed approved command goes back to its approved value, and an unapproved one is removed, with each one kept in
- * `auth-removed.json`. The last good file is copied each time, so a restore keeps Pi's latest token refresh.
+ * Restores auth.json if it no longer parses, then reverts every command key that is not one you approved. A command a job
+ * changed goes back to the approved one, and an unapproved one is removed, each noted in `auth-removed.json`. Only command
+ * keys are touched, so logging in or out of a provider sticks. The last good file is copied on every check, so a restore
+ * keeps Pi's latest token refresh.
  */
 export function guardCredentials(agentDir: string): GuardResult {
   const path = authPath(agentDir);
@@ -81,9 +82,8 @@ export function guardCredentials(agentDir: string): GuardResult {
   const approved = readJson<Commands>(approvedPath(agentDir)) ?? {};
   return withAuthLock(agentDir, () => {
     let restored = false;
-    const linked = existsSync(path) && lstatSync(path).isSymbolicLink();
-    let data = existsSync(path) && !linked ? parse(readFileSync(path, 'utf8')) : undefined;
-    if ((linked || (existsSync(path) && !data)) && existsSync(backupPath(agentDir))) {
+    let data = existsSync(path) ? parse(readFileSync(path, 'utf8')) : undefined;
+    if (existsSync(path) && !data && existsSync(backupPath(agentDir))) {
       rmSync(path, { force: true });
       copyFileSync(backupPath(agentDir), path);
       data = parse(readFileSync(path, 'utf8'));
@@ -91,8 +91,7 @@ export function guardCredentials(agentDir: string): GuardResult {
     }
     if (!data) return { restored, reverted: [] };
     const current = commandKeys(data);
-    // An unapproved command, and an approved one a job changed or replaced with anything else.
-    const reverted = [...new Set([...Object.keys(current), ...Object.keys(approved)])].filter((provider) => current[provider] !== approved[provider]);
+    const reverted = Object.keys(current).filter((provider) => current[provider] !== approved[provider]);
     if (reverted.length) {
       let removed: unknown[] = [];
       try {
@@ -101,11 +100,13 @@ export function guardCredentials(agentDir: string): GuardResult {
         // No history yet.
       }
       const at = new Date().toISOString();
-      writeFileSync(removedPath(agentDir), JSON.stringify([...removed, ...reverted.map((provider) => ({ provider, entry: data[provider] ?? null, at }))], null, 2), { mode: 0o600 });
+      // Bounded, since a job could plant huge or endless commands to fill the disk.
+      const noted = reverted.map((provider) => ({ provider, key: (current[provider] ?? '').slice(0, 300), at }));
+      writeFileSync(removedPath(agentDir), JSON.stringify([...removed, ...noted].slice(-100), null, 2), { mode: 0o600 });
       for (const provider of reverted) {
         const approvedKey = approved[provider];
         if (approvedKey === undefined) delete data[provider];
-        else data[provider] = { type: 'api_key', key: approvedKey };
+        else data[provider] = { ...(data[provider] as object), key: approvedKey };
       }
       writeFileSync(path, JSON.stringify(data, null, 2), { mode: 0o600 });
     }

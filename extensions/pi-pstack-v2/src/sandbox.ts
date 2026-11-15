@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
@@ -17,6 +17,8 @@ export interface SandboxPolicy {
   lock: string[];
   /** Git common directories the job may write. Every worktree and submodule redirection file under them stays read-only. */
   gitDirs: string[];
+  /** Checkouts the job may write. No `.pi` code entry or `.git` entry anywhere in them may be written, even one that does not exist yet. */
+  checkouts: string[];
   agentDir: string;
   /** The job's own directory. Only its `nested/` tmux socket is reachable; every other tmux server stays out of reach. */
   jobDir: string;
@@ -52,7 +54,10 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     `(allow file-write* (regex #"^${agent}/[^/]+\\.lock(/|$)") ${subpaths(policy.writable.filter((path) => real(path).startsWith(`${real(policy.agentDir)}/`)))})`,
     `(allow file-write-data (literal ${quote(`${real(policy.agentDir)}/auth.json`)}))`,
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
-    `(deny network-outbound (remote unix-socket (path-regex #"${TMUX_SOCKETS}")) (remote unix-socket (path-regex #"^${agent}/pstack-v2/")))`,
+    ...policy.checkouts.map((root) => `(deny file-write* (regex #"^${escapeRegex(real(root))}/(.*/)?(\\.git|\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`),
+    // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS and the job's own tmux server are reachable.
+    '(deny network-outbound (remote unix-socket))',
+    '(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))',
     `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
     // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
     '(deny appleevent-send)',
@@ -60,6 +65,9 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     '(deny signal)',
     '(allow signal (target same-sandbox))',
     '(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd") (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
+    // launchd would run a job it is handed outside the sandbox, and preference writes go through a daemon outside it.
+    '(deny mach-lookup (global-name-regex #"^com\\.apple\\.xpc\\.launchd\\."))',
+    '(deny user-preference-write)',
   ];
   return lines.join('\n');
 }
@@ -89,8 +97,9 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
   const writable = policy.writable.filter(existsSync);
   for (const path of writable) args.push('--bind', path, path);
   // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
-  // The user's session bus would run what a job sends it outside the sandbox.
-  for (const hidden of new Set([`/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden)) args.push('--tmpfs', hidden);
+  // Service sockets live under /run, such as Docker's and the system bus, so it is hidden, except the DNS resolver's files.
+  for (const hidden of new Set(['/run', '/var/run', `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden) && !lstatSync(hidden).isSymbolicLink()) args.push('--tmpfs', hidden);
+  for (const resolver of ['/run/systemd/resolve', '/run/resolvconf']) if (existsSync(resolver)) args.push('--ro-bind', resolver, resolver);
   // Pi's agent directory becomes a throwaway tmpfs holding its real entries read-only, so Pi can still create its lock
   // directories. Credentials stay writable because Pi refreshes them in place. This nests, unlike an overlay mount.
   if (existsSync(policy.agentDir)) {
@@ -101,9 +110,9 @@ export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = proces
     }
     for (const path of writable.filter((path) => path.startsWith(`${policy.agentDir}/`))) args.push('--bind', path, path);
   }
+  // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
+  for (const path of policy.lock.filter(existsSync)) args.push(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path, path);
   for (const path of [...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync)) args.push('--ro-bind', path, path);
-  // A locked directory cannot be renamed while read-only mounts sit inside it, so only a locked file needs its own mount.
-  for (const path of policy.lock.filter((path) => existsSync(path) && !statSync(path).isDirectory())) args.push('--ro-bind', path, path);
   return [...args, '--die-with-parent', '--'];
 }
 

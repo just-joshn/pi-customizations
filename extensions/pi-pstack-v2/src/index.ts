@@ -1,13 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { approveCredentials, guardCredentials } from './auth.ts';
-import { brokeredSession, claimWake, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
+import { brokeredSession, claimWake, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readEnd, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed } from './sandbox.ts';
+import { codePaths, PI_CODE } from './sweep.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'] as const;
@@ -46,8 +47,7 @@ function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--
 function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
   const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
-  const inside = relative(root, target);
-  if (inside.startsWith('..') || isAbsolute(inside)) throw new Error(`cwd must be inside this project (${root}), got ${target}.`);
+  if (!within(target, [root])) throw new Error(`cwd must be inside this project (${root}), got ${target}.`);
   return target;
 }
 
@@ -57,20 +57,33 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
  * protected too. A job that could repoint any of them would make the next `git commit` run its own hooks unsandboxed.
  */
 function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
-  // Pi loads code from project extensions, settings, MCP servers, and project-installed packages under npm and git.
-  const pi = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'].map((name) => join(cwd, '.pi', name));
-  if (!common) return { protect: pi, lock: [], gitDirs: [] };
-  const own = gitPath(cwd, '--absolute-git-dir') ?? common;
-  const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
-  let hooksPath: string[] = [];
-  try {
-    const configured = git(cwd, ['config', '--get', 'core.hooksPath']);
-    if (configured) hooksPath = [resolve(gitPath(cwd, '--show-toplevel') ?? cwd, configured)];
-  } catch {
-    // No custom hooks path.
+  // Every .pi directory and git pointer file already in the checkout, at any depth, since Pi and git find them anywhere.
+  const found = codePaths([cwd]);
+  const piDirs = [...new Set([join(cwd, '.pi'), ...found.filter((path) => basename(dirname(path)) === '.pi').map(dirname)])];
+  const pi = piDirs.flatMap((dir) => PI_CODE.map((name) => join(dir, name)));
+  const pointers = found.filter((path) => basename(path) === '.git');
+  let protect = [...pi, ...pointers];
+  let lock: string[] = [];
+  if (common) {
+    const own = gitPath(cwd, '--absolute-git-dir') ?? common;
+    const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
+    let hooksPath: string[] = [];
+    try {
+      const configured = git(cwd, ['config', '--get', 'core.hooksPath']);
+      if (configured) hooksPath = [resolve(gitPath(cwd, '--show-toplevel') ?? cwd, configured)];
+    } catch {
+      // No custom hooks path.
+    }
+    protect = [...protect, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
+    lock = [join(cwd, '.git'), own, common];
   }
-  const protect = [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
-  return { protect, lock: [join(cwd, '.git'), own, common], gitDirs: [common] };
+  // A directory above a protected path could be renamed away and replaced, so each existing one up to the checkout is locked.
+  const ancestors = protect.flatMap((path) => {
+    const chain: string[] = [];
+    for (let dir = dirname(path); within(dir, [cwd]) && dir !== cwd; dir = dirname(dir)) if (existsSync(dir)) chain.push(dir);
+    return chain;
+  });
+  return { protect, lock: [...new Set([...lock, ...ancestors])], gitDirs: common ? [common] : [] };
 }
 
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
@@ -89,7 +102,7 @@ function addWorktree(cwd: string, path: string, branch: string, base: string | u
 function report(job: Job): string {
   const state = job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)';
   const output = outputPath(job.spec.out);
-  const full = existsSync(output) ? readFileSync(output, 'utf8') : '';
+  const full = readEnd(output, REPORT_LIMIT);
   const body = job.spec.kind === 'pi' ? full.slice(-REPORT_LIMIT) : tail(output, 60);
   // A worker that fails at startup, such as on a bad model or credential, says why only on stderr.
   const failed = job.status.state !== 'exited' || job.status.code !== 0 || !body.trim();
@@ -122,7 +135,7 @@ function landing(path: string): string {
 const within = (path: string, roots: string[]): boolean =>
   roots.some((root) => {
     const inside = relative(landing(root), landing(path));
-    return !inside.startsWith('..') && !isAbsolute(inside);
+    return inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside);
   });
 
 // macOS cannot apply a second Seatbelt profile inside a sandbox, so a sandboxed worker there asks the root Pi to launch for it.
@@ -136,15 +149,19 @@ function start(root: string, spec: JobSpec, files: Record<string, string> = {}):
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
   const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
   if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
-  spec = { ...spec, revert: revertible(policy) };
+  spec = { ...spec, sweep: sweepFor(policy) };
+  policy.checkouts = spec.sweep.roots;
   // bubblewrap binds only paths that exist, so the private temp directory exists before the sandbox is built.
   mkdirSync(join(jobDir, 'tmp'), { recursive: true });
   if (brokering()) return request(root, { ...spec, policy }, files);
   return launch(root, { ...spec, policy, argv: sandboxed(spec.command, policy) }, files);
 }
 
-/** Protected paths that do not exist yet but that the job could make appear, because they sit where it may write. */
-const revertible = (policy: SandboxPolicy): string[] => policy.protect.filter((path) => !existsSync(path) && within(path, policy.writable));
+/** The checkouts a job may write, and the protected paths in them, which its wrapper sweeps after it for code that appeared. */
+const sweepFor = (policy: SandboxPolicy): JobSpec['sweep'] => ({
+  roots: policy.writable.filter((path) => !within(path, [policy.agentDir]) && !within(path, policy.gitDirs)),
+  protect: policy.protect.filter((path) => within(path, policy.writable)),
+});
 
 const isStrings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string');
 
@@ -170,8 +187,9 @@ function hasSession(socket: string, session: string): boolean {
  * what the root granted the top-level job, so no worker can hand a descendant more than it was given. The root only
  * reads from the request directory, which a worker controls, and writes results under the top-level job.
  */
-export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean): void {
-  if (!existsSync(nested)) return;
+export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean, depth = 0): void {
+  // A worker could link its nested directory back up its own tree, so only real directories are followed, and not far.
+  if (depth > 8 || !existsSync(nested) || !lstatSync(nested).isDirectory()) return;
   for (const name of readdirSync(nested)) {
     try {
       const dir = join(nested, name);
@@ -185,7 +203,7 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       const out = resultsDir(top.dir, dir);
       const stopped = existsSync(join(dir, 'stop'));
       const done = existsSync(exitPath(out)) || stopped;
-      serveRequests(top, socket, join(dir, 'nested'), requesterDone || done);
+      serveRequests(top, socket, join(dir, 'nested'), requesterDone || done, depth + 1);
       if (!spec.brokered || existsSync(exitPath(out))) continue;
       const session = brokeredSession(dir);
       if (existsSync(join(out, 'launched'))) {
@@ -206,10 +224,12 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         protect: [...policy.protect, ...top.spec.policy.protect],
         lock: [...policy.lock, ...top.spec.policy.lock],
         gitDirs: [...policy.gitDirs, ...top.spec.policy.gitDirs],
+        checkouts: [],
         agentDir: getAgentDir(),
         jobDir: dir,
       };
-      launchBrokered(top.dir, dir, spec, sandboxed(spec.command, granted), revertible(granted), socket);
+      granted.checkouts = sweepFor(granted).roots;
+      launchBrokered(top.dir, dir, spec, sweepFor(granted), sandboxed(spec.command, granted), socket);
     } catch {
       // One request failing must not stop the others.
     }
@@ -218,6 +238,7 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
 
 export default function pstack(pi: ExtensionAPI) {
   let watcher: ReturnType<typeof setInterval> | undefined;
+  const stoppedSeries = new Set<string>();
   // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
   const awaited = new Set<string>();
 
@@ -227,7 +248,10 @@ export default function pstack(pi: ExtensionAPI) {
     // A heartbeat repeats only while it exits cleanly, so a failing command cannot wake the session in a tight loop.
     if (job.status.state !== 'exited' || job.status.code !== 0) return `${report(job)}\n\nThis heartbeat did not exit cleanly, so it was not restarted.`;
     try {
-      start(jobsRoot(), { ...job.spec, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
+      if (stoppedSeries.has(job.spec.series)) return report(job);
+      // The next run gets its own temp directory in place of this one's.
+      const policy = { ...job.spec.policy, writable: job.spec.policy.writable.filter((path) => path !== join(job.dir, 'tmp')) };
+      start(jobsRoot(), { ...job.spec, policy, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
       return report(job);
     } catch (error) {
       return `${report(job)}\n\nThis heartbeat could not be restarted: ${error instanceof Error ? error.message : String(error)}`;
@@ -288,8 +312,13 @@ export default function pstack(pi: ExtensionAPI) {
     description: 'Approve the credential commands (auth.json keys starting with !) that auth.json holds now',
     handler: async (_args, ctx) => {
       if (insideJob()) throw new Error('Approve credentials from your own Pi session, not from a pstack job.');
-      const approved = approveCredentials(getAgentDir());
-      ctx.ui.notify(approved.length ? `Approved credential commands for ${approved.join(', ')}.` : 'auth.json holds no credential commands. None are approved.', 'info');
+      const approved = Object.entries(approveCredentials(getAgentDir()));
+      ctx.ui.notify(
+        approved.length
+          ? `Approved these credential commands. Pi runs each one when it needs that credential.\n${approved.map(([provider, key]) => `${provider}: ${key}`).join('\n')}`
+          : 'auth.json holds no credential commands. None are approved.',
+        'info',
+      );
     },
   });
 
@@ -367,6 +396,9 @@ export default function pstack(pi: ExtensionAPI) {
       }
       if (params.resume !== undefined && params.worktree !== undefined) throw new Error('resume continues in the earlier job checkout, so it cannot take a worktree.');
       const model = resolveModel(ctx, params.model);
+      // Refreshing the worker's credentials now, under Pi's lock, means a worker rarely has to refresh one itself.
+      const chosen = model ? ctx.modelRegistry.find(model.slice(0, model.indexOf('/')), model.slice(model.indexOf('/') + 1)) : undefined;
+      if (chosen) await ctx.modelRegistry.getApiKeyAndHeaders(chosen).catch(() => undefined);
       const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
       // A resumed worker keeps the readonly it started with unless the call says otherwise.
       const readonly = params.readonly ?? (prior ? prior.spec.command.includes('--exclude-tools') : false);
@@ -404,14 +436,14 @@ export default function pstack(pi: ExtensionAPI) {
           cwd,
           argv: [],
           command: argv,
-          policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, agentDir: getAgentDir(), jobDir: dir },
+          policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], agentDir: getAgentDir(), jobDir: dir },
           brokered: false,
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
           repeat: false,
           series: id,
           socket: tmuxSocket(owner),
-          revert: [],
+          sweep: { roots: [], protect: [] },
           out: dir,
           createdAt: new Date().toISOString(),
         };
@@ -450,7 +482,7 @@ export default function pstack(pi: ExtensionAPI) {
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
       const guarded = protectedPaths(cwd, common);
-      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, agentDir: getAgentDir(), jobDir: join(root, id) };
+      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
         name: params.name,
@@ -465,7 +497,7 @@ export default function pstack(pi: ExtensionAPI) {
         repeat: params.repeat ?? false,
         series: id,
         socket: tmuxSocket(owner),
-        revert: [],
+        sweep: { roots: [], protect: [] },
         out: join(root, id),
         createdAt: new Date().toISOString(),
       };
@@ -513,6 +545,8 @@ export default function pstack(pi: ExtensionAPI) {
           );
         case 'stop': {
           const series = new Set(named().map((job) => job.spec.series));
+          // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
+          for (const id of series) stoppedSeries.add(id);
           // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
           const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
           await Promise.all(jobs.map(stop));

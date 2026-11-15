@@ -1,9 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
+import { type Inventory, inventory, inventoryFile } from './sweep.ts';
+
+const sweepScript = fileURLToPath(new URL('./sweep.ts', import.meta.url));
 
 export type JobKind = 'pi' | 'command';
 
@@ -37,11 +41,8 @@ export interface JobSpec {
   series: string;
   /** Path of the tmux server socket the job runs under. Empty for a brokered request. */
   socket: string;
-  /**
-   * Protected paths that did not exist at launch. A job can still make one appear, by renaming a directory into place or
-   * linking a parent elsewhere, and bubblewrap cannot bind what does not exist, so the wrapper removes these at exit.
-   */
-  revert: string[];
+  /** Protected paths and checkout roots the wrapper sweeps after the job, for code that appeared while it ran. */
+  sweep: { roots: string[]; protect: string[] };
   createdAt: string;
 }
 
@@ -108,20 +109,6 @@ function write(dir: string, spec: JobSpec, files: Record<string, string>): void 
 }
 
 /**
- * Moves a protected path that appeared during the job into the job's quarantine, without ever following a link. A parent
- * that became a link during the job is moved as the link itself. A parent that was already a link at launch is yours, so
- * only the protected path is moved. Moving, not deleting, keeps it recoverable if you created it yourself meanwhile.
- */
-const revertStep = (path: string, out: string, quarantine: string): string => {
-  const parent = dirname(path);
-  const parentWasLink = existsSync(parent) && lstatSync(parent).isSymbolicLink();
-  const note = shellQuote(`pstack quarantined ${path}, which appeared while the job ran, in ${quarantine}.`);
-  const into = (source: string) => `mkdir -p ${shellQuote(quarantine)} && mv -- ${shellQuote(source)} ${shellQuote(quarantine)}/$(date +%s)-$RANDOM-${shellQuote(basename(path))}; echo ${note} >> ${out}`;
-  const own = `[ -e ${shellQuote(path)} ] || [ -L ${shellQuote(path)} ]`;
-  return parentWasLink ? `if ${own}; then ${into(path)}; fi\n` : `if [ -L ${shellQuote(parent)} ]; then ${into(parent)}; elif ${own}; then ${into(path)}; fi\n`;
-};
-
-/**
  * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
  * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
  */
@@ -138,13 +125,15 @@ export const privateEnv = (tmp: string): Record<string, string> => ({
   GOMODCACHE: join(tmp, 'go-mod'),
   YARN_CACHE_FOLDER: join(tmp, 'yarn'),
   DENO_DIR: join(tmp, 'deno'),
+  GRADLE_USER_HOME: join(tmp, 'gradle'),
+  npm_config_store_dir: join(tmp, 'pnpm'),
 });
 
 interface Run {
   kind: JobKind;
   cwd: string;
   argv: string[];
-  revert: string[];
+  inventory: Inventory;
   socket: string;
   session: string;
   /** The job's own directory, exported to it as its job directory. */
@@ -168,7 +157,6 @@ function run(job: Run): void {
   const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
-  const quarantine = join(job.out, 'quarantine');
   // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
   const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
   const script = [
@@ -178,7 +166,7 @@ function run(job: Run): void {
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
-    ...job.revert.map((path) => revertStep(path, out, quarantine).trimEnd()),
+    `  ${shellQuote(process.execPath)} ${shellQuote(sweepScript)} ${shellQuote(inventoryFile(job.out))}`,
     `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
     '}',
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
@@ -190,9 +178,12 @@ function run(job: Run): void {
   // The script lives beside the job's results, where only the process that launched it can write, and runs from there,
   // since a long list of protected paths would not fit on a tmux command line.
   const file = join(job.out, 'wrapper.sh');
+  writeFileSync(inventoryFile(job.out), JSON.stringify(job.inventory));
   writeFileSync(file, `${script}\n`);
   tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
+
+const takeInventory = (spec: JobSpec, out: string): Inventory => inventory(spec.sweep.roots, spec.sweep.protect, join(out, 'quarantine'), outputPath(out));
 
 const inheritedTop = (dir: string): string => (process.env[SANDBOX_ENV] === '1' ? (process.env[TOP_DIR_ENV] ?? dir) : dir);
 
@@ -201,7 +192,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   const dir = jobDir(root, spec.id);
   const full = { ...spec, out: dir };
   write(dir, full, files);
-  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, revert: spec.revert, socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir) });
+  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir) });
   return { spec: full, dir, status: { state: 'running' } };
 }
 
@@ -210,7 +201,7 @@ export function request(root: string, spec: JobSpec, files: Record<string, strin
   const dir = jobDir(root, spec.id);
   const top = process.env[TOP_DIR_ENV];
   if (!top) throw new Error('A sandboxed worker needs its top-level job directory to request a job.');
-  const full = { ...spec, argv: [], socket: '', brokered: true, revert: [], out: resultsDir(top, dir) };
+  const full = { ...spec, argv: [], socket: '', brokered: true, out: resultsDir(top, dir) };
   write(dir, full, files);
   return { spec: full, dir, status: { state: 'running' } };
 }
@@ -224,11 +215,11 @@ export function settleBrokered(out: string, code: number, message: string): void
 }
 
 /** Launches a brokered request on the root's tmux server. The caller has already sandboxed argv under a policy it clamped. */
-export function launchBrokered(top: string, dir: string, spec: JobSpec, argv: string[], revert: string[], socket: string): void {
+export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWhat: JobSpec['sweep'], argv: string[], socket: string): void {
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
-    run({ kind: spec.kind, cwd: spec.cwd, argv, revert, socket, session: brokeredSession(dir), dir, out, top });
+    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top });
     writeFileSync(join(out, 'launched'), '');
   } catch (error) {
     settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
@@ -309,7 +300,24 @@ export function claimWake(job: Job): boolean {
   }
 }
 
-export function tail(path: string, lines: number): string {
+/** The end of a file, read without loading the whole of it, since a job's output can be very large. */
+export function readEnd(path: string, bytes: number): string {
   if (!existsSync(path)) return '';
-  return readFileSync(path, 'utf8').split('\n').slice(-lines).join('\n');
+  const size = statSync(path).size;
+  const length = Math.min(size, bytes);
+  const buffer = Buffer.alloc(length);
+  const fd = openSync(path, 'r');
+  try {
+    readSync(fd, buffer, 0, length, size - length);
+  } finally {
+    closeSync(fd);
+  }
+  return buffer.toString('utf8');
+}
+
+export function tail(path: string, lines: number): string {
+  return readEnd(path, 256 * 1024)
+    .split('\n')
+    .slice(-lines)
+    .join('\n');
 }
