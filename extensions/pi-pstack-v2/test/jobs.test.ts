@@ -72,6 +72,14 @@ describe('tmux jobs', { timeout: 20_000 }, () => {
     expect(tail(outputPath(done.dir), 5)).toContain('hello');
   });
 
+  test("a finished job's package caches are deleted, while files it left in its temp directory stay for the report", async () => {
+    const job = launch(root, spec('mkdir -p "$BUN_INSTALL_CACHE_DIR/pkg" "$GOMODCACHE/mod" && echo x > "$GOMODCACHE/mod/f" && chmod -R a-w "$GOMODCACHE/mod" && echo kept > "$TMPDIR/report.txt"'));
+    const done = await settled(job.spec.id);
+    expect(done.status).toEqual({ state: 'exited', code: 0 });
+    expect(readFileSync(join(done.dir, 'tmp', 'report.txt'), 'utf8')).toBe('kept\n');
+    expect([existsSync(join(done.dir, 'tmp', 'bun')), existsSync(join(done.dir, 'tmp', 'go-mod'))]).toEqual([false, false]);
+  });
+
   test('the command sees the sandbox marker so nested jobs do not re-wrap', async () => {
     const job = launch(root, spec(`echo "marker=$${SANDBOX_ENV}"`));
     expect(tail(outputPath((await settled(job.spec.id)).dir), 5)).toContain('marker=1');

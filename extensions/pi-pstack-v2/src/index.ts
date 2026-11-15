@@ -34,6 +34,7 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 
 const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
+const SANDBOX_NOTE = 'You run in the pstack sandbox. The shared /tmp and user caches are read-only, so keep temp files in $TMPDIR, your own temp directory.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
@@ -53,7 +54,7 @@ function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--
 function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
   const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
-  if (!within(target, [root])) throw new Error(`cwd must be inside this project (${root}), got ${target}.`);
+  if (!within(target, [root])) throw new Error(`cwd must be inside this project (${root}), got ${target}. To work on another branch, pass worktree and the job gets its own checkout.`);
   return target;
 }
 
@@ -292,7 +293,7 @@ export default function pstack(pi: ExtensionAPI) {
     const jobs = list(jobsRoot(), ctx.sessionManager.getSessionId());
     for (const job of jobs) {
       if (job.spec.wake === null || job.status.state === 'running' || awaited.has(job.spec.id) || !claimWake(job)) continue;
-      pi.sendMessage({ customType: 'pstack-job', content: finish(job), display: true }, { triggerTurn: true, deliverAs: 'followUp' });
+      pi.sendMessage({ customType: 'pstack-job', content: finish(job), display: true }, { triggerTurn: true, deliverAs: 'steer' });
     }
     if (ctx.hasUI) {
       const running = jobs.filter((job) => job.status.state === 'running').length;
@@ -368,6 +369,7 @@ export default function pstack(pi: ExtensionAPI) {
     if (transcript)
       options.sections['pstack-session'] =
         `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
+    if (insideJob()) options.sections['pstack-sandbox'] = SANDBOX_NOTE;
     const models = modelsFile(getAgentDir());
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });
@@ -487,7 +489,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick.',
+      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: Type.Object({

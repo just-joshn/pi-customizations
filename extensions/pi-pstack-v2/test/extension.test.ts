@@ -10,7 +10,11 @@ import pstack, { modelsFile, serveRequests } from '../src/index.ts';
 import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
-type Tool = { parameters?: { properties: Record<string, { description?: string }> }; execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }> };
+type Tool = {
+  description?: string;
+  parameters?: { properties: Record<string, { description?: string }> };
+  execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }>;
+};
 
 const owner = `ext${process.pid}`;
 let agentDir: string;
@@ -203,19 +207,19 @@ describe('who may start workers', () => {
 });
 
 describe('tmux_run', { timeout: 20_000 }, () => {
-  test('an interactive session is woken once with the wake message and output', async () => {
+  test('an interactive session is woken once with the wake message and output, between tool calls rather than after its whole run', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'echo', command: 'echo watched-output', wake: 'Re-check CI.' });
     await expect.poll(() => sendMessage.mock.calls.length, { timeout: 10_000 }).toBe(1);
     const [message, options] = sendMessage.mock.calls[0] ?? [];
     expect(message.content).toContain('Re-check CI.');
     expect(message.content).toContain('watched-output');
-    expect(options).toEqual({ triggerTurn: true, deliverAs: 'followUp' });
+    expect(options).toEqual({ triggerTurn: true, deliverAs: 'steer' });
   });
 
   test('a directory outside the project is refused', async () => {
     await expect(call('tmux_run', { name: 'out', command: 'true', cwd: '/' })).rejects.toThrow(/inside this project/);
-    await expect(call('pi_spawn', { name: 'out', brief: 'hi', cwd: '..' })).rejects.toThrow(/inside this project/);
+    await expect(call('pi_spawn', { name: 'out', brief: 'hi', cwd: '..' })).rejects.toThrow(/inside this project.*pass worktree/s);
     expect(jobs()).toEqual([]);
   });
 
@@ -270,6 +274,25 @@ describe('system prompt', () => {
     const ephemeral = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(ephemeral, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined } });
     expect(ephemeral.systemPromptOptions.sections['pstack-session']).toBeUndefined();
+  });
+});
+
+describe('sandbox guidance', () => {
+  test('a worker is told the shared /tmp is read-only and its own temp directory is $TMPDIR', async () => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    expect(event.systemPromptOptions.sections['pstack-sandbox']).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
+  });
+
+  test('the root session gets no sandbox section, since its own shell is not sandboxed', async () => {
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    expect(event.systemPromptOptions.sections['pstack-sandbox']).toBeUndefined();
+  });
+
+  test('tmux_run tells the model its command must keep temp files in $TMPDIR', () => {
+    expect(tools['tmux_run']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
   });
 });
 

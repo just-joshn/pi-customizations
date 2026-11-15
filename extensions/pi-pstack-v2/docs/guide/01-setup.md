@@ -16,7 +16,7 @@ Add `--local` to write the declaration to the project's `.pi/settings.json` inst
 
 The package adds three tools. `pi_spawn` starts a separate Pi in its own tmux session. `tmux_run` runs a shell command in its own tmux session. `tmux_jobs` lists, waits on, and stops both kinds of job. Pi has no sub-agents and no detached shell, so every parallel worker and every watcher in this guide is one of these jobs.
 
-**Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a follow-up message, so you can end your turn and wait.
+**Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
 
 ## Check tmux and the sandbox
 

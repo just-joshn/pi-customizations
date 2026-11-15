@@ -111,6 +111,21 @@ function write(dir: string, spec: JobSpec, files: Record<string, string>): void 
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
 }
 
+/** Package caches in a job's temp directory, deleted when it exits. One job's installs can fill hundreds of megabytes. */
+const CACHES: Record<string, string> = {
+  XDG_CACHE_HOME: 'cache',
+  npm_config_cache: 'npm',
+  BUN_INSTALL_CACHE_DIR: 'bun',
+  PIP_CACHE_DIR: 'pip',
+  UV_CACHE_DIR: 'uv',
+  GOCACHE: 'go-build',
+  GOMODCACHE: 'go-mod',
+  YARN_CACHE_FOLDER: 'yarn',
+  DENO_DIR: 'deno',
+  GRADLE_USER_HOME: 'gradle',
+  npm_config_store_dir: 'pnpm',
+};
+
 /**
  * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
  * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
@@ -119,17 +134,7 @@ export const privateEnv = (tmp: string): Record<string, string> => ({
   TMPDIR: tmp,
   TMP: tmp,
   TEMP: tmp,
-  XDG_CACHE_HOME: join(tmp, 'cache'),
-  npm_config_cache: join(tmp, 'npm'),
-  BUN_INSTALL_CACHE_DIR: join(tmp, 'bun'),
-  PIP_CACHE_DIR: join(tmp, 'pip'),
-  UV_CACHE_DIR: join(tmp, 'uv'),
-  GOCACHE: join(tmp, 'go-build'),
-  GOMODCACHE: join(tmp, 'go-mod'),
-  YARN_CACHE_FOLDER: join(tmp, 'yarn'),
-  DENO_DIR: join(tmp, 'deno'),
-  GRADLE_USER_HOME: join(tmp, 'gradle'),
-  npm_config_store_dir: join(tmp, 'pnpm'),
+  ...Object.fromEntries(Object.entries(CACHES).map(([name, dir]) => [name, join(tmp, dir)])),
 });
 
 interface Run {
@@ -166,6 +171,9 @@ function run(job: Run): void {
   // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
   // job's results directory, which the job cannot write.
   const sweepCopy = join(job.out, 'sweep.ts');
+  const caches = Object.values(CACHES)
+    .map((dir) => shellQuote(join(job.dir, 'tmp', dir)))
+    .join(' ');
   const script = [
     'set -m',
     `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
@@ -176,6 +184,8 @@ function run(job: Run): void {
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
     // Off the terminal: once tmux is gone, Node reopening the terminal to report an error blocks forever and holds a pty.
     `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))} < /dev/null >> ${out} 2>&1`,
+    // Go leaves its module cache read-only. find never follows a link the job planted, so only the job's own directories change.
+    `  find ${caches} -type d ! -perm -u+w -exec chmod u+w {} + 2>/dev/null; rm -rf ${caches}`,
     `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
     '}',
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
