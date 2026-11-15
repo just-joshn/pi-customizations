@@ -74,6 +74,10 @@ export function codeAssistUrl(method: string): string {
   return `${CODE_ASSIST_BASE_URL}:${method}`;
 }
 
+export function fetchAvailableModels(input: Pick<ResolveProjectInput, 'accessToken' | 'signal' | 'fetchImpl'> & { project: string }): Promise<unknown> {
+  return callCodeAssist<unknown>(input, 'POST', codeAssistUrl('fetchAvailableModels'), { project: input.project });
+}
+
 export async function resolveProject(input: ResolveProjectInput): Promise<ResolvedProject> {
   const { envProject } = input;
   const metadata = { ...METADATA, ...(envProject ? { duetProject: envProject } : {}) };
@@ -125,7 +129,7 @@ function missingProject(load: LoadCodeAssistResponse): CodeAssistError {
   return new ProjectRequiredError('This account requires setting the GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_PROJECT_ID environment variable, then running /login again');
 }
 
-async function callCodeAssist<T>(input: ResolveProjectInput, method: 'GET' | 'POST', url: string, body?: object): Promise<T> {
+async function callCodeAssist<T>(input: Pick<ResolveProjectInput, 'accessToken' | 'signal' | 'fetchImpl'>, method: 'GET' | 'POST', url: string, body?: object): Promise<T> {
   const response = await input.fetchImpl(url, {
     method,
     headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json', 'User-Agent': ANTIGRAVITY_USER_AGENT },

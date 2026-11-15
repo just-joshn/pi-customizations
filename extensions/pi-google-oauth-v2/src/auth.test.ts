@@ -67,7 +67,7 @@ async function startLogin(promptImpl: (prompt: AuthPrompt) => Promise<string>, b
 }
 
 describe('buildAuthUrl', () => {
-  test('requests offline PKCE consent with the five Antigravity scopes', () => {
+  test('requests offline PKCE consent with the Antigravity scopes', () => {
     const url = new URL(buildAuthUrl({ redirectUri: 'http://127.0.0.1:1/oauth2callback', state: 's', codeChallenge: 'c' }));
     expect(`${url.origin}${url.pathname}`).toBe('https://accounts.google.com/o/oauth2/v2/auth');
     expect(Object.fromEntries(url.searchParams)).toEqual({
@@ -80,6 +80,8 @@ describe('buildAuthUrl', () => {
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/cclog',
         'https://www.googleapis.com/auth/experimentsandconfigs',
+        'https://www.googleapis.com/auth/aicode',
+        'openid',
       ].join(' '),
       access_type: 'offline',
       prompt: 'consent',

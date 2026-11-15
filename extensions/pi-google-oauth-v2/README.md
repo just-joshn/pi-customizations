@@ -16,12 +16,9 @@ If Pi runs on a machine without a browser, open the **Code page** link on anothe
 
 ## Pick a model
 
-Run `/model` and pick a `google-oauth-v2` model:
+Run `/model` and pick a `google-oauth-v2` model. Pi asks Google for the models your plan serves and lists one entry per model family, such as `gemini-4-hydrogen` or `claude-sonnet-5-5`. Until the first refresh after sign-in, Pi lists `gemini-4-argon` and `gemini-3.8-flash`. Plan usage is not metered per token, so Pi shows no price.
 
-- `gemini-4-argon` is Antigravity's default model. Pi's catalog may lack it, so its context window and prices can be stand-ins from a Gemini Pro model. They are unverified.
-- `gemini-3.8-flash`
-
-Pi's thinking level picks the model's effort. The extension sends `<model>-low`, `<model>-medium`, or `<model>-high`. Off and no level send `medium`, and `xhigh` and `max` send `high`. Google rejects a model it does not serve with its own error text, and Pi shows that text.
+Google serves each effort as its own model id, such as `gemini-4-hydrogen-high`. Pi's thinking level picks the id. Pi offers only the levels the family has, and no level sends `medium`. Google rejects a model it does not serve with its own error text, and Pi shows that text.
 
 ## Set a project
 
@@ -39,4 +36,4 @@ Google's Antigravity documentation lists the Free, Google AI Pro, and Google AI 
 
 ## How it works
 
-Google retired Gemini CLI's OAuth client for individual plans. The extension now reuses the Antigravity CLI's public OAuth client and calls the same Code Assist endpoint, `cloudcode-pa.googleapis.com/v1internal`, with the `User-Agent` and request shape that the Antigravity CLI sends. Google accepts a request only when it carries that `User-Agent`. Google can restrict this client, change the header it checks, or retire the endpoint without notice. If sign-in fails with a message that the client is no longer supported, Google changed the gate.
+Google retired Gemini CLI's OAuth client for individual plans. The extension now reuses the Antigravity CLI's public OAuth client and calls the same Code Assist endpoint, `daily-cloudcode-pa.googleapis.com/v1internal`, with the `User-Agent` and request shape that the Antigravity CLI sends. Google accepts a request only when it carries that `User-Agent`. Google can restrict this client, change the header it checks, or retire the endpoint without notice. If sign-in fails with a message that the client is no longer supported, Google changed the gate.

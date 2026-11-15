@@ -1,11 +1,11 @@
 import { type AssistantMessage, type AssistantMessageEvent, calculateCost, type Message, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { describe, expect, test, vi } from 'vitest';
 import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
-import { createCodeAssistModels } from './models.ts';
+import { BASELINE_MODELS } from './models.ts';
 import { streamCodeAssist } from './stream.ts';
 
 const model =
-  createCodeAssistModels().find((candidate) => candidate.id === 'gemini-3.8-flash') ??
+  BASELINE_MODELS.find((candidate) => candidate.id === 'gemini-3.8-flash') ??
   (() => {
     throw new Error('no model');
   })();
@@ -52,7 +52,7 @@ describe('request', () => {
     const { stream, sent } = run(sseResponse(frame(stopChunk())));
     await collect(stream);
     expect(sent).toHaveLength(1);
-    expect(sent[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
+    expect(sent[0]?.url).toBe('https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(sent[0]?.headers).toMatchObject({ authorization: 'Bearer tok-abc', 'content-type': 'application/json', accept: 'text/event-stream' });
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(sent[0]?.body.project).toBe('proj-1');
@@ -148,6 +148,33 @@ describe('failures before the first event', () => {
     expect(message(events[0]).errorMessage).toBe('Google Code Assist error (500): Server Error');
   });
 
+  test('retries a 429 capacity throttle and recovers', async () => {
+    let call = 0;
+    const { stream, fetchImpl } = run(() => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))), {
+      maxRetryDelayMs: 0,
+    });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(terminal(events)[0]?.type).toBe('done');
+    expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
+  });
+
+  test('surfaces the 429 message after exhausting retries', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
+  });
+
+  test('a quota-exhausted 429 fails fast without retrying', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Individual quota reached for claude-sonnet-5-5. Resets in ~6h.' } }, { status: 429, statusText: 'Too Many Requests' }), {
+      maxRetryDelayMs: 0,
+    });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(message(events[0]).errorMessage).toContain('Individual quota reached');
+  });
+
   test('a rejected fetch ends with an error event', async () => {
     const { stream } = run(() => Promise.reject(new Error('socket hang up')));
     const events = await collect(stream);
@@ -203,14 +230,14 @@ describe('block state machine', () => {
 });
 
 describe('usage and finish', () => {
-  test('maps usageMetadata, the last chunk winning, and prices it', async () => {
+  test('maps usageMetadata, the last chunk winning, at zero plan cost', async () => {
     const early = { response: { usageMetadata: { promptTokenCount: 1, totalTokenCount: 1 } } };
     const late = { response: { usageMetadata: { promptTokenCount: 100, cachedContentTokenCount: 40, candidatesTokenCount: 20, thoughtsTokenCount: 5, totalTokenCount: 125 }, modelVersion: 'gemini-3.8-flash-001' } };
     const { stream } = run(sseResponse(frame(early) + frame(stopChunk()) + frame(late)));
     const final = message((await collect(stream)).at(-1));
     expect(final.usage).toMatchObject({ input: 60, output: 25, cacheRead: 40, cacheWrite: 0, reasoning: 5, totalTokens: 125 });
     expect(final.usage.cost.total).toBe(calculateCost(model, { ...final.usage, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } }).total);
-    expect(final.usage.cost.total).toBeGreaterThan(0.00001);
+    expect(final.usage.cost.total).toBe(0);
     expect(final.responseModel).toBe('gemini-3.8-flash-001');
   });
 

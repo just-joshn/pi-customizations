@@ -63,7 +63,7 @@ describe('real Pi Models runtime', () => {
     const message = await models.streamSimple(model, context, { fetch: google.fetchImpl, reasoning: 'xhigh', sessionId: 'sess-9' }).result();
 
     expect(google.seen).toHaveLength(1);
-    expect(google.seen[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
+    expect(google.seen[0]?.url).toBe('https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(google.seen[0]?.headers['authorization']).toBe('Bearer access-live');
     expect(google.seen[0]?.headers['user-agent']).toBe(ANTIGRAVITY_USER_AGENT);
     expect(google.seen[0]?.body).toMatchObject({
@@ -83,7 +83,7 @@ describe('real Pi Models runtime', () => {
       { type: 'toolCall', id: 'call-1', name: 'read', arguments: { path: 'a.ts' } },
     ]);
     expect(message.usage).toMatchObject({ input: 100, output: 40, cacheRead: 20, reasoning: 10, totalTokens: 160 });
-    expect(message.usage.cost.total).toBeGreaterThan(0.00001);
+    expect(message.usage.cost.total).toBe(0);
   });
 
   test('refreshes a near-expiry credential and keeps its projectId', async () => {

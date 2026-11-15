@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- List every model the account's Code Assist catalog serves, one per family, instead of two fixed models. Pi's thinking levels pick the per-effort model id Google lists.
+
 ## 0.1.1
 
 - Fix sign-in that failed with `UNSUPPORTED_CLIENT`. Google retired Gemini CLI's OAuth client for individual plans on 2026-06-18.
