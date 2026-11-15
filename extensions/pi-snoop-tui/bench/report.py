@@ -66,7 +66,7 @@ STARTUP_METRICS = [
     ("PI_TIMING extensions TOTAL ms", lambda r: r["timingsMs"]["extensions"]["TOTAL"]),
     ("PI_STARTUP_BENCHMARK process CPU ms", lambda r: r["timingCpuMs"]["user"] + r["timingCpuMs"]["sys"]),
 ]
-METRICS = {"stream": STREAM_METRICS, "medium": STREAM_METRICS, "long": LONG_METRICS, "startup": STARTUP_METRICS}
+METRICS = {"stream": STREAM_METRICS, "medium": STREAM_METRICS, "long": LONG_METRICS, "mixed": LONG_METRICS, "startup": STARTUP_METRICS}
 
 
 def present(metric, records: list[dict]) -> bool:

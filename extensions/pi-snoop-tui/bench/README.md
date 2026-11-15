@@ -67,11 +67,19 @@ python3 report.py results-long.jsonl
 4. `expand`: Ctrl+O, which expands every tool row. After it settles, type ten `q` characters at 250 ms intervals and measure echo latency and misses as in the stream workload. Clear the editor with Ctrl+U.
 5. `collapse`: Ctrl+O again.
 
-A step settles when Pi writes nothing for 500 ms. Its time runs to the last byte before that quiet period. A step with no output within 5 s (60 s for startup) has no output and becomes a problem. A step still writing after 60 s is a timeout and fails the run. Each step records its bytes and the widest horizontal rule it drew, and a resize whose rule does not match the new width is a problem. The driver then sends Ctrl+D and reads the child's user and system CPU for the whole run from `os.wait4`, and the bytes Pi wrote on exit.
+A step settles when Pi writes nothing for 500 ms. Its time runs to the last byte before that quiet period. A step with no output within 5 s (60 s for startup) has no output and becomes a problem. A step still writing after 60 s is a timeout and fails the run. Each step records its bytes and the widest horizontal rule it drew, and a resize whose rule does not match the new width is a problem. A rule two columns narrower also passes, because snoop's editor rules are inset by one gutter column on each side. The driver then sends Ctrl+D and reads the child's user and system CPU for the whole run from `os.wait4`, and the bytes Pi wrote on exit.
 
-Before the first resize, the driver also types 20 `q` characters at 100 ms intervals with every row collapsed, and records their echo latency and misses as `collapsedEcho`. After Ctrl+U it writes 50 `q` characters back to back and records the time until the whole run of 50 appears as `burst`. After `collapse`, the `storm` step resizes five times back to back (90, 120, 90, 120, 90 columns) and settles. Its last horizontal rule must be 90 columns wide. The driver then restores 120 columns before exit, so exit bytes stay comparable. The whole-run CPU includes these steps.
+Before the first resize, the driver also types 20 `q` characters at 100 ms intervals with every row collapsed, and records their echo latency and misses as `collapsedEcho`. After Ctrl+U it writes 50 `q` characters back to back and records the time until the whole run of 50 appears as `burst`. After `collapse`, the `storm` step resizes five times back to back (90, 120, 90, 120, 90 columns) and settles. Its last horizontal rule must be 90 columns wide, or 88 for an inset rule. The driver then restores 120 columns before exit, so exit bytes stay comparable. The whole-run CPU includes these steps.
 
 `report.py` prints one section per workload and drops a metric when a record lacks it, so older result files still report.
+
+## Run the mixed-tool benchmark
+
+```sh
+python3 run.py --workload mixed --runs 5 --configs stock,full --out results-mixed.jsonl
+```
+
+`--workload mixed` runs the long-session steps on a session from `mixed-fixture.py`: 50 turns of six tool calls each (300 tool rows). Half the rows call `codemode`, `pi_spawn`, and `tmux_run`, which `bench-provider.ts` registers with no `renderCall` or `renderResult`, the way pstack registers them. Their results hold 20 to 200 lines of text, and 5 `codemode` and 3 `tmux_run` results fail. The rest are `read`, `edit`, and `bash`. The run loads `bench-provider.ts` and adds the three tools to `--tools`, so stock draws them with Pi's fallback: the tool name and arguments, then the first 10 lines of output in a padded `Box`. Records carry `"workloadName": "mixed"`.
 
 ## Run the startup and medium-session benchmarks
 
@@ -105,4 +113,5 @@ The `visual/` scripts render Pi frames to PNG for visual review. They write to `
 
 - `capture.sh <label> <cols> <rows> [pi args...]` starts Pi in tmux on a replayed session, waits for the frame to settle, and saves `.ansi` and `.txt` captures. Set `FIXTURE` to use your own session file. Set `KEYS` to send keys and capture again.
 - `mockup-fixture.py <out.jsonl> <cwd>` writes the default replay session: read, edit, a passing and a failing bash call, grep, an image read, and codemode.
+- `pty-capture.py <out-prefix> <cols> <rows> <session.jsonl> [--expand] [--page-up=N] -- [pi args...]` does the same in a pseudo-terminal through `pyte`, for sandboxes where tmux cannot open its socket. Run it with `uv run --with pyte`.
 - `ansi2png.py <in.ansi> <out.png>` renders a capture with Pillow. Run it with `uv run --with pillow`.
