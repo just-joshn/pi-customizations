@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -84,7 +84,8 @@ describe('the bubblewrap mounts', () => {
   let policy: SandboxPolicy;
 
   beforeEach(() => {
-    work = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-bwrap-')));
+    // Outside /tmp, which the job sees as its own empty directory on Linux, so the fixture reads the same on every platform.
+    work = realpathSync(mkdtempSync(join(homedir(), '.pstack-bwrap-')));
     repo = join(work, 'repo');
     execFileSync('git', ['init', '-q', repo]);
     execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
