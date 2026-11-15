@@ -72,7 +72,7 @@
     },
     "extensions/pi-google-oauth-v2": {
       "name": "@justjoshn/pi-google-oauth-v2",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.5.2",
         "@earendil-works/pi-coding-agent": "1.5.2",
@@ -172,6 +172,10 @@
         "@earendil-works/pi-coding-agent": "1.5.2",
         "@vitest/coverage-v8": "5.1.0",
         "vitest": "5.1.0",
+      },
+      "peerDependencies": {
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
       },
     },
     "extensions/pi-x-subscription-oauth": {

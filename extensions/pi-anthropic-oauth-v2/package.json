@@ -1,10 +1,17 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth-v2",
   "version": "0.1.0",
-  "private": true,
   "description": "Use your Claude subscription in Pi through subscription OAuth only, built on Pi's own Anthropic login and Messages API.",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-anthropic-oauth-v2"
+  },
   "keywords": [
     "pi-package"
   ],

@@ -2,6 +2,16 @@
 
 Use a Google AI plan in Pi. The extension signs in with your Google account the way Google's Antigravity CLI does and sends requests to Code Assist, so they count against your plan's quota, not an API key.
 
+## Install
+
+This extension needs Pi 1.5.2 or later. Install it with:
+
+```sh
+pi install npm:@justjoshn/pi-google-oauth-v2
+```
+
+To try it from this checkout, use `pi -e extensions/pi-google-oauth-v2`.
+
 ## Sign in
 
 1. Start Pi and run `/login`.

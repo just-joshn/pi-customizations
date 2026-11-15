@@ -30,7 +30,9 @@ in the separate pi-pstack workflow.
 Publishing uses npm's trusted publishing (OIDC) flow from
 <https://docs.npmjs.com/trusted-publishers>: the workflow grants
 `id-token: write`, and `npm publish` authenticates with the runner's
-short-lived OIDC identity. No long-lived token exists to leak or rotate.
+short-lived OIDC identity when the package has a trusted publisher and no token
+fallback is configured. An `NPM_TOKEN` repository secret selects the token path
+instead.
 Provenance attestations are generated automatically
 (<https://docs.npmjs.com/generating-provenance-statements>).
 
@@ -51,9 +53,21 @@ runs after that rename fail with `ENEEDAUTH` until the new package exists and
 has its own Trusted Publisher (or until `NPM_TOKEN` is set for a bootstrap
 publish).
 
+### Initial v2 releases
+
+`@justjoshn/pi-anthropic-oauth-v2`, `@justjoshn/pi-google-oauth-v2`, and
+`@justjoshn/pi-spacex-oauth-v2` are separate npm package names. Their initial
+manifests set `private: true`, which excluded them from release detection.
+Their public manifests use the same release workflow as the older extensions.
+
+Use the bootstrap steps below for the first publish. The repository already has
+an `NPM_TOKEN` secret, but its scope permissions and Bypass 2FA setting must cover
+the new names. After each package exists, configure its own trusted publisher.
+A publisher on an older OAuth package does not cover a v2 package name.
+
 ### Bootstrap a new package name
 
-1. Create a repository secret `NPM_TOKEN` from an npm **granular access
+1. Verify or replace the existing repository secret `NPM_TOKEN` with an npm **granular access
    token** with **Bypass two-factor authentication** checked and **Read and
    write (publish and stage)** on the `@justjoshn` scope (or the new
    package). Classic "Automation" tokens were removed in November 2025. A
