@@ -63,7 +63,7 @@ describe('real Pi Models runtime', () => {
     const message = await models.streamSimple(model, context, { fetch: google.fetchImpl, reasoning: 'xhigh', sessionId: 'sess-9' }).result();
 
     expect(google.seen).toHaveLength(1);
-    expect(google.seen[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
+    expect(google.seen[0]?.url).toBe('https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(google.seen[0]?.headers['authorization']).toBe('Bearer access-live');
     expect(google.seen[0]?.headers['user-agent']).toBe(ANTIGRAVITY_USER_AGENT);
     expect(google.seen[0]?.body).toMatchObject({
