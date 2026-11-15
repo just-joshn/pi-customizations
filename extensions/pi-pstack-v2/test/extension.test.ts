@@ -67,7 +67,7 @@ afterEach(async () => {
   process.argv[1] = savedArgv;
   vi.unstubAllEnvs();
   try {
-    execFileSync('tmux', ['-L', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
+    execFileSync('tmux', ['-S', tmuxSocket(owner, {}), 'kill-server'], { stdio: 'ignore' });
   } catch {
     // No server was started.
   }
@@ -123,6 +123,30 @@ describe('tmux_run', () => {
     expect(options).toEqual({ triggerTurn: true, deliverAs: 'followUp' });
   });
 
+  test('a directory outside the project is refused', async () => {
+    await expect(call('tmux_run', { name: 'out', command: 'true', cwd: '/' })).rejects.toThrow(/inside this project/);
+    await expect(call('pi_spawn', { name: 'out', brief: 'hi', cwd: '..' })).rejects.toThrow(/inside this project/);
+    expect(jobs()).toEqual([]);
+  });
+
+  test('a failing heartbeat wakes once and is not restarted', async () => {
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'tick', command: 'exit 1', wake: 'Tick.', repeat: true });
+    await expect.poll(() => sendMessage.mock.calls.length, { timeout: 10_000 }).toBe(1);
+    expect(sendMessage.mock.calls[0]?.[0].content).toContain('not restarted');
+    expect(jobs()).toHaveLength(1);
+  });
+
+  test('stopping a heartbeat by its first id stops the later runs too', async () => {
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'tick', command: 'sleep 0.2', wake: 'Tick.', repeat: true });
+    const [first] = jobs();
+    await expect.poll(() => jobs().length, { timeout: 10_000 }).toBe(2);
+    await call('tmux_jobs', { action: 'stop', ids: [first] });
+    const listing = (await call('tmux_jobs', { action: 'list' }))?.content[0]?.text ?? '';
+    expect(listing).not.toContain('running');
+  });
+
   test('repeat without a wake message is refused', async () => {
     await expect(call('tmux_run', { name: 'tick', command: 'sleep 1', repeat: true })).rejects.toThrow(/repeat needs a wake/);
   });
@@ -159,7 +183,7 @@ describe('tmux_jobs', () => {
     await text({ action: 'stop', ids: [id] });
     const listing = await text({ action: 'list' });
     expect(listing).toContain('exited 143');
-    expect(listing).toContain(`tmux -L ${tmuxSocket(owner)} attach -t ${id}`);
+    expect(listing).toContain(`tmux -S ${tmuxSocket(owner, {})} attach -t ${id}`);
   });
 
   test('a job from another session is not visible', async () => {

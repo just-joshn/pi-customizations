@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -18,8 +18,12 @@ export interface JobSpec {
   owner: string;
   /** Message delivered to the owner when the job exits. Null means the owner is not woken. */
   wake: string | null;
-  /** Relaunch the same job each time it exits, as a heartbeat. */
+  /** Relaunch the same job each time it exits cleanly, as a heartbeat. */
   repeat: boolean;
+  /** Id of the first job in a repeat series. Stopping any job in the series stops the series. */
+  series: string;
+  /** Path of the tmux server socket the job runs under. */
+  socket: string;
   createdAt: string;
 }
 
@@ -47,14 +51,24 @@ export function newJobId(name: string): string {
   return `${slug || 'job'}-${randomBytes(3).toString('hex')}`;
 }
 
-/** One tmux server per owning session, started with that session's environment so jobs inherit PATH and credentials. */
-export const tmuxSocket = (owner: string): string => `pstack-v2-${owner.slice(0, 8)}`;
+/**
+ * One tmux server per owning session, started with that session's environment so jobs inherit PATH and credentials.
+ * Its socket sits where sandboxed jobs cannot connect, since the server runs whatever it is sent outside the sandbox.
+ * Inside a sandboxed job, the server lives under the job's own `nested/` directory instead.
+ */
+export function tmuxSocket(owner: string, env: NodeJS.ProcessEnv = process.env): string {
+  const parent = env[JOB_DIR_ENV];
+  if (env[SANDBOX_ENV] === '1' && parent) return join(parent, 'nested', 'tmux.sock');
+  const dir = `/tmp/pstack-v2-${process.getuid?.() ?? 0}`;
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  return join(dir, `${createHash('sha256').update(owner).digest('hex').slice(0, 16)}.sock`);
+}
 
-function tmux(owner: string, args: string[]): void {
+function tmux(socket: string, args: string[]): void {
   const env = { ...process.env };
   delete env['TMUX'];
   delete env['TMUX_PANE'];
-  execFileSync('tmux', ['-L', tmuxSocket(owner), ...args], { stdio: 'ignore', env });
+  execFileSync('tmux', ['-S', socket, ...args], { stdio: 'ignore', env });
 }
 
 /** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
@@ -68,7 +82,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   const capture = spec.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(dir, 'stderr.log'))}; code=$?` : `${command} 2>&1 | tee ${out}; code=\${PIPESTATUS[0]}`;
   const exit = shellQuote(join(dir, 'exit'));
   const script = `${capture}; echo $code > ${exit}.tmp && mv ${exit}.tmp ${exit}`;
-  tmux(spec.owner, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', '-c', script]);
+  tmux(spec.socket, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', '-c', script]);
   return { spec, dir, status: { state: 'running' } };
 }
 
@@ -78,7 +92,7 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   const before = exited();
   if (before) return before;
   try {
-    tmux(spec.owner, ['has-session', '-t', `=${spec.id}`]);
+    tmux(spec.socket, ['has-session', '-t', `=${spec.id}`]);
     return { state: 'running' };
   } catch {
     // The job may have written its exit code and closed its session between the two checks.
@@ -86,27 +100,39 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   }
 }
 
-export function read(root: string, id: string): Job | undefined {
+function readSpec(dir: string): JobSpec | undefined {
+  try {
+    return JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')) as JobSpec;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Reads one of the owner's jobs. Another session's job reads as missing. */
+export function read(root: string, id: string, owner: string): Job | undefined {
   const dir = jobDir(root, id);
-  const file = join(dir, 'job.json');
-  if (!existsSync(file)) return undefined;
-  const spec = JSON.parse(readFileSync(file, 'utf8')) as JobSpec;
-  return { spec, dir, status: status(dir, spec) };
+  const spec = readSpec(dir);
+  return spec?.owner === owner ? { spec, dir, status: status(dir, spec) } : undefined;
 }
 
 export function list(root: string, owner: string): Job[] {
   if (!existsSync(root)) return [];
   return readdirSync(root)
-    .map((id) => read(root, id))
-    .filter((job): job is Job => job !== undefined && job.spec.owner === owner)
+    .map((id) => read(root, id, owner))
+    .filter((job): job is Job => job !== undefined)
     .sort((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
 }
 
 export function stop(job: Job): void {
   try {
-    tmux(job.spec.owner, ['kill-session', '-t', `=${job.spec.id}`]);
+    tmux(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
   } catch {
     // Already gone.
+  }
+  try {
+    tmux(join(job.dir, 'nested', 'tmux.sock'), ['kill-server']);
+  } catch {
+    // The job started no jobs of its own.
   }
   const exit = join(job.dir, 'exit');
   if (!existsSync(exit)) {
@@ -132,4 +158,4 @@ export function tail(dir: string, lines: number): string {
   return readFileSync(file, 'utf8').split('\n').slice(-lines).join('\n');
 }
 
-export const attachCommand = (spec: JobSpec): string => `tmux -L ${tmuxSocket(spec.owner)} attach -t ${spec.id}`;
+export const attachCommand = (spec: JobSpec): string => `tmux -S ${spec.socket} attach -t ${spec.id}`;

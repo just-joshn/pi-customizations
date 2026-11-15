@@ -56,12 +56,17 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 
 ## Sandbox details
 
-- macOS uses a Seatbelt profile that allows every read and network call and denies writes outside the allowed paths. Pi's agent directory (`~/.pi/agent`) allows its top-level credential and lock files so token refresh works. It denies `settings.json`, `trust.json`, `mcp.json`, `models.json`, `keybindings.json`, `AGENTS.md`, `SYSTEM.md`, and `APPEND_SYSTEM.md`, so a job cannot change what a later unsandboxed Pi loads.
-- Linux and WSL2 use bubblewrap with the root bound read-only, the same writable paths bound read-write, and Pi's configuration files and resource directories bound read-only.
+- macOS uses a Seatbelt profile. Linux and WSL2 use bubblewrap 0.10 or newer. With neither available, `pi_spawn` and `tmux_run` refuse to start.
+- A job writes only its working directory or worktree, that checkout's git directory, temp directories, and for Pi workers its own `session/` and `nested/` directories. Every other write is denied.
+- `cwd` must be inside the session's project, which is the git top level or else the session cwd. The model cannot widen its own sandbox by naming another directory.
+- Paths an unsandboxed process later executes stay read-only even inside a writable checkout. Those are the git `hooks/`, `config`, and `info/` entries, plus `.pi/extensions`, `.pi/settings.json`, and `.pi/mcp.json`.
+- In Pi's agent directory a job may write only `auth.json`, which Pi refreshes in place, and the `*.lock` directories Pi takes beside its files. On Linux every other write there lands in a throwaway overlay.
+- A job cannot connect to a tmux server outside its sandbox, since that server would run whatever it is sent unsandboxed. The spawning session's server socket lives in `/tmp/pstack-v2-<uid>/`, and that directory, the default tmux socket directory, and other jobs' sockets are all out of reach. A Pi worker runs its own jobs on a tmux server under its `nested/` directory, inside its sandbox.
 - A job started from inside a sandboxed job inherits the sandbox it is already in, because macOS cannot nest Seatbelt profiles.
-- With neither `sandbox-exec` nor `bwrap` available, `pi_spawn` and `tmux_run` refuse to start.
-- Start the main session sandboxed the same way when you want it contained. For example, run Pi inside one of the methods in Pi's containerization guide.
+- The sandbox limits writes and tmux access. Reads and network access stay open, so a job can read anything the user can and send it over the network. `readonly` removes project writes and the edit and write tools, and temp directories stay writable.
+- On Linux, a protected `.pi/` file that does not exist yet cannot be bound read-only, so a writer could create it.
+- Start the main session sandboxed too when you want it contained. For example, run Pi inside one of the methods in Pi's containerization guide.
 
 ## Jobs on disk
 
-Each job lives in `~/.pi/agent/pstack-v2/jobs/<id>/`: `job.json` (the spec), `brief.md`, `output.log`, `exit`, and for Pi workers `session/`, `nested/`, and `stderr.log`. The job directory is read-only to the job, so a job cannot rewrite its own spec or exit code. The unsandboxed tmux wrapper writes `output.log` and `exit`. A Pi worker can write only `session/` and `nested/`, and the jobs it starts live in `nested/`. Each spawning session runs its own tmux server, named `pstack-v2-<first 8 characters of the session id>`. `tmux_jobs` `list` prints the attach command for each job. A wake is claimed once through a `woken` marker file, so restarting Pi never delivers a report twice.
+Each job lives in `~/.pi/agent/pstack-v2/jobs/<id>/`: `job.json` (the spec), `brief.md`, `output.log`, `exit`, and for Pi workers `session/`, `nested/`, and `stderr.log`. The job directory is read-only to the job, so a job cannot rewrite its own spec or exit code. The unsandboxed tmux wrapper writes `output.log` and `exit`. A Pi worker can write only `session/` and `nested/`, and the jobs it starts live in `nested/`. Each spawning session runs its own tmux server on a socket in `/tmp/pstack-v2-<uid>/`, named from a hash of the session id. `tmux_jobs` `list` prints the attach command for each job. A wake is claimed once through a `woken` marker file, so restarting Pi never delivers a report twice.

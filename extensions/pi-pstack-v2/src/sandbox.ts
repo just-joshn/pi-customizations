@@ -3,51 +3,60 @@ import { existsSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
-/** The job directory of the sandboxed process. Jobs it starts live under its writable `nested/` directory. */
+/** The job directory of the sandboxed process. Jobs it starts, and their tmux socket, live under its writable `nested/` directory. */
 export const JOB_DIR_ENV = 'PSTACK_V2_JOB_DIR';
 
-// Files in the Pi agent directory that would let a sandboxed process change what a later, unsandboxed Pi loads.
-const PROTECTED_AGENT_FILES = ['settings.json', 'trust.json', 'mcp.json', 'models.json', 'keybindings.json', 'AGENTS.md', 'SYSTEM.md', 'APPEND_SYSTEM.md'];
-const PROTECTED_AGENT_DIRS = ['extensions', 'skills', 'prompts', 'themes', 'bin', 'install', 'npm', 'git'];
-
 export interface SandboxPolicy {
+  /** Paths the job may write. */
   writable: string[];
+  /** Paths inside `writable` that stay read-only because an unsandboxed process would execute what they hold, such as git hooks. */
+  protect: string[];
   agentDir: string;
+  /** The job's own directory. Only its `nested/` tmux socket is reachable; every other tmux server stays out of reach. */
+  jobDir: string;
 }
 
 const real = (path: string): string => (existsSync(path) ? realpathSync(path) : path);
 const escapeRegex = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const quote = (text: string): string => JSON.stringify(text);
 
+// tmux servers outside the sandbox run commands unsandboxed, so a job may not connect to their sockets or replace them.
+const TMUX_SOCKETS = '^/private/(tmp|var/folders/[^/]+/[^/]+/T)/(tmux|pstack-v2)-';
+
 export function seatbeltProfile(policy: SandboxPolicy): string {
-  const agent = real(policy.agentDir);
-  const writable = policy.writable.map((path) => `(subpath ${quote(real(path))})`).join(' ');
-  return [
+  const agent = escapeRegex(real(policy.agentDir));
+  const subpaths = (paths: string[]): string => paths.map((path) => `(subpath ${quote(real(path))})`).join(' ');
+  const lines = [
     '(version 1)',
     '(allow default)',
     '(deny file-write*)',
-    `(allow file-write* (literal "/dev/null") (regex #"^/dev/tty") (regex #"^/dev/fd/") (subpath "/private/tmp") (subpath "/private/var/folders") ${writable})`,
-    `(allow file-write* (regex #"^${escapeRegex(agent)}/[^/]+$") (regex #"^${escapeRegex(agent)}/[^/]+\\.lock(/|$)"))`,
-    `(deny file-write* ${PROTECTED_AGENT_FILES.map((name) => `(literal ${quote(join(agent, name))})`).join(' ')})`,
-  ].join('\n');
+    `(allow file-write* (literal "/dev/null") (regex #"^/dev/tty") (regex #"^/dev/fd/") (subpath "/private/tmp") (subpath "/private/var/folders") ${subpaths(policy.writable)})`,
+    // Pi refreshes credentials in place and takes lock directories beside its files. Nothing else in its agent directory is writable.
+    `(allow file-write* (literal ${quote(`${real(policy.agentDir)}/auth.json`)}) (regex #"^${agent}/[^/]+\\.lock(/|$)"))`,
+    `(deny file-write* (regex #"${TMUX_SOCKETS}")${policy.protect.length ? ` ${subpaths(policy.protect)}` : ''})`,
+    `(deny network-outbound (remote unix-socket (path-regex #"${TMUX_SOCKETS}")) (remote unix-socket (path-regex #"^${agent}/pstack-v2/")))`,
+    `(allow network-outbound (remote unix-socket (path-regex #"^${escapeRegex(real(policy.jobDir))}/nested/")))`,
+  ];
+  return lines.join('\n');
 }
 
-export function bwrapArgs(policy: SandboxPolicy): string[] {
+export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = process.env, uid: number = process.getuid?.() ?? 0): string[] {
   const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--bind', '/tmp', '/tmp'];
-  for (const path of [...policy.writable, policy.agentDir].filter(existsSync)) args.push('--bind', path, path);
-  for (const name of [...PROTECTED_AGENT_FILES, ...PROTECTED_AGENT_DIRS]) {
-    const path = join(policy.agentDir, name);
-    if (existsSync(path)) args.push('--ro-bind', path, path);
-  }
+  for (const hidden of [`/tmp/tmux-${uid}`, `/tmp/pstack-v2-${uid}`, env['XDG_RUNTIME_DIR']]) if (hidden && existsSync(hidden)) args.push('--tmpfs', hidden);
+  // Writes to Pi's agent directory land in a throwaway overlay, except credentials, which Pi refreshes in place.
+  args.push('--overlay-src', policy.agentDir, '--tmp-overlay', policy.agentDir);
+  const auth = join(policy.agentDir, 'auth.json');
+  if (existsSync(auth)) args.push('--bind', auth, auth);
+  for (const path of policy.writable.filter(existsSync)) args.push('--bind', path, path);
+  for (const path of policy.protect.filter(existsSync)) args.push('--ro-bind', path, path);
   return [...args, '--die-with-parent', '--'];
 }
 
-function onPath(binary: string): boolean {
+function available(command: string): string | undefined {
   try {
-    execFileSync('/bin/sh', ['-c', `command -v ${binary}`], { stdio: 'ignore' });
-    return true;
+    return execFileSync('/bin/sh', ['-c', command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch {
-    return false;
+    return undefined;
   }
 }
 
@@ -57,7 +66,11 @@ function onPath(binary: string): boolean {
  */
 export function sandboxed(argv: string[], policy: SandboxPolicy, platform: NodeJS.Platform = process.platform, env: NodeJS.ProcessEnv = process.env): string[] {
   if (env[SANDBOX_ENV] === '1') return argv;
-  if (platform === 'darwin' && onPath('sandbox-exec')) return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
-  if (platform === 'linux' && onPath('bwrap')) return ['bwrap', ...bwrapArgs(policy), ...argv];
+  if (platform === 'darwin' && available('command -v sandbox-exec')) return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
+  if (platform === 'linux') {
+    const help = available('bwrap --help 2>&1');
+    if (help?.includes('--tmp-overlay')) return ['bwrap', ...bwrapArgs(policy, env), ...argv];
+    if (help) throw new Error('pstack needs bubblewrap 0.10 or newer (for --tmp-overlay) so jobs cannot change Pi configuration. Upgrade bwrap.');
+  }
   throw new Error(`pstack runs every job in a sandbox and found none on ${platform}. Install bubblewrap (bwrap) on Linux or WSL2, or use macOS, where Seatbelt (sandbox-exec) is built in.`);
 }

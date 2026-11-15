@@ -1,11 +1,11 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { attachCommand, claimWake, type Job, type JobSpec, launch, list, newJobId, outputPath, read, STOPPED_EXIT_CODE, stop, tail } from './jobs.ts';
+import { attachCommand, claimWake, type Job, type JobSpec, launch, list, newJobId, outputPath, read, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, sandboxed } from './sandbox.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -31,15 +31,32 @@ function git(cwd: string, args: string[]): string {
   return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
-function gitCommonDir(cwd: string): string | undefined {
+function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel'): string | undefined {
   try {
-    return resolve(cwd, git(cwd, ['rev-parse', '--git-common-dir']));
+    return resolve(cwd, git(cwd, ['rev-parse', flag]));
   } catch {
     return undefined;
   }
 }
 
-function addWorktree(cwd: string, path: string, branch: string, base: string | undefined): void {
+/** A job may only work inside the session's project, so the model cannot widen its own sandbox by naming another directory. */
+function projectPath(ctx: ExtensionContext, path: string | undefined): string {
+  const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
+  const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
+  const inside = relative(root, target);
+  if (inside.startsWith('..') || isAbsolute(inside)) throw new Error(`cwd must be inside this project (${root}), got ${target}.`);
+  return target;
+}
+
+/** Paths an unsandboxed process later executes from: git hooks and config, and Pi's project extensions and settings. */
+function protectedPaths(cwd: string, common: string | undefined): string[] {
+  const pi = ['extensions', 'settings.json', 'mcp.json'].map((name) => join(cwd, '.pi', name));
+  return common ? [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info')] : pi;
+}
+
+/** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
+function addWorktree(cwd: string, path: string, branch: string, base: string | undefined): boolean {
+  if (branch.startsWith('-') || base?.startsWith('-')) throw new Error('worktree and base cannot start with "-".');
   let exists = true;
   try {
     git(cwd, ['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`]);
@@ -47,6 +64,7 @@ function addWorktree(cwd: string, path: string, branch: string, base: string | u
     exists = false;
   }
   git(cwd, exists ? ['worktree', 'add', path, branch] : ['worktree', 'add', '-b', branch, path, base ?? 'HEAD']);
+  return !exists;
 }
 
 function report(job: Job): string {
@@ -75,18 +93,15 @@ export default function pstack(pi: ExtensionAPI) {
   // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
   const awaited = new Set<string>();
 
-  const relaunch = (job: Job): void => {
-    const spec: JobSpec = { ...job.spec, id: newJobId(job.spec.name), createdAt: new Date().toISOString() };
-    launch(jobsRoot(), spec);
-  };
-
   const deliverFinished = (ctx: ExtensionContext): void => {
-    const owner = ctx.sessionManager.getSessionId();
-    const jobs = list(jobsRoot(), owner);
+    const jobs = list(jobsRoot(), ctx.sessionManager.getSessionId());
     for (const job of jobs) {
       if (job.spec.wake === null || job.status.state === 'running' || awaited.has(job.spec.id) || !claimWake(job)) continue;
-      pi.sendMessage({ customType: 'pstack-job', content: report(job), display: true }, { triggerTurn: true, deliverAs: 'followUp' });
-      if (job.spec.repeat && job.status.state === 'exited' && job.status.code !== STOPPED_EXIT_CODE) relaunch(job);
+      // A heartbeat repeats only while it exits cleanly, so a failing command cannot wake the session in a tight loop.
+      const again = job.spec.repeat && job.status.state === 'exited' && job.status.code === 0;
+      if (again) launch(jobsRoot(), { ...job.spec, id: newJobId(job.spec.name), createdAt: new Date().toISOString() });
+      const note = job.spec.repeat && !again ? '\n\nThis heartbeat did not exit cleanly, so it was not restarted.' : '';
+      pi.sendMessage({ customType: 'pstack-job', content: report(job) + note, display: true }, { triggerTurn: true, deliverAs: 'followUp' });
     }
     if (ctx.hasUI) {
       const running = jobs.filter((job) => job.status.state === 'running').length;
@@ -99,12 +114,25 @@ export default function pstack(pi: ExtensionAPI) {
   pi.on('session_start', async (_event, ctx) => {
     if (!interactive(ctx)) return;
     clearInterval(watcher);
-    watcher = setInterval(() => deliverFinished(ctx), POLL_MS);
+    watcher = setInterval(() => {
+      try {
+        deliverFinished(ctx);
+      } catch (error) {
+        if (ctx.hasUI) ctx.ui.notify(`pstack job watcher: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      }
+    }, POLL_MS);
   });
 
-  pi.on('session_shutdown', async () => {
+  pi.on('session_shutdown', async (_event, ctx) => {
     clearInterval(watcher);
     watcher = undefined;
+    // A print-mode worker's leftover jobs, such as a dev server it never stopped, end with it.
+    if (interactive(ctx)) return;
+    try {
+      execFileSync('tmux', ['-S', tmuxSocket(ctx.sessionManager.getSessionId()), 'kill-server'], { stdio: 'ignore' });
+    } catch {
+      // It started no jobs.
+    }
   });
 
   // A print-mode run would exit while its jobs still run, so it waits for them and continues with their reports.
@@ -144,10 +172,10 @@ export default function pstack(pi: ExtensionAPI) {
       agent: Type.Optional(stringEnum(AGENTS, 'Role instructions from pstack agents/<agent>.md, appended to the spawned system prompt.')),
       model: Type.Optional(Type.String({ description: 'provider/id as `pi --list-models` prints it. Omit to use this session model.' })),
       thinking: Type.Optional(stringEnum(THINKING, 'Thinking level. Omit to use the model default.')),
-      readonly: Type.Optional(Type.Boolean({ description: 'Deny every write except to the worker session and remove the edit and write tools. Default false.' })),
+      readonly: Type.Optional(Type.Boolean({ description: 'Deny writes to the project and remove the edit and write tools. Temp directories stay writable. Default false.' })),
       worktree: Type.Optional(Type.String({ description: 'Branch for a new git worktree the spawned Pi works in, created from base. Writes are confined to that worktree.' })),
       base: Type.Optional(Type.String({ description: 'Ref the new worktree branch starts from. Default HEAD.' })),
-      cwd: Type.Optional(Type.String({ description: 'Working directory when no worktree is requested. Default this session cwd.' })),
+      cwd: Type.Optional(Type.String({ description: 'Working directory inside this project when no worktree is requested. Default this session cwd.' })),
       resume: Type.Optional(Type.String({ description: 'Job id of a finished pi_spawn job whose session the brief continues. Use only when that session holds state too costly to move.' })),
       wake: Type.Optional(Type.Boolean({ description: 'Wake this session with the report when the job exits. Default true.' })),
     }),
@@ -156,31 +184,21 @@ export default function pstack(pi: ExtensionAPI) {
       const id = newJobId(params.name);
       const dir = join(root, id);
       const owner = ctx.sessionManager.getSessionId();
-      const prior = params.resume === undefined ? undefined : read(root, params.resume);
+      const prior = params.resume === undefined ? undefined : read(root, params.resume, owner);
       if (params.resume !== undefined && (prior === undefined || prior.spec.kind !== 'pi' || prior.status.state === 'running')) {
-        throw new Error(`resume needs a finished pi_spawn job id, got "${params.resume}".`);
+        throw new Error(`resume needs a finished pi_spawn job id from this session, got "${params.resume}".`);
       }
       const model = resolveModel(ctx, params.model);
-      const base = params.cwd === undefined ? ctx.cwd : resolve(ctx.cwd, params.cwd);
+      const base = prior?.spec.cwd ?? projectPath(ctx, params.cwd);
+      // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
+      const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
+      const writable = [sessionDir, join(dir, 'nested')];
+      let createdBranch = false;
       try {
-        return start();
-      } catch (error) {
-        rmSync(dir, { recursive: true, force: true });
-        if (params.worktree !== undefined) gitCommonDir(base) && git(base, ['worktree', 'prune']);
-        throw error;
-      }
-
-      function start() {
-        let cwd = prior?.spec.cwd ?? base;
-        // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
-        const sessionDir = prior ? join(prior.dir, 'session') : join(dir, 'session');
-        const writable = [sessionDir, join(dir, 'nested')];
         for (const path of writable) mkdirSync(path, { recursive: true });
-        if (params.worktree !== undefined && prior === undefined) {
-          cwd = join(dir, 'worktree');
-          addWorktree(base, cwd, params.worktree, params.base);
-        }
-        const common = gitCommonDir(cwd);
+        const cwd = params.worktree !== undefined && prior === undefined ? join(dir, 'worktree') : base;
+        if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
+        const common = gitPath(cwd, '--git-common-dir');
         if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
         const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
         const argv = [
@@ -203,14 +221,23 @@ export default function pstack(pi: ExtensionAPI) {
           name: params.name,
           kind: 'pi',
           cwd,
-          argv: sandboxed(argv, { writable, agentDir: getAgentDir() }),
+          argv: sandboxed(argv, { writable, protect: protectedPaths(cwd, common), agentDir: getAgentDir(), jobDir: dir }),
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
           repeat: false,
+          series: id,
+          socket: tmuxSocket(owner),
           createdAt: new Date().toISOString(),
         };
         const job = launch(root, spec, files);
         return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
+      } catch (error) {
+        rmSync(dir, { recursive: true, force: true });
+        if (params.worktree !== undefined && gitPath(base, '--git-common-dir')) {
+          git(base, ['worktree', 'prune']);
+          if (createdBranch) git(base, ['branch', '-D', params.worktree]);
+        }
+        throw error;
       }
     },
   });
@@ -219,31 +246,35 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits, so `sleep 3600` plus a wake message is an hourly tick.',
+      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: Type.Object({
       name: Type.String({ description: 'Short label, such as "watch-pr-123" or "dev-server".' }),
       command: Type.String({ description: 'Shell command, run with bash -c.' }),
-      cwd: Type.Optional(Type.String({ description: 'Working directory. Default this session cwd. The command may write only here, in its git directory, and in temp directories.' })),
+      cwd: Type.Optional(Type.String({ description: 'Working directory inside this project. Default this session cwd. The command may write only here, in its git directory, and in temp directories.' })),
       wake: Type.Optional(Type.String({ description: 'Message to wake this session with when the command exits. Omit for a server you will stop yourself.' })),
-      repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
+      repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each clean exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
     }),
     async execute(_id, params, _signal, _update, ctx) {
       if (params.repeat && params.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
       const root = jobsRoot();
       const id = newJobId(params.name);
-      const cwd = params.cwd === undefined ? ctx.cwd : resolve(ctx.cwd, params.cwd);
-      const common = gitCommonDir(cwd);
+      const owner = ctx.sessionManager.getSessionId();
+      const cwd = projectPath(ctx, params.cwd);
+      const common = gitPath(cwd, '--git-common-dir');
+      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: protectedPaths(cwd, common), agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
         name: params.name,
         kind: 'command',
         cwd,
-        argv: sandboxed(['bash', '-c', params.command], { writable: [cwd, ...(common ? [common] : [])], agentDir: getAgentDir() }),
-        owner: ctx.sessionManager.getSessionId(),
+        argv: sandboxed(['bash', '-c', params.command], policy),
+        owner,
         wake: params.wake ?? null,
         repeat: params.repeat ?? false,
+        series: id,
+        socket: tmuxSocket(owner),
         createdAt: new Date().toISOString(),
       };
       return text(`Started ${describe(launch(root, spec))}`);
@@ -254,7 +285,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state, output path, and tmux attach command. output prints the last lines of one job. wait blocks until the named jobs (default all running) exit or the timeout passes, then returns their reports. stop ends jobs and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state, output path, and tmux attach command. output prints the last lines of one job. wait blocks until the named jobs (default all running) exit or the timeout passes, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
@@ -267,8 +298,8 @@ export default function pstack(pi: ExtensionAPI) {
       const named = (): Job[] => {
         if (!params.ids?.length) throw new Error(`${params.action} needs ids.`);
         return params.ids.map((id) => {
-          const job = read(root, id);
-          if (!job || job.spec.owner !== owner) throw new Error(`No job ${id} in this session.`);
+          const job = read(root, id, owner);
+          if (!job) throw new Error(`No job ${id} in this session.`);
           return job;
         });
       };
@@ -284,7 +315,9 @@ export default function pstack(pi: ExtensionAPI) {
               .join('\n\n'),
           );
         case 'stop': {
-          const jobs = named();
+          const series = new Set(named().map((job) => job.spec.series));
+          // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
+          const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
           for (const job of jobs) stop(job);
           return text(`Stopped ${jobs.map((job) => job.spec.id).join(', ')}.`);
         }
@@ -295,7 +328,7 @@ export default function pstack(pi: ExtensionAPI) {
                 .filter((job) => job.status.state === 'running')
                 .map((job) => job.spec.id);
           const deadline = Date.now() + (params.timeout_seconds ?? 1800) * 1000;
-          const current = () => ids.map((id) => read(root, id)).filter((job): job is Job => job !== undefined && job.spec.owner === owner);
+          const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
           for (const id of ids) awaited.add(id);
           try {
             while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted) {
