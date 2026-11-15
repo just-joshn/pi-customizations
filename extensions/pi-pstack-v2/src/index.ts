@@ -49,9 +49,10 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
 }
 
 /** Paths an unsandboxed process later executes from: git hooks and config, and Pi's project extensions and settings. */
-function protectedPaths(cwd: string, common: string | undefined): string[] {
+function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; revert: string[] } {
   const pi = ['extensions', 'settings.json', 'mcp.json'].map((name) => join(cwd, '.pi', name));
-  return common ? [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info')] : pi;
+  const protect = common ? [...pi, join(common, 'hooks'), join(common, 'config'), join(common, 'info')] : pi;
+  return { protect, revert: protect.filter((path) => !existsSync(path)) };
 }
 
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
@@ -200,6 +201,7 @@ export default function pstack(pi: ExtensionAPI) {
         if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
         const common = gitPath(cwd, '--git-common-dir');
         if (!params.readonly) writable.push(cwd, ...(common ? [common] : []));
+        const guarded = protectedPaths(cwd, common);
         const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
         const argv = [
           ...piCommand,
@@ -221,12 +223,13 @@ export default function pstack(pi: ExtensionAPI) {
           name: params.name,
           kind: 'pi',
           cwd,
-          argv: sandboxed(argv, { writable, protect: protectedPaths(cwd, common), agentDir: getAgentDir(), jobDir: dir }),
+          argv: sandboxed(argv, { writable, protect: guarded.protect, agentDir: getAgentDir(), jobDir: dir }),
           owner,
           wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
           repeat: false,
           series: id,
           socket: tmuxSocket(owner),
+          revert: params.readonly ? [] : guarded.revert,
           createdAt: new Date().toISOString(),
         };
         const job = launch(root, spec, files);
@@ -263,7 +266,8 @@ export default function pstack(pi: ExtensionAPI) {
       const owner = ctx.sessionManager.getSessionId();
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
-      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: protectedPaths(cwd, common), agentDir: getAgentDir(), jobDir: join(root, id) };
+      const guarded = protectedPaths(cwd, common);
+      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
         name: params.name,
@@ -275,6 +279,7 @@ export default function pstack(pi: ExtensionAPI) {
         repeat: params.repeat ?? false,
         series: id,
         socket: tmuxSocket(owner),
+        revert: guarded.revert,
         createdAt: new Date().toISOString(),
       };
       return text(`Started ${describe(launch(root, spec))}`);

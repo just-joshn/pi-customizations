@@ -13,7 +13,7 @@ let root: string;
 
 const spec = (command: string, overrides: Partial<JobSpec> = {}): JobSpec => {
   const id = overrides.id ?? newJobId('t');
-  return { id, name: 't', kind: 'command', cwd: root, argv: ['bash', '-c', command], owner, wake: 'done', repeat: false, series: id, socket, createdAt: new Date().toISOString(), ...overrides };
+  return { id, name: 't', kind: 'command', cwd: root, argv: ['bash', '-c', command], owner, wake: 'done', repeat: false, series: id, socket, revert: [], createdAt: new Date().toISOString(), ...overrides };
 };
 
 async function settled(id: string, jobsRoot = root) {
@@ -111,7 +111,8 @@ describe('sandbox policy', () => {
 });
 
 // Each test below reproduces an escape found in review: a sandboxed job reaching an unsandboxed process or file.
-describe.runIf(process.platform === 'darwin')('seatbelt containment', () => {
+// The assertions read host state, since on Linux a write into Pi's agent directory succeeds inside a throwaway overlay.
+describe.runIf(process.platform === 'darwin' || process.platform === 'linux')('sandbox containment', () => {
   let home: string;
   let agentDir: string;
   let work: string;
@@ -128,41 +129,44 @@ describe.runIf(process.platform === 'darwin')('seatbelt containment', () => {
     rmSync(home, { recursive: true, force: true });
   });
 
-  const run = async (command: string, jobsRoot = root) => {
+  const jobsIn = () => join(agentDir, 'pstack-v2', 'jobs');
+  const run = async (command: string) => {
     const id = newJobId('probe');
-    const argv = sandboxed(['bash', '-c', command], { writable: [work], protect: [join(work, '.git', 'hooks')], agentDir, jobDir: join(jobsRoot, id) }, 'darwin', {});
-    return settled(launch(jobsRoot, spec('', { id, argv, cwd: work })).spec.id, jobsRoot);
+    const argv = sandboxed(['bash', '-c', command], { writable: [work], protect: [join(work, '.git', 'hooks')], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    return settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
   };
 
   test('a job writes its working directory but not outside it', async () => {
-    const done = await run(`touch ${work}/ok.txt; touch ${home}/outside.txt`);
-    expect(done.status).toEqual({ state: 'exited', code: 1 });
+    await run(`touch ${work}/ok.txt; touch ${home}/outside.txt`);
     expect([existsSync(join(work, 'ok.txt')), existsSync(join(home, 'outside.txt'))]).toEqual([true, false]);
   });
 
   test('a job cannot run commands through the unsandboxed tmux server', async () => {
-    const done = await run(`tmux -S ${socket} new-session -d 'touch ${home}/escaped.txt'`);
-    expect(done.status).toEqual({ state: 'exited', code: 1 });
+    await run(`tmux -S ${socket} new-session -d 'touch ${home}/escaped.txt'; sleep 1`);
     expect(existsSync(join(home, 'escaped.txt'))).toBe(false);
   });
 
   test('a job cannot swap out Pi extensions or write role lines', async () => {
-    const done = await run(`mv ${agentDir}/extensions ${agentDir}/old || echo '' > ${agentDir}/pstack-v2-models.md`);
-    expect(done.status).toEqual({ state: 'exited', code: 1 });
-    expect([existsSync(join(agentDir, 'extensions')), existsSync(join(agentDir, 'pstack-v2-models.md'))]).toEqual([true, false]);
+    await run(`mv ${agentDir}/extensions ${agentDir}/old; echo injected > ${agentDir}/pstack-v2-models.md`);
+    expect([existsSync(join(agentDir, 'extensions')), existsSync(join(agentDir, 'old')), existsSync(join(agentDir, 'pstack-v2-models.md'))]).toEqual([true, false, false]);
   });
 
   test('a job cannot plant a git hook in a checkout it may write', async () => {
-    const done = await run(`echo evil > ${work}/.git/hooks/pre-commit`);
-    expect(done.status).toEqual({ state: 'exited', code: 1 });
+    await run(`echo evil > ${work}/.git/hooks/pre-commit`);
+    expect(existsSync(join(work, '.git', 'hooks', 'pre-commit'))).toBe(false);
+  });
+
+  test('a protected path the job created is removed when it exits', async () => {
+    const created = join(work, '.pi', 'extensions');
+    const id = newJobId('create');
+    const argv = sandboxed(['bash', '-c', `mkdir -p ${created} && echo planted > ${created}/x.ts`], { writable: [work], protect: [created], agentDir, jobDir: join(jobsIn(), id) }, process.platform, {});
+    const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work, revert: [created] })).spec.id, jobsIn());
+    expect(existsSync(created)).toBe(false);
+    if (process.platform === 'linux') expect(tail(done.dir, 5)).toContain(`pstack removed ${created}`);
   });
 
   test('a job cannot rewrite its own spec', async () => {
-    const jobs = join(home, 'jobs');
-    const id = newJobId('tamper');
-    const argv = sandboxed(['bash', '-c', `echo '{}' > ${join(jobs, id, 'job.json')}`], { writable: [work], protect: [], agentDir, jobDir: join(jobs, id) }, 'darwin', {});
-    const done = await settled(launch(jobs, spec('', { id, argv, cwd: work })).spec.id, jobs);
-    expect(done.status).toEqual({ state: 'exited', code: 1 });
-    expect(done.spec.argv[0]).toBe('sandbox-exec');
+    const done = await run(`for f in ${jobsIn()}/*/job.json; do echo '{}' > "$f"; done`);
+    expect(done.spec.argv[0]).toMatch(/^(sandbox-exec|bwrap)$/);
   });
 });

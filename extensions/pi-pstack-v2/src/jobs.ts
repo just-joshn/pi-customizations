@@ -24,6 +24,11 @@ export interface JobSpec {
   series: string;
   /** Path of the tmux server socket the job runs under. */
   socket: string;
+  /**
+   * Protected paths that did not exist at launch. bubblewrap can only make existing paths read-only, so the
+   * unsandboxed wrapper removes any of these the job created as soon as it exits.
+   */
+  revert: string[];
   createdAt: string;
 }
 
@@ -81,7 +86,8 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   const out = shellQuote(outputPath(dir));
   const capture = spec.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(dir, 'stderr.log'))}; code=$?` : `${command} 2>&1 | tee ${out}; code=\${PIPESTATUS[0]}`;
   const exit = shellQuote(join(dir, 'exit'));
-  const script = `${capture}; echo $code > ${exit}.tmp && mv ${exit}.tmp ${exit}`;
+  const revert = spec.revert.map((path) => `if [ -e ${shellQuote(path)} ] || [ -L ${shellQuote(path)} ]; then rm -rf ${shellQuote(path)}; echo ${shellQuote(`pstack removed ${path}, which the job created.`)} >> ${out}; fi; `).join('');
+  const script = `${capture}; ${revert}echo $code > ${exit}.tmp && mv ${exit}.tmp ${exit}`;
   tmux(spec.socket, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', '-c', script]);
   return { spec, dir, status: { state: 'running' } };
 }

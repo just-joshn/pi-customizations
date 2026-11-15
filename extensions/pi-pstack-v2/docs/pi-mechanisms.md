@@ -64,7 +64,7 @@ Pi's design principle for customizing is to pick the least powerful mechanism th
 - A job cannot connect to a tmux server outside its sandbox, since that server would run whatever it is sent unsandboxed. The spawning session's server socket lives in `/tmp/pstack-v2-<uid>/`, and that directory, the default tmux socket directory, and other jobs' sockets are all out of reach. A Pi worker runs its own jobs on a tmux server under its `nested/` directory, inside its sandbox.
 - A job started from inside a sandboxed job inherits the sandbox it is already in, because macOS cannot nest Seatbelt profiles.
 - The sandbox limits writes and tmux access. Reads and network access stay open, so a job can read anything the user can and send it over the network. `readonly` removes project writes and the edit and write tools, and temp directories stay writable.
-- On Linux, a protected `.pi/` file that does not exist yet cannot be bound read-only, so a writer could create it.
+- bubblewrap can only make existing paths read-only. When a protected path does not exist at launch, the unsandboxed tmux wrapper removes it as soon as the job exits if the job created it, and the job's output says so. Until the job exits, an unsandboxed Pi started in that checkout could load it.
 - Start the main session sandboxed too when you want it contained. For example, run Pi inside one of the methods in Pi's containerization guide.
 
 ## Jobs on disk
