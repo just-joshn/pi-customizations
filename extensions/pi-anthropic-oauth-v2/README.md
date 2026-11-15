@@ -26,11 +26,16 @@ pi auth logout anthropic
 
 `scripts/prove.sh` checks that bare model names reach `anthropic-oauth-v2` when it is the only Claude login.
 
-## Use it
+## Install and use
+
+Install the package and start Pi:
 
 ```bash
-pi -e extensions/pi-anthropic-oauth-v2
+pi install npm:@justjoshn/pi-anthropic-oauth-v2
+pi
 ```
+
+To try it from this checkout, use `pi -e extensions/pi-anthropic-oauth-v2`.
 
 Run `/login`, choose **Anthropic (Claude subscription, OAuth)**, and sign in with your claude.ai account. Then pick an `anthropic-oauth-v2/...` model with `/model`.
 
