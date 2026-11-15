@@ -36,10 +36,24 @@ Run `/login`, choose **Anthropic (Claude subscription, OAuth)**, and sign in wit
 
 This needs Pi 1.5.2 or later.
 
+## Check your usage
+
+Run `/claude-usage` to see how much of your plan's limits you have used. Pi has no built-in usage check, so the extension adds this command. It reads your stored login through Pi, asks Anthropic's subscription usage endpoint (`GET https://api.anthropic.com/api/oauth/usage`), and shows one line per limit:
+
+```text
+Current session: 19% used, resets in 15m
+Current week (all models): 78% used, resets in 1d 15h 55m
+Current week (Fable): 0% used, resets in 1d 15h 55m
+```
+
+The rows, their order, and the model names come from Anthropic, so a new limit shows up without an extension update. The notice turns into a warning when Anthropic marks any limit above normal. With no login, or with a credential that is not a subscription OAuth token, the command sends nothing and asks you to run `/login`. In print mode (`pi -p "/claude-usage"`) the lines go to stderr.
+
+The command is `/claude-usage`, not `/usage`, because `pi-x-subscription-oauth` already registers `/usage`. Pi renames clashing commands to `/usage:1` and `/usage:2`.
+
 ## Check it
 
 ```bash
 bun run test            # OAuth-only rule through pi-ai's real auth and stream paths
-scripts/prove.sh        # real pi: registration, OAuth-only refusals, leanness
-scripts/prove.sh --live # also a real request, a tool call, and a forced token refresh (needs /login first)
+scripts/prove.sh        # real pi: registration, OAuth-only refusals, leanness, /claude-usage without a login
+scripts/prove.sh --live # also a real /claude-usage, a real request, a tool call, and a forced token refresh (needs /login first)
 ```
