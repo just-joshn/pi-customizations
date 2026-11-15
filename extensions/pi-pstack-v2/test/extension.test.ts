@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import pstack, { modelsFile, serveRequests } from '../src/index.ts';
-import { read, request, tmuxSocket } from '../src/jobs.ts';
+import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 type Tool = { execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }> };
@@ -54,7 +54,7 @@ beforeEach(() => {
   ctx = {
     mode: 'tui',
     hasUI: true,
-    ui: { setStatus: vi.fn() },
+    ui: { setStatus: vi.fn(), notify: vi.fn((message: string) => process.stderr.write(`NOTIFY: ${message}\n`)) },
     cwd: repo,
     model: undefined,
     sessionManager: { getSessionId: () => owner },
@@ -72,8 +72,8 @@ afterEach(async () => {
   } catch {
     // No server was started.
   }
-  rmSync(agentDir, { recursive: true, force: true });
-  rmSync(repo, { recursive: true, force: true });
+  rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
 describe('pi_spawn', () => {
@@ -209,6 +209,7 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
   };
   const nestedRequest = (topDir: string, name: string, writable: string[], command: string) => {
     const id = `${name}-000001`;
+    vi.stubEnv('PSTACK_V2_TOP_DIR', topDir);
     request(join(topDir, 'nested'), {
       id,
       name,
@@ -216,7 +217,7 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
       cwd: repo,
       argv: [],
       command: ['bash', '-c', command],
-      policy: { writable, protect: [], lock: [], agentDir, jobDir: join(topDir, 'nested', id) },
+      policy: { writable, protect: [], lock: [], gitDirs: [], agentDir, jobDir: join(topDir, 'nested', id) },
       brokered: true,
       owner: 'top-worker',
       wake: 'done',
@@ -224,11 +225,12 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
       series: id,
       socket: '',
       revert: [],
+      out: '',
       createdAt: new Date().toISOString(),
     });
-    return join(topDir, 'nested', id);
+    return resultsDir(topDir, join(topDir, 'nested', id));
   };
-  const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
+  const exitOf = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
 
   test('the root launches a sandboxed worker request inside what it granted', async () => {
     const top = await topJob();
@@ -255,9 +257,29 @@ describe('nested jobs on macOS', { timeout: 20_000 }, () => {
     expect(existsSync(join(repo, 'narrow.txt'))).toBe(false);
   });
 
+  test('the root never writes through links a worker plants in its request', async () => {
+    const top = await topJob();
+    const victim = join(repo, 'victim.txt');
+    writeFileSync(victim, 'original\n');
+    const out = nestedRequest(top.dir, 'linky', [join(top.dir, 'nested')], 'echo attacker-bytes');
+    const requestDir = join(top.dir, 'nested', 'linky-000001');
+    for (const name of ['output.log', 'exit', 'launched', 'stderr.log']) symlinkSync(victim, join(requestDir, name));
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
+    expect(readFileSync(victim, 'utf8')).toBe('original\n');
+  });
+
+  test('a malformed request does not stop the next one', async () => {
+    const top = await topJob();
+    mkdirSync(join(top.dir, 'nested', 'aaa-broken'), { recursive: true });
+    writeFileSync(join(top.dir, 'nested', 'aaa-broken', 'job.json'), JSON.stringify({ brokered: true, kind: 'command', cwd: repo, command: ['true'], policy: { writable: [1] } }));
+    const out = nestedRequest(top.dir, 'zzz-good', [join(top.dir, 'nested')], 'true');
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
+  });
+
   test.runIf(process.platform === 'darwin')('a sandboxed macOS worker writes a request instead of launching', async () => {
     vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
     vi.stubEnv('PSTACK_V2_JOB_DIR', join(agentDir, 'fake-worker'));
+    vi.stubEnv('PSTACK_V2_TOP_DIR', join(agentDir, 'fake-worker'));
     await call('tmux_run', { name: 'asked', command: 'true' });
     const nested = join(agentDir, 'fake-worker', 'nested');
     const [id] = readdirSync(nested);
@@ -276,6 +298,7 @@ test('a request from a worker that has finished is never launched', { timeout: 2
   const top = read(root, id ?? '', owner);
   if (!top) throw new Error('top job missing');
   const reqId = 'late-000001';
+  vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
   request(join(top.dir, 'nested'), {
     id: reqId,
     name: 'late',
@@ -283,7 +306,7 @@ test('a request from a worker that has finished is never launched', { timeout: 2
     cwd: repo,
     argv: [],
     command: ['bash', '-c', `touch ${repo}/late.txt`],
-    policy: { writable: [repo], protect: [], lock: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
+    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], agentDir, jobDir: join(top.dir, 'nested', reqId) },
     brokered: true,
     owner: 'w',
     wake: null,
@@ -291,10 +314,11 @@ test('a request from a worker that has finished is never launched', { timeout: 2
     series: reqId,
     socket: '',
     revert: [],
+    out: '',
     createdAt: '',
   });
   serveRequests(top, tmuxSocket(owner, {}), join(top.dir, 'nested'), true);
-  expect(existsSync(join(top.dir, 'nested', reqId, 'launched'))).toBe(false);
+  expect(existsSync(join(resultsDir(top.dir, join(top.dir, 'nested', reqId)), 'launched'))).toBe(false);
 });
 
 describe('git cannot be repointed at planted hooks', { timeout: 20_000 }, () => {
@@ -323,6 +347,18 @@ describe('git cannot be repointed at planted hooks', { timeout: 20_000 }, () => 
     rmSync(marker, { force: true });
   });
 
+  test('a job cannot repoint another linked worktree at planted hooks', async () => {
+    git(repo, 'branch', '-m', 'main');
+    const sibling = join(repo, 'sibling');
+    git(repo, 'worktree', 'add', '-q', '-b', 'other', sibling);
+    const marker = join(homedir(), `.pstack-hook-fired-sibling-${process.pid}`);
+    await call('tmux_run', { name: 'sibling', command: `${plant(join(repo, '.fake'), marker)}; echo ${join(repo, '.fake')} > .git/worktrees/sibling/commondir` });
+    await finished();
+    git(sibling, 'commit', '-q', '--allow-empty', '-m', 'after');
+    expect(existsSync(marker)).toBe(false);
+    rmSync(marker, { force: true });
+  });
+
   test('a job in the main checkout cannot swap out its .git directory', async () => {
     const marker = join(homedir(), `.pstack-hook-fired-main-${process.pid}`);
     await call('tmux_run', { name: 'swap', command: `${plant(join(repo, '.fake'), marker)}; mv .git .git-old && mv .fake .git` });
@@ -331,4 +367,90 @@ describe('git cannot be repointed at planted hooks', { timeout: 20_000 }, () => 
     expect(existsSync(marker)).toBe(false);
     rmSync(marker, { force: true });
   });
+});
+
+describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
+  const settledJob = async () => {
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+  };
+
+  test('a .pi linked elsewhere is removed as a link and its target is left alone', async () => {
+    const victim = realpathSync(mkdtempSync(join(homedir(), '.pstack-victim-')));
+    mkdirSync(join(victim, 'extensions'));
+    writeFileSync(join(victim, 'settings.json'), '{}');
+    await call('tmux_run', { name: 'link', command: `ln -s ${victim} .pi` });
+    await settledJob();
+    expect([existsSync(join(repo, '.pi')), existsSync(join(victim, 'extensions')), existsSync(join(victim, 'settings.json'))]).toEqual([false, true, true]);
+    rmSync(victim, { recursive: true, force: true });
+  });
+
+  test('a .pi/extensions renamed into place is removed', async () => {
+    await call('tmux_run', { name: 'rename', command: 'mkdir -p built/extensions && echo planted > built/extensions/x.ts && mv built .pi' });
+    await settledJob();
+    expect(existsSync(join(repo, '.pi', 'extensions'))).toBe(false);
+  });
+
+  test('stopping a job ends its processes and still removes what it planted', async () => {
+    await call('tmux_run', { name: 'planter', command: 'mkdir -p built/extensions && echo planted > built/extensions/x.ts && mv built .pi && sleep 30 & echo $! > sleeper.pid; wait' });
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(repo, 'sleeper.pid')) && existsSync(join(repo, '.pi', 'extensions', 'x.ts')), { timeout: 10_000 }).toBe(true);
+    const sleeper = Number(readFileSync(join(repo, 'sleeper.pid'), 'utf8'));
+    await call('tmux_jobs', { action: 'stop', ids: [id] });
+    await expect.poll(() => existsSync(join(repo, '.pi', 'extensions')), { timeout: 10_000 }).toBe(false);
+    const alive = (): boolean => {
+      try {
+        process.kill(sleeper, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    await expect.poll(alive, { timeout: 5_000 }).toBe(false);
+  });
+
+  test('stop does not touch a tmux server a job points its socket at', async () => {
+    const victim = join(tmpdir(), `pstack-victim-${process.pid}.sock`);
+    execFileSync('tmux', ['-S', victim, 'new-session', '-d', '-s', 'victim', 'sleep 30']);
+    await call('tmux_run', { name: 'pointer', command: 'sleep 30' });
+    const [id] = jobs();
+    const dir = join(agentDir, 'pstack-v2', 'jobs', id ?? '');
+    mkdirSync(join(dir, 'nested'), { recursive: true });
+    symlinkSync(victim, join(dir, 'nested', 'tmux.sock'));
+    await call('tmux_jobs', { action: 'stop', ids: [id] });
+    expect(execFileSync('tmux', ['-S', victim, 'ls'], { encoding: 'utf8' })).toContain('victim');
+    execFileSync('tmux', ['-S', victim, 'kill-server']);
+  });
+
+  test('a heartbeat keeps running after tmux_jobs wait returns its tick', async () => {
+    await call('tmux_run', { name: 'tick', command: 'sleep 0.5', wake: 'Tick.', repeat: true });
+    const [first] = jobs();
+    await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: 10 });
+    expect(jobs()).toHaveLength(2);
+    await call('tmux_jobs', { action: 'stop', ids: [first] });
+  });
+});
+
+describe('credentials', { timeout: 20_000 }, () => {
+  test('a credential command a job plants is removed before Pi can run it, and an existing one is kept', async () => {
+    const auth = join(agentDir, 'auth.json');
+    writeFileSync(auth, JSON.stringify({ mine: { type: 'api_key', key: '!echo mine' }, plain: { type: 'api_key', key: 'sk-x' } }));
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'plant', command: `node -e "const f='${auth}';const a=JSON.parse(require('fs').readFileSync(f));a.evil={type:'api_key',key:'!touch /tmp/pwned'};require('fs').writeFileSync(f,JSON.stringify(a))"` });
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'auth-checked')), { timeout: 10_000 }).toBe(true);
+    const after = JSON.parse(readFileSync(auth, 'utf8')) as Record<string, { key: string }>;
+    expect([after['evil'], after['mine']?.key, after['plain']?.key]).toEqual([undefined, '!echo mine', 'sk-x']);
+    expect(readFileSync(join(agentDir, 'pstack-v2', 'auth-removed.json'), 'utf8')).toContain('!touch /tmp/pwned');
+  });
+});
+
+test('a worker that fails at startup reports its stderr', { timeout: 20_000 }, async () => {
+  const failing = join(agentDir, 'failing-pi.mjs');
+  writeFileSync(failing, "process.stderr.write('No API key for provider\\n'); process.exit(1);\n");
+  process.argv[1] = failing;
+  ctx = { ...ctx, mode: 'print', hasUI: false };
+  await call('pi_spawn', { name: 'broken', brief: 'hi' });
+  const result = (await handlers['agent_before_settle']?.({ entries: [] }, ctx)) as { entries: { content: string }[] };
+  expect(result.entries[0]?.content).toContain('No API key for provider');
 });
