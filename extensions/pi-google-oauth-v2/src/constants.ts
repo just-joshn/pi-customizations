@@ -1,7 +1,8 @@
 export const PROVIDER_ID = 'google-oauth-v2';
 export const PROVIDER_DISPLAY_NAME = 'Google AI subscription';
 export const API_ID = 'google-code-assist';
-export const CODE_ASSIST_BASE_URL = 'https://cloudcode-pa.googleapis.com/v1internal';
+// Consumer plans are served by the daily ring. Production cloudcode-pa returns 429 RESOURCE_EXHAUSTED to them.
+export const CODE_ASSIST_BASE_URL = 'https://daily-cloudcode-pa.googleapis.com/v1internal';
 export const PRIVATE_PROJECT_HEADER = 'x-pi-google-oauth-v2-project';
 
 const OS_TYPES: Record<string, string> = { darwin: 'darwin', linux: 'linux', win32: 'windows' };

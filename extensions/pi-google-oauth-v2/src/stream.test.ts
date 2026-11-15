@@ -52,7 +52,7 @@ describe('request', () => {
     const { stream, sent } = run(sseResponse(frame(stopChunk())));
     await collect(stream);
     expect(sent).toHaveLength(1);
-    expect(sent[0]?.url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
+    expect(sent[0]?.url).toBe('https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse');
     expect(sent[0]?.headers).toMatchObject({ authorization: 'Bearer tok-abc', 'content-type': 'application/json', accept: 'text/event-stream' });
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
     expect(sent[0]?.body.project).toBe('proj-1');
@@ -146,6 +146,24 @@ describe('failures before the first event', () => {
     const { stream } = run(new Response('secret-ish body', { status: 500, statusText: 'Server Error' }));
     const events = await collect(stream);
     expect(message(events[0]).errorMessage).toBe('Google Code Assist error (500): Server Error');
+  });
+
+  test('retries a 429 capacity throttle and recovers', async () => {
+    let call = 0;
+    const { stream, fetchImpl } = run(() => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))), {
+      maxRetryDelayMs: 0,
+    });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(terminal(events)[0]?.type).toBe('done');
+    expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
+  });
+
+  test('surfaces the 429 message after exhausting retries', async () => {
+    const { stream, fetchImpl } = run(() => Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
+    const events = await collect(stream);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
   });
 
   test('a rejected fetch ends with an error event', async () => {
