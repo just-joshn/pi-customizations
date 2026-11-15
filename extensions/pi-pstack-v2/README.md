@@ -13,7 +13,7 @@ See [docs/pi-mechanisms.md](docs/pi-mechanisms.md) for the full mapping and [the
 
 - Pi 1.5 or newer.
 - tmux. Pi's `docs/tmux.md` covers the extended-keys setup.
-- A sandbox. macOS has Seatbelt built in. On Linux and WSL2, install bubblewrap (`bwrap`) 0.10 or newer. Jobs refuse to start without one.
+- A sandbox. macOS has Seatbelt built in. On Linux and WSL2, install bubblewrap (`bwrap`). Jobs refuse to start without one.
 - bun and `gh` for the scripts some skills run, such as `watch-pr` and `statechart`.
 
 ## Install
