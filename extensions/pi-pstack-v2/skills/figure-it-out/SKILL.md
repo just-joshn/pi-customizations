@@ -49,6 +49,6 @@ Log the run via the **show-me-your-work** skill. figure-it-out's work is usually
 
 ## Phase E: Verify and hand back
 
-Check the whole against the Phase A predicate on the real product, not just the harness. Encode any recurring correction as a gate, a lint rule, a check, or a script (the **encode-lessons-in-structure** principle skill).
+Check the whole against the Phase A predicate on the real product, not just the harness. Encode any recurring correction as a gate, a lint rule, a check, or a script (the **encode-lessons-in-structure** principle skill). When an external dependency (a down service, a staging outage) blocks verification past a bounded wait, hand back with the current pass and fail state, the open items, and every scope decision. Never end a run inside an open-ended wait.
 
 **Reply:** the playbook you designed, the rigor level and why, the decision-trail path, what's verified against the predicate, and what's still open.
