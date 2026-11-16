@@ -856,7 +856,50 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
 describe('workers and the jobs they start', { timeout: 30_000 }, () => {
   const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
 
-  test('a print-mode worker hears about a finished job while it works, so its final reply stays its report', async () => {
+  test('a real print-mode worker keeps its report and later correction after a late wake', async () => {
+    mkdirSync(join(agentDir, 'extensions'));
+    const runtime = fileURLToPath(new URL('../src/index.ts', import.meta.url));
+    const release = join(repo, 'release');
+    const sawLate = join(repo, 'saw-late');
+    writeFileSync(join(agentDir, 'extensions', 'scripted.ts'), `
+import { writeFileSync } from 'node:fs';
+import { fauxProvider, fauxAssistantMessage, fauxToolCall } from '@earendil-works/pi-ai';
+import pstack from ${JSON.stringify(runtime)};
+export default function (pi) {
+  pstack(pi);
+  const faux = fauxProvider({ provider: 'prov', models: [{ id: 'model' }] });
+  faux.setResponses([
+    fauxAssistantMessage(fauxToolCall('tmux_run', { name: 'late', command: ${JSON.stringify(`while [ ! -e '${release}' ]; do sleep 0.1; done; echo late-output`)}, wake: 'Late result.' }), { stopReason: 'toolUse' }),
+    fauxAssistantMessage('SUBSTANTIVE REPORT: initial verdict PASS'),
+    context => {
+      writeFileSync(${JSON.stringify(sawLate)}, String(JSON.stringify(context).includes('late-output')));
+      return fauxAssistantMessage('CORRECTION: late result checked. ACK.');
+    },
+  ]);
+  pi.registerProvider(faux.provider);
+}
+`);
+    process.argv[1] = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
+    await handlers['session_start']?.({}, ctx);
+    await call('pi_spawn', { name: 'scripted', brief: 'Run the scripted check.', model: 'prov/model', wake: false });
+    const id = jobs()[0] ?? '';
+    const dir = join(jobsRoot(), id);
+    const session = join(dir, 'session');
+    await expect.poll(() => readdirSync(session).some((file) => readFileSync(join(session, file), 'utf8').includes('SUBSTANTIVE REPORT: initial verdict PASS')), { timeout: 20_000 }).toBe(true);
+    expect(existsSync(join(dir, 'exit'))).toBe(false);
+    writeFileSync(release, 'release');
+    const waited = await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 20 });
+    expect(readFileSync(sawLate, 'utf8')).toBe('true');
+    expect(readFileSync(join(dir, 'output.log'), 'utf8').trim()).toBe('CORRECTION: late result checked. ACK.');
+    for (const result of [waited, await call('tmux_jobs', { action: 'output', ids: [id] })]) {
+      const report = result?.content.map((item) => item.text).join('\n') ?? '';
+      expect(report).toMatch(/SUBSTANTIVE REPORT: initial verdict PASS[\s\S]*CORRECTION: late result checked\. ACK\./);
+      expect(report).toContain('Transcript:');
+      expect(report).toContain(session);
+    }
+  }, 50_000);
+
+  test('a print-mode worker hears about a finished job while it works', async () => {
     ctx = { ...ctx, mode: 'print', hasUI: false, isIdle: () => false };
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'probe', command: 'echo probe-output', wake: 'Probe done.' });
@@ -879,10 +922,11 @@ describe('workers and the jobs they start', { timeout: 30_000 }, () => {
     vi.stubEnv('PSTACK_V2_JOB_DIR', top);
     vi.stubEnv('PSTACK_V2_TOP_DIR', top);
     vi.stubEnv('TMPDIR', workerTmp);
-    await call('tmux_run', { name: 'child', command: 'echo from-child > "$TMPDIR/handoff"' });
+    await call('tmux_run', { name: 'child', command: 'printf "%s" "$MAC_CHROMIUM_TMPDIR" > "$TMPDIR/handoff"' });
     vi.stubEnv('PSTACK_V2_SANDBOXED', '');
     vi.stubEnv('TMPDIR', rootTmp);
     await expect.poll(() => existsSync(join(workerTmp, 'handoff')), { timeout: 10_000 }).toBe(true);
+    expect(readFileSync(join(workerTmp, 'handoff'), 'utf8')).toBe(workerTmp);
   });
 
   test('tmux_run may run in a linked worktree of this repository, such as a worker checkout', async () => {
@@ -947,11 +991,32 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     expect(await run(`mkdir -p "$TMPDIR/ff"; '${firefox}' -headless -no-remote -profile "$TMPDIR/ff" -screenshot "$TMPDIR/shot.png" 'data:text/html,hi' >/dev/null 2>&1; test -s "$TMPDIR/shot.png" && echo SHOT`)).toBe('SHOT');
   });
 
-  test.skipIf(process.platform !== 'darwin')("a job can create Chromium's download temp files in the per-user temp directory, and nothing else there", async () => {
+  test.skipIf(process.platform !== 'darwin')('a job cannot write any name in the per-user temp directory', async () => {
     const output = await run(
       'T=$(getconf DARWIN_USER_TEMP_DIR); n=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c6); echo x > "$T/.com.google.Chrome.$n" && echo CHROME-TEMP && rm "$T/.com.google.Chrome.$n"; { echo x > "$T/.com.google.Chrome.pstack-long"; } 2>/dev/null && echo LONG-NAME; { echo x > "$T/pstack-other-$$"; } 2>/dev/null && echo OTHER',
     );
-    expect(output).toBe('CHROME-TEMP');
+    expect(output).toBe('');
+  });
+
+  test('top-level commands point Chromium at their private temp directory', async () => {
+    const output = await run('printf "%s|%s" "$TMPDIR" "$MAC_CHROMIUM_TMPDIR"');
+    const tmp = join(jobsRoot(), jobs()[0] ?? '', 'tmp');
+    expect(output).toBe(`${tmp}|${tmp}`);
+  });
+
+  test.skipIf(process.platform !== 'darwin')('a job cannot overwrite an external matching-name temp file', async () => {
+    const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
+    const fixture = join(shared, `.com.google.Chrome.${process.pid.toString(36).padStart(6, '0').slice(-6)}`);
+    writeFileSync(fixture, 'outside-original', { flag: 'wx' });
+    try {
+      await call('tmux_run', { name: 'overwrite', command: `printf changed > '${fixture}'` });
+      const dir = join(jobsRoot(), jobs()[0] ?? '');
+      await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 10_000 }).toBe(true);
+      expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).not.toBe('0');
+      expect(readFileSync(fixture, 'utf8')).toBe('outside-original');
+    } finally {
+      rmSync(fixture);
+    }
   });
 
   test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < 11)('pnpm runs a script in a project that pins another pnpm version', async () => {
