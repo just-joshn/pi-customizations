@@ -1,8 +1,9 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
+import manifest from '../package.json' with { type: 'json' };
 import dark from '../themes/snoop-dark.json' with { type: 'json' };
 import light from '../themes/snoop-light.json' with { type: 'json' };
 
@@ -21,4 +22,9 @@ test.for([
   for (const value of [...Object.values(theme.colors), ...Object.values(theme.export)]) {
     expect(value.startsWith('okhsl(') || Object.hasOwn(theme.vars, value)).toBe(true);
   }
+});
+
+test('the package manifest lists every theme file', () => {
+  const files = readdirSync(new URL('../themes', import.meta.url)).filter((name) => name.endsWith('.json'));
+  expect([...manifest.pi.themes].sort()).toEqual(files.map((name) => `./themes/${name}`).sort());
 });

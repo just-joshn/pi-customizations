@@ -1,9 +1,16 @@
-startup start: 13:41  up 3 days,  8:02, 3 users, load averages: 6.01 6.41 8.44
-long start: 13:41  up 3 days,  8:03, 3 users, load averages: 5.33 6.19 8.28
-stream start: 13:45  up 3 days,  8:06, 3 users, load averages: 4.24 5.77 7.69
-medium start: 13:53  up 3 days,  8:15, 3 users, load averages: 4.05 4.74 6.21
-end: 14:02  up 3 days,  8:23, 3 users, load averages: 11.73 6.88 6.30
-recheck start: 14:04  up 3 days,  8:25, 3 users, load averages: 4.19 5.80 5.97
-recheck end: 14:08  up 3 days,  8:30, 3 users, load averages: 4.77 4.98 5.54
-recheck2 start: 14:11  up 3 days,  8:32, 3 users, load averages: 4.83 4.75 5.35
-recheck2 end: 14:15  up 3 days,  8:36, 3 users, load averages: 4.01 4.60 5.14
+startup: waited 0s
+startup before: 17:34  up 3 days, 11:56, 3 users, load averages: 3.36 3.64 3.64
+startup exit=0 after: 17:35  up 3 days, 11:56, 3 users, load averages: 4.10 3.80 3.70
+stream: waited 0s
+stream before: 17:35  up 3 days, 11:56, 3 users, load averages: 4.10 3.80 3.70
+stream exit=0 after: 17:44  up 3 days, 12:05, 3 users, load averages: 3.37 3.59 3.63
+medium: waited 0s
+medium before: 17:44  up 3 days, 12:05, 3 users, load averages: 3.74 3.67 3.66
+medium exit=0 after: 17:55  up 3 days, 12:17, 3 users, load averages: 3.84 3.67 3.62
+long: waited 0s
+long before: 17:55  up 3 days, 12:17, 3 users, load averages: 3.84 3.67 3.62
+long exit=0 after: 18:00  up 3 days, 12:21, 3 users, load averages: 2.38 3.08 3.38
+mixed: waited 0s
+mixed before: 18:00  up 3 days, 12:21, 3 users, load averages: 2.38 3.08 3.38
+mixed exit=0 after: 18:04  up 3 days, 12:25, 3 users, load averages: 3.61 3.08 3.29
+ALLDONE

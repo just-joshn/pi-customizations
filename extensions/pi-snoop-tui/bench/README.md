@@ -73,6 +73,8 @@ Before the first resize, the driver also types 20 `q` characters at 100 ms inter
 
 `report.py` prints one section per workload and drops a metric when a record lacks it, so older result files still report.
 
+`summary.py label=results.jsonl ...` prints the headline metrics of each file in one table: the `stock` and `full` medians, the paired difference, the rounds `full` was lower, and two verdicts. The strict verdict needs the paired min..max to exclude 0. The sign-test verdict needs `full` lower or higher in 13 of 15, 7 of 9, or 6 of 7 rounds. `--config` and `--baseline` pick other configurations. `results/final.md` uses it.
+
 ## Run the mixed-tool benchmark
 
 ```sh
@@ -103,7 +105,7 @@ NODE_OPTIONS="--cpu-prof --cpu-prof-dir=$TMPDIR/prof-full" python3 run.py --runs
 python3 profile-summary.py "$TMPDIR/prof-full" --record "$TMPDIR/prof.jsonl"
 ```
 
-`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file. `--phase` picks another window from that record: `idle`, `cleanIdle`, a long step name such as `storm`, `typing`, or `burst`, or `startup`.
+`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file. `--phase` picks another window from that record: `idle`, `cleanIdle`, a long step name such as `storm`, `typing` (collapsed), `expandedTyping`, or `burst`, or `startup`.
 
 It also buckets busy time by owner: each sample goes to the innermost class in its stack. Pi ships as a minified bundle, so the script finds class bodies in the bundle source by matching braces. It prints owner self time, inclusive time per class, and self time per file.
 

@@ -1,0 +1,8 @@
+startup round 0 waited 0s 15:29:19 15:29  up 3 days,  9:50, 3 users, load averages: 3.95 6.81 8.65
+startup round 1 waited 0s 15:29:45 15:29  up 3 days,  9:50, 3 users, load averages: 4.01 6.59 8.51
+startup round 2 waited 0s 15:30:11 15:30  up 3 days,  9:51, 3 users, load averages: 4.06 6.38 8.38
+startup round 3 waited 0s 15:30:38 15:30  up 3 days,  9:51, 3 users, load averages: 3.93 6.12 8.22
+startup round 4 waited 0s 15:31:04 15:31  up 3 days,  9:52, 3 users, load averages: 3.95 5.96 8.10
+startup round 5 waited 0s 15:31:30 15:31  up 3 days,  9:52, 3 users, load averages: 3.91 5.79 7.97
+startup round 6 waited 0s 15:31:56 15:31  up 3 days,  9:53, 3 users, load averages: 4.13 5.69 7.87
+startup end 15:32:23 15:32  up 3 days,  9:53, 3 users, load averages: 3.98 5.50 7.73
