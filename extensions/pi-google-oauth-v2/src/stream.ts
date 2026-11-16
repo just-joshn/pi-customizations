@@ -34,7 +34,6 @@ interface ResponsePart {
 
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 
-// Google returns 429 RESOURCE_EXHAUSTED for a short-term capacity limit, so retry with the server's delay.
 function retryDelayMs(body: string, headers: Headers): number | undefined {
   const retryAfter = headers.get('retry-after');
   if (retryAfter) {
@@ -80,6 +79,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
   };
 
   (async () => {
+    let reducer: ResponseReducer | undefined;
     try {
       const { project, headers } = takePrivateProjectHeader(options.headers);
       if (!options.apiKey || !project) throw new Error('Google AI login is incomplete; run /login again');
@@ -105,18 +105,19 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
         const text = await response.text().catch(() => '');
         const message = googleErrorMessage(text) ?? (response.statusText || 'request failed');
         const quotaExhausted = /QUOTA_EXHAUSTED|Individual quota reached/i.test(text);
-        const capacityThrottle = response.status === 429 && !quotaExhausted;
+        const failure = `Google Code Assist API error (${response.status}): ${message}${quotaExhausted ? ' (quota exceeded)' : ''}`;
         if (!RETRYABLE_STATUS.has(response.status) || quotaExhausted || attempt >= baseRetries) {
-          // Google says "check quota" for a shared-capacity throttle too, which misreads as the user's own quota.
-          if (capacityThrottle) throw new Error('Google Code Assist is temporarily at capacity (429). This is shared capacity, not your plan quota. Try again in a moment.');
-          throw new Error(`Google Code Assist error (${response.status}): ${message}`);
+          throw new Error(failure);
         }
-        const delay = Math.min(retryDelayMs(text, response.headers) ?? 1000 * 2 ** attempt, maxRetryDelayMs);
-        await sleep(delay, options.signal);
+        const serverDelay = retryDelayMs(text, response.headers);
+        if (serverDelay !== undefined && maxRetryDelayMs > 0 && serverDelay > maxRetryDelayMs) {
+          throw new Error(`Server requested ${serverDelay}ms retry delay, exceeding configured cap ${maxRetryDelayMs}ms. ${failure}`);
+        }
+        await sleep(serverDelay ?? 1000 * 2 ** attempt, options.signal);
       }
 
       stream.push({ type: 'start', partial: output });
-      const reducer = new ResponseReducer(stream, output, model);
+      reducer = new ResponseReducer(stream, output, model);
       for await (const chunk of parseSse(response.body, options.signal)) {
         await options.onProviderStreamEvent?.(chunk, model);
         reducer.push(chunk);
@@ -125,6 +126,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
       reducer.finish();
       stream.push({ type: 'done', reason: output.stopReason === 'toolUse' || output.stopReason === 'length' ? output.stopReason : 'stop', message: output });
     } catch (error) {
+      reducer?.closeOpen();
       output.stopReason = options.signal?.aborted ? 'aborted' : 'error';
       output.errorMessage = error instanceof Error ? error.message : String(error);
       stream.push({ type: 'error', reason: output.stopReason, error: output });
@@ -153,6 +155,7 @@ async function* parseSse(body: ReadableStream<Uint8Array> | null, signal: AbortS
   const onAbort = () => void reader.cancel().catch(() => undefined);
   signal?.addEventListener('abort', onAbort, { once: true });
   let buffered = '';
+  let previousChunkEndedCR = false;
   let dataLines: string[] = [];
 
   const flush = (): CodeAssistChunk | undefined => {
@@ -174,7 +177,11 @@ async function* parseSse(body: ReadableStream<Uint8Array> | null, signal: AbortS
   try {
     for (;;) {
       const { done, value } = await reader.read();
-      buffered += decoder.decode(value, { stream: !done });
+      const decoded = decoder.decode(value, { stream: !done });
+      if (decoded.length > 0) {
+        buffered += previousChunkEndedCR && decoded.startsWith('\n') ? decoded.slice(1) : decoded;
+        previousChunkEndedCR = decoded.endsWith('\r');
+      }
       const lines = buffered.split(/\r\n|\n|\r/);
       buffered = done ? '' : (lines.pop() ?? '');
       for (const line of lines) {
@@ -283,7 +290,7 @@ class ResponseReducer {
     this.stream.push({ type: 'toolcall_end', contentIndex, toolCall, partial: this.output });
   }
 
-  private closeOpen(): void {
+  closeOpen(): void {
     if (!this.open) return;
     const contentIndex = this.output.content.length - 1;
     const block = this.output.content[contentIndex];

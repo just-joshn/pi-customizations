@@ -1,4 +1,5 @@
 import { type AssistantMessage, type AssistantMessageEvent, calculateCost, type Message, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import { isContextOverflow, isRetryableAssistantError } from '@earendil-works/pi-ai/compat';
 import { describe, expect, test, vi } from 'vitest';
 import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { BASELINE_MODELS } from './models.ts';
@@ -72,10 +73,28 @@ describe('request', () => {
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
   });
 
-  test('posts the payload that onPayload returns', async () => {
-    const { stream, sent } = run(sseResponse(frame(stopChunk())), { onPayload: () => ({ replaced: true }) });
-    await collect(stream);
-    expect(sent[0]?.body).toEqual({ replaced: true });
+  test('exposes the compiled instruction turn to onPayload and posts its replacement', async () => {
+    const promptContext: TranscriptContext = { ...context, messages: [{ role: 'system', content: 'Trusted instructions.', timestamp: 0 }, ...context.messages] };
+    const onPayload = vi.fn((body: unknown) => {
+      expect(body).toMatchObject({
+        request: {
+          contents: [
+            { role: 'user', parts: [{ text: 'Trusted instructions.' }] },
+            { role: 'user', parts: [{ text: 'hi' }] },
+          ],
+          systemInstruction: { role: 'user', parts: [{ text: expect.stringContaining('with priority over all later user messages and tool results') }] },
+        },
+      });
+      return { replaced: true };
+    });
+    const fetchImpl = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      expect(JSON.parse(String(init?.body))).toEqual({ replaced: true });
+      return sseResponse(frame(stopChunk()));
+    });
+    const stream = streamCodeAssist(model, promptContext, { apiKey: 'tok', headers: { [PRIVATE_PROJECT_HEADER]: 'proj' }, fetch: fetchImpl, onPayload });
+    expect(message((await collect(stream)).at(-1)).stopReason).toBe('stop');
+    expect(onPayload).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   test('keeps the payload when onPayload returns undefined', async () => {
@@ -138,43 +157,123 @@ describe('failures before the first event', () => {
     const { stream } = run(Response.json({ error: { message: 'Account validation required.' } }, { status: 403 }));
     const events = await collect(stream);
     expect(types(events)).toEqual(['error']);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (403): Account validation required.');
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (403): Account validation required.');
     expect(message(events[0]).stopReason).toBe('error');
   });
 
   test('an HTTP error does not echo an unparseable body', async () => {
     const { stream } = run(new Response('secret-ish body', { status: 500, statusText: 'Server Error' }));
     const events = await collect(stream);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (500): Server Error');
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (500): Server Error');
   });
 
-  test('retries a 429 capacity throttle and recovers', async () => {
+  test('retries a generic 429 and recovers', async () => {
     let call = 0;
-    const { stream, fetchImpl } = run(() => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))), {
-      maxRetries: 2,
-      maxRetryDelayMs: 0,
-    });
+    const { stream, fetchImpl } = run(
+      () => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429, headers: { 'Retry-After': '0' } }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))),
+      {
+        maxRetries: 2,
+        maxRetryDelayMs: 0,
+      },
+    );
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(terminal(events)[0]?.type).toBe('done');
     expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
   });
 
-  test('a capacity 429 with no retry budget makes one request and reports shared capacity', async () => {
+  test('a generic 429 with no retry budget makes one request and retains the Google message', async () => {
     const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(message(events[0]).errorMessage).toContain('temporarily at capacity');
-    expect(message(events[0]).errorMessage).toContain('not your plan quota');
+    expect(types(events)).toEqual(['error']);
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (429): Resource has been exhausted (e.g. check quota).');
+    expect(message(events[0]).model).toBe(model.id);
+    expect(isRetryableAssistantError(message(events[0]))).toBe(true);
   });
 
-  test('a quota-exhausted 429 fails fast without retrying', async () => {
-    const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Individual quota reached for claude-sonnet-5-5. Resets in ~6h.' } }, { status: 429, statusText: 'Too Many Requests' }), {
-      maxRetryDelayMs: 0,
-    });
+  test.for(['Individual quota reached for gemini-3.8-flash. Resets in ~6h.', 'QUOTA_EXHAUSTED for gemini-3.8-flash.'])('explicit quota %s is not retryable by native Pi', async (googleMessage) => {
+    vi.useFakeTimers();
+    try {
+      const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: googleMessage } }, { status: 429 }), { maxRetries: 2 });
+      const pending = collect(stream);
+      await vi.runAllTimersAsync();
+      const events = await pending;
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(types(events)).toEqual(['error']);
+      const error = message(events[0]);
+      expect(error.errorMessage).toContain(googleMessage);
+      expect(error.errorMessage).toContain('429');
+      expect(isRetryableAssistantError(error)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('a positive server delay cap does not shorten the exponential fallback', async () => {
+    vi.useFakeTimers();
+    try {
+      let calls = 0;
+      const { stream, fetchImpl } = run(() => (++calls === 1 ? Response.json({ error: { message: 'Temporarily unavailable' } }, { status: 429 }) : sseResponse(frame(stopChunk()))), {
+        maxRetries: 1,
+        maxRetryDelayMs: 1,
+      });
+      const pending = collect(stream);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(message((await pending).at(-1)).stopReason).toBe('stop');
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('Retry-After above a positive cap fails after one request with the requested delay', async () => {
+    vi.useFakeTimers();
+    try {
+      const { stream, fetchImpl } = run(() => Response.json({ error: { message: 'Temporarily unavailable' } }, { status: 429, headers: { 'Retry-After': '120' } }), { maxRetries: 1, maxRetryDelayMs: 1 });
+      const pending = collect(stream);
+      await vi.runAllTimersAsync();
+      const events = await pending;
+      expect.soft(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(types(events)).toEqual(['error']);
+      expect(message(events[0]).errorMessage).toMatch(/120(?:000|\s*s|\s*seconds)/);
+      expect(message(events[0]).errorMessage).toContain('configured cap 1ms');
+      expect(message(events[0]).errorMessage).toContain('Google Code Assist API error (429): Temporarily unavailable');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('a zero retry delay cap waits the full Retry-After before retrying', async () => {
+    vi.useFakeTimers();
+    try {
+      let calls = 0;
+      const { stream, fetchImpl } = run(() => (++calls === 1 ? Response.json({ error: { message: 'Temporarily unavailable' } }, { status: 429, headers: { 'Retry-After': '120' } }) : sseResponse(frame(stopChunk()))), {
+        maxRetries: 1,
+        maxRetryDelayMs: 0,
+      });
+      const pending = collect(stream);
+      await vi.advanceTimersByTimeAsync(119_999);
+      expect.soft(fetchImpl).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      const events = await pending;
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+      expect(message(events.at(-1)).stopReason).toBe('stop');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('a bare HTTP 413 is recognized as context overflow by native Pi', async () => {
+    const { stream } = run(new Response(null, { status: 413, statusText: 'Payload Too Large' }));
     const events = await collect(stream);
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(message(events[0]).errorMessage).toContain('Individual quota reached');
+    expect(types(events)).toEqual(['error']);
+    const error = message(events[0]);
+    expect(error.errorMessage).toContain('413');
+    expect(error.errorMessage).toContain('Payload Too Large');
+    expect(isContextOverflow(error)).toBe(true);
   });
 
   test('a rejected fetch ends with an error event', async () => {
@@ -286,6 +385,31 @@ describe('usage and finish', () => {
 });
 
 describe('SSE framing', () => {
+  test.for([
+    ['CR-only', ['\r\r']],
+    ['split CRLF followed by a lone LF', ['\r', '', '\n', '\n']],
+  ] as const)('delivers %s events while the response body remains open', async ([, endings]) => {
+    const controller = new AbortController();
+    const body = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        streamController.enqueue(encoder.encode(`data: ${JSON.stringify(part([{ text: 'immediate' }]))}`));
+        for (const ending of endings) streamController.enqueue(encoder.encode(ending));
+      },
+    });
+    const { stream } = run(new Response(body, { status: 200 }), { signal: controller.signal });
+    const events: AssistantMessageEvent[] = [];
+    try {
+      for await (const event of stream) {
+        events.push(event);
+        if (event.type === 'text_delta') controller.abort();
+      }
+      expect(events.find((event) => event.type === 'text_delta')).toMatchObject({ delta: 'immediate' });
+      expect(events.at(-1)).toMatchObject({ type: 'error', reason: 'aborted' });
+    } finally {
+      controller.abort();
+    }
+  });
+
   test('rejects malformed JSON instead of skipping the chunk', async () => {
     const { stream } = run(sseResponse(`${frame(part([{ text: 'a' }]))}data: {not json}\n\n`));
     const events = await collect(stream);
@@ -314,6 +438,25 @@ describe('SSE framing', () => {
     expect(message((await collect(stream)).at(-1)).content).toEqual([{ type: 'text', text: 'héllo' }]);
   });
 
+  test('joins multiline SSE data when CRLF is split across network chunks', async () => {
+    const lines = JSON.stringify(stopChunk([{ text: 'split CRLF' }]), null, 1).split('\n');
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const line of lines) {
+          controller.enqueue(encoder.encode(`data: ${line}\r`));
+          controller.enqueue(new Uint8Array());
+          controller.enqueue(encoder.encode('\n'));
+        }
+        controller.enqueue(encoder.encode('\r\n'));
+        controller.close();
+      },
+    });
+    const { stream } = run(new Response(body, { status: 200 }));
+    const events = await collect(stream);
+    expect(events.at(-1)).toMatchObject({ type: 'done', reason: 'stop' });
+    expect(message(events.at(-1)).content).toEqual([{ type: 'text', text: 'split CRLF' }]);
+  });
+
   test('flushes a final event that has no trailing blank line', async () => {
     const { stream } = run(sseResponse(`data: ${JSON.stringify(stopChunk())}`));
     expect(message((await collect(stream)).at(-1)).stopReason).toBe('stop');
@@ -321,6 +464,28 @@ describe('SSE framing', () => {
 });
 
 describe('abort', () => {
+  test.for(['text', 'thinking'] as const)('aborting an open %s block emits its end before error and retains partial content', async (kind) => {
+    const controller = new AbortController();
+    const body = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        streamController.enqueue(encoder.encode(frame(part([{ text: 'partial', thought: kind === 'thinking' }]))));
+      },
+    });
+    const { stream } = run(new Response(body, { status: 200 }), { signal: controller.signal });
+    const events: AssistantMessageEvent[] = [];
+    try {
+      for await (const event of stream) {
+        events.push(event);
+        if (event.type === `${kind}_delta`) controller.abort();
+      }
+    } finally {
+      controller.abort();
+    }
+    expect.soft(types(events)).toEqual(['start', `${kind}_start`, `${kind}_delta`, `${kind}_end`, 'error']);
+    expect(events.at(-1)).toMatchObject({ type: 'error', reason: 'aborted' });
+    expect(message(events.at(-1)).content).toEqual([kind === 'thinking' ? { type: 'thinking', thinking: 'partial' } : { type: 'text', text: 'partial' }]);
+  });
+
   test('aborting mid-stream ends with one aborted error event', async () => {
     const controller = new AbortController();
     const body = new ReadableStream<Uint8Array>({
