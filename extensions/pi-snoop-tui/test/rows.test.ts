@@ -272,7 +272,7 @@ describe('row edges', () => {
     expect(visibleWidth(line)).toBe(100 - outputPad);
   });
   test('expanded panels drop blank first and last native lines', () => {
-    const native = { renderResult: () => ({ render: () => ['', '  ', 'PASS cache.test.ts', '', 'respects cancellation', '\x1b[0m'], invalidate: () => {} }) };
+    const native = { renderResult: () => ({ render: () => ['', '  ', 'PASS cache.test.ts', '', 'respects cancellation', '\x1b[0m', '\x1b]8;;https://example.com\x07 \x1b]8;;\x07'], invalidate: () => {} }) };
     const row = driveRow(compactRenderers(TOOL_SPECS.bash, native), stubTheme());
     row.apply({ args: { command: 'npm test' }, executionStarted: true, result: output('PASS'), isPartial: false, expanded: true });
     const body = row

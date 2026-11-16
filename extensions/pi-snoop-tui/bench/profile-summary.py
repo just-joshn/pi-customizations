@@ -148,7 +148,7 @@ def window_for(record: dict, phase: str) -> tuple[float, float]:
     if phase in provider:
         start, end = provider[phase]
         return record[start], record[end]
-    nested = {"typing": record.get("collapsedEcho"), "burst": record.get("burst"), "startup": record.get("startup") or record.get("steps", {}).get("startup")}
+    nested = {"typing": record.get("collapsedEcho"), "expandedTyping": record.get("echo"), "burst": record.get("burst"), "startup": record.get("startup") or record.get("steps", {}).get("startup")}
     source = nested.get(phase) or record.get("steps", {}).get(phase)
     if not source:
         raise SystemExit(f"phase {phase!r} not in record")
@@ -208,7 +208,7 @@ def main() -> None:
     parser.add_argument("profile_dir")
     parser.add_argument("--top", type=int, default=15)
     parser.add_argument("--record", help="run.py JSONL; its last record's window limits the samples")
-    parser.add_argument("--phase", default="workload", help="window in the record: workload, idle, cleanIdle, startup, typing, burst, or a long step name")
+    parser.add_argument("--phase", default="workload", help="window in the record: workload, idle, cleanIdle, startup, typing, expandedTyping, burst, or a long step name")
     parser.add_argument("--callers", help="print the call chains above samples whose leaf function has this name")
     parser.add_argument("--match", default="pi-snoop-tui/src/", help="path fragment that marks extension code")
     args = parser.parse_args()

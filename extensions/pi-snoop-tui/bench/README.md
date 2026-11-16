@@ -103,7 +103,7 @@ NODE_OPTIONS="--cpu-prof --cpu-prof-dir=$TMPDIR/prof-full" python3 run.py --runs
 python3 profile-summary.py "$TMPDIR/prof-full" --record "$TMPDIR/prof.jsonl"
 ```
 
-`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file. `--phase` picks another window from that record: `idle`, `cleanIdle`, a long step name such as `storm`, `typing`, or `burst`, or `startup`.
+`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file. `--phase` picks another window from that record: `idle`, `cleanIdle`, a long step name such as `storm`, `typing` (collapsed), `expandedTyping`, or `burst`, or `startup`.
 
 It also buckets busy time by owner: each sample goes to the innermost class in its stack. Pi ships as a minified bundle, so the script finds class bodies in the bundle source by matching braces. It prints owner self time, inclusive time per class, and self time per file.
 

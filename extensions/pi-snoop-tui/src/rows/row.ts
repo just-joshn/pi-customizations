@@ -1,5 +1,5 @@
 import type { AgentToolResult, Theme, ToolRenderers, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
-import { Box, type Component, stripTerminalSequences, Text, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
+import { type Component, stripTerminalSequences, Text, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 import { fitPath, fitPlain, sanitizeLine } from '../text.ts';
 import { type Preview, type ResultSummary, type TargetText, type ToolSpec, VERB_COLUMN } from './specs.ts';
 
@@ -218,37 +218,39 @@ class RowBody implements Component {
 }
 class Panel implements Component {
   private cache: { width: number; source: readonly string[]; lines: string[] } | undefined;
-  private readonly box = new Box(1, 0);
-  private child: Component = this.box;
-  private readonly theme: Theme;
+  private child: Component = new Text('', 0, 0);
+  private frame: ((text: string) => string) | undefined;
+  private readonly backgrounds: Record<Tone, (text: string) => string>;
   private readonly pad: () => number;
   constructor(theme: Theme, pad: () => number) {
-    this.theme = theme;
+    this.backgrounds = { ok: (text) => theme.bg('toolPendingBg', text), error: (text) => theme.bg('toolErrorBg', text) };
     this.pad = pad;
   }
   set(child: Component, tone: Tone): void {
-    this.box.clear();
-    this.box.addChild(child);
-    this.box.setBgFn(this.background(tone));
-    this.child = this.box;
+    if (this.frame !== this.backgrounds[tone]) this.cache = undefined;
+    this.child = child;
+    this.frame = this.backgrounds[tone];
   }
   setText(text: string, tone: Tone): void {
-    this.child = new Text(text, 1, 0, this.background(tone));
-  }
-  private background(tone: Tone): (text: string) => string {
-    return (text) => this.theme.bg(tone === 'error' ? 'toolErrorBg' : 'toolPendingBg', text);
+    this.child = new Text(text, 1, 0, this.backgrounds[tone]);
+    this.frame = undefined;
+    this.cache = undefined;
   }
   render(width: number): string[] {
     const indent = Math.min(this.pad() + 3, Math.max(0, width - 1));
     const boxWidth = Math.max(1, width - indent - this.pad());
-    const source = this.child.render(boxWidth);
-    if (this.cache?.width === width && this.cache.source === source) return this.cache.lines;
+    const frame = this.frame;
+    const source = this.child.render(frame ? Math.max(1, boxWidth - 2) : boxWidth);
+    if (this.cache?.width === width && sameLines(this.cache.source, source)) return this.cache.lines;
     const prefix = ' '.repeat(indent);
     let start = 0;
     let end = source.length;
     while (start < end && isBlank(source[start])) start++;
     while (end > start && isBlank(source[end - 1])) end--;
-    const lines = source.slice(start, end).map((line) => (boxWidth < 3 ? truncateToWidth(prefix + line, width, '') : prefix + line));
+    const lines = source.slice(start, end).map((line) => {
+      const framed = frame ? frame(` ${line}${' '.repeat(Math.max(0, boxWidth - 1 - visibleWidth(line)))}`) : line;
+      return boxWidth < 3 ? truncateToWidth(prefix + framed, width, '') : prefix + framed;
+    });
     this.cache = { width, source, lines };
     return lines;
   }
@@ -257,6 +259,21 @@ class Panel implements Component {
     this.child.invalidate();
   }
 }
+function sameLines(a: readonly string[], b: readonly string[]): boolean {
+  return a === b || (a.length === b.length && a.every((line, i) => line === b[i]));
+}
+const SGR_PARAMS = /^[\d;]*$/;
+// Skips color codes in place. `stripTerminalSequences` copies every line, so it only settles other escapes.
 function isBlank(line: string | undefined): boolean {
-  return stripTerminalSequences(line ?? '').trim() === '';
+  const text = line ?? '';
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '\x1b') {
+      const end = text.indexOf('m', i);
+      if (text[i + 1] !== '[' || end === -1 || !SGR_PARAMS.test(text.slice(i + 2, end))) return stripTerminalSequences(text).trim() === '';
+      i = end;
+    } else if (text[i]?.trim()) {
+      return false;
+    }
+  }
+  return true;
 }

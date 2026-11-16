@@ -10,3 +10,4 @@
 - Add a single-line footer, workspace header, and static working indicator.
 - List theme files without a glob, so loading the package skips Node's first `fs.globSync` call at startup.
 - Cache rendered lines and tool summaries without extension-owned timers or render-time I/O.
+- Pad and color expanded tool panels without a nested `Box`, and find blank edge lines without stripping every line, so Ctrl+O and typing with expanded rows do less work per row.

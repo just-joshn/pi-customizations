@@ -299,8 +299,9 @@ def run_long(config: str, round_index: int, keep: bool, workload: str = "long") 
             action()
             steps[name] = measure_step(session, at, STEP_FIRST_BYTE_S)
             if name == "expand":
+                echo_start = now_us()
                 latencies, misses = measure_echo(session, time.monotonic())
-                result["echo"] = {"latenciesMs": latencies, "misses": misses}
+                result["echo"] = {"latenciesMs": latencies, "misses": misses, "windowUs": [echo_start, now_us()]}
                 clear_editor(session)
         set_winsize(session.fd, COLS)
         session.settle(quiet=QUIET_S, cap=STEP_CAP_S)
