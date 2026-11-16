@@ -434,6 +434,17 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     await expect.poll(() => exitOf(command), { timeout: 10_000 }).toBe('0');
   });
 
+  test('the root ignores a temp directory a worker names outside what it may write', async () => {
+    const top = await topJob();
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-outside-')));
+    const out = nestedRequest(top.dir, 'tmpgrab', [join(top.dir, 'nested')], 'echo x > "$TMPDIR/own"');
+    const job = join(top.dir, 'nested', 'tmpgrab-000001', 'job.json');
+    writeFileSync(job, JSON.stringify({ ...JSON.parse(readFileSync(job, 'utf8')), tmp: outside }));
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
+    expect(readdirSync(outside)).toEqual([]);
+    rmSync(outside, { recursive: true, force: true });
+  });
+
   test('a malformed request does not stop the next one', async () => {
     const top = await topJob();
     mkdirSync(join(top.dir, 'nested', 'aaa-broken'), { recursive: true });
@@ -938,7 +949,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
 
   test.skipIf(process.platform !== 'darwin')("a job can create Chromium's download temp files in the per-user temp directory, and nothing else there", async () => {
     const output = await run(
-      'T=$(getconf DARWIN_USER_TEMP_DIR); n=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c6); echo x > "$T/.com.google.Chrome.$n" && echo CHROME-TEMP && rm "$T/.com.google.Chrome.$n"; echo x > "$T/.com.google.Chrome.pstack-long" 2>/dev/null && echo LONG-NAME; echo x > "$T/pstack-other-$$" 2>/dev/null && echo OTHER',
+      'T=$(getconf DARWIN_USER_TEMP_DIR); n=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c6); echo x > "$T/.com.google.Chrome.$n" && echo CHROME-TEMP && rm "$T/.com.google.Chrome.$n"; { echo x > "$T/.com.google.Chrome.pstack-long"; } 2>/dev/null && echo LONG-NAME; { echo x > "$T/pstack-other-$$"; } 2>/dev/null && echo OTHER',
     );
     expect(output).toBe('CHROME-TEMP');
   });

@@ -40,6 +40,19 @@ const TMUX_SOCKETS = '^/private/(tmp|var/folders/[^/]+/[^/]+/T)/(tmux|pstack-v2)
 // Files through which git finds a worktree's or submodule's hooks and config.
 const gitRedirects = (common: string): string => `^${escapeRegex(real(common))}/(config\\.worktree|worktrees/[^/]+/(commondir|gitdir|config\\.worktree)|modules/.+/(hooks|config|info|commondir|gitdir|config\\.worktree))(/|$)`;
 
+let userTemp: string | null | undefined;
+/** macOS's per-user temp directory. Chromium writes download temp files here regardless of $TMPDIR. */
+function darwinUserTemp(): string | null {
+  if (userTemp === undefined) {
+    try {
+      userTemp = realpathSync(execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim()).replace(/\/$/, '');
+    } catch {
+      userTemp = null;
+    }
+  }
+  return userTemp;
+}
+
 /** The git directories of the linked worktrees the job works in, which it may write apart from their redirection files. */
 const ownWorktrees = (policy: SandboxPolicy): string[] => policy.lock.filter((path) => policy.gitDirs.some((common) => dirname(path) === join(common, 'worktrees')));
 
@@ -60,6 +73,8 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
   // A protected path that is itself a symlink is guarded at the link as well as at its target, so it cannot be swapped.
   const guarded = [...policy.protect.map((path) => `(subpath ${quote(real(path))}) (literal ${quote(entry(path))})`), ...policy.lock.map((path) => `(literal ${quote(real(path))}) (literal ${quote(entry(path))})`)];
   const inAgentDir = policy.writable.filter((path) => real(path) === real(policy.agentDir) || real(path).startsWith(`${real(policy.agentDir)}/`));
+  const temp = darwinUserTemp();
+  const id = '[A-Za-z0-9]'.repeat(6);
   const lines = [
     '(version 1)',
     '(allow default)',
@@ -68,6 +83,8 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     // directories are not writable: unsandboxed programs load code cached there, so each job gets its own.
     '(deny file-write*)',
     `(allow file-write* (literal "/dev/null") (literal "/dev/ptmx") (regex #"^/dev/tty") (regex #"^/dev/fd/") ${subpaths(policy.writable)})`,
+    // Allow only Chromium's mkstemp names (six random characters), which no program loads code from.
+    ...(temp ? [`(allow file-write* (regex #"^${escapeRegex(temp)}/\\.(com\\.google\\.Chrome|org\\.chromium\\.Chromium)\\.${id}$"))`] : []),
     `(deny file-write* (subpath ${quote(real(policy.agentDir))}))`,
     // Inside Pi's agent directory only the job's own paths are writable, its session, nested jobs, temp, and its own agent
     // directory with its credentials copy. Your real auth.json and settings are never writable.
@@ -88,11 +105,14 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
     '(deny network-bind (local unix-socket))',
     // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
+    // `open -a` on an app the job wrote launches it through launchd, so the lookup rules below cannot stop it, and lsopen does.
     '(deny appleevent-send)',
+    '(deny lsopen)',
     // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
     '(deny signal)',
     '(allow signal (target same-sandbox))',
-    '(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd") (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
+    // launchservicesd stays reachable because Firefox checks in with it at startup and aborts without it. Opening goes through lsopen.
+    '(deny mach-lookup (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
     // launchd would run a job it is handed outside the sandbox, and preference writes go through a daemon outside it.
     '(deny mach-lookup (global-name-regex #"^com\\.apple\\.xpc\\.launchd\\."))',
     '(deny user-preference-write)',

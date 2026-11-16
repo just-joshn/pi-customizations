@@ -44,6 +44,8 @@ export interface JobSpec {
   socket: string;
   /** Protected paths and checkout roots the wrapper sweeps after the job, for code that appeared while it ran. */
   sweep: { roots: string[]; protect: string[] };
+  /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. Unset for a top-level job. */
+  tmp?: string;
   createdAt: string;
 }
 
@@ -137,6 +139,15 @@ export const privateEnv = (tmp: string): Record<string, string> => ({
   ...Object.fromEntries(Object.entries(CACHES).map(([name, dir]) => [name, join(tmp, dir)])),
 });
 
+/**
+ * Firefox and pnpm run their own sandbox or store-locking steps, which fail inside the job's sandbox. Firefox aborts when it
+ * cannot sandbox its child processes, and pnpm cannot lock the shared store it switches engines from.
+ */
+const SANDBOX_COMPAT: Record<string, string> = {
+  ...Object.fromEntries(['CONTENT', 'GMP', 'RDD', 'SOCKET_PROCESS', 'GPU', 'UTILITY'].map((name) => [`MOZ_DISABLE_${name}_SANDBOX`, '1'])),
+  npm_config_manage_package_manager_versions: 'false',
+};
+
 interface Run {
   kind: JobKind;
   cwd: string;
@@ -149,6 +160,7 @@ interface Run {
   /** Where output and the exit code go. */
   out: string;
   top: string;
+  tmp: string | undefined;
 }
 
 /**
@@ -160,7 +172,15 @@ interface Run {
  */
 function run(job: Run): void {
   // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
-  const env = Object.entries({ [SANDBOX_ENV]: '1', [JOB_DIR_ENV]: job.dir, [TOP_DIR_ENV]: job.top, PI_CODING_AGENT_DIR: jobAgentDir(job.top), ...privateEnv(join(job.dir, 'tmp')) })
+  const env = Object.entries({
+    [SANDBOX_ENV]: '1',
+    [JOB_DIR_ENV]: job.dir,
+    [TOP_DIR_ENV]: job.top,
+    PI_CODING_AGENT_DIR: jobAgentDir(job.top),
+    ...SANDBOX_COMPAT,
+    ...privateEnv(join(job.dir, 'tmp')),
+    ...(job.tmp ? { TMPDIR: job.tmp, TMP: job.tmp, TEMP: job.tmp } : {}),
+  })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
   const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
@@ -212,7 +232,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   const dir = jobDir(root, spec.id);
   const full = { ...spec, out: dir };
   write(dir, full, files);
-  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir) });
+  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir), tmp: spec.tmp });
   return { spec: full, dir, status: { state: 'running' } };
 }
 
@@ -239,7 +259,7 @@ export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWha
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
-    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top });
+    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top, tmp: spec.tmp });
     writeFileSync(join(out, 'launched'), '');
   } catch (error) {
     settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
