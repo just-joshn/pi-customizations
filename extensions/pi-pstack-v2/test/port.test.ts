@@ -105,6 +105,11 @@ describe('the Pi port of pstack', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('every checklist is a file named TODO.md, as Pi asks, under whichever directory holds it', () => {
+    const offenders = [...prose, join(root, 'docs', 'pi-mechanisms.md')].filter((path) => /TODO\.[\w-]+\.md/.test(readFileSync(path, 'utf8'))).map((path) => relative(root, path));
+    expect(offenders).toEqual([]);
+  });
+
   test('every /skill:<name> in prose names a shipped skill', () => {
     const hits = prose.flatMap((path) =>
       [...readFileSync(path, 'utf8').matchAll(/\/skill:([A-Za-z0-9<>_-]+)/g)]

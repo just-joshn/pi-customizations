@@ -389,6 +389,22 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     expect(sendMessage).not.toHaveBeenCalled();
   });
 
+  test("a job's output shows live in its tmux session, and list says how to attach to it", async () => {
+    await call('tmux_run', { name: 'live', command: 'echo live-in-pane; sleep 30' });
+    const [id] = jobs();
+    const socket = tmuxSocket(owner);
+    await expect.poll(() => execFileSync('tmux', ['-S', socket, 'capture-pane', '-p', '-t', id ?? ''], { encoding: 'utf8' }), { timeout: 10_000 }).toContain('live-in-pane');
+    expect(await text({ action: 'list' })).toContain(`attach: tmux -S ${socket} attach -t ${id}`);
+  });
+
+  test('Ctrl-C in the attached session stops the job, which records that it was stopped', async () => {
+    await call('tmux_run', { name: 'interrupt', command: 'touch ready; sleep 30' });
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(repo, 'ready')), { timeout: 10_000 }).toBe(true);
+    execFileSync('tmux', ['-S', tmuxSocket(owner), 'send-keys', '-t', id ?? '', 'C-c']);
+    await expect.poll(() => (existsSync(join(jobsRoot(), id ?? '', 'exit')) ? readFileSync(join(jobsRoot(), id ?? '', 'exit'), 'utf8').trim() : ''), { timeout: 10_000 }).toBe('143');
+  });
+
   test('a job from another session is not visible', async () => {
     await call('tmux_run', { name: 'mine', command: 'true' });
     const [id] = jobs();
