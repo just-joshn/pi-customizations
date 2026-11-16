@@ -4,7 +4,7 @@ import type { OAuthCredentials, OAuthLoginCallbacks } from '@earendil-works/pi-a
 
 export const CURSOR_API = 'https://api2.cursor.sh';
 const CURSOR_WEBSITE = 'https://cursor.com';
-// The production auth client id the Cursor IDE uses to refresh browser sign-ins.
+// biome-ignore lint/security/noSecrets: Cursor's public desktop OAuth client ID must match the IDE's refresh grant.
 const CURSOR_CLIENT_ID = 'KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB';
 
 const base64url = (buf: Buffer) => buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');

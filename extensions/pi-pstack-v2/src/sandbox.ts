@@ -84,6 +84,7 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     }),
     // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS is reachable.
     '(deny network-outbound (remote unix-socket))',
+    // biome-ignore lint/security/noSecrets: macOS DNS uses this fixed mDNSResponder Unix socket path.
     '(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))',
     // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
     '(deny network-bind (local unix-socket))',

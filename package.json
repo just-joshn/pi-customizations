@@ -13,7 +13,7 @@
   "scripts": {
     "test": "bun run --sequential --filter \"*\" test",
     "typecheck": "bun run --sequential --filter \"*\" typecheck",
-    "check": "biome check .",
+    "check": "biome check . --error-on-warnings",
     "ci": "biome ci . --error-on-warnings --max-diagnostics=none"
   },
   "devDependencies": {

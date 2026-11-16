@@ -28,7 +28,9 @@ describe('text', () => {
     expect(tailLines(text, 3)).toEqual({ lines: ['line', 'line', 'line'], hidden: 999_997 });
   });
   test('sanitizes terminal output to a single line', () => {
-    expect(sanitizeLine('\x1b[31mred\x1b[0m\tline\nnext')).toBe('red  line next');
+    const red = '\x1b[31m';
+    const reset = '\x1b[0m';
+    expect(sanitizeLine(`${red}red${reset}\tline\nnext`)).toBe('red  line next');
   });
   test('fits wide paths and plain text over all widths', () => {
     for (const text of ['src/session/cache.ts', 'src/漢字/🙂/file.ts', 'short', 'filename-that-is-too-long.ts']) {
