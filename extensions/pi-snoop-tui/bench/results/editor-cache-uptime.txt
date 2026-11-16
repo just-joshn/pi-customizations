@@ -1,0 +1,17 @@
+stream round 0 14:30  up 3 days,  8:51, 3 users, load averages: 2.96 4.07 4.58
+stream round 1 14:32  up 3 days,  8:53, 3 users, load averages: 3.97 4.11 4.54
+stream round 2 14:33  up 3 days,  8:55, 3 users, load averages: 3.50 3.93 4.42
+stream round 3 14:35  up 3 days,  8:56, 3 users, load averages: 3.72 3.91 4.35
+stream round 4 14:37  up 3 days,  8:58, 3 users, load averages: 3.61 3.70 4.21
+stream round 5 14:38  up 3 days, 9 hrs, 3 users, load averages: 3.48 3.68 4.15
+stream round 6 14:40  up 3 days,  9:01, 3 users, load averages: 3.42 3.60 4.06
+medium round 0 14:42  up 3 days,  9:03, 3 users, load averages: 3.85 3.75 4.06
+medium round 1 14:44  up 3 days,  9:05, 3 users, load averages: 3.79 3.79 4.04
+medium round 2 14:45  up 3 days,  9:07, 3 users, load averages: 3.63 3.78 4.01
+medium round 3 14:47  up 3 days,  9:08, 3 users, load averages: 4.11 3.84 4.01
+medium round 4 14:49  up 3 days,  9:10, 3 users, load averages: 3.75 3.86 4.00
+long round 0 14:50  up 3 days,  9:12, 3 users, load averages: 3.64 3.81 3.96
+long round 1 14:51  up 3 days,  9:12, 3 users, load averages: 3.74 3.84 3.97
+long round 2 14:52  up 3 days,  9:13, 3 users, load averages: 3.92 3.89 3.98
+long round 3 14:52  up 3 days,  9:14, 3 users, load averages: 3.25 3.71 3.91
+long round 4 14:53  up 3 days,  9:14, 3 users, load averages: 2.89 3.56 3.84

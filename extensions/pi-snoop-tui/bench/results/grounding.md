@@ -772,3 +772,199 @@ Paired by round: config minus stock, median (min..max), and rounds where the con
 | storm PTY bytes | -586 (-586..-586), lower 6/6 |
 | Exit PTY bytes | -1046992 (-1046992..-1046992), lower 6/6 |
 | Steps with output | 0 (0..0), lower 0/6 |
+
+
+## Generic rows, 2026-11-15
+
+One unit ran against the look above: compact rows for tools with no renderer of their own (hypothesis 5, uncovered tools). It was kept.
+
+### What Pi does with these tools
+
+`registerToolRenderer`'s `next()` returns one of two things for a tool that ships no renderer. When the tool is registered, as pstack registers `codemode`, `pi_spawn`, and `tmux_run`, `next()` returns the tool definition with no `renderCall` or `renderResult`. `ToolExecutionComponent` then draws a padded `Box` holding the tool name with its arguments (`formatToolCallWithArgs`, collapsed to 100 characters) and the first 10 lines of output with a "more lines" hint (`components/tool-execution.js:96-115`, `:236-276`). When the tool is not registered at all (filtered out by `--tools`, or an MCP tool before its server connects), `next()` returns `undefined` and the row is a `Text` with the name, the pretty-printed JSON arguments, and the complete output (`formatToolExecution`, `:343-354`). Snoop now replaces both: the resolver in `src/tool-rows.ts` returns `compactRenderers(genericSpec(name), {})` whenever `next()` has neither renderer, and returns `next()` untouched when it has either.
+
+### Change
+
+- `genericSpec(toolName)` in `src/rows/specs.ts` is the registry's fallback entry. Its verb is the tool name. Its target is the first of `command`, `path`, `code`, `brief`, `name`, `query`, `url` that holds a string, else the first string argument, cut to its first line. Its meta is `N lines`, `image`, `failed`, or `exit N` when a failed output ends in `exit code N`. Failures show the same 5-line head preview as `read`.
+- `compactRenderers` draws the expanded body of a tool with no native `renderResult` as a `Text` in the existing panel: the compact JSON arguments in `dim`, a blank line, and the sanitized output. `Text` caches its wrap by width, so the panel's identity check hits on every later frame.
+- `layoutHeader` pads the verb to the verb column and then always adds two spaces, so a verb longer than the column (`codemode`, `pi_spawn`, `tmux_run`) keeps its gap.
+
+### How these runs were made
+
+`--workload mixed` restores 300 tool rows, half of them `codemode`, `pi_spawn`, and `tmux_run` registered without renderers by `bench-provider.ts` and enabled through `--tools`, so both configs take the registered-tool path above. The long workload's rule check now accepts rules inset by the editor gutter, so `full` long runs no longer report problems. Neither change touches what is measured.
+
+Each side is a copy of the package with the same frozen `bench/` (base: the `test(pi-snoop-tui): add mixed-tool session workload` commit, generic: base plus this change). A driver ran `run.py --runs 1` per side per round, swapped the side order and the config order (`stock,full` or `full,stock`) every round, and renumbered `round`. Five rounds of `mixed`, then five of `long`. Load average was 3.3 to 4.2 on 10 cores throughout (`generic-uptime.txt`). All 40 runs finished with no problems and 6 steps with output. Records are in `generic-{base,after}-{mixed,long}.jsonl`.
+
+### Result
+
+Mixed session, medians (min..max) over 5 runs:
+
+| Metric | stock | full before | full after |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | 1019 (1012..1151) | 946 (910..1133) | 700 (698..895) |
+| Collapsed echo latency p50 ms | 1.19 (1.05..1.32) | 1.05 (1.00..1.07) | 0.82 (0.71..1.01) |
+| Expanded echo latency p50 ms | 1.51 (1.39..1.77) | 1.90 (1.74..2.22) | 1.33 (1.24..1.55) |
+| startup settle ms | 379 (377..502) | 373 (372..473) | 343 (338..445) |
+| narrow settle ms | 24.3 (23.9..24.6) | 19.2 (18.1..19.7) | 5.89 (5.57..6.09) |
+| expand settle ms | 179 (177..184) | 185 (180..190) | 152 (151..156) |
+| collapse settle ms | 23.3 (22.3..23.4) | 16.1 (15.8..16.8) | 2.44 (2.29..2.73) |
+| storm settle ms | 23.1 (21.6..23.3) | 16.7 (16.3..17.1) | 5.08 (4.93..5.58) |
+| startup PTY bytes | 13356 | 15282 | 11048 |
+| Exit PTY bytes | 624358 | 458869 | 117657 |
+
+The stock column comes from the base invocations. Stock in the generic invocations had identical bytes and timing medians within 6%, with whole-run CPU within 0.2%.
+
+Paired by round. The first two columns are `full − stock` inside one invocation. The last is generic `full` minus base `full` from the same round, with the rounds where generic was lower.
+
+| Metric | base full−stock | generic full−stock | generic full − base full (lower generic) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -66 (-113..-19) | -312 (-325..-199) | -233 (-257..-210), 5/5 |
+| Collapsed echo latency p50 ms | -0.17 (-0.27..0.00) | -0.30 (-0.50..-0.22) | -0.25 (-0.34..0.01), 4/5 |
+| Collapsed echo latency p95 ms | -0.10 (-0.41..0.40) | -0.35 (-0.55..0.23) | -0.14 (-0.47..0.01), 4/5 |
+| Burst of 50 keys, ms to full echo | -0.17 (-0.82..0.06) | -0.38 (-0.55..-0.14) | -0.27 (-0.39..-0.05), 5/5 |
+| Expanded echo latency p50 ms | 0.30 (0.15..0.59) | -0.23 (-0.40..0.17) | -0.49 (-0.89..-0.37), 5/5 |
+| Expanded echo latency p95 ms | 0.06 (-0.37..0.64) | -0.44 (-0.59..-0.13) | -0.62 (-0.82..-0.30), 5/5 |
+| startup settle ms | -7.3 (-29.0..-0.7) | -35.5 (-44.6..8.7) | -28.9 (-39.3..-27.5), 5/5 |
+| narrow settle ms | -5.08 (-5.77..-4.93) | -19.2 (-19.6..-18.5) | -13.4 (-13.6..-12.5), 5/5 |
+| wide settle ms | -6.26 (-6.45..-5.19) | -18.4 (-19.1..-18.0) | -12.4 (-12.6..-11.9), 5/5 |
+| expand settle ms | 5.9 (0.2..10.4) | -28.5 (-33.0..-25.0) | -32.2 (-37.6..-28.9), 5/5 |
+| collapse settle ms | -6.80 (-7.28..-6.52) | -20.9 (-21.1..-20.4) | -13.6 (-14.2..-13.3), 5/5 |
+| storm settle ms | -6.41 (-6.75..-5.33) | -18.5 (-18.7..-16.8) | -11.4 (-12.0..-11.0), 5/5 |
+| startup PTY bytes | 1926 | -2308 | -4234, 5/5 |
+| narrow PTY bytes | 102 | -1347 | -1449, 5/5 |
+| wide PTY bytes | 96 | -1756 | -1852, 5/5 |
+| expand PTY bytes | 271 | 248 | -23, 5/5 |
+| collapse PTY bytes | 1292 | -449 | -1741, 5/5 |
+| storm PTY bytes | 111 | -1257 | -1368, 5/5 |
+| Exit PTY bytes | -165489 | -506701 | -341212, 5/5 |
+
+Long session, the regression check:
+
+| Metric | base full−stock | generic full−stock | generic full − base full (lower generic) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -350 (-367..-323) | -352 (-371..-322) | -1.8 (-18.8..12.2), 3/5 |
+| Collapsed echo latency p50 ms | -0.46 (-0.61..-0.05) | -0.83 (-1.17..-0.57) | 0.00 (-0.67..0.10), 2/5 |
+| Burst of 50 keys, ms to full echo | -0.81 (-1.47..-0.25) | -0.48 (-0.61..-0.17) | 0.07 (-0.41..0.67), 2/5 |
+| Expanded echo latency p50 ms | 0.29 (-0.18..0.53) | 0.61 (0.33..0.73) | 0.08 (-0.39..0.65), 2/5 |
+| startup settle ms | -73.9 (-82.6..-68.1) | -70.4 (-75.0..-66.0) | 1.71 (-1.87..3.41), 1/5 |
+| narrow settle ms | -29.9 (-30.2..-27.9) | -30.4 (-31.3..-29.5) | -0.09 (-0.15..0.13), 3/5 |
+| wide settle ms | -31.0 (-32.9..-30.7) | -30.5 (-31.9..-28.9) | 0.07 (0.04..0.41), 0/5 |
+| expand settle ms | -1.75 (-2.82..0.47) | -0.71 (-3.76..7.63) | 0.16 (-2.79..2.87), 2/5 |
+| collapse settle ms | -28.6 (-29.7..-26.8) | -27.2 (-28.8..-27.1) | 0.28 (-0.39..0.48), 2/5 |
+| storm settle ms | -27.6 (-27.9..-25.7) | -27.4 (-27.5..-26.4) | -0.15 (-0.35..0.25), 4/5 |
+| PTY bytes, every step and exit | identical | identical | 0 (0..0) |
+
+Verdict: faster on the mixed session, no measurable difference on the long session. Mixed whole-run CPU went from 946 to 700 ms (−233 ms paired, lower in 5 of 5 rounds, range −257..−210, outside base full's run-to-run spread). Against stock, full now saves 312 ms instead of 66. Resize, collapse, and storm settle in 5 to 6 ms instead of 16 to 19, and expanded typing went from 0.30 ms slower than stock to 0.23 ms faster. Exit bytes fell by 341 KB because each generic row prints one line instead of up to 13. The long fixture has no renderer-less tools, its bytes are identical in every step, and every timing difference sits inside its range.
+
+The limiter, from one unreported `--cpu-prof` run per side on the mixed session: in base full's storm window, `ToolExecutionComponent` and `Box` held 13.5 ms of 18 ms busy, with `Text` (rewrapping the fallback output) 7.5 ms self. In the generic run the storm window held 3 ms busy and no tool row class. In the restore window, base full spent 50 ms inclusive in `ToolExecutionComponent` and 23.7 ms self in `Text`. Neither appears in the generic run's top six, and busy time fell from 377 to 345 ms.
+
+### Look
+
+Captures are in `bench/results/visual/generic-*.png` (100x40, `pty-capture.py` on a 10-turn mixed session): `generic-collapsed`, `generic-expanded` (Ctrl+O, then three PageUps to a `tmux_run` panel), and `generic-stock-collapsed` for comparison. In the collapsed capture every row starts its marker at column 2 and its verb at column 5, and every meta ends at column 99, one gutter from the right edge. Generic verbs are longer than the 5-column verb column, so their targets start at column 15 instead of 12. Truncating the tool name to fit would hide which tool ran, so the verb overflows instead. Expanded generic panels use the same indent, background, and blank-line trimming as built-in panels.
+
+### Not measured
+
+- The unregistered path (`next()` returns `undefined`), where stock prints the full JSON and the full output for every row. Snoop takes the same compact path there, so the saving is likely larger. That is a guess, since no fixture restores unregistered tools.
+- Live streaming of a renderer-less tool. A running generic row shows its marker and target with no preview or meta until the result is final.
+
+## Startup: prebuilt JavaScript entry experiment
+
+Verdict: reverted. The prebuilt entry made startup substantially slower in this checkout. The existing TypeScript entries remain in the package.
+
+The startup harness alternates stock and full, starts each run with a new agent directory, checks output and exit status, and takes Pi's timings on a second launch. Both launches share `TMPDIR`, so jiti's `TMPDIR/jiti` cache is warm after the first round, despite fresh agent directories. Node also uses `TMPDIR/node-compile-cache`. The cold first round remains in the table. Pi 1.5.2 documents `.js` extension discovery in `docs/extensions.md`.
+
+The prototype bundled one entry with `bun build src/index.ts --target=node --format=esm --external '@earendil-works/*'` and changed `pi.extensions` to the bundle. Each table value is the median and min..max of nine interleaved rounds. The paired columns are full minus stock in each round. All startup runs exited successfully and reported complete timing groups. Raw records are [before](js-entry-before.jsonl) and [prototype](js-entry-prototype.jsonl).
+
+| Metric | Before stock | Before full | Before paired | Prototype stock | Prototype full | Prototype paired |
+|---|---:|---:|---:|---:|---:|---:|
+| Process CPU ms | 258 (252..453) | 262 (256..447) | 4.5 (-6.7..19.4) | 255 (253..266) | 539 (526..814) | 283 (272..548) |
+| Extension load ms | 10 (9..10) | 14 (14..16) | 5 (4..6) | 10 (9..10) | 226 (223..235) | 217 (213..225) |
+| First settled frame ms | 291 (289..436) | 298 (293..398) | 5.1 (-38.0..14.1) | 292 (290..295) | 511 (507..822) | 219 (215..526) |
+| Pi startup benchmark process CPU ms | 244 (240..251) | 252 (246..254) | 8.4 (1.5..10.7) | 244 (242..253) | 523 (512..556) | 276 (259..310) |
+
+Before the prototype, Pi's timed session runtime was 7 ms higher paired (6..9), while interactive initialization was 2 ms lower (-2..0) and theme initialization was 1 ms lower (-1..1). The three snoop imports totaled 3 ms in one timed full run. A warm CPU profile per side sampled 172 ms busy for stock and 178 ms for full, with zero samples in snoop source in both. The largest stock and full self-time buckets included Pi bundle code and `spawnSync`, not snoop rendering. Sampling is too coarse to assign the remaining few milliseconds to a specific function.
+
+A separate prototype profile showed Node module compilation and file loading. Its frames include both Pi's installed bundle and the checkout's separate `node_modules` copy of `@earendil-works/pi-coding-agent`. Native JavaScript imports resolve that separate copy instead of reusing the bundled Pi modules. This is the observed cause of the large prototype load, not an estimate of TypeScript transpilation cost. The profile also explains why a prebuilt entry is not a win in this installation.
+
+After reverting the prototype, the five-round [long run](js-entry-long.jsonl) produced output for all steps and no echo misses. All five full runs failed the existing width checks: the widest rules measured 88 and 118 columns rather than 90 and 120, and the storm ended at 88 rather than 90. The checks are therefore not evidence of a clean long-workload pass. The restored code was unchanged from baseline.
+
+The machine has 10 cores. `uptime` load averages were 4.83, 4.18, 4.66 before baseline; 4.48, 4.16, 4.63 after baseline; 9.69, 5.83, 5.22 after the prototype; and 4.08, 4.98, 4.96 after the long run. Other work shared the machine. Interleaving limits drift but does not eliminate noise.
+
+## Editor cache, 2026-11-15
+
+Hypothesis 7 ran as one unit against `b75ce80b`. It was reverted. The editor's render path costs about 0.3 ms per streamed turn in `full`, so caching it cannot move workload CPU past the run-to-run range.
+
+### What the unit changed
+
+`RuleEditor.render(width)` returned its previous array when a key built from these inputs matched the last render:
+
+- the render width
+- `tui.terminal.rows`, which sets the 30% visible-line limit
+- `getPaddingX()`
+- `focused`, which decides whether the hardware cursor marker is emitted
+- `borderColor` by identity, which bash mode swaps
+- the snoop theme by identity, and `invalidate()` dropped the frame
+- the embedded status (`ready` and `working` are shared constants)
+- `getCursor()` line and column
+- `getLines()`, compared line by line against a copy
+
+`Editor.render` also reads three private fields that a subclass cannot observe through Pi's types. Frames that depend on them were never stored or reused:
+
+- autocomplete state and list selection. Any frame while `isShowingAutocomplete()` is true rendered fresh.
+- paste-marker IDs, which change how `layoutText` segments the text. Any frame whose text contains `[paste #` rendered fresh.
+- `scrollOffset`, which carries over between renders. Any frame whose top or bottom rule had a hidden-line count rendered fresh. Without hidden lines, `Editor.render` clamps the offset to 0, so its earlier value cannot change the output.
+
+Pi's own `pi` statuses (retry, compaction) also rendered fresh, because `renderInBorder` can return new text from the same indicator. Every render that did not store a frame dropped the stored one, so a reused frame always followed a full render with the same inputs, and `lastWidth`, `renderedVisibleLineCount`, and `renderedAutocompleteHeight` stayed what that render set. The TUI never mutates the array the editor returns, because `Container.render` copies every child line into a new array (`pi-tui/dist/tui.js:138-150`).
+
+Behavior tests drove the real `RuleEditor`. They checked that an unchanged editor returns the same array, and that a new frame follows typing, a cursor move, a focus change, a width change, a terminal height change, a border color change, a status change, a theme change with `invalidate()`, a Pi status whose label changes, and an autocomplete list opening and moving its selection. Reusing any frame at the same width failed 9 of the 15 tests that existed then. Dropping only the autocomplete rule failed the autocomplete test, and dropping only the `pi` status rule failed the Pi status test. `bun run ci`, the package typecheck, and `vitest run --coverage` (83 tests, `editor.ts` 95.45% branches) passed with the change.
+
+### How these runs were made
+
+The harness was not changed. `base` is a `git archive` copy of `b75ce80b` and `cache` is the same tree with the change. A driver ran one `run.py --runs 1` per side per round. It reversed the side order every round and the config order (`stock,full` or `full,stock`) every two rounds, then renumbered `round` so each side's `stock` and `full` pair within one invocation. Load averages were 2.9 to 4.1 on 10 cores (`editor-cache-uptime.txt`). Records are in `editor-cache-base-*.jsonl` and `editor-cache-new-*.jsonl`.
+
+A probe build counted renders in one `full` stream run. 224 of 241 editor renders returned the stored frame, and none were uncacheable. So the cache did run on the streaming path.
+
+### Results
+
+Stream, 7 rounds. No run had problems.
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -68.8 (-77.5..-46.9) | -74.9 (-79.1..-49.0) | 1.2 (-28.1..27.9), 2/7 |
+| Echo latency p50 ms | 0.00 (-0.06..0.01) | 0.10 (-0.07..0.14) | 0.08 (0.01..0.16), 0/7 |
+| Echo latency p95 ms | -0.08 (-0.15..0.17) | 0.02 (-0.15..0.52) | 0.11 (-0.07..0.65), 1/7 |
+| Echo misses | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/7 |
+| PTY bytes, workload | -6589 (-27426..9238) | -9591 (-26652..15511) | 3547 (-20231..27985), 3/7 |
+| Clean idle CPU ms over 10 s, no sampler | -0.10 (-0.42..0.05) | -0.15 (-0.40..0.34) | -0.00 (-0.04..0.63), 4/7 |
+| Tool errors | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/7 |
+
+Medium, 5 rounds. No run had problems.
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Workload CPU ms (user+sys) | -125 (-130..-117) | -139 (-145..-125) | 2.8 (-5.3..13.0), 2/5 |
+| Echo latency p50 ms | -0.11 (-0.27..0.09) | -0.10 (-0.27..-0.05) | 0.04 (-0.20..0.08), 2/5 |
+| Echo latency p95 ms | -0.09 (-0.28..0.12) | -0.34 (-0.63..0.08) | 0.00 (-0.29..0.14), 2/5 |
+| Echo misses | 0 (0..0) | 0 (0..0) | 0 (0..0), 0/5 |
+| PTY bytes, workload | -10984 (-27472..31) | -5169 (-16373..7771) | 4414 (-5986..28973), 1/5 |
+
+Long session, 5 rounds. Every `full` run on both sides carried only the known rule-width problems (`widest rule 88 != 90`, `118 != 120`, `last rule 88 != 90`).
+
+| Metric | base full−stock | cache full−stock | cache full − base full (lower cache) |
+|---|---|---|---|
+| Process CPU ms (user+sys), whole run | -274 (-294..-252) | -279 (-289..-263) | 12.2 (-32.3..20.9), 1/5 |
+| Collapsed echo latency p50 ms | -0.36 (-0.70..0.00) | -0.77 (-0.88..-0.27) | -0.12 (-0.51..0.36), 3/5 |
+| Collapsed echo latency p95 ms | -0.57 (-0.65..-0.32) | -0.84 (-1.04..-0.70) | -0.26 (-0.57..0.54), 3/5 |
+| Burst of 50 keys, ms to full echo | -0.61 (-0.92..-0.16) | -0.59 (-0.78..0.29) | 0.01 (-0.48..0.78), 2/5 |
+| Expanded echo latency p50 ms | 0.39 (0.28..0.58) | 0.47 (0.09..0.83) | 0.05 (-0.10..0.33), 2/5 |
+| Expanded echo latency p95 ms | 0.44 (0.31..0.71) | 0.41 (-0.04..1.27) | 0.15 (-0.46..0.67), 1/5 |
+| storm settle ms | -28.6 (-29.7..-26.6) | -28.6 (-29.6..-28.0) | -0.01 (-0.13..0.72), 3/5 |
+
+### Why it did not move
+
+Two unreported `full` stream runs per side were profiled at 100 µs sampling (`--cpu-prof-interval 100`), with the workload window cut by `profile-summary.py --record`. Busy time was 110 to 117 ms per run. `RuleEditor` inclusive time was 0.3 ms in both base runs and 0.5 to 0.6 ms in both cache runs. `Editor` inclusive, which also covers handling the ten typed keys, was 0.8 ms in base and 0.6 to 0.9 ms in cache. At this sampling rate each figure is 3 to 9 samples, so the two sides are indistinguishable.
+
+The 4.4 ms figure for `full` in hypothesis 7 was measured before Unit 2, when `full` still ran Pi's stock editor. Unit 2's `RuleEditor` already caches both rules and the prompt marker, so its full render is a `layoutText` of a one-line editor. Removing 0.3 ms from a 183 ms workload can save at most 0.2%, against a run-to-run range of 56 ms in the paired stream column.
+
+Stream echo p50 was 0.08 ms higher with the cache in all 7 rounds (range 0.01 to 0.16). Medium (+0.04, lower in 2 of 5) and long collapsed echo (−0.12, lower in 3 of 5) do not show it. Building the key on a render that misses is a short array copy and a few comparisons, which should cost microseconds, not 80 µs. That is an inference, and the stream echo difference is unexplained. Either way the unit failed the keep rule: workload CPU did not improve past noise.
+
+Verdict: no measurable difference in workload CPU on stream (+1.2 ms, range −28 to +28) or medium (+2.8 ms, range −5 to +13), and a possible 0.08 ms stream echo regression. Reverted. Stock's 15 ms editor cost belongs to stock's own editor and is not a lever for this package.

@@ -22,6 +22,7 @@ PACKAGE = BENCH.parent
 PROVIDER = BENCH / "bench-provider.ts"
 FIXTURE = BENCH / "visual/mockup-fixture.py"
 MEDIUM_FIXTURE = BENCH / "medium-fixture.py"
+MIXED_FIXTURE = BENCH / "mixed-fixture.py"
 ROWS, COLS = 40, 120
 PROMPT = "Run the replay benchmark workload."
 KEY = b"q"
@@ -41,13 +42,22 @@ BURST_KEYSTROKES = 50
 BURST_BOUND_S = 5.0
 STORM_COLS = [NARROW_COLS, COLS, NARROW_COLS, COLS, NARROW_COLS]
 MEDIUM_TURNS = 30
+MIXED_TURNS = 50
+# snoop insets its editor rules by one gutter column on each side.
+RULE_INSET = 2
 TIMING_GROUP = re.compile(r"^--- Startup Timings: (\w+) ---$", re.M)
 TIMING_LINE = re.compile(r"^  (.+): (\d+)ms$", re.M)
 
-SHARED_ARGS = ["--offline", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-context-files", "--tools", "read,bash,edit,grep"]
+SHARED_FLAGS = ["--offline", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-context-files"]
+SHARED_ARGS = [*SHARED_FLAGS, "--tools", "read,bash,edit,grep"]
 COMMON_ARGS = ["--no-extensions", "-e", str(PROVIDER), "--provider", "bench", "--model", "replay", "--no-session", *SHARED_ARGS]
 LONG_ARGS = ["--no-extensions", *SHARED_ARGS]
 MEDIUM_ARGS = ["--no-extensions", "-e", str(PROVIDER), "--provider", "bench", "--model", "replay", *SHARED_ARGS]
+MIXED_ARGS = ["--no-extensions", "-e", str(PROVIDER), *SHARED_FLAGS, "--tools", "read,bash,edit,grep,codemode,pi_spawn,tmux_run"]
+RESTORED = {
+    "long": (FIXTURE, LONG_REPEATS, LONG_ARGS),
+    "mixed": (MIXED_FIXTURE, MIXED_TURNS, MIXED_ARGS),
+}
 CONFIGS = {
     "stock": ["--use-theme", "dark"],
     "theme": ["--theme", str(PACKAGE / "themes"), "--use-theme", "snoop-dark"],
@@ -248,18 +258,23 @@ def measure_step(session: Session, started: float, first_byte_s: float) -> dict:
             output += data
 
 
-def run_long(config: str, round_index: int, keep: bool) -> dict:
-    root = Path(tempfile.mkdtemp(prefix=f"snoop-bench-long-{config}-", dir=os.environ.get("TMPDIR")))
+def rule_fits(rule: int, cols: int) -> bool:
+    return rule in (cols, cols - RULE_INSET)
+
+
+def run_long(config: str, round_index: int, keep: bool, workload: str = "long") -> dict:
+    fixture, repeats, args = RESTORED[workload]
+    root = Path(tempfile.mkdtemp(prefix=f"snoop-bench-{workload}-{config}-", dir=os.environ.get("TMPDIR")))
     workspace, agent_dir = root / "workspace", root / "agent"
     workspace.mkdir()
     agent_dir.mkdir()
     (agent_dir / "settings.json").write_text(json.dumps(SETTINGS))
     session_file = root / "session.jsonl"
-    subprocess.run([sys.executable, str(FIXTURE), str(session_file), str(workspace), str(LONG_REPEATS)], check=True)
+    subprocess.run([sys.executable, str(fixture), str(session_file), str(workspace), str(repeats)], check=True)
     steps: dict = {}
-    result: dict = {"workloadName": "long", "config": config, "round": round_index, "repeats": LONG_REPEATS, "steps": steps}
+    result: dict = {"workloadName": workload, "config": config, "round": round_index, "repeats": repeats, "steps": steps}
     started = time.monotonic()
-    session = spawn(config, workspace, agent_dir, root / "pty.log", [*LONG_ARGS, "--session", str(session_file)])
+    session = spawn(config, workspace, agent_dir, root / "pty.log", [*args, "--session", str(session_file)])
     actions = [
         ("narrow", lambda: set_winsize(session.fd, NARROW_COLS)),
         ("wide", lambda: set_winsize(session.fd, COLS)),
@@ -296,8 +311,8 @@ def run_long(config: str, round_index: int, keep: bool) -> dict:
     result["exitCode"], result["cpuMs"] = reap(session)
     result["exitBytes"] = session.bytes_between(exit_at, time.time())
     problems = [result["error"]] if "error" in result else [f"{name}: no output" for name, step in steps.items() if not step["output"]]
-    problems += [f"{name}: widest rule {steps[name]['ruleCols']} != {cols}" for name, cols in (("narrow", NARROW_COLS), ("wide", COLS)) if name in steps and steps[name]["ruleCols"] != cols]
-    if "storm" in steps and steps["storm"]["lastRuleCols"] != STORM_COLS[-1]:
+    problems += [f"{name}: widest rule {steps[name]['ruleCols']} != {cols}" for name, cols in (("narrow", NARROW_COLS), ("wide", COLS)) if name in steps and not rule_fits(steps[name]["ruleCols"], cols)]
+    if "storm" in steps and not rule_fits(steps["storm"]["lastRuleCols"], STORM_COLS[-1]):
         problems.append(f"storm: last rule {steps['storm']['lastRuleCols']} != {STORM_COLS[-1]}")
     for key in ("echo", "collapsedEcho"):
         if result.get(key, {}).get("misses"):
@@ -382,7 +397,7 @@ def check(result: dict) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Replay benchmark for pi-snoop-tui in a real Pi TUI.")
-    parser.add_argument("--workload", choices=list(WORKLOADS), default="stream", help="stream: replay a streamed turn; medium: the same turn on a restored 150-tool-row session; long: restore a 1050-row session, type, resize, toggle expansion; startup: empty session to first settled frame and clean exit")
+    parser.add_argument("--workload", choices=list(WORKLOADS), default="stream", help="stream: replay a streamed turn; medium: the same turn on a restored 150-tool-row session; long: restore a 1050-row session, type, resize, toggle expansion; mixed: the long steps on a 300-row session where half the tools have no renderer; startup: empty session to first settled frame and clean exit")
     parser.add_argument("--runs", type=int, default=5)
     parser.add_argument("--configs", default="stock,theme,full")
     parser.add_argument("--out", default="results.jsonl")
@@ -398,7 +413,7 @@ def main() -> None:
             result = WORKLOADS[args.workload](config, round_index, args.keep_artifacts)
             with open(args.out, "a") as handle:
                 handle.write(json.dumps(result) + "\n")
-            if args.workload == "long":
+            if args.workload in RESTORED:
                 summary = result.get("problems") or f"cpu {result['cpuMs']['user'] + result['cpuMs']['sys']:.0f} ms, " + ", ".join(f"{name} {step['ms']:.0f} ms" for name, step in result["steps"].items()) + f", burst {result['burst']['ms']:.0f} ms"
             elif args.workload == "startup":
                 summary = result.get("problems") or f"settle {result['startup']['ms']:.0f} ms, cpu {result['cpuMs']['user'] + result['cpuMs']['sys']:.0f} ms, pi main {result['timingsMs']['main']['TOTAL']} ms, extensions {result['timingsMs']['extensions']['TOTAL']} ms"
@@ -411,6 +426,7 @@ WORKLOADS = {
     "stream": run_once,
     "medium": lambda config, round_index, keep: run_once(config, round_index, keep, medium=True),
     "long": run_long,
+    "mixed": lambda config, round_index, keep: run_long(config, round_index, keep, workload="mixed"),
     "startup": run_startup,
 }
 

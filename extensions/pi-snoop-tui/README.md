@@ -41,7 +41,7 @@ Pi owns the blank line between tool rows. This package cannot remove it through 
 
 Your terminal owns the canvas background. For dark mode, set it near `#14151a`. For light mode, use `okhsl(250 12% 97%)`.
 
-Expanded content stays native, including syntax highlighting, diffs, and truncation notices. Read detail does not add line numbers. Edit previews appear after execution, not before it. Successful writes have no expanded source preview because Pi puts that content in its call renderer, which this package does not invoke. Unknown tools keep their existing renderers.
+Expanded content stays native, including syntax highlighting, diffs, and truncation notices. Read detail does not add line numbers. Edit previews appear after execution, not before it. Successful writes have no expanded source preview because Pi puts that content in its call renderer, which this package does not invoke. Other tools keep their own renderers. A tool with no renderer of its own, such as `codemode`, `pi_spawn`, or an MCP tool before its server connects, gets the same one-line row: its name, its main string argument, and the size of its output. Expanded, it shows the arguments as compact JSON and the full plain-text output.
 
 The footer replaces Pi's token and cost totals. It preserves other extensions' status messages, then shrinks or drops lower-priority segments when space is limited.
 

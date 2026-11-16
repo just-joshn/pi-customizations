@@ -5,7 +5,8 @@ import { type Preview, type ResultSummary, type TargetText, type ToolSpec, VERB_
 
 type ToolRenderContext = Parameters<NonNullable<ToolRenderers['renderCall']>>[2];
 export type RowPhase = 'pending' | 'running' | 'done' | 'failed';
-export type BodyView = { readonly kind: 'none' } | { readonly kind: 'preview'; readonly preview: Preview; readonly hint: string | undefined } | { readonly kind: 'native'; readonly panel: Component; readonly tone: 'ok' | 'error' };
+type Tone = 'ok' | 'error';
+export type BodyView = { readonly kind: 'none' } | { readonly kind: 'preview'; readonly preview: Preview; readonly hint: string | undefined } | { readonly kind: 'panel'; readonly panel: Component; readonly tone: Tone };
 export interface RowView {
   readonly phase: RowPhase;
   readonly verb: string;
@@ -57,21 +58,16 @@ export function compactRenderers(spec: ToolSpec, native: ToolRenderers): ToolRen
       const summary = summarizeOnce(state, spec, result, options, ctx);
       let body: BodyView = { kind: 'none' };
       if (options.expanded) {
-        // Native call renderers start timers and edit previews. Only delegate result detail.
-        state.nativeResult =
-          native.renderResult?.(result, options, theme, { ...ctx, state: state.native, lastComponent: state.nativeResult, outputPad: 0 }) ??
-          new Text(
-            result.content
-              .filter((c) => c.type === 'text')
-              .map((c) => c.text)
-              .join('\n'),
-            0,
-            0,
-          );
         const tone = ctx.isError ? 'error' : 'ok';
         state.panel ??= new Panel(theme, () => state.view.pad);
-        state.panel.set(state.nativeResult, tone);
-        body = { kind: 'native', panel: state.panel, tone };
+        if (native.renderResult) {
+          // Native call renderers start timers and edit previews. Only delegate result detail.
+          state.nativeResult = native.renderResult(result, options, theme, { ...ctx, state: state.native, lastComponent: state.nativeResult, outputPad: 0 });
+          state.panel.set(state.nativeResult, tone);
+        } else {
+          state.panel.setText(plainDetail(theme, ctx.args, result), tone);
+        }
+        body = { kind: 'panel', panel: state.panel, tone };
       } else if (summary.preview) {
         body = { kind: 'preview', preview: summary.preview, hint: summary.preview.hidden > 0 ? ctx.keyText('app.tools.expand') : undefined };
       }
@@ -79,6 +75,17 @@ export function compactRenderers(spec: ToolSpec, native: ToolRenderers): ToolRen
       return state.body;
     },
   };
+}
+function plainDetail(theme: Theme, args: unknown, result: AgentToolResult<unknown>): string {
+  const output = result.content
+    .filter((c) => c.type === 'text')
+    .map((c) => c.text)
+    .join('\n')
+    .split('\n')
+    .map(sanitizeLine)
+    .join('\n');
+  const json = sanitizeLine(JSON.stringify(args) ?? '');
+  return [json && theme.fg('dim', json), output && theme.fg('toolOutput', output)].filter(Boolean).join('\n\n');
 }
 export function derivePhase(ctx: Pick<ToolRenderContext, 'executionStarted' | 'isPartial' | 'isError'>): RowPhase {
   if (!ctx.isPartial) return ctx.isError ? 'failed' : 'done';
@@ -92,7 +99,7 @@ export interface HeaderLayout {
 }
 export function layoutHeader(view: Pick<RowView, 'verb' | 'target' | 'meta'>, width: number): HeaderLayout {
   const available = Math.max(0, width - 3);
-  const verb = fitPlain(view.verb.padEnd(VERB_COLUMN + 2), available);
+  const verb = fitPlain(`${view.verb.padEnd(VERB_COLUMN)}  `, available);
   const rest = available - visibleWidth(verb);
   const metaText = sanitizeLine(view.meta ?? '');
   const meta = visibleWidth(metaText) + 10 <= rest ? metaText : '';
@@ -103,7 +110,7 @@ function sameBody(a: BodyView, b: BodyView): boolean {
   if (a.kind !== b.kind) return false;
   if (a.kind === 'none' && b.kind === 'none') return true;
   if (a.kind === 'preview' && b.kind === 'preview') return a.preview === b.preview && a.hint === b.hint;
-  return a.kind === 'native' && b.kind === 'native' && a.panel === b.panel && a.tone === b.tone;
+  return a.kind === 'panel' && b.kind === 'panel' && a.panel === b.panel && a.tone === b.tone;
 }
 function commit(state: RowState, next: RowView): void {
   const prev = state.view;
@@ -173,7 +180,7 @@ class RowBody implements Component {
     switch (body.kind) {
       case 'none':
         return [];
-      case 'native':
+      case 'panel':
         return body.panel.render(width);
       case 'preview': {
         if (this.cache?.width === width && this.cache.view === view) return this.cache.lines;
@@ -212,21 +219,29 @@ class RowBody implements Component {
 class Panel implements Component {
   private cache: { width: number; source: readonly string[]; lines: string[] } | undefined;
   private readonly box = new Box(1, 0);
+  private child: Component = this.box;
   private readonly theme: Theme;
   private readonly pad: () => number;
   constructor(theme: Theme, pad: () => number) {
     this.theme = theme;
     this.pad = pad;
   }
-  set(child: Component, tone: 'ok' | 'error'): void {
+  set(child: Component, tone: Tone): void {
     this.box.clear();
     this.box.addChild(child);
-    this.box.setBgFn((text) => this.theme.bg(tone === 'error' ? 'toolErrorBg' : 'toolPendingBg', text));
+    this.box.setBgFn(this.background(tone));
+    this.child = this.box;
+  }
+  setText(text: string, tone: Tone): void {
+    this.child = new Text(text, 1, 0, this.background(tone));
+  }
+  private background(tone: Tone): (text: string) => string {
+    return (text) => this.theme.bg(tone === 'error' ? 'toolErrorBg' : 'toolPendingBg', text);
   }
   render(width: number): string[] {
     const indent = Math.min(this.pad() + 3, Math.max(0, width - 1));
     const boxWidth = Math.max(1, width - indent - this.pad());
-    const source = this.box.render(boxWidth);
+    const source = this.child.render(boxWidth);
     if (this.cache?.width === width && this.cache.source === source) return this.cache.lines;
     const prefix = ' '.repeat(indent);
     let start = 0;
@@ -239,7 +254,7 @@ class Panel implements Component {
   }
   invalidate(): void {
     this.cache = undefined;
-    this.box.invalidate();
+    this.child.invalidate();
   }
 }
 // biome-ignore lint/suspicious/noControlCharactersInRegex: a blank panel line holds only spaces and SGR color codes

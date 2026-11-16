@@ -1,7 +1,7 @@
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test, vi } from 'vitest';
 import { compactRenderers, derivePhase, layoutHeader } from '../src/rows/row.ts';
-import { isCompactTool, type ResultInput, TOOL_SPECS } from '../src/rows/specs.ts';
+import { genericSpec, isCompactTool, type ResultInput, TOOL_SPECS } from '../src/rows/specs.ts';
 import { countLines, fitPath, fitPlain, headLines, sanitizeLine, tailLines } from '../src/text.ts';
 import { driveRow, output, plain, recordingNative, stubTheme } from './harness.ts';
 
@@ -268,5 +268,63 @@ describe('row edges', () => {
       .slice(1)
       .map((line) => plain(line).trim());
     expect(body).toEqual(['PASS cache.test.ts', '', 'respects cancellation']);
+  });
+});
+
+describe('generic rows', () => {
+  const spec = genericSpec('tmux_run');
+  test.for([
+    [{ name: 'tests', command: 'bunx vitest run' }, 'bunx vitest run'],
+    [{ name: 'review-3', brief: 'Review cache module 3.\n\nReport every caller.' }, 'Review cache module 3.…'],
+    [{ code: 'const a  =\t1;\nreturn a;' }, 'const a = 1;…'],
+    [{ limit: 3, label: 'first string', other: 'second' }, 'first string'],
+    [{ path: '/project/src/cache.ts' }, 'src/cache.ts'],
+    [{ count: 3, nested: { command: 'x' } }, ''],
+  ] as const)('targets %j as %j', ([args, text]) => {
+    expect(spec.target(args, '/project').text).toBe(text);
+  });
+  test('handles missing args', () => {
+    expect(spec.target(undefined, '/project').text).toBe('');
+  });
+  test.for([
+    [input('a\nb\nc\n'), '3 lines'],
+    [input('a'), '1 line'],
+    [input(''), '0 lines'],
+    [input('', { images: 1 }), 'image'],
+    [input('running', { isPartial: true }), undefined],
+    [input('FAIL suite\nCommand exited with code 2', { isError: true }), 'exit 2'],
+    [input('TypeError: x is not a function', { isError: true }), 'failed'],
+  ] as const)('summarizes %#', ([result, meta]) => {
+    expect(spec.summarize(result).meta).toBe(meta);
+  });
+  test('bounds the error preview to the first lines', () => {
+    const summary = spec.summarize(input(Array.from({ length: 40 }, (_, i) => `frame ${i}`).join('\n'), { isError: true }));
+    expect(summary.preview).toMatchObject({ lines: ['frame 0', 'frame 1', 'frame 2', 'frame 3', 'frame 4'], hidden: 35, tone: 'error' });
+  });
+  test('collapses a long output to one row with its tool name, target, and size', () => {
+    const row = driveRow(compactRenderers(genericSpec('codemode'), {}), stubTheme());
+    row.apply({ args: { code: 'return 1;' }, executionStarted: true, result: output('line\n'.repeat(200)), isPartial: false });
+    const lines = row.lines(100).map(plain);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(/^ ✓ {2}codemode {2}return 1;\s+200 lines$/);
+    expect(visibleWidth(lines[0] ?? '')).toBe(99);
+  });
+  test('shows failures with a bounded preview and an expand hint', () => {
+    const row = driveRow(compactRenderers(genericSpec('codemode'), {}), stubTheme());
+    row.apply({ args: { code: 'tools.bash()' }, result: output('TypeError: boom\n'.repeat(8), true), isPartial: false });
+    const lines = row.lines(100).map((line) => plain(line).trim());
+    expect(lines[0]).toMatch(/^✗ {2}codemode {2}tools\.bash\(\)\s+failed$/);
+    expect(lines.slice(1)).toEqual([...Array(5).fill('TypeError: boom'), '… 3 more · ctrl+o']);
+  });
+  test('expands to the arguments and the full plain output within every width', () => {
+    const row = driveRow(compactRenderers(genericSpec('pi_spawn'), {}), stubTheme());
+    const text = Array.from({ length: 30 }, (_, i) => `report \x1b[31mline\x1b[0m ${i}`).join('\n');
+    row.apply({ args: { name: 'review', brief: 'Review it.' }, result: output(text), isPartial: false, expanded: true });
+    const lines = row.lines(100).map((line) => plain(line).trim());
+    expect(lines[1]).toBe('{"name":"review","brief":"Review it."}');
+    expect(lines.slice(3)).toEqual(Array.from({ length: 30 }, (_, i) => `report line ${i}`));
+    for (let width = 1; width <= 120; width++) for (const line of row.lines(width)) expect(visibleWidth(line)).toBeLessThanOrEqual(width);
+    row.apply({ expanded: false });
+    expect(row.lines(100)).toHaveLength(1);
   });
 });

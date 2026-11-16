@@ -10,6 +10,7 @@ export interface ResultSummary {
   readonly preview: Preview | undefined;
 }
 export interface ToolArgs {
+  [key: string]: unknown;
   path?: unknown;
   offset?: unknown;
   limit?: unknown;
@@ -53,11 +54,18 @@ function relPath(value: unknown, cwd: string): string {
 function pathTarget(args: ToolArgs | undefined, cwd: string): TargetText {
   return { kind: 'path', text: relPath(args?.path, cwd) };
 }
+function firstLine(text: string): string {
+  const end = text.indexOf('\n');
+  return (end === -1 ? text : text.slice(0, end)).replace(/\s+/g, ' ') + (end === -1 ? '' : '…');
+}
 function summary(meta: string): ResultSummary {
   return { meta, preview: undefined };
 }
+function failed(input: ResultInput, meta = 'failed'): ResultSummary {
+  return { meta, preview: { ...headLines(input.text, ERROR_PREVIEW_LINES), tone: 'error', from: 'head' } };
+}
 function checked(input: ResultInput, ok: () => ResultSummary): ResultSummary {
-  return input.isError ? { meta: 'failed', preview: { ...headLines(input.text, ERROR_PREVIEW_LINES), tone: 'error', from: 'head' } } : ok();
+  return input.isError ? failed(input) : ok();
 }
 function withoutNotice(text: string): string {
   const start = text.lastIndexOf('\n\n[');
@@ -113,11 +121,7 @@ export const TOOL_SPECS = {
   },
   bash: {
     verb: 'bash',
-    target: (args) => {
-      const command = str(args?.command);
-      const end = command.indexOf('\n');
-      return { kind: 'plain', text: (end === -1 ? command : command.slice(0, end)).replace(/\s+/g, ' ') + (end === -1 ? '' : '…') };
-    },
+    target: (args) => ({ kind: 'plain', text: firstLine(str(args?.command)) }),
     summarize: (input) => {
       if (input.isPartial) return { meta: undefined, preview: { ...tailLines(input.text, RUNNING_TAIL_LINES), tone: 'output', from: 'tail' } };
       if (!input.isError) return summary('exit 0');
@@ -151,4 +155,26 @@ export type CompactToolName = keyof typeof TOOL_SPECS;
 export const VERB_COLUMN = Math.max(...Object.values(TOOL_SPECS).map((spec) => spec.verb.length));
 export function isCompactTool(name: string): name is CompactToolName {
   return Object.hasOwn(TOOL_SPECS, name);
+}
+
+const TARGET_KEYS = ['command', 'path', 'code', 'brief', 'name', 'query', 'url'];
+
+export function genericSpec(toolName: string): ToolSpec {
+  return {
+    verb: toolName,
+    target: (args, cwd) => {
+      const fields = args ?? {};
+      const key = TARGET_KEYS.find((name) => typeof fields[name] === 'string') ?? Object.keys(fields).find((name) => typeof fields[name] === 'string');
+      const value = key === undefined ? '' : str(fields[key]);
+      return key === 'path' ? { kind: 'path', text: relPath(value, cwd) } : { kind: 'plain', text: firstLine(value) };
+    },
+    summarize: (input) => {
+      if (input.isPartial) return { meta: undefined, preview: undefined };
+      if (input.isError) {
+        const exit = /exit(?:ed with)? code (\d+)\s*$/i.exec(input.text.slice(-200));
+        return failed(input, exit ? `exit ${exit[1]}` : 'failed');
+      }
+      return summary(input.images > 0 ? 'image' : units(countLines(input.text), 'line'));
+    },
+  };
 }
