@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -34,6 +35,34 @@ describe('a job agent directory', () => {
     expect(lstatSync(join(job, 'keybindings.json')).isSymbolicLink()).toBe(true);
     expect(Object.keys(read(job)).sort()).toEqual(['literal', 'oauth']);
     expect(commandProviders(real).sort()).toEqual(['command', 'other']);
+  });
+
+  test('copies the model catalog without sharing mutations or locks', () => {
+    const catalog = JSON.stringify({ 'spacex-cursor': { models: [{ id: 'grok-4.7-fast' }] } });
+    writeFileSync(join(real, 'models-store.json'), catalog);
+    mkdirSync(join(real, 'models-store.json.lock'));
+    makeJobAgentDir(real, job);
+    expect(lstatSync(join(job, 'models-store.json')).isSymbolicLink()).toBe(false);
+    expect(readFileSync(join(job, 'models-store.json'), 'utf8')).toBe(catalog);
+    expect(existsSync(join(job, 'models-store.json.lock'))).toBe(false);
+    writeFileSync(join(job, 'models-store.json'), '{}');
+    syncTokens(real, job);
+    expect(readFileSync(join(real, 'models-store.json'), 'utf8')).toBe(catalog);
+  });
+
+  test('Pi can read the worker catalog while the parent holds its catalog lock', () => {
+    const entry = { models: [{ id: 'grok-4.7-fast' }] };
+    writeFileSync(join(real, 'models-store.json'), JSON.stringify({ 'spacex-cursor': entry }));
+    mkdirSync(join(real, 'models-store.json.lock'));
+    makeJobAgentDir(real, job);
+    const storeModule = new URL('./core/models-store.js', import.meta.resolve('@earendil-works/pi-coding-agent')).href;
+    const script = `import { FileModelsStore } from ${JSON.stringify(storeModule)}; console.log(JSON.stringify(await new FileModelsStore(${JSON.stringify(join(job, 'models-store.json'))}).read('spacex-cursor', { signal: AbortSignal.timeout(1000) })));`;
+    expect(execFileSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 3000 }).trim()).toBe(JSON.stringify(entry));
+  });
+
+  test('does not create a model catalog when the parent has none', () => {
+    makeJobAgentDir(real, job);
+    expect(existsSync(join(job, 'models-store.json'))).toBe(false);
   });
 
   test("carries only the worker's own resolved command", () => {
