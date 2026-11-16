@@ -112,6 +112,19 @@ describe('pi_spawn', { timeout: 20_000 }, () => {
     expect(jobs()).toEqual([]);
   });
 
+  test('a worker can read its model catalog while the parent catalog is locked', async () => {
+    const entry = { models: [{ id: 'grok-4.7-fast' }] };
+    writeFileSync(join(agentDir, 'models-store.json'), JSON.stringify({ 'spacex-cursor': entry }));
+    mkdirSync(join(agentDir, 'models-store.json.lock'));
+    const storeModule = new URL('./core/models-store.js', import.meta.resolve('@earendil-works/pi-coding-agent')).href;
+    writeFileSync(process.argv[1] ?? '', `import { FileModelsStore } from ${JSON.stringify(storeModule)};\nconsole.log(JSON.stringify(await new FileModelsStore().read('spacex-cursor', { signal: AbortSignal.timeout(2000) })));\n`);
+    await call('pi_spawn', { name: 'catalog', brief: 'hi' });
+    const [id = ''] = jobs();
+    const report = (await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 10 }))?.content[0]?.text ?? '';
+    expect(report).toContain(JSON.stringify(entry));
+    expect(readFileSync(join(agentDir, 'models-store.json'), 'utf8')).toBe(JSON.stringify({ 'spacex-cursor': entry }));
+  });
+
   test('a bad worktree base leaves no job directory or worktree', async () => {
     await expect(call('pi_spawn', { name: 'x', brief: 'hi', worktree: 'probe', base: 'no-such-ref' })).rejects.toThrow(/invalid reference/);
     expect(jobs()).toEqual([]);

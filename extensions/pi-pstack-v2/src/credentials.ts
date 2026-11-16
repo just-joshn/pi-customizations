@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
 /**
@@ -12,9 +12,7 @@ type Credentials = Record<string, Record<string, unknown>>;
 
 export const jobAgentDir = (top: string): string => join(top, 'agent');
 
-// Entries a job's Pi must not share: your credentials, its lock, pstack's own state, and your saved sessions. Settings are
-// copied with their paths rewritten, since Pi resolves them from the agent directory, which is a different one in a job.
-const PRIVATE = new Set(['auth.json', 'auth.json.lock', 'pstack-v2', 'sessions', 'settings.json', 'settings.json.lock']);
+const PRIVATE = new Set(['auth.json', 'auth.json.lock', 'models-store.json', 'models-store.json.lock', 'pstack-v2', 'sessions', 'settings.json', 'settings.json.lock']);
 
 /** A settings path as it resolves from your real agent directory: local ones made absolute, sources and names kept. */
 function anchored(realAgentDir: string, entry: string): string {
@@ -74,6 +72,8 @@ export function makeJobAgentDir(realAgentDir: string, dir: string, resolved: Rec
     const link = join(dir, name);
     if (!PRIVATE.has(name) && !existsSync(link) && !isLink(link)) symlinkSync(join(realAgentDir, name), link);
   }
+  const catalog = join(realAgentDir, 'models-store.json');
+  if (existsSync(catalog)) copyFileSync(catalog, join(dir, 'models-store.json'));
   const settings = join(realAgentDir, 'settings.json');
   const parsed = existsSync(settings) ? parse(readFileSync(settings, 'utf8')) : undefined;
   if (parsed) writeFileSync(join(dir, 'settings.json'), `${JSON.stringify(anchoredSettings(realAgentDir, parsed), null, 2)}\n`);
