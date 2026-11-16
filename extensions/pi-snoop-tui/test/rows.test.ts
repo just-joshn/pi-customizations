@@ -92,6 +92,18 @@ describe('specs', () => {
 });
 
 describe('rows', () => {
+  test('keeps collapsed headers and expanded native panels within every width', () => {
+    for (const outputPad of [0, 1, 2]) {
+      const row = driveRow(compactRenderers(TOOL_SPECS.read, recordingNative()), stubTheme(), { outputPad });
+      row.apply({ args: { path: '/project/a/very/long/path/漢字/🙂/filename.ts' }, result: output('one\ntwo'), isPartial: false });
+      for (const expanded of [false, true]) {
+        row.apply({ expanded });
+        for (let width = 1; width <= 120; width++) {
+          for (const line of row.lines(width)) expect(visibleWidth(line)).toBeLessThanOrEqual(width);
+        }
+      }
+    }
+  });
   test('labels image reads without counting their text as lines', () => {
     const row = driveRow(compactRenderers(TOOL_SPECS.read, {}), stubTheme());
     row.apply({
@@ -187,6 +199,23 @@ describe('rows', () => {
     expect(second?.lastComponent).toBe(native.renderResult.mock.results[0]?.value);
     expect(second?.outputPad).toBe(0);
     expect(native.renderCall).not.toHaveBeenCalled();
+  });
+  test('reuses expanded lines until invalidated or resized', () => {
+    const row = driveRow(compactRenderers(TOOL_SPECS.read, recordingNative()), stubTheme(), { outputPad: 2 });
+    row.apply({ result: output('detail'), isPartial: false, expanded: true });
+    const body = row.components.result;
+    expect(body).toBeDefined();
+    if (!body) throw new Error('missing result');
+    const first = body.render(80);
+    expect(first.map(plain).join('\n')).toContain('     NATIVE');
+    expect(body.render(80)).toBe(first);
+    body.invalidate();
+    const invalidated = body.render(80);
+    expect(invalidated).not.toBe(first);
+    expect(invalidated).toEqual(first);
+    const resized = body.render(40);
+    expect(resized).not.toBe(invalidated);
+    expect(resized.map(plain).join('\n')).toContain('     NATIVE');
   });
   test('falls back to text when a downstream renderer has no result renderer', () => {
     const row = driveRow(compactRenderers(TOOL_SPECS.read, {}), stubTheme());
