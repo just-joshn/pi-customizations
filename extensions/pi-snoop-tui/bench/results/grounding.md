@@ -968,3 +968,190 @@ The 4.4 ms figure for `full` in hypothesis 7 was measured before Unit 2, when `f
 Stream echo p50 was 0.08 ms higher with the cache in all 7 rounds (range 0.01 to 0.16). Medium (+0.04, lower in 2 of 5) and long collapsed echo (−0.12, lower in 3 of 5) do not show it. Building the key on a render that misses is a short array copy and a few comparisons, which should cost microseconds, not 80 µs. That is an inference, and the stream echo difference is unexplained. Either way the unit failed the keep rule: workload CPU did not improve past noise.
 
 Verdict: no measurable difference in workload CPU on stream (+1.2 ms, range −28 to +28) or medium (+2.8 ms, range −5 to +13), and a possible 0.08 ms stream echo regression. Reverted. Stock's 15 ms editor cost belongs to stock's own editor and is not a lever for this package.
+
+## Round 3, 2026-11-15
+
+Three units ran one at a time on top of `6e710840`. Unit 1 and Unit 2 were kept. Unit 3 was reverted.
+
+### How these runs were made
+
+The harness was not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`. A driver ran `run.py --runs 1` per side per round, rotated the side order, swapped the config order (`stock,full` or `full,stock`) every two rounds, and renumbered `round` so each side's `stock` and `full` pair inside one invocation. Before each round it waited until the one-minute load average fell below 6 on 10 cores. A first attempt at Unit 1's long check ran at load 16 to 20, gave stock restores of 413 to 2061 ms, and was discarded. Every kept set ran at load 2.9 to 5.6 (`round3-*-uptime.txt`). Every run below recorded all steps with no problems. The first round of a new package copy can pay a cold jiti and Node compile cache, and the tables say where that happened.
+
+The paired columns are `full − stock` in the same invocation, and the last column is the new package's `full` minus the old package's `full` in the same round, with the rounds where the new one was lower.
+
+### Unit 1: one name column for every tool row, kept
+
+Hypothesis: a fixed 8-column name field puts every target in one column, and the change costs nothing at runtime because each collapsed row is still one cached line of the same width.
+
+`VERB_COLUMN` in `src/rows/specs.ts` is now 8 instead of the longest built-in verb (5). Names up to 8 characters (`codemode`, `pi_spawn`, `tmux_run`) pad to the column. Longer names keep their full text and the two-space gap, so only their own target moves right. A new test drives real rows for `ls`, `read`, `write`, `codemode`, `pi_spawn`, and `tmux_run` and checks that every target starts at the same column, and that `mcp__github__search` overflows by its length plus two spaces. It fails against the old column.
+
+Captures at 100x40 with `snoop-dark` are `visual/round3-mixed-collapsed.png`, `round3-mixed-expanded.png` (Ctrl+O, then three PageUps to a `tmux_run` panel), `round3-mockup-collapsed.png`, and `round3-mockup-expanded.png`. In the collapsed mixed capture every target starts at column 15, built-in and generic alike. Before this change built-in targets started at column 12 and generic targets at column 15.
+
+Long session, 3 rounds after one warmup round (`round3-u1-*-long.jsonl`):
+
+| Metric | before full | after full | before full−stock | after full−stock | after − before (lower after) |
+|---|---|---|---|---|---|
+| Process CPU ms, whole run | 971 (937..1057) | 955 (935..960) | -323 (-331..-216) | -362 (-452..-281) | -36 (-102..23), 2/3 |
+| Collapsed echo p50 ms | 1.60 (1.51..1.83) | 1.63 (1.54..1.65) | -0.42 (-0.95..-0.21) | -0.63 (-1.07..-0.31) | 0.02 (-0.17..0.03), 1/3 |
+| Burst of 50 keys ms | 3.73 (3.15..4.25) | 3.58 (3.23..3.72) | -0.66 (-1.28..0.38) | -1.64 (-2.18..-1.27) | -0.01 (-0.67..0.08), 2/3 |
+| Restore settle ms | 366 (359..366) | 359 (357..360) | -62.4 (-62.8..-57.7) | -77.7 (-98.4..-74.7) | -7.15 (-9.12..0.22), 2/3 |
+| Resize 120 to 90 ms | 10.0 (10.0..10.5) | 10.4 (10.3..10.5) | -27.6 (-28.1..-27.2) | -28.6 (-33.3..-27.0) | 0.45 (-0.20..0.54), 1/3 |
+| Storm settle ms | 9.8 (9.6..10.3) | 10.0 (9.8..10.0) | -25.2 (-27.0..-25.1) | -25.3 (-25.7..-24.6) | 0.04 (-0.22..0.46), 1/3 |
+| Restore and exit PTY bytes | 11349, 477433 | 11349, 477433 | | | 0 |
+
+Verdict: no measurable difference in performance, as expected. Every after-minus-before range spans zero. PTY bytes are identical in every step because each collapsed row is still a full-width line, and the padding only moves spaces from the gap before the meta to the gap before the target.
+
+### Unit 2: startup attribution, then explicit theme paths, kept
+
+Hypothesis from the brief: part of full's extra startup cost comes from the UI that snoop installs in `session_start`, for example Pi rebuilding the editor and autocomplete in `setCustomEditorComponent` (`interactive-mode.js:2327`).
+
+#### Attribution
+
+Ten package variants ran 7 interleaved rounds each, after a warmup round (`round3-u2a-*-startup.jsonl`, load 3.9 to 4.1). Each removes one piece. `nothemes` also drops `pi.themes` and runs `full` with `--use-theme dark`. `nosession` returns from both `session_start` handlers. `importonly` returns from all three factories, so only the module load remains. `noglob` lists `./themes/snoop-dark.json` and `./themes/snoop-light.json` instead of `./themes/*.json`.
+
+| Variant | Process CPU full−stock ms | Process CPU vs base (lower) | createAgentSessionRuntime vs base | extensions TOTAL vs base | interactiveMode.init vs base | First settled frame vs base | First frame bytes vs base |
+|---|---|---|---|---|---|---|---|
+| base (all on) | 8.8 (0.9..11.0) | | | | | | |
+| no `setEditorComponent` | 5.09 (-5.25..9.68) | 1.27 (-8.54..2.82), 3/7 | 1 (-1..2), 2/7 | 0 (-1..0), 2/7 | -1 (-1..0), 4/7 | -2.05 (-6.92..2.37), 5/7 | -30 |
+| no `setFooter` | 7.7 (0.2..13.5) | 2.68 (-8.04..7.80), 2/7 | 0 (-1..3), 3/7 | 0 (-1..0), 3/7 | 0 (-1..1), 2/7 | -1.63 (-4.07..3.31), 4/7 | -257 |
+| no `setHeader` | 6.93 (4.84..8.80) | -0.88 (-4.84..4.87), 4/7 | 0 (-2..2), 3/7 | 0 (-1..1), 3/7 | 0 (-1..1), 3/7 | -1.16 (-7.58..1.90), 6/7 | -107 |
+| no working indicator, message, thinking label | 7.6 (-1.6..12.1) | -2.08 (-4.07..4.11), 4/7 | 0 (-2..2), 2/7 | 0 (-1..1), 3/7 | 1 (-1..1), 2/7 | -2.43 (-5.66..1.40), 6/7 | 0 |
+| no `registerMarkdownTransformer` | 9.4 (-0.4..14.5) | 2.5 (-3.6..15.5), 2/7 | 0 (-2..3), 2/7 | 0 (-1..1), 1/7 | 0 (-1..1), 3/7 | -1.78 (-3.93..5.20), 4/7 | 0 |
+| no themes, stock `dark` | 4.6 (-0.4..12.3) | -3.88 (-6.32..3.82), 4/7 | -3 (-5..-2), 7/7 | -2 (-2..-1), 7/7 | 2 (1..2), 0/7 | -4.72 (-7.21..-0.09), 7/7 | +12 |
+| theme paths without a glob | 1.49 (-6.48..7.83) | -1.80 (-5.33..-0.06), 7/7 | -1 (-3..0), 6/7 | -2 (-2..0), 6/7 | 0 (-2..1), 3/7 | -4.48 (-4.80..0.09), 6/7 | 0 |
+| no `session_start` UI at all | 7.2 (-0.2..11.0) | -0.98 (-4.51..5.73), 5/7 | 0 (-1..2), 3/7 | 0 (-1..2), 2/7 | -1 (-2..0), 6/7 | -3.21 (-8.11..2.65), 5/7 | -1348 |
+| import only | 4.89 (2.46..9.95) | -2.28 (-6.73..6.51), 4/7 | 0 (-1..3), 2/7 | 0 (-1..0), 3/7 | -1 (-4..0), 4/7 | -4.77 (-7.92..1.09), 6/7 | -1348 |
+
+What the table shows:
+
+- **The `session_start` UI costs no measurable CPU.** With all of it removed, process CPU moves −1.0 ms (lower in 5 of 7, range −4.5..5.7) and `interactiveMode.init` −1 ms, inside run-to-run noise. Pi's editor swap is a factory call, a few property copies, and `setAutocompleteProvider` on an existing provider (`interactive-mode.js:2327-2385`). It does not rebuild the autocomplete provider. The UI accounts for all 1348 extra first-frame bytes (the repaint after `session_start`), but that repaint is not visible in CPU.
+- **The cost sits in loading, not in running.** `importonly` still costs 4.9 ms more CPU than stock, and `extensions TOTAL` stays 5 ms above stock. Pi resets the `extensions` timer at the start of `DefaultResourceLoader.reload` (`core/resource-loader.js:371`), so the first entry's "module import" also holds `packageManager.resolve()` and the resolution of `-e <package>` (`resource-loader.js:381-384`). That is why `bench-provider.ts` import reads 9 ms in stock and 12 ms in full, though the file is the same.
+- **Themes cost about 3 ms of `createAgentSessionRuntime`, and 2 ms of that is the glob.** `package-manager.js:144` resolves `./themes/*.json` with Node's `fs.globSync`. Stock Pi never globs at startup. In a fresh Node 26.13.1 process the first `globSync` call on this directory took 2.28 to 2.41 ms over 5 runs and the second took 0.20 ms, so the cost is Node loading its glob implementation on first use. Exact paths skip `globSync` (`package-manager.js:2124`).
+
+#### The change
+
+`package.json` lists `./themes/snoop-dark.json` and `./themes/snoop-light.json`. Pi documents both exact paths and globs for manifest arrays (`docs/packages.md:76`). A new test checks that the manifest lists every `.json` file in `themes/`, so a new theme cannot be left out silently. It fails when an unlisted theme file is added.
+
+Startup, 7 rounds then 30 more (`round3-u2-*-startup.jsonl`, `round3-u2b-*-startup.jsonl`, load 3.0 to 4.0). Round 0 of each set paid a cold compile cache on the first side and is dropped, leaving 35 paired rounds. The p value is a Wilcoxon signed-rank test on the per-round differences.
+
+| Metric | before full | after full | before full−stock | after full−stock | after − before (lower after) | p |
+|---|---|---|---|---|---|---|
+| Process CPU ms, spawn to exit | 262 (257..276) | 259 (256..267) | 8.1 (1.5..22.9) | 5.6 (-3.4..16.4) | -2.6 (-17.2..6.8), 23/35 | 0.010 |
+| First settled frame ms | 299 (296..306) | 297 (295..303) | 5.7 (1.8..12.9) | 4.2 (0.0..10.0) | -1.5 (-10.5..3.8), 25/35 | 0.001 |
+| PI_TIMING main TOTAL ms | 167 (165..169) | 165 (163..168) | 7 (4..10) | 4 (2..8) | -2 (-6..2), 26/35 | <0.001 |
+| PI_TIMING createAgentSessionRuntime ms | 37 (35..40) | 35 (33..38) | 8 (4..11) | 6 (2..8) | -2 (-6..2), 30/35 | <0.001 |
+| PI_TIMING extensions TOTAL ms | 14 (14..17) | 13 (12..14) | 5 (3..7) | 3 (2..5) | -1 (-4..0), 34/35 | <0.001 |
+| PI_STARTUP_BENCHMARK process CPU ms | 251 (246..266) | 249 (244..257) | 7.9 (-0.4..25.2) | 6.0 (-8.9..16.9) | -1.4 (-21.5..4.3), 22/35 | 0.013 |
+| First frame and exit PTY bytes | 3725, 1533 | 3725, 1533 | 1341, 51 | 1341, 51 | 0 | |
+
+Regression checks, 3 rounds each (`round3-u2-*-stream.jsonl`, `round3-u2-*-long.jsonl`):
+
+| Metric | before full−stock | after full−stock | after − before (lower after) |
+|---|---|---|---|
+| Stream workload CPU ms | -80 (-105..-48) | -82.0 (-82.7..-53.7) | 2.3 (-29.9..28.1), 1/3 |
+| Stream echo p50 ms | 0.02 (-0.08..0.05) | -0.07 (-0.15..0.01) | -0.02 (-0.05..0.00), 2/3 |
+| Stream clean idle CPU ms | 0.00 (-0.03..0.04) | -0.03 (-0.12..0.04) | 0.02 (0.02..0.04), 0/3 |
+| Long whole-run CPU ms | -347 (-353..-305) | -315 (-322..-308) | 1.06 (-1.89..2.69), 1/3 |
+| Long restore settle ms | -69.2 (-79.4..-62.3) | -63.9 (-64.5..-61.5) | 1.43 (-1.47..5.93), 1/3 |
+| Long collapsed echo p50 ms | -0.89 (-0.89..-0.54) | -0.28 (-0.37..-0.27) | 0.18 (0.02..0.21), 0/3 |
+| Long storm settle ms | -26.4 (-26.5..-25.4) | -26.5 (-26.6..-26.1) | 0.22 (0.13..0.43), 0/3 |
+
+Verdict: faster at startup by about 2 ms, past noise only with 35 paired rounds. Process CPU fell 2.6 ms (p 0.010) and the first frame settled 1.5 ms sooner (p 0.001). Pi's own timer agrees in 34 of 35 rounds. The size matches the 2.3 ms first `globSync` call. Nothing else regressed. The stream and long differences span zero, and the PTY bytes match exactly. The +0.18 ms collapsed echo is inside the ±0.4 ms spread the earlier rounds show for that metric, and the package's code for typing did not change.
+
+The floor that remains, about 5.6 ms of process CPU and 3 ms of `extensions TOTAL` over stock, is the load itself. The three modules import in 2 to 3 ms, and Pi resolves the package directory before importing. The earlier rounds showed that one entry instead of three saves at most 1 ms and that a prebuilt bundle is slower. The 1341-byte repaint stays, because `session_start` runs after Pi's first frame (`interactive-mode.js:737` before `:820`) and no documented hook runs earlier.
+
+### Unit 3: row targets and summaries on first render, reverted
+
+Hypothesis 9: Pi calls `renderCall` and `renderResult` for every row while it builds a restored transcript, so computing targets and summaries on the first `render()` instead removes setup work from restore.
+
+The change kept the raw `args`, `cwd`, `content`, `details`, and flags in the row's view, and `RowHeader` and `RowBody` computed the target and summary on render, memoized by the identity of those inputs. A new test showed no target or summary work before the first render, one computation per change after it, and correct output after the args and result changed. All 92 tests, typecheck, and Biome passed.
+
+Long session and mixed session, 5 rounds each (`round3-u3-*.jsonl`, load 3.0 to 4.0). Both sides carry Unit 2's manifest.
+
+| Workload | Metric | before full | after full | before full−stock | after full−stock | after − before (lower after) |
+|---|---|---|---|---|---|---|
+| long | Process CPU ms, whole run | 928 (922..942) | 943 (926..1150) | -341 (-357..-330) | -333 (-336..-122) | 7 (3..220), 0/5 |
+| long | Restore settle ms | 356 (354..360) | 358 (355..453) | -71.2 (-77.4..-66.0) | -69.3 (-70.4..27.9) | 2.4 (-2.0..93.4), 1/5 |
+| long | Collapsed echo p50 ms | 1.49 (1.35..1.53) | 1.39 (1.30..1.59) | -0.55 (-0.79..-0.33) | -0.73 (-1.13..-0.28) | -0.08 (-0.19..0.24), 4/5 |
+| long | Storm settle ms | 9.68 (9.53..9.73) | 9.9 (9.7..10.2) | -25.9 (-26.8..-25.4) | -25.5 (-26.2..-24.9) | 0.38 (0.04..0.48), 0/5 |
+| mixed | Process CPU ms, whole run | 690 (686..702) | 702 (690..707) | -314 (-318..-306) | -305 (-315..-287) | 11.4 (-3.5..16.0), 1/5 |
+| mixed | Restore settle ms | 337 (336..340) | 339 (337..342) | -41.9 (-47.8..-39.3) | -39.5 (-42.3..-35.0) | 1.66 (-0.33..5.98), 1/5 |
+| mixed | Collapsed echo p50 ms | 1.02 (0.77..1.15) | 0.84 (0.81..0.96) | -0.07 (-0.36..0.10) | -0.42 (-0.45..-0.26) | -0.18 (-0.32..0.15), 3/5 |
+| mixed | Expand settle ms | 153 (152..156) | 154 (151..156) | -31.2 (-33.7..-26.9) | -27.6 (-28.9..-25.3) | 0.72 (-3.02..4.05), 2/5 |
+
+The first long round of the new copy was cold (1150 ms, restore 453 ms). Without it, long whole-run CPU was still higher in all 4 remaining rounds (+2.9 to +15.7 ms), and mixed was higher in 4 of 5. PTY bytes matched in every step.
+
+Why it could not win: a counting probe on the 1050-row restore (one unreported run per side) recorded 4200 `renderCall` and 2100 `renderResult` calls, 4 and 2 per row. Before the change the target was computed 5250 times and the summary 1050 times, since `summarizeOnce` already memoized it. After the change the target was computed 1050 times and the summary still 1050 times. Every row header rendered in both startup frames (2100 header renders on each side), because fullscreen mode renders the whole transcript each frame. So the deferral saved only 4200 repeated target computations. Hypothesis 9 measured `specs.target` at 1.5 ms self for the whole restore, so the saving is at most about 1.2 ms. The per-row input objects the change added cost about as much. Verdict: no improvement, possibly 5 to 10 ms worse on whole-run CPU. Reverted.
+
+### Where full stands against stock after Round 3
+
+From the after columns above. Startup is still higher than stock (+5.6 ms process CPU, +4.2 ms first frame, +1341 first-frame bytes), down from +8.1 ms and +5.7 ms. Every streaming and long-session number that was lower than stock before is still lower: stream workload CPU −82 ms, long whole-run CPU −315 to −341 ms, restore −64 to −71 ms, storm −26 ms, collapsed echo −0.3 to −0.7 ms, mixed whole-run CPU −305 to −314 ms.
+
+## Panel without Box, 2026-11-15
+
+The final comparison at 4993ca2f left two long-session numbers above stock. Ctrl+O expand was 5.5 ms slower (full higher in 9 of 9 rounds) and expanded echo p50 was 0.30 ms higher (full higher in 8 of 9).
+
+### Where the time went
+
+One profiled long run per side at 100 µs sampling, on 15de98e5. `expandedTyping` is a new `profile-summary.py` phase for the ten keystrokes typed after Ctrl+O. `run.py` now records their window as `echo.windowUs`.
+
+| Window | stock busy ms | full busy ms | Where full spent more |
+|---|---|---|---|
+| expand | 130 | 140 | `Panel` 11.2 ms self, of which `isBlank` 4.5 ms plus 4.2 ms in `ansiCodeLength` and 0.8 ms in `stripTerminalSequences` under it |
+| expandedTyping, 10 keys | 23 | 31 | `Box` 9.0 against 6.5 ms self, `Container` 11.0 against 7.9 ms, `Panel` 2.0 ms |
+
+Each expanded row ran two `Box` layers per frame in full. Pi's `contentBox` is the only one in stock. `Panel` wrapped the native result component in a pi-tui `Box(1, 0)`, whose `render` (`pi-tui/dist/components/box.js:83-130`) renders its child, copies every child line into a new array, compares each line with its cache, and calls `bgFn('test')` before it returns the cached array. On Ctrl+O, `isBlank` ran `stripTerminalSequences` on the first and last lines of every panel. It builds the stripped string one character at a time, and most of those lines are not blank.
+
+The native result components fall into two groups. `Text` returns the same array until its text or width changes (`pi-tui/dist/components/text.js`). That covers `read`, `grep`, `find`, `ls`, `write` with output, and the generic plain-text panel. `Container` builds a new array every frame (`pi-tui/dist/tui.js:138`). That covers `bash`, `edit`, and an empty `write` result. So an identity check alone would miss on every frame for `bash` and `edit`.
+
+### Change
+
+`Panel` renders the native child at the content width itself. It reuses its lines when the child returns the same array or an array with the same strings, which is the comparison `Box` made. On a miss it trims blank edge lines, then pads each line to the panel width with one column each side, applies the tone's background, and adds the gutter indent, all in one pass. A tone change clears the cache, which replaces `Box`'s `bgFn('test')` sample. Theme changes already reach the panel through `invalidate()`. The generic plain-text panel keeps its self-framing `Text`.
+
+`isBlank` skips SGR color codes in place and stops at the first visible character. It falls back to `stripTerminalSequences` only when a line has another kind of escape before any visible character, so it gives the same answer as before. The first version used a regular expression with an escape character, which the lint config rejects in `src`. The scanner replaced it before the shipping measurements.
+
+`test/panels.test.ts` renders expanded rows through Pi's real `read`, `grep`, `edit`, `bash` (pass and fail), `write`, `find`, and `ls` result renderers and the generic panel (ok and error), at output pads 0 and 1 and widths 1 to 120. It compares a digest of every frame with `test/__snapshots__/panels.json`, which was written by the code at 15de98e5, and renders every width a second time from cache. A second test checks that unchanged native lines repaint when a result turns into an error and back. Both fail when the padding or the tone check is removed.
+
+### Results
+
+Long session, 9 rounds, and mixed session, 7 rounds, `stock,base,full` interleaved with a rotating order (`panel-box-long.jsonl` and `panel-box-mixed.jsonl`, load 3.4 to 4.0). `base` is a copy of the package at 15de98e5 and `full` is the shipping code. No record has problems.
+
+Long:
+
+| Metric | stock | before | after | before−stock (lower) | after−stock (lower) | after−before (lower) |
+|---|---|---|---|---|---|---|
+| Whole-run CPU ms | 1297 (1262..1339) | 949 (928..1156) | 916 (887..1020) | -326 (-376..-183), 9/9 | -375 (-401..-319), 9/9 | -38.8 (-136..-2.66), 9/9 |
+| Restore (startup settle) ms | 429 (425..477) | 357 (352..472) | 359 (355..461) | -72.6 (-78.2..-5.15), 9/9 | -70.1 (-76.3..-15.5), 9/9 | 0.30 (-10.4..7.13), 4/9 |
+| Collapsed echo p50 ms | 2.10 (1.88..2.60) | 1.44 (1.17..1.75) | 1.52 (1.24..1.89) | -0.61 (-1.43..-0.26), 9/9 | -0.58 (-1.32..0.00), 8/9 | 0.03 (-0.35..0.48), 3/9 |
+| Collapsed echo p95 ms | 3.01 (2.42..3.14) | 2.27 (1.87..2.59) | 2.32 (1.78..2.72) | -0.67 (-1.27..0.10), 8/9 | -0.66 (-1.24..0.13), 8/9 | -0.04 (-0.48..0.47), 5/9 |
+| Burst of 50 keys ms | 4.46 (3.99..4.65) | 3.40 (2.77..4.11) | 3.29 (3.05..3.91) | -0.86 (-1.35..-0.14), 9/9 | -1.13 (-1.40..-0.47), 9/9 | -0.22 (-0.43..0.52), 7/9 |
+| Resize narrow ms | 38.6 (37.4..41.0) | 10.5 (10.4..10.8) | 10.4 (10.2..10.8) | -28.2 (-30.5..-27.1), 9/9 | -28.4 (-30.6..-27.0), 9/9 | -0.02 (-0.45..0.33), 5/9 |
+| Resize wide ms | 39.4 (38.3..40.3) | 8.86 (7.59..9.06) | 8.90 (7.81..9.14) | -30.5 (-32.5..-29.3), 9/9 | -30.5 (-31.4..-29.8), 9/9 | 0.08 (-1.24..1.42), 3/9 |
+| Resize storm ms | 36.1 (35.2..37.7) | 9.88 (9.63..10.1) | 10.2 (9.23..10.8) | -26.2 (-28.1..-25.2), 9/9 | -25.9 (-28.4..-25.1), 9/9 | 0.18 (-0.57..0.95), 3/9 |
+| Expand ms | 132 (129..134) | 137 (134..140) | 127 (125..128) | 6.38 (0.95..8.58), 0/9 | -4.84 (-6.90..-2.84), 9/9 | -10.8 (-12.8..-7.39), 9/9 |
+| Expanded echo p50 ms | 2.65 (2.40..3.12) | 3.10 (2.58..3.22) | 2.13 (1.83..2.54) | 0.11 (-0.17..0.68), 2/9 | -0.53 (-1.24..-0.27), 9/9 | -1.01 (-1.34..-0.36), 9/9 |
+| Collapse ms | 34.3 (32.1..36.6) | 5.29 (4.77..5.60) | 5.24 (4.72..5.77) | -29.0 (-31.3..-26.7), 9/9 | -29.0 (-31.4..-26.3), 9/9 | 0.10 (-0.47..0.56), 4/9 |
+
+Mixed:
+
+| Metric | stock | before | after | before−stock (lower) | after−stock (lower) | after−before (lower) |
+|---|---|---|---|---|---|---|
+| Whole-run CPU ms | 1015 (998..1084) | 706 (695..749) | 700 (687..712) | -302 (-378..-281), 7/7 | -309 (-373..-287), 7/7 | -1.68 (-61.4..5.29), 4/7 |
+| Restore (startup settle) ms | 379 (377..435) | 341 (337..344) | 338 (334..349) | -40.0 (-91.0..-34.5), 7/7 | -42.8 (-90.3..-28.9), 7/7 | -2.63 (-7.57..5.61), 4/7 |
+| Collapsed echo p50 ms | 1.18 (1.04..1.22) | 0.88 (0.81..1.08) | 0.92 (0.81..1.13) | -0.24 (-0.39..0.00), 6/7 | -0.29 (-0.40..0.06), 6/7 | 0.06 (-0.24..0.15), 2/7 |
+| Collapsed echo p95 ms | 1.72 (1.45..1.87) | 1.44 (1.26..1.74) | 1.37 (1.31..1.83) | -0.35 (-0.43..0.28), 5/7 | -0.27 (-0.56..0.21), 5/7 | -0.08 (-0.40..0.46), 5/7 |
+| Burst of 50 keys ms | 2.95 (2.61..4.26) | 2.58 (2.18..2.71) | 2.52 (2.31..2.95) | -0.76 (-1.72..0.04), 6/7 | -0.43 (-1.91..0.16), 6/7 | 0.12 (-0.19..0.33), 2/7 |
+| Resize narrow ms | 24.2 (22.4..25.0) | 5.86 (5.48..6.97) | 5.89 (5.70..6.29) | -18.6 (-19.0..-15.4), 7/7 | -18.2 (-19.1..-16.1), 7/7 | -0.04 (-0.68..0.43), 4/7 |
+| Resize wide ms | 23.3 (22.4..24.3) | 4.85 (4.39..5.17) | 4.91 (4.60..5.35) | -18.4 (-19.1..-18.0), 7/7 | -18.2 (-19.6..-17.8), 7/7 | 0.08 (-0.49..0.50), 2/7 |
+| Resize storm ms | 23.3 (21.6..23.4) | 5.33 (4.21..5.62) | 5.34 (4.10..5.55) | -17.8 (-18.8..-16.3), 7/7 | -17.8 (-19.3..-16.2), 7/7 | 0.06 (-1.26..1.02), 3/7 |
+| Expand ms | 182 (180..185) | 155 (154..167) | 153 (150..154) | -25.5 (-30.2..-17.4), 7/7 | -28.9 (-34.4..-26.5), 7/7 | -2.53 (-13.5..-1.01), 7/7 |
+| Expanded echo p50 ms | 1.55 (1.28..1.74) | 1.32 (1.22..1.53) | 1.21 (1.06..1.30) | -0.19 (-0.42..0.07), 6/7 | -0.34 (-0.64..-0.06), 7/7 | -0.14 (-0.32..-0.00), 7/7 |
+| Collapse ms | 23.0 (22.7..23.4) | 2.62 (2.28..2.89) | 2.63 (2.36..2.68) | -20.5 (-20.7..-19.9), 7/7 | -20.4 (-20.8..-20.1), 7/7 | -0.02 (-0.26..0.40), 4/7 |
+
+Verdict: kept. Long expand went from 6.4 ms slower than stock (0 of 9 rounds lower) to 4.8 ms faster (9 of 9, range −6.9..−2.8). Long expanded echo p50 went from +0.11 ms (2 of 9 lower) to −0.53 ms (9 of 9, range −1.24..−0.27). Against the code before, expand is 10.8 ms faster and expanded echo 1.0 ms faster in every round. Mixed expand and expanded echo also improved in all 7 rounds. No other long or mixed metric changed past its spread, and every metric that was lower than stock before is still lower.
+
+After the change, one profiled run of the shipping code put `isBlank` at 0.6 ms self over the expand window, against 9.5 ms with `stripTerminalSequences` under it before. Expanded typing was 17 ms busy for 10 keys, against 31 ms before and 23 ms in stock. What remains of expand is Pi's own work in both configurations: native `renderResult`, highlight.js, `Text` wrapping, and `visibleWidth` on every line. `Panel` now does the padding that `Box` used to do, so its self time is 33 ms, close to the 35 ms `Box` took in stock.
+
+### Storm, not explained
+
+The first version, with the regex `isBlank` (`panel-box-regex-*.jsonl`, same configs and rounds), measured the same gains. Its storm settle was 0.72 ms higher than before (lower in 1 of 9). Storm runs with every row collapsed, so `Panel` code is not on its path, and Pi does not invalidate components on resize. Two more long sets checked it. `panel-box-flat-long.jsonl` (7 rounds, `base,full,flat`) tested whether the unflattened panel strings slowed a later garbage collection. `flat` flattened them the way `Box` did, and its storm was no lower than `full`'s (0.20 ms higher, lower in 3 of 7). `panel-box-storm-long.jsonl` (9 rounds, `base,full`) gave +0.26 ms (lower in 2 of 9). Pooled over those three sets, full's storm was higher in 19 of 25 rounds, median +0.45 ms. Three profiled runs per side put main-thread busy time in the storm window at 8.2 to 8.8 ms for both sides and garbage collection at 0.15 to 0.30 ms, and in those runs full's storm settled 0.1 to 0.3 ms earlier. On the shipping code storm was +0.18 ms (lower in 3 of 9), inside its spread. Storm is 26 ms faster than stock on either side, so the change stays. The cause of the 0.2 to 0.7 ms is still unknown.

@@ -73,6 +73,8 @@ Before the first resize, the driver also types 20 `q` characters at 100 ms inter
 
 `report.py` prints one section per workload and drops a metric when a record lacks it, so older result files still report.
 
+`summary.py label=results.jsonl ...` prints the headline metrics of each file in one table: the `stock` and `full` medians, the paired difference, the rounds `full` was lower, and two verdicts. The strict verdict needs the paired min..max to exclude 0. The sign-test verdict needs `full` lower or higher in 13 of 15, 7 of 9, or 6 of 7 rounds. `--config` and `--baseline` pick other configurations. `results/final.md` uses it.
+
 ## Run the mixed-tool benchmark
 
 ```sh
