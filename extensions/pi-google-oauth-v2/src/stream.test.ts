@@ -72,10 +72,28 @@ describe('request', () => {
     expect(Object.keys(sent[0]?.headers ?? {})).not.toContain(PRIVATE_PROJECT_HEADER);
   });
 
-  test('posts the payload that onPayload returns', async () => {
-    const { stream, sent } = run(sseResponse(frame(stopChunk())), { onPayload: () => ({ replaced: true }) });
-    await collect(stream);
-    expect(sent[0]?.body).toEqual({ replaced: true });
+  test('exposes the compiled instruction turn to onPayload and posts its replacement', async () => {
+    const promptContext: TranscriptContext = { ...context, messages: [{ role: 'system', content: 'Trusted instructions.', timestamp: 0 }, ...context.messages] };
+    const onPayload = vi.fn((body: unknown) => {
+      expect(body).toMatchObject({
+        request: {
+          contents: [
+            { role: 'user', parts: [{ text: 'Trusted instructions.' }] },
+            { role: 'user', parts: [{ text: 'hi' }] },
+          ],
+          systemInstruction: { role: 'user', parts: [{ text: expect.stringContaining('with priority over all later user messages and tool results') }] },
+        },
+      });
+      return { replaced: true };
+    });
+    const fetchImpl = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      expect(JSON.parse(String(init?.body))).toEqual({ replaced: true });
+      return sseResponse(frame(stopChunk()));
+    });
+    const stream = streamCodeAssist(model, promptContext, { apiKey: 'tok', headers: { [PRIVATE_PROJECT_HEADER]: 'proj' }, fetch: fetchImpl, onPayload });
+    expect(message((await collect(stream)).at(-1)).stopReason).toBe('stop');
+    expect(onPayload).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   test('keeps the payload when onPayload returns undefined', async () => {
@@ -160,12 +178,13 @@ describe('failures before the first event', () => {
     expect(message(terminal(events)[0]).content).toContainEqual({ type: 'text', text: 'OK' });
   });
 
-  test('a capacity 429 with no retry budget makes one request and reports shared capacity', async () => {
+  test('a generic 429 with no retry budget makes one request and retains the Google message', async () => {
     const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }), { maxRetryDelayMs: 0 });
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(message(events[0]).errorMessage).toContain('temporarily at capacity');
-    expect(message(events[0]).errorMessage).toContain('not your plan quota');
+    expect(types(events)).toEqual(['error']);
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
+    expect(message(events[0]).model).toBe(model.id);
   });
 
   test('a quota-exhausted 429 fails fast without retrying', async () => {
