@@ -156,7 +156,8 @@ function report(job: Job): string {
 
 function describe(job: Job): string {
   const state = job.status.state === 'exited' ? `exited ${job.status.code}` : job.status.state;
-  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}`;
+  const attach = job.spec.socket && job.status.state === 'running' ? `\n  attach: tmux -S ${job.spec.socket} attach -t ${job.spec.id}` : '';
+  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}${attach}`;
 }
 
 function resolveModel(ctx: ExtensionContext, model: string | undefined): string | undefined {
@@ -540,7 +541,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory.',
+      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory. The command reads no input.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: Type.Object({
@@ -590,7 +591,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state, a command to follow its output, and for a running job a command to attach to its tmux session, where the output shows live and Ctrl-C stops it. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),

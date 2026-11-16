@@ -226,6 +226,7 @@ function run(job: Run): void {
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
+    '  kill $mirror 2>/dev/null',
     // Off the terminal: once tmux is gone, Node reopening the terminal to report an error blocks forever and holds a pty.
     `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))} < /dev/null >> ${out} 2>&1`,
     // Go leaves its module cache read-only. find never follows a link the job planted, so only the job's own directories change.
@@ -235,6 +236,9 @@ function run(job: Run): void {
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
     `${body} &`,
     'pid=$!',
+    // The session's pane shows the output as it is written, so attaching to it is a live view of the job.
+    `tail -n +1 -f ${job.kind === 'pi' ? `${out} ${shellQuote(join(job.out, 'stderr.log'))}` : out} 2>/dev/null &`,
+    'mirror=$!',
     'wait $pid',
     'finish "$?"',
   ].join('\n');
