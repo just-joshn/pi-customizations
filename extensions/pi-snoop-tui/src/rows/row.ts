@@ -1,5 +1,5 @@
 import type { AgentToolResult, Theme, ToolRenderers, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
-import { Box, type Component, Text, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
+import { Box, type Component, stripTerminalSequences, Text, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 import { fitPath, fitPlain, sanitizeLine } from '../text.ts';
 import { type Preview, type ResultSummary, type TargetText, type ToolSpec, VERB_COLUMN } from './specs.ts';
 
@@ -257,8 +257,6 @@ class Panel implements Component {
     this.child.invalidate();
   }
 }
-// biome-ignore lint/suspicious/noControlCharactersInRegex: a blank panel line holds only spaces and SGR color codes
-const BLANK_LINE = /^(?:\s|\x1b\[[0-9;:]*m)*$/;
 function isBlank(line: string | undefined): boolean {
-  return BLANK_LINE.test(line ?? '');
+  return stripTerminalSequences(line ?? '').trim() === '';
 }

@@ -221,7 +221,6 @@ function phase(from: Snapshot, to: Snapshot, histogram: ReturnType<typeof monito
 
 type ToolParameters = Parameters<ExtensionAPI['registerTool']>[0]['parameters'];
 const ANY_OBJECT = { type: 'object', properties: {}, additionalProperties: true } as unknown as ToolParameters;
-// Stand-ins for tools that ship without renderers (pstack's codemode, pi_spawn, tmux_run). The mixed workload only restores their rows.
 const RENDERERLESS_TOOLS = ['codemode', 'pi_spawn', 'tmux_run'];
 
 export default function benchProvider(pi: ExtensionAPI): void {
