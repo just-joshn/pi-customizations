@@ -40,6 +40,7 @@ describe('Cursor browser sign-in', () => {
     const fetch = vi.fn().mockResolvedValue(json(200, { access_token: jwt(exp) }));
     vi.stubGlobal('fetch', fetch);
     const creds = await cursorRefresh({ access: 'old', refresh: 'ref', expires: 0 }, new AbortController().signal);
+    // biome-ignore lint/security/noSecrets: Assert Cursor's public desktop OAuth client ID exactly as required by its refresh grant.
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toStrictEqual({ grant_type: 'refresh_token', client_id: 'KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB', refresh_token: 'ref' });
     expect(creds).toStrictEqual({ access: jwt(exp), refresh: 'ref', expires: exp * 1000 });
   });

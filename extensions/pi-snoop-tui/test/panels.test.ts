@@ -29,6 +29,8 @@ const native = (definition: object) => definition as ToolRenderers;
 const source = Array.from({ length: 30 }, (_, i) => `export const value${i} = await load(${i}); // 漢字 🙂`).join('\n');
 const failure = ['FAIL cache.test.ts', '  respects cancellation', '    expected aborted, got resolved', '', 'Command exited with code 1'].join('\n');
 const diff = '-41 async function refreshCache() {\n+41 async function refreshCache(signal) {\n-42   return await fetchSnapshot();\n+42   return await fetchSnapshot({ signal });';
+const red = '\x1b[31m';
+const reset = '\x1b[0m';
 const CASES: Record<string, { renderers: ToolRenderers; event: RowEvent }> = {
   read: { renderers: compactRenderers(TOOL_SPECS.read, native(createReadToolDefinition(CWD))), event: { args: { path: `${CWD}/src/cache.ts` }, result: output(source) } },
   grep: {
@@ -44,7 +46,7 @@ const CASES: Record<string, { renderers: ToolRenderers; event: RowEvent }> = {
   write: { renderers: compactRenderers(TOOL_SPECS.write, native(createWriteToolDefinition(CWD))), event: { args: { path: `${CWD}/src/new.ts`, content: source }, result: output('Successfully wrote 1200 bytes to src/new.ts') } },
   find: { renderers: compactRenderers(TOOL_SPECS.find, native(createFindToolDefinition(CWD))), event: { args: { pattern: '*.ts' }, result: output('src/cache.ts\nsrc/app.ts\nsrc/session/index.ts') } },
   ls: { renderers: compactRenderers(TOOL_SPECS.ls, native(createLsToolDefinition(CWD))), event: { args: { path: 'src' }, result: output('cache.ts\napp.ts\nsession/') } },
-  generic: { renderers: compactRenderers(genericSpec('codemode'), {}), event: { args: { code: 'return 1;' }, result: output(`${'\x1b[31mred\x1b[0m line\n'.repeat(12)}\n`) } },
+  generic: { renderers: compactRenderers(genericSpec('codemode'), {}), event: { args: { code: 'return 1;' }, result: output(`${`${red}red${reset} line\n`.repeat(12)}\n`) } },
   genericFail: { renderers: compactRenderers(genericSpec('tmux_run'), {}), event: { args: { name: 'tests' }, result: output('TypeError: boom\n'.repeat(6), true) } },
 };
 

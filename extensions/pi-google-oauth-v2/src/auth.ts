@@ -6,6 +6,7 @@ import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LoopbackExpiredError, startLoopbackCallback } from './loopback.ts';
 
 const ANTIGRAVITY_CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
+// biome-ignore lint/security/noSecrets: Antigravity's public desktop OAuth client requires this shared application secret, not a user credential.
 const ANTIGRAVITY_CLIENT_SECRET = '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';
 const SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',

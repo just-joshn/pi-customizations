@@ -35,6 +35,7 @@ describe('Grok Build device sign-in', () => {
     expect(cb.onDeviceCode).toHaveBeenCalledWith(expect.objectContaining({ userCode: 'ABCD-1234', verificationUri: 'https://accounts.x.ai/oauth2/device?user_code=ABCD-1234' }));
     expect(creds).toMatchObject({ access: 'acc', refresh: 'ref' });
     expect(creds.expires).toBe(Date.now() + 21600 * 1000);
+    // biome-ignore lint/security/noSecrets: OAuth's device authorization grant uses this standardized URN, not a credential.
     expect(String(fetch.mock.calls[3]?.[1]?.body)).toContain('grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code');
   });
 

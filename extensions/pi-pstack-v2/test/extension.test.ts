@@ -898,7 +898,16 @@ describe('interrogate round', { timeout: 30_000 }, () => {
 
   test('Pi code a worker plants in its worktree is swept', async () => {
     const planter = join(agentDir, 'planter-pi.mjs');
-    writeFileSync(planter, "import fs from 'node:fs';\nfs.mkdirSync('sub/.pix/extensions', { recursive: true });\nfs.writeFileSync('sub/.pix/extensions/evil.ts', 'x');\nfs.renameSync('sub/.pix', 'sub/.pi');\nconsole.log('planted');\n");
+    writeFileSync(
+      planter,
+      `
+        import fs from 'node:fs';
+        fs.mkdirSync('sub/.pix/extensions', { recursive: true });
+        fs.writeFileSync('sub/.pix/extensions/evil.ts', 'x');
+        fs.renameSync('sub/.pix', 'sub/.pi');
+        console.log('planted');
+      `,
+    );
     process.argv[1] = planter;
     await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'plant-branch' });
     const dir = join(jobsRoot(), jobs()[0] ?? '');
@@ -1066,7 +1075,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     try {
       expect(
         await run(
-          `'${process.execPath}' -e 'const fs = require("node:fs"); const target = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
+          `'${process.execPath}' -e 'const fs = require("node:fs"); const file = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
         ),
       ).toContain('MUTATION-ATTEMPTED');
       const dir = join(jobsRoot(), jobs()[0] ?? '');

@@ -55,10 +55,10 @@ function dataProvider() {
     },
   };
 }
-const snapshot: FooterSnapshot = { workspace: 'workspace漢字🙂', model: 'model', thinking: 'medium', ctxPercent: 18 };
+const snapshot: FooterSnapshot = { workspace: 'test test 漢字🙂', model: 'model', thinking: 'medium', ctxPercent: 18 };
 
 test('fits footer segments in priority order without wrapping', () => {
-  const texts = { workspace: 'workspace漢字🙂', branch: 'long-branch-name', statuses: 'status text 漢字🙂', model: 'model-name', thinking: 'medium', ctx: 'ctx 18%' };
+  const texts = { workspace: 'test test 漢字🙂', branch: 'long-branch-name', statuses: 'status text 漢字🙂', model: 'model-name', thinking: 'medium', ctx: 'ctx 18%' };
   const segments = SEGMENT_ORDER.map((s) => ({ ...s, text: texts[s.id] }));
   const theme = stubTheme();
   const provider = dataProvider();
@@ -94,8 +94,8 @@ test('footer caches snapshot and reads branch and statuses live', () => {
   expect(vi.mocked(theme.fg).mock.calls).toHaveLength(count);
   provider.branch('feature');
   expect(plain(footer.render(120)[0] ?? '')).toContain('feature');
-  provider.statuses.set('task', '\x1b[31mworking\nnext');
-  expect(plain(footer.render(120)[0] ?? '')).toContain('working next');
+  provider.statuses.set('task', '\x1b[31ma\nb');
+  expect(plain(footer.render(120)[0] ?? '')).toContain('a b');
   footer.invalidate();
   footer.render(120);
   expect(vi.mocked(theme.fg).mock.calls.length).toBeGreaterThan(count);
@@ -127,11 +127,11 @@ test('snapshots omit thinking on non-reasoning models and tolerate unknown usage
     statusText(
       new Map([
         ['z', 'last\nline'],
-        ['a', '\x1b[31mfirst'],
+        ['a', '\x1b[31mtext'],
         ['b', '  '],
       ]),
     ),
-  ).toBe('first · last line');
+  ).toBe('text · last line');
 });
 
 test('footer events refresh only on changes and dispose stops render requests', () => {
@@ -235,7 +235,7 @@ test('footer keeps the same gutter on both sides', () => {
     1,
   );
   const line = plain(footer.render(100)[0] ?? '');
-  expect(line.startsWith(' workspace')).toBe(true);
+  expect(line.startsWith(' test test')).toBe(true);
   expect(line.endsWith('ctx 18%')).toBe(true);
   expect(visibleWidth(line)).toBe(99);
   for (let width = 3; width < 120; width++) {
