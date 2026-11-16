@@ -152,7 +152,7 @@ export const TOOL_SPECS = {
 } satisfies Record<string, ToolSpec>;
 
 export type CompactToolName = keyof typeof TOOL_SPECS;
-export const VERB_COLUMN = Math.max(...Object.values(TOOL_SPECS).map((spec) => spec.verb.length));
+export const VERB_COLUMN = 8;
 export function isCompactTool(name: string): name is CompactToolName {
   return Object.hasOwn(TOOL_SPECS, name);
 }

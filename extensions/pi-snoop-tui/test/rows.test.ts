@@ -183,7 +183,7 @@ describe('rows', () => {
     row.apply({ expanded: true });
     row.apply({ expanded: false });
     expect(row.components.call).toBe(call);
-    expect(row.lines(80).map(plain)).toEqual([' ·  bash   echo hi']);
+    expect(row.lines(80).map(plain)).toEqual([' ·  bash      echo hi']);
   });
   test('sandboxes native state and lastComponent across expand toggles', () => {
     const native = recordingNative();
@@ -242,7 +242,13 @@ describe('rows', () => {
   test('omits preview hints when all output is visible', () => {
     const row = driveRow(compactRenderers(TOOL_SPECS.bash, {}), stubTheme());
     row.apply({ result: output('short'), executionStarted: true });
-    expect(row.lines(80).map(plain)).toEqual([' •  bash   ', '    short']);
+    expect(row.lines(80).map(plain)).toEqual([' •  bash      ', '    short']);
+  });
+  test('starts every target on one column and lets longer names overflow by their gap', () => {
+    const header = (verb: string) => plain(driveRowHeader(verb));
+    const column = (verb: string) => header(verb).indexOf('target');
+    for (const verb of ['ls', 'read', 'write', 'codemode', 'pi_spawn', 'tmux_run']) expect(column(verb)).toBe(14);
+    expect(header('mcp__github__search')).toMatch(/^ ✓ {2}mcp__github__search {2}target/);
   });
   test('drops metadata before target space', () => {
     const view = { verb: 'read', target: { kind: 'path' as const, text: 'src/cache.ts' }, meta: '142 lines' };
@@ -250,6 +256,12 @@ describe('rows', () => {
     expect(layoutHeader(view, 20).meta).toBe('');
   });
 });
+
+function driveRowHeader(verb: string): string {
+  const row = driveRow(compactRenderers({ ...genericSpec(verb), target: () => ({ kind: 'plain', text: 'target' }) }, {}), stubTheme());
+  row.apply({ args: {}, executionStarted: true, result: output('a'), isPartial: false });
+  return row.lines(100)[0] ?? '';
+}
 
 describe('row edges', () => {
   test.for([1, 2])('collapsed metadata ends one gutter (%i) from the right edge', (outputPad) => {
