@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Fixed
+
+- Give workers a private model catalog so sandboxed Pi can lock and read cached models such as Cursor Grok 4.7 Fast (#251).
+
 ## 0.1.2
 
 - Add this changelog. Nothing else changes.
