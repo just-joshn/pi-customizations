@@ -76,6 +76,8 @@ beforeEach(() => {
     sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
     modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
     isProjectTrusted: () => true,
+    isIdle: () => true,
+    hasPendingMessages: () => false,
   };
 });
 
@@ -316,6 +318,25 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     const listing = await text({ action: 'list' });
     expect(listing).toContain('exited 143');
     expect(listing).toContain(`follow: tail -f ${join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'output.log')}`);
+  });
+
+  test('wait with no ids skips servers started without a wake, which never exit on their own', async () => {
+    await call('tmux_run', { name: 'server', command: 'sleep 30' });
+    await call('tmux_run', { name: 'build', command: 'echo built-output', wake: 'Built.' });
+    const started = Date.now();
+    const report = await text({ action: 'wait', timeout_seconds: 15 });
+    expect(Date.now() - started).toBeLessThan(10_000);
+    expect(report).toContain('built-output');
+    expect(report).not.toContain('still running');
+  });
+
+  test('wait hands the turn back as soon as the user sends a message', async () => {
+    await call('tmux_run', { name: 'slow', command: 'sleep 30', wake: 'Slow.' });
+    ctx = { ...ctx, hasPendingMessages: () => true };
+    const started = Date.now();
+    const report = await text({ action: 'wait', timeout_seconds: 15 });
+    expect(Date.now() - started).toBeLessThan(10_000);
+    expect(report).toContain('still running');
   });
 
   test('a job from another session is not visible', async () => {
@@ -818,5 +839,113 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
     const shared = join(dir, 'agent');
     expect(readFileSync(join(dir, 'output.log'), 'utf8')).toContain('COPY-OK');
     expect([lstatSync(join(shared, 'extensions')).isSymbolicLink(), existsSync(join(shared, 'settings.json')), existsSync(join(agentDir, 'extensions', 'e.ts'))]).toEqual([true, false, false]);
+  });
+});
+
+describe('workers and the jobs they start', { timeout: 30_000 }, () => {
+  const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
+
+  test('a print-mode worker hears about a finished job while it works, so its final reply stays its report', async () => {
+    ctx = { ...ctx, mode: 'print', hasUI: false, isIdle: () => false };
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'probe', command: 'echo probe-output', wake: 'Probe done.' });
+    await expect.poll(() => sendMessage.mock.calls.length, { timeout: 10_000 }).toBe(1);
+    expect(sendMessage.mock.calls[0]?.[0].content).toContain('probe-output');
+    expect(await handlers['agent_before_settle']?.({ entries: [] }, ctx)).toBeUndefined();
+  });
+
+  test("a worker's tmux_run sees the worker's own $TMPDIR, so paths the worker hands it exist", async () => {
+    const slowPi = join(agentDir, 'slow-pi.mjs');
+    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
+    process.argv[1] = slowPi;
+    ctx = { ...ctx, mode: 'print', hasUI: false };
+    await handlers['session_start']?.({}, ctx);
+    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
+    const top = join(jobsRoot(), jobs()[0] ?? '');
+    const workerTmp = join(top, 'tmp');
+    const rootTmp = process.env['TMPDIR'];
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', top);
+    vi.stubEnv('PSTACK_V2_TOP_DIR', top);
+    vi.stubEnv('TMPDIR', workerTmp);
+    await call('tmux_run', { name: 'child', command: 'echo from-child > "$TMPDIR/handoff"' });
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '');
+    vi.stubEnv('TMPDIR', rootTmp);
+    await expect.poll(() => existsSync(join(workerTmp, 'handoff')), { timeout: 10_000 }).toBe(true);
+  });
+
+  test('tmux_run may run in a linked worktree of this repository, such as a worker checkout', async () => {
+    const worktree = join(jobsRoot(), 'manual-000001', 'worktree');
+    mkdirSync(dirname(worktree), { recursive: true });
+    execFileSync('git', ['-C', repo, 'worktree', 'add', '-q', '-b', 'side', worktree]);
+    await call('tmux_run', { name: 'in-worktree', command: 'touch from-job', cwd: worktree });
+    const id = jobs().find((name) => name.startsWith('in-worktree')) ?? '';
+    await expect.poll(() => exitOf(join(jobsRoot(), id)), { timeout: 10_000 }).toBe('0');
+    expect(existsSync(join(worktree, 'from-job'))).toBe(true);
+  });
+
+  test('a worktree base that exists only on the remote starts from the remote branch', async () => {
+    const remote = join(agentDir, 'remote.git');
+    const git = (...args: string[]) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();
+    execFileSync('git', ['clone', '-q', '--bare', repo, remote]);
+    git('remote', 'add', 'origin', remote);
+    git('checkout', '-q', '-b', 'remote-only');
+    git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'remote work');
+    git('push', '-q', 'origin', 'remote-only');
+    git('checkout', '-q', '-');
+    git('branch', '-q', '-D', 'remote-only');
+    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'from-remote', base: 'remote-only' });
+    const worktree = join(jobsRoot(), jobs()[0] ?? '', 'worktree');
+    expect(execFileSync('git', ['-C', worktree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).toBe(git('rev-parse', 'origin/remote-only'));
+  });
+});
+
+const firefox = (() => {
+  const cache = join(homedir(), 'Library', 'Caches', 'ms-playwright');
+  if (process.platform !== 'darwin' || !existsSync(cache)) return undefined;
+  const dir = readdirSync(cache).find((name) => name.startsWith('firefox-'));
+  const binary = dir && join(cache, dir, 'firefox', 'Nightly.app', 'Contents', 'MacOS', 'firefox');
+  return binary && existsSync(binary) ? binary : undefined;
+})();
+const pnpmVersion = (() => {
+  try {
+    return execFileSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() }).trim();
+  } catch {
+    return undefined;
+  }
+})();
+
+describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => {
+  const run = async (command: string) => {
+    await call('tmux_run', { name: 'tool', command });
+    const dir = join(jobsRoot(), jobs()[0] ?? '');
+    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 45_000 }).toBe(true);
+    return readFileSync(join(dir, 'output.log'), 'utf8').trim();
+  };
+
+  test.skipIf(process.platform !== 'darwin')('a job cannot start an app it wrote outside the sandbox through LaunchServices', async () => {
+    const marker = join(agentDir, 'escaped');
+    const plist = `<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleExecutable</key><string>Probe</string><key>CFBundleIdentifier</key><string>dev.pstack.probe${Date.now()}</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>`;
+    await run(
+      `A="$TMPDIR/Probe.app"; mkdir -p "$A/Contents/MacOS"; printf '#!/bin/sh\\necho escaped > ${marker}\\n' > "$A/Contents/MacOS/Probe"; chmod +x "$A/Contents/MacOS/Probe"; echo '${plist}' > "$A/Contents/Info.plist"; open -g -j -a "$A" 2>/dev/null; sleep 3`,
+    );
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  test.skipIf(!firefox)('a job can run headless Firefox', async () => {
+    expect(await run(`mkdir -p "$TMPDIR/ff"; '${firefox}' -headless -no-remote -profile "$TMPDIR/ff" -screenshot "$TMPDIR/shot.png" 'data:text/html,hi' >/dev/null 2>&1; test -s "$TMPDIR/shot.png" && echo SHOT`)).toBe('SHOT');
+  });
+
+  test.skipIf(process.platform !== 'darwin')("a job can create Chromium's download temp files in the per-user temp directory, and nothing else there", async () => {
+    const output = await run(
+      'T=$(getconf DARWIN_USER_TEMP_DIR); n=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c6); echo x > "$T/.com.google.Chrome.$n" && echo CHROME-TEMP && rm "$T/.com.google.Chrome.$n"; echo x > "$T/.com.google.Chrome.pstack-long" 2>/dev/null && echo LONG-NAME; echo x > "$T/pstack-other-$$" 2>/dev/null && echo OTHER',
+    );
+    expect(output).toBe('CHROME-TEMP');
+  });
+
+  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < 11)('pnpm runs a script in a project that pins another pnpm version', async () => {
+    const pinned = pnpmVersion === '10.0.0' ? '10.0.1' : '10.0.0';
+    writeFileSync(join(repo, 'package.json'), JSON.stringify({ name: 'probe', packageManager: `pnpm@${pinned}`, scripts: { hi: 'echo hi-ran' } }));
+    expect(await run('pnpm run hi 2>&1')).toContain('hi-ran');
   });
 });
