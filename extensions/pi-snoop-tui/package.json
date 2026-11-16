@@ -28,7 +28,8 @@
       "./src/chrome.ts"
     ],
     "themes": [
-      "./themes/*.json"
+      "./themes/snoop-dark.json",
+      "./themes/snoop-light.json"
     ]
   },
   "files": [
