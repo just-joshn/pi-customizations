@@ -117,3 +117,14 @@ The `visual/` scripts render Pi frames to PNG for visual review. They write to `
 - `mockup-fixture.py <out.jsonl> <cwd>` writes the default replay session: read, edit, a passing and a failing bash call, grep, an image read, and codemode.
 - `pty-capture.py <out-prefix> <cols> <rows> <session.jsonl> [--expand] [--page-up=N] -- [pi args...]` does the same in a pseudo-terminal through `pyte`, for sandboxes where tmux cannot open its socket. Run it with `uv run --with pyte`.
 - `ansi2png.py <in.ansi> <out.png>` renders a capture with Pillow. Run it with `uv run --with pillow`.
+
+## Record the README demo
+
+```sh
+cd extensions/pi-snoop-tui/bench/visual
+uv run --with pyte python3 record-demo.py && uv run --with pillow python3 make-gif.py
+```
+
+`record-demo.py` starts Pi in a 100x32 pseudo-terminal with the package and `demo-provider.ts`, in a fresh git workspace on `main` and a fresh `PI_CODING_AGENT_DIR` with the recommended settings. The provider registers the scripted `demo/demo-model` model and writes a small TypeScript project on `session_start`. Its `npm test` script fails until the second edit adds `signal?.throwIfAborted()`. The recorder types the prompt, waits for the agent to finish, then expands and collapses tool rows with Ctrl+O. It saves every distinct screen with its timestamp to `out/demo-frames.json.gz`, and fails if a scripted state never appeared.
+
+`make-gif.py` renders those frames with Menlo, which draws every glyph the rows use, and writes `docs/demo.gif`. It caps idle stretches at 2.5 s and holds the last frame for 2.5 s. Add `--png-dir=<dir>` to also write each frame as a PNG for review. `docs/` is not in the package `files` list, so the README links the GIF by absolute URL.
