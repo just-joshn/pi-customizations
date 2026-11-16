@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
+- Retain the full current Pi instructions, including the Pi identity and documentation, in a leading user-content turn. A static system directive delegates priority to that turn. This is not equivalent to transport-level system priority, and non-Gemini models remain unverified.
+- Report Google's parsed error message and HTTP status for generic 429 responses instead of diagnosing shared capacity without evidence.
+- Add offline instruction-replay coverage and a developer-only native Pi live verification script. Live verification remains a release gate.
 - List every model the account's Code Assist catalog serves, one per family, instead of two fixed models. Pi's thinking levels pick the per-effort model id Google lists.
 
 ## 0.1.1

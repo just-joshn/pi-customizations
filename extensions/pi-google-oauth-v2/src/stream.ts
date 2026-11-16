@@ -105,10 +105,7 @@ export function streamCodeAssist(model: Model<Api>, context: TranscriptContext, 
         const text = await response.text().catch(() => '');
         const message = googleErrorMessage(text) ?? (response.statusText || 'request failed');
         const quotaExhausted = /QUOTA_EXHAUSTED|Individual quota reached/i.test(text);
-        const capacityThrottle = response.status === 429 && !quotaExhausted;
         if (!RETRYABLE_STATUS.has(response.status) || quotaExhausted || attempt >= baseRetries) {
-          // Google says "check quota" for a shared-capacity throttle too, which misreads as the user's own quota.
-          if (capacityThrottle) throw new Error('Google Code Assist is temporarily at capacity (429). This is shared capacity, not your plan quota. Try again in a moment.');
           throw new Error(`Google Code Assist error (${response.status}): ${message}`);
         }
         const delay = Math.min(retryDelayMs(text, response.headers) ?? 1000 * 2 ** attempt, maxRetryDelayMs);
