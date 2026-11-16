@@ -44,7 +44,7 @@
     },
     "extensions/pi-pstack-v2": {
       "name": "@justjoshn/pi-pstack-v2",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "devDependencies": {
         "@earendil-works/pi-coding-agent": "1.5.2",
         "@vitest/coverage-v8": "5.1.0",
