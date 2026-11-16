@@ -74,7 +74,8 @@ describe('envelope', () => {
   });
 
   test('still removes only invalid surrogates from the instruction turn', () => {
-    expect(build([system('a\uD83Db\uDC00c😀'), user('hi')]).request.contents[0]?.parts).toEqual([{ text: 'abc😀' }]);
+    const prompt = `a${String.fromCharCode(0xd83d)}b${String.fromCharCode(0xdc00)}c😀`;
+    expect(build([system(prompt), user('hi')]).request.contents[0]?.parts).toEqual([{ text: 'abc😀' }]);
   });
 
   test.for([[], [system('')]])('omits both instruction fields for an empty prompt %j', (messages) => {
