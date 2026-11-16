@@ -143,6 +143,7 @@ function report(job: Job): string {
     `tmux job ${job.spec.name} (${job.spec.id}) ${state}. Raw output: ${output}`,
     transcript ? `Transcript: ${transcript.path}` : '',
     job.spec.wake ?? '',
+    job.spec.kind === 'pi' && !answers.length ? '[No completed transcript answers available; showing raw stdout.]' : '',
     `<output>\n${body.trim()}\n</output>`,
     errors ? `<stderr>\n${errors}\n</stderr>` : '',
   ]
@@ -343,7 +344,6 @@ export default function pstack(pi: ExtensionAPI) {
   };
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
-  // Busy print-mode workers can act on results immediately. The settle hook handles reports that arrive later.
   const deliverable = (ctx: ExtensionContext): boolean => interactive(ctx) || (!settling && !ctx.isIdle());
 
   const serve = (ctx: ExtensionContext): void => {

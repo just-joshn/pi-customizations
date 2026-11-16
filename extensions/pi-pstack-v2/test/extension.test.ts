@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -8,6 +9,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import pstack, { modelsFile, serveRequests } from '../src/index.ts';
 import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
+import { externalTempCases } from './fixtures/temp-mutations.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 type Tool = {
@@ -856,52 +858,6 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
 describe('workers and the jobs they start', { timeout: 30_000 }, () => {
   const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
 
-  test('a real print-mode worker keeps its report and later correction after a late wake', async () => {
-    mkdirSync(join(agentDir, 'extensions'));
-    const runtime = fileURLToPath(new URL('../src/index.ts', import.meta.url));
-    const release = join(repo, 'release');
-    const sawLate = join(repo, 'saw-late');
-    writeFileSync(
-      join(agentDir, 'extensions', 'scripted.ts'),
-      `
-import { writeFileSync } from 'node:fs';
-import { fauxProvider, fauxAssistantMessage, fauxToolCall } from '@earendil-works/pi-ai';
-import pstack from ${JSON.stringify(runtime)};
-export default function (pi) {
-  pstack(pi);
-  const faux = fauxProvider({ provider: 'prov', models: [{ id: 'model' }] });
-  faux.setResponses([
-    fauxAssistantMessage(fauxToolCall('tmux_run', { name: 'late', command: ${JSON.stringify(`while [ ! -e '${release}' ]; do sleep 0.1; done; echo late-output`)}, wake: 'Late result.' }), { stopReason: 'toolUse' }),
-    fauxAssistantMessage('SUBSTANTIVE REPORT: initial verdict PASS'),
-    context => {
-      writeFileSync(${JSON.stringify(sawLate)}, String(JSON.stringify(context).includes('late-output')));
-      return fauxAssistantMessage('CORRECTION: late result checked. ACK.');
-    },
-  ]);
-  pi.registerProvider(faux.provider);
-}
-`,
-    );
-    process.argv[1] = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
-    await handlers['session_start']?.({}, ctx);
-    await call('pi_spawn', { name: 'scripted', brief: 'Run the scripted check.', model: 'prov/model', wake: false });
-    const id = jobs()[0] ?? '';
-    const dir = join(jobsRoot(), id);
-    const session = join(dir, 'session');
-    await expect.poll(() => readdirSync(session).some((file) => readFileSync(join(session, file), 'utf8').includes('SUBSTANTIVE REPORT: initial verdict PASS')), { timeout: 20_000 }).toBe(true);
-    expect(existsSync(join(dir, 'exit'))).toBe(false);
-    writeFileSync(release, 'release');
-    const waited = await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 20 });
-    expect(readFileSync(sawLate, 'utf8')).toBe('true');
-    expect(readFileSync(join(dir, 'output.log'), 'utf8').trim()).toBe('CORRECTION: late result checked. ACK.');
-    for (const result of [waited, await call('tmux_jobs', { action: 'output', ids: [id] })]) {
-      const report = result?.content.map((item) => item.text).join('\n') ?? '';
-      expect(report).toMatch(/SUBSTANTIVE REPORT: initial verdict PASS[\s\S]*CORRECTION: late result checked\. ACK\./);
-      expect(report).toContain('Transcript:');
-      expect(report).toContain(session);
-    }
-  }, 50_000);
-
   test('a print-mode worker hears about a finished job while it works', async () => {
     ctx = { ...ctx, mode: 'print', hasUI: false, isIdle: () => false };
     await handlers['session_start']?.({}, ctx);
@@ -994,11 +950,17 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     expect(await run(`mkdir -p "$TMPDIR/ff"; '${firefox}' -headless -no-remote -profile "$TMPDIR/ff" -screenshot "$TMPDIR/shot.png" 'data:text/html,hi' >/dev/null 2>&1; test -s "$TMPDIR/shot.png" && echo SHOT`)).toBe('SHOT');
   });
 
-  test.skipIf(process.platform !== 'darwin')('a job cannot write any name in the per-user temp directory', async () => {
-    const output = await run(
-      'T=$(getconf DARWIN_USER_TEMP_DIR); n=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c6); echo x > "$T/.com.google.Chrome.$n" && echo CHROME-TEMP && rm "$T/.com.google.Chrome.$n"; { echo x > "$T/.com.google.Chrome.pstack-long"; } 2>/dev/null && echo LONG-NAME; { echo x > "$T/pstack-other-$$"; } 2>/dev/null && echo OTHER',
-    );
-    expect(output).toBe('');
+  test.skipIf(process.platform !== 'darwin').each(['.com.google.Chrome.', '.com.google.Chrome.pstack-long-', 'pstack-other-'])('a job cannot create %s names in the per-user temp directory', async (prefix) => {
+    const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
+    const fixture = join(shared, prefix + randomBytes(3).toString('hex'));
+    expect(existsSync(fixture)).toBe(false);
+    try {
+      expect(await run(`printf x > '${fixture}' && echo TEMP-CREATED`)).not.toContain('TEMP-CREATED');
+      expect(readFileSync(join(jobsRoot(), jobs()[0] ?? '', 'exit'), 'utf8').trim()).not.toBe('0');
+      expect(existsSync(fixture)).toBe(false);
+    } finally {
+      rmSync(fixture, { force: true });
+    }
   });
 
   test('top-level commands point Chromium at their private temp directory', async () => {
@@ -1007,18 +969,23 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     expect(output).toBe(`${tmp}|${tmp}`);
   });
 
-  test.skipIf(process.platform !== 'darwin')('a job cannot overwrite an external matching-name temp file', async () => {
+  test.skipIf(process.platform !== 'darwin').each(externalTempCases)('a job cannot $operation an external $browser temp file', async ({ browser, statement }) => {
     const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
-    const fixture = join(shared, `.com.google.Chrome.${process.pid.toString(36).padStart(6, '0').slice(-6)}`);
-    writeFileSync(fixture, 'outside-original', { flag: 'wx' });
+    const fixture = join(shared, `.${browser}.${randomBytes(3).toString('hex')}`);
+    const original = Buffer.from('outside-original\n');
+    writeFileSync(fixture, original, { flag: 'wx' });
     try {
-      await call('tmux_run', { name: 'overwrite', command: `printf changed > '${fixture}'` });
+      expect(
+        await run(
+          `'${process.execPath}' -e 'const fs = require("node:fs"); const target = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
+        ),
+      ).toContain('MUTATION-ATTEMPTED');
       const dir = join(jobsRoot(), jobs()[0] ?? '');
-      await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 10_000 }).toBe(true);
       expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).not.toBe('0');
-      expect(readFileSync(fixture, 'utf8')).toBe('outside-original');
+      expect(readFileSync(fixture)).toEqual(original);
+      expect(existsSync(join(repo, 'renamed-external-temp'))).toBe(false);
     } finally {
-      rmSync(fixture);
+      rmSync(fixture, { force: true });
     }
   });
 

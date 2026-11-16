@@ -10,7 +10,7 @@ let dir: string;
 const since = '2026-01-01T00:00:00.000Z';
 const timestamp = '2026-01-01T00:00:01.000Z';
 const user = (text: string) => ({ type: 'message', message: { role: 'user', content: text } });
-const answer = (text: string, stopReason = 'stop') => ({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text }], stopReason } });
+const answer = (text: string, stopReason = 'stop', errorMessage?: string) => ({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text }], stopReason, errorMessage } });
 const wake = { type: 'custom_message', customType: 'pstack-job', content: 'late result', display: true };
 const transcript = (turns: object[], name = 'session.jsonl') => {
   const path = join(dir, name);
@@ -29,16 +29,16 @@ afterEach(() => {
 
 test.for(['stop', 'length'])('keeps completed %s answers and later corrections in chronological order', (reason) => {
   const path = transcript([user('brief'), answer('REPORT', reason), wake, answer('CORRECTION'), wake, answer('ACK')]);
-  expect(workerReport(dir, since)).toEqual({ path, answers: ['REPORT', 'CORRECTION', 'ACK'] });
+  expect(workerReport(dir, since)).toEqual({ path, answers: [reason === 'length' ? '[Worker answer ended with length]\nREPORT' : 'REPORT', 'CORRECTION', 'ACK'] });
 });
 
 test.for(['error', 'aborted'])('retains the prior report when continuation ends with %s', (reason) => {
-  transcript([user('brief'), answer('REPORT'), wake, answer('incomplete', reason)]);
-  expect(workerReport(dir, since)?.answers).toEqual(['REPORT']);
+  transcript([user('brief'), answer('REPORT'), wake, answer('incomplete', reason, 'synthetic downstream failure')]);
+  expect(workerReport(dir, since)?.answers).toEqual(['REPORT', `[Worker answer ended with ${reason}]\nincomplete\nsynthetic downstream failure`]);
 });
 
-test('ignores tool turns and empty assistant text', () => {
-  transcript([user('brief'), answer('working', 'toolUse'), { type: 'message', message: { role: 'toolResult', content: [{ type: 'text', text: 'result' }] } }, answer(' '), answer('REPORT')]);
+test.for(['toolUse', 'pending', 'deferred'])('ignores %s turns and empty assistant text', (reason) => {
+  transcript([user('brief'), answer('working', reason), { type: 'message', message: { role: 'toolResult', content: [{ type: 'text', text: 'result' }] } }, answer(' '), answer('REPORT')]);
   expect(workerReport(dir, since)?.answers).toEqual(['REPORT']);
 });
 

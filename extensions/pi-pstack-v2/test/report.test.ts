@@ -1,31 +1,43 @@
-import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI, ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import pstack from '../src/index.ts';
-import type { JobSpec } from '../src/jobs.ts';
+import { tmuxSocket } from '../src/jobs.ts';
 
-test('parent wait and output retain real Pi answers when print stdout contains only a late correction', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pstack-print-'));
-  const id = 'scripted-000001';
-  const dir = join(root, 'pstack-v2', 'jobs', id);
-  const session = join(dir, 'session');
-  mkdirSync(session, { recursive: true });
-  const release = join(root, 'release');
-  const sawLate = join(root, 'saw-late');
-  const fixture = join(root, 'provider.ts');
-  writeFileSync(
-    fixture,
-    `
-import { existsSync, writeFileSync } from 'node:fs';
-import { fauxProvider, fauxAssistantMessage } from '@earendil-works/pi-ai';
+test('parent wait and output retain a real print-mode worker report and correction after a nested job wakes it', async () => {
+  const agentDir = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-report-agent-')));
+  let repo: string | undefined;
+  const owner = `report${process.pid}`;
+  const savedArgv = process.argv[1] ?? '';
+  const handlers = new Map<string, (event: unknown, ctx: unknown) => Promise<unknown>>();
+  const tools = new Map<string, Parameters<ExtensionAPI['registerTool']>[0]>();
+  let ctx: ExtensionToolContext | undefined;
+  try {
+    repo = realpathSync(mkdtempSync(join(homedir(), '.pstack-report-repo-')));
+    execFileSync('git', ['init', '-q', repo]);
+    execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
+    vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '');
+    mkdirSync(join(agentDir, 'extensions'));
+    const runtime = fileURLToPath(new URL('../src/index.ts', import.meta.url));
+    const release = join(repo, 'release');
+    const sawLate = join(repo, 'saw-late');
+    writeFileSync(
+      join(agentDir, 'extensions', 'scripted.ts'),
+      `
+import { writeFileSync } from 'node:fs';
+import { fauxProvider, fauxAssistantMessage, fauxToolCall } from '@earendil-works/pi-ai';
+import pstack from ${JSON.stringify(runtime)};
 export default function (pi) {
+  pstack(pi);
   const faux = fauxProvider({ provider: 'prov', models: [{ id: 'model' }] });
   faux.setResponses([
+    fauxAssistantMessage(fauxToolCall('tmux_run', { name: 'late', command: ${JSON.stringify(`while [ ! -e '${release}' ]; do sleep 0.1; done; echo late-output`)}, wake: 'Late result.' }), { stopReason: 'toolUse' }),
     fauxAssistantMessage('SUBSTANTIVE REPORT: initial verdict PASS'),
     context => {
       writeFileSync(${JSON.stringify(sawLate)}, String(JSON.stringify(context).includes('late-output')));
@@ -33,69 +45,47 @@ export default function (pi) {
     },
   ]);
   pi.registerProvider(faux.provider);
-  let delivered = false;
-  pi.on('agent_before_settle', async () => {
-    if (delivered) return;
-    while (!existsSync(${JSON.stringify(release)})) await new Promise(resolve => setTimeout(resolve, 10));
-    delivered = true;
-    return { entries: [{ type: 'custom_message', customType: 'pstack-job', content: 'late-output', display: true }], continue: true };
-  });
 }
 `,
-  );
-  const cli = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
-  const command = [process.execPath, cli, '-p', '--no-extensions', '-e', fixture, '--session-dir', session, '--model', 'prov/model', 'Run the scripted check.'];
-  const createdAt = new Date().toISOString();
-  const child = spawn(process.execPath, command.slice(1), { cwd: root, env: { ...process.env, PI_CODING_AGENT_DIR: root }, stdio: ['ignore', 'pipe', 'pipe'] });
-  let stdout = '';
-  let stderr = '';
-  child.stdout.on('data', (data) => {
-    stdout += data;
-  });
-  child.stderr.on('data', (data) => {
-    stderr += data;
-  });
-  const exited = new Promise<number | null>((resolve, reject) => {
-    child.once('error', reject);
-    child.once('exit', resolve);
-  });
-  try {
-    await expect.poll(() => readdirSync(session).some((name) => readFileSync(join(session, name), 'utf8').includes('SUBSTANTIVE REPORT: initial verdict PASS')), { timeout: 20_000 }).toBe(true);
-    expect(child.exitCode).toBeNull();
+    );
+    pstack({
+      on: (event: string, handler: (event: unknown, ctx: unknown) => Promise<unknown>) => handlers.set(event, handler),
+      registerCommand: () => {},
+      registerTool: (tool: Parameters<ExtensionAPI['registerTool']>[0]) => tools.set(tool.name, tool),
+      sendMessage: vi.fn(),
+    } as unknown as ExtensionAPI);
+    ctx = {
+      mode: 'tui',
+      hasUI: true,
+      ui: { setStatus: vi.fn(), notify: vi.fn() },
+      cwd: repo,
+      model: undefined,
+      sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
+      modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
+      isProjectTrusted: () => true,
+      isIdle: () => true,
+      hasPendingMessages: () => false,
+    } as unknown as ExtensionToolContext;
+    const spawnTool = tools.get('pi_spawn');
+    const jobsTool = tools.get('tmux_jobs');
+    if (!spawnTool || !jobsTool) throw new Error('parent job tools missing');
+    process.argv[1] = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
+    await handlers.get('session_start')?.({}, ctx);
+    await spawnTool.execute('call', { name: 'scripted', brief: 'Run the scripted check.', model: 'prov/model', wake: false }, undefined, undefined, ctx);
+    const root = join(agentDir, 'pstack-v2', 'jobs');
+    const [id] = readdirSync(root);
+    if (!id) throw new Error('worker job missing');
+    const dir = join(root, id);
+    const session = join(dir, 'session');
+    await expect.poll(() => readdirSync(session).some((file) => readFileSync(join(session, file), 'utf8').includes('SUBSTANTIVE REPORT: initial verdict PASS')), { timeout: 20_000 }).toBe(true);
+    expect(existsSync(join(dir, 'exit'))).toBe(false);
     writeFileSync(release, 'release');
-    expect(await exited, stderr).toBe(0);
+    const waited = await jobsTool.execute('call', { action: 'wait', ids: [id], timeout_seconds: 20 }, undefined, undefined, ctx);
+    expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).toBe('0');
     expect(readFileSync(sawLate, 'utf8')).toBe('true');
+    const stdout = readFileSync(join(dir, 'output.log'), 'utf8');
     expect(stdout.trim()).toBe('CORRECTION: late result checked. ACK.');
-    writeFileSync(join(dir, 'output.log'), stdout);
-    writeFileSync(join(dir, 'exit'), '0');
-    const spec: JobSpec = {
-      id,
-      name: 'scripted',
-      kind: 'pi',
-      cwd: root,
-      argv: command,
-      command,
-      owner: 'parent',
-      wake: null,
-      brokered: false,
-      out: dir,
-      repeat: false,
-      series: id,
-      socket: '',
-      sweep: { roots: [], protect: [] },
-      createdAt,
-      policy: { writable: [], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: root, jobDir: dir },
-    };
-    writeFileSync(join(dir, 'job.json'), JSON.stringify(spec));
-    vi.stubEnv('PI_CODING_AGENT_DIR', root);
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '');
-    const tools = new Map<string, Parameters<ExtensionAPI['registerTool']>[0]>();
-    pstack({ on: () => {}, registerCommand: () => {}, registerTool: (tool: Parameters<ExtensionAPI['registerTool']>[0]) => tools.set(tool.name, tool) } as unknown as ExtensionAPI);
-    const tool = tools.get('tmux_jobs');
-    if (!tool) throw new Error('tmux_jobs missing');
-    const ctx = { sessionManager: { getSessionId: () => 'parent' }, hasPendingMessages: () => false } as unknown as ExtensionToolContext;
-    for (const action of ['wait', 'output']) {
-      const result = await tool.execute('call', { action, ids: [id] }, undefined, undefined, ctx);
+    for (const result of [waited, await jobsTool.execute('call', { action: 'output', ids: [id] }, undefined, undefined, ctx)]) {
       const report = result.content
         .filter((block) => block.type === 'text')
         .map((block) => block.text)
@@ -104,10 +94,25 @@ export default function (pi) {
       expect(report).toContain(`Transcript: ${session}/`);
     }
     expect(readFileSync(join(dir, 'output.log'), 'utf8')).toBe(stdout);
+    rmSync(session, { recursive: true });
+    const fallback = await jobsTool.execute('call', { action: 'output', ids: [id] }, undefined, undefined, ctx);
+    const fallbackText = fallback.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('\n');
+    expect(fallbackText).toContain('[No completed transcript answers available; showing raw stdout.]');
+    expect(fallbackText).toContain('CORRECTION: late result checked. ACK.');
+    expect(readFileSync(join(dir, 'output.log'), 'utf8')).toBe(stdout);
   } finally {
-    child.kill('SIGKILL');
-    await exited;
+    await handlers.get('session_shutdown')?.({}, ctx);
+    process.argv[1] = savedArgv;
     vi.unstubAllEnvs();
-    rmSync(root, { recursive: true, force: true });
+    try {
+      execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
+    } catch {
+      // No server was started.
+    }
+    rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    if (repo) rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
-}, 30_000);
+}, 50_000);

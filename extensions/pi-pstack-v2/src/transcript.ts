@@ -26,23 +26,36 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
       branch.reverse();
       const prompt = branch.findLastIndex((entry) => entry.type === 'message' && entry.message.role === 'user');
       const answers: string[] = [];
-      // A resume that fails before appending its prompt must not replay the previous invocation's report.
       if (prompt >= 0 && Date.parse(branch[prompt]?.timestamp ?? '') >= Date.parse(since)) {
         for (const entry of branch.slice(prompt + 1)) {
           if (entry.type !== 'message' || entry.message.role !== 'assistant') continue;
           const message = entry.message;
-          if (message.stopReason !== 'stop' && message.stopReason !== 'length') continue;
           const text = message.content
             .filter((block) => block.type === 'text')
             .map((block) => block.text)
             .join('\n');
-          if (text.trim()) answers.push(text);
+          switch (message.stopReason) {
+            case 'stop':
+              if (text.trim()) answers.push(text);
+              break;
+            case 'length':
+            case 'error':
+            case 'aborted':
+              answers.push([`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n'));
+              break;
+            case 'toolUse':
+            case 'pending':
+            case 'deferred':
+              break;
+            default: {
+              const unhandled: never = message.stopReason;
+              throw new Error(`Unhandled worker stop reason: ${unhandled}`);
+            }
+          }
         }
       }
       return { path, answers };
     }
-  } catch {
-    // Startup failures and removed or unreadable sessions still have their ordinary stdout/stderr report.
-  }
+  } catch {}
   return undefined;
 }
