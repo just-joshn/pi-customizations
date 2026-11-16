@@ -87,7 +87,6 @@ const BASELINE_EFFORTS = [
 ] as const;
 const baselineWireIds = BASELINE_FAMILIES.flatMap(([id]) => BASELINE_EFFORTS.map(([effort]) => `${id}-${effort}`));
 
-// Shown until the first live refresh. A live model with the same id replaces its entry.
 export const BASELINE_MODELS: CodeAssistModel[] = catalogModels({
   models: Object.fromEntries(
     BASELINE_FAMILIES.flatMap(([id, name]) => BASELINE_EFFORTS.map(([effort, label]) => [`${id}-${effort}`, { displayName: `${name} (${label})`, supportsImages: true, supportsThinking: true, maxTokens: 1048576, maxOutputTokens: 65536 }])),

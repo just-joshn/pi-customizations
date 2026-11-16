@@ -157,22 +157,25 @@ describe('failures before the first event', () => {
     const { stream } = run(Response.json({ error: { message: 'Account validation required.' } }, { status: 403 }));
     const events = await collect(stream);
     expect(types(events)).toEqual(['error']);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (403): Account validation required.');
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (403): Account validation required.');
     expect(message(events[0]).stopReason).toBe('error');
   });
 
   test('an HTTP error does not echo an unparseable body', async () => {
     const { stream } = run(new Response('secret-ish body', { status: 500, statusText: 'Server Error' }));
     const events = await collect(stream);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (500): Server Error');
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (500): Server Error');
   });
 
-  test('retries a 429 capacity throttle and recovers', async () => {
+  test('retries a generic 429 and recovers', async () => {
     let call = 0;
-    const { stream, fetchImpl } = run(() => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429 }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))), {
-      maxRetries: 2,
-      maxRetryDelayMs: 0,
-    });
+    const { stream, fetchImpl } = run(
+      () => (++call === 1 ? Response.json({ error: { message: 'Resource has been exhausted (e.g. check quota).' } }, { status: 429, headers: { 'Retry-After': '0' } }) : sseResponse(frame(stopChunk([{ text: 'OK' }])))),
+      {
+        maxRetries: 2,
+        maxRetryDelayMs: 0,
+      },
+    );
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(terminal(events)[0]?.type).toBe('done');
@@ -184,15 +187,14 @@ describe('failures before the first event', () => {
     const events = await collect(stream);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(types(events)).toEqual(['error']);
-    expect(message(events[0]).errorMessage).toBe('Google Code Assist error (429): Resource has been exhausted (e.g. check quota).');
+    expect(message(events[0]).errorMessage).toBe('Google Code Assist API error (429): Resource has been exhausted (e.g. check quota).');
     expect(message(events[0]).model).toBe(model.id);
     expect(isRetryableAssistantError(message(events[0]))).toBe(true);
   });
 
-  test('an explicit quota 429 is not retryable by native Pi', async () => {
+  test.for(['Individual quota reached for gemini-3.8-flash. Resets in ~6h.', 'QUOTA_EXHAUSTED for gemini-3.8-flash.'])('explicit quota %s is not retryable by native Pi', async (googleMessage) => {
     vi.useFakeTimers();
     try {
-      const googleMessage = 'Individual quota reached for gemini-3.8-flash. Resets in ~6h.';
       const { stream, fetchImpl } = run(() => Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: googleMessage } }, { status: 429 }), { maxRetries: 2 });
       const pending = collect(stream);
       await vi.runAllTimersAsync();
@@ -208,6 +210,25 @@ describe('failures before the first event', () => {
     }
   });
 
+  test('a positive server delay cap does not shorten the exponential fallback', async () => {
+    vi.useFakeTimers();
+    try {
+      let calls = 0;
+      const { stream, fetchImpl } = run(() => (++calls === 1 ? Response.json({ error: { message: 'Temporarily unavailable' } }, { status: 429 }) : sseResponse(frame(stopChunk()))), {
+        maxRetries: 1,
+        maxRetryDelayMs: 1,
+      });
+      const pending = collect(stream);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(message((await pending).at(-1)).stopReason).toBe('stop');
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   test('Retry-After above a positive cap fails after one request with the requested delay', async () => {
     vi.useFakeTimers();
     try {
@@ -218,6 +239,8 @@ describe('failures before the first event', () => {
       expect.soft(fetchImpl).toHaveBeenCalledTimes(1);
       expect(types(events)).toEqual(['error']);
       expect(message(events[0]).errorMessage).toMatch(/120(?:000|\s*s|\s*seconds)/);
+      expect(message(events[0]).errorMessage).toContain('configured cap 1ms');
+      expect(message(events[0]).errorMessage).toContain('Google Code Assist API error (429): Temporarily unavailable');
     } finally {
       vi.useRealTimers();
     }
@@ -362,6 +385,31 @@ describe('usage and finish', () => {
 });
 
 describe('SSE framing', () => {
+  test.for([
+    ['CR-only', ['\r\r']],
+    ['split CRLF followed by a lone LF', ['\r', '', '\n', '\n']],
+  ] as const)('delivers %s events while the response body remains open', async ([, endings]) => {
+    const controller = new AbortController();
+    const body = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        streamController.enqueue(encoder.encode(`data: ${JSON.stringify(part([{ text: 'immediate' }]))}`));
+        for (const ending of endings) streamController.enqueue(encoder.encode(ending));
+      },
+    });
+    const { stream } = run(new Response(body, { status: 200 }), { signal: controller.signal });
+    const events: AssistantMessageEvent[] = [];
+    try {
+      for await (const event of stream) {
+        events.push(event);
+        if (event.type === 'text_delta') controller.abort();
+      }
+      expect(events.find((event) => event.type === 'text_delta')).toMatchObject({ delta: 'immediate' });
+      expect(events.at(-1)).toMatchObject({ type: 'error', reason: 'aborted' });
+    } finally {
+      controller.abort();
+    }
+  });
+
   test('rejects malformed JSON instead of skipping the chunk', async () => {
     const { stream } = run(sseResponse(`${frame(part([{ text: 'a' }]))}data: {not json}\n\n`));
     const events = await collect(stream);
@@ -396,6 +444,7 @@ describe('SSE framing', () => {
       start(controller) {
         for (const line of lines) {
           controller.enqueue(encoder.encode(`data: ${line}\r`));
+          controller.enqueue(new Uint8Array());
           controller.enqueue(encoder.encode('\n'));
         }
         controller.enqueue(encoder.encode('\r\n'));
