@@ -250,3 +250,23 @@ describe('rows', () => {
     expect(layoutHeader(view, 20).meta).toBe('');
   });
 });
+
+describe('row edges', () => {
+  test.for([1, 2])('collapsed metadata ends one gutter (%i) from the right edge', (outputPad) => {
+    const row = driveRow(compactRenderers(TOOL_SPECS.read, recordingNative()), stubTheme(), { outputPad });
+    row.apply({ args: { path: '/project/src/cache.ts' }, executionStarted: true, result: output('a\nb'), isPartial: false });
+    const line = plain(row.lines(100)[0] ?? '');
+    expect(line.endsWith('2 lines')).toBe(true);
+    expect(visibleWidth(line)).toBe(100 - outputPad);
+  });
+  test('expanded panels drop blank first and last native lines', () => {
+    const native = { renderResult: () => ({ render: () => ['', '  ', 'PASS cache.test.ts', '', 'respects cancellation', '\x1b[0m'], invalidate: () => {} }) };
+    const row = driveRow(compactRenderers(TOOL_SPECS.bash, native), stubTheme());
+    row.apply({ args: { command: 'npm test' }, executionStarted: true, result: output('PASS'), isPartial: false, expanded: true });
+    const body = row
+      .lines(80)
+      .slice(1)
+      .map((line) => plain(line).trim());
+    expect(body).toEqual(['PASS cache.test.ts', '', 'respects cancellation']);
+  });
+});

@@ -5,7 +5,7 @@
   "vars": {
     "canvas": "okhsl(250 12% 97%)",
     "surface": "okhsl(250 14% 93%)",
-    "panel": "okhsl(250 12% 94.5%)",
+    "panel": "okhsl(250 14% 93%)",
     "panelErr": "okhsl(15 30% 94%)",
     "line": "okhsl(250 8% 80%)",
     "dim": "okhsl(250 6% 58%)",
@@ -21,8 +21,8 @@
   },
   "colors": {
     "accent": "accent",
-    "border": "accentSoft",
-    "borderAccent": "accent",
+    "border": "line",
+    "borderAccent": "accentSoft",
     "borderMuted": "line",
     "success": "sage",
     "error": "rose",
@@ -69,12 +69,12 @@
     "syntaxOperator": "muted",
     "syntaxPunctuation": "muted",
     "thinkingOff": "line",
-    "thinkingMinimal": "okhsl(250 8% 74%)",
-    "thinkingLow": "okhsl(246 16% 68%)",
-    "thinkingMedium": "okhsl(244 24% 62%)",
-    "thinkingHigh": "okhsl(243 34% 56%)",
-    "thinkingXhigh": "okhsl(244 44% 50%)",
-    "thinkingMax": "accent",
+    "thinkingMinimal": "line",
+    "thinkingLow": "line",
+    "thinkingMedium": "line",
+    "thinkingHigh": "line",
+    "thinkingXhigh": "line",
+    "thinkingMax": "line",
     "bashMode": "amber"
   },
   "export": {

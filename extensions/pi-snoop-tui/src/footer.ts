@@ -2,7 +2,7 @@ import { basename } from 'node:path';
 
 import type { ExtensionAPI, ExtensionContext, ReadonlyFooterDataProvider, Theme } from '@earendil-works/pi-coding-agent';
 import { type Component, type TUI, visibleWidth } from '@earendil-works/pi-tui';
-import { fitPlain, sanitizeLine } from './text.ts';
+import { fitPlain, gutterAt, gutterOf, sanitizeLine } from './text.ts';
 
 type ThinkingLevel = ReturnType<ExtensionAPI['getThinkingLevel']>;
 export interface FooterSnapshot {
@@ -39,6 +39,7 @@ export default function footer(pi: ExtensionAPI): void {
   pi.on('session_start', (_event, ctx) => {
     if (!ctx.hasUI) return;
     refresh(ctx);
+    const gutter = gutterOf(pi);
     ctx.ui.setFooter((tui, theme, data) => {
       mounted = tui;
       return new SnoopFooter(
@@ -48,6 +49,7 @@ export default function footer(pi: ExtensionAPI): void {
         () => {
           if (mounted === tui) mounted = undefined;
         },
+        gutter,
       );
     });
   });
@@ -105,11 +107,13 @@ export class SnoopFooter implements Component {
   private readonly data: ReadonlyFooterDataProvider;
   private readonly read: () => FooterSnapshot | undefined;
   private readonly onDispose: () => void;
-  constructor(theme: Theme, data: ReadonlyFooterDataProvider, read: () => FooterSnapshot | undefined, onDispose: () => void) {
+  private readonly gutter: number;
+  constructor(theme: Theme, data: ReadonlyFooterDataProvider, read: () => FooterSnapshot | undefined, onDispose: () => void, gutter: number) {
     this.theme = theme;
     this.data = data;
     this.read = read;
     this.onDispose = onDispose;
+    this.gutter = gutter;
   }
   render(width: number): string[] {
     const snapshot = this.read();
@@ -124,9 +128,11 @@ export class SnoopFooter implements Component {
       thinking: snapshot?.thinking ?? '',
       ctx: snapshot?.ctxPercent == null ? 'ctx ?' : `ctx ${Math.round(snapshot.ctxPercent)}%`,
     };
+    const g = gutterAt(this.gutter, width);
+    const inner = width - 2 * g;
     const fitted = fitSegments(
       SEGMENT_ORDER.map((s) => ({ ...s, text: texts[s.id] })),
-      width,
+      inner,
     );
     const style = (s: Segment): string => {
       const percent = snapshot?.ctxPercent;
@@ -136,8 +142,8 @@ export class SnoopFooter implements Component {
     const separator = (text: string): string => this.theme.fg('dim', text);
     const left = joinSide(fitted, 'left', style, separator);
     const right = joinSide(fitted, 'right', style, separator);
-    const gap = left && right ? Math.max(2, width - visibleWidth(left) - visibleWidth(right)) : 0;
-    const line = left + ' '.repeat(gap) + right;
+    const gap = left && right ? Math.max(2, inner - visibleWidth(left) - visibleWidth(right)) : 0;
+    const line = ' '.repeat(g) + left + ' '.repeat(gap) + right;
     this.cache = { width, snapshot, branch, statuses, line };
     return [line];
   }
