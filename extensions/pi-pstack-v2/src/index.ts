@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { commandProviders, jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { brokeredSession, claimWake, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
+import { brokeredSession, claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
+import { workerReport } from './transcript.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'] as const;
@@ -34,7 +35,8 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 
 const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
-const SANDBOX_NOTE = 'You run in the pstack sandbox. The shared /tmp and user caches are read-only, so keep temp files in $TMPDIR, your own temp directory.';
+const SANDBOX_NOTE =
+  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
@@ -54,7 +56,14 @@ function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--
 function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
   const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
-  if (!within(target, [root])) throw new Error(`cwd must be inside this project (${root}), got ${target}. To work on another branch, pass worktree and the job gets its own checkout.`);
+  // A linked worktree of the same repository, such as a worker's checkout, is the same project on another branch.
+  const common = gitPath(ctx.cwd, '--git-common-dir');
+  const targetCommon = gitPath(target, '--git-common-dir');
+  const sameRepository = common !== undefined && targetCommon !== undefined && landing(targetCommon) === landing(common);
+  const worktree = sameRepository ? gitPath(target, '--show-toplevel') : undefined;
+  if (!within(target, [root, ...(worktree ? [worktree] : [])])) throw new Error(`cwd must be inside this project (${root}), got ${target}. To work on another branch, pass worktree and the job gets its own checkout.`);
+  // A checkout of another repository can sit inside the project, and a job there would be handed that repository's git directory.
+  if (targetCommon !== undefined && !sameRepository && !within(targetCommon, [root])) throw new Error(`cwd ${target} is a checkout of another repository (${targetCommon}). A job works only in this session's repository.`);
   return target;
 }
 
@@ -103,23 +112,52 @@ function addWorktree(cwd: string, path: string, branch: string, base: string | u
   } catch {
     exists = false;
   }
-  git(cwd, exists ? ['worktree', 'add', path, branch] : ['worktree', 'add', '-b', branch, path, base ?? 'HEAD']);
+  git(cwd, exists ? ['worktree', 'add', path, branch] : ['worktree', 'add', '-b', branch, path, base === undefined ? 'HEAD' : baseOrSoleRemoteBranch(cwd, base)]);
   return !exists;
+}
+
+function baseOrSoleRemoteBranch(cwd: string, base: string): string {
+  try {
+    git(cwd, ['rev-parse', '--verify', '--quiet', `${base}^{commit}`]);
+    return base;
+  } catch {
+    const remote = git(cwd, ['for-each-ref', '--format=%(refname:short)', `refs/remotes/*/${base}`])
+      .split('\n')
+      .filter(Boolean);
+    return remote.length === 1 ? (remote[0] ?? base) : base;
+  }
 }
 
 function report(job: Job): string {
   const state = job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)';
   const output = outputPath(job.spec.out);
-  const body = job.spec.kind === 'pi' ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD) : tail(output, 60);
+  const transcript = job.spec.kind === 'pi' ? workerReport(flagValue(job.spec.command, '--session-dir'), job.spec.createdAt) : undefined;
+  const answers = transcript?.answers ?? [];
+  const body =
+    answers.length && transcript
+      ? clip(answers.join('\n\n[Later completed answer]\n\n'), REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD, transcript.path)
+      : job.spec.kind === 'pi'
+        ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD)
+        : tail(output, 60);
   // A worker that fails at startup, such as on a bad model or credential, says why only on stderr.
   const failed = job.status.state !== 'exited' || job.status.code !== 0 || !body.trim();
   const errors = failed ? tail(join(job.spec.out, 'stderr.log'), 40).trim() : '';
-  return [`tmux job ${job.spec.name} (${job.spec.id}) ${state}. Full output: ${output}`, job.spec.wake ?? '', `<output>\n${body.trim()}\n</output>`, errors ? `<stderr>\n${errors}\n</stderr>` : ''].filter(Boolean).join('\n\n');
+  return [
+    `tmux job ${job.spec.name} (${job.spec.id}) ${state}. Raw output: ${output}`,
+    transcript ? `Transcript: ${transcript.path}` : '',
+    job.spec.wake ?? '',
+    job.spec.kind === 'pi' && !answers.length ? '[No completed transcript answers available; showing raw stdout.]' : '',
+    `<output>\n${body.trim()}\n</output>`,
+    errors ? `<stderr>\n${errors}\n</stderr>` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 function describe(job: Job): string {
   const state = job.status.state === 'exited' ? `exited ${job.status.code}` : job.status.state;
-  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}`;
+  const attach = job.spec.socket && job.status.state === 'running' ? `\n  attach: tmux -S ${job.spec.socket} attach -t ${job.spec.id}` : '';
+  return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}${attach}`;
 }
 
 function resolveModel(ctx: ExtensionContext, model: string | undefined): string | undefined {
@@ -157,11 +195,14 @@ function start(root: string, spec: JobSpec, files: Record<string, string> = {}, 
   if (!insideJob()) makeJobAgentDir(getAgentDir(), jobAgentDir(jobDir), resolved);
   // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load, and writes
   // credentials only to its top-level job's copy.
-  const policy: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp')])] };
+  // A command a worker starts shares the worker's temp directory, so a path the worker hands it under $TMPDIR exists for both.
+  const parent = process.env[JOB_DIR_ENV];
+  const tmp = insideJob() && parent && spec.kind === 'command' ? join(parent, 'tmp') : undefined;
+  const policy: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : [])])] };
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
   const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
   if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
-  spec = { ...spec, sweep: sweepFor(policy) };
+  spec = { ...spec, sweep: sweepFor(policy), ...(tmp ? { tmp } : {}) };
   policy.checkouts = spec.sweep.roots;
   // bubblewrap binds only paths that exist, so the private temp directory exists before the sandbox is built.
   mkdirSync(join(jobDir, 'tmp'), { recursive: true });
@@ -260,7 +301,10 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       granted.checkouts = sweepFor(granted).roots;
       mkdirSync(out, { recursive: true });
       writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
-      launchBrokered(top.dir, dir, spec, sweepFor(granted), sandboxed(spec.command, granted), socket);
+      // The worker supplies tmp, so it is trusted only if it is one of the writable paths validated above.
+      const { tmp: asked, ...rest } = spec;
+      const tmp = typeof asked === 'string' && writable.includes(landing(asked)) ? landing(asked) : undefined;
+      launchBrokered(top.dir, dir, { ...rest, ...(tmp ? { tmp } : {}) }, sweepFor(granted), sandboxed(spec.command, granted), socket);
     } catch {
       // One request failing must not stop the others.
     }
@@ -272,6 +316,8 @@ export default function pstack(pi: ExtensionAPI) {
   const stoppedSeries = new Set<string>();
   // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
   const awaited = new Set<string>();
+  // While a print-mode run settles, agent_before_settle delivers the reports itself.
+  let settling = false;
 
   // Reports a finished job whose wake was just claimed, restarting it first when it is a heartbeat that exited cleanly.
   const finish = (job: Job): string => {
@@ -302,6 +348,7 @@ export default function pstack(pi: ExtensionAPI) {
   };
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
+  const deliverable = (ctx: ExtensionContext): boolean => interactive(ctx) || (!settling && !ctx.isIdle());
 
   const serve = (ctx: ExtensionContext): void => {
     if (brokering()) return;
@@ -321,7 +368,7 @@ export default function pstack(pi: ExtensionAPI) {
 
   // Each step runs on its own, so one failing does not stop the others.
   const tick = (ctx: ExtensionContext): void => {
-    for (const step of [() => syncCredentials(ctx), () => serve(ctx), () => interactive(ctx) && deliverFinished(ctx)]) {
+    for (const step of [() => syncCredentials(ctx), () => serve(ctx), () => deliverable(ctx) && deliverFinished(ctx)]) {
       try {
         step();
       } catch (error) {
@@ -353,13 +400,18 @@ export default function pstack(pi: ExtensionAPI) {
     const owner = ctx.sessionManager.getSessionId();
     const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !existsSync(join(job.dir, 'woken')));
     if (pending().length === 0) return;
-    while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
-    syncCredentials(ctx);
-    const finished = pending().filter(claimWake);
-    return {
-      entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(job), display: true }))],
-      continue: true,
-    };
+    settling = true;
+    try {
+      while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
+      syncCredentials(ctx);
+      const finished = pending().filter(claimWake);
+      return {
+        entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(job), display: true }))],
+        continue: true,
+      };
+    } finally {
+      settling = false;
+    }
   });
 
   pi.on('before_agent_start', async (event, ctx) => {
@@ -379,7 +431,7 @@ export default function pstack(pi: ExtensionAPI) {
       name: 'pi_spawn',
       label: 'Spawn Pi',
       description:
-        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot.',
+        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot. The shared /tmp is read-only to the worker, so a brief that names a scratch path uses $TMPDIR or the checkout.',
       promptSnippet: 'Start a parallel Pi instance in tmux with a standalone brief, then get woken with its report',
       promptGuidelines: [
         'Use pi_spawn wherever a pstack skill says to spawn a worker, delegate, explorer, reviewer, or Pi instance. Pi has no subagents.',
@@ -489,7 +541,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory.',
+      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory. The command reads no input.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: Type.Object({
@@ -539,12 +591,12 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output prints the last lines of one job. wait blocks until the named jobs (default all running) exit or the timeout passes, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state, a command to follow its output, and for a running job a command to attach to its tmux session, where the output shows live and Ctrl-C stops it. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
-      lines: Type.Optional(Type.Number({ description: 'Lines for output. Default 80.' })),
-      timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 1800.' })),
+      lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
+      timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
     }),
     async execute(_id, params, signal, update, ctx) {
       const root = jobsRoot();
@@ -565,7 +617,7 @@ export default function pstack(pi: ExtensionAPI) {
         case 'output':
           return text(
             named()
-              .map((job) => `${describe(job)}\n${tail(outputPath(job.spec.out), params.lines ?? 80)}`)
+              .map((job) => (job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), params.lines ?? 80)}`))
               .join('\n\n'),
           );
         case 'stop': {
@@ -581,14 +633,15 @@ export default function pstack(pi: ExtensionAPI) {
           const ids = params.ids?.length
             ? params.ids
             : list(root, owner)
-                // A heartbeat never stops on its own, so waiting on everything leaves heartbeats out.
-                .filter((job) => job.status.state === 'running' && !job.spec.repeat)
+                // A heartbeat or a server never stops on its own, so waiting on everything leaves them out.
+                .filter((job) => job.status.state === 'running' && !job.spec.repeat && job.spec.wake !== null)
                 .map((job) => job.spec.id);
-          const deadline = Date.now() + (params.timeout_seconds ?? 1800) * 1000;
+          const deadline = Date.now() + (params.timeout_seconds ?? 300) * 1000;
           const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
           for (const id of ids) awaited.add(id);
           try {
-            while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted) {
+            // A message the user sends while this blocks ends the wait, so they are never shut out until the timeout.
+            while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted && !ctx.hasPendingMessages()) {
               update?.(text(`Waiting on ${current().filter((job) => job.status.state === 'running').length} job(s)...`));
               await new Promise((done) => setTimeout(done, POLL_MS));
             }

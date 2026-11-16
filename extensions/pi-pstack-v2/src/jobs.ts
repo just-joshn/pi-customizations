@@ -44,6 +44,8 @@ export interface JobSpec {
   socket: string;
   /** Protected paths and checkout roots the wrapper sweeps after the job, for code that appeared while it ran. */
   sweep: { roots: string[]; protect: string[] };
+  /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. Unset for a top-level job. */
+  tmp?: string;
   createdAt: string;
 }
 
@@ -126,16 +128,42 @@ const CACHES: Record<string, string> = {
   npm_config_store_dir: 'pnpm',
 };
 
+// zsh writes here-documents under TMPPREFIX, which defaults to the shared /tmp.
+const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp, MAC_CHROMIUM_TMPDIR: tmp, TMPPREFIX: join(tmp, 'zsh') });
+
+/** macOS mktemp prefers the per-user temp directory to $TMPDIR, and a job may not write there, so jobs find this one first on PATH. */
+const MKTEMP = `#!/bin/sh
+flags=
+prefix=
+while getopts :dqut:p: opt; do
+  case $opt in
+    d|q|u) flags="$flags -$opt" ;;
+    t) prefix=$OPTARG ;;
+    *) exec /usr/bin/mktemp "$@" ;;
+  esac
+done
+shift $((OPTIND - 1))
+[ $# -gt 0 ] && [ -z "$prefix" ] && exec /usr/bin/mktemp $flags "$@"
+exec /usr/bin/mktemp $flags "\${TMPDIR%/}/\${prefix:-tmp}.XXXXXXXXXX"
+`;
+
 /**
  * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
  * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
  */
 export const privateEnv = (tmp: string): Record<string, string> => ({
-  TMPDIR: tmp,
-  TMP: tmp,
-  TEMP: tmp,
+  ...tempEnv(tmp),
   ...Object.fromEntries(Object.entries(CACHES).map(([name, dir]) => [name, join(tmp, dir)])),
 });
+
+/**
+ * Firefox and pnpm run their own sandbox or store-locking steps, which fail inside the job's sandbox. Firefox aborts when it
+ * cannot sandbox its child processes, and pnpm cannot lock the shared store it switches engines from.
+ */
+const SANDBOX_COMPAT: Record<string, string> = {
+  ...Object.fromEntries(['CONTENT', 'GMP', 'RDD', 'SOCKET_PROCESS', 'GPU', 'UTILITY'].map((name) => [`MOZ_DISABLE_${name}_SANDBOX`, '1'])),
+  npm_config_manage_package_manager_versions: 'false',
+};
 
 interface Run {
   kind: JobKind;
@@ -149,6 +177,7 @@ interface Run {
   /** Where output and the exit code go. */
   out: string;
   top: string;
+  tmp: string | undefined;
 }
 
 /**
@@ -160,10 +189,25 @@ interface Run {
  */
 function run(job: Run): void {
   // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
-  const env = Object.entries({ [SANDBOX_ENV]: '1', [JOB_DIR_ENV]: job.dir, [TOP_DIR_ENV]: job.top, PI_CODING_AGENT_DIR: jobAgentDir(job.top), ...privateEnv(join(job.dir, 'tmp')) })
+  const env = Object.entries({
+    [SANDBOX_ENV]: '1',
+    [JOB_DIR_ENV]: job.dir,
+    [TOP_DIR_ENV]: job.top,
+    PI_CODING_AGENT_DIR: jobAgentDir(job.top),
+    ...SANDBOX_COMPAT,
+    ...privateEnv(join(job.dir, 'tmp')),
+    ...(job.tmp ? tempEnv(job.tmp) : {}),
+  })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
-  const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
+  const bin = join(job.out, 'bin');
+  if (process.platform === 'darwin') {
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
+  }
+  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
+  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
   // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
@@ -182,6 +226,7 @@ function run(job: Run): void {
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
+    '  kill $mirror 2>/dev/null',
     // Off the terminal: once tmux is gone, Node reopening the terminal to report an error blocks forever and holds a pty.
     `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))} < /dev/null >> ${out} 2>&1`,
     // Go leaves its module cache read-only. find never follows a link the job planted, so only the job's own directories change.
@@ -191,6 +236,9 @@ function run(job: Run): void {
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
     `${body} &`,
     'pid=$!',
+    // The session's pane shows the output as it is written, so attaching to it is a live view of the job.
+    `tail -n +1 -f ${job.kind === 'pi' ? `${out} ${shellQuote(join(job.out, 'stderr.log'))}` : out} 2>/dev/null &`,
+    'mirror=$!',
     'wait $pid',
     'finish "$?"',
   ].join('\n');
@@ -212,7 +260,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
   const dir = jobDir(root, spec.id);
   const full = { ...spec, out: dir };
   write(dir, full, files);
-  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir) });
+  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir), tmp: spec.tmp });
   return { spec: full, dir, status: { state: 'running' } };
 }
 
@@ -239,7 +287,7 @@ export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWha
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
-    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top });
+    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top, tmp: spec.tmp });
     writeFileSync(join(out, 'launched'), '');
   } catch (error) {
     settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
@@ -289,6 +337,8 @@ export function list(root: string, owner: string): Job[] {
  * with it. A brokered job is ended by the root, which sees the stop marker on its next tick.
  */
 export async function stop(job: Job): Promise<void> {
+  // Claimed first, since the session is gone before the wrapper records the exit, and the watcher would report the job lost.
+  claimWake(job);
   if (job.spec.brokered) {
     writeFileSync(join(job.dir, 'stop'), '');
   } else {
@@ -317,7 +367,6 @@ export async function stop(job: Job): Promise<void> {
       renameSync(`${exit}.tmp`, exit);
     }
   }
-  claimWake(job);
 }
 
 /** Returns true exactly once per job, so a wake survives restarts without being delivered twice. */
@@ -359,12 +408,20 @@ export function excerpt(path: string, head: number, tailBytes: number): string {
   if (!existsSync(path)) return '';
   const size = statSync(path).size;
   if (size <= head + tailBytes) return readEnd(path, size);
-  const first = readRange(path, 0, head);
+  return clipRanges(readRange(path, 0, head), readRange(path, size - tailBytes, tailBytes), size, path);
+}
+
+export function clip(text: string, head: number, tailBytes: number, source: string): string {
+  const buffer = Buffer.from(text);
+  if (buffer.length <= head + tailBytes) return text;
+  return clipRanges(buffer.subarray(0, head), buffer.subarray(buffer.length - tailBytes), buffer.length, source);
+}
+
+function clipRanges(first: Buffer, last: Buffer, size: number, path: string): string {
   let lead = first.length - 1;
   while (lead > 0 && isContinuation(first[lead])) lead--;
   const byte = first[lead] ?? 0;
   const end = lead + (byte >= 0xf0 ? 4 : byte >= 0xe0 ? 3 : byte >= 0xc0 ? 2 : 1) > first.length ? lead : first.length;
-  const last = readRange(path, size - tailBytes, tailBytes);
   let from = 0;
   while (isContinuation(last[from])) from++;
   const omitted = size - end - (last.length - from);

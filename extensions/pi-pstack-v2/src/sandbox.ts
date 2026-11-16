@@ -88,11 +88,14 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
     '(deny network-bind (local unix-socket))',
     // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
+    // `open -a` on an app the job wrote launches it through launchd, so the lookup rules below cannot stop it, and lsopen does.
     '(deny appleevent-send)',
+    '(deny lsopen)',
     // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
     '(deny signal)',
     '(allow signal (target same-sandbox))',
-    '(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd") (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
+    // launchservicesd stays reachable because Firefox checks in with it at startup and aborts without it. Opening goes through lsopen.
+    '(deny mach-lookup (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
     // launchd would run a job it is handed outside the sandbox, and preference writes go through a daemon outside it.
     '(deny mach-lookup (global-name-regex #"^com\\.apple\\.xpc\\.launchd\\."))',
     '(deny user-preference-write)',

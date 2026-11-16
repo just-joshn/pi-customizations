@@ -21,7 +21,7 @@ Every candidate gets the same prompt, so the prompt is the contract.
 
 Spawn all N workers in one message with N `pi_spawn` calls, each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected.
 
-Each runner wakes you with its report when it exits. End your turn and let the wakes arrive, or call `tmux_jobs` with `action: "wait"`, before Phase C. If a candidate produces no output, proceed with N-1 and note the dropout.
+Each runner wakes you with its report when it exits. End your turn and let the wakes arrive before Phase C. If a candidate produces no output, proceed with N-1 and note the dropout.
 
 ## Phase C: Cross-judge
 

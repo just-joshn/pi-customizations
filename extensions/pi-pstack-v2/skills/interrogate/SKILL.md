@@ -22,7 +22,7 @@ Run Phase A steps 3 and 4 and Phase B of the **arena** skill, with four changes.
 
 ## Verify
 
-Each adversary wakes you with its report when it exits. End your turn and let the wakes arrive, or call `tmux_jobs` with `action: "wait"`, before you verify.
+Each adversary wakes you with its report when it exits. End your turn and let the wakes arrive before you verify.
 
 Verify each finding per arena Phase F by rerunning its command. Keep a finding when the output shows the failure and the failure breaks the intent. Drop the rest. Merge findings that share a root cause.
 

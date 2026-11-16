@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -8,6 +9,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import pstack, { modelsFile, serveRequests } from '../src/index.ts';
 import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
+import { externalTempCases } from './fixtures/temp-mutations.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
 type Tool = {
@@ -76,6 +78,8 @@ beforeEach(() => {
     sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
     modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
     isProjectTrusted: () => true,
+    isIdle: () => true,
+    hasPendingMessages: () => false,
   };
 });
 
@@ -223,6 +227,21 @@ describe('tmux_run', { timeout: 20_000 }, () => {
     expect(jobs()).toEqual([]);
   });
 
+  test("a checkout of another repository placed inside the project is refused, since the job would be handed that repository's git directory", async () => {
+    const other = realpathSync(mkdtempSync(join(homedir(), '.pstack-other-')));
+    try {
+      execFileSync('git', ['init', '-q', other]);
+      execFileSync('git', ['-C', other, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
+      const planted = join(repo, 'scratch', 'other-checkout');
+      execFileSync('git', ['-C', other, 'worktree', 'add', '-q', '-b', 'side', planted]);
+      await expect(call('tmux_run', { name: 'foreign', command: 'true', cwd: planted })).rejects.toThrow(/another repository/);
+      await expect(call('pi_spawn', { name: 'foreign', brief: 'hi', cwd: planted })).rejects.toThrow(/another repository/);
+      expect(jobs()).toEqual([]);
+    } finally {
+      rmSync(other, { recursive: true, force: true });
+    }
+  });
+
   test('a failing heartbeat wakes once and is not restarted', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'tick', command: 'exit 1', wake: 'Tick.', repeat: true });
@@ -294,6 +313,19 @@ describe('sandbox guidance', () => {
   test('tmux_run tells the model its command must keep temp files in $TMPDIR', () => {
     expect(tools['tmux_run']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
   });
+
+  test('a worker is told what the sandbox refuses that scripts assume: process listings, and here-documents in a checkout it cannot write', async () => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    const note = event.systemPromptOptions.sections['pstack-sandbox'];
+    expect(note).toMatch(/`ps`.*`top`.*`uptime`/s);
+    expect(note).toMatch(/here-document.*\$TMPDIR/s);
+  });
+
+  test('pi_spawn tells the model a worker cannot write the shared /tmp, so a brief names $TMPDIR', () => {
+    expect(tools['pi_spawn']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
+  });
 });
 
 describe('tmux_jobs', { timeout: 20_000 }, () => {
@@ -316,6 +348,61 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     const listing = await text({ action: 'list' });
     expect(listing).toContain('exited 143');
     expect(listing).toContain(`follow: tail -f ${join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'output.log')}`);
+  });
+
+  test('wait with no ids skips servers started without a wake, which never exit on their own', async () => {
+    await call('tmux_run', { name: 'server', command: 'sleep 30' });
+    await call('tmux_run', { name: 'build', command: 'echo built-output', wake: 'Built.' });
+    const started = Date.now();
+    const report = await text({ action: 'wait', timeout_seconds: 15 });
+    expect(Date.now() - started).toBeLessThan(10_000);
+    expect(report).toContain('built-output');
+    expect(report).not.toContain('still running');
+  });
+
+  test('wait hands the turn back as soon as the user sends a message', async () => {
+    await call('tmux_run', { name: 'slow', command: 'sleep 30', wake: 'Slow.' });
+    ctx = { ...ctx, hasPendingMessages: () => true };
+    const started = Date.now();
+    const report = await text({ action: 'wait', timeout_seconds: 15 });
+    expect(Date.now() - started).toBeLessThan(10_000);
+    expect(report).toContain('still running');
+  });
+
+  test('wait without a timeout hands the turn back after five minutes, not thirty', async () => {
+    await call('tmux_run', { name: 'slow', command: 'sleep 600', wake: 'Slow.' });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
+    try {
+      const waiting = text({ action: 'wait' });
+      await vi.advanceTimersByTimeAsync(301_000);
+      expect(await Promise.race([waiting, Promise.resolve('STILL WAITING')])).toContain('still running');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('stopping a job that is slow to end does not wake the session with a lost-job report', async () => {
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'stubborn', command: "trap '' TERM; touch ready; while :; do sleep 0.2; done", wake: 'Done.' });
+    await expect.poll(() => existsSync(join(repo, 'ready')), { timeout: 10_000 }).toBe(true);
+    await call('tmux_jobs', { action: 'stop', ids: [jobs()[0] ?? ''] });
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("a job's output shows live in its tmux session, and list says how to attach to it", async () => {
+    await call('tmux_run', { name: 'live', command: 'echo live-in-pane; sleep 30' });
+    const [id] = jobs();
+    const socket = tmuxSocket(owner);
+    await expect.poll(() => execFileSync('tmux', ['-S', socket, 'capture-pane', '-p', '-t', id ?? ''], { encoding: 'utf8' }), { timeout: 10_000 }).toContain('live-in-pane');
+    expect(await text({ action: 'list' })).toContain(`attach: tmux -S ${socket} attach -t ${id}`);
+  });
+
+  test('Ctrl-C in the attached session stops the job, which records that it was stopped', async () => {
+    await call('tmux_run', { name: 'interrupt', command: 'touch ready; sleep 30' });
+    const [id] = jobs();
+    await expect.poll(() => existsSync(join(repo, 'ready')), { timeout: 10_000 }).toBe(true);
+    execFileSync('tmux', ['-S', tmuxSocket(owner), 'send-keys', '-t', id ?? '', 'C-c']);
+    await expect.poll(() => (existsSync(join(jobsRoot(), id ?? '', 'exit')) ? readFileSync(join(jobsRoot(), id ?? '', 'exit'), 'utf8').trim() : ''), { timeout: 10_000 }).toBe('143');
   });
 
   test('a job from another session is not visible', async () => {
@@ -411,6 +498,17 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     await expect.poll(() => exitOf(pi), { timeout: 10_000 }).toBe('126');
     expect(readFileSync(join(pi, 'output.log'), 'utf8')).toContain('cannot start workers of its own');
     await expect.poll(() => exitOf(command), { timeout: 10_000 }).toBe('0');
+  });
+
+  test('the root ignores a temp directory a worker names outside what it may write', async () => {
+    const top = await topJob();
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-outside-')));
+    const out = nestedRequest(top.dir, 'tmpgrab', [join(top.dir, 'nested')], 'echo x > "$TMPDIR/own"');
+    const job = join(top.dir, 'nested', 'tmpgrab-000001', 'job.json');
+    writeFileSync(job, JSON.stringify({ ...JSON.parse(readFileSync(job, 'utf8')), tmp: outside }));
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
+    expect(readdirSync(outside)).toEqual([]);
+    rmSync(outside, { recursive: true, force: true });
   });
 
   test('a malformed request does not stop the next one', async () => {
@@ -818,5 +916,158 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
     const shared = join(dir, 'agent');
     expect(readFileSync(join(dir, 'output.log'), 'utf8')).toContain('COPY-OK');
     expect([lstatSync(join(shared, 'extensions')).isSymbolicLink(), existsSync(join(shared, 'settings.json')), existsSync(join(agentDir, 'extensions', 'e.ts'))]).toEqual([true, false, false]);
+  });
+});
+
+describe('workers and the jobs they start', { timeout: 30_000 }, () => {
+  const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
+
+  test('a print-mode worker hears about a finished job while it works', async () => {
+    ctx = { ...ctx, mode: 'print', hasUI: false, isIdle: () => false };
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'probe', command: 'echo probe-output', wake: 'Probe done.' });
+    await expect.poll(() => sendMessage.mock.calls.length, { timeout: 10_000 }).toBe(1);
+    expect(sendMessage.mock.calls[0]?.[0].content).toContain('probe-output');
+    expect(await handlers['agent_before_settle']?.({ entries: [] }, ctx)).toBeUndefined();
+  });
+
+  test("a worker's tmux_run sees the worker's own $TMPDIR, so paths the worker hands it exist", async () => {
+    const slowPi = join(agentDir, 'slow-pi.mjs');
+    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
+    process.argv[1] = slowPi;
+    ctx = { ...ctx, mode: 'print', hasUI: false };
+    await handlers['session_start']?.({}, ctx);
+    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
+    const top = join(jobsRoot(), jobs()[0] ?? '');
+    const workerTmp = join(top, 'tmp');
+    const rootTmp = process.env['TMPDIR'];
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', top);
+    vi.stubEnv('PSTACK_V2_TOP_DIR', top);
+    vi.stubEnv('TMPDIR', workerTmp);
+    await call('tmux_run', { name: 'child', command: 'printf "%s" "$MAC_CHROMIUM_TMPDIR" > "$TMPDIR/handoff"' });
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '');
+    vi.stubEnv('TMPDIR', rootTmp);
+    await expect.poll(() => existsSync(join(workerTmp, 'handoff')), { timeout: 10_000 }).toBe(true);
+    expect(readFileSync(join(workerTmp, 'handoff'), 'utf8')).toBe(workerTmp);
+  });
+
+  test('tmux_run may run in a linked worktree of this repository, such as a worker checkout', async () => {
+    const worktree = join(jobsRoot(), 'manual-000001', 'worktree');
+    mkdirSync(dirname(worktree), { recursive: true });
+    execFileSync('git', ['-C', repo, 'worktree', 'add', '-q', '-b', 'side', worktree]);
+    await call('tmux_run', { name: 'in-worktree', command: 'touch from-job', cwd: worktree });
+    const id = jobs().find((name) => name.startsWith('in-worktree')) ?? '';
+    await expect.poll(() => exitOf(join(jobsRoot(), id)), { timeout: 10_000 }).toBe('0');
+    expect(existsSync(join(worktree, 'from-job'))).toBe(true);
+  });
+
+  test('a worktree base that exists only on the remote starts from the remote branch', async () => {
+    const remote = join(agentDir, 'remote.git');
+    const git = (...args: string[]) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();
+    execFileSync('git', ['clone', '-q', '--bare', repo, remote]);
+    git('remote', 'add', 'origin', remote);
+    git('checkout', '-q', '-b', 'remote-only');
+    git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'remote work');
+    git('push', '-q', 'origin', 'remote-only');
+    git('checkout', '-q', '-');
+    git('branch', '-q', '-D', 'remote-only');
+    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'from-remote', base: 'remote-only' });
+    const worktree = join(jobsRoot(), jobs()[0] ?? '', 'worktree');
+    expect(execFileSync('git', ['-C', worktree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).toBe(git('rev-parse', 'origin/remote-only'));
+  });
+});
+
+const firefox = (() => {
+  const cache = join(homedir(), 'Library', 'Caches', 'ms-playwright');
+  if (process.platform !== 'darwin' || !existsSync(cache)) return undefined;
+  const dir = readdirSync(cache).find((name) => name.startsWith('firefox-'));
+  const binary = dir && join(cache, dir, 'firefox', 'Nightly.app', 'Contents', 'MacOS', 'firefox');
+  return binary && existsSync(binary) ? binary : undefined;
+})();
+const pnpmVersion = (() => {
+  try {
+    return execFileSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() }).trim();
+  } catch {
+    return undefined;
+  }
+})();
+
+describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => {
+  const run = async (command: string) => {
+    await call('tmux_run', { name: 'tool', command });
+    const dir = join(jobsRoot(), jobs()[0] ?? '');
+    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 45_000 }).toBe(true);
+    return readFileSync(join(dir, 'output.log'), 'utf8').trim();
+  };
+
+  test.skipIf(process.platform !== 'darwin')('a job cannot start an app it wrote outside the sandbox through LaunchServices', async () => {
+    const marker = join(agentDir, 'escaped');
+    const plist = `<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleExecutable</key><string>Probe</string><key>CFBundleIdentifier</key><string>dev.pstack.probe${Date.now()}</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>`;
+    await run(
+      `A="$TMPDIR/Probe.app"; mkdir -p "$A/Contents/MacOS"; printf '#!/bin/sh\\necho escaped > ${marker}\\n' > "$A/Contents/MacOS/Probe"; chmod +x "$A/Contents/MacOS/Probe"; echo '${plist}' > "$A/Contents/Info.plist"; open -g -j -a "$A" 2>/dev/null; sleep 3`,
+    );
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  test.skipIf(!firefox)('a job can run headless Firefox', async () => {
+    expect(await run(`mkdir -p "$TMPDIR/ff"; '${firefox}' -headless -no-remote -profile "$TMPDIR/ff" -screenshot "$TMPDIR/shot.png" 'data:text/html,hi' >/dev/null 2>&1; test -s "$TMPDIR/shot.png" && echo SHOT`)).toBe('SHOT');
+  });
+
+  test.skipIf(process.platform !== 'darwin').each(['.com.google.Chrome.', '.com.google.Chrome.pstack-long-', 'pstack-other-'])('a job cannot create %s names in the per-user temp directory', async (prefix) => {
+    const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
+    const fixture = join(shared, prefix + randomBytes(3).toString('hex'));
+    expect(existsSync(fixture)).toBe(false);
+    try {
+      expect(await run(`printf x > '${fixture}' && echo TEMP-CREATED`)).not.toContain('TEMP-CREATED');
+      expect(readFileSync(join(jobsRoot(), jobs()[0] ?? '', 'exit'), 'utf8').trim()).not.toBe('0');
+      expect(existsSync(fixture)).toBe(false);
+    } finally {
+      rmSync(fixture, { force: true });
+    }
+  });
+
+  test('top-level commands point Chromium at their private temp directory', async () => {
+    const output = await run('printf "%s|%s" "$TMPDIR" "$MAC_CHROMIUM_TMPDIR"');
+    const tmp = join(jobsRoot(), jobs()[0] ?? '', 'tmp');
+    expect(output).toBe(`${tmp}|${tmp}`);
+  });
+
+  test.skipIf(process.platform !== 'darwin')('mktemp lands in the job temp directory, bare, with a prefix, and with a template', async () => {
+    expect(
+      await run(
+        'd=$(mktemp -d) && [ -d "$d" ] && case "$d" in "$TMPDIR"/*) echo DIR ;; esac; f=$(mktemp -t pre) && case "$f" in "$TMPDIR"/pre.*) echo PREFIX ;; esac; t=$(mktemp "$TMPDIR/x.XXXXXX") && [ -f "$t" ] && echo TEMPLATE; q=$(mktemp) && [ -f "$q" ] && echo FILE',
+      ),
+    ).toBe('DIR\nPREFIX\nTEMPLATE\nFILE');
+  });
+
+  test.skipIf(process.platform !== 'darwin')('a zsh here-document works in a job', async () => {
+    expect(await run("zsh -c 'cat <<EOF\nzsh-heredoc\nEOF'")).toBe('zsh-heredoc');
+  });
+
+  test.skipIf(process.platform !== 'darwin').each(externalTempCases)('a job cannot $operation an external $browser temp file', async ({ browser, statement }) => {
+    const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
+    const fixture = join(shared, `.${browser}.${randomBytes(3).toString('hex')}`);
+    const original = Buffer.from('outside-original\n');
+    writeFileSync(fixture, original, { flag: 'wx' });
+    try {
+      expect(
+        await run(
+          `'${process.execPath}' -e 'const fs = require("node:fs"); const target = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
+        ),
+      ).toContain('MUTATION-ATTEMPTED');
+      const dir = join(jobsRoot(), jobs()[0] ?? '');
+      expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).not.toBe('0');
+      expect(readFileSync(fixture)).toEqual(original);
+      expect(existsSync(join(repo, 'renamed-external-temp'))).toBe(false);
+    } finally {
+      rmSync(fixture, { force: true });
+    }
+  });
+
+  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < 11)('pnpm runs a script in a project that pins another pnpm version', async () => {
+    const pinned = pnpmVersion === '10.0.0' ? '10.0.1' : '10.0.0';
+    writeFileSync(join(repo, 'package.json'), JSON.stringify({ name: 'probe', packageManager: `pnpm@${pinned}`, scripts: { hi: 'echo hi-ran' } }));
+    expect(await run('pnpm run hi 2>&1')).toContain('hi-ran');
   });
 });
