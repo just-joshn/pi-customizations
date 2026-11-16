@@ -1020,7 +1020,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
   test.skipIf(process.platform !== 'darwin')('mktemp lands in the job temp directory, bare, with a prefix, and with a template', async () => {
     expect(
       await run(
-        'd=$(mktemp -d) && [ -d "$d" ] && [ "${d#"$TMPDIR"/}" != "$d" ] && echo DIR; f=$(mktemp -t pre) && [ "${f#"$TMPDIR"/pre.}" != "$f" ] && echo PREFIX; t=$(mktemp "$TMPDIR/x.XXXXXX") && [ -f "$t" ] && echo TEMPLATE; q=$(mktemp) && [ -f "$q" ] && echo FILE',
+        'd=$(mktemp -d) && [ -d "$d" ] && case "$d" in "$TMPDIR"/*) echo DIR ;; esac; f=$(mktemp -t pre) && case "$f" in "$TMPDIR"/pre.*) echo PREFIX ;; esac; t=$(mktemp "$TMPDIR/x.XXXXXX") && [ -f "$t" ] && echo TEMPLATE; q=$(mktemp) && [ -f "$q" ] && echo FILE',
       ),
     ).toBe('DIR\nPREFIX\nTEMPLATE\nFILE');
   });

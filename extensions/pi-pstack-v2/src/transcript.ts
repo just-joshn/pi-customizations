@@ -27,7 +27,8 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
       const prompt = branch.findLastIndex((entry) => entry.type === 'message' && entry.message.role === 'user');
       const answers: string[] = [];
       if (prompt >= 0 && Date.parse(branch[prompt]?.timestamp ?? '') >= Date.parse(since)) {
-        for (const entry of branch.slice(prompt + 1)) {
+        const turns = branch.slice(prompt + 1).filter((entry) => entry.type === 'message' && entry.message.role === 'assistant');
+        for (const entry of turns) {
           if (entry.type !== 'message' || entry.message.role !== 'assistant') continue;
           const message = entry.message;
           const text = message.content
@@ -38,9 +39,13 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
             case 'stop':
               if (text.trim()) answers.push(text);
               break;
-            case 'length':
             case 'error':
             case 'aborted':
+              // A failed turn the worker went on from was retried, so only the one it ended on is its answer.
+              if (entry !== turns.at(-1)) break;
+              answers.push([`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n'));
+              break;
+            case 'length':
               answers.push([`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n'));
               break;
             case 'toolUse':

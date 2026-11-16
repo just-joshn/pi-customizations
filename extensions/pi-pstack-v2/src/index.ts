@@ -36,7 +36,7 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
 const SANDBOX_NOTE =
-  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files.';
+  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
@@ -59,8 +59,11 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   // A linked worktree of the same repository, such as a worker's checkout, is the same project on another branch.
   const common = gitPath(ctx.cwd, '--git-common-dir');
   const targetCommon = gitPath(target, '--git-common-dir');
-  const worktree = common !== undefined && targetCommon !== undefined && landing(targetCommon) === landing(common) ? gitPath(target, '--show-toplevel') : undefined;
+  const sameRepository = common !== undefined && targetCommon !== undefined && landing(targetCommon) === landing(common);
+  const worktree = sameRepository ? gitPath(target, '--show-toplevel') : undefined;
   if (!within(target, [root, ...(worktree ? [worktree] : [])])) throw new Error(`cwd must be inside this project (${root}), got ${target}. To work on another branch, pass worktree and the job gets its own checkout.`);
+  // A checkout of another repository can sit inside the project, and a job there would be handed that repository's git directory.
+  if (targetCommon !== undefined && !sameRepository && !within(targetCommon, [root])) throw new Error(`cwd ${target} is a checkout of another repository (${targetCommon}). A job works only in this session's repository.`);
   return target;
 }
 
@@ -427,7 +430,7 @@ export default function pstack(pi: ExtensionAPI) {
       name: 'pi_spawn',
       label: 'Spawn Pi',
       description:
-        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot.',
+        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot. The shared /tmp is read-only to the worker, so a brief that names a scratch path uses $TMPDIR or the checkout.',
       promptSnippet: 'Start a parallel Pi instance in tmux with a standalone brief, then get woken with its report',
       promptGuidelines: [
         'Use pi_spawn wherever a pstack skill says to spawn a worker, delegate, explorer, reviewer, or Pi instance. Pi has no subagents.',
@@ -587,12 +590,12 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
       lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
-      timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 1800.' })),
+      timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
     }),
     async execute(_id, params, signal, update, ctx) {
       const root = jobsRoot();
@@ -632,7 +635,7 @@ export default function pstack(pi: ExtensionAPI) {
                 // A heartbeat or a server never stops on its own, so waiting on everything leaves them out.
                 .filter((job) => job.status.state === 'running' && !job.spec.repeat && job.spec.wake !== null)
                 .map((job) => job.spec.id);
-          const deadline = Date.now() + (params.timeout_seconds ?? 1800) * 1000;
+          const deadline = Date.now() + (params.timeout_seconds ?? 300) * 1000;
           const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
           for (const id of ids) awaited.add(id);
           try {

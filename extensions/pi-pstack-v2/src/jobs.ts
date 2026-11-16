@@ -128,7 +128,24 @@ const CACHES: Record<string, string> = {
   npm_config_store_dir: 'pnpm',
 };
 
-const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp, MAC_CHROMIUM_TMPDIR: tmp });
+// zsh writes here-documents under TMPPREFIX, which defaults to the shared /tmp.
+const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp, MAC_CHROMIUM_TMPDIR: tmp, TMPPREFIX: join(tmp, 'zsh') });
+
+/** macOS mktemp prefers the per-user temp directory to $TMPDIR, and a job may not write there, so jobs find this one first on PATH. */
+const MKTEMP = `#!/bin/sh
+flags=
+prefix=
+while getopts :dqut:p: opt; do
+  case $opt in
+    d|q|u) flags="$flags -$opt" ;;
+    t) prefix=$OPTARG ;;
+    *) exec /usr/bin/mktemp "$@" ;;
+  esac
+done
+shift $((OPTIND - 1))
+[ $# -gt 0 ] && [ -z "$prefix" ] && exec /usr/bin/mktemp $flags "$@"
+exec /usr/bin/mktemp $flags "\${TMPDIR%/}/\${prefix:-tmp}.XXXXXXXXXX"
+`;
 
 /**
  * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
@@ -183,7 +200,14 @@ function run(job: Run): void {
   })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
-  const command = `${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
+  const bin = join(job.out, 'bin');
+  if (process.platform === 'darwin') {
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
+  }
+  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
+  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
   // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
@@ -309,6 +333,8 @@ export function list(root: string, owner: string): Job[] {
  * with it. A brokered job is ended by the root, which sees the stop marker on its next tick.
  */
 export async function stop(job: Job): Promise<void> {
+  // Claimed first, since the session is gone before the wrapper records the exit, and the watcher would report the job lost.
+  claimWake(job);
   if (job.spec.brokered) {
     writeFileSync(join(job.dir, 'stop'), '');
   } else {
@@ -337,7 +363,6 @@ export async function stop(job: Job): Promise<void> {
       renameSync(`${exit}.tmp`, exit);
     }
   }
-  claimWake(job);
 }
 
 /** Returns true exactly once per job, so a wake survives restarts without being delivered twice. */
