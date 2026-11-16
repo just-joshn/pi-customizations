@@ -128,14 +128,14 @@ const CACHES: Record<string, string> = {
   npm_config_store_dir: 'pnpm',
 };
 
+const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp, MAC_CHROMIUM_TMPDIR: tmp });
+
 /**
  * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
  * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
  */
 export const privateEnv = (tmp: string): Record<string, string> => ({
-  TMPDIR: tmp,
-  TMP: tmp,
-  TEMP: tmp,
+  ...tempEnv(tmp),
   ...Object.fromEntries(Object.entries(CACHES).map(([name, dir]) => [name, join(tmp, dir)])),
 });
 
@@ -179,7 +179,7 @@ function run(job: Run): void {
     PI_CODING_AGENT_DIR: jobAgentDir(job.top),
     ...SANDBOX_COMPAT,
     ...privateEnv(join(job.dir, 'tmp')),
-    ...(job.tmp ? { TMPDIR: job.tmp, TMP: job.tmp, TEMP: job.tmp } : {}),
+    ...(job.tmp ? tempEnv(job.tmp) : {}),
   })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
@@ -379,12 +379,20 @@ export function excerpt(path: string, head: number, tailBytes: number): string {
   if (!existsSync(path)) return '';
   const size = statSync(path).size;
   if (size <= head + tailBytes) return readEnd(path, size);
-  const first = readRange(path, 0, head);
+  return clipRanges(readRange(path, 0, head), readRange(path, size - tailBytes, tailBytes), size, path);
+}
+
+export function clip(text: string, head: number, tailBytes: number, source: string): string {
+  const buffer = Buffer.from(text);
+  if (buffer.length <= head + tailBytes) return text;
+  return clipRanges(buffer.subarray(0, head), buffer.subarray(buffer.length - tailBytes), buffer.length, source);
+}
+
+function clipRanges(first: Buffer, last: Buffer, size: number, path: string): string {
   let lead = first.length - 1;
   while (lead > 0 && isContinuation(first[lead])) lead--;
   const byte = first[lead] ?? 0;
   const end = lead + (byte >= 0xf0 ? 4 : byte >= 0xe0 ? 3 : byte >= 0xc0 ? 2 : 1) > first.length ? lead : first.length;
-  const last = readRange(path, size - tailBytes, tailBytes);
   let from = 0;
   while (isContinuation(last[from])) from++;
   const omitted = size - end - (last.length - from);

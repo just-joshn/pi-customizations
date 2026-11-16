@@ -861,7 +861,9 @@ describe('workers and the jobs they start', { timeout: 30_000 }, () => {
     const runtime = fileURLToPath(new URL('../src/index.ts', import.meta.url));
     const release = join(repo, 'release');
     const sawLate = join(repo, 'saw-late');
-    writeFileSync(join(agentDir, 'extensions', 'scripted.ts'), `
+    writeFileSync(
+      join(agentDir, 'extensions', 'scripted.ts'),
+      `
 import { writeFileSync } from 'node:fs';
 import { fauxProvider, fauxAssistantMessage, fauxToolCall } from '@earendil-works/pi-ai';
 import pstack from ${JSON.stringify(runtime)};
@@ -878,7 +880,8 @@ export default function (pi) {
   ]);
   pi.registerProvider(faux.provider);
 }
-`);
+`,
+    );
     process.argv[1] = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
     await handlers['session_start']?.({}, ctx);
     await call('pi_spawn', { name: 'scripted', brief: 'Run the scripted check.', model: 'prov/model', wake: false });

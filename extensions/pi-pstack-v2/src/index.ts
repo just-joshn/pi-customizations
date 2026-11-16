@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { commandProviders, jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { brokeredSession, claimWake, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
+import { brokeredSession, claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
+import { workerReport } from './transcript.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const AGENTS = ['poteto-agent', 'comment-sicko', 'ci-watcher', 'thermo-nuclear-code-quality-review'] as const;
@@ -34,7 +35,8 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 
 const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
-const SANDBOX_NOTE = 'You run in the pstack sandbox. The shared /tmp and user caches are read-only, so keep temp files in $TMPDIR, your own temp directory.';
+const SANDBOX_NOTE =
+  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
@@ -126,11 +128,26 @@ function baseOrSoleRemoteBranch(cwd: string, base: string): string {
 function report(job: Job): string {
   const state = job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)';
   const output = outputPath(job.spec.out);
-  const body = job.spec.kind === 'pi' ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD) : tail(output, 60);
+  const transcript = job.spec.kind === 'pi' ? workerReport(flagValue(job.spec.command, '--session-dir'), job.spec.createdAt) : undefined;
+  const answers = transcript?.answers ?? [];
+  const body =
+    answers.length && transcript
+      ? clip(answers.join('\n\n[Later completed answer]\n\n'), REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD, transcript.path)
+      : job.spec.kind === 'pi'
+        ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD)
+        : tail(output, 60);
   // A worker that fails at startup, such as on a bad model or credential, says why only on stderr.
   const failed = job.status.state !== 'exited' || job.status.code !== 0 || !body.trim();
   const errors = failed ? tail(join(job.spec.out, 'stderr.log'), 40).trim() : '';
-  return [`tmux job ${job.spec.name} (${job.spec.id}) ${state}. Full output: ${output}`, job.spec.wake ?? '', `<output>\n${body.trim()}\n</output>`, errors ? `<stderr>\n${errors}\n</stderr>` : ''].filter(Boolean).join('\n\n');
+  return [
+    `tmux job ${job.spec.name} (${job.spec.id}) ${state}. Raw output: ${output}`,
+    transcript ? `Transcript: ${transcript.path}` : '',
+    job.spec.wake ?? '',
+    `<output>\n${body.trim()}\n</output>`,
+    errors ? `<stderr>\n${errors}\n</stderr>` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 function describe(job: Job): string {
@@ -326,7 +343,7 @@ export default function pstack(pi: ExtensionAPI) {
   };
 
   const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
-  // Print mode delivers reports only while the worker is busy, so its final reply stays its report and does not answer a late wake.
+  // Busy print-mode workers can act on results immediately. The settle hook handles reports that arrive later.
   const deliverable = (ctx: ExtensionContext): boolean => interactive(ctx) || (!settling && !ctx.isIdle());
 
   const serve = (ctx: ExtensionContext): void => {
@@ -570,11 +587,11 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_jobs',
     label: 'tmux jobs',
     description:
-      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output prints the last lines of one job. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
+      "Inspect or control this session's pi_spawn and tmux_run jobs. list shows every job with its state and a command to follow its output. output shows an exited worker's completed answers and transcript, or the last lines of a command or running worker. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: Type.Object({
       action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
       ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
-      lines: Type.Optional(Type.Number({ description: 'Lines for output. Default 80.' })),
+      lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
       timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 1800.' })),
     }),
     async execute(_id, params, signal, update, ctx) {
@@ -596,7 +613,7 @@ export default function pstack(pi: ExtensionAPI) {
         case 'output':
           return text(
             named()
-              .map((job) => `${describe(job)}\n${tail(outputPath(job.spec.out), params.lines ?? 80)}`)
+              .map((job) => (job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), params.lines ?? 80)}`))
               .join('\n\n'),
           );
         case 'stop': {

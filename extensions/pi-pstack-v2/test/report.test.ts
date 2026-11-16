@@ -1,10 +1,10 @@
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import pstack from '../src/index.ts';
 import type { JobSpec } from '../src/jobs.ts';
@@ -18,7 +18,9 @@ test('parent wait and output retain real Pi answers when print stdout contains o
   const release = join(root, 'release');
   const sawLate = join(root, 'saw-late');
   const fixture = join(root, 'provider.ts');
-  writeFileSync(fixture, `
+  writeFileSync(
+    fixture,
+    `
 import { existsSync, writeFileSync } from 'node:fs';
 import { fauxProvider, fauxAssistantMessage } from '@earendil-works/pi-ai';
 export default function (pi) {
@@ -39,15 +41,20 @@ export default function (pi) {
     return { entries: [{ type: 'custom_message', customType: 'pstack-job', content: 'late-output', display: true }], continue: true };
   });
 }
-`);
+`,
+  );
   const cli = fileURLToPath(new URL('./cli.js', import.meta.resolve('@earendil-works/pi-coding-agent')));
   const command = [process.execPath, cli, '-p', '--no-extensions', '-e', fixture, '--session-dir', session, '--model', 'prov/model', 'Run the scripted check.'];
   const createdAt = new Date().toISOString();
   const child = spawn(process.execPath, command.slice(1), { cwd: root, env: { ...process.env, PI_CODING_AGENT_DIR: root }, stdio: ['ignore', 'pipe', 'pipe'] });
   let stdout = '';
   let stderr = '';
-  child.stdout.on('data', (data) => { stdout += data; });
-  child.stderr.on('data', (data) => { stderr += data; });
+  child.stdout.on('data', (data) => {
+    stdout += data;
+  });
+  child.stderr.on('data', (data) => {
+    stderr += data;
+  });
   const exited = new Promise<number | null>((resolve, reject) => {
     child.once('error', reject);
     child.once('exit', resolve);
@@ -62,21 +69,37 @@ export default function (pi) {
     writeFileSync(join(dir, 'output.log'), stdout);
     writeFileSync(join(dir, 'exit'), '0');
     const spec: JobSpec = {
-      id, name: 'scripted', kind: 'pi', cwd: root, argv: command, command, owner: 'parent', wake: null,
-      brokered: false, out: dir, repeat: false, series: id, socket: '', sweep: { roots: [], protect: [] }, createdAt,
+      id,
+      name: 'scripted',
+      kind: 'pi',
+      cwd: root,
+      argv: command,
+      command,
+      owner: 'parent',
+      wake: null,
+      brokered: false,
+      out: dir,
+      repeat: false,
+      series: id,
+      socket: '',
+      sweep: { roots: [], protect: [] },
+      createdAt,
       policy: { writable: [], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: root, jobDir: dir },
     };
     writeFileSync(join(dir, 'job.json'), JSON.stringify(spec));
     vi.stubEnv('PI_CODING_AGENT_DIR', root);
     vi.stubEnv('PSTACK_V2_SANDBOXED', '');
     const tools = new Map<string, Parameters<ExtensionAPI['registerTool']>[0]>();
-    pstack({ on: () => {}, registerCommand: () => {}, registerTool: (tool) => tools.set(tool.name, tool) } as unknown as ExtensionAPI);
+    pstack({ on: () => {}, registerCommand: () => {}, registerTool: (tool: Parameters<ExtensionAPI['registerTool']>[0]) => tools.set(tool.name, tool) } as unknown as ExtensionAPI);
     const tool = tools.get('tmux_jobs');
     if (!tool) throw new Error('tmux_jobs missing');
-    const ctx = { sessionManager: { getSessionId: () => 'parent' }, hasPendingMessages: () => false } as unknown as ExtensionContext;
+    const ctx = { sessionManager: { getSessionId: () => 'parent' }, hasPendingMessages: () => false } as unknown as ExtensionToolContext;
     for (const action of ['wait', 'output']) {
       const result = await tool.execute('call', { action, ids: [id] }, undefined, undefined, ctx);
-      const report = result.content.filter((block) => block.type === 'text').map((block) => block.text).join('\n');
+      const report = result.content
+        .filter((block) => block.type === 'text')
+        .map((block) => block.text)
+        .join('\n');
       expect(report).toMatch(/SUBSTANTIVE REPORT: initial verdict PASS[\s\S]*CORRECTION: late result checked\. ACK\./);
       expect(report).toContain(`Transcript: ${session}/`);
     }
