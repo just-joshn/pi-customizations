@@ -1,1 +1,4 @@
 * text=auto
+extensions/pi-snoop-tui/bench/results/**/*.jsonl linguist-generated=true
+extensions/pi-snoop-tui/bench/results/**/*uptime*.txt linguist-generated=true
+extensions/pi-snoop-tui/test/__snapshots__/*.json linguist-generated=true
