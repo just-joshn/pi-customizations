@@ -37,6 +37,11 @@ test.for(['error', 'aborted'])('retains the prior report when continuation ends 
   expect(workerReport(dir, since)?.answers).toEqual(['REPORT', `[Worker answer ended with ${reason}]\nincomplete\nsynthetic downstream failure`]);
 });
 
+test.for(['error', 'aborted'])('leaves out a %s turn the worker recovered from', (reason) => {
+  transcript([user('brief'), answer('', reason, 'capacity'), answer('', reason, 'capacity'), answer('REPORT')]);
+  expect(workerReport(dir, since)?.answers).toEqual(['REPORT']);
+});
+
 test.for(['toolUse', 'pending', 'deferred'])('ignores %s turns and empty assistant text', (reason) => {
   transcript([user('brief'), answer('working', reason), { type: 'message', message: { role: 'toolResult', content: [{ type: 'text', text: 'result' }] } }, answer(' '), answer('REPORT')]);
   expect(workerReport(dir, since)?.answers).toEqual(['REPORT']);

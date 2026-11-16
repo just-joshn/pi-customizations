@@ -227,6 +227,21 @@ describe('tmux_run', { timeout: 20_000 }, () => {
     expect(jobs()).toEqual([]);
   });
 
+  test("a checkout of another repository placed inside the project is refused, since the job would be handed that repository's git directory", async () => {
+    const other = realpathSync(mkdtempSync(join(homedir(), '.pstack-other-')));
+    try {
+      execFileSync('git', ['init', '-q', other]);
+      execFileSync('git', ['-C', other, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
+      const planted = join(repo, 'scratch', 'other-checkout');
+      execFileSync('git', ['-C', other, 'worktree', 'add', '-q', '-b', 'side', planted]);
+      await expect(call('tmux_run', { name: 'foreign', command: 'true', cwd: planted })).rejects.toThrow(/another repository/);
+      await expect(call('pi_spawn', { name: 'foreign', brief: 'hi', cwd: planted })).rejects.toThrow(/another repository/);
+      expect(jobs()).toEqual([]);
+    } finally {
+      rmSync(other, { recursive: true, force: true });
+    }
+  });
+
   test('a failing heartbeat wakes once and is not restarted', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'tick', command: 'exit 1', wake: 'Tick.', repeat: true });
@@ -298,6 +313,19 @@ describe('sandbox guidance', () => {
   test('tmux_run tells the model its command must keep temp files in $TMPDIR', () => {
     expect(tools['tmux_run']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
   });
+
+  test('a worker is told what the sandbox refuses that scripts assume: process listings, and here-documents in a checkout it cannot write', async () => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    const note = event.systemPromptOptions.sections['pstack-sandbox'];
+    expect(note).toMatch(/`ps`.*`top`.*`uptime`/s);
+    expect(note).toMatch(/here-document.*\$TMPDIR/s);
+  });
+
+  test('pi_spawn tells the model a worker cannot write the shared /tmp, so a brief names $TMPDIR', () => {
+    expect(tools['pi_spawn']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
+  });
 });
 
 describe('tmux_jobs', { timeout: 20_000 }, () => {
@@ -339,6 +367,26 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     const report = await text({ action: 'wait', timeout_seconds: 15 });
     expect(Date.now() - started).toBeLessThan(10_000);
     expect(report).toContain('still running');
+  });
+
+  test('wait without a timeout hands the turn back after five minutes, not thirty', async () => {
+    await call('tmux_run', { name: 'slow', command: 'sleep 600', wake: 'Slow.' });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
+    try {
+      const waiting = text({ action: 'wait' });
+      await vi.advanceTimersByTimeAsync(301_000);
+      expect(await Promise.race([waiting, Promise.resolve('STILL WAITING')])).toContain('still running');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('stopping a job that is slow to end does not wake the session with a lost-job report', async () => {
+    await handlers['session_start']?.({}, ctx);
+    await call('tmux_run', { name: 'stubborn', command: "trap '' TERM; touch ready; while :; do sleep 0.2; done", wake: 'Done.' });
+    await expect.poll(() => existsSync(join(repo, 'ready')), { timeout: 10_000 }).toBe(true);
+    await call('tmux_jobs', { action: 'stop', ids: [jobs()[0] ?? ''] });
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 
   test('a job from another session is not visible', async () => {
@@ -967,6 +1015,18 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     const output = await run('printf "%s|%s" "$TMPDIR" "$MAC_CHROMIUM_TMPDIR"');
     const tmp = join(jobsRoot(), jobs()[0] ?? '', 'tmp');
     expect(output).toBe(`${tmp}|${tmp}`);
+  });
+
+  test.skipIf(process.platform !== 'darwin')('mktemp lands in the job temp directory, bare, with a prefix, and with a template', async () => {
+    expect(
+      await run(
+        'd=$(mktemp -d) && [ -d "$d" ] && [ "${d#"$TMPDIR"/}" != "$d" ] && echo DIR; f=$(mktemp -t pre) && [ "${f#"$TMPDIR"/pre.}" != "$f" ] && echo PREFIX; t=$(mktemp "$TMPDIR/x.XXXXXX") && [ -f "$t" ] && echo TEMPLATE; q=$(mktemp) && [ -f "$q" ] && echo FILE',
+      ),
+    ).toBe('DIR\nPREFIX\nTEMPLATE\nFILE');
+  });
+
+  test.skipIf(process.platform !== 'darwin')('a zsh here-document works in a job', async () => {
+    expect(await run("zsh -c 'cat <<EOF\nzsh-heredoc\nEOF'")).toBe('zsh-heredoc');
   });
 
   test.skipIf(process.platform !== 'darwin').each(externalTempCases)('a job cannot $operation an external $browser temp file', async ({ browser, statement }) => {
