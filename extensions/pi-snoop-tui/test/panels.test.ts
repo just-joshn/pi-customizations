@@ -13,11 +13,13 @@ import {
   type ToolRenderers,
 } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { compactRenderers } from '../src/rows/row.ts';
 import { genericSpec, TOOL_SPECS } from '../src/rows/specs.ts';
 import { driveRow, output, type RowEvent } from './harness.ts';
 
+// Pi picks truecolor or 256-color codes from COLORTERM, and the snapshot hashes those codes.
+vi.stubEnv('COLORTERM', 'truecolor');
 initTheme('dark', false);
 // Pi keeps the active theme on this global symbol and does not export the instance.
 const theme = (globalThis as Record<symbol, unknown>)[Symbol.for('@earendil-works/pi-coding-agent:theme')] as Theme;
