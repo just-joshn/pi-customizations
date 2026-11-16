@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use the pstack skills and workflow in Pi, with sandboxed Pi workers and shell jobs running in tmux.",
   "type": "module",
   "license": "MIT",
