@@ -56,6 +56,22 @@
         "typebox": "*",
       },
     },
+    "extensions/pi-snoop-tui": {
+      "name": "@justjoshn/pi-snoop-tui",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@earendil-works/pi-coding-agent": "1.5.2",
+        "@earendil-works/pi-tui": "1.5.2",
+        "@types/node": "^22.19.0",
+        "@vitest/coverage-v8": "^5.0.2",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.2",
+      },
+      "peerDependencies": {
+        "@earendil-works/pi-coding-agent": "*",
+        "@earendil-works/pi-tui": "*",
+      },
+    },
     "extensions/pi-spacex-oauth-v2": {
       "name": "@justjoshn/pi-spacex-oauth-v2",
       "version": "0.1.0",
@@ -173,6 +189,8 @@
     "@justjoshn/pi-google-oauth-v2": ["@justjoshn/pi-google-oauth-v2@workspace:extensions/pi-google-oauth-v2"],
 
     "@justjoshn/pi-pstack-v2": ["@justjoshn/pi-pstack-v2@workspace:extensions/pi-pstack-v2"],
+
+    "@justjoshn/pi-snoop-tui": ["@justjoshn/pi-snoop-tui@workspace:extensions/pi-snoop-tui"],
 
     "@justjoshn/pi-spacex-oauth-v2": ["@justjoshn/pi-spacex-oauth-v2@workspace:extensions/pi-spacex-oauth-v2"],
 
