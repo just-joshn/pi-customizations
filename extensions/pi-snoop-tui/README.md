@@ -2,6 +2,8 @@
 
 A compact look for Pi's interactive terminal UI. Paired light and dark themes use graphite neutrals and a soft blue accent. The header, transcript, editor, and footer share one gutter on both sides, set by Pi's `outputPad` setting.
 
+![pi-snoop-tui in a Pi session](https://raw.githubusercontent.com/just-joshn/pi-customizations/main/extensions/pi-snoop-tui/docs/demo.gif)
+
 Tool rows show a status marker, tool name, target, and result summary. Successful calls collapse to one line. Running bash calls show up to three output lines. Errors show up to five lines. Expand tools with your configured shortcut, normally Ctrl+O, to see Pi's native detail rendering.
 
 The footer shows the workspace, branch, extension statuses, model, thinking level, and context usage on one line. The header shows `pi / workspace`.
