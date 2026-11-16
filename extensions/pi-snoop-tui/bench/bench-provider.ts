@@ -28,6 +28,14 @@ interface PhaseMetrics {
   readonly eldMaxMs: number;
 }
 
+interface CleanIdleMetrics {
+  readonly wallMs: number;
+  readonly cpuUserMs: number;
+  readonly cpuSystemMs: number;
+  readonly voluntaryContextSwitches: number;
+  readonly involuntaryContextSwitches: number;
+}
+
 export interface RunResult {
   readonly pid: number;
   readonly agentStartEpochMs: number;
@@ -35,8 +43,12 @@ export interface RunResult {
   readonly idleEndEpochMs: number;
   readonly agentStartHrtimeUs: number;
   readonly agentEndHrtimeUs: number;
+  readonly idleEndHrtimeUs: number;
+  readonly cleanIdleEndEpochMs: number;
+  readonly cleanIdleEndHrtimeUs: number;
   readonly workload: PhaseMetrics;
   readonly idle: PhaseMetrics;
+  readonly cleanIdle: CleanIdleMetrics;
   readonly toolResults: number;
   readonly toolErrors: number;
   readonly toolNames: readonly string[];
@@ -113,7 +125,8 @@ function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
 
 function streamReplay(model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions): AssistantMessageEventStream {
   const stream = createAssistantMessageEventStream();
-  const assistantCount = context.messages.filter((message) => message.role === 'assistant').length;
+  const lastUser = context.messages.findLastIndex((message) => message.role === 'user');
+  const assistantCount = context.messages.slice(lastUser + 1).filter((message) => message.role === 'assistant').length;
   const turn = SCRIPT[Math.min(assistantCount, SCRIPT.length - 1)] ?? { text: '', toolCalls: [] };
   const signal = options?.signal;
   const output: AssistantMessage = {
@@ -184,6 +197,16 @@ function snapshot(): Snapshot {
   return { at: performance.now(), epochMs: performance.timeOrigin + performance.now(), hrtimeUs: Number(process.hrtime.bigint() / 1000n), cpu: process.cpuUsage() };
 }
 
+function cleanIdlePhase(from: Snapshot, fromUsage: NodeJS.ResourceUsage, to: Snapshot, toUsage: NodeJS.ResourceUsage): CleanIdleMetrics {
+  return {
+    wallMs: to.at - from.at,
+    cpuUserMs: (to.cpu.user - from.cpu.user) / 1000,
+    cpuSystemMs: (to.cpu.system - from.cpu.system) / 1000,
+    voluntaryContextSwitches: toUsage.voluntaryContextSwitches - fromUsage.voluntaryContextSwitches,
+    involuntaryContextSwitches: toUsage.involuntaryContextSwitches - fromUsage.involuntaryContextSwitches,
+  };
+}
+
 function phase(from: Snapshot, to: Snapshot, histogram: ReturnType<typeof monitorEventLoopDelay>): PhaseMetrics {
   const ms = (ns: number) => ns / 1e6;
   return {
@@ -239,21 +262,30 @@ export default function benchProvider(pi: ExtensionAPI): void {
       const idleEnd = snapshot();
       const idle = phase(agentEnd, idleEnd, histogram);
       histogram.disable();
-      const result: RunResult = {
-        pid: process.pid,
-        agentStartEpochMs: agentStart.epochMs,
-        agentEndEpochMs: agentEnd.epochMs,
-        idleEndEpochMs: idleEnd.epochMs,
-        agentStartHrtimeUs: agentStart.hrtimeUs,
-        agentEndHrtimeUs: agentEnd.hrtimeUs,
-        workload,
-        idle,
-        toolResults: toolNames.length,
-        toolErrors,
-        toolNames,
-      };
-      appendFileSync(outPath, `${JSON.stringify(result)}\n`);
-      ctx.shutdown();
+      const idleEndUsage = process.resourceUsage();
+      setTimeout(() => {
+        const cleanIdleEnd = snapshot();
+        const cleanIdle = cleanIdlePhase(idleEnd, idleEndUsage, cleanIdleEnd, process.resourceUsage());
+        const result: RunResult = {
+          pid: process.pid,
+          agentStartEpochMs: agentStart.epochMs,
+          agentEndEpochMs: agentEnd.epochMs,
+          idleEndEpochMs: idleEnd.epochMs,
+          agentStartHrtimeUs: agentStart.hrtimeUs,
+          agentEndHrtimeUs: agentEnd.hrtimeUs,
+          idleEndHrtimeUs: idleEnd.hrtimeUs,
+          cleanIdleEndEpochMs: cleanIdleEnd.epochMs,
+          cleanIdleEndHrtimeUs: cleanIdleEnd.hrtimeUs,
+          workload,
+          idle,
+          cleanIdle,
+          toolResults: toolNames.length,
+          toolErrors,
+          toolNames,
+        };
+        appendFileSync(outPath, `${JSON.stringify(result)}\n`);
+        ctx.shutdown();
+      }, IDLE_WINDOW_MS);
     }, IDLE_WINDOW_MS);
   });
 }

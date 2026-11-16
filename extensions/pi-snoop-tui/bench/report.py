@@ -29,13 +29,23 @@ STREAM_METRICS = [
     ("PTY bytes, workload", lambda r: r["pty"]["workloadBytes"]),
     ("PTY bytes, idle 10 s", lambda r: r["pty"]["idleBytes"]),
     ("PTY bytes, idle after first 1 s", lambda r: r["pty"]["idleLateBytes"]),
+    ("Clean idle CPU ms over 10 s, no sampler", lambda r: r["cleanIdle"]["cpuUserMs"] + r["cleanIdle"]["cpuSystemMs"]),
+    ("Clean idle involuntary context switches", lambda r: r["cleanIdle"]["involuntaryContextSwitches"]),
+    ("PTY bytes, clean idle 10 s", lambda r: r["pty"]["cleanIdleBytes"]),
     ("Tool results", lambda r: r["toolResults"]),
     ("Tool errors", lambda r: r["toolErrors"]),
     ("Workload wall ms", lambda r: r["workload"]["wallMs"]),
 ]
-LONG_STEPS = ["startup", "narrow", "wide", "expand", "collapse"]
+LONG_STEPS = ["startup", "narrow", "wide", "expand", "collapse", "storm"]
 LONG_METRICS = [
     ("Process CPU ms (user+sys), whole run", lambda r: r["cpuMs"]["user"] + r["cpuMs"]["sys"]),
+    ("Collapsed echo latency p50 ms", lambda r: percentile(r["collapsedEcho"]["latenciesMs"], 50)),
+    ("Collapsed echo latency p95 ms", lambda r: percentile(r["collapsedEcho"]["latenciesMs"], 95)),
+    ("Collapsed echo latency max ms", lambda r: max(r["collapsedEcho"]["latenciesMs"])),
+    ("Collapsed echo misses", lambda r: r["collapsedEcho"]["misses"]),
+    ("Burst of 50 keys, ms to full echo", lambda r: r["burst"]["ms"]),
+    ("Burst PTY bytes", lambda r: r["burst"]["bytes"]),
+    ("Burst echoed", lambda r: int(r["burst"]["echoed"])),
     ("Expanded echo latency p50 ms", lambda r: percentile(r["echo"]["latenciesMs"], 50)),
     ("Expanded echo latency p95 ms", lambda r: percentile(r["echo"]["latenciesMs"], 95)),
     ("Expanded echo misses", lambda r: r["echo"]["misses"]),
@@ -44,7 +54,28 @@ LONG_METRICS = [
     ("Exit PTY bytes", lambda r: r["exitBytes"]),
     ("Steps with output", lambda r: sum(step["output"] for step in r["steps"].values())),
 ]
-METRICS = {"stream": STREAM_METRICS, "long": LONG_METRICS}
+STARTUP_METRICS = [
+    ("First settled frame ms", lambda r: r["startup"]["ms"]),
+    ("First frame PTY bytes", lambda r: r["startup"]["bytes"]),
+    ("Process CPU ms (user+sys), spawn to exit", lambda r: r["cpuMs"]["user"] + r["cpuMs"]["sys"]),
+    ("Exit PTY bytes", lambda r: r["exitBytes"]),
+    ("PI_TIMING main TOTAL ms", lambda r: r["timingsMs"]["main"]["TOTAL"]),
+    ("PI_TIMING createAgentSessionRuntime ms", lambda r: r["timingsMs"]["main"]["createAgentSessionRuntime"]),
+    ("PI_TIMING initTheme ms", lambda r: r["timingsMs"]["main"]["initTheme"]),
+    ("PI_TIMING interactiveMode.init ms", lambda r: r["timingsMs"]["main"]["interactiveMode.init"]),
+    ("PI_TIMING extensions TOTAL ms", lambda r: r["timingsMs"]["extensions"]["TOTAL"]),
+    ("PI_STARTUP_BENCHMARK process CPU ms", lambda r: r["timingCpuMs"]["user"] + r["timingCpuMs"]["sys"]),
+]
+METRICS = {"stream": STREAM_METRICS, "medium": STREAM_METRICS, "long": LONG_METRICS, "startup": STARTUP_METRICS}
+
+
+def present(metric, records: list[dict]) -> bool:
+    try:
+        for record in records:
+            metric[1](record)
+    except (KeyError, ValueError):
+        return False
+    return True
 
 
 def cell(values: list[float]) -> str:
@@ -93,9 +124,7 @@ def main() -> None:
     for workload in [w for w in METRICS if w in runs or w in failed]:
         print(f"### {workload} workload\n")
         records = [record for group in runs[workload].values() for record in group]
-        metrics = METRICS[workload]
-        if workload == "long" and any("echo" not in record for record in records):
-            metrics = [metric for metric in metrics if not metric[0].startswith("Expanded echo")]
+        metrics = [metric for metric in METRICS[workload] if present(metric, records)]
         table(runs[workload], failed[workload], metrics)
         print()
 

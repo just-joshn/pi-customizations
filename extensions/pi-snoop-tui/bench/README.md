@@ -32,7 +32,9 @@ Each round runs every configuration once. The order rotates each round, so warmu
 1. Turn 1 streams 3000 characters of Markdown, 30 characters every 8 ms. It then calls `bash` (prints 3000 lines over about 2 s), `read` on `fixture.txt`, `grep` for `marker` in `fixture.txt`, and `edit` on `edit-target.txt`.
 2. Turn 2 streams 1500 characters and stops.
 
-The driver waits for the first frame to settle, types the prompt, and presses Enter. While Pi streams, it sends `q` every 250 ms, 10 times. Ten seconds after `agent_end`, the provider appends its record to `SNOOP_BENCH_OUT` and calls `ctx.shutdown()`. The driver merges its terminal metrics into the record. A run whose tool count is not 4, whose edit did not land, or that saw no output or missed an echo gets a `problems` field and keeps its artifacts.
+The script picks the turn by the number of assistant messages after the latest user message, so a restored session starts at turn 1.
+
+The driver waits for the first frame to settle, types the prompt, and presses Enter. While Pi streams, it sends `q` every 250 ms, 10 times. Ten seconds after `agent_end`, the provider disables the event-loop sampler and waits another 10 s (the clean idle phase). It then appends its record to `SNOOP_BENCH_OUT` and calls `ctx.shutdown()`. The driver merges its terminal metrics into the record. A run whose tool count is not 4, whose edit did not land, or that saw no output or missed an echo gets a `problems` field and keeps its artifacts.
 
 ## What each number measures
 
@@ -41,6 +43,7 @@ All in-process numbers come from the Pi process itself. The workload phase runs 
 - **Workload CPU ms.** `process.cpuUsage()` user plus system time across the workload phase. Child processes such as the `bash` tool's shell are not included.
 - **Idle CPU ms.** The same counter over the idle phase. The event-loop sampler below wakes Pi every 10 ms in every configuration, so this number never reaches zero. Compare it between configurations, not against zero.
 - **Event-loop delay p50 and p99.** `perf_hooks.monitorEventLoopDelay({ resolution: 10 })`. Each sample is the time between two 10 ms timer ticks, so an unblocked loop reads about 10 to 11 ms. The excess over 10 ms is the time the loop was busy. The histogram resets at `agent_end`.
+- **Clean idle CPU ms.** `process.cpuUsage()` over the 10 s after the idle phase, with the event-loop sampler disabled. Nothing in the bench wakes Pi here, so any CPU is periodic work by Pi or an extension. The record also carries the voluntary and involuntary context switches from `process.resourceUsage()` and the PTY bytes for the same window.
 - **Echo latency p50 and p95.** The time from writing `q` to the first output whose ANSI-stripped text contains the whole run of `q`s typed so far. Pi must handle the key and redraw the editor line. The run of `q`s rules out the kernel's own echo and stray `q`s in the output, and the workload text contains no `q`.
 - **Echo misses.** Keystrokes with no echo within 1 s.
 - **PTY bytes.** Bytes Pi wrote to the terminal, bucketed by read time into the workload phase, the idle phase, and the idle phase after its first second. The first second holds the one redraw that clears the working indicator. Any bytes after it point to periodic output.
@@ -66,7 +69,22 @@ python3 report.py results-long.jsonl
 
 A step settles when Pi writes nothing for 500 ms. Its time runs to the last byte before that quiet period. A step with no output within 5 s (60 s for startup) has no output and becomes a problem. A step still writing after 60 s is a timeout and fails the run. Each step records its bytes and the widest horizontal rule it drew, and a resize whose rule does not match the new width is a problem. The driver then sends Ctrl+D and reads the child's user and system CPU for the whole run from `os.wait4`, and the bytes Pi wrote on exit.
 
-`report.py` prints one section per workload.
+Before the first resize, the driver also types 20 `q` characters at 100 ms intervals with every row collapsed, and records their echo latency and misses as `collapsedEcho`. After Ctrl+U it writes 50 `q` characters back to back and records the time until the whole run of 50 appears as `burst`. After `collapse`, the `storm` step resizes five times back to back (90, 120, 90, 120, 90 columns) and settles. Its last horizontal rule must be 90 columns wide. The driver then restores 120 columns before exit, so exit bytes stay comparable. The whole-run CPU includes these steps.
+
+`report.py` prints one section per workload and drops a metric when a record lacks it, so older result files still report.
+
+## Run the startup and medium-session benchmarks
+
+```sh
+python3 run.py --workload startup --runs 5 --out results-startup.jsonl
+python3 run.py --workload medium --runs 5 --out results-medium.jsonl
+```
+
+`--workload startup` starts Pi with the stream workload's flags and an empty in-memory session. It times spawn to the first settled frame (500 ms quiet), sends Ctrl+D, and reads the process CPU from `os.wait4`. It then starts Pi again with `PI_STARTUP_BENCHMARK=1 PI_TIMING=1`, which makes Pi initialize the interactive mode, exit, and print its own startup phases and the import and factory time of each extension. The record keeps those as `timingsMs`.
+
+`--workload medium` runs the stream workload on a restored session from `medium-fixture.py`: 30 turns of Markdown with headings, lists, tables, and code blocks, and five tool calls each (150 tool rows). The record carries `"workloadName": "medium"`.
+
+Every step and typing record carries a `windowUs` pair on the same monotonic clock as Node's `process.hrtime`, so a profile can be cut to that window.
 
 ## Profile a run
 
@@ -77,7 +95,9 @@ NODE_OPTIONS="--cpu-prof --cpu-prof-dir=$TMPDIR/prof-full" python3 run.py --runs
 python3 profile-summary.py "$TMPDIR/prof-full" --record "$TMPDIR/prof.jsonl"
 ```
 
-`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file.
+`profile-summary.py` prints the top self-time functions and the share that falls in `pi-snoop-tui/src/`. With `--record`, it keeps only the samples between `agent_start` and `agent_end` of the last record in that file. `--phase` picks another window from that record: `idle`, `cleanIdle`, a long step name such as `storm`, `typing`, or `burst`, or `startup`.
+
+It also buckets busy time by owner: each sample goes to the innermost class in its stack. Pi ships as a minified bundle, so the script finds class bodies in the bundle source by matching braces. It prints owner self time, inclusive time per class, and self time per file.
 
 ## Capture screenshots
 
