@@ -25,7 +25,7 @@ const portedScripts = walk(join(root, 'skills'))
   .map((path) => relative(root, path))
   .filter((path) => /\/scripts\//.test(path) && /\.(sh|mjs|ts)$/.test(path) && lock.files[path] !== sha(join(root, path)));
 
-const prose = [...['skills', 'agents', 'docs/guide', 'rules'].flatMap((dir) => walk(join(root, dir))).filter((path) => /\.(md|tsv)$/.test(path)), join(root, 'README.md')];
+const prose = [...['skills', 'agents', 'docs/guide'].flatMap((dir) => walk(join(root, dir))).filter((path) => /\.(md|tsv)$/.test(path)), join(root, 'README.md')];
 const scanned = [...prose, ...portedScripts.map((path) => join(root, path))];
 
 // Each pattern names a Cursor or Claude Code mechanism that Pi replaces. `allow` admits lines that only name the
@@ -70,8 +70,6 @@ describe('the Pi port of pstack', () => {
   test('unported upstream scripts are byte-identical', () => {
     const ported = new Set([
       'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
-      'skills/poteto-mode/scripts/check-plan.mjs', // required a /loop marker; now the tmux_run heartbeat
-      'skills/poteto-mode/scripts/check-plan.test.ts',
       'LICENSE', // adds cursor-team-kit's copyright beside pstack's
     ]);
     const changed = upstream

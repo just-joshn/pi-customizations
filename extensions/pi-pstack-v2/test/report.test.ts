@@ -60,8 +60,8 @@ export default function (pi) {
       ui: { setStatus: vi.fn(), notify: vi.fn() },
       cwd: repo,
       model: undefined,
-      sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
-      modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
+      sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined, getBranch: () => [] },
+      modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getAvailable: () => [{ provider: 'prov', id: 'model' }], getApiKeyAndHeaders: async () => ({}) },
       isProjectTrusted: () => true,
       isIdle: () => true,
       hasPendingMessages: () => false,
@@ -92,6 +92,8 @@ export default function (pi) {
         .join('\n');
       expect(report).toMatch(/SUBSTANTIVE REPORT: initial verdict PASS[\s\S]*CORRECTION: late result checked\. ACK\./);
       expect(report).toContain(`Transcript: ${session}/`);
+      // The worker ran one tool, tmux_run, before its report, and its run took seconds.
+      expect(report).toMatch(/exited with code 0 \(\d+s, 1 tool calls\)/);
     }
     expect(readFileSync(join(dir, 'output.log'), 'utf8')).toBe(stdout);
     rmSync(session, { recursive: true });

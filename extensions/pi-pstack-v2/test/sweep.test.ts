@@ -57,7 +57,26 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     expect(sweep(before).sort()).toEqual([join(work, 'deep', '.pi', 'settings.json'), join(work, 'deep', 'repo', '.git'), join(work, 'nested', '.pi')].sort());
     expect(existsSync(join(work, 'kept', '.pi', 'extensions'))).toBe(true);
     expect(existsSync(join(work, 'deep', '.pi', 'notes.md'))).toBe(true);
-    expect(readFileSync(inventory.output, 'utf8')).toContain(`pstack quarantined ${join(work, 'deep', 'repo', '.git')}, Pi or git code that appeared while the job ran`);
+    expect(readFileSync(inventory.output, 'utf8')).toContain(`pstack quarantined ${join(work, 'deep', 'repo', '.git')}, Pi, git, editor, or harness code that appeared while the job ran`);
+  });
+
+  test('editor and harness configuration that appears is moved out, and harness instructions stay', () => {
+    mkdirSync(join(work, '.claude', 'skills'), { recursive: true });
+    const before = takeInventory([work], [], inventory.quarantine, inventory.output);
+    mkdirSync(join(work, '.vscode'));
+    writeFileSync(join(work, '.vscode', 'tasks.json'), '{}');
+    writeFileSync(join(work, 'app.code-workspace'), '{}');
+    writeFileSync(join(work, '.claude', 'settings.json'), '{}');
+    mkdirSync(join(work, '.claude', 'skills', 'probe'));
+    writeFileSync(join(work, '.claude', 'skills', 'probe', 'SKILL.md'), '');
+    mkdirSync(join(work, '.claude', 'skills', 'probe', '.pi', 'extensions'), { recursive: true });
+    mkdirSync(join(work, 'sub', '.cursor', 'rules'), { recursive: true });
+    writeFileSync(join(work, 'sub', '.cursor', 'hooks.json'), '{}');
+    expect(sweep(before).sort()).toEqual(
+      [join(work, '.vscode'), join(work, 'app.code-workspace'), join(work, '.claude', 'settings.json'), join(work, '.claude', 'skills', 'probe', '.pi', 'extensions'), join(work, 'sub', '.cursor', 'hooks.json')].sort(),
+    );
+    expect(existsSync(join(work, '.claude', 'skills', 'probe', 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(work, 'sub', '.cursor', 'rules'))).toBe(true);
   });
 
   test('installed packages are not searched, since Pi never loads project code from them', () => {

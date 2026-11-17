@@ -5,7 +5,7 @@ description: Drive the pi-pstack-v2 extension in the real Pi 1.5.2 terminal UI w
 
 # Verify pi-pstack-v2
 
-Read [features/README.md](features/README.md), then the feature being verified. The primary surface is **Pi's terminal UI**, with print mode as another entry point for tool-driven journeys. This package registers `pi_spawn`, `tmux_run`, and `tmux_jobs`, and bundled `/skill:…` workflows; it registers **no slash commands of its own**. Do not invent `/pstack` or call module internals as user-path proof.
+Read [features/README.md](features/README.md), then the feature being verified. The primary surface is **Pi's terminal UI**, with print mode as another entry point for tool-driven journeys. This package registers `pi_spawn`, `tmux_run`, and `tmux_jobs`, and bundled `/skill:…` workflows; its only slash command is `/pstack-mode`. Do not invent other `/pstack` commands or call module internals as user-path proof.
 
 ## Launch
 

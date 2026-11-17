@@ -15,54 +15,49 @@ Run `pi --list-models`. It prints one line per model, with the provider and mode
 
 ### 2. Load current state
 
-The default role-to-model mapping is the file shape shown in step 5 below. With no file, every role runs on the model this session runs on, so the starting table gives every single role that model, at the thinking level step 5 shows for that role. A panel role starts with three entries, which are this session's model and the strongest detected models from two other families, at least one of them from another vendor when one is detected. Families and vendors are the ones Phase A of the **arena** skill defines. If that file already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `how explorer` or `why investigators`, is from a retired role. Drop it.
+The default role-to-model mapping is the file shape shown in step 5 below. With no file, every role runs on the model this session runs on, so the starting table gives every single role that model, at the thinking level step 5 shows for that role. A panel role starts with three entries, which are this session's model and the strongest detected models from two other families, at least one of them from another vendor when one is detected. `arena cross-judge pool` starts with two entries from two different vendors, because a second model from a vendor already listed could judge only where the first also could. Families and vendors are the ones Phase A of the **arena** skill defines. If that file already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `hardest tasks`, `architect runners`, `reflect tooling`, or `why investigators`, is from a retired role. Drop it.
 
-A file without the `# defaults: 2` line comes from an older setup. That setup wrote a line for every role at `xhigh` and gave every panel two entries, so some of its values are old defaults, not choices. Before step 3, replace these values:
+A file without the `# defaults: 3` line comes from an older setup. That setup wrote a line for every role, so some of its values are old defaults, not choices. Before step 3, replace these values:
 
-- `hardest tasks` at `xhigh` takes `max`.
-- `swarm workers` or `reflect tooling` at `xhigh` takes `high`.
-- In a panel role (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`), a list of exactly two real models, both at `xhigh`, takes the role's step 2 default list.
+- An `arena cross-judge pool` list of three real models with two from one vendor takes the role's step 5 list.
+- A `# budget: unlimited` line becomes `large`, because no role runs above `xhigh`.
+- If the file has no `# defaults: 2` line either, it wrote every role at `xhigh` and gave every panel two entries. `swarm workers` at `xhigh` takes `high`. In a panel role (`arena runners`, `arena cross-judge pool`, `interrogate reviewers`), a list of exactly two real models, both at `xhigh`, takes the role's step 5 list.
 
 Every other value is the user's choice and stays, including every `inherit-parent` or `auto` value. Tell the user which values you replaced.
 
 ### 3. Budget, map, and confirm
 
-**(a) Ask for a budget.** Ask in plain text with a numbered list, then end your turn. Offer these four options with these exact labels, and name the current budget when the file records one. With no file, say that `large` matches the skill defaults.
+**(a) Ask for a budget.** Ask in plain text with a numbered list, then end your turn. Offer these three options with these exact labels, and name the current budget when the file records one. With no file, say that `large` matches the skill defaults.
 
-1. `unlimited (max thinking)`
-2. `large (xhigh thinking)`
-3. `medium (high thinking)`
-4. `small (medium thinking)`
+1. `large (xhigh thinking)`
+2. `medium (high thinking)`
+3. `small (medium thinking)`
 
-**(b) Apply it.** Build the working table from the skill defaults, and on a re-run keep any role you changed by model, list, or alias (`inherit-parent`, `auto`). Each role has a target thinking level, which is its default's level moved by the budget. `large` keeps it, `unlimited` raises it one step, `medium` lowers it one step, and `small` lowers it two steps, on the ladder `max` > `xhigh` > `high` > `medium` > `low` > `minimal` > `off`. A target at either end of the ladder stays there. Most defaults are at `xhigh`, and each budget label names where those land. Set the thinking level of every real model in the role, panel entries included, to the role's target. The thinking level is the last token of an entry. Pi clamps a level the model does not support, so keep the target level as it is. A model whose `thinking` column says `no` takes `off`. `inherit-parent` and `auto` do not change. So `unlimited` turns `<provider>/<id> xhigh` into `<provider>/<id> max` and `<provider>/<id> high` into `<provider>/<id> xhigh`, and it keeps `hardest tasks` at `max`. `small` turns the first two into `<provider>/<id> medium` and `<provider>/<id> low`.
+**(b) Apply it.** Build the working table from the skill defaults, and on a re-run keep any role you changed by model, list, or alias (`inherit-parent`, `auto`). Each role has a target thinking level, which is its default's level moved by the budget. `large` keeps it, `medium` lowers it one step, and `small` lowers it two steps, on the ladder `xhigh` > `high` > `medium` > `low` > `minimal` > `off`. No role runs above `xhigh`, and a target at the bottom of the ladder stays there. Most defaults are at `xhigh`, and each budget label names where those land. Set the thinking level of every real model in the role, panel entries included, to the role's target. The thinking level is the last token of an entry. Pi clamps a level the model does not support, so keep the target level as it is. A model whose `thinking` column says `no` takes `off`. `inherit-parent` and `auto` do not change. So `medium` turns `<provider>/<id> xhigh` into `<provider>/<id> high` and `<provider>/<id> high` into `<provider>/<id> medium`, and `small` turns them into `<provider>/<id> medium` and `<provider>/<id> low`.
 
-**(c) Show the roles and confirm.** Show every role with its model and thinking level, marking any real model not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean this role runs on the session model) as numbered options. Ask in plain text, then end your turn. For panel roles (arena runners, architect runners, interrogate reviewers) the value is a list, and one spawned Pi runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only values from a vendor other than the session model's, in list order, so order it by preference. `claude-fable-*` and the other `claude-*` models are one vendor. An `inherit-parent` or `auto` value never judges. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
+**(c) Show the roles and confirm.** Show every role with its model and thinking level, marking any real model not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean this role runs on the session model) as numbered options. Ask in plain text, then end your turn. For panel roles (arena runners, interrogate reviewers) the value is a list, and one spawned Pi runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only values from a vendor other than the session model's, in list order, so order it by preference. `claude-fable-*` and the other `claude-*` models are one vendor. An `inherit-parent` or `auto` value never judges. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
 
 ### 4. Validate
 
-Every real model written must be in the detected set. `inherit-parent` and `auto` always pass. If a chosen real model is not available, stop and ask again.
+Every real model written must be in the detected set and at `xhigh` or below. `inherit-parent` and `auto` always pass. If a chosen real model is not available, stop and ask again.
 
 ### 5. Write the file
 
-Write `pstack-v2-models.md` in the Pi agent directory with the `# defaults: 2` line, a `# budget` line holding the chosen budget name and the thinking level that name gives the `xhigh` defaults, as in `large (xhigh)`, and one line per role, using the same labels poteto-mode uses. Each line is `<role>[, <role>]: <provider>/<id> <thinking>[, <provider>/<id> <thinking>]`, or `inherit-parent`. Overwrite the whole file so re-runs stay idempotent. Shape:
+Write `pstack-v2-models.md` in the Pi agent directory with the `# defaults: 3` line, a `# budget` line holding the chosen budget name and the thinking level that name gives the `xhigh` defaults, as in `large (xhigh)`, and one line per role, using the same labels poteto-mode uses. Each line is `<role>[, <role>]: <provider>/<id> <thinking>[, <provider>/<id> <thinking>]`, or `inherit-parent`. Overwrite the whole file so re-runs stay idempotent. Shape:
 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
 # `inherit-parent` or `auto` as a value: the role runs on the session model (omit pi_spawn `model`). Alias entries in a panel list still count toward its fan-out.
-# defaults: 2
+# defaults: 3
 # budget: large (xhigh)
 feature, refactoring: <provider>/<id> xhigh
 bug-fix: <provider>/<id> xhigh
 perf-issue: <provider>/<id> xhigh
 hillclimb: <provider>/<id> xhigh
 judgment and prose: <provider>/<id> xhigh
-hardest tasks: <provider>/<id> max
-reflect tooling: <provider>/<id> high
-reflect judgment, divergent, synthesizer: <provider>/<id> xhigh
 arena runners: <provider>/<id> high, <provider>/<id> high, <provider>/<id> high
-arena cross-judge pool: <provider>/<id> high, <provider>/<id> high, <provider>/<id> high
+arena cross-judge pool: <provider>/<id> high, <provider>/<id> high
 swarm workers: <provider>/<id> high
-architect runners: <provider>/<id> high, <provider>/<id> high, <provider>/<id> high
 interrogate reviewers: <provider>/<id> high, <provider>/<id> high, <provider>/<id> high
 ```
 

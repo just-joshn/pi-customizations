@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Use the pstack skills and workflow in Pi, with sandboxed Pi workers and shell jobs running in tmux.",
   "type": "module",
   "license": "MIT",
@@ -21,7 +21,6 @@
     "src",
     "skills",
     "agents",
-    "rules",
     "docs",
     "README.md",
     "LICENSE"
@@ -35,7 +34,7 @@
     ]
   },
   "scripts": {
-    "test": "vitest run --coverage && bun test skills/poteto-mode/scripts/check-plan.test.ts",
+    "test": "vitest run --coverage && cd skills/poteto-mode/scripts && bun install --frozen-lockfile && bun test watch-pr",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
