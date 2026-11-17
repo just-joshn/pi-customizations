@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,7 +21,7 @@ const REPORT_HEAD = 4000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
 const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
-// As in Cursor, the root and the workers it starts may start workers, and a worker started by another worker may not.
+// The root and the workers it starts may start workers, and a worker started by another worker may not.
 const startedByWorker = (): boolean => insideJob() && process.env[JOB_DIR_ENV] !== process.env[TOP_DIR_ENV];
 const topJobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
 // A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
@@ -35,10 +35,17 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 
 const agentRoles = AGENTS.map((name) => `${name}: ${parseFrontmatter<{ description?: string }>(readFileSync(join(packageRoot, 'agents', `${name}.md`), 'utf8')).frontmatter.description ?? ''}`);
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
+// A mode keeps a skill in context every turn. Pi rebuilds the system prompt each turn, so the skill rides there.
+const MODE = 'pstack-mode';
+const skillsDir = join(packageRoot, 'skills');
+const skillNames = readdirSync(skillsDir).filter((name) => existsSync(join(skillsDir, name, 'SKILL.md')));
+const modeSection = (name: string): string => {
+  const file = join(skillsDir, name, 'SKILL.md');
+  return `The user turned on ${name} mode with /pstack-mode. Follow this skill on every turn until the user turns it off with /pstack-mode off or switches modes. Do not drift back to default agent behavior.\n\n<skill name="${name}" location="${file}">\nReferences are relative to ${dirname(file)}.\n\n${stripFrontmatter(readFileSync(file, 'utf8')).trim()}\n</skill>`;
+};
 const SANDBOX_NOTE =
-  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf.';
+  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf. Unix sockets are refused, so ssh-agent, gpg-agent, and git over SSH with agent-held keys fail: use an HTTPS remote (`gh auth setup-git`) or leave the push to the session that started you. Code that runs outside the sandbox later stays read-only: `.git/hooks` and git config, `.pi` extensions and settings, and editor and harness configuration (`.vscode`, `.idea`, `*.code-workspace`, `.cursorignore`, and `.cursor` and `.claude` apart from their rules, commands, worktrees, skills, and agents). Any such file you create anyway moves to quarantine when your job ends.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
-const rules = ['no-inline-imports', 'typescript-exhaustive-switch'].map((name) => stripFrontmatter(readFileSync(join(packageRoot, 'rules', `${name}.md`), 'utf8')).replace(/^#.*\n+/, ''));
 
 function git(cwd: string, args: string[]): string {
   return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -68,18 +75,20 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
 }
 
 /**
- * Paths an unsandboxed process later executes from: git hooks and config, and Pi's project extensions and settings. Git
- * finds those through `.git`, and in a linked worktree through its `commondir` and `gitdir` files, so each of those is
- * protected too. A job that could repoint any of them would make the next `git commit` run its own hooks unsandboxed.
+ * Paths an unsandboxed process later executes from: git hooks and config, Pi's project extensions and settings, and
+ * editor and agent-harness configuration. Git finds hooks through `.git`, and in a linked worktree through its `commondir`
+ * and `gitdir` files, so each of those is protected too. A job that could repoint any of them would make the next
+ * `git commit` run its own hooks unsandboxed.
  */
 function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
-  // Every .pi directory and .git entry already in the checkout, at any depth, since Pi and git find them anywhere.
+  // Every code entry already in the checkout, at any depth, since Pi, git, editors, and harnesses find them anywhere.
   const found = codePaths([cwd]);
   const piDirs = [...new Set([join(cwd, '.pi'), ...found.filter((path) => basename(dirname(path)) === '.pi').map(dirname)])];
   const pi = piDirs.flatMap((dir) => PI_CODE.map((name) => join(dir, name)));
-  // The checkout's own .git is its git directory, which the job may write. Any other is a repository git would run hooks from.
-  const pointers = found.filter((path) => basename(path) === '.git' && path !== join(cwd, '.git'));
-  let protect = [...pi, ...pointers];
+  // The checkout's own .git is its git directory, which the job may write. Any other is a repository git would run hooks
+  // from, and an editor or harness entry runs as it stands. `pi` already covers each .pi directory, and a .pi link stays as it is.
+  const others = found.filter((path) => basename(path) !== '.pi' && basename(dirname(path)) !== '.pi' && path !== join(cwd, '.git'));
+  let protect = [...pi, ...others];
   let lock: string[] = [];
   if (common) {
     const own = gitPath(cwd, '--absolute-git-dir') ?? common;
@@ -128,10 +137,18 @@ function baseOrSoleRemoteBranch(cwd: string, base: string): string {
   }
 }
 
+const duration = (ms: number): string => {
+  const seconds = Math.max(0, Math.round(ms / 1000));
+  return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+};
+
 function report(job: Job): string {
-  const state = job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)';
   const output = outputPath(job.spec.out);
   const transcript = job.spec.kind === 'pi' ? workerReport(flagValue(job.spec.command, '--session-dir'), job.spec.createdAt) : undefined;
+  // The run's duration and tool-call count show at a glance a worker that spun or did nothing.
+  const exit = exitPath(job.spec.out);
+  const took = [existsSync(exit) ? duration(statSync(exit).mtimeMs - Date.parse(job.spec.createdAt)) : '', transcript ? `${transcript.toolCalls} tool calls` : ''].filter(Boolean).join(', ');
+  const state = `${job.status.state === 'exited' ? `exited with code ${job.status.code}` : 'was lost (its tmux session ended without an exit code)'}${took ? ` (${took})` : ''}`;
   const answers = transcript?.answers ?? [];
   const body =
     answers.length && transcript
@@ -162,10 +179,9 @@ function describe(job: Job): string {
 
 function resolveModel(ctx: ExtensionContext, model: string | undefined): string | undefined {
   if (model === undefined) return ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined;
-  const slash = model.indexOf('/');
-  if (slash < 1 || !ctx.modelRegistry.find(model.slice(0, slash), model.slice(slash + 1))) {
-    throw new Error(`Unknown model "${model}". Pass provider/id exactly as \`pi --list-models\` prints it, or omit model to use the parent's model.`);
-  }
+  // Pi also knows models it holds no credentials for, and a worker on one fails only after it starts. Only a usable model passes.
+  const valid = ctx.modelRegistry.getAvailable().map((known) => `${known.provider}/${known.id}`);
+  if (!valid.includes(model)) throw new Error(`Unavailable model "${model}". Pass provider/id exactly as \`pi --list-models\` prints it, or omit model to use the parent's model. Valid models: ${valid.join(', ') || 'none'}.`);
   return model;
 }
 
@@ -377,7 +393,44 @@ export default function pstack(pi: ExtensionAPI) {
     }
   };
 
+  let mode: string | undefined;
+  const showMode = (ctx: ExtensionContext): void => {
+    if (ctx.hasUI) ctx.ui.setStatus(MODE, mode ? `mode: ${mode}` : undefined);
+  };
+  // The mode lives on the session branch, so a resumed session or a /tree jump gets the mode that branch had.
+  const restoreMode = (ctx: ExtensionContext): void => {
+    mode = undefined;
+    for (const entry of ctx.sessionManager.getBranch()) if (entry.type === 'custom' && entry.customType === MODE) mode = (entry.data as { skill?: string } | undefined)?.skill;
+    if (mode && !skillNames.includes(mode)) mode = undefined;
+    showMode(ctx);
+  };
+
+  pi.registerCommand(MODE, {
+    description: 'Keep a pstack skill in context every turn. /pstack-mode off ends it.',
+    getArgumentCompletions: (prefix: string) => {
+      const items = ['off', ...skillNames].filter((name) => name.startsWith(prefix)).map((name) => ({ value: name, label: name }));
+      return items.length ? items : null;
+    },
+    handler: async (args, ctx) => {
+      const name = args.trim();
+      if (!name) {
+        if (ctx.hasUI) ctx.ui.notify(mode ? `${mode} mode is on. /pstack-mode off ends it.` : 'No pstack mode is on. /pstack-mode <skill> starts one.', 'info');
+        return;
+      }
+      if (name !== 'off' && !skillNames.includes(name)) {
+        if (ctx.hasUI) ctx.ui.notify(`${name} is not a pstack skill. Pick one from /pstack-mode's completions.`, 'error');
+        return;
+      }
+      mode = name === 'off' ? undefined : name;
+      pi.appendEntry(MODE, { skill: mode });
+      showMode(ctx);
+    },
+  });
+
+  pi.on('session_tree', async (_event, ctx) => restoreMode(ctx));
+
   pi.on('session_start', async (_event, ctx) => {
+    restoreMode(ctx);
     clearInterval(watcher);
     watcher = setInterval(() => tick(ctx), POLL_MS);
   });
@@ -416,13 +469,14 @@ export default function pstack(pi: ExtensionAPI) {
 
   pi.on('before_agent_start', async (event, ctx) => {
     const options = event.systemPromptOptions;
-    for (const rule of [...rules, skillsHint]) if (!options.promptGuidelines.includes(rule)) options.promptGuidelines.push(rule);
+    if (!options.promptGuidelines.includes(skillsHint)) options.promptGuidelines.push(skillsHint);
     const transcript = ctx.sessionManager.getSessionFile();
     if (transcript)
       options.sections['pstack-session'] =
         `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
     if (insideJob()) options.sections['pstack-sandbox'] = SANDBOX_NOTE;
     const models = modelsFile(getAgentDir());
+    if (mode) options.sections[MODE] = modeSection(mode);
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });
 

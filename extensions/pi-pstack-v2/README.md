@@ -1,6 +1,6 @@
 # pi-pstack-v2
 
-pstack for Pi. The package ships pstack's skills, playbooks, principles, agent roles, scripts, and guide, plus the cursor-team-kit skills and rules that pstack depends on. It is for people who want `/skill:poteto-mode` and its workflow in Pi. Each Cursor mechanism is replaced with a Pi one.
+pstack for Pi. The package ships pstack's skills, playbooks, principles, agent roles, scripts, and guide, plus the cursor-team-kit skills that pstack depends on. It is for people who want `/skill:poteto-mode` and its workflow in Pi. Each Cursor mechanism is replaced with a Pi one.
 
 - Workers are separate Pi processes in tmux, started with `pi_spawn`. Pi has no subagents.
 - Every worker and long-running command runs in a sandbox, Seatbelt on macOS and bubblewrap on Linux and WSL2. There are no permission prompts.
@@ -36,7 +36,7 @@ Type `/skill:poteto-help` with a question if you are unsure which skill fits.
 
 ## What it adds
 
-The package adds three tools for the model to call, and no slash commands. Every skill runs as `/skill:<name>`.
+The package adds three tools for the model to call and one slash command. Every skill runs as `/skill:<name>`. `/pstack-mode <skill>` keeps a skill in the system prompt every turn, pstack's Custom Mode, until `/pstack-mode off`.
 
 | Tool | Does |
 | --- | --- |
@@ -46,7 +46,6 @@ The package adds three tools for the model to call, and no slash commands. Every
 
 ## Notes
 
-- The extension appends two cursor-team-kit rules to the system prompt, no inline imports and exhaustive switches.
 - Jobs never write your Pi agent directory. Each top-level job's Pi gets its own, with a copy of your credentials. The extension syncs refreshed OAuth tokens back to your login.
 - A job may write only its own directory, its worktree or working directory, the repository's git directory, and temp directories.
 

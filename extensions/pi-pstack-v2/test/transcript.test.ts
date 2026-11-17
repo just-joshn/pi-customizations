@@ -29,7 +29,13 @@ afterEach(() => {
 
 test.for(['stop', 'length'])('keeps completed %s answers and later corrections in chronological order', (reason) => {
   const path = transcript([user('brief'), answer('REPORT', reason), wake, answer('CORRECTION'), wake, answer('ACK')]);
-  expect(workerReport(dir, since)).toEqual({ path, answers: [reason === 'length' ? '[Worker answer ended with length]\nREPORT' : 'REPORT', 'CORRECTION', 'ACK'] });
+  expect(workerReport(dir, since)).toEqual({ path, answers: [reason === 'length' ? '[Worker answer ended with length]\nREPORT' : 'REPORT', 'CORRECTION', 'ACK'], toolCalls: 0 });
+});
+
+test('counts the tool calls the worker made after its brief', () => {
+  const tool = { type: 'message', message: { role: 'toolResult', toolCallId: 't', toolName: 'bash', content: [], isError: false } };
+  transcript([tool, user('brief'), answer('', 'toolUse'), tool, answer('', 'toolUse'), tool, answer('REPORT')]);
+  expect(workerReport(dir, since)?.toolCalls).toBe(2);
 });
 
 test.for(['error', 'aborted'])('retains the prior report when continuation ends with %s', (reason) => {
@@ -68,7 +74,7 @@ test('selects the newest regular session file and ignores symlinked transcripts'
   utimesSync(old, 1, 1);
   utimesSync(current, 2, 2);
   symlinkSync(old, join(dir, 'linked.jsonl'));
-  expect(workerReport(dir, since)).toEqual({ path: current, answers: ['NEW'] });
+  expect(workerReport(dir, since)).toEqual({ path: current, answers: ['NEW'], toolCalls: 0 });
 });
 
 test('missing, symlinked, and unreadable session locations fall back to stdout', () => {

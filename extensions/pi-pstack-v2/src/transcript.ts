@@ -3,7 +3,8 @@ import { join } from 'node:path';
 
 import { parseSessionEntries, type SessionEntry } from '@earendil-works/pi-coding-agent';
 
-export function workerReport(sessionDir: string | undefined, since: string): { path: string; answers: string[] } | undefined {
+/** A worker's completed answers since its brief, and how many tool calls it made. */
+export function workerReport(sessionDir: string | undefined, since: string): { path: string; answers: string[]; toolCalls: number } | undefined {
   if (!sessionDir) return undefined;
   try {
     if (!lstatSync(sessionDir).isDirectory()) return undefined;
@@ -26,7 +27,9 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
       branch.reverse();
       const prompt = branch.findLastIndex((entry) => entry.type === 'message' && entry.message.role === 'user');
       const answers: string[] = [];
+      let toolCalls = 0;
       if (prompt >= 0 && Date.parse(branch[prompt]?.timestamp ?? '') >= Date.parse(since)) {
+        toolCalls = branch.slice(prompt + 1).filter((entry) => entry.type === 'message' && entry.message.role === 'toolResult').length;
         const turns = branch.slice(prompt + 1).filter((entry) => entry.type === 'message' && entry.message.role === 'assistant');
         for (const entry of turns) {
           if (entry.type !== 'message' || entry.message.role !== 'assistant') continue;
@@ -59,7 +62,7 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
           }
         }
       }
-      return { path, answers };
+      return { path, answers, toolCalls };
     }
   } catch {}
   return undefined;

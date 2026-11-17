@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.4
+
+### Added
+
+- Add `/pstack-mode <skill>`, pstack's Custom Mode. The skill rides in the system prompt every turn, survives `/compact`, resume, and `/tree`, and shows in the footer until `/pstack-mode off`.
+
+### Changed
+
+- Sync the skills, playbooks, principles, and guide to pstack 0.15.43 (upstream e1cc031). Every agent a playbook starts reads the new `worker.md` first, which holds the operator's rules. `architect` and `reflect` no longer fan out, the Orchestrate playbook and `check-plan` are gone, the principles are condensed, and `/skill:setup-pstack` writes `# defaults: 3` with the retired roles dropped and no role above `xhigh`.
+- Run watch-pr's Bun tests in `test` and CI in place of the retired `check-plan` test.
+- Show each worker's run time and tool-call count in its report.
+- List the valid models when `pi_spawn` rejects one, so a skill's fallback can pick from the list.
+- `pi_spawn` rejects a model Pi holds no credentials for. Such a worker used to start, create its worktree, and fail at startup, so a skill's model fallback never ran.
+- Tell workers that Unix sockets are refused, so SSH pushes through ssh-agent fail and an HTTPS remote works, and which configuration stays read-only.
+- `autopilot-full` installs watch-pr's dependencies in the root session before it spawns owners, since a sandboxed worker cannot.
+- Correct the mapping notes on nested workers, readonly workers, and rejected models, and say that the benny automation pack is not shipped.
+
+### Removed
+
+- Drop the two team-kit rules (no inline imports, exhaustive switches) from the system prompt and the package. pstack names neither.
+
+### Security
+
+- Refuse writing editor and agent-harness configuration: `.vscode`, `.idea`, `*.code-workspace`, `.cursorignore`, and `.cursor` and `.claude` apart from their `rules`, `commands`, `worktrees`, `skills`, and `agents`. A job could add an agent-harness hook, or a VS Code task, that ran unsandboxed the next time you opened the checkout. On Linux, entries that appear during a job are quarantined when it ends, as `.pi` code is.
+
 ## 0.1.3
 
 ### Fixed

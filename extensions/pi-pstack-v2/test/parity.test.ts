@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -37,6 +37,13 @@ const probes: { name: string; command: string; allowed: boolean }[] = [
   { name: 'create a submodule redirect', command: 'mkdir -p .git/modules/probe && echo > .git/modules/probe/config', allowed: false },
   { name: 'add Pi code at the checkout root', command: 'mkdir -p .pi/extensions && echo > .pi/extensions/probe.ts', allowed: false },
   { name: 'add Pi settings in a subdirectory', command: 'mkdir -p sub/.pi && echo {} > sub/.pi/settings.json', allowed: false },
+  { name: 'add VS Code tasks', command: 'mkdir -p .vscode && echo {} > .vscode/tasks.json', allowed: false },
+  { name: 'add a workspace file', command: 'echo {} > probe.code-workspace', allowed: false },
+  { name: 'add harness hooks', command: 'echo {} > .cursor/hooks.json', allowed: false },
+  { name: 'add Claude Code settings in a subdirectory', command: 'mkdir -p sub4/.claude && echo {} > sub4/.claude/settings.json', allowed: false },
+  { name: 'write existing Claude Code settings', command: 'echo {} > .claude/settings.json', allowed: false },
+  { name: 'add a Claude Code skill', command: 'mkdir -p .claude/skills/probe && echo x > .claude/skills/probe/SKILL.md', allowed: true },
+  { name: 'add a harness rule', command: 'mkdir -p .cursor/rules && echo x > .cursor/rules/probe.mdc', allowed: true },
   { name: 'add a git pointer in a subdirectory', command: 'mkdir -p sub2 && echo "gitdir: /nowhere" > sub2/.git', allowed: false },
   { name: 'add a git repository in a subdirectory', command: 'git init -q sub3', allowed: false },
   { name: "write a nested repository's hooks", command: 'echo > nested/.git/hooks/probe', allowed: false },
@@ -54,11 +61,21 @@ const probes: { name: string; command: string; allowed: boolean }[] = [
 ];
 
 /**
- * What bubblewrap cannot close, since it binds only paths that exist and cannot filter by name. Pi code and .git entries
- * that appear during the job are moved out by the sweep after it. The job's agent directory must take Pi's lock
+ * What bubblewrap cannot close, since it binds only paths that exist and cannot filter by name. Pi, editor, and harness
+ * code and .git entries that appear during the job are moved out by the sweep after it. The job's agent directory must take Pi's lock
  * directories, so on Linux it is a private copy in memory where other new files also land, and vanish when the job ends.
  */
-const linuxCannotBlock = new Set(['add Pi code at the checkout root', 'add Pi settings in a subdirectory', 'add a git pointer in a subdirectory', 'add a git repository in a subdirectory', 'add a file to its own agent directory']);
+const linuxCannotBlock = new Set([
+  'add Pi code at the checkout root',
+  'add Pi settings in a subdirectory',
+  'add VS Code tasks',
+  'add a workspace file',
+  'add harness hooks',
+  'add Claude Code settings in a subdirectory',
+  'add a git pointer in a subdirectory',
+  'add a git repository in a subdirectory',
+  'add a file to its own agent directory',
+]);
 
 const expected = (name: string, allowed: boolean): boolean => (process.platform === 'linux' && linuxCannotBlock.has(name) ? true : allowed);
 
@@ -87,6 +104,9 @@ beforeEach(() => {
   execFileSync('git', ['-C', repo, 'worktree', 'add', '-q', '--detach', `${repo}-other`]);
   execFileSync('git', ['init', '-q', '--bare', join(repo, '.git', 'modules', 'existing')]);
   execFileSync('git', ['init', '-q', join(repo, 'nested')]);
+  mkdirSync(join(repo, '.claude'));
+  writeFileSync(join(repo, '.claude', 'settings.json'), '{}');
+  mkdirSync(join(repo, '.cursor'));
   vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
   vi.stubEnv('PSTACK_V2_SANDBOXED', '');
   tools = {};
@@ -107,7 +127,7 @@ beforeEach(() => {
     hasUI: false,
     cwd: repo,
     model: undefined,
-    sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
+    sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined, getBranch: () => [] },
     modelRegistry: { find: () => undefined },
     isProjectTrusted: () => true,
   };

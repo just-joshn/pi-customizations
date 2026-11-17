@@ -33,7 +33,7 @@ Walk through what each line buys you:
 - "fresh worktree off `<base>`" keeps the run from colliding with anything else you have open.
 - "don't ask me before committing" pre-answers the permission the agent would otherwise block on.
 - The heartbeat is a `tmux_run` job, not a pstack skill. A watcher runs with a `wake` message and wakes your session when it exits. A timer runs `sleep <seconds>` with `repeat: true`, and each tick wakes the session with the tick prompt. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses both to re-check the finish condition on events or on a timer. Stop a heartbeat with `tmux_jobs` and `action: "stop"`.
-- The sandbox is the permission model. Pi has no permission popups, so a job can write only to its own worktree, the repository's git directory, and temp directories. Run the main session in a container too, as the [setup page](./01-setup.md#check-tmux-and-the-sandbox) says.
+- The sandbox is the permission model. Pi has no permission popups, so a job can write only to its own worktree, the repository's git directory, and temp directories. Run the main session in an isolated environment too, as the [setup page](./01-setup.md#check-tmux-and-the-sandbox) says.
 - The escape hatch lets it stop at a genuine dead end and write up why, which beats eight hours of creative goal reinterpretation.
 
 Because you'll review this work after stepping away, `/skill:poteto-mode` routes it through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs the run's phases before any code and wires in the decision log.
@@ -72,7 +72,7 @@ For a quick status instead of an audit, run [`/skill:ketchup`](../../skills/ketc
 
 ## When the night holds a queue, not a task
 
-The contract above drives one task to one finish condition. Some nights hold more, a queue of independent changes or a whole program. Three playbooks scale the same trust up.
+The contract above drives one task to one finish condition. Some nights hold more, a queue of independent changes or a whole program. Two playbooks and one skill scale the same trust up.
 
 [Autopilot-full](../../skills/poteto-mode/playbooks/autopilot-full.md) runs a queue of independent PRs to merged. Each PR gets one owner agent that carries it from build through merge, and no owner merges on its own verdict. A swarm of fresh verifiers checks the owner's code-ready head. A later rebase or minor fix gets one fresh verifier, and only new behavior or a large new diff calls the full swarm again. Only a clean verdict on the patch that merges authorizes the merge:
 
@@ -86,15 +86,15 @@ The contract above drives one task to one finish condition. Some nights hold mor
 /skill:poteto-mode autopilot these five changes, but don't merge. i'll land them in the morning.
 ```
 
-[Orchestrate](../../skills/poteto-mode/playbooks/orchestrate.md) is for a program that outlives any single agent: multi-day, many stacked PRs, fleets of spawned Pis under one standing coordinator session. The coordinator decides which worker does each piece of work, checks what each one produces, and never writes code itself. If one agent could finish the work in a session, the playbook itself routes you back to the overnight contract above:
+A whole program, such as a migration across many packages, has no playbook of its own. `/skill:poteto-mode` routes large or cross-cutting work to [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs one rigorous run for it:
 
 ```text
-/skill:poteto-mode orchestrate the store migration. own it until every package is converted and merged. i'll check in twice a day.
+/skill:poteto-mode migrate every package to the new store. own it until each one is converted and merged. i'll check in twice a day.
 ```
 
 ## Run many projects in parallel
 
-A coordinator session is the Project. It doesn't write code. It directs spawned Pis, each in its own worktree and sandbox, and each one wakes the coordinator with its report when it exits. That's the shape the Orchestrate playbook expects. Run the coordinator inside a container, as Pi's containerization guide describes, so it can sit through the night. Start your prompts to the coordinator with `/skill:poteto-mode`, and the Pis it spawns follow the playbooks.
+A coordinator session is the Project. It doesn't write code. It directs spawned Pis, each in its own worktree and sandbox, and each one wakes the coordinator with its report when it exits. Run the coordinator inside an isolated environment, as Pi's guide to isolated environments describes, so it can sit through the night. Start your prompts to the coordinator with `/skill:poteto-mode`, and the Pis it spawns follow the playbooks. Each Pi it starts reads [`worker.md`](../../skills/poteto-mode/worker.md) first, so workers hold to the kickoff's bar, decide reversible calls instead of asking you, and open PRs ready for review.
 
 A few habits help:
 

@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
+import { EDITOR_CODE, HARNESS_DIRS, HARNESS_INSTRUCTIONS, WORKSPACE_SUFFIX } from './sweep.ts';
+
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
 /** The job directory of the sandboxed process. Jobs it asks the root to start are requested under its writable `nested/` directory. */
 export const JOB_DIR_ENV = 'PSTACK_V2_JOB_DIR';
@@ -81,6 +83,14 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     ...policy.checkouts.map((root) => {
       const git = existsSync(join(root, '.git')) && statSync(join(root, '.git')).isDirectory() ? '.+/\\.git' : '(.*/)?\\.git';
       return `(deny file-write* (regex #"^${escapeRegex(real(root))}/(${git}|(.*/)?\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`;
+    }),
+    // Editor and agent-harness configuration runs unsandboxed when the checkout is opened, so it is refused at any depth,
+    // apart from the harnesses' instruction directories.
+    ...policy.checkouts.map((root) => {
+      const under = `^${escapeRegex(real(root))}/(.*/)?`;
+      const alt = (names: readonly string[]): string => names.map(escapeRegex).join('|');
+      const harness = `${under}(${alt(HARNESS_DIRS)})`;
+      return `(deny file-write* (regex #"${under}(${alt(EDITOR_CODE)}|[^/]*${escapeRegex(WORKSPACE_SUFFIX)})(/|$)") (require-all (regex #"${harness}(/|$)") (require-not (regex #"${harness}/(${alt(HARNESS_INSTRUCTIONS)})(/|$)"))))`;
     }),
     // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS is reachable.
     '(deny network-outbound (remote unix-socket))',

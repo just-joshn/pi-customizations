@@ -92,8 +92,8 @@ jobs:
         working-directory: .
       - run: bun run typecheck
       - run: npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
-      # Vitest cannot see this Bun test, so it runs when the plan checker it covers changed.
+      # Vitest cannot see the watch-pr Bun tests, so they run when the scripts they cover changed.
       - if: matrix.package == 'pi-pstack-v2'
         run: |
           if [ -n "$CHANGED" ] && git diff --quiet "$CHANGED" HEAD -- skills/poteto-mode/scripts; then exit 0; fi
-          bun test skills/poteto-mode/scripts/check-plan.test.ts
+          cd skills/poteto-mode/scripts && bun install --frozen-lockfile && bun test watch-pr

@@ -56,7 +56,7 @@ In context, that's enough. [`/skill:tdd`](../../skills/tdd/SKILL.md) writes the 
 
 ## Clean before you commit
 
-The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before each commit and applies [`/skill:unslop`](../../skills/unslop/SKILL.md) to the PR description and commit bodies. `/skill:deslop` comes from cursor-team-kit and ships in this package. It removes narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.
+The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before each commit, and poteto-mode applies [`/skill:unslop`](../../skills/unslop/SKILL.md) to the PR description and commit bodies. `/skill:deslop` comes from cursor-team-kit and ships in this package. It removes narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.
 
 For prose, `/skill:unslop` takes a target and any extra rules you have:
 

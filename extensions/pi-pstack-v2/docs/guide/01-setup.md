@@ -25,7 +25,7 @@ pstack needs two things on your machine.
 - **tmux.** Every job runs in a tmux session, and the wake that brings a finished job's report back to your session depends on it.
 - **A sandbox.** Pi has no permission popups. Each `pi_spawn` and `tmux_run` job runs inside a sandbox instead, and a job can write only to its own directory, its worktree or working directory, the repository's git directory, and temp directories. macOS has Seatbelt built in. Linux and WSL2 need bubblewrap (`bwrap`). With neither, the tools refuse to start.
 
-The sandbox covers the jobs, not your main session. To contain the main session too, run Pi inside a container, as Pi's containerization guide describes. Do that before you run anything unattended.
+The sandbox covers the jobs, not your main session. To contain the main session too, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
 
 ## Pick your models
 
@@ -39,7 +39,7 @@ Run:
 
 Each role line names a model as `provider/id`, exactly as `pi --list-models` prints it, and a thinking level.
 
-The defaults are the same as the `large` budget. Most roles run at `xhigh` thinking. The hardest changes run at `max`, and the review panels and swarm workers run at `high`. `unlimited` raises each role one level, up to `max`. A model that tops out lower stays at its top. `medium` lowers each role one level and `small` lowers it two, and both spend fewer tokens.
+The defaults are the same as the `large` budget. Code, prose, and judgment run at `xhigh` thinking, and the review panels and swarm workers run at `high`. No role runs above `xhigh`. Outside a review panel, a stronger model than your default runs only when you name it for a task or after two runs of the same brief fail their check. `medium` lowers each role one level and `small` lowers it two, and both spend fewer tokens.
 
 You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps any role whose model differs from the default. When a default changes, a file written before the change still pins the old default until you run `/skill:setup-pstack` again. That run replaces the old defaults it recognizes, tells you which, and keeps your other choices. To drop a pin it does not recognize, delete that role's line or the file first.
 
@@ -74,8 +74,8 @@ Pick something real but small, and describe it the way you'd describe it to a co
 /skill:poteto-mode add a --json flag to this command. text output stays byte-identical. verify both.
 ```
 
-Watch `TODO.md` at the root of your checkout. Its first items are the matched playbook's steps copied in, the Feature playbook for this prompt. If `/skill:poteto-mode` skips a step, the step stays in the file with `skip: <reason>`, so you can see what it chose not to do. `TODO.md` is working state, so don't commit it unless your repository already tracks one.
+Watch `TODO.md` at the root of your checkout. Its first items are the matched playbook's steps copied in, the Feature playbook for this prompt. `TODO.md` is working state, so don't commit it unless your repository already tracks one.
 
-From here you can type normal follow-ups. The skill's text stays in your session's context, so short messages keep the same rigor. After a `/compact` or in a new session, send `/skill:poteto-mode` again.
+From here you can type normal follow-ups. The skill's text stays in your session's context, so short messages keep the same rigor. After a `/compact` or in a new session, send `/skill:poteto-mode` again. To keep it on for the whole session instead, type `/pstack-mode poteto-mode`. The skill then rides in the system prompt every turn, through `/compact` and resume, until `/pstack-mode off`.
 
 Next: [Route work through `/skill:poteto-mode`](./02-poteto-mode.md).

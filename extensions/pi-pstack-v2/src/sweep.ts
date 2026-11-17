@@ -11,7 +11,7 @@ export interface Inventory {
   roots: string[];
   /** Protected paths absent at launch, each with whether its parent was already a link. */
   absent: { path: string; parentWasLink: boolean }[];
-  /** Pi code entries and .git entries present at launch, which the sweep leaves alone. */
+  /** Code entries present at launch, which the sweep leaves alone. */
   present: string[];
   /** Where swept paths go, and where the job's output notes them. */
   quarantine: string;
@@ -20,6 +20,22 @@ export interface Inventory {
 
 /** Pi loads code from these entries of any `.pi` directory, at any depth, once the project is trusted. */
 export const PI_CODE = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'] as const;
+
+/**
+ * Editors and other agent harnesses run what these hold, unsandboxed, once you open the checkout in them: VS Code and
+ * JetBrains tasks, and agent-harness hooks and MCP servers. pstack's sandbox refuses writing them at any depth. Every
+ * entry of a harness directory is code apart from its instructions, which a job may still write.
+ */
+export const EDITOR_CODE = ['.vscode', '.idea', '.cursorignore'] as const;
+export const WORKSPACE_SUFFIX = '.code-workspace';
+export const HARNESS_DIRS = ['.cursor', '.claude'] as const;
+export const HARNESS_INSTRUCTIONS = ['rules', 'commands', 'worktrees', 'skills', 'agents'] as const;
+
+const includes = (list: readonly string[], name: string): boolean => list.includes(name);
+/** Which entries of each such directory are code. */
+const CODE_DIRS = new Map<string, (entry: string) => boolean>([['.pi', (entry) => includes(PI_CODE, entry)], ...HARNESS_DIRS.map((dir) => [dir, (entry: string) => !includes(HARNESS_INSTRUCTIONS, entry)] as const)]);
+/** Entries that are code whole: any .git, and editor configuration. */
+const wholeCode = (name: string): boolean => name === '.git' || includes(EDITOR_CODE, name) || name.endsWith(WORKSPACE_SUFFIX);
 
 const exists = (path: string): boolean => {
   try {
@@ -31,7 +47,7 @@ const exists = (path: string): boolean => {
 };
 
 /**
- * Pi code entries and .git entries under the roots, found without following links or descending into heavy or git
+ * Code entries (Pi, git, editor, and harness) under the roots, found without following links or descending into heavy or git
  * directories. With `repair`, a directory the job made unreadable gets its owner permissions back so it can be searched,
  * and anything still unreadable lands in `unreadable`, since a job could otherwise hide code from the sweep that way.
  */
@@ -53,16 +69,15 @@ export function codePaths(roots: string[], repair = false, unreadable: string[] 
   };
   // Links are never followed, so the walk cannot loop and needs no depth limit.
   const walk = (dir: string): void => {
+    // Inside a code directory such as `.pi` or `.claude`, its code entries are found and the rest is searched like any directory.
+    const isCode = CODE_DIRS.get(basename(dir));
     const names = attempt(dir, () => readdirSync(dir));
     for (const name of names ?? []) {
       const path = join(dir, name);
       const stat = attempt(dir, () => lstatSync(path));
       if (!stat) continue;
-      if (name === '.git') {
+      if (wholeCode(name) || isCode?.(name) || (CODE_DIRS.has(name) && stat.isSymbolicLink())) {
         found.push(path);
-      } else if (name === '.pi') {
-        if (stat.isSymbolicLink()) found.push(path);
-        else if (stat.isDirectory()) for (const code of attempt(path, () => readdirSync(path)) ?? []) if ((PI_CODE as readonly string[]).includes(code)) found.push(join(path, code));
       } else if (stat.isDirectory() && name !== 'node_modules') {
         walk(path);
       }
@@ -114,8 +129,8 @@ export function sweep(inv: Inventory): string[] {
   }
   const present = new Set(inv.present);
   const unreadable: string[] = [];
-  for (const path of codePaths(inv.roots, true, unreadable)) if (!present.has(path)) move(path, 'Pi or git code that appeared while the job ran');
-  for (const path of new Set(unreadable)) appendFileSync(inv.output, `pstack could not search ${path} for Pi or git code the job may have left there. Check it before you start Pi in this checkout.\n`);
+  for (const path of codePaths(inv.roots, true, unreadable)) if (!present.has(path)) move(path, 'Pi, git, editor, or harness code that appeared while the job ran');
+  for (const path of new Set(unreadable)) appendFileSync(inv.output, `pstack could not search ${path} for Pi, git, editor, or harness code the job may have left there. Check it before you start Pi in this checkout.\n`);
   return moved;
 }
 
@@ -125,7 +140,7 @@ if (process.argv[1] && basename(process.argv[1]) === 'sweep.ts' && process.argv[
   try {
     sweep(inv);
   } catch (error) {
-    appendFileSync(inv.output, `pstack could not finish checking this job's checkout for Pi or git code it left behind: ${String(error)}\n`);
+    appendFileSync(inv.output, `pstack could not finish checking this job's checkout for Pi, git, editor, or harness code it left behind: ${String(error)}\n`);
   }
 }
 

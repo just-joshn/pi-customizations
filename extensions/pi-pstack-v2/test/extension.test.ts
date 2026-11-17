@@ -25,6 +25,7 @@ let handlers: Record<string, Handler>;
 let tools: Record<string, Tool>;
 let commands: Record<string, { handler: (args: string, ctx: unknown) => Promise<void> }>;
 let sendMessage: ReturnType<typeof vi.fn>;
+let branch: { type: string; customType?: string; data?: unknown }[];
 let ctx: Record<string, unknown>;
 const savedArgv = process.argv[1] ?? '';
 
@@ -56,7 +57,11 @@ beforeEach(() => {
   tools = {};
   sendMessage = vi.fn();
   commands = {};
+  branch = [];
   const api = {
+    appendEntry: (customType: string, data?: unknown) => {
+      branch.push({ type: 'custom', customType, data });
+    },
     registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => {
       commands[name] = command;
     },
@@ -75,8 +80,12 @@ beforeEach(() => {
     ui: { setStatus: vi.fn(), notify: vi.fn((message: string) => process.stderr.write(`NOTIFY: ${message}\n`)) },
     cwd: repo,
     model: undefined,
-    sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined },
-    modelRegistry: { find: (provider: string, id: string) => (provider === 'prov' && id === 'model' ? {} : undefined), getApiKeyAndHeaders: async () => ({}) },
+    sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined, getBranch: () => branch },
+    modelRegistry: {
+      find: (provider: string, id: string) => (provider === 'prov' && (id === 'model' || id === 'no-credentials') ? {} : undefined),
+      getAvailable: () => [{ provider: 'prov', id: 'model' }],
+      getApiKeyAndHeaders: async () => ({}),
+    },
     isProjectTrusted: () => true,
     isIdle: () => true,
     hasPendingMessages: () => false,
@@ -108,8 +117,17 @@ describe('pi_spawn', { timeout: 20_000 }, () => {
   });
 
   test('an unknown model is rejected before any job is created', async () => {
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Unknown model "nope\/none"/);
+    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Unavailable model "nope\/none"/);
+    // The error lists the valid models, so a skill's fallback can pick from it.
+    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Valid models: prov\/model\./);
     expect(jobs()).toEqual([]);
+  });
+
+  test('a model Pi knows but holds no credentials for is rejected like an unknown one', async () => {
+    // Only a usable model passes, and any other fails at the call, which a skill's fallback relies on.
+    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'prov/no-credentials', worktree: 'seat-1' })).rejects.toThrow(/Valid models: prov\/model\./);
+    expect(jobs()).toEqual([]);
+    expect(execFileSync('git', ['-C', repo, 'branch', '--list', 'seat-1'], { encoding: 'utf8' })).toBe('');
   });
 
   test('a worker can read its model catalog while the parent catalog is locked', async () => {
@@ -126,7 +144,7 @@ describe('pi_spawn', { timeout: 20_000 }, () => {
   });
 
   test('a bad worktree base leaves no job directory or worktree', async () => {
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', worktree: 'probe', base: 'no-such-ref' })).rejects.toThrow(/invalid reference/);
+    await expect(call('pi_spawn', { name: 'x', brief: 'hi', worktree: 'probe', base: 'no-such-ref' })).rejects.toThrow(/invalid reference|not a valid object name/);
     expect(jobs()).toEqual([]);
     expect(execFileSync('git', ['-C', repo, 'worktree', 'list'], { encoding: 'utf8' }).trim().split('\n')).toHaveLength(1);
   });
@@ -279,13 +297,47 @@ describe('tmux_run', { timeout: 20_000 }, () => {
 });
 
 describe('system prompt', () => {
-  test('carries the team-kit rules once and the model roles when configured', async () => {
+  const prompt = async () => {
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    return event.systemPromptOptions.sections['pstack-mode'];
+  };
+
+  test('/pstack-mode keeps a skill in the system prompt every turn until it is turned off', async () => {
+    expect(await prompt()).toBeUndefined();
+    await commands['pstack-mode']?.handler('poteto-mode', ctx);
+    const section = await prompt();
+    expect(section).toContain('<skill name="poteto-mode"');
+    expect(section).toContain('# Poteto mode');
+    expect(section).toContain('/pstack-mode off');
+    expect(await prompt()).toBe(section);
+    expect((ctx['ui'] as { setStatus: ReturnType<typeof vi.fn> }).setStatus).toHaveBeenLastCalledWith('pstack-mode', 'mode: poteto-mode');
+    await commands['pstack-mode']?.handler('off', ctx);
+    expect(await prompt()).toBeUndefined();
+    expect((ctx['ui'] as { setStatus: ReturnType<typeof vi.fn> }).setStatus).toHaveBeenLastCalledWith('pstack-mode', undefined);
+  });
+
+  test('the mode comes back from the session branch when the session starts or the branch changes', async () => {
+    branch.push({ type: 'custom', customType: 'pstack-mode', data: { skill: 'how' } });
+    await handlers['session_start']?.({}, ctx);
+    expect(await prompt()).toContain('<skill name="how"');
+    branch.length = 0;
+    await handlers['session_tree']?.({}, ctx);
+    expect(await prompt()).toBeUndefined();
+  });
+
+  test('/pstack-mode refuses a name that is not a pstack skill and keeps the current mode', async () => {
+    await commands['pstack-mode']?.handler('poteto-mode', ctx);
+    await commands['pstack-mode']?.handler('../../etc', ctx);
+    expect(await prompt()).toContain('<skill name="poteto-mode"');
+    expect((ctx['ui'] as { notify: ReturnType<typeof vi.fn> }).notify).toHaveBeenLastCalledWith(expect.stringContaining('not a pstack skill'), 'error');
+  });
+
+  test('carries the model roles when configured, and no team-kit rule, since pstack uses none', async () => {
     writeFileSync(modelsFile(agentDir), 'swarm workers: prov/model high\n');
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(event, ctx);
-    await handlers['before_agent_start']?.(event, ctx);
-    expect(event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes('never'))).toHaveLength(1);
-    expect(event.systemPromptOptions.promptGuidelines.some((rule) => rule.includes('top of the module'))).toBe(true);
+    expect(event.systemPromptOptions.promptGuidelines).toHaveLength(1);
     expect(event.systemPromptOptions.sections['pstack-models']).toContain('swarm workers: prov/model high');
   });
 
@@ -334,6 +386,15 @@ describe('sandbox guidance', () => {
     const note = event.systemPromptOptions.sections['pstack-sandbox'];
     expect(note).toMatch(/`ps`.*`top`.*`uptime`/s);
     expect(note).toMatch(/here-document.*\$TMPDIR/s);
+  });
+
+  test('a worker is told why SSH pushes and config writes fail, so it does not retry them', async () => {
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
+    await handlers['before_agent_start']?.(event, ctx);
+    const note = event.systemPromptOptions.sections['pstack-sandbox'];
+    expect(note).toMatch(/Unix sockets.*ssh-agent.*HTTPS remote/s);
+    expect(note).toMatch(/\.git\/hooks.*\.vscode.*\.claude.*quarantine/s);
   });
 
   test('pi_spawn tells the model a worker cannot write the shared /tmp, so a brief names $TMPDIR', () => {
