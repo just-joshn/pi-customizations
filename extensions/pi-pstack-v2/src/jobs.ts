@@ -46,11 +46,7 @@ export interface JobSpec {
   sweep: { roots: string[]; protect: string[] };
   /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. Unset for a top-level job. */
   tmp?: string;
-  /**
-   * A worktree a sandboxed worker asks the root to create for a brokered job, since its sandbox keeps `.git/worktrees`
-   * read-only. The root creates it at the job's `cwd`, `<results dir>/worktree`, before it launches the job.
-   */
-  worktree?: { branch: string; base?: string };
+  createWorktree?: { branch: string; base?: string };
   createdAt: string;
 }
 
@@ -288,14 +284,16 @@ export function settleBrokered(out: string, code: number, message: string): void
 }
 
 /** Launches a brokered request on the root's tmux server. The caller has already sandboxed argv under a policy it clamped. */
-export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWhat: JobSpec['sweep'], argv: string[], socket: string): void {
+export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWhat: JobSpec['sweep'], argv: string[], socket: string): boolean {
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
     run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top, tmp: spec.tmp });
     writeFileSync(join(out, 'launched'), '');
+    return true;
   } catch (error) {
     settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
   }
 }
 

@@ -605,8 +605,6 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     expect(existsSync(join(nested, id ?? '', 'launched'))).toBe(false);
   });
 
-  // The top worker calls pi_spawn with a worktree from inside its sandbox, which keeps `.git/worktrees` read-only, and may
-  // edit its request before the root serves it. The child commits a file in its checkout.
   const workerWorktreeSpawn = async (params: Record<string, unknown>, edit: (job: Record<string, unknown>, requestDir: string) => void = () => {}) => {
     const top = await topJob();
     const child = join(agentDir, 'committer-pi.mjs');
@@ -635,8 +633,7 @@ describe('nested jobs', { timeout: 20_000 }, () => {
       return { out: resultsDir(top.dir, requestDir), text: result?.content[0]?.text ?? '' };
     } finally {
       vi.stubEnv('PSTACK_V2_SANDBOXED', '');
-      // Git prunes the empty directory when a worktree it could not add is cleaned up.
-      if (existsSync(metadata)) chmodSync(metadata, 0o755);
+      chmodSync(metadata, 0o755);
     }
   };
   const branches = (cwd: string) => execFileSync('git', ['-C', cwd, 'branch', '--format=%(refname:short)'], { encoding: 'utf8' }).trim().split('\n');
