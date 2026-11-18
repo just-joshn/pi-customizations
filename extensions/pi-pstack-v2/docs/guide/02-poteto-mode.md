@@ -27,6 +27,27 @@ flowchart TD
 
 The diagram shows the common routes. There are also playbooks for hillclimbing a metric, diagnosing runtime symptoms and captured traces, prototypes, visual parity, authoring and evaluating skills, autonomous runs, opening a PR, babysitting a PR or stack to merge-ready, shipping a verified stack, running a PR queue or a stack on autopilot, session pickup, pausing safely, multi-phase plans, and worktree cleanup. The [playbook directory](../../skills/poteto-mode/playbooks/) has the full set.
 
+## How code work is accepted
+
+For code-producing work, the route ends on evidence. Here is the acceptance flow:
+
+```mermaid
+flowchart TD
+    A["Goal, constraints, and acceptance checks"] --> B["Choose playbook; investigate and design"]
+    B --> C["Implement and clean"]
+    C --> D["Verify actual behavior"]
+    D --> E{"Evidence"}
+    E -->|Correctable failure| B
+    E -->|Blocked or inconclusive| F["Report limits and remaining work"]
+    E -->|Verified| G{"Authorized endpoint"}
+    G -->|Handoff| H["Deliver artifact and evidence"]
+    G -->|Merge| I["Meet independent shipping gates"]
+    I --> J["Merge and confirm actual state"]
+    I -->|Gate cannot be met| F
+```
+
+The diagram shows acceptance and handoff, not the timing of every step. Autopilot-full, for example, opens its PR while implementation and verification are still running. Investigation and multi-phase plans stop earlier, at their findings or plan. `/skill:reflect` and `/skill:correct` run only when you ask. Opening a PR is not a merge grant. Without one, you get the PR and its evidence. With one, the Shipping playbook lands it behind an independent verifier and reads the merge state back.
+
 ## Say the goal, not the ceremony
 
 You don't write a spec. You say what's wrong or what you want, plus anything you already know that saves the agent time:

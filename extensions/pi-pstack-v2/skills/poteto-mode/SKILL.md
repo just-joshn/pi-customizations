@@ -19,7 +19,7 @@ The remaining triggers live only here:
 - First message → restate the user's goal and the smallest change that meets it, then proceed. Open each worker brief, PR `## Why`, and final report with the goal.
 - Starting any agent, a `pi_spawn` worker included → the first line of its brief is `Read <path>/worker.md before anything else.`, with `<path>` the absolute path of this skill's folder. The operator's rules live in skills that only load from a `/skill:` command, so they reach another agent no other way. Keep the rest of the brief to the goal and the task, plus this file's absolute path for a `poteto-agent`.
 - A fork you could settle by running something → prototype it per `playbooks/prototype.md` instead of asking.
-- Code → name the data shape first. Across a function boundary → **architect**. Fan-out → **swarm**. Bakeoff → **arena**. Contested design → **interrogate**.
+- Code → name the data shape first. Across a function boundary → **architect**. Fan-out → **swarm**. Bakeoff → **arena**. Contested design, or a change to review → **interrogate**.
 - Prose, your reply included → **unslop**. Docs, PR descriptions, commit messages → **technical-writing**.
 - Before commit → `/skill:deslop`. Before review → **no-comments**.
 - Shipping UI / IDE / CLI → `control-ui` or `control-cli`, which this package ships.
@@ -85,7 +85,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 Pi has no subagents. A worker is a separate Pi process that `pi_spawn` starts in its own tmux session, inside the sandbox, with a standalone brief. It sees only the brief, never this conversation.
 
-**Use `pi_spawn` with `agent: "poteto-agent"` for any worker you spawn directly inside a playbook step.** The session that receives `/skill:poteto-mode` runs the playbook itself. Routed workflow skills (`interrogate`, `reflect`, `swarm`) set their own `agent` and model. Respect it.
+**Use `pi_spawn` with `agent: "poteto-agent"` for any worker you spawn directly inside a playbook step.** The session that receives `/skill:poteto-mode` runs the playbook itself. Routed workflow skills (`interrogate`, `swarm`) set their own `agent` and model. Respect it.
 
 **Defaults for every `pi_spawn` call.** Every worker runs in parallel and wakes you with its report when it exits, so keep working or end your turn while it runs. Use `tmux_jobs` `wait` only for a short, bounded wait on named job ids, never to block until a worker finishes. Give a `tmux_run` job that polls for a condition a deadline, so it exits and wakes you whether or not the condition arrives. Leave `readonly` unset unless the worker must not write. Give file pointers, not inlined context. Pass an explicit model per role. `/skill:setup-pstack` writes `~/.pi/agent/pstack-v2-models.md`, shown to you as the `pstack-models` system-prompt section, whose per-role lines override the defaults and the role models in the routed skills (`arena`, `swarm`, `interrogate`). A role with no line runs on this session's model, so omit `model`. A line of `inherit-parent` or `auto` does the same. Each code playbook reads its own line (`feature, refactoring`, `bug-fix`, `perf-issue`, or `hillclimb`), prose and judgment read `judgment and prose`, and trivial mechanical edits read `swarm workers`. If the file has no `# defaults: 3` line, an older setup wrote it. Keep honoring its lines, and tell the user once per session to rerun `/skill:setup-pstack`.
 
@@ -104,3 +104,13 @@ Write short declarative sentences with no long dash and no colon as a connector.
 Write `TODO.md` at the root of your checkout with the matched playbook's steps first, copied in as `- [ ]` items, before any task-specific items. Check items off as you finish them. `TODO.md` is working state, so never stage it. If the checkout already tracks a `TODO.md`, write the checklist to `.pi/TODO.md` instead, under the same rules. This holds wherever a skill says to write `TODO.md`. Match the task to a playbook and open its steps at `playbooks/<title>.md`, with the title in kebab case. Large, cross-cutting, or unattended work, or a task no playbook fits, routes to the **figure-it-out** skill.
 
 Investigation, Bug fix, Perf issue, Hillclimb, Runtime forensics, Trace forensics, Feature, Refactoring, Prototype, Visual parity, Authoring a skill, Eval, Babysit, Shipping, Autonomous run, Autopilot-full, Autopilot-stack, Session pickup, Pause safely, Multi-phase plan, Worktree cleanup, Opening a PR.
+
+## Acceptance
+
+Code-producing work ends on evidence, never on "implemented". Once you have verified the actual behavior, take the branch the evidence picks.
+
+- **Correctable failure.** Return to choosing the playbook, investigating, and designing, then make another justified attempt.
+- **Blocked or inconclusive.** Stop and report what you verified, its limits, and the remaining work. A gap is never a pass.
+- **Verified.** Go to the endpoint the user authorized. Without a merge grant, hand off the artifact and its evidence. With one, run **Shipping**. When a shipping gate cannot be met, report limits and remaining work as above. A merge counts only once its state is read back.
+
+This sets acceptance, not timing, so Autopilot-full still opens its PR early. Investigation and Multi-phase plan stop at their own deliverable. **reflect** and **correct** run only when the user asks.
