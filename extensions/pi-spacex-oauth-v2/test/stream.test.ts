@@ -1,4 +1,5 @@
 import type { Api, AssistantMessageEvent, AssistantMessageEventStream, Message, Model, TranscriptContext } from '@earendil-works/pi-ai';
+import { calculateContextTokens } from '@earendil-works/pi-coding-agent';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { RunEvent, RunRequest } from '../src/cursor/run.ts';
 
@@ -72,7 +73,7 @@ describe('streamCursor', () => {
     expect(run.req).toMatchObject({ userText: 'hi', systemPrompt: 'be terse', modelId: 'composer-2.5', checkpoint: undefined });
     run.onEvent({ type: 'text', delta: 'hel' });
     run.onEvent({ type: 'text', delta: 'lo' });
-    run.onEvent({ type: 'turn_ended', usage: { input: 10, output: 2, cacheRead: 3, cacheWrite: 0 } });
+    run.onEvent({ type: 'turn_ended', usage: { input: 10, output: 2, cacheRead: 3, cacheWrite: 0, reasoning: 0 } });
     run.onEvent({ type: 'end' });
     const events = await collect(stream);
     expect(events.map((e) => e.type)).toStrictEqual(['start', 'text_start', 'text_delta', 'text_delta', 'text_end', 'done']);
@@ -85,7 +86,7 @@ describe('streamCursor', () => {
     const first = streamCursor(model, ctx(user('My name is Zed')), { apiKey: 'tok', sessionId: 's-memory' });
     await runOpened(1);
     const checkpoint = Uint8Array.of(9, 9, 9);
-    lastRun().onEvent({ type: 'checkpoint', state: checkpoint });
+    lastRun().onEvent({ type: 'checkpoint', state: checkpoint, contextTokens: 0 });
     lastRun().onEvent({ type: 'text', delta: 'noted' });
     lastRun().onEvent({ type: 'end' });
     await collect(first);
@@ -122,12 +123,54 @@ describe('streamCursor', () => {
     expect(after.at(-1)?.type).toBe('done');
   });
 
+  test("every reply carries Cursor's context size, so pi can show context use after a tool pause", async () => {
+    const first = streamCursor(model, ctx(user('weather?')), { apiKey: 'tok', sessionId: 's-context' });
+    await runOpened(1);
+    const run = lastRun();
+    run.onEvent({ type: 'checkpoint', state: Uint8Array.of(1), contextTokens: 4824 });
+    run.onEvent({ type: 'tool_calls', calls: [{ id: 'call-1', name: 'get_weather', args: { city: 'Paris' } }] });
+    const paused = (await collect(first)).at(-1);
+    if (paused?.type !== 'done') throw new Error('tool pause did not finish');
+    expect(calculateContextTokens(paused.message.usage)).toBe(4824);
+
+    const second = streamCursor(model, ctx(user('weather?'), paused.message, { role: 'toolResult', toolCallId: 'call-1', toolName: 'get_weather', content: [{ type: 'text', text: 'Sunny' }], isError: false, timestamp: 0 }), {
+      apiKey: 'tok',
+      sessionId: 's-context',
+    });
+    await vi.waitFor(() => expect(run.submitted).toHaveLength(1));
+    run.onEvent({ type: 'checkpoint', state: Uint8Array.of(2), contextTokens: 4971 });
+    run.onEvent({ type: 'text', delta: 'Sunny.' });
+    // The turn's usage sums every model call in Cursor's agent loop, so it is far above the context size.
+    run.onEvent({ type: 'turn_ended', usage: { input: 4476, output: 191, cacheRead: 10048, cacheWrite: 0, reasoning: 12 } });
+    run.onEvent({ type: 'end' });
+    const done = (await collect(second)).at(-1);
+    if (done?.type !== 'done') throw new Error('reply did not finish');
+    expect(calculateContextTokens(done.message.usage)).toBe(4971);
+    expect(done.message.usage).toMatchObject({ input: 4476, output: 191, cacheRead: 10048, cacheWrite: 0, reasoning: 12 });
+  });
+
+  test('a continued turn that pauses before Cursor sends a new checkpoint keeps the last context size', async () => {
+    const first = streamCursor(model, ctx(user('weather?')), { apiKey: 'tok', sessionId: 's-continued' });
+    await runOpened(1);
+    lastRun().onEvent({ type: 'checkpoint', state: Uint8Array.of(1), contextTokens: 6143 });
+    lastRun().onEvent({ type: 'text', delta: 'Sunny.' });
+    lastRun().onEvent({ type: 'end' });
+    await collect(first);
+
+    // Measured: a Run resumed from a checkpoint pauses on its first tool call before sending a checkpoint.
+    const second = streamCursor(model, ctx(user('weather?'), assistant('Sunny.'), user('and Rome?')), { apiKey: 'tok', sessionId: 's-continued' });
+    await runOpened(2);
+    lastRun().onEvent({ type: 'tool_calls', calls: [{ id: 'call-2', name: 'get_weather', args: { city: 'Rome' } }] });
+    const paused = (await collect(second)).at(-1);
+    expect(paused?.type === 'done' && calculateContextTokens(paused.message.usage)).toBe(6143);
+  });
+
   test('starts fresh when the history was edited after the checkpoint', async () => {
     const first = streamCursor(model, ctx(user('hi')), { apiKey: 'tok', sessionId: 's-branch' });
     await runOpened(1);
-    lastRun().onEvent({ type: 'checkpoint', state: Uint8Array.of(1) });
+    lastRun().onEvent({ type: 'checkpoint', state: Uint8Array.of(1), contextTokens: 0 });
     lastRun().onEvent({ type: 'text', delta: 'hello' });
-    lastRun().onEvent({ type: 'turn_ended', usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 } });
+    lastRun().onEvent({ type: 'turn_ended', usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, reasoning: 0 } });
     lastRun().onEvent({ type: 'end' });
     await collect(first);
 
@@ -194,9 +237,9 @@ describe('streamCursor', () => {
 
   test('conversations without a pi session id never share Cursor state', async () => {
     const finish = async (stream: AssistantMessageEventStream, reply: string) => {
-      lastRun().onEvent({ type: 'checkpoint', state: Uint8Array.of(runs.length) });
+      lastRun().onEvent({ type: 'checkpoint', state: Uint8Array.of(runs.length), contextTokens: 0 });
       lastRun().onEvent({ type: 'text', delta: reply });
-      lastRun().onEvent({ type: 'turn_ended', usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 } });
+      lastRun().onEvent({ type: 'turn_ended', usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, reasoning: 0 } });
       lastRun().onEvent({ type: 'end' });
       await collect(stream);
     };

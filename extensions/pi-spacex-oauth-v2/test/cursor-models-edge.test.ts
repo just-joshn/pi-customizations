@@ -33,7 +33,7 @@ describe('fetchCursorModels', () => {
   });
 
   test('passes the abort signal through and tolerates an empty list', async () => {
-    const fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    const fetch = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
     const signal = new AbortController().signal;
     expect((await fetchCursorModels('tok', signal)).map((m) => m.id)).toStrictEqual(['auto']);

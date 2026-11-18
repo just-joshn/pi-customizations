@@ -1,12 +1,12 @@
 // Records a live Cursor Run (prompt -> pi tool call -> tool result -> answer) as replayable server frames.
-// Conversation checkpoints and KV blobs are dropped: they carry Cursor's prompt state, not behavior under test.
+// KV blobs are dropped and checkpoints keep only their token counts: the rest is Cursor's prompt state, not behavior under test.
 // Usage: CURSOR_TOKEN=... node --experimental-strip-types scripts/record-cursor-fixture.ts > test/fixtures/cursor-tool-run.json
 
 import { randomUUID } from 'node:crypto';
 import http2 from 'node:http2';
 
 import { cursorHeaders } from '../src/cursor/models.ts';
-import { decode, EnvelopeReader, frame } from '../src/cursor/proto.ts';
+import { decode, EnvelopeReader, encode, frame, raw } from '../src/cursor/proto.ts';
 import { AGENT_URL, CursorRun } from '../src/cursor/run.ts';
 
 const token = process.env['CURSOR_TOKEN'];
@@ -48,7 +48,13 @@ const run = new CursorRun(
 stream.on('data', (chunk: Buffer) => {
   for (const env of tap.push(chunk)) {
     if (env.end) frames.push({ phase, end: env.json });
-    else if (!decode(env.payload).bytes.has(3) && !decode(env.payload).bytes.has(4)) frames.push({ phase, payload: Buffer.from(frame(env.payload)).toString('base64') });
+    else {
+      const m = decode(env.payload);
+      const checkpoint = raw(m, 3);
+      const tokenDetails = checkpoint && raw(decode(checkpoint), 5);
+      const payload = checkpoint ? (tokenDetails ? encode([[3, encode([[5, tokenDetails]])]]) : undefined) : m.bytes.has(4) ? undefined : env.payload;
+      if (payload) frames.push({ phase, payload: Buffer.from(frame(payload)).toString('base64') });
+    }
   }
   run.receive(chunk);
 });

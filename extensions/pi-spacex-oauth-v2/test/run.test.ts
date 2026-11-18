@@ -84,9 +84,50 @@ describe('CursorRun replaying a recorded tool-call run', () => {
     for (const f of fixture.frames.filter((f) => f.phase === 'after_tool')) run.receive(bytesOf(f));
     const text = events.flatMap((e) => (e.type === 'text' ? [e.delta] : [])).join('');
     expect(text).toMatch(/21/);
-    const usage = events.find((e) => e.type === 'turn_ended');
-    expect(usage?.type === 'turn_ended' && usage.usage.input).toBeGreaterThan(0);
     expect(events.at(-1)).toStrictEqual({ type: 'end' });
+  });
+
+  test("reports Cursor's context size from every checkpoint, including the one before the tool pause", () => {
+    const { run, events } = replay();
+    for (const f of fixture.frames.filter((f) => f.phase === 'before_tool')) run.receive(bytesOf(f));
+    const call = events.find((e) => e.type === 'tool_calls');
+    run.submitToolResults(call?.type === 'tool_calls' ? call.calls.map((c) => ({ id: c.id, text: 'Sunny, 21C', isError: false })) : []);
+    for (const f of fixture.frames.filter((f) => f.phase === 'after_tool')) run.receive(bytesOf(f));
+    const sizes = events.flatMap((e): (number | string)[] => (e.type === 'checkpoint' ? [e.contextTokens] : e.type === 'tool_calls' ? ['pause'] : []));
+    expect(sizes).toStrictEqual([4824, 4824, 'pause', 4920, 4920, 4971, 4971]);
+  });
+
+  test("reports the turn's usage in pi's shape: input without cache reads, plus reasoning", () => {
+    const { run, events } = replay();
+    for (const f of fixture.frames.filter((f) => f.phase === 'before_tool')) run.receive(bytesOf(f));
+    run.submitToolResults([]);
+    for (const f of fixture.frames.filter((f) => f.phase === 'after_tool')) run.receive(bytesOf(f));
+    // Recorded TurnEndedUpdate: input_tokens 14524 counts the 10048 cache reads too.
+    expect(events.find((e) => e.type === 'turn_ended')).toStrictEqual({ type: 'turn_ended', usage: { input: 4476, output: 191, cacheRead: 10048, cacheWrite: 0, reasoning: 0 } });
+
+    const reasoning = replay();
+    reasoning.run.receive(
+      frame(
+        encode([
+          [
+            1,
+            [
+              [
+                14,
+                [
+                  [1, 100],
+                  [2, 20],
+                  [3, 60],
+                  [4, 5],
+                  [5, 7],
+                ],
+              ],
+            ],
+          ],
+        ]),
+      ),
+    );
+    expect(reasoning.events).toStrictEqual([{ type: 'turn_ended', usage: { input: 40, output: 20, cacheRead: 60, cacheWrite: 5, reasoning: 7 } }]);
   });
 
   test('acknowledges server blob writes with the same id', () => {
