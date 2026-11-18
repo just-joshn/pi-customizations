@@ -75,7 +75,7 @@
     },
     "extensions/pi-spacex-oauth-v2": {
       "name": "@justjoshn/pi-spacex-oauth-v2",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.5.2",
         "@earendil-works/pi-coding-agent": "1.5.2",

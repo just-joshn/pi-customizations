@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Fix Cursor context size and windows. Every assistant message carries Cursor's checkpoint `used_tokens` as `totalTokens`, so the footer can show a percent after a tool pause and after compaction. Context windows come from AvailableModels tooltips (non-max mode), with 256k for Grok and Auto and 200k otherwise. A "1M" display name no longer sets a 1M window (#259).
+
 ## 0.1.1
 
 - Rewrite the README for pi.dev: what the package is for, Install, Sign in, Commands, Notes, and how to replace `@justjoshn/pi-x-subscription-oauth` (#234).
