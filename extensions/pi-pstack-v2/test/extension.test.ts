@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -603,6 +603,82 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     const asked = JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8')) as { brokered: boolean; argv: string[] };
     expect([asked.brokered, asked.argv]).toEqual([true, []]);
     expect(existsSync(join(nested, id ?? '', 'launched'))).toBe(false);
+  });
+
+  const workerWorktreeSpawn = async (params: Record<string, unknown>, edit: (job: Record<string, unknown>, requestDir: string) => void = () => {}) => {
+    const top = await topJob();
+    const child = join(agentDir, 'committer-pi.mjs');
+    writeFileSync(
+      child,
+      `import { execFileSync } from 'node:child_process';
+      import fs from 'node:fs';
+      fs.writeFileSync('from-child.txt', 'x');
+      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'add', 'from-child.txt']);
+      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'child']);\n`,
+    );
+    process.argv[1] = child;
+    const metadata = join(repo, '.git', 'worktrees');
+    mkdirSync(metadata, { recursive: true });
+    chmodSync(metadata, 0o555);
+    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
+    vi.stubEnv('PSTACK_V2_JOB_DIR', top.dir);
+    vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
+    try {
+      const result = await call('pi_spawn', { name: 'adversary', brief: 'hi', worktree: 'interrogate-slug-1', base: 'HEAD', ...params });
+      const [id] = readdirSync(join(top.dir, 'nested'));
+      const requestDir = join(top.dir, 'nested', id ?? '');
+      const job = JSON.parse(readFileSync(join(requestDir, 'job.json'), 'utf8')) as Record<string, unknown>;
+      edit(job, requestDir);
+      writeFileSync(join(requestDir, 'job.json'), JSON.stringify(job));
+      return { out: resultsDir(top.dir, requestDir), text: result?.content[0]?.text ?? '' };
+    } finally {
+      vi.stubEnv('PSTACK_V2_SANDBOXED', '');
+      chmodSync(metadata, 0o755);
+    }
+  };
+  const branches = (cwd: string) => execFileSync('git', ['-C', cwd, 'branch', '--format=%(refname:short)'], { encoding: 'utf8' }).trim().split('\n');
+  const worktrees = (cwd: string) => execFileSync('git', ['-C', cwd, 'worktree', 'list'], { encoding: 'utf8' }).trim().split('\n');
+
+  test("a worker's pi_spawn with a worktree gets a checkout on that branch its job may write", async () => {
+    const { out, text } = await workerWorktreeSpawn({});
+    const worktree = join(out, 'worktree');
+    expect(text).toContain(`cwd: ${worktree}`);
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
+    expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('interrogate-slug-1');
+    expect(execFileSync('git', ['-C', repo, 'log', '-1', '--format=%s', 'interrogate-slug-1'], { encoding: 'utf8' }).trim()).toBe('child');
+  });
+
+  test("a readonly worker's worktree is created but its job cannot write it", async () => {
+    const { out } = await workerWorktreeSpawn({ readonly: true });
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('1');
+    expect(execFileSync('git', ['-C', join(out, 'worktree'), 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('interrogate-slug-1');
+    expect(existsSync(join(out, 'worktree', 'from-child.txt'))).toBe(false);
+  });
+
+  test('a worktree request naming its own request directory, where the worker could swap in a link, is refused and leaves no worktree or branch', async () => {
+    const { out } = await workerWorktreeSpawn({}, (job, requestDir) => {
+      job['cwd'] = join(requestDir, 'worktree');
+    });
+    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('126');
+    expect(readFileSync(join(out, 'output.log'), 'utf8')).toContain('refused');
+    expect([branches(repo).includes('interrogate-slug-1'), worktrees(repo).length]).toEqual([false, 1]);
+  });
+
+  test('a worktree request naming another repository is refused and leaves no worktree or branch in either', async () => {
+    const other = realpathSync(mkdtempSync(join(homedir(), '.pstack-other-')));
+    execFileSync('git', ['init', '-q', other]);
+    execFileSync('git', ['-C', other, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
+    try {
+      const { out } = await workerWorktreeSpawn({}, (job) => {
+        job['cwd'] = other;
+        job['policy'] = { ...(job['policy'] as object), writable: [other, join(other, '.git')] };
+      });
+      await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('126');
+      expect(readFileSync(join(out, 'output.log'), 'utf8')).toContain('refused');
+      for (const checkout of [repo, other]) expect([branches(checkout).includes('interrogate-slug-1'), worktrees(checkout).length]).toEqual([false, 1]);
+    } finally {
+      rmSync(other, { recursive: true, force: true });
+    }
   });
 });
 

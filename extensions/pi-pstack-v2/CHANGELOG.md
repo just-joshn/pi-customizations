@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.5
+
+### Changed
+
+- `poteto-mode` gains an Acceptance section for code-producing work. A correctable failure returns to investigation and design. Blocked or inconclusive evidence ends with a report of limits and remaining work. Verified work goes to the authorized endpoint, either a handoff with its evidence or Shipping when merge is granted. The guide's poteto-mode page draws the same flow.
+- Opening a PR runs at the end of code-producing playbooks, not every playbook, so it no longer contradicts Investigation and Multi-phase plan. It says an open PR has passed no later merge gate, and continues to Shipping only on a merge grant.
+- Route a change review to `interrogate`, and drop `reflect` from the routed skills that spawn their own workers, since it no longer fans out.
+- `interrogate` says no verified findings is not evidence of no bugs. `create-formal-verification-skill` reports its generated-input fallback as empirical evidence, never as an exhaustive proof.
+- A worker that runs `interrogate` with unclear intent states its assumed intent instead of stopping to ask, as `worker.md` requires.
+- Autopilot-full's stand-down no longer asks stopped owners to commit `wip:`, which a print-mode worker cannot receive. The root stops each owner, commits its uncommitted edits in the owner's worktree, and reports from the commits and trail.
+- Autonomous run records the permissions, workspace, and decision-trail location along with the exit condition.
+- The setup guide says that installing starts no workflow, that the verification offers start separate work and install no tools, and that the model lines apply from the next message, matching what the extension does.
+
+### Fixed
+
+- A worker's own `pi_spawn` with `worktree` works. It always failed, because the worker's sandbox keeps `.git/worktrees` read-only, so `interrogate` and `arena` run by a worker could not give each adversary its own checkout. The worker now asks the root to create the worktree, which it does in a directory no worker can write, from the worker's own checkout, only for a worker that may write the repository. The root computes the new checkout's protected paths itself and removes the worktree and branch when it cannot launch the job.
+
 ## 0.1.4
 
 ### Added
