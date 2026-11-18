@@ -22,6 +22,7 @@ export interface Usage {
   output: number;
   cacheRead: number;
   cacheWrite: number;
+  reasoning: number;
 }
 
 export type RunEvent =
@@ -30,7 +31,8 @@ export type RunEvent =
   | { type: 'thinking_end' }
   | { type: 'tool_calls'; calls: { id: string; name: string; args: Record<string, Json> }[] }
   | { type: 'turn_ended'; usage: Usage }
-  | { type: 'checkpoint'; state: Uint8Array }
+  /** contextTokens is Cursor's count of the conversation's current context (token_details.used_tokens). */
+  | { type: 'checkpoint'; state: Uint8Array; contextTokens: number }
   | { type: 'end'; error?: string };
 
 export interface RunRequest {
@@ -149,7 +151,10 @@ export class CursorRun {
     const exec = msg(m, 2);
     if (exec) return this.handleExec(exec);
     const checkpoint = raw(m, 3);
-    if (checkpoint) return this.onEvent({ type: 'checkpoint', state: checkpoint });
+    if (checkpoint) {
+      const tokenDetails = msg(decode(checkpoint), 5);
+      return this.onEvent({ type: 'checkpoint', state: checkpoint, contextTokens: tokenDetails ? num(tokenDetails, 1) : 0 });
+    }
     const kv = msg(m, 4);
     if (kv) return this.handleKv(kv);
   }
@@ -171,8 +176,11 @@ export class CursorRun {
       return this.maybeEmitToolCalls();
     }
     const ended = msg(u, 14);
-    if (ended) this.turnEnded = true;
-    if (ended) return this.onEvent({ type: 'turn_ended', usage: { input: num(ended, 1), output: num(ended, 2), cacheRead: num(ended, 3), cacheWrite: num(ended, 4) } });
+    if (!ended) return;
+    this.turnEnded = true;
+    // Cursor's input_tokens includes the cache reads; pi's input does not.
+    const cacheRead = num(ended, 3);
+    this.onEvent({ type: 'turn_ended', usage: { input: num(ended, 1) - cacheRead, output: num(ended, 2), cacheRead, cacheWrite: num(ended, 4), reasoning: num(ended, 5) } });
   }
 
   private handleExec(e: ReturnType<typeof decode>) {

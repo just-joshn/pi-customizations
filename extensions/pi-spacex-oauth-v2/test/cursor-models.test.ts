@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
-import { describe, expect, test } from 'vitest';
-import { collapseModels, parseVariant, resolveCursorModelId } from '../src/cursor/models.ts';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { collapseModels, fetchCursorModels, parseVariant, resolveCursorModelId } from '../src/cursor/models.ts';
 
 const cursorModels = JSON.parse(readFileSync(new URL('./fixtures/cursor-usable-models.json', import.meta.url), 'utf8')).models;
 
@@ -61,4 +61,43 @@ test.for([
   ['gpt-5.6-sol-none', { piId: 'gpt-5.6-sol', effort: 'none' }],
 ] as const)('parseVariant(%s)', ([id, expected]) => {
   expect(parseVariant(id)).toStrictEqual(expected);
+});
+
+describe('Cursor context windows', () => {
+  const availableModels = JSON.parse(readFileSync(new URL('./fixtures/cursor-available-models.json', import.meta.url), 'utf8'));
+  afterEach(() => vi.unstubAllGlobals());
+
+  const load = async (available: () => Response) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => (url.endsWith('/GetUsableModels') ? Response.json({ models: cursorModels }) : available())),
+    );
+    return new Map((await fetchCursorModels('tok')).map((m) => [m.id, 'contextWindow' in m ? m.contextWindow : undefined]));
+  };
+
+  // Measured from Cursor's own conversation state (token_details.max_tokens) and AvailableModels tooltips.
+  test.for([
+    ['grok-4.7', 256_000],
+    ['grok-4.7-fast', 256_000],
+    ['cursor-grok-4.6', 256_000],
+    ['auto', 256_000],
+    ['composer-2.5', 200_000],
+    ['claude-opus-4-7', 300_000],
+    ['gpt-5.6-sol', 272_000],
+    ['gemini-3.5-flash', 1_000_000],
+  ] as const)('%s has a %i token window', async ([id, window]) => {
+    expect((await load(() => Response.json(availableModels))).get(id)).toBe(window);
+  });
+
+  test('a 1M display name is the max-mode window, not the one Cursor runs', async () => {
+    expect(collapseModels(cursorModels).find((m) => m.id === 'claude-opus-5-5')?.name).toMatch(/\b1M\b/);
+    expect((await load(() => Response.json(availableModels))).get('claude-opus-5-5')).toBe(300_000);
+  });
+
+  test('still lists models with measured windows, and never 1M from a name, when AvailableModels fails', async () => {
+    const windows = await load(() => new Response('', { status: 500 }));
+    expect(windows.get('grok-4.7-fast')).toBe(256_000);
+    expect(windows.get('composer-2.5')).toBe(200_000);
+    expect(windows.get('claude-opus-5-5')).toBe(200_000);
+  });
 });
