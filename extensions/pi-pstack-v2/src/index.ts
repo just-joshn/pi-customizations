@@ -125,6 +125,32 @@ function addWorktree(cwd: string, path: string, branch: string, base: string | u
   return !exists;
 }
 
+/** Removes a worktree a failed start left registered, and its branch when that start created it. */
+function dropWorktree(repo: string, branch: string | undefined): void {
+  git(repo, ['worktree', 'prune']);
+  if (branch !== undefined) git(repo, ['branch', '-D', branch]);
+}
+
+/**
+ * Creates the worktree a top-level worker asked for in a request, from the worker's own checkout, which is the job's
+ * recorded cwd and so names the repository. The path is the request's results directory, which no worker can write, so
+ * none can swap in a link for git to check out through. Returns why it refused, or what it created.
+ */
+function addRequestedWorktree(top: Job, spec: JobSpec, path: string, grant: string[]): { repo: string; created: string | undefined } | string {
+  const asked: unknown = spec.worktree;
+  if (spec.kind !== 'pi' || typeof asked !== 'object' || asked === null) return 'Only a Pi worker request can ask for a worktree.';
+  const { branch, base } = asked as Record<string, unknown>;
+  if (typeof branch !== 'string' || (base !== undefined && typeof base !== 'string')) return 'Its worktree request is malformed.';
+  const repo = top.spec.cwd;
+  const common = gitPath(repo, '--git-common-dir');
+  if (common === undefined || !within(common, grant)) return `The worker that asked may not write the repository at ${repo}, so it cannot get a worktree of it.`;
+  try {
+    return { repo, created: addWorktree(repo, path, branch, base) ? branch : undefined };
+  } catch (error) {
+    return `pstack could not create the worktree: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
 function baseOrSoleRemoteBranch(cwd: string, base: string): string {
   try {
     git(cwd, ['rev-parse', '--verify', '--quiet', `${base}^{commit}`]);
@@ -297,30 +323,53 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         settleBrokered(out, 126, 'pstack refused to start this Pi worker. A worker started by another worker cannot start workers of its own.');
         continue;
       }
-      const writable = policy.writable.map(landing);
-      const refused = [...writable.filter((path) => !within(path, grant)), ...(within(spec.cwd, [top.spec.cwd, ...grant]) ? [] : [`cwd ${spec.cwd}`])];
+      // A requested worktree may only be the one the root creates in the results directory, and its checkout and git
+      // directory are granted below by the root, not checked against what the requester may write.
+      const worktree = spec.worktree === undefined ? undefined : landing(join(out, 'worktree'));
+      const writesWorktree = worktree !== undefined && policy.writable.some((path) => landing(path) === worktree);
+      const writable = policy.writable.map(landing).filter((path) => path !== worktree);
+      const cwdAllowed = worktree === undefined ? within(spec.cwd, [top.spec.cwd, ...grant]) : landing(spec.cwd) === worktree;
+      const refused = [...writable.filter((path) => !within(path, grant)), ...(cwdAllowed ? [] : [`cwd ${spec.cwd}`])];
       if (refused.length) {
         settleBrokered(out, 126, `pstack refused to launch this job. It asked to write outside what the job that requested it may write: ${refused.join(', ')}`);
         continue;
       }
-      // The sandbox is built from the paths just validated, so swapping a link afterwards changes nothing.
-      const granted: SandboxPolicy = {
-        writable,
-        protect: [...policy.protect, ...top.spec.policy.protect],
-        lock: [...policy.lock, ...top.spec.policy.lock],
-        gitDirs: [...policy.gitDirs, ...top.spec.policy.gitDirs],
-        checkouts: [],
-        credentials: jobAgentDir(top.dir),
-        agentDir: getAgentDir(),
-        jobDir: dir,
-      };
-      granted.checkouts = sweepFor(granted).roots;
-      mkdirSync(out, { recursive: true });
-      writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
-      // The worker supplies tmp, so it is trusted only if it is one of the writable paths validated above.
-      const { tmp: asked, ...rest } = spec;
-      const tmp = typeof asked === 'string' && writable.includes(landing(asked)) ? landing(asked) : undefined;
-      launchBrokered(top.dir, dir, { ...rest, ...(tmp ? { tmp } : {}) }, sweepFor(granted), sandboxed(spec.command, granted), socket);
+      const made = worktree === undefined ? undefined : addRequestedWorktree(top, spec, worktree, grant);
+      if (typeof made === 'string') {
+        settleBrokered(out, 126, `pstack refused to launch this job. ${made}`);
+        continue;
+      }
+      try {
+        // The worker computed its protected paths before the worktree existed, so the root computes the checkout's own.
+        const common = worktree === undefined ? undefined : gitPath(worktree, '--git-common-dir');
+        const guarded = worktree === undefined ? policy : protectedPaths(worktree, common);
+        if (worktree !== undefined && writesWorktree) writable.push(worktree, ...(common ? [landing(common)] : []));
+        // The sandbox is built from the paths just validated, so swapping a link afterwards changes nothing.
+        const granted: SandboxPolicy = {
+          writable,
+          protect: [...guarded.protect, ...top.spec.policy.protect],
+          lock: [...guarded.lock, ...top.spec.policy.lock],
+          gitDirs: [...guarded.gitDirs, ...top.spec.policy.gitDirs],
+          checkouts: [],
+          credentials: jobAgentDir(top.dir),
+          agentDir: getAgentDir(),
+          jobDir: dir,
+        };
+        granted.checkouts = sweepFor(granted).roots;
+        mkdirSync(out, { recursive: true });
+        writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
+        // The worker supplies tmp, so it is trusted only if it is one of the writable paths validated above.
+        const { tmp: asked, ...rest } = spec;
+        const tmp = typeof asked === 'string' && writable.includes(landing(asked)) ? landing(asked) : undefined;
+        launchBrokered(top.dir, dir, { ...rest, ...(worktree ? { cwd: worktree } : {}), ...(tmp ? { tmp } : {}) }, sweepFor(granted), sandboxed(spec.command, granted), socket);
+      } catch (error) {
+        settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      // launchBrokered records a launch it could not start as exited, so a worktree made for it goes with it.
+      if (worktree !== undefined && made !== undefined && existsSync(exitPath(out))) {
+        rmSync(worktree, { recursive: true, force: true });
+        dropWorktree(made.repo, made.created);
+      }
     } catch {
       // One request failing must not stop the others.
     }
@@ -534,14 +583,19 @@ export default function pstack(pi: ExtensionAPI) {
         // The job directory itself stays read-only to the worker, so it cannot rewrite its own spec or exit code.
         const sessionDir = (prior && flagValue(earlier, '--session-dir')) || join(dir, 'session');
         const writable = [sessionDir, join(dir, 'nested')];
+        // A sandboxed worker may not write `.git/worktrees`, so it asks the root to create the worktree in the results
+        // directory the root keeps for the job.
+        const requested = params.worktree !== undefined && brokering() ? { branch: params.worktree, ...(params.base === undefined ? {} : { base: params.base }) } : undefined;
         let createdBranch = false;
         try {
           for (const path of writable) mkdirSync(path, { recursive: true });
-          const cwd = params.worktree !== undefined && prior === undefined ? join(dir, 'worktree') : base;
-          if (cwd !== base && params.worktree !== undefined) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
-          const common = gitPath(cwd, '--git-common-dir');
+          const cwd = params.worktree === undefined ? base : requested ? join(resultsDir(process.env[TOP_DIR_ENV] ?? '', dir), 'worktree') : join(dir, 'worktree');
+          if (params.worktree !== undefined && !requested) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
+          // A worktree shares its repository's git directory, and a requested one does not exist yet.
+          const common = gitPath(base, '--git-common-dir');
           if (!readonly) writable.push(cwd, ...(common ? [common] : []));
-          const guarded = protectedPaths(cwd, common);
+          // The root computes a requested worktree's protected paths once it has created it.
+          const guarded = requested ? { protect: [], lock: [], gitDirs: [] } : protectedPaths(cwd, common);
           const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
           const argv = [
             ...piCommand,
@@ -575,16 +629,15 @@ export default function pstack(pi: ExtensionAPI) {
             socket: brokering() ? '' : tmuxSocket(owner),
             sweep: { roots: [], protect: [] },
             out: dir,
+            ...(requested ? { worktree: requested } : {}),
             createdAt: new Date().toISOString(),
           };
           const job = start(root, spec, files, resolved);
-          return text(`Started ${describe(job)}\n  cwd: ${cwd}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
+          const created = requested ? ` (on branch ${requested.branch}, created by the session that started you when it launches the job)` : '';
+          return text(`Started ${describe(job)}\n  cwd: ${cwd}${created}${spec.wake ? '\nYou will be woken with its report when it exits. Keep working or end your turn.' : ''}`);
         } catch (error) {
           rmSync(dir, { recursive: true, force: true });
-          if (params.worktree !== undefined && gitPath(base, '--git-common-dir')) {
-            git(base, ['worktree', 'prune']);
-            if (createdBranch) git(base, ['branch', '-D', params.worktree]);
-          }
+          if (params.worktree !== undefined && !requested && gitPath(base, '--git-common-dir')) dropWorktree(base, createdBranch ? params.worktree : undefined);
           throw error;
         }
       },

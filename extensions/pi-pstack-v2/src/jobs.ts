@@ -46,6 +46,11 @@ export interface JobSpec {
   sweep: { roots: string[]; protect: string[] };
   /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. Unset for a top-level job. */
   tmp?: string;
+  /**
+   * A worktree a sandboxed worker asks the root to create for a brokered job, since its sandbox keeps `.git/worktrees`
+   * read-only. The root creates it at the job's `cwd`, `<results dir>/worktree`, before it launches the job.
+   */
+  worktree?: { branch: string; base?: string };
   createdAt: string;
 }
 

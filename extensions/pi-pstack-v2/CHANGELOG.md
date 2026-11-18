@@ -13,6 +13,10 @@
 - Autonomous run records the permissions, workspace, and decision-trail location along with the exit condition.
 - The setup guide says that installing starts no workflow, that the verification offers start separate work and install no tools, and that the model lines apply from the next message, matching what the extension does.
 
+### Fixed
+
+- A worker's own `pi_spawn` with `worktree` works. It always failed, because the worker's sandbox keeps `.git/worktrees` read-only, so `interrogate` and `arena` run by a worker could not give each adversary its own checkout. The worker now asks the root to create the worktree, which it does in a directory no worker can write, from the worker's own checkout, only for a worker that may write the repository. The root computes the new checkout's protected paths itself and removes the worktree and branch when it cannot launch the job.
+
 ## 0.1.4
 
 ### Added
