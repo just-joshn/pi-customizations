@@ -2,7 +2,7 @@
 
 **You own the exit condition. Define done, then drive to it without stopping.**
 
-1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero).
+1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero). Write down with it the permissions you hold, the workspace (worktree and base), and where the decision trail lives.
 2. Pick the wake mechanism with `tmux_run`. An event to watch (CI, a merge, a ref advancing) gets a watcher job, which is `tmux_run` of the watcher command with `wake` set to what to do next, with a long time-based heartbeat as fallback. No event gets a fixed-interval heartbeat (`tmux_run` with `command: "sleep <seconds>"`, a `wake` tick prompt, and `repeat: true`) sized to when the result is worth re-checking. Stop a heartbeat with `tmux_jobs` `stop`. Pick each worker's thinking level for the job, per the Spawned Pi workers section.
 3. Each iteration makes the smallest change the evidence justifies, verifies it against the predicate, commits if it advanced, discards changes that didn't help. Belt-and-suspenders that "might help" gets reverted, not left to ride.
    Sequence the work via the **sequence-verifiable-units** principle skill, verifying each unit before the next instead of batching checks at the end.
