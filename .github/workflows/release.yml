@@ -11,11 +11,11 @@ name: release
 #     automatically. https://docs.npmjs.com/generating-provenance-statements
 #
 # setup-node is deliberately configured WITHOUT `registry-url`. When it is
-# given a registry, setup-node writes an .npmrc whose _authToken comes from
-# NODE_AUTH_TOKEN and exports that variable as a placeholder
-# (actions/setup-node v6 src/authutil.ts), and npm then authenticates with the
-# placeholder instead of attempting OIDC, which the registry rejects with
-# 404 on the publish PUT. Each package's publishConfig covers scope access.
+# given a registry, setup-node writes an .npmrc entry
+# `_authToken=${NODE_AUTH_TOKEN}` (actions/setup-node v7 src/authutil.ts), and
+# npm then authenticates with that token entry instead of attempting OIDC,
+# which the registry rejects with 404 on the publish PUT. Each package's
+# publishConfig covers scope access.
 #
 # One-time setup per package on npmjs.com (package Settings -> Trusted
 # Publisher -> GitHub Actions, workflow filename `release.yml`) is documented
@@ -45,14 +45,14 @@ jobs:
     env:
       HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # Release detection compares package versions against tags
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '26.13.0' # Trusted publishing requires Node >= 22.14.0
           package-manager-cache: false # Never use caching in release builds
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
       - name: Detect unreleased packages
