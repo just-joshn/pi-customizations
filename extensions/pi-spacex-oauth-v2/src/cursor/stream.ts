@@ -16,11 +16,13 @@ import {
 } from '@earendil-works/pi-ai';
 import { resolveCursorModelId } from './models.ts';
 import type { Json } from './proto.ts';
-import { type CursorRun, openCursorRun, type PiTool, type RunEvent } from './run.ts';
+import { type CursorRun, openCursorRun, type PiTool, type RunEvent, type Usage } from './run.ts';
 
 interface Session {
   conversationId: string;
   checkpoint: Uint8Array | undefined;
+  /** Cursor's latest count of the conversation's context; a resumed Run can pause on a tool call before sending a new one. */
+  contextTokens: number;
   blobs: Map<string, Uint8Array>;
   /** Number of non-system pi messages the checkpoint already covers. */
   covered: number;
@@ -50,7 +52,7 @@ const sessionKey = (sessionId: string | undefined, messages: Message[]) =>
     .update(messages[0] ? textOf(messages[0].content) : '')
     .digest('hex')}`;
 
-const newSession = (): Session => ({ conversationId: randomUUID(), checkpoint: undefined, blobs: new Map(), covered: 0, lastReply: '', waiting: undefined });
+const newSession = (): Session => ({ conversationId: randomUUID(), checkpoint: undefined, contextTokens: 0, blobs: new Map(), covered: 0, lastReply: '', waiting: undefined });
 
 const textOf = (content: Message['content']): string =>
   typeof content === 'string' ? content : content.map((c) => (c.type === 'text' ? c.text : c.type === 'thinking' ? '' : c.type === 'toolCall' ? `[tool call ${c.name} ${JSON.stringify(c.arguments)}]` : '[image]')).join('');
@@ -131,12 +133,14 @@ class Emitter {
     this.stream.push({ type: 'toolcall_end', contentIndex: index, toolCall, partial: this.message });
   }
 
-  usage(u: { input: number; output: number; cacheRead: number; cacheWrite: number }) {
+  usage(u: Usage) {
     Object.assign(this.message.usage, u, { totalTokens: u.input + u.output + u.cacheRead + u.cacheWrite });
   }
 
-  done(reason: 'stop' | 'toolUse') {
+  done(reason: 'stop' | 'toolUse', contextTokens: number) {
     this.close();
+    // pi reads context use from totalTokens. Cursor's turn usage sums every model call of its agent loop, so its own context count stands in.
+    if (contextTokens > 0) this.message.usage.totalTokens = contextTokens;
     this.message.stopReason = reason;
     this.stream.push({ type: 'done', reason, message: this.message });
     this.stream.end();
@@ -168,6 +172,7 @@ function attach(run: CursorRun, emitter: Emitter, session: Session, piMessageCou
     void options?.onProviderStreamEvent?.(e, model);
     if (e.type === 'checkpoint') {
       session.checkpoint = e.state;
+      session.contextTokens = e.contextTokens;
       return;
     }
     if (settled) {
@@ -187,7 +192,7 @@ function attach(run: CursorRun, emitter: Emitter, session: Session, piMessageCou
         settled = true;
         signal?.removeEventListener('abort', onAbort);
         session.waiting = run;
-        emitter.done('toolUse');
+        emitter.done('toolUse', session.contextTokens);
         return;
       case 'turn_ended':
         emitter.usage(e.usage);
@@ -199,7 +204,7 @@ function attach(run: CursorRun, emitter: Emitter, session: Session, piMessageCou
         if (e.error) return emitter.fail('error', e.error);
         session.covered = piMessageCount + 1;
         session.lastReply = textOf(emitter.message.content);
-        emitter.done('stop');
+        emitter.done('stop', session.contextTokens);
     }
   };
 }

@@ -39,14 +39,14 @@ const cleanName = (name: string) => name.replace(/[​-‍]/g, '').replace(/\s+/
  * Collapses Cursor's per-effort ids into one pi model per base id (and one per `-fast` base).
  * The pi thinking level picks the variant through thinkingLevelMap, whose values are real Cursor ids.
  */
-export function collapseModels(models: CursorModelDetails[]): ProviderModelConfig[] {
+export function collapseModels(models: CursorModelDetails[], windows: ReadonlyMap<string, number> = new Map()): ProviderModelConfig[] {
   const groups = new Map<string, Variant[]>();
   for (const m of models) {
     if (m.modelId === 'default') continue;
     const { piId, effort } = parseVariant(m.modelId);
     groups.set(piId, [...(groups.get(piId) ?? []), { id: m.modelId, ...(effort ? { effort } : {}), displayName: cleanName(m.displayName ?? m.modelId) }]);
   }
-  const out: ProviderModelConfig[] = [{ id: 'auto', name: 'Auto', reasoning: false, input: ['text'], cost: zeroCost, contextWindow: 200_000, maxTokens: 64_000 }];
+  const out: ProviderModelConfig[] = [{ id: 'auto', name: 'Auto', reasoning: false, input: ['text'], cost: zeroCost, contextWindow: windows.get('default') ?? fallbackWindow('auto'), maxTokens: 64_000 }];
   for (const [piId, variants] of groups) {
     const plain = variants.find((v) => !v.effort);
     const byEffort = new Map(variants.filter((v) => v.effort).map((v) => [v.effort as Effort, v.id]));
@@ -71,7 +71,7 @@ export function collapseModels(models: CursorModelDetails[]): ProviderModelConfi
         : {}),
       input: ['text'],
       cost: zeroCost,
-      contextWindow: /\b1M\b/.test(name) ? 1_000_000 : 200_000,
+      contextWindow: variants.map((v) => windows.get(v.id)).find((w) => w !== undefined) ?? fallbackWindow(piId),
       maxTokens: 64_000,
     });
   }
@@ -79,6 +79,30 @@ export function collapseModels(models: CursorModelDetails[]): ProviderModelConfi
 }
 
 const zeroCost = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
+/**
+ * For models AvailableModels does not describe. Grok and Auto run at 256k and Composer at 200k, per token_details.max_tokens
+ * in Cursor's conversation state; anything else gets the smaller window rather than a guess from its name.
+ */
+const fallbackWindow = (piId: string) => (piId === 'auto' || piId.includes('grok') ? 256_000 : 200_000);
+
+/** Non-max-mode windows from AvailableModels tooltips ("256k context window"), the only place Cursor states them. */
+async function fetchContextWindows(token: string, signal?: AbortSignal): Promise<Map<string, number>> {
+  const res = await fetch(`${CURSOR_API}/aiserver.v1.AiService/AvailableModels`, {
+    method: 'POST',
+    headers: { ...cursorHeaders(token), 'content-type': 'application/json', 'connect-protocol-version': '1' },
+    body: '{}',
+    ...(signal ? { signal } : {}),
+  });
+  if (!res.ok) return new Map();
+  const body = (await res.json()) as { models?: { name: string; tooltipData?: { markdownContent?: string } }[] };
+  const windows = new Map<string, number>();
+  for (const m of body.models ?? []) {
+    const match = /(\d+(?:\.\d+)?)([kM]) context window/.exec(m.tooltipData?.markdownContent ?? '');
+    if (match) windows.set(m.name, Number(match[1]) * (match[2] === 'M' ? 1_000_000 : 1_000));
+  }
+  return windows;
+}
 
 /** The Cursor id to request for a pi model at a pi thinking level. */
 export function resolveCursorModelId(piId: string, map: Partial<Record<string, string | null>> | undefined, level: string | undefined): string {
@@ -89,6 +113,7 @@ export function resolveCursorModelId(piId: string, map: Partial<Record<string, s
 }
 
 export async function fetchCursorModels(token: string, signal?: AbortSignal): Promise<ProviderModelConfig[]> {
+  const windows = fetchContextWindows(token, signal).catch(() => new Map<string, number>());
   const res = await fetch(`${CURSOR_API}/agent.v1.AgentService/GetUsableModels`, {
     method: 'POST',
     headers: { ...cursorHeaders(token), 'content-type': 'application/json', 'connect-protocol-version': '1' },
@@ -97,5 +122,5 @@ export async function fetchCursorModels(token: string, signal?: AbortSignal): Pr
   });
   if (!res.ok) throw new Error(`Cursor model list failed: HTTP ${res.status}`);
   const body = (await res.json()) as { models?: CursorModelDetails[] };
-  return collapseModels(body.models ?? []);
+  return collapseModels(body.models ?? [], await windows);
 }
