@@ -197,3 +197,18 @@ describe('projectAgentsApproved', () => {
     expect(confirm).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('bundled agents', () => {
+  test('resolves the agents the package ships, such as poteto-agent, with an empty profile', () => {
+    for (const scope of ['user', 'project', 'both'] as const) {
+      const resolved = resolveAgent(project, scope, 'poteto-agent');
+      expect(resolved.agent).toMatchObject({ name: 'poteto-agent', source: 'package' });
+      expect(resolved.agent?.systemPrompt).toContain('Poteto subagent');
+    }
+  });
+
+  test('a user agent of the same name overrides the bundled one', () => {
+    write(path.join(userHome, 'agents', 'poteto-agent.md'), agentMd('poteto-agent'));
+    expect(resolveAgent(project, 'user', 'poteto-agent').agent?.source).toBe('user');
+  });
+});
