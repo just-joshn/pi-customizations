@@ -240,7 +240,7 @@ function stoppingClock(timeline: Recorder<string>, message: string) {
     now: () => now,
     observedAt: () => OBSERVED_AT,
     async sleep(seconds: number): Promise<void> {
-      timeline.add("sleep");
+      timeline.record("sleep");
       now += seconds;
       sleeps += 1;
       if (sleeps === STOP_AFTER_SLEEPS) throw new Error(message);
@@ -255,10 +255,10 @@ function failingOnceReader(failing: PrContext, timeline: Recorder<string>) {
     async pullRequest(pr: PrContext) {
       if (pr.number === failing.number && failNext) {
         failNext = false;
-        timeline.add(`fail:${pr.number}`);
+        timeline.record(`fail:${pr.number}`);
         throw rateLimited();
       }
-      timeline.add(`read:${pr.number}`);
+      timeline.record(`read:${pr.number}`);
       return base.pullRequest(pr);
     },
   } satisfies GitHubReader;
@@ -272,7 +272,7 @@ function mergingOnSecondReadReader(
   return {
     ...base,
     async pullRequest(pr: PrContext) {
-      timeline.add(`read:${pr.number}`);
+      timeline.record(`read:${pr.number}`);
       const facts = await base.pullRequest(pr);
       if (pr.number !== target.number) return facts;
       targetReads += 1;
@@ -283,8 +283,8 @@ function mergingOnSecondReadReader(
 const tracingEmit =
   (timeline: Recorder<string>, emitted?: Recorder<ProgressVerdict>) =>
   (verdict: ProgressVerdict): void => {
-    emitted?.add(verdict);
-    timeline.add(`emit:${verdict.kind}`);
+    emitted?.record(verdict);
+    timeline.record(`emit:${verdict.kind}`);
   };
 function recordingClock(sleeps: Recorder<number>) {
   let now = 0;
@@ -295,7 +295,7 @@ function recordingClock(sleeps: Recorder<number>) {
     },
     observedAt: () => OBSERVED_AT,
     async sleep(seconds: number): Promise<void> {
-      sleeps.add(seconds);
+      sleeps.record(seconds);
       now += seconds;
     },
   };
