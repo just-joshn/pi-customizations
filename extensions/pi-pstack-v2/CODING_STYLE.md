@@ -1,38 +1,87 @@
-# Coding style (pi-pstack-v2)
+# Coding Style Rules
 
-Canonical checklist lives in the user Coding Style Rules. This file fills **Project-Specific Style** and is what `scripts/style-audit.mjs` enforces.
+These are the only style rules for `extensions/pi-pstack-v2`. They apply to every code file in the folder, tests included. The only exception is a spot where following a rule would change functionality or behavior. Each such spot is listed, with its reason, in `scripts/style/behavior-exceptions.json`.
 
-## Naming
+## Immutability (CRITICAL)
 
-- Files: kebab-case for multi-word modules (`run-in-tmux.ts`).
-- Types: PascalCase. Values/functions: camelCase.
-- Test files: `*.test.ts` next to the surface they pin, under `test/` for the extension.
+ALWAYS create new objects, NEVER mutate:
 
-## File structure
+```javascript
+// WRONG: Mutation
+function updateUser(user, name) {
+  user.name = name  // MUTATION!
+  return user
+}
 
-- Extension runtime under `src/` by domain (`jobs`, `sandbox`, `credentials`, `subagent`, …).
-- Skill CLIs keep their own `scripts/` trees; style rules still apply.
-- Every code file is under 800 lines. Prefer 200–400.
-- Every function, callbacks included, is under 50 lines.
-- Indentation never goes deeper than 4 levels.
-
-## Framework patterns
-
-- **Pi tool parameters:** TypeBox (`Type.Object`, …) only. Do not dual-validate those with zod.
-- **All other external input** (JSON files, frontmatter bodies after parse, CLI `argv`, env-derived structured data): zod at the boundary, then trust the inferred type inside.
-- Never mutate an object, in tests too. No property or index assignment, no `delete`, no `push`/`splice`/`sort`/`fill`/…, no `Map.set`/`Set.add`/`delete`/`clear`, no `Object.assign` onto an existing object, no `Reflect.set`. Build new values with spread, `map`, `filter`, `reduce`, `toSorted`, `new Map([...])`. Rebinding a local `let` is not object mutation.
-- Outside tests, `JSON.parse(...)` and `process.argv` go straight into a zod `.parse`/`.safeParse` call, and no schema may be a bare `z.unknown()` or `z.any()`. Tests read their own fixtures and program output, not user input, so this rule does not cover them.
-- `console.log` is forbidden everywhere. Boundary `catch` may `console.error` then throw a clear `Error`.
-- No magic numbers. Name every number other than 0, 1, -1 as a constant, tests included.
-- No empty blocks. A `catch` either handles the error or rethrows it.
-- Style rules cannot be silenced with `biome-ignore`.
-
-## Gate
-
-`scripts/style-audit.mjs` checks file size, nesting, and suppressions itself. The AST rules run through Biome with `scripts/style/rules.jsonc` and the GritQL plugins `scripts/style/immutability.grit` and `scripts/style/input-validation.grit`.
-
-```bash
-node scripts/style-audit.mjs
-bun run typecheck
-bunx vitest run
+// CORRECT: Immutability
+function updateUser(user, name) {
+  return { ...user, name }
+}
 ```
+
+## File Organization
+
+MANY SMALL FILES > FEW LARGE FILES:
+- High cohesion, low coupling
+- 200-400 lines typical, 800 max
+- Extract utilities from large components
+- Organize by feature/domain, not by type
+
+## Error Handling
+
+ALWAYS handle errors comprehensively:
+
+```typescript
+try {
+  const result = await riskyOperation()
+  return result
+} catch (error) {
+  console.error('Operation failed:', error)
+  throw new Error('User-friendly error message')
+}
+```
+
+## Input Validation
+
+ALWAYS validate user input:
+
+```typescript
+import { z } from 'zod'
+
+const schema = z.object({
+  email: z.string().email(),
+  age: z.number().int().min(0).max(150)
+})
+
+const validated = schema.parse(input)
+```
+
+## Code Quality Checklist
+
+Before marking work complete:
+- [ ] Code is readable and well-named
+- [ ] Functions are small (<50 lines)
+- [ ] Files are focused (<800 lines)
+- [ ] No deep nesting (>4 levels)
+- [ ] Proper error handling
+- [ ] No console.log statements
+- [ ] No hardcoded values
+- [ ] Immutable patterns used
+
+## How the gate checks these rules
+
+Run `node scripts/style-audit.mjs`. It exits 0 only when every file passes.
+
+| Rule | Check |
+| --- | --- |
+| Immutability | `scripts/style/immutability.grit`: no property or index assignment, compound assignment, `++`/`--` on a member, `delete`, mutating array/Map/Set method, `Object.assign` onto an existing object, `Object.defineProperty`, `Reflect.set`/`deleteProperty`/`defineProperty` |
+| Files under 800 lines | line count in `style-audit.mjs` |
+| Functions under 50 lines | Biome `noExcessiveLinesPerFunction`, 47 body lines max, every function and callback |
+| Nesting at most 4 levels | indentation depth in `style-audit.mjs` |
+| Error handling | `scripts/style/error-handling.grit`: every `catch` logs the error with `console.error` and throws an `Error`; Biome `noEmptyBlockStatements`, `noUselessCatch`, `useErrorMessage`, `useThrowOnlyError`, `noCatchAssign`, `noFloatingPromises`, `noMisusedPromises` |
+| Input validation | `scripts/style/input-validation.grit`: `JSON.parse`, `process.argv`, and `process.env` go straight into a zod `.parse`/`.safeParse`; every tool `execute` and command `handler` parses its input with zod; no schema is a bare `z.unknown()`/`z.any()` |
+| No console.log | Biome `noConsole` |
+| No hardcoded values | Biome `noMagicNumbers`; `scripts/style/hardcoded-values.grit` for URL and path strings outside a named `const` |
+| No silencing | a `biome-ignore` comment naming any of these rules fails the gate |
+
+An entry in `behavior-exceptions.json` excuses exactly one violation: one source line, matched by its trimmed text, for one rule. Two identical lines need two entries. An entry that no longer matches a violation fails the gate.

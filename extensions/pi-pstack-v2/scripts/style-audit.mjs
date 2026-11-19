@@ -14,6 +14,7 @@ import { z } from "zod";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BIOME_CONFIG = path.join(ROOT, "scripts", "style", "rules.jsonc");
+const EXCEPTIONS_FILE = path.join(ROOT, "scripts", "style", "behavior-exceptions.json");
 const FILE_LINES_LIMIT = 800;
 const MAX_NESTING = 4;
 const SPACES_PER_LEVEL = 2;
@@ -26,7 +27,17 @@ const IGNORED_BIOME_CATEGORIES = new Set(["suppressions/unused"]);
 const AUDITED_RULES =
 	/^\s*(\/\/|\/\*|\*).*biome-ignore.*(noMagicNumbers|noExcessiveLinesPerFunction|noConsole|noEmptyBlockStatements|noUselessCatch|useErrorMessage|noFloatingPromises|noMisusedPromises|plugin)/;
 
-/** @typedef {{ file: string, rule: string, detail: string }} Violation */
+/** @typedef {{ file: string, rule: string, detail: string, source?: string }} Violation */
+/** @typedef {{ file: string, rule: string, line: string, reason: string }} BehaviorException */
+
+const BehaviorExceptions = z.array(
+	z.object({
+		file: z.string().min(1),
+		rule: z.string().min(1),
+		line: z.string().min(1),
+		reason: z.string().min(1),
+	}),
+);
 
 const BiomeReport = z.object({
 	diagnostics: z.array(
@@ -93,6 +104,41 @@ const lineViolations = (filePath) => {
 	];
 };
 
+/** @param {string} file @param {number} line */
+const sourceLine = (file, line) => (fs.readFileSync(path.join(ROOT, file), "utf8").split("\n")[line - 1] ?? "").trim();
+
+/** @returns {BehaviorException[]} */
+const readExceptions = () => {
+	try {
+		return BehaviorExceptions.parse(JSON.parse(fs.readFileSync(EXCEPTIONS_FILE, "utf8")));
+	} catch (error) {
+		console.error("Reading behavior exceptions failed:", error);
+		throw new Error(`style-audit: ${rel(EXCEPTIONS_FILE)} must be a JSON list of { file, rule, line, reason }.`);
+	}
+};
+
+/** @param {BehaviorException} exception @param {Violation} violation */
+const excuses = (exception, violation) =>
+	exception.file === violation.file && exception.rule === violation.rule && exception.line === violation.source;
+
+/**
+ * Each exception excuses exactly one violation, so two identical lines need two entries.
+ * @param {Violation[]} violations @param {BehaviorException[]} exceptions @returns {Violation[]}
+ */
+const applyExceptions = (violations, exceptions) => {
+	const { kept, unused } = violations.reduce(
+		(acc, v) => {
+			const hit = acc.unused.findIndex((e) => excuses(e, v));
+			return hit < 0
+				? { kept: [...acc.kept, v], unused: acc.unused }
+				: { kept: acc.kept, unused: acc.unused.toSpliced(hit, 1) };
+		},
+		{ kept: /** @type {Violation[]} */ ([]), unused: exceptions },
+	);
+	const stale = unused.map((e) => ({ file: e.file, rule: "stale-exception", detail: `no violation matches: ${e.line}` }));
+	return [...kept, ...stale];
+};
+
 /** @param {string[]} files @returns {Violation[]} */
 const biomeViolations = (files) => {
 	const biome = createRequire(import.meta.url).resolve("@biomejs/biome/bin/biome");
@@ -110,6 +156,7 @@ const biomeViolations = (files) => {
 			file: d.location.path,
 			rule: d.category.replace(/^lint\//, ""),
 			detail: `line ${d.location.start.line}:${d.location.start.column}: ${d.message}`,
+			source: sourceLine(d.location.path, d.location.start.line),
 		}));
 };
 
@@ -125,7 +172,7 @@ const report = (violations) => {
 
 const main = () => {
 	const files = walkCode(ROOT).toSorted();
-	const violations = [...files.flatMap(lineViolations), ...biomeViolations(files)];
+	const violations = applyExceptions([...files.flatMap(lineViolations), ...biomeViolations(files)], readExceptions());
 	const code = violations.length === 0 ? EXIT_CLEAN : EXIT_FAILED;
 	process.stderr.write(`${report(violations)}\n`, () => process.exit(code));
 };

@@ -1,15 +1,22 @@
 language js
 
 or {
-  `JSON.parse($...)` as $m where {
+  or { `JSON.parse($...)`, `process.argv`, `process.env` } as $m where {
     not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
     not $m <: within `$schema.safeParse($...)`,
     register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
   },
-  `process.argv` as $m where {
-    not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
-    not $m <: within `$schema.safeParse($...)`,
-    register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
+  or {
+    `async execute($id, $p, $...) { $body }`,
+    `execute: ($id, $p, $...) => $body`,
+    `execute: async ($id, $p, $...) => $body`,
+    `handler: ($p, $...) => $body`,
+    `handler: async ($p, $...) => $body`
+  } as $m where {
+    not $m <: within TsObjectType(),
+    $p <: r"^([A-Za-z_]+).*"($pname),
+    not $body <: contains `$schema.parse($a)` where { $a <: $pname },
+    register_diagnostic(span=$m, message="input-validation: a tool's execute or a command's handler must parse its input with a zod schema")
   },
   or { `$z.unknown()`, `$z.any()` } as $m where {
     not $m <: within `$z.$wrap($...)` where { $wrap <: not or { `unknown`, `any` } },

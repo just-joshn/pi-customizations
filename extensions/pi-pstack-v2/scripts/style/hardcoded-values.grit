@@ -1,0 +1,7 @@
+language js
+
+JsStringLiteralExpression() as $s where {
+  $s <: or { r"^[\"']https?://.*", r"^[\"']/.*", r"^[\"']~/.*" },
+  not $s <: within `const $name = $s`,
+  register_diagnostic(span=$s, message="hardcoded-value: name this URL or path as a constant")
+}

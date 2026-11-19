@@ -1,0 +1,14 @@
+[
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "if (!options.promptGuidelines.includes(guideline)) options.promptGuidelines.push(guideline);",
+    "reason": "Pi 1.5.2 reads before_agent_start prompt additions only from the systemPromptOptions object it passes in (runner.js emitBeforeAgentStart). Returning systemPrompt instead flattens the sectioned prompt and drops other extensions' sections."
+  },
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "Object.assign(options.sections, sections);",
+    "reason": "Same host contract as above, for the prompt sections."
+  }
+]
