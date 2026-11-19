@@ -11,7 +11,7 @@ type Tool = { execute: (id: string, params: unknown, signal: undefined, update: 
 type Command = { handler: (args: string, ctx: unknown) => Promise<void> };
 
 const OWNER = 'equivalence-owner';
-const OUTSIDE_PROJECT = '/';
+const MISSING_DIR = 'missing-dir';
 const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
 
 let agentDir: string;
@@ -75,7 +75,7 @@ describe('tmux_run input', () => {
   });
 
   test('ignores extra keys', async () => {
-    await expect(call('tmux_run', { name: 'n', command: 'true', cwd: OUTSIDE_PROJECT, extra: 1 })).rejects.toThrow(/inside this project/);
+    await expect(call('tmux_run', { name: 'n', command: 'true', cwd: MISSING_DIR, extra: 1 })).rejects.toThrow(/is not a directory/);
   });
 });
 

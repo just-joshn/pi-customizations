@@ -83,7 +83,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 ## Spawned Pi workers
 
-Pi has no subagents. A worker is a separate Pi process that `pi_spawn` starts in its own tmux session, inside the sandbox, with a standalone brief. It sees only the brief, never this conversation.
+Pi has no subagents. A worker is a separate Pi process that `pi_spawn` starts in its own tmux session with a standalone brief. It sees only the brief, never this conversation.
 
 **Use `pi_spawn` with `agent: "poteto-agent"` for any worker you spawn directly inside a playbook step.** The session that receives `/skill:poteto-mode` runs the playbook itself. Routed workflow skills (`interrogate`, `swarm`) set their own `agent` and model. Respect it.
 
@@ -91,7 +91,7 @@ Pi has no subagents. A worker is a separate Pi process that `pi_spawn` starts in
 
 **Match the model to the job.** Start from the role's line, keep its model, and set the `thinking` level the job needs. The setup-pstack budget sets each role's starting level. Panel seats keep their listed level. Raise any other role one step, up to `xhigh`, for the hardest or subtlest work, lower it one step for judgment, and two or more steps for routine work. No role runs above `xhigh`. Verification always runs on the `swarm workers` model and level. A worker that only dispatches, polls, or packs results runs on the `swarm workers` model at a low level. If the model does not support the level, clamp to the nearest level it supports. If `pi_spawn` says a model is not valid, never pass it again. Fall back to the role's line, then the calling skill's fallback, then the nearest valid model of the same provider from the error's list, then omit `model`. Say so.
 
-You own every worker's work. Review the diff and write your own summary, don't pass through what it said. A second opinion is the same brief on a model from another provider. A failure a worker sees only inside the sandbox (a browser that will not launch, a download that never lands, a permission error) is a sandbox suspect until you reproduce it outside the sandbox. Until then, do not file it as a product defect, a skip, or a fixme.
+You own every worker's work. Review the diff and write your own summary, don't pass through what it said. A second opinion is the same brief on a model from another provider. A failure a worker sees only inside the Gondolin VM (a browser that will not launch, a download that never lands, a missing tool) is a VM suspect until you reproduce it on the host. Until then, do not file it as a product defect, a skip, or a fixme.
 
 **Fresh workers by default.** Give a fix round, a follow-up, a retry, or the next queue item to a fresh `pi_spawn` with the original brief, every later directive, and the prior worker's report and branch. Continue an earlier worker's session (`pi_spawn` with `resume: "<job id>"`) only when the work needs state that lives in it and is costly to move: its worktree or its uncommitted changes. A process dies when its job exits, so restart a dev server or a babysit watcher with a fresh `tmux_run`.
 

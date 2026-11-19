@@ -1,22 +1,15 @@
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { z } from 'zod';
-import { makeJobAgentDir } from '../src/credentials.ts';
 import { hostEnv } from '../src/host-env.ts';
 import { list, read, readSpec } from '../src/jobs.ts';
-import { SandboxPolicySchema } from '../src/sandbox.ts';
 
-const SWEEP_SCRIPT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'sweep.ts');
 const OWNER = 'owner';
-const BOM = '\ufeff';
 const WRITABLE = '/writable';
 const FUTURE_KEY_VALUE = { nested: [1] };
-const jsonObject = z.record(z.string(), z.unknown());
 const envObject = z.object({}).catchall(z.string());
 
 let work: string;
@@ -35,31 +28,6 @@ const writeText = (file: string, text: string): string => {
   return file;
 };
 
-describe('credentials copy', () => {
-  const copyOf = (auth: string): Record<string, unknown> => {
-    const real = join(work, 'real');
-    writeText(join(real, 'auth.json'), auth);
-    makeJobAgentDir(real, join(work, 'job'));
-    return jsonObject.parse(JSON.parse(readFileSync(join(work, 'job', 'auth.json'), 'utf8')));
-  };
-
-  test('keeps entries of any shape, and their order, as Pi reads them', () => {
-    const auth = { zeta: { type: 'api_key', key: 'k', extra: [1, { deep: null }] }, alpha: null, beta: 'text', gamma: 7 };
-    const copy = copyOf(`${BOM}${JSON.stringify(auth)}`);
-    expect(copy).toStrictEqual(auth);
-    expect(Object.keys(copy)).toEqual(['zeta', 'alpha', 'beta', 'gamma']);
-  });
-
-  test.each([
-    ['an array', '[1, 2]'],
-    ['null', 'null'],
-    ['a string', '"text"'],
-    ['malformed JSON', '{'],
-  ])('copies no credentials from %s', (_label, auth) => {
-    expect(copyOf(auth)).toStrictEqual({});
-  });
-});
-
 describe('the process environment', () => {
   test('is the same variables, order, and values as process.env', () => {
     const env = hostEnv();
@@ -69,7 +37,7 @@ describe('the process environment', () => {
   });
 });
 
-const specBody = (over: Record<string, unknown> = {}): string => JSON.stringify({ id: 'a', owner: OWNER, kind: 'command', brokered: true, out: join(work, 'out'), policy: { writable: [], protect: [], lock: [], gitDirs: [] }, ...over });
+const specBody = (over: Record<string, unknown> = {}): string => JSON.stringify({ id: 'a', owner: OWNER, kind: 'command', brokered: true, out: join(work, 'out'), ...over });
 
 describe('a job spec read from disk', () => {
   test('is returned exactly as written, with any key missing or extra', () => {
@@ -100,38 +68,5 @@ describe('a job spec read from disk', () => {
   ])('is not a job when job.json holds %s', (_label, body) => {
     writeText(join(work, 'a', 'job.json'), body);
     expect(read(work, 'a', OWNER)).toBeUndefined();
-  });
-});
-
-describe('a sandbox policy read from disk', () => {
-  test('is returned as written, without the keys older versions did not have', () => {
-    const policy = { writable: [WRITABLE], future: true, protect: [] };
-    const parsed = SandboxPolicySchema.parse(policy);
-    expect(parsed).toStrictEqual(policy);
-    expect(Object.keys(parsed)).toEqual(['writable', 'future', 'protect']);
-  });
-});
-
-describe('the sweep script', () => {
-  const sweepWith = (inventory: Record<string, unknown>): { status: number | null; output: string; moved: boolean } => {
-    const root = join(work, 'root');
-    const planted = writeText(join(root, 'sub', '.vscode', 'tasks.json'), '{}');
-    const output = join(work, 'output.log');
-    const quarantine = join(work, 'quarantine');
-    writeText(output, '');
-    writeText(join(work, 'inventory.json'), JSON.stringify({ roots: [root], absent: [], present: [], quarantine, output, ...inventory }));
-    const run = spawnSync(process.execPath, [SWEEP_SCRIPT, join(work, 'inventory.json')], { encoding: 'utf8' });
-    return { status: run.status, output: readFileSync(output, 'utf8'), moved: !existsSync(planted) };
-  };
-
-  test('treats an inventory without present as listing no code that was already there', () => {
-    const result = sweepWith({ present: undefined });
-    expect(result).toMatchObject({ status: 0, moved: true });
-  });
-
-  test('reports a damaged inventory in the job output instead of failing silently', () => {
-    const result = sweepWith({ absent: undefined });
-    expect(result.status).toBe(0);
-    expect(result.output).toContain('pstack could not finish checking this job');
   });
 });
