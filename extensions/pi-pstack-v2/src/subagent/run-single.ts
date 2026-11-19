@@ -3,7 +3,7 @@ import { getPiInvocation, removePromptTempFile, writePromptToTempFile } from './
 import { createResultStream, finalizeResult } from './result-stream.ts';
 import { createUnstartedResult, emptyUsage, getFinalOutput } from './results.ts';
 import { runPiInTmux } from './run-in-tmux.ts';
-import type { DispatchDefaults, MakeDetails, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
+import type { CallModel, DispatchDefaults, MakeDetails, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
 
 interface AgentRun {
   cwd: string;
@@ -16,9 +16,11 @@ interface AgentRun {
 
 const ABORTED_BEFORE_START = 'Subagent was aborted before starting';
 
-function buildPiArgs(agent: AgentConfig, defaults: DispatchDefaults, promptPath: string | undefined, task: string): string[] {
-  const model = agent.model ?? defaults.model;
-  const thinking = !agent.model ? defaults.thinkingLevel : undefined;
+// A model named by the call or the agent runs at its own default thinking level unless the call names one.
+function buildPiArgs(agent: AgentConfig, defaults: DispatchDefaults, call: CallModel, promptPath: string | undefined, task: string): string[] {
+  const namedModel = call.model ?? agent.model;
+  const model = namedModel ?? defaults.model;
+  const thinking = call.thinking ?? (namedModel ? undefined : defaults.thinkingLevel);
   return [
     '--mode',
     'json',
@@ -63,7 +65,7 @@ async function runResolvedAgent(
   onUpdate: OnUpdateCallback | undefined,
   makeDetails: MakeDetails,
 ): Promise<SingleResult> {
-  const { agent, cwd } = resolved;
+  const { agent, cwd, call = {} } = resolved;
   const initial: SingleResult = {
     agent: agentName,
     agentSource: agent.source,
@@ -73,14 +75,14 @@ async function runResolvedAgent(
     messages: [],
     stderr: '',
     usage: emptyUsage(),
-    model: agent.model ?? defaults.model,
+    model: call.model ?? agent.model ?? defaults.model,
     step,
   };
   let prompt: Awaited<ReturnType<typeof writePromptToTempFile>> | undefined;
   try {
     prompt = agent.systemPrompt.trim() ? await writePromptToTempFile(agent.name, agent.systemPrompt) : undefined;
     if (signal?.aborted) return { ...initial, status: 'aborted', errorMessage: ABORTED_BEFORE_START };
-    const args = buildPiArgs(agent, defaults, prompt?.filePath, task);
+    const args = buildPiArgs(agent, defaults, call, prompt?.filePath, task);
     return await streamAgent({ cwd, initial, args, signal, onUpdate, makeDetails });
   } finally {
     removePromptTempFile(prompt);

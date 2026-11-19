@@ -53,10 +53,17 @@ export interface DispatchRun {
   onUpdate: OnUpdateCallback | undefined;
 }
 
+/** The model and thinking level one call names for one item, ahead of the agent's and the session's. */
+export interface CallModel {
+  model?: string | undefined;
+  thinking?: ThinkingLevel | undefined;
+}
+
 export interface ResolvedAgent {
   agent: AgentConfig | undefined;
   available: AgentConfig[];
   cwd: string;
+  call?: CallModel | undefined;
 }
 
 export type DisplayItem = { type: 'text'; text: string } | { type: 'toolCall'; name: string; args: Record<string, unknown> };
