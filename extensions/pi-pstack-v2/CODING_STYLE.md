@@ -1,6 +1,6 @@
 # Coding Style Rules
 
-These are the only style rules for `extensions/pi-pstack-v2`. They apply to every code file in the folder, tests included. The only exception is a spot where following a rule would change functionality or behavior. Each such spot is listed, with its reason, in `scripts/style/behavior-exceptions.json`.
+These are the only style rules for `extensions/pi-pstack-v2`. They apply to every code file in the folder, tests included. The only exception is a spot where following a rule would change functionality or behavior. Each such spot is listed, with its reason, in `scripts/style/behavior-exceptions/*.json` (one file per area).
 
 ## Immutability (CRITICAL)
 
@@ -84,4 +84,4 @@ Run `node scripts/style-audit.mjs`. It exits 0 only when every file passes.
 | No hardcoded values | Biome `noMagicNumbers`; `scripts/style/hardcoded-values.grit` for URL and path strings outside a named `const` |
 | No silencing | a `biome-ignore` comment naming any of these rules fails the gate |
 
-An entry in `behavior-exceptions.json` excuses exactly one violation: one source line, matched by its trimmed text, for one rule. Two identical lines need two entries. An entry that no longer matches a violation fails the gate.
+An entry in `scripts/style/behavior-exceptions/` excuses exactly one violation: one source line, matched by its trimmed text, for one rule. Two identical lines need two entries. An entry that no longer matches a violation fails the gate.

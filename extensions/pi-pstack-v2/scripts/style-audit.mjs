@@ -14,7 +14,7 @@ import { z } from "zod";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BIOME_CONFIG = path.join(ROOT, "scripts", "style", "rules.jsonc");
-const EXCEPTIONS_FILE = path.join(ROOT, "scripts", "style", "behavior-exceptions.json");
+const EXCEPTIONS_DIR = path.join(ROOT, "scripts", "style", "behavior-exceptions");
 const FILE_LINES_LIMIT = 800;
 const MAX_NESTING = 4;
 const SPACES_PER_LEVEL = 2;
@@ -108,12 +108,19 @@ const lineViolations = (filePath) => {
 const sourceLine = (file, line) => (fs.readFileSync(path.join(ROOT, file), "utf8").split("\n")[line - 1] ?? "").trim();
 
 /** @returns {BehaviorException[]} */
-const readExceptions = () => {
+const readExceptions = () =>
+	fs
+		.readdirSync(EXCEPTIONS_DIR)
+		.filter((name) => name.endsWith(".json"))
+		.flatMap((name) => readExceptionFile(path.join(EXCEPTIONS_DIR, name)));
+
+/** @param {string} file @returns {BehaviorException[]} */
+const readExceptionFile = (file) => {
 	try {
-		return BehaviorExceptions.parse(JSON.parse(fs.readFileSync(EXCEPTIONS_FILE, "utf8")));
+		return BehaviorExceptions.parse(JSON.parse(fs.readFileSync(file, "utf8")));
 	} catch (error) {
 		console.error("Reading behavior exceptions failed:", error);
-		throw new Error(`style-audit: ${rel(EXCEPTIONS_FILE)} must be a JSON list of { file, rule, line, reason }.`);
+		throw new Error(`style-audit: ${rel(file)} must be a JSON list of { file, rule, line, reason }.`);
 	}
 };
 
