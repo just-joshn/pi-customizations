@@ -83,11 +83,10 @@ export function draw(graph: Graph, view: View, loops: Bug[] = []) {
 }
 
 export const marked = (chart: string) => {
-  const out: { [label: string]: string } = {};
-  for (const [, id, cls] of chart.matchAll(/^ {2}class (s\d+) (breaks|mayBreak)$/gm)) {
+  const entries = [...chart.matchAll(/^ {2}class (s\d+) (breaks|mayBreak)$/gm)].map(([, id, cls]) => {
     const label = chart.match(new RegExp(`^\\s*${id}: (.*)$`, "m"))?.[1];
     assert.ok(label !== undefined, `${id} has no label`);
-    out[label] = cls;
-  }
-  return out;
+    return [label, cls] as const;
+  });
+  return Object.fromEntries(entries) as { [label: string]: string };
 };

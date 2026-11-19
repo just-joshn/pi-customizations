@@ -146,6 +146,7 @@ const OTHER = [
   "\x1b",
   "\x00",
 ];
+const NUMERIC_COLOR = 7;
 const BAD_COLORS: unknown[] = [
   "pink\n  s99: Ghost state",
   "blue\r\nclassDef x fill:#f00",
@@ -161,18 +162,41 @@ const BAD_COLORS: unknown[] = [
   "toString",
   "",
   null,
-  7,
+  NUMERIC_COLOR,
   ["blue"],
 ];
+
+const MULBERRY_STEP = 0x6d2b79f5;
+const UINT32_RANGE = 4294967296;
+const MAX_LABEL_PARTS = 4;
+const LABEL_PART_KINDS = 13;
+const WORD_KINDS_BELOW = 4;
+const SYNTAX_KINDS_BELOW = 7;
+const SPACE_KINDS_BELOW = 9;
+const OTHER_KINDS_BELOW = 11;
+const FIRST_PRINTABLE = 32;
+const PRINTABLE_COUNT = 95;
+const THEME_COLOR_CHANCE = 0.85;
+const COLOR_KINDS = 3;
+const FLAT_MODES_BELOW = 4;
+const PARENT_MODES_BELOW = 7;
+const MAX_STATES = 4;
+const TWO_PARENTS_CHANCE = 0.5;
+const PARENTED_CHANCE = 0.75;
+const MAX_ACTIONS = 3;
+const MAX_STEPS = 5;
+const GROUPED_CHANCE = 0.4;
+const GROUP_COLORED_CHANCE = 0.8;
+const TITLED_CHANCE = 0.3;
 
 const random = (seed: number) => {
   let a = seed >>> 0;
   const next = () => {
-    a = (a + 0x6d2b79f5) >>> 0;
+    a = (a + MULBERRY_STEP) >>> 0;
     let t = a;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    return ((t ^ (t >>> 14)) >>> 0) / UINT32_RANGE;
   };
   const int = (n: number) => Math.floor(next() * n);
   return {
@@ -187,20 +211,20 @@ type Random = ReturnType<typeof random>;
 
 const label = (r: Random) => {
   let s = "";
-  for (let n = r.range(1, 4); n > 0; n--) {
-    const k = r.int(13);
-    if (k < 4) s += r.pick(WORDS);
-    else if (k < 7) s += r.pick(SYNTAX);
-    else if (k < 9) s += r.pick(SPACE);
-    else if (k < 11) s += r.pick(OTHER);
-    else s += String.fromCharCode(32 + r.int(95));
+  for (let n = r.range(1, MAX_LABEL_PARTS); n > 0; n--) {
+    const k = r.int(LABEL_PART_KINDS);
+    if (k < WORD_KINDS_BELOW) s += r.pick(WORDS);
+    else if (k < SYNTAX_KINDS_BELOW) s += r.pick(SYNTAX);
+    else if (k < SPACE_KINDS_BELOW) s += r.pick(SPACE);
+    else if (k < OTHER_KINDS_BELOW) s += r.pick(OTHER);
+    else s += String.fromCharCode(FIRST_PRINTABLE + r.int(PRINTABLE_COUNT));
   }
   return s;
 };
 
 const color = (r: Random) => {
-  if (r.chance(0.85)) return r.pick(THEME);
-  const k = r.int(3);
+  if (r.chance(THEME_COLOR_CHANCE)) return r.pick(THEME);
+  const k = r.int(COLOR_KINDS);
   if (k === 0) return r.pick(BAD_COLORS);
   if (k === 1) return r.pick(THEME) + r.pick(SPACE) + label(r);
   return label(r);
@@ -227,8 +251,8 @@ function generate(r: Random): Case {
     return labels.length - 1;
   };
   const k = r.int(10);
-  const mode = k < 4 ? "flat" : k < 7 ? "parents" : "regions";
-  const n = r.range(2, 4);
+  const mode = k < FLAT_MODES_BELOW ? "flat" : k < PARENT_MODES_BELOW ? "parents" : "regions";
+  const n = r.range(2, MAX_STATES);
   let shape: Shape;
   if (mode === "regions") {
     shape = {
@@ -243,21 +267,21 @@ function generate(r: Random): Case {
   } else {
     const leaf = several(n, slot);
     if (mode === "parents") {
-      const parents = r.chance(0.5) ? [slot(), slot()] : [slot()];
-      const parentOf = several(n, () => (r.chance(0.75) ? r.int(parents.length) : -1));
+      const parents = r.chance(TWO_PARENTS_CHANCE) ? [slot(), slot()] : [slot()];
+      const parentOf = several(n, () => (r.chance(PARENTED_CHANCE) ? r.int(parents.length) : -1));
       shape = { mode, leaf, parents, parentOf };
     } else shape = { mode, leaf };
   }
-  const actions = several(r.range(1, 3), slot);
-  const steps = several(r.range(1, 5), () => [r.int(n), r.int(n), r.int(actions.length)]);
+  const actions = several(r.range(1, MAX_ACTIONS), slot);
+  const steps = several(r.range(1, MAX_STEPS), () => [r.int(n), r.int(n), r.int(actions.length)]);
   let groups: Groups = {};
-  if (r.chance(0.4)) {
+  if (r.chance(GROUPED_CHANCE)) {
     const named = several(r.range(1, 2), slot);
     const colors = several(named.length, () => color(r));
-    const groupOf = several(n, () => (r.chance(0.8) ? r.int(named.length) : -1));
+    const groupOf = several(n, () => (r.chance(GROUP_COLORED_CHANCE) ? r.int(named.length) : -1));
     groups = { groups: named, colors, groupOf };
   }
-  const title = r.chance(0.3) ? slot() : undefined;
+  const title = r.chance(TITLED_CHANCE) ? slot() : undefined;
   return { ...shape, ...groups, n, labels: [...labels], actions, steps, title };
 }
 
