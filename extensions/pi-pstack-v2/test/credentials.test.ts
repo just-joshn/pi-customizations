@@ -33,8 +33,8 @@ describe('a job agent directory', () => {
     writeFileSync(join(real, 'keybindings.json'), '{}');
     makeJobAgentDir(real, job);
     expect(lstatSync(join(job, 'keybindings.json')).isSymbolicLink()).toBe(true);
-    expect(Object.keys(read(job)).sort()).toEqual(['literal', 'oauth']);
-    expect(commandProviders(real).sort()).toEqual(['command', 'other']);
+    expect(Object.keys(read(job)).toSorted()).toEqual(['literal', 'oauth']);
+    expect(commandProviders(real).toSorted()).toEqual(['command', 'other']);
   });
 
   test('copies the model catalog without sharing mutations or locks', () => {

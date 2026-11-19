@@ -5,12 +5,14 @@ import { runPiInTmux } from '../src/subagent/run-in-tmux.ts';
 describe('runPiInTmux', () => {
   test('starts the command inside a live tmux session', async () => {
     let seen: string | undefined;
-    const chunks: string[] = [];
+    let chunks: readonly string[] = [];
     const outcome = await runPiInTmux({
       command: 'bash',
       args: ['-c', 'echo hello-from-tmux; sleep 0.4'],
       cwd: process.cwd(),
-      onStdoutChunk: (chunk) => chunks.push(chunk),
+      onStdoutChunk: (chunk) => {
+        chunks = [...chunks, chunk];
+      },
       onStderrChunk: () => undefined,
       onSessionStarted: (session) => {
         seen = session;

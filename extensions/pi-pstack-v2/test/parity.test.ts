@@ -16,7 +16,7 @@ const supported = process.platform === 'darwin' || process.platform === 'linux';
 const owner = `parity${process.pid}`;
 const socketPath = join(homedir(), `.pstack-probe-${process.pid}.sock`);
 const abstractName = `pstack-probe-${process.pid}`;
-const servers: Server[] = [];
+let servers: readonly Server[] = [];
 let agentDir: string;
 let repo: string;
 let tools: Record<string, Tool>;
@@ -84,7 +84,7 @@ beforeAll(async () => {
   const listen = (address: string) =>
     new Promise<void>((resolve) => {
       const server = createServer((socket) => socket.end());
-      servers.push(server);
+      servers = [...servers, server];
       server.listen(address, () => resolve());
     });
   await listen(socketPath);

@@ -8,25 +8,28 @@ import { bwrapArgs, type SandboxPolicy, sandboxed, seccompFilter } from '../src/
 
 type Access = 'writable' | 'read-only' | 'hidden';
 
+type Mount = { at: string; access: Access; tmpfs: boolean };
+
+const MOUNT_FLAG_WIDTH: Record<string, number> = { '--bind': 3, '--ro-bind': 3, '--tmpfs': 2, '--remount-ro': 2, '--dev': 2, '--proc': 2 };
+
+function nextMount(mounts: readonly Mount[], args: string[], i: number): readonly Mount[] {
+  const flag = args[i];
+  if (flag === '--bind' || flag === '--ro-bind') return [...mounts, { at: args[i + 2] ?? '', access: flag === '--bind' ? 'writable' : 'read-only', tmpfs: false }];
+  if (flag === '--tmpfs') return [...mounts, { at: args[i + 1] ?? '', access: 'writable', tmpfs: true }];
+  if (flag !== '--remount-ro') return mounts;
+  const index = mounts.findLastIndex((mount) => mount.at === args[i + 1]);
+  return index < 0 ? mounts : mounts.map((mount, at) => (at === index ? { ...mount, access: 'read-only' as const } : mount));
+}
+
+function parseMounts(args: string[]): readonly Mount[] {
+  let mounts: readonly Mount[] = [];
+  for (let i = 0; i < args.length && args[i] !== '--'; i += MOUNT_FLAG_WIDTH[args[i] ?? ''] ?? 1) mounts = nextMount(mounts, args, i);
+  return mounts;
+}
+
 /** What a job inside bubblewrap sees at a path: the last mount covering it wins, and a tmpfs hides what lay beneath it. */
 function access(args: string[], path: string): Access {
-  const mounts: { at: string; access: Access; tmpfs: boolean }[] = [];
-  for (let i = 0; i < args.length && args[i] !== '--'; i++) {
-    const flag = args[i];
-    if (flag === '--bind' || flag === '--ro-bind') {
-      mounts.push({ at: args[i + 2] ?? '', access: flag === '--bind' ? 'writable' : 'read-only', tmpfs: false });
-      i += 2;
-    } else if (flag === '--tmpfs') {
-      mounts.push({ at: args[i + 1] ?? '', access: 'writable', tmpfs: true });
-      i += 1;
-    } else if (flag === '--remount-ro') {
-      const target = mounts.findLast((mount) => mount.at === args[i + 1]);
-      if (target) target.access = 'read-only';
-      i += 1;
-    } else if (flag === '--dev' || flag === '--proc') {
-      i += 1;
-    }
-  }
+  const mounts = parseMounts(args);
   const covering = mounts.findLast((mount) => mount.at === '/' || path === mount.at || path.startsWith(`${mount.at}/`));
   if (!covering) return 'hidden';
   return covering.tmpfs && path !== covering.at ? 'hidden' : covering.access;

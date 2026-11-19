@@ -56,7 +56,7 @@ beforeEach(() => {
   branch = [];
   const api = {
     appendEntry: (customType: string, data?: unknown) => {
-      branch.push({ type: 'custom', customType, data });
+      branch = [...branch, { type: 'custom', customType, data }];
     },
     registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => {
       commands[name] = command;
@@ -187,10 +187,10 @@ describe('system prompt', () => {
   });
 
   test('the mode comes back from the session branch when the session starts or the branch changes', async () => {
-    branch.push({ type: 'custom', customType: 'pstack-mode', data: { skill: 'how' } });
+    branch = [...branch, { type: 'custom', customType: 'pstack-mode', data: { skill: 'how' } }];
     await handlers['session_start']?.({}, ctx);
     expect(await prompt()).toContain('<skill name="how"');
-    branch.length = 0;
+    branch = [];
     await handlers['session_tree']?.({}, ctx);
     expect(await prompt()).toBeUndefined();
   });
@@ -747,11 +747,9 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     const original = Buffer.from('outside-original\n');
     writeFileSync(fixture, original, { flag: 'wx' });
     try {
-      expect(
-        await run(
-          `'${process.execPath}' -e 'const fs = require("node:fs"); const file = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
-        ),
-      ).toContain('MUTATION-ATTEMPTED');
+      const script = `const fs = require("node:fs"); const file = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}`;
+      const output = await run(`'${process.execPath}' -e '${script}'`);
+      expect(output).toContain('MUTATION-ATTEMPTED');
       const dir = join(jobsRoot(), jobs()[0] ?? '');
       expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).not.toBe('0');
       expect(readFileSync(fixture)).toEqual(original);

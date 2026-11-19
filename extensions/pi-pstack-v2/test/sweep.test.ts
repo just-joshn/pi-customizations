@@ -27,7 +27,7 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     mkdirSync(planted, { recursive: true });
     writeFileSync(join(planted, 'x.ts'), 'planted');
     chmodSync(join(work, '.pi'), 0o555);
-    inventory.absent = [{ path: planted, parentWasLink: false }];
+    inventory = { ...inventory, absent: [{ path: planted, parentWasLink: false }] };
     expect(sweep(inventory)).toEqual([planted]);
     expect(existsSync(planted)).toBe(false);
   });
@@ -40,7 +40,7 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     writeFileSync(second, '{}');
     vi.spyOn(Date, 'now').mockReturnValue(1);
     mkdirSync(join(inventory.quarantine, '1-0-settings.json', 'occupied'), { recursive: true });
-    inventory.absent = [first, second].map((path) => ({ path, parentWasLink: false }));
+    inventory = { ...inventory, absent: [first, second].map((path) => ({ path, parentWasLink: false })) };
     expect(sweep(inventory)).toEqual([second]);
     expect(readFileSync(inventory.output, 'utf8')).toContain(`pstack could not quarantine ${first}`);
   });
@@ -54,7 +54,7 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     mkdirSync(join(work, 'deep', 'repo', '.git'), { recursive: true });
     mkdirSync(join(work, 'nested'));
     symlinkSync(join(work, 'kept', '.pi'), join(work, 'nested', '.pi'));
-    expect(sweep(before).sort()).toEqual([join(work, 'deep', '.pi', 'settings.json'), join(work, 'deep', 'repo', '.git'), join(work, 'nested', '.pi')].sort());
+    expect(sweep(before).toSorted()).toEqual([join(work, 'deep', '.pi', 'settings.json'), join(work, 'deep', 'repo', '.git'), join(work, 'nested', '.pi')].toSorted());
     expect(existsSync(join(work, 'kept', '.pi', 'extensions'))).toBe(true);
     expect(existsSync(join(work, 'deep', '.pi', 'notes.md'))).toBe(true);
     expect(readFileSync(inventory.output, 'utf8')).toContain(`pstack quarantined ${join(work, 'deep', 'repo', '.git')}, Pi, git, editor, or harness code that appeared while the job ran`);
@@ -72,8 +72,8 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     mkdirSync(join(work, '.claude', 'skills', 'probe', '.pi', 'extensions'), { recursive: true });
     mkdirSync(join(work, 'sub', '.cursor', 'rules'), { recursive: true });
     writeFileSync(join(work, 'sub', '.cursor', 'hooks.json'), '{}');
-    expect(sweep(before).sort()).toEqual(
-      [join(work, '.vscode'), join(work, 'app.code-workspace'), join(work, '.claude', 'settings.json'), join(work, '.claude', 'skills', 'probe', '.pi', 'extensions'), join(work, 'sub', '.cursor', 'hooks.json')].sort(),
+    expect(sweep(before).toSorted()).toEqual(
+      [join(work, '.vscode'), join(work, 'app.code-workspace'), join(work, '.claude', 'settings.json'), join(work, '.claude', 'skills', 'probe', '.pi', 'extensions'), join(work, 'sub', '.cursor', 'hooks.json')].toSorted(),
     );
     expect(existsSync(join(work, '.claude', 'skills', 'probe', 'SKILL.md'))).toBe(true);
     expect(existsSync(join(work, 'sub', '.cursor', 'rules'))).toBe(true);

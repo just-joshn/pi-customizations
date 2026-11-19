@@ -73,15 +73,11 @@ describe('the Pi port of pstack', () => {
     const ported = new Set([
       'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
       'LICENSE', // adds cursor-team-kit's copyright beside pstack's
+      'skills/pr-review-canvas/renderer.js', // style-audit immutability and no JSON.parse without zod
+      'skills/pr-review-canvas/template.html', // assigns window.__PR_DIFFS__ so the injected script needs no JSON.parse
     ]);
-    const changed = upstream
-      .filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path))
-      .filter(
-        (path) =>
-          createHash('sha256')
-            .update(readFileSync(join(root, path)))
-            .digest('hex') !== lock.files[path],
-      );
+    const digest = (path: string) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
+    const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path)).filter((path) => digest(path) !== lock.files[path]);
     expect(changed).toEqual([]);
   });
 
@@ -95,13 +91,11 @@ describe('the Pi port of pstack', () => {
   });
 
   test('only poteto-mode says when to call tmux_jobs wait, so no skill tells the agent to block until its workers finish', () => {
-    const offenders = prose
-      .filter((path) => relative(root, path) !== 'skills/poteto-mode/SKILL.md')
-      .flatMap((path) =>
-        readFileSync(path, 'utf8')
-          .split('\n')
-          .flatMap((line, index) => (/action: "wait"/.test(line) ? [`${relative(root, path)}:${index + 1}`] : [])),
-      );
+    const waitLines = (path: string) =>
+      readFileSync(path, 'utf8')
+        .split('\n')
+        .flatMap((line, index) => (/action: "wait"/.test(line) ? [`${relative(root, path)}:${index + 1}`] : []));
+    const offenders = prose.filter((path) => relative(root, path) !== 'skills/poteto-mode/SKILL.md').flatMap(waitLines);
     expect(offenders).toEqual([]);
   });
 
@@ -122,16 +116,14 @@ describe('the Pi port of pstack', () => {
   });
 
   test('every relative Markdown link in prose resolves', () => {
-    const hits = prose
-      .filter((path) => path.endsWith('.md'))
-      .flatMap((path) =>
-        [...readFileSync(path, 'utf8').matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)]
-          .map(([, target = '']) => target.split('#')[0] ?? '')
-          // A bare word such as `url` in a template is a placeholder, not a path.
-          .filter((target) => /[./]/.test(target) && !/^([a-z][a-z0-9+.-]*:|\/)/i.test(target))
-          .filter((target) => !existsSync(resolve(dirname(path), target)))
-          .map((target) => `${relative(root, path)} links to missing ${target}`),
-      );
+    const missingLinks = (path: string) =>
+      [...readFileSync(path, 'utf8').matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)]
+        .map(([, target = '']) => target.split('#')[0] ?? '')
+        // A bare word such as `url` in a template is a placeholder, not a path.
+        .filter((target) => /[./]/.test(target) && !/^([a-z][a-z0-9+.-]*:|\/)/i.test(target))
+        .filter((target) => !existsSync(resolve(dirname(path), target)))
+        .map((target) => `${relative(root, path)} links to missing ${target}`);
+    const hits = prose.filter((path) => path.endsWith('.md')).flatMap(missingLinks);
     expect(hits).toEqual([]);
   });
 });
