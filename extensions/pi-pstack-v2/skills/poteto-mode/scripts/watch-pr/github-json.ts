@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { QueryFailure } from "./types.ts";
 
+const FIRST_LINE_MAX_CHARS = 240;
 const jsonValue = z.json();
 
 export class WatcherQueryError extends Error {
@@ -20,7 +21,7 @@ export class ChecksUnavailable extends WatcherQueryError {
   }
 }
 export const firstLine = (value: string): string =>
-  value.trim().split(/\r?\n/, 1)[0]?.slice(0, 240) ?? "";
+  value.trim().split(/\r?\n/, 1)[0]?.slice(0, FIRST_LINE_MAX_CHARS) ?? "";
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 export function parseJson(text: string, label: string): unknown {

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { describe, expect, it } from "bun:test";
 import { type CliRuntime, main, parseArgs } from "./cli.ts";
 import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
@@ -6,7 +7,14 @@ import { renderJson, renderPretty } from "./render.ts";
 import type { GitHubReader, WatcherVerdict } from "./types.ts";
 import { parsePrNumber } from "./types.ts";
 
-const silentIo = { stdout: () => {}, stderr: () => {} };
+const EX_USAGE = 64;
+const EXIT_CI_BLOCKER = 4;
+const FIRST_STACK_PR = 10;
+const SECOND_STACK_PR = 11;
+const THIRD_STACK_PR = 12;
+const jsonValue = z.unknown();
+
+const silentIo = { stdout: () => undefined, stderr: () => undefined };
 
 const neverSleepClock = {
   now: () => 0,
@@ -33,8 +41,8 @@ function testRuntime(reader: GitHubReader): {
     runtime: {
       reader,
       clock: neverSleepClock,
-      stdout: (value) => stdout.add(value),
-      stderr: (value) => stderr.add(value),
+      stdout: (value) => stdout.record(value),
+      stderr: (value) => stderr.record(value),
     },
   };
 }
@@ -59,6 +67,9 @@ describe("parseArgs", () => {
     });
   });
 
+});
+
+describe("parseArgs", () => {
   it("parses a frozen queued stack bottom-to-top", () => {
     const parsed = parseArgs(
       [
@@ -79,7 +90,11 @@ describe("parseArgs", () => {
       silentIo
     );
     expect(parsed.mode).toBe("queued-stack");
-    expect(parsed.stackPrs.map(Number)).toEqual([10, 11, 12]);
+    expect(parsed.stackPrs.map(Number)).toEqual([
+      FIRST_STACK_PR,
+      SECOND_STACK_PR,
+      THIRD_STACK_PR,
+    ]);
     expect(parsed.polling).toEqual({
       interval: 2.5,
       sweepInterval: 30,
@@ -90,6 +105,9 @@ describe("parseArgs", () => {
     expect(parsed.pretty).toBe(true);
   });
 
+});
+
+describe("parseArgs", () => {
   it("rejects every invalid mode and numeric shape as usage", async () => {
     const invalid = [
       ["--unknown"],
@@ -103,7 +121,7 @@ describe("parseArgs", () => {
     ];
     for (const argv of invalid) {
       const harness = testRuntime(fakeReader());
-      expect(await main(argv, harness.runtime)).toBe(64);
+      expect(await main(argv, harness.runtime)).toBe(EX_USAGE);
       expect(harness.stdout).toEqual([]);
       expect(harness.stderr.join("")).toContain("error:");
     }
@@ -143,7 +161,7 @@ describe("rendering", () => {
   it("emits compact valid JSON by default", () => {
     const rendered = renderJson(status);
     expect(rendered.endsWith("\n")).toBe(true);
-    expect(JSON.parse(rendered)).toEqual(status);
+    expect(jsonValue.parse(JSON.parse(rendered))).toEqual(status);
   });
 
   it("renders the Markdown table from the same verdict only", () => {
@@ -158,7 +176,7 @@ describe("rendering", () => {
 describe("main", () => {
   it("returns EX_USAGE 64 and writes usage errors only to stderr", async () => {
     const harness = testRuntime(fakeReader());
-    expect(await main(["--interval", "0"], harness.runtime)).toBe(64);
+    expect(await main(["--interval", "0"], harness.runtime)).toBe(EX_USAGE);
     expect(harness.stdout).toEqual([]);
     expect(harness.stderr.join("")).toContain(
       "option '--interval <seconds>' argument '0' is invalid"
@@ -183,7 +201,7 @@ describe("main", () => {
     );
     expect(code).toBe(0);
     expect(harness.stdout).toHaveLength(1);
-    const verdict: unknown = JSON.parse(harness.stdout[0]);
+    const verdict = jsonValue.parse(JSON.parse(harness.stdout[0]));
     expect(verdict).toMatchObject({
       kind: "STATUS",
       terminal: true,
@@ -193,6 +211,9 @@ describe("main", () => {
     expect(harness.stdout[0]).not.toContain('"kind":"QUEUE"');
   });
 
+});
+
+describe("main", () => {
   it("returns exit 4 for a hidden GitHub-side CI refusal", async () => {
     const reader = fakeReader({
       facts: { mergeStateStatus: "BLOCKED" },
@@ -204,9 +225,9 @@ describe("main", () => {
       ["--owner", "owner", "--repo", "repo", "--pr", "1"],
       harness.runtime
     );
-    expect(code).toBe(4);
+    expect(code).toBe(EXIT_CI_BLOCKER);
     expect(harness.stdout).toHaveLength(1);
-    expect(JSON.parse(harness.stdout[0])).toMatchObject({
+    expect(jsonValue.parse(JSON.parse(harness.stdout[0]))).toMatchObject({
       kind: "BLOCKER",
       exitCode: 4,
       blocker: {

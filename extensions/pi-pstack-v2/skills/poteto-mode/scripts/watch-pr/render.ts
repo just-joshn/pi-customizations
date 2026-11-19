@@ -64,9 +64,10 @@ function threadLine(thread: T.ReviewThread): string {
     comment?.authorLogin ?? "None",
     `isBugBot=${thread.isBugbot}`,
     `bugbotReviewPasses=${thread.bugbotReviewPasses}`,
-    (comment?.body ?? "").split(/\r?\n/, 1)[0]?.slice(0, 180) ?? "",
+    (comment?.body ?? "").split(/\r?\n/, 1)[0]?.slice(0, COMMENT_SUMMARY_MAX_CHARS) ?? "",
   ].join(" ");
 }
+const COMMENT_SUMMARY_MAX_CHARS = 180;
 type StatusQueryBlocker = {
   readonly kind: "status-query";
   readonly failures: number;

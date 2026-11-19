@@ -64,16 +64,8 @@ export function failedCheck(name = "ci"): Check {
   };
 }
 
-export function fakeReader(
-  options: FakeReaderOptions = {}
-): GitHubReader & { readonly calls: readonly string[] } {
-  const log = createRecorder<string>();
-  const context = options.current ?? {
-    owner: "owner",
-    repo: "repo",
-    number: parsePrNumber(1),
-  };
-  const defaults: PullRequestFacts = {
+function defaultFacts(context: PrContext): PullRequestFacts {
+  return {
     context,
     mergeable: "MERGEABLE",
     mergeStateStatus: "CLEAN",
@@ -85,6 +77,18 @@ export function fakeReader(
     mergedAt: null,
     isDraft: false,
   };
+}
+
+export function fakeReader(
+  options: FakeReaderOptions = {}
+): GitHubReader & { readonly calls: readonly string[] } {
+  const log = createRecorder<string>();
+  const context = options.current ?? {
+    owner: "owner",
+    repo: "repo",
+    number: parsePrNumber(1),
+  };
+  const defaults = defaultFacts(context);
   let page = 0;
   let threadPage = 0;
   return {
@@ -92,40 +96,40 @@ export function fakeReader(
       return log.items;
     },
     async originRepo() {
-      log.add("originRepo");
+      log.record("originRepo");
       return options.origin === undefined
         ? { owner: "owner", repo: "repo" }
         : options.origin;
     },
     async currentPr(pr) {
-      log.add("currentPr");
+      log.record("currentPr");
       return { ...context, number: pr ?? context.number };
     },
     async pullRequest(requested) {
-      log.add("pullRequest");
+      log.record("pullRequest");
       return { ...defaults, ...options.facts, context: requested };
     },
     async openPullRequests() {
-      log.add("openPullRequests");
+      log.record("openPullRequests");
       return options.openPullRequests ?? [];
     },
     async checksFastPath() {
-      log.add("checksFastPath");
+      log.record("checksFastPath");
       return options.fastPath ?? { kind: "checks", checks: [passingCheck()] };
     },
     async checkRollupPage(_requested, after) {
-      log.add(`checkRollupPage:${after ?? "null"}`);
+      log.record(`checkRollupPage:${after ?? "null"}`);
       return options.rollupPages?.[page++] ?? { checks: [], endCursor: null };
     },
     async reviewThreadPage(_requested, after) {
-      log.add(`reviewThreadPage:${after ?? "null"}`);
+      log.record(`reviewThreadPage:${after ?? "null"}`);
       return options.threadPages?.[threadPage++] ?? {
         threads: (options.threads ?? []).map(toRawThread),
         endCursor: null,
       };
     },
     async commitRollups() {
-      log.add("commitRollups");
+      log.record("commitRollups");
       return options.commitRollups ?? [{ oid: "head", state: "SUCCESS" }];
     },
   };

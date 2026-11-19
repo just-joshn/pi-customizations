@@ -92,10 +92,10 @@ export function parseReviewThreadPage(value: unknown): ReviewThreadPage {
 }
 function countPasses(threads: readonly RawReviewThread[]): number {
   const bugbot = threads.filter((thread) => isBugbot(thread.firstComment));
-  const keys = new Set(bugbot.map((thread) => passKey(thread.firstComment)));
-  const hasKeyless = keys.delete(null);
+  const allKeys = bugbot.map((thread) => passKey(thread.firstComment));
+  const keys = new Set(allKeys.filter((key) => key !== null));
   if (keys.size > 0) return keys.size;
-  return hasKeyless ? 1 : 0;
+  return allKeys.includes(null) ? 1 : 0;
 }
 export function buildReviewThreads(
   threads: readonly RawReviewThread[]
