@@ -53,7 +53,6 @@ export function ensureDependenciesInstalled(): void {
 
   const restarted = Bun.spawnSync([process.execPath, ...Bun.argv.slice(1)], {
     cwd: process.cwd(),
-    env: process.env,
     stdin: "inherit",
     stdout: "inherit",
     stderr: "inherit",

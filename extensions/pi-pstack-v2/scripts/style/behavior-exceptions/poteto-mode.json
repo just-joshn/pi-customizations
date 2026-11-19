@@ -1,11 +1,5 @@
 [
   {
-    "file": "skills/poteto-mode/scripts/bootstrap.ts",
-    "rule": "plugin",
-    "line": "env: process.env,",
-    "reason": "bootstrap.ts runs before `bun install` has installed zod, so it cannot import a zod schema; the restarted child must inherit the full process.env unchanged."
-  },
-  {
     "file": "skills/poteto-mode/scripts/watch-pr/cli.ts",
     "rule": "plugin",
     "line": "} catch (error) {",

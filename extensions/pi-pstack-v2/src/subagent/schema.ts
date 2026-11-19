@@ -30,10 +30,10 @@ export const SubagentParams = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process (single mode)' })),
 });
 
-const WorkItemSchema = z.object({ agent: z.string(), task: z.string(), cwd: z.string().optional() });
+const WorkItemSchema = z.looseObject({ agent: z.string(), task: z.string(), cwd: z.string().optional() });
 
-/** Mirrors SubagentParams field for field, so it accepts exactly what Pi's TypeBox validation accepted. */
-export const SubagentParamsSchema = z.object({
+/** Mirrors SubagentParams field for field and keeps any other keys, so it accepts and returns exactly what Pi's TypeBox validation passed in. */
+export const SubagentParamsSchema = z.looseObject({
   agent: z.string().optional(),
   task: z.string().optional(),
   tasks: z.array(WorkItemSchema).optional(),
