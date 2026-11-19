@@ -4,7 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { inspect } from "node:util";
 import { checkView } from "../frontends/view.ts";
-import { type Bug, type Graph, hasSection, type Rule, stateRules, type View } from "../ir.ts";
+import { type Bug, type Graph, hasSection, type Rule, type Spec, stateRules, type View } from "../ir.ts";
 import { addPast, type Annotated, deadEnds, finder, lasso, mark } from "../passes/annotate.ts";
 import { graphOf, type PathGraph, pathGraph, withBug } from "../passes/paths.ts";
 import { bugs } from "../passes/reach.ts";
@@ -16,11 +16,40 @@ import { compile } from "../pipeline.ts";
 import { fileLines } from "../run.ts";
 import { here, corpus, corpusSpec } from "./chart-support.ts";
 
+const longPathSteps = 5;
+
 const verdictFiles = (name: string) =>
   fs
     .readdirSync(path.join(here, "corpus", name))
     .toSorted()
     .filter((f) => /^verdict-\d+\.out$/.test(f));
+
+type Replay = {
+  spec: Spec;
+  names: string[];
+  rules: Rule[];
+  drawn: boolean;
+  past: ReturnType<typeof mark>["past"];
+};
+
+const replayVerdict = (r: Replay, name: string, acc: Annotated, f: string) => {
+  const messages = [...readMessages(fileLines(corpus(name, f)))];
+  const { broke } = readVerdict(messages);
+  const rule =
+    broke &&
+    r.rules.findLast(
+      (x) => x.kind === broke.kind && (broke.kind === "deadlock" || x.name === broke.name),
+    );
+  if (!rule) return acc;
+  const noConstraint = !hasSection(r.spec, "CONSTRAINT", "ACTION_CONSTRAINT");
+  const dead =
+    rule.kind === "deadlock" && r.drawn && noConstraint ? deadEnds(acc.graph, rule) : acc.graph;
+  const counterexample = readCounterexample(messages);
+  if (!r.drawn && !lasso(dead, { seq: counterexample, loop: undefined }, r.names, acc.index))
+    return { ...acc, graph: dead };
+  const constrained = hasSection(r.spec, "ACTION_CONSTRAINT");
+  return addPast(dead, counterexample, r.names, rule, r.past, constrained, acc.index);
+};
 
 function replay(name: string, parsed: Graph) {
   const spec = corpusSpec(name);
@@ -30,42 +59,21 @@ function replay(name: string, parsed: Graph) {
   const marks = readMarks(readMessages(fileLines(corpus(name, "ChartRun.out"))), "chart");
   const { graph: marked, past } = mark(parsed, marks, names, rules, index0);
   const drawn = !fs.existsSync(corpus(name, "ChartRun.exit"));
-  return verdictFiles(name).reduce<Annotated>(
-    (acc, f) => {
-      const messages = [...readMessages(fileLines(corpus(name, f)))];
-      const { broke } = readVerdict(messages);
-      if (!broke) return acc;
-      const rule = rules.findLast(
-        (r) => r.kind === broke.kind && (broke.kind === "deadlock" || r.name === broke.name),
-      );
-      if (!rule) return acc;
-      const dead =
-        rule.kind === "deadlock" && drawn && !hasSection(spec, "CONSTRAINT", "ACTION_CONSTRAINT")
-          ? deadEnds(acc.graph, rule)
-          : acc.graph;
-      const counterexample = readCounterexample(messages);
-      if (!drawn && !lasso(dead, { seq: counterexample, loop: undefined }, names, acc.index))
-        return { ...acc, graph: dead };
-      return addPast(
-        dead,
-        counterexample,
-        names,
-        rule,
-        past,
-        hasSection(spec, "ACTION_CONSTRAINT"),
-        acc.index,
-      );
-    },
-    { graph: marked, index: index0 },
-  ).graph;
+  const r = { spec, names, rules, drawn, past };
+  return verdictFiles(name).reduce<Annotated>((acc, f) => replayVerdict(r, name, acc, f), {
+    graph: marked,
+    index: index0,
+  }).graph;
 }
 
 test("each corpus bug path is the shortest way to its rule", () => {
-  const paths: { [rule: string]: string[] } = {};
-  for (const name of ["DieHard", "MediaPlayer", "LoginParallel", "TwoPhase", "FirstRule"]) {
-    const graph = replay(name, parseDot(fileLines(corpus(name, "graph.dot"))));
-    for (const bug of bugs(graph)) paths[bug.rule.name] = bug.path.map((p) => p.action);
-  }
+  const names = ["DieHard", "MediaPlayer", "LoginParallel", "TwoPhase", "FirstRule"];
+  const paths: { [rule: string]: string[] } = Object.fromEntries(
+    names.flatMap((name) => {
+      const graph = replay(name, parseDot(fileLines(corpus(name, "graph.dot"))));
+      return bugs(graph).map((bug) => [bug.rule.name, bug.path.map((p) => p.action)] as const);
+    }),
+  );
   assert.deepEqual(paths.NotSolved, [
     "FillBig",
     "BigToSmall",
@@ -75,8 +83,8 @@ test("each corpus bug path is the shortest way to its rule", () => {
     "BigToSmall",
   ]);
   assert.deepEqual(paths.LoudWhenStopped, ["YouTurnItUp"]);
-  assert.equal(paths.SignedInWhileLocked.length, 5);
-  assert.equal(paths.TCConsistent.length, 5);
+  assert.equal(paths.SignedInWhileLocked.length, longPathSteps);
+  assert.equal(paths.TCConsistent.length, longPathSteps);
   assert.equal(paths.TCConsistent.at(-1), "RMRcvCommitMsg");
   assert.deepEqual(paths.NotOne, ["Next"]);
   assert.deepEqual(paths.NotOneOrThree, ["Next"]);
@@ -84,8 +92,20 @@ test("each corpus bug path is the shortest way to its rule", () => {
   assert.deepEqual(paths.NoDeadlock, ["Next", "Next", "Next"]);
 });
 
-test("a chart of only the bug paths words each one with the view, asked once for each state and step", () => {
-  const spec = corpusSpec("FirstRule");
+const pathsOnlyResult = (spec: Spec, graph: Graph, paths: Bug[]) => ({
+  spec: { ...spec, folder: "" },
+  graph,
+  paths,
+  rules: [],
+  properties: [],
+  exit: 1 as const,
+  stop: undefined,
+  drawing: undefined,
+  states: { distinct: 1234, initial: 1, complete: true, cut: false },
+  messages: [],
+});
+
+const brokenBugs = (spec: Spec) => {
   const rules = stateRules(spec);
   const broken = verdictFiles("FirstRule").flatMap((f) => {
     const messages = [...readMessages(fileLines(corpus("FirstRule", f)))];
@@ -94,16 +114,22 @@ test("a chart of only the bug paths words each one with the view, asked once for
       broke?.kind === rule.kind && (broke.kind === "deadlock" || rule.name === broke.name);
     return rules.filter(breaks).map((rule) => ({ rule, trace: readCounterexample(messages) }));
   });
-  const drawn = broken.reduce<{ paths: PathGraph; found: Bug[] }>(
+  return broken.reduce<{ paths: PathGraph; found: Bug[] }>(
     ({ paths: acc, found }, { rule, trace }) => {
       const [next, bug] = withBug(acc, rule, trace);
       return { paths: next, found: [...found, bug] };
     },
     { paths: pathGraph(spec.variables), found: [] },
   );
-  const paths: Bug[] = drawn.found;
-  const asked: { [question: string]: number } = {};
-  const count = (question: string) => (asked[question] = (asked[question] ?? 0) + 1);
+};
+
+test("a chart of only the bug paths words each one with the view, asked once for each state and step", () => {
+  const spec = corpusSpec("FirstRule");
+  const drawn = brokenBugs(spec);
+  let asked: { [question: string]: number } = {};
+  const count = (question: string) => {
+    asked = { ...asked, [question]: (asked[question] ?? 0) + 1 };
+  };
   const view: View = {
     state: (v) => {
       count(`state ${v.x}`);
@@ -115,18 +141,7 @@ test("a chart of only the bug paths words each one with the view, asked once for
     },
   };
   const { report: text, files } = compile(
-    {
-      spec: { ...spec, folder: "" },
-      graph: graphOf(drawn.paths),
-      paths,
-      rules: [],
-      properties: [],
-      exit: 1,
-      stop: undefined,
-      drawing: undefined,
-      states: { distinct: 1234, initial: 1, complete: true, cut: false },
-      messages: [],
-    },
+    pathsOnlyResult(spec, graphOf(drawn.paths), drawn.found),
     checkView(view, inspect),
   );
   assert.match(
