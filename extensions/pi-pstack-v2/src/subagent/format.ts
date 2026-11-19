@@ -1,5 +1,6 @@
 import type { UsageStats } from './types.ts';
 
+const COST_DECIMALS = 4;
 const THOUSAND = 1000;
 const TEN_THOUSAND = 10_000;
 const MILLION = 1_000_000;
@@ -20,7 +21,7 @@ export function formatUsageStats(usage: UsageInput, model?: string): string {
     usage.output ? `↓${formatTokens(usage.output)}` : '',
     usage.cacheRead ? `R${formatTokens(usage.cacheRead)}` : '',
     usage.cacheWrite ? `W${formatTokens(usage.cacheWrite)}` : '',
-    usage.cost ? `$${usage.cost.toFixed(4)}` : '',
+    usage.cost ? `$${usage.cost.toFixed(COST_DECIMALS)}` : '',
     usage.contextTokens && usage.contextTokens > 0 ? `ctx:${formatTokens(usage.contextTokens)}` : '',
     model ?? '',
   ];

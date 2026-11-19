@@ -15,6 +15,12 @@ import { workerReport } from './transcript.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const POLL_MS = 2000;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+const STDERR_TAIL_LINES = 40;
+const RAW_OUTPUT_TAIL_LINES = 60;
+const DEFAULT_OUTPUT_LINES = 80;
+const DEFAULT_WAIT_SECONDS = 300;
 const REPORT_LIMIT = 20000;
 // A report's first lines hold its verdict, so they are kept ahead of the end when a report is cut.
 const REPORT_HEAD = 4000;
@@ -45,8 +51,8 @@ const SANDBOX_NOTE =
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 
 const duration = (ms: number): string => {
-  const seconds = Math.max(0, Math.round(ms / 1000));
-  return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  const seconds = Math.max(0, Math.round(ms / MS_PER_SECOND));
+  return seconds < SECONDS_PER_MINUTE ? `${seconds}s` : `${Math.floor(seconds / SECONDS_PER_MINUTE)}m ${seconds % SECONDS_PER_MINUTE}s`;
 };
 
 function report(job: Job): string {
@@ -62,10 +68,10 @@ function report(job: Job): string {
       ? clip(answers.join('\n\n[Later completed answer]\n\n'), REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD, transcript.path)
       : job.spec.kind === 'pi'
         ? excerpt(output, REPORT_HEAD, REPORT_LIMIT - REPORT_HEAD)
-        : tail(output, 60);
+        : tail(output, RAW_OUTPUT_TAIL_LINES);
   // A worker that fails at startup, such as on a bad model or credential, says why only on stderr.
   const failed = job.status.state !== 'exited' || job.status.code !== 0 || !body.trim();
-  const errors = failed ? tail(join(job.spec.out, 'stderr.log'), 40).trim() : '';
+  const errors = failed ? tail(join(job.spec.out, 'stderr.log'), STDERR_TAIL_LINES).trim() : '';
   return [
     `tmux job ${job.spec.name} (${job.spec.id}) ${state}. Raw output: ${output}`,
     transcript ? `Transcript: ${transcript.path}` : '',
@@ -141,84 +147,174 @@ function namedJobs(root: string, owner: string, action: string, ids: string[] | 
   });
 }
 
-export default function pstack(pi: ExtensionAPI) {
-  let watcher: ReturnType<typeof setInterval> | undefined;
-  const stoppedSeries = new Set<string>();
+/** Mutable session state, held as rebound closure variables so each extension instance keeps its own. */
+type PstackState = {
+  stoppedSeries: () => ReadonlySet<string>;
+  stopSeries: (ids: Iterable<string>) => void;
+  awaited: () => ReadonlySet<string>;
+  await: (ids: readonly string[]) => void;
+  release: (ids: readonly string[]) => void;
+  settling: () => boolean;
+  setSettling: (value: boolean) => void;
+  mode: () => string | undefined;
+  setMode: (value: string | undefined) => void;
+  watcher: () => ReturnType<typeof setInterval> | undefined;
+  setWatcher: (value: ReturnType<typeof setInterval> | undefined) => void;
+};
+
+function createState(): PstackState {
   // Jobs a tmux_jobs wait call is blocking on. Their report goes back as that call's result, not as a wake.
-  const awaited = new Set<string>();
+  let awaited: ReadonlySet<string> = new Set();
+  let stoppedSeries: ReadonlySet<string> = new Set();
   // While a print-mode run settles, agent_before_settle delivers the reports itself.
   let settling = false;
-
-  // Reports a finished job whose wake was just claimed, restarting it first when it is a heartbeat that exited cleanly.
-  const finish = (job: Job): string => {
-    if (!job.spec.repeat) return report(job);
-    // A heartbeat repeats only while it exits cleanly, so a failing command cannot wake the session in a tight loop.
-    if (job.status.state !== 'exited' || job.status.code !== 0) return `${report(job)}\n\nThis heartbeat did not exit cleanly, so it was not restarted.`;
-    try {
-      if (stoppedSeries.has(job.spec.series)) return report(job);
-      // The next run gets its own temp directory in place of this one's.
-      const policy = { ...job.spec.policy, writable: job.spec.policy.writable.filter((path) => path !== join(job.dir, 'tmp')) };
-      start(jobsRoot(), { ...job.spec, policy, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
-      return report(job);
-    } catch (error) {
-      return `${report(job)}\n\nThis heartbeat could not be restarted: ${error instanceof Error ? error.message : String(error)}`;
-    }
-  };
-
-  const deliverFinished = (ctx: ExtensionContext): void => {
-    const jobs = list(jobsRoot(), ctx.sessionManager.getSessionId());
-    for (const job of jobs) {
-      if (job.spec.wake === null || job.status.state === 'running' || awaited.has(job.spec.id) || !claimWake(job)) continue;
-      pi.sendMessage({ customType: 'pstack-job', content: finish(job), display: true }, { triggerTurn: true, deliverAs: 'steer' });
-    }
-    if (ctx.hasUI) {
-      const running = jobs.filter((job) => job.status.state === 'running').length;
-      ctx.ui.setStatus('pstack', running ? `tmux jobs: ${running} running` : undefined);
-    }
-  };
-
-  const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
-  const deliverable = (ctx: ExtensionContext): boolean => interactive(ctx) || (!settling && !ctx.isIdle());
-
-  const serve = (ctx: ExtensionContext): void => {
-    if (brokering()) return;
-    const owner = ctx.sessionManager.getSessionId();
-    for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
-  };
-
-  // Carries refreshed OAuth tokens between your credentials and each top-level job's copy, once more after the job ends.
-  const syncCredentials = (ctx: ExtensionContext): void => {
-    if (insideJob()) return;
-    for (const job of list(jobsRoot(), ctx.sessionManager.getSessionId())) {
-      const copy = jobAgentDir(job.dir);
-      if (!existsSync(join(copy, 'auth.json')) || existsSync(join(job.dir, 'tokens-synced'))) continue;
-      if (syncTokens(getAgentDir(), copy) && job.status.state !== 'running') writeFileSync(join(job.dir, 'tokens-synced'), '');
-    }
-  };
-
-  // Each step runs on its own, so one failing does not stop the others.
-  const tick = (ctx: ExtensionContext): void => {
-    for (const step of [() => syncCredentials(ctx), () => serve(ctx), () => deliverable(ctx) && deliverFinished(ctx)]) {
-      try {
-        step();
-      } catch (error) {
-        if (ctx.hasUI) ctx.ui.notify(`pstack job watcher: ${error instanceof Error ? error.message : String(error)}`, 'error');
-      }
-    }
-  };
-
   let mode: string | undefined;
-  const showMode = (ctx: ExtensionContext): void => {
-    if (ctx.hasUI) ctx.ui.setStatus(MODE, mode ? `mode: ${mode}` : undefined);
+  let watcher: ReturnType<typeof setInterval> | undefined;
+  return {
+    stoppedSeries: () => stoppedSeries,
+    stopSeries: (ids) => {
+      stoppedSeries = new Set([...stoppedSeries, ...ids]);
+    },
+    awaited: () => awaited,
+    await: (ids) => {
+      awaited = new Set([...awaited, ...ids]);
+    },
+    release: (ids) => {
+      awaited = new Set([...awaited].filter((id) => !ids.includes(id)));
+    },
+    settling: () => settling,
+    setSettling: (value) => {
+      settling = value;
+    },
+    mode: () => mode,
+    setMode: (value) => {
+      mode = value;
+    },
+    watcher: () => watcher,
+    setWatcher: (value) => {
+      watcher = value;
+    },
   };
-  // The mode lives on the session branch, so a resumed session or a /tree jump gets the mode that branch had.
-  const restoreMode = (ctx: ExtensionContext): void => {
-    mode = undefined;
-    for (const entry of ctx.sessionManager.getBranch()) if (entry.type === 'custom' && entry.customType === MODE) mode = (entry.data as { skill?: string } | undefined)?.skill;
-    if (mode && !skillNames.includes(mode)) mode = undefined;
-    showMode(ctx);
-  };
+}
 
+// Reports a finished job whose wake was just claimed, restarting it first when it is a heartbeat that exited cleanly.
+const finish = (state: PstackState, job: Job): string => {
+  if (!job.spec.repeat) return report(job);
+  // A heartbeat repeats only while it exits cleanly, so a failing command cannot wake the session in a tight loop.
+  if (job.status.state !== 'exited' || job.status.code !== 0) return `${report(job)}\n\nThis heartbeat did not exit cleanly, so it was not restarted.`;
+  try {
+    if (state.stoppedSeries().has(job.spec.series)) return report(job);
+    // The next run gets its own temp directory in place of this one's.
+    const policy = { ...job.spec.policy, writable: job.spec.policy.writable.filter((path) => path !== join(job.dir, 'tmp')) };
+    start(jobsRoot(), { ...job.spec, policy, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
+    return report(job);
+  } catch (error) {
+    return `${report(job)}\n\nThis heartbeat could not be restarted: ${error instanceof Error ? error.message : String(error)}`;
+  }
+};
+
+const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
+
+const deliverFinished = (pi: ExtensionAPI, state: PstackState, ctx: ExtensionContext): void => {
+  const jobs = list(jobsRoot(), ctx.sessionManager.getSessionId());
+  for (const job of jobs) {
+    if (job.spec.wake === null || job.status.state === 'running' || state.awaited().has(job.spec.id) || !claimWake(job)) continue;
+    pi.sendMessage({ customType: 'pstack-job', content: finish(state, job), display: true }, { triggerTurn: true, deliverAs: 'steer' });
+  }
+  if (ctx.hasUI) {
+    const running = jobs.filter((job) => job.status.state === 'running').length;
+    ctx.ui.setStatus('pstack', running ? `tmux jobs: ${running} running` : undefined);
+  }
+};
+
+const serve = (ctx: ExtensionContext): void => {
+  if (brokering()) return;
+  const owner = ctx.sessionManager.getSessionId();
+  for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
+};
+
+// Carries refreshed OAuth tokens between your credentials and each top-level job's copy, once more after the job ends.
+const syncCredentials = (ctx: ExtensionContext): void => {
+  if (insideJob()) return;
+  for (const job of list(jobsRoot(), ctx.sessionManager.getSessionId())) {
+    const copy = jobAgentDir(job.dir);
+    if (!existsSync(join(copy, 'auth.json')) || existsSync(join(job.dir, 'tokens-synced'))) continue;
+    if (syncTokens(getAgentDir(), copy) && job.status.state !== 'running') writeFileSync(join(job.dir, 'tokens-synced'), '');
+  }
+};
+
+// Each step runs on its own, so one failing does not stop the others.
+const tick = (pi: ExtensionAPI, state: PstackState, ctx: ExtensionContext): void => {
+  const deliverable = interactive(ctx) || (!state.settling() && !ctx.isIdle());
+  for (const step of [() => syncCredentials(ctx), () => serve(ctx), () => deliverable && deliverFinished(pi, state, ctx)]) {
+    try {
+      step();
+    } catch (error) {
+      if (ctx.hasUI) ctx.ui.notify(`pstack job watcher: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
+  }
+};
+
+/** Ends the session's tmux server; false when it started no jobs and so had none. */
+function killTmuxServer(socket: string): boolean {
+  try {
+    execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function registerWatcher(pi: ExtensionAPI, state: PstackState): void {
+  pi.on('session_start', async (_event, ctx) => {
+    restoreMode(state, ctx);
+    clearInterval(state.watcher());
+    state.setWatcher(setInterval(() => tick(pi, state, ctx), POLL_MS));
+  });
+
+  pi.on('session_shutdown', async (_event, ctx) => {
+    clearInterval(state.watcher());
+    state.setWatcher(undefined);
+    // A print-mode worker's leftover jobs, such as a dev server it never stopped, end with it.
+    if (interactive(ctx)) return;
+    killTmuxServer(tmuxSocket(ctx.sessionManager.getSessionId()));
+  });
+
+  // A print-mode run would exit while its jobs still run, so it waits for them and continues with their reports.
+  pi.on('agent_before_settle', async (event, ctx) => {
+    if (interactive(ctx)) return;
+    const owner = ctx.sessionManager.getSessionId();
+    const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !existsSync(join(job.dir, 'woken')));
+    if (pending().length === 0) return;
+    state.setSettling(true);
+    try {
+      while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
+      syncCredentials(ctx);
+      const finished = pending().filter(claimWake);
+      return {
+        entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(state, job), display: true }))],
+        continue: true,
+      };
+    } finally {
+      state.setSettling(false);
+    }
+  });
+}
+
+const showMode = (state: PstackState, ctx: ExtensionContext): void => {
+  if (ctx.hasUI) ctx.ui.setStatus(MODE, state.mode() ? `mode: ${state.mode()}` : undefined);
+};
+
+// The mode lives on the session branch, so a resumed session or a /tree jump gets the mode that branch had.
+const restoreMode = (state: PstackState, ctx: ExtensionContext): void => {
+  const recorded = ctx.sessionManager
+    .getBranch()
+    .reduce<string | undefined>((current, entry) => (entry.type === 'custom' && entry.customType === MODE ? (entry.data as { skill?: string } | undefined)?.skill : current), undefined);
+  state.setMode(recorded && skillNames.includes(recorded) ? recorded : undefined);
+  showMode(state, ctx);
+};
+
+function registerModeCommand(pi: ExtensionAPI, state: PstackState): void {
   pi.registerCommand(MODE, {
     description: 'Keep a pstack skill in context every turn. /pstack-mode off ends it.',
     getArgumentCompletions: (prefix: string) => {
@@ -228,6 +324,7 @@ export default function pstack(pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const name = args.trim();
       if (!name) {
+        const mode = state.mode();
         if (ctx.hasUI) ctx.ui.notify(mode ? `${mode} mode is on. /pstack-mode off ends it.` : 'No pstack mode is on. /pstack-mode <skill> starts one.', 'info');
         return;
       }
@@ -235,52 +332,15 @@ export default function pstack(pi: ExtensionAPI) {
         if (ctx.hasUI) ctx.ui.notify(`${name} is not a pstack skill. Pick one from /pstack-mode's completions.`, 'error');
         return;
       }
-      mode = name === 'off' ? undefined : name;
-      pi.appendEntry(MODE, { skill: mode });
-      showMode(ctx);
+      state.setMode(name === 'off' ? undefined : name);
+      pi.appendEntry(MODE, { skill: state.mode() });
+      showMode(state, ctx);
     },
   });
+  pi.on('session_tree', async (_event, ctx) => restoreMode(state, ctx));
+}
 
-  pi.on('session_tree', async (_event, ctx) => restoreMode(ctx));
-
-  pi.on('session_start', async (_event, ctx) => {
-    restoreMode(ctx);
-    clearInterval(watcher);
-    watcher = setInterval(() => tick(ctx), POLL_MS);
-  });
-
-  pi.on('session_shutdown', async (_event, ctx) => {
-    clearInterval(watcher);
-    watcher = undefined;
-    // A print-mode worker's leftover jobs, such as a dev server it never stopped, end with it.
-    if (interactive(ctx)) return;
-    try {
-      execFileSync('tmux', ['-S', tmuxSocket(ctx.sessionManager.getSessionId()), 'kill-server'], { stdio: 'ignore' });
-    } catch {
-      // It started no jobs.
-    }
-  });
-
-  // A print-mode run would exit while its jobs still run, so it waits for them and continues with their reports.
-  pi.on('agent_before_settle', async (event, ctx) => {
-    if (interactive(ctx)) return;
-    const owner = ctx.sessionManager.getSessionId();
-    const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !existsSync(join(job.dir, 'woken')));
-    if (pending().length === 0) return;
-    settling = true;
-    try {
-      while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
-      syncCredentials(ctx);
-      const finished = pending().filter(claimWake);
-      return {
-        entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(job), display: true }))],
-        continue: true,
-      };
-    } finally {
-      settling = false;
-    }
-  });
-
+function registerPromptHook(pi: ExtensionAPI, state: PstackState): void {
   pi.on('before_agent_start', async (event, ctx) => {
     const options = event.systemPromptOptions;
     if (!options.promptGuidelines.includes(skillsHint)) Object.assign(options.promptGuidelines, [...options.promptGuidelines, skillsHint]);
@@ -290,10 +350,13 @@ export default function pstack(pi: ExtensionAPI) {
         `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
     if (insideJob()) options.sections['pstack-sandbox'] = SANDBOX_NOTE;
     const models = modelsFile(getAgentDir());
+    const mode = state.mode();
     if (mode) options.sections[MODE] = modeSection(mode);
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
   });
+}
 
+function registerTmuxRun(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'tmux_run',
     label: 'Run in tmux',
@@ -344,21 +407,24 @@ export default function pstack(pi: ExtensionAPI) {
     },
   });
 
-  /** Blocks on the named jobs, or every waitable one, and reports each. */
-  const waitFor = async (root: string, owner: string, named: string[] | undefined, timeout: number | undefined, waiter: Waiter): Promise<string> => {
-    const ids = named?.length ? named : waitableIds(root, owner);
-    const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
-    for (const id of ids) awaited.add(id);
-    try {
-      await blockWhileRunning(current, Date.now() + (timeout ?? 300) * 1000, waiter);
-      // A job whose wake the watcher already delivered is reported plainly, without restarting a heartbeat twice.
-      const reports = current().map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : claimWake(job) ? finish(job) : report(job)));
-      return reports.join('\n\n') || 'No jobs to wait on.';
-    } finally {
-      for (const id of ids) awaited.delete(id);
-    }
-  };
+}
 
+/** Blocks on the named jobs, or every waitable one, and reports each. */
+async function waitFor(state: PstackState, root: string, owner: string, named: string[] | undefined, timeout: number | undefined, waiter: Waiter): Promise<string> {
+  const ids = named?.length ? named : waitableIds(root, owner);
+  const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
+  state.await(ids);
+  try {
+    await blockWhileRunning(current, Date.now() + (timeout ?? DEFAULT_WAIT_SECONDS) * MS_PER_SECOND, waiter);
+    // A job whose wake the watcher already delivered is reported plainly, without restarting a heartbeat twice.
+    const reports = current().map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : claimWake(job) ? finish(state, job) : report(job)));
+    return reports.join('\n\n') || 'No jobs to wait on.';
+  } finally {
+    state.release(ids);
+  }
+}
+
+function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
   pi.registerTool({
     name: 'tmux_jobs',
     label: 'tmux jobs',
@@ -378,15 +444,24 @@ export default function pstack(pi: ExtensionAPI) {
         const jobs = list(root, owner);
         return text(jobs.length ? jobs.map(describe).join('\n') : 'No jobs in this session.');
       }
-      if (params.action === 'output') return text(named().map((job) => outputOf(job, params.lines ?? 80)).join('\n\n'));
-      if (params.action === 'wait') return text(await waitFor(root, owner, params.ids, params.timeout_seconds, { signal, update, ctx }));
+      if (params.action === 'output') return text(named().map((job) => outputOf(job, params.lines ?? DEFAULT_OUTPUT_LINES)).join('\n\n'));
+      if (params.action === 'wait') return text(await waitFor(state, root, owner, params.ids, params.timeout_seconds, { signal, update, ctx }));
       const series = new Set(named().map((job) => job.spec.series));
       // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
-      for (const id of series) stoppedSeries.add(id);
+      state.stopSeries(series);
       // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
       const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
       await Promise.all(jobs.map(stop));
       return text(`Stopped ${jobs.map((job) => job.spec.id).join(', ')}.`);
     },
   });
+}
+
+export default function pstack(pi: ExtensionAPI) {
+  const state = createState();
+  registerModeCommand(pi, state);
+  registerWatcher(pi, state);
+  registerPromptHook(pi, state);
+  registerTmuxRun(pi);
+  registerTmuxJobs(pi, state);
 }

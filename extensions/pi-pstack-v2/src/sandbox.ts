@@ -202,6 +202,21 @@ const SYSCALLS: Partial<Record<Arch, { audit: number; socket: number; ioUringSet
   arm64: { audit: 0xc00000b7, socket: 198, ioUringSetup: 425 },
 };
 
+const ALLOW = 0x7fff0000;
+const DENY = 0x00050001;
+const SECCOMP_ARCH_OFFSET = 4;
+const SECCOMP_FIRST_ARG_OFFSET = 16;
+const SKIP_TO_DENY_FROM_ARCH = 7;
+const SKIP_TO_DENY_FROM_X32 = 5;
+const SKIP_TO_DENY_FROM_IO_URING = 4;
+const SKIP_SOCKET_CHECK = 2;
+const X32_SYSCALL_BIT = 0x40000000;
+const AF_UNIX = 1;
+const BPF_INSTRUCTION_BYTES = 8;
+const BPF_JT_OFFSET = 2;
+const BPF_JF_OFFSET = 3;
+const BPF_K_OFFSET = 4;
+
 /**
  * A classic BPF program for bubblewrap's `--seccomp`: a job may not open a Unix socket, the way macOS denies binding or
  * connecting one, so it reaches no local service, abstract socket, or tmux server. Socket pairs, which child processes
@@ -215,26 +230,25 @@ export function seccompFilter(arch: Arch = process.arch): Buffer {
   const JEQ = 0x15;
   const JGE = 0x35;
   const RET = 0x06;
-  const ALLOW = 0x7fff0000;
-  const DENY = 0x00050001;
   const program: [number, number, number, number][] = [
-    [LD, 0, 0, 4],
-    [JEQ, 0, 7, nr.audit],
+    [LD, 0, 0, SECCOMP_ARCH_OFFSET],
+    [JEQ, 0, SKIP_TO_DENY_FROM_ARCH, nr.audit],
     [LD, 0, 0, 0],
-    [JGE, 5, 0, 0x40000000],
-    [JEQ, 4, 0, nr.ioUringSetup],
-    [JEQ, 0, 2, nr.socket],
-    [LD, 0, 0, 16],
-    [JEQ, 1, 0, 1],
+    [JGE, SKIP_TO_DENY_FROM_X32, 0, X32_SYSCALL_BIT],
+    [JEQ, SKIP_TO_DENY_FROM_IO_URING, 0, nr.ioUringSetup],
+    [JEQ, 0, SKIP_SOCKET_CHECK, nr.socket],
+    [LD, 0, 0, SECCOMP_FIRST_ARG_OFFSET],
+    [JEQ, 1, 0, AF_UNIX],
     [RET, 0, 0, ALLOW],
     [RET, 0, 0, DENY],
   ];
-  const bytes = Buffer.alloc(program.length * 8);
+  const bytes = Buffer.alloc(program.length * BPF_INSTRUCTION_BYTES);
   program.forEach(([code, jt, jf, k], index) => {
-    bytes.writeUInt16LE(code, index * 8);
-    bytes.writeUInt8(jt, index * 8 + 2);
-    bytes.writeUInt8(jf, index * 8 + 3);
-    bytes.writeUInt32LE(k, index * 8 + 4);
+    const at = index * BPF_INSTRUCTION_BYTES;
+    bytes.writeUInt16LE(code, at);
+    bytes.writeUInt8(jt, at + BPF_JT_OFFSET);
+    bytes.writeUInt8(jf, at + BPF_JF_OFFSET);
+    bytes.writeUInt32LE(k, at + BPF_K_OFFSET);
   });
   return bytes;
 }

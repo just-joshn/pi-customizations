@@ -171,8 +171,9 @@ export function sweep(inv: Inventory): string[] {
 }
 
 // The wrapper runs this file directly once the job has ended: `node sweep.ts <inventory.json>`.
-if (process.argv[1] && basename(process.argv[1]) === 'sweep.ts' && process.argv[2]) {
-  const inv = InventorySchema.parse(JSON.parse(readFileSync(process.argv[2], 'utf8')));
+const argv = z.array(z.string()).parse(process.argv);
+if (argv[1] && basename(argv[1]) === 'sweep.ts' && argv[2]) {
+  const inv = InventorySchema.parse(JSON.parse(readFileSync(argv[2], 'utf8')));
   try {
     sweep(inv);
   } catch (error) {

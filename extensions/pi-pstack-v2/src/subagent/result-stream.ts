@@ -27,16 +27,18 @@ const MessageEndEventSchema = z.object({
   ]),
 });
 
+function safeParseLine(line: string) {
+  try {
+    return MessageEndEventSchema.safeParse(JSON.parse(line));
+  } catch {
+    return { success: false as const };
+  }
+}
+
 /** Parse one JSON-mode stdout line; anything other than a well-formed `message_end` yields undefined. */
 export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
-  let raw: unknown;
-  try {
-    raw = JSON.parse(line);
-  } catch {
-    return undefined;
-  }
-  const event = MessageEndEventSchema.safeParse(raw);
+  const event = safeParseLine(line);
   // The schema pins the fields this module reads; the rest of the message is passed through to the UI untouched.
   return event.success ? (event.data.message as unknown as Message) : undefined;
 }

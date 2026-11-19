@@ -83,9 +83,32 @@ export interface Job {
 }
 
 export const STOPPED_EXIT_CODE = 143;
+const LAUNCH_FAILED_EXIT_CODE = 127;
+const HASH_LENGTH = 16;
+const JOB_ID_SUFFIX_BYTES = 3;
+const STOP_GRACE_MS = 6000;
+const PID_FILE_BYTES = 32;
+const STOP_POLL_MS = 50;
+const TAIL_WINDOW_KIBIBYTES = 256;
+const BYTES_PER_KIBIBYTE = 1024;
+const TAIL_WINDOW_BYTES = TAIL_WINDOW_KIBIBYTES * BYTES_PER_KIBIBYTE;
+const UTF8_CONTINUATION_MASK = 0xc0;
+const UTF8_CONTINUATION_TAG = 0x80;
+const UTF8_LEAD_4 = 0xf0;
+const UTF8_LEAD_3 = 0xe0;
+const UTF8_LEAD_2 = 0xc0;
+const FOUR_BYTES = 4;
+const THREE_BYTES = 3;
+const TWO_BYTES = 2;
+// A UTF-8 lead byte at or above each threshold starts a sequence of that many bytes.
+const UTF8_LEAD_WIDTHS: readonly (readonly [number, number])[] = [
+  [UTF8_LEAD_4, FOUR_BYTES],
+  [UTF8_LEAD_3, THREE_BYTES],
+  [UTF8_LEAD_2, TWO_BYTES],
+];
 
 const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
-const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, 16);
+const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, HASH_LENGTH);
 
 export const jobDir = (root: string, id: string): string => join(root, id);
 export const outputPath = (out: string): string => join(out, 'output.log');
@@ -101,7 +124,7 @@ export function newJobId(name: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 24);
-  return `${slug || 'job'}-${randomBytes(3).toString('hex')}`;
+  return `${slug || 'job'}-${randomBytes(JOB_ID_SUFFIX_BYTES).toString('hex')}`;
 }
 
 /**
@@ -121,9 +144,7 @@ export function tmuxSocket(owner: string): string {
 // tmux reaches the socket through a relative path from its directory, so a deeply nested socket stays under the
 // 104 to 108 byte limit on Unix socket paths.
 function tmux(socket: string, args: string[]): void {
-  const env = { ...process.env };
-  delete env['TMUX'];
-  delete env['TMUX_PANE'];
+  const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = process.env;
   try {
     execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
   } catch (error) {
@@ -337,7 +358,7 @@ export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWha
     writeFileSync(join(out, 'launched'), '');
     return true;
   } catch (error) {
-    settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
+    settleBrokered(out, LAUNCH_FAILED_EXIT_CODE, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 }
@@ -398,8 +419,8 @@ export async function stop(job: Job): Promise<void> {
     // The wrapper records the exit once it has ended the job and cleaned up. Only a wrapper that is already gone, and so
     // can never record it, leaves that to stop.
     const exit = exitPath(job.spec.out);
-    const deadline = Date.now() + 6_000;
-    const wrapper = Number(readEnd(join(job.spec.out, 'wrapper.pid'), 32).trim());
+    const deadline = Date.now() + STOP_GRACE_MS;
+    const wrapper = Number(readEnd(join(job.spec.out, 'wrapper.pid'), PID_FILE_BYTES).trim());
     const alive = (): boolean => {
       try {
         process.kill(wrapper, 0);
@@ -409,7 +430,7 @@ export async function stop(job: Job): Promise<void> {
       }
     };
     // The wrapper keeps cleaning up after its session is gone, so waiting ends once it records the exit or is itself gone.
-    while (!existsSync(exit) && Date.now() < deadline && alive()) await new Promise((done) => setTimeout(done, 50));
+    while (!existsSync(exit) && Date.now() < deadline && alive()) await new Promise((done) => setTimeout(done, STOP_POLL_MS));
     if (!existsSync(exit)) {
       writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
       renameSync(`${exit}.tmp`, exit);
@@ -446,7 +467,7 @@ export function readEnd(path: string, bytes: number): string {
   return readRange(path, size - length, length).toString('utf8');
 }
 
-const isContinuation = (byte: number | undefined): boolean => byte !== undefined && (byte & 0xc0) === 0x80;
+const isContinuation = (byte: number | undefined): boolean => byte !== undefined && (byte & UTF8_CONTINUATION_MASK) === UTF8_CONTINUATION_TAG;
 
 /**
  * The start and the end of a file with a note of how many bytes lie between, so a verdict on its first line survives a
@@ -469,7 +490,7 @@ function clipRanges(first: Buffer, last: Buffer, size: number, path: string): st
   let lead = first.length - 1;
   while (lead > 0 && isContinuation(first[lead])) lead--;
   const byte = first[lead] ?? 0;
-  const end = lead + (byte >= 0xf0 ? 4 : byte >= 0xe0 ? 3 : byte >= 0xc0 ? 2 : 1) > first.length ? lead : first.length;
+  const end = lead + (UTF8_LEAD_WIDTHS.find(([threshold]) => byte >= threshold)?.[1] ?? 1) > first.length ? lead : first.length;
   let from = 0;
   while (isContinuation(last[from])) from++;
   const omitted = size - end - (last.length - from);
@@ -477,7 +498,7 @@ function clipRanges(first: Buffer, last: Buffer, size: number, path: string): st
 }
 
 export function tail(path: string, lines: number): string {
-  return readEnd(path, 256 * 1024)
+  return readEnd(path, TAIL_WINDOW_BYTES)
     .split('\n')
     .slice(-lines)
     .join('\n');

@@ -3,7 +3,9 @@ import type { Message } from '@earendil-works/pi-ai';
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, truncateHead } from '@earendil-works/pi-coding-agent';
 import type { DisplayItem, MakeDetails, SingleResult, SubagentDetails, SubagentMode, UsageStats } from './types.ts';
 
-const PER_TASK_OUTPUT_CAP = 50 * 1024;
+const KIBIBYTES_PER_TASK = 50;
+const BYTES_PER_KIBIBYTE = 1024;
+const PER_TASK_OUTPUT_CAP = KIBIBYTES_PER_TASK * BYTES_PER_KIBIBYTE;
 const TRUNCATION_NOTICE_RESERVE = 256;
 const NO_OUTPUT = '(no output)';
 

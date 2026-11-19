@@ -10,6 +10,8 @@ export interface ProcessOutcome {
 }
 
 const POLL_INTERVAL_MS = 50;
+const BASE36 = 36;
+const SESSION_SUFFIX_END = 8;
 const WRAPPER_MODE = 0o755;
 
 function shellQuote(value: string): string {
@@ -132,7 +134,7 @@ export async function runPiInTmux(options: {
   /** Test hook: called after the tmux session exists and before waiting for exit. */
   onSessionStarted?: ((session: string) => void) | undefined;
 }): Promise<ProcessOutcome> {
-  const session = `pi-subagent-${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
   try {

@@ -73,6 +73,8 @@ export function workerReport(sessionDir: string | undefined, since: string): Rep
       const entries = parseSessionEntries(readFileSync(path, 'utf8'));
       if (entries[0]?.type === 'session') return reportOf(path, entries, since);
     }
-  } catch {}
+  } catch {
+    return undefined;
+  }
   return undefined;
 }
