@@ -56,8 +56,10 @@ export function project(graph: Graph, walked: Walk, view: View, found: Bug[]) {
 
 export function compile(result: CheckResult, view: CheckedView) {
   const walked = walk(result.graph);
-  const found = [...(result.paths ?? bugs(result.graph, walked))].sort(shortestFirst);
-  for (const p of result.properties) if (p.bug) found.push({ rule: p.rule, ...p.bug });
+  const found: Bug[] = [
+    ...(result.paths ?? bugs(result.graph, walked)).toSorted(shortestFirst),
+    ...result.properties.flatMap((p) => (p.bug ? [{ rule: p.rule, ...p.bug }] : [])),
+  ];
   const { chart, stories } =
     found.length || !result.paths
       ? project(result.graph, walked, view, found)

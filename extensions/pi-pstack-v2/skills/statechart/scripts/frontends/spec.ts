@@ -1,6 +1,8 @@
 import type { Config, ConfigSection, Spec } from "../ir.ts";
 import { NAME } from "./config.ts";
 
+const CHECK_KEYS = ["INVARIANT", "PROPERTY", "CHECK_DEADLOCK"];
+
 export type Checks = Pick<Spec, "invariants" | "properties" | "deadlock" | "written">;
 
 export function readChecks({ configFile, config }: { configFile: string; config: Config }): Checks {
@@ -9,9 +11,7 @@ export function readChecks({ configFile, config }: { configFile: string; config:
     throw refuse("The configuration file cannot specify both INIT/NEXT and SPECIFICATION fields.");
   if (!config.spec && !config.init)
     throw refuse("The configuration file did not specify the initial state predicate.");
-  const written: ConfigSection[] = [];
-  for (const s of config.sections)
-    if (!["INVARIANT", "PROPERTY", "CHECK_DEADLOCK"].includes(s.key)) written.push(s);
+  const written: ConfigSection[] = config.sections.filter((s) => !CHECK_KEYS.includes(s.key));
   return {
     invariants: config.invariants,
     properties: config.properties,
@@ -31,23 +31,29 @@ const decode = (text: string) =>
       : ENTITIES[name],
   );
 
-function parseXml(xml: string) {
-  const document: XmlNode = { tag: "", text: "", children: [] };
-  const open = [document];
-  for (const [, close, tag, empty, text] of xml.matchAll(
-    /<(\/?)([^\s/>?!]+)[^>]*?(\/?)>|<[?!][^>]*>|([^<]+)/g,
-  )) {
-    const parent = open[open.length - 1];
-    if (text !== undefined) parent.text += decode(text);
-    else if (close) open.pop();
-    else if (tag) {
-      const node: XmlNode = { tag, text: "", children: [] };
-      parent.children.push(node);
-      if (!empty) open.push(node);
+const XML_TOKEN = /<(\/?)([^\s/>?!]+)[^>]*?(\/?)>|<[?!][^>]*>|([^<]+)/g;
+
+/** Reads the content of one element, starting after its open tag; returns the node and the next token index. */
+function readXmlNode(tokens: RegExpMatchArray[], from: number, tag: string): [XmlNode, number] {
+  let text = "";
+  let children: XmlNode[] = [];
+  let at = from;
+  while (at < tokens.length) {
+    const [, close, name, empty, chars] = tokens[at++];
+    if (chars !== undefined) text += decode(chars);
+    else if (close) break;
+    else if (name && empty) children = [...children, { tag: name, text: "", children: [] }];
+    else if (name) {
+      const [node, next] = readXmlNode(tokens, at, name);
+      children = [...children, node];
+      at = next;
     }
   }
-  return document;
+  return [{ tag, text, children }, at];
 }
+
+const parseXml = (xml: string): XmlNode =>
+  readXmlNode(Array.from(xml.matchAll(XML_TOKEN)), 0, "")[0];
 
 const child = (node: XmlNode | undefined, tag: string) => node?.children.find((c) => c.tag === tag);
 const textOf = (node: XmlNode | undefined, tag: string) => child(node, tag)?.text ?? "";
@@ -59,28 +65,31 @@ export type Sany = {
 
 const VARIABLE_KIND = "3";
 
+type Declaration = { uid: string; name: string; node: XmlNode };
+
+const declarationsOf = (module: XmlNode | undefined, symbols: Map<string, XmlNode>) =>
+  (module?.children ?? []).flatMap((ref): Declaration[] => {
+    if (ref.tag !== "OpDeclNodeRef" && ref.tag !== "UserDefinedOpKindRef") return [];
+    const uid = textOf(ref, "UID");
+    const node = symbols.get(uid);
+    return node ? [{ uid, name: textOf(node, "uniquename"), node }] : [];
+  });
+
 export function readSany(xml: string): Sany {
   const modules = child(parseXml(xml), "modules");
   const symbols = new Map<string, XmlNode>();
   for (const entry of child(modules, "context")?.children ?? [])
     symbols.set(textOf(entry, "UID"), entry.children[1]);
   const root = textOf(modules, "RootModule");
-  let module: XmlNode | undefined;
-  for (const node of symbols.values())
-    if (node.tag === "ModuleNode" && textOf(node, "uniquename") === root) module = node;
-  const definitions = new Map<string, XmlNode>();
-  const variables: { uid: number; name: string }[] = [];
-  for (const ref of module?.children ?? []) {
-    if (ref.tag !== "OpDeclNodeRef" && ref.tag !== "UserDefinedOpKindRef") continue;
-    const uid = textOf(ref, "UID");
-    const node = symbols.get(uid);
-    if (!node) continue;
-    const name = textOf(node, "uniquename");
-    definitions.set(name, node);
-    if (node.tag === "OpDeclNode" && textOf(node, "kind") === VARIABLE_KIND)
-      variables.push({ uid: Number(uid), name });
-  }
-  variables.sort((a, b) => a.uid - b.uid);
+  const module = Array.from(symbols.values()).findLast(
+    (node) => node.tag === "ModuleNode" && textOf(node, "uniquename") === root,
+  );
+  const declarations = declarationsOf(module, symbols);
+  const definitions = new Map(declarations.map((d) => [d.name, d.node]));
+  const variables = declarations
+    .filter((d) => d.node.tag === "OpDeclNode" && textOf(d.node, "kind") === VARIABLE_KIND)
+    .map((d) => ({ uid: Number(d.uid), name: d.name }))
+    .toSorted((a, b) => a.uid - b.uid);
   return { variables: variables.map((v) => v.name), definitions };
 }
 
@@ -98,17 +107,23 @@ export function readSpec({
 
 const STATE_LEVEL = 1;
 
+const replacementsIn = ({ tokens }: ConfigSection): [string, string][] =>
+  tokens.flatMap((token, i) =>
+    i > 0 && i + 1 < tokens.length && token === "<-" && NAME.test(tokens[i + 1])
+      ? [[tokens[i - 1], tokens[i + 1]] as [string, string]]
+      : [],
+  );
+
+/** The `NAME <- REPLACEMENT` pairs of the CONSTANT sections, in file order. */
+const constantReplacements = (written: ConfigSection[]) =>
+  written.filter((s) => s.key === "CONSTANT").flatMap(replacementsIn);
+
 export function initialOnlyProperties({ definitions }: Sany, { written, properties }: Spec) {
-  const replaced = new Map<string, string>();
-  for (const s of written)
-    if (s.key === "CONSTANT")
-      for (let i = 1; i + 1 < s.tokens.length; i++)
-        if (s.tokens[i] === "<-" && NAME.test(s.tokens[i + 1]))
-          replaced.set(s.tokens[i - 1], s.tokens[i + 1]);
-  const names = new Set<string>();
-  for (const name of properties) {
-    const definition = definitions.get(replaced.get(name) ?? name);
-    if (definition && Number(textOf(definition, "level")) <= STATE_LEVEL) names.add(name);
-  }
-  return names;
+  const replaced = new Map(constantReplacements(written));
+  return new Set(
+    properties.filter((name) => {
+      const definition = definitions.get(replaced.get(name) ?? name);
+      return definition !== undefined && Number(textOf(definition, "level")) <= STATE_LEVEL;
+    }),
+  );
 }

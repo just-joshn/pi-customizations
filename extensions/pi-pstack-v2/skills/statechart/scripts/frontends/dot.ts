@@ -19,19 +19,25 @@ const unescapeDot = (s: string) => {
   return out + s.slice(from);
 };
 
-export const parseState = (label: string, parsed = new Map<string, [string, Value]>()): Vars => {
-  const pairs: [string, Value][] = [];
-  for (const part of (label.startsWith("/\\ ") ? label.slice(3) : label).split("\n/\\ ")) {
-    let pair = parsed.get(part);
-    if (!pair) {
-      const [, name, value] = /^(\w+)\s*=\s*([\s\S]*)$/.exec(part) ?? [];
-      if (!name) throw new Error(`cannot read the TLC state line "${part}"`);
-      parsed.set(part, (pair = [name, parseValue(value)]));
-    }
-    pairs.push(pair);
-  }
-  return Object.fromEntries(pairs);
+const readPair = (part: string, parsed: Map<string, [string, Value]>) => {
+  const known = parsed.get(part);
+  if (known) return known;
+  const [, name, value] = /^(\w+)\s*=\s*([\s\S]*)$/.exec(part) ?? [];
+  if (!name) throw new Error(`cannot read the TLC state line "${part}"`);
+  const pair: [string, Value] = [name, parseValue(value)];
+  parsed.set(part, pair);
+  return pair;
 };
+
+export const parseState = (label: string, parsed = new Map<string, [string, Value]>()): Vars =>
+  Object.fromEntries(
+    (label.startsWith("/\\ ") ? label.slice(3) : label)
+      .split("\n/\\ ")
+      .map((part) => readPair(part, parsed)),
+  );
+
+// A fresh string that shares no storage with the (possibly huge) line it was sliced from.
+const unshared = (s: string) => Array.from(s).join("");
 
 export type Lines = string | Iterable<string>;
 
@@ -44,7 +50,7 @@ export function parseDot(input: Lines): Graph {
   const owned = new Map<string, string>();
   const own = (s: string) => {
     let copy = owned.get(s);
-    if (copy === undefined) owned.set((copy = String(JSON.parse(JSON.stringify(s)))), copy);
+    if (copy === undefined) owned.set((copy = unshared(s)), copy);
     return copy;
   };
   for (const line of linesOf(input)) {

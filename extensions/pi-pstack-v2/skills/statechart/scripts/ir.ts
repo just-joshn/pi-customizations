@@ -16,8 +16,7 @@ type StateBase = { vars: Vars; start: boolean; breaks: Rule[] };
 export type PastState = StateBase & { ends: Rule[]; past: true; excluded: boolean };
 
 export type State =
-  | (StateBase & { ends?: Rule[]; past?: undefined; excluded?: undefined })
-  | PastState;
+  (StateBase & { ends?: Rule[]; past?: undefined; excluded?: undefined }) | PastState;
 
 export type Step = { from: string; to: string; action: string };
 
@@ -202,8 +201,7 @@ export type ChartState = {
 };
 
 export type Condition =
-  | { kind: "and" | "or"; otherKeys: Set<string>[] }
-  | { kind: "tuples"; otherTuples: Set<string> };
+  { kind: "and" | "or"; otherKeys: Set<string>[] } | { kind: "tuples"; otherTuples: Set<string> };
 
 export type Arrow = {
   from: string;
@@ -247,55 +245,8 @@ export const isStrings = (v: unknown): v is string[] =>
 
 export const PART = 1 << 24;
 
-export const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
 export const list = (items: string[], and = "and") =>
   items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} ${and} ${items.at(-1)}`;
-
-const ESCAPES: { [c: string]: string } = {
-  '"': '\\"',
-  "\\": "\\\\",
-  "\n": "\\n",
-  "\t": "\\t",
-  "\r": "\\r",
-  "\f": "\\f",
-};
-const quote = (s: string) => `"${s.replace(/["\\\n\t\r\f]/g, (c) => ESCAPES[c])}"`;
-
-const joined = (items: Value[], sep: string) => {
-  let s = "";
-  for (let i = 0; i < items.length; i++) s += (i ? sep : "") + show(items[i]);
-  return s;
-};
-
-export const show = (v: Value): string => {
-  switch (typeof v) {
-    case "boolean":
-      return v ? "TRUE" : "FALSE";
-    case "number":
-      return String(v);
-    case "string":
-      return quote(v);
-  }
-  switch (v.kind) {
-    case "model":
-      return v.name;
-    case "interval":
-      return `${v.lo}..${v.hi}`;
-    case "set":
-      return `{${joined(v.members, ", ")}}`;
-    case "function": {
-      if (v.printedAs === "tuple") return `<<${joined(v.values, ", ")}>>`;
-      const record = v.printedAs === "record";
-      let s = record ? "[" : "(";
-      for (let i = 0; i < v.keys.length; i++)
-        s += record
-          ? `${i ? ", " : ""}${String(v.keys[i])} |-> ${show(v.values[i])}`
-          : `${i ? " @@ " : ""}${show(v.keys[i])} :> ${show(v.values[i])}`;
-      return s + (record ? "]" : ")");
-    }
-  }
-};
 
 export const must = <K, V>(map: ReadonlyMap<K, V>, key: K): V => {
   const value = map.get(key);
@@ -304,16 +255,13 @@ export const must = <K, V>(map: ReadonlyMap<K, V>, key: K): V => {
 };
 
 export const append = <K, V>(groups: Map<K, V[]>, key: K, item: V) => {
-  const group = groups.get(key);
-  if (group) group.push(item);
-  else groups.set(key, [item]);
+  groups.set(key, [...(groups.get(key) ?? []), item]);
 };
 
-export const seqOf = (bug: Bug, index: ReadonlyMap<string, number>) => {
-  const seq = [must(index, bug.start)];
-  for (const p of bug.path) seq.push(must(index, p.state));
-  return seq;
-};
+export const seqOf = (bug: Bug, index: ReadonlyMap<string, number>) => [
+  must(index, bug.start),
+  ...bug.path.map((p) => must(index, p.state)),
+];
 
 export const loopOf = (bug: Bug, index: ReadonlyMap<string, number>) =>
   new Set(bug.loop === undefined ? [] : seqOf(bug, index).slice(bug.loop));
@@ -321,22 +269,15 @@ export const loopOf = (bug: Bug, index: ReadonlyMap<string, number>) =>
 export const defaultState = (vars: Vars) => {
   const entries = Object.entries(vars);
   if (entries.length === 1) return show(entries[0][1]);
-  const parts: string[] = [];
-  for (const [k, v] of entries) parts.push(`${k}=${show(v)}`);
-  return parts.join(" ");
+  return entries.map(([k, v]) => `${k}=${show(v)}`).join(" ");
 };
 
-export const stateText = (vars: Vars) => {
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(vars)) parts.push(`${k} = ${show(v)}`);
-  return parts.join(" /\\ ");
-};
+export const stateText = (vars: Vars) =>
+  Object.entries(vars)
+    .map(([k, v]) => `${k} = ${show(v)}`)
+    .join(" /\\ ");
 
-export const count = (n: number) => {
-  const items = new Int32Array(n);
-  for (let i = 0; i < n; i++) items[i] = i;
-  return items;
-};
+export const count = (n: number) => Int32Array.from({ length: n }, (_, i) => i);
 
 export const sortBy = (items: Int32Array, keys: Int32Array[]) => {
   for (let k = keys.length - 1; k >= 0; k--) {
@@ -351,13 +292,6 @@ export const sortBy = (items: Int32Array, keys: Int32Array[]) => {
     items = sorted;
   }
   return items;
-};
-
-export const tupleKey = (parts: unknown[]) => JSON.stringify(parts);
-export const unkey = (k: string) => {
-  const parts: unknown = JSON.parse(k);
-  if (!isStrings(parts)) throw new Error(`The chart cannot read the key ${k}.`);
-  return parts;
 };
 
 export function holds(condition: Condition, others: string[]) {
@@ -377,113 +311,10 @@ export function holds(condition: Condition, others: string[]) {
 
 export const ruleKey = (rule: Rule) => tupleKey([rule.kind, rule.name]);
 
-export const hasRule = (rules: Rule[], rule: Rule) => {
-  for (const r of rules) if (r.kind === rule.kind && r.name === rule.name) return true;
-  return false;
-};
+export const hasRule = (rules: Rule[], rule: Rule) =>
+  rules.some((r) => r.kind === rule.kind && r.name === rule.name);
 
-const ascending = (keys: string[]) => {
-  for (let i = 1; i < keys.length; i++) if (keys[i - 1] > keys[i]) return false;
-  return true;
-};
-
-const span = (lo: number, hi: number) => (hi > lo ? `${lo}..${hi}` : String(lo));
-
-const setKey = (members: Value[]) => {
-  const ints: number[] = [];
-  let others: string[] = [];
-  for (const m of members)
-    if (typeof m === "number") ints.push(m);
-    else others.push(key(m));
-  for (let i = 1; i < ints.length; i++)
-    if (ints[i - 1] >= ints[i]) {
-      ints.sort((a, b) => a - b);
-      break;
-    }
-  if (!ascending(others)) others = others.sort(byText);
-  let s = "{";
-  for (let i = 0; i < ints.length;) {
-    let j = i;
-    while (j + 1 < ints.length && ints[j + 1] - ints[j] <= 1) j++;
-    s += `${s.length > 1 ? "," : ""}${span(ints[i], ints[j])}`;
-    i = j + 1;
-  }
-  for (let i = 0; i < others.length; i++)
-    if (!i || others[i] !== others[i - 1]) s += (s.length > 1 ? "," : "") + others[i];
-  return s + "}";
-};
-
-const functionKey = ({ keys, values }: { keys: Value[]; values: Value[] }) => {
-  const order: number[] = [];
-  const keyTexts: string[] = [];
-  let ints = 0;
-  for (let i = 0; i < keys.length; i++) {
-    order.push(i);
-    keyTexts.push(key(keys[i]));
-    if (typeof keys[i] === "number") ints++;
-  }
-  const rank = (i: number) => (typeof keys[i] === "number" ? (keys[i] as number) : Infinity);
-  order.sort((a, b) => rank(a) - rank(b) || byText(keyTexts[a], keyTexts[b]) || a - b);
-  let tuple = ints === keys.length;
-  for (let i = 0; tuple && i < order.length; i++) tuple = keys[order[i]] === i + 1;
-  let s = tuple ? "<<" : "(";
-  for (let i = 0, kept = 0; i < order.length; i++) {
-    const k = order[i];
-    if (i && keyTexts[k] === keyTexts[order[i - 1]]) continue;
-    const v = key(values[k]);
-    s += tuple ? `${kept++ ? "," : ""}${v}` : `${kept++ ? "@@" : ""}${keyTexts[k]}:>${v}`;
-  }
-  return s + (tuple ? ">>" : ")");
-};
-
-const keys = new WeakMap<object, string>();
-
-export const key = (v: Value): string => {
-  switch (typeof v) {
-    case "boolean":
-      return v ? "TRUE" : "FALSE";
-    case "number":
-      return String(v);
-    case "string":
-      return JSON.stringify(v);
-  }
-  if (v.kind === "model") return v.name;
-  let k = keys.get(v);
-  if (k === undefined) {
-    k =
-      v.kind === "interval"
-        ? `{${v.lo > v.hi ? "" : span(v.lo, v.hi)}}`
-        : v.kind === "set"
-          ? setKey(v.members)
-          : functionKey(v);
-    keys.set(v, k);
-  }
-  return k;
-};
-
-export const stateKey = (values: Value[]) => {
-  let k = "";
-  for (let i = 0; i < values.length; i++) k += (i ? "," : "") + key(values[i]);
-  return k;
-};
-
-export const memo = <K, V>(make: (k: K) => V, limit = 1 << 16) => {
-  const cache = new Map<K, V>();
-  return (k: K) => {
-    let v = cache.get(k);
-    if (v === undefined) {
-      if (cache.size >= limit) cache.clear();
-      cache.set(k, (v = make(k)));
-    }
-    return v;
-  };
-};
-
-export const valuesOf = (vars: Vars, names: string[]) => {
-  const values: Value[] = [];
-  for (const n of names) values.push(vars[n]);
-  return values;
-};
+export const valuesOf = (vars: Vars, names: string[]) => names.map((n) => vars[n]);
 
 export const findTrace = <Id>(
   counterexample: TraceState[],
@@ -491,27 +322,23 @@ export const findTrace = <Id>(
   rule: Rule,
   find: Find<Id>,
 ) => {
-  const trace: (TraceState & { values: Value[]; id: Id | undefined })[] = [];
-  for (const { action, vars } of counterexample) {
+  const trace = counterexample.map(({ action, vars }) => {
     const values = valuesOf(vars, names);
-    trace.push({ action, vars, values, id: find(values) });
-  }
+    return { action, vars, values, id: find(values) };
+  });
   const end = trace.length - 1;
   if (end < 0) throw new Error(`TLC's trace for ${rule.name} has no states.`);
-  for (let i = 0; i < end; i++)
-    if (trace[i].id === undefined)
-      throw new Error(
-        `TLC's trace for ${rule.name} has a state before its last that the dump does not list.`,
-      );
+  if (trace.slice(0, end).some((t) => t.id === undefined))
+    throw new Error(
+      `TLC's trace for ${rule.name} has a state before its last that the dump does not list.`,
+    );
   return trace;
 };
 
-export const findLoop = <Id>({ seq, loop }: Trace, names: string[], find: Find<Id>) => {
-  const found: { action: string; id: Id | undefined }[] = [];
-  for (const { action, vars } of seq)
-    found.push({ action, id: vars && find(valuesOf(vars, names)) });
-  return { seq: found, loop };
-};
+export const findLoop = <Id>({ seq, loop }: Trace, names: string[], find: Find<Id>) => ({
+  seq: seq.map(({ action, vars }) => ({ action, id: vars && find(valuesOf(vars, names)) })),
+  loop,
+});
 
 export const pastState = (
   vars: Vars,
@@ -519,8 +346,10 @@ export const pastState = (
   marked: Iterable<Rule>,
   excluded: boolean,
 ): PastState => {
-  const breaks: Rule[] = [];
-  for (const r of marked) if (!hasRule(breaks, r)) breaks.push(r);
+  const breaks = [...marked].reduce<Rule[]>(
+    (kept, r) => (hasRule(kept, r) ? kept : [...kept, r]),
+    [],
+  );
   return { vars, start, breaks, ends: [], past: true, excluded };
 };
 
@@ -534,14 +363,143 @@ const deadlockRule = ({ invariants, properties }: Spec): Rule => ({
       : "NoDeadlock",
 });
 
-export const hasSection = ({ written }: Spec, ...keys: string[]) => {
-  for (const s of written) if (keys.includes(s.key)) return true;
-  return false;
+export const hasSection = ({ written }: Spec, ...keys: string[]) =>
+  written.some((s) => keys.includes(s.key));
+
+export const stateRules = (spec: Spec): Rule[] => [
+  ...spec.invariants.map((name) => ({ kind: "invariant" as const, name })),
+  ...(spec.deadlock ? [deadlockRule(spec)] : []),
+];
+
+export const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+const ESCAPES: { [c: string]: string } = {
+  '"': '\\"',
+  "\\": "\\\\",
+  "\n": "\\n",
+  "\t": "\\t",
+  "\r": "\\r",
+  "\f": "\\f",
+};
+const quote = (s: string) => `"${s.replace(/["\\\n\t\r\f]/g, (c) => ESCAPES[c])}"`;
+
+const joined = (items: Value[], sep: string) => items.map((item) => show(item)).join(sep);
+
+const showFunction = (v: Extract<Value, { kind: "function" }>) => {
+  if (v.printedAs === "tuple") return `<<${joined(v.values, ", ")}>>`;
+  if (v.printedAs === "record") {
+    const fields = v.keys.map((k, i) => `${String(k)} |-> ${show(v.values[i])}`);
+    return `[${fields.join(", ")}]`;
+  }
+  const pairs = v.keys.map((k, i) => `${show(k)} :> ${show(v.values[i])}`);
+  return `(${pairs.join(" @@ ")})`;
 };
 
-export const stateRules = (spec: Spec) => {
-  const rules: Rule[] = [];
-  for (const name of spec.invariants) rules.push({ kind: "invariant", name });
-  if (spec.deadlock) rules.push(deadlockRule(spec));
-  return rules;
+export const show = (v: Value): string => {
+  switch (typeof v) {
+    case "boolean":
+      return v ? "TRUE" : "FALSE";
+    case "number":
+      return String(v);
+    case "string":
+      return quote(v);
+  }
+  switch (v.kind) {
+    case "model":
+      return v.name;
+    case "interval":
+      return `${v.lo}..${v.hi}`;
+    case "set":
+      return `{${joined(v.members, ", ")}}`;
+    case "function":
+      return showFunction(v);
+  }
+};
+
+const JSON_STRINGS = /^\[(?:"(?:[^"\\]|\\.)*"(?:,"(?:[^"\\]|\\.)*")*)?\]$/;
+const JSON_STRING = /"((?:[^"\\]|\\.)*)"/g;
+const UNESCAPES: { [c: string]: string } = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
+const unescape = (text: string) =>
+  text.replace(/\\(?:u([0-9a-fA-F]{4})|(.))/g, (_, hex, c) =>
+    hex ? String.fromCharCode(Number.parseInt(hex, 16)) : (UNESCAPES[c] ?? c),
+  );
+
+export const tupleKey = (parts: unknown[]) => JSON.stringify(parts);
+export const unkey = (k: string) => {
+  if (!JSON_STRINGS.test(k)) throw new Error(`The chart cannot read the key ${k}.`);
+  return Array.from(k.matchAll(JSON_STRING), (m) => unescape(m[1]));
+};
+
+const ascending = (keys: string[]) => keys.every((k, i) => !i || keys[i - 1] <= k);
+
+const span = (lo: number, hi: number) => (hi > lo ? `${lo}..${hi}` : String(lo));
+
+const intRanges = (ints: number[]) => {
+  const starts = ints.flatMap((v, i) => (!i || v - ints[i - 1] > 1 ? [i] : []));
+  const ends = ints.flatMap((v, i) => (i === ints.length - 1 || ints[i + 1] - v > 1 ? [i] : []));
+  return starts.map((start, r) => span(ints[start], ints[ends[r]]));
+};
+
+const setKey = (members: Value[]) => {
+  const ints = members.filter((m): m is number => typeof m === "number");
+  const others = members.filter((m) => typeof m !== "number").map((m) => key(m));
+  const strictlyAscending = ints.every((n, i) => !i || ints[i - 1] < n);
+  const sortedInts = strictlyAscending ? ints : ints.toSorted((a, b) => a - b);
+  const sortedOthers = ascending(others) ? others : others.toSorted(byText);
+  const distinct = sortedOthers.filter((o, i) => !i || o !== sortedOthers[i - 1]);
+  return `{${[...intRanges(sortedInts), ...distinct].join(",")}}`;
+};
+
+const functionKey = ({ keys, values }: { keys: Value[]; values: Value[] }) => {
+  const keyTexts = keys.map((k) => key(k));
+  const rank = (i: number) => (typeof keys[i] === "number" ? (keys[i] as number) : Infinity);
+  const order = keys
+    .map((_, i) => i)
+    .toSorted((a, b) => rank(a) - rank(b) || byText(keyTexts[a], keyTexts[b]) || a - b);
+  const tuple =
+    keys.every((k) => typeof k === "number") && order.every((k, i) => keys[k] === i + 1);
+  const kept = order.filter((k, i) => !i || keyTexts[k] !== keyTexts[order[i - 1]]);
+  const items = kept.map((k) => {
+    const v = key(values[k]);
+    return tuple ? v : `${keyTexts[k]}:>${v}`;
+  });
+  return tuple ? `<<${items.join(",")}>>` : `(${items.join("@@")})`;
+};
+
+const compositeKey = (v: Exclude<Value, boolean | number | string | { kind: "model" }>) => {
+  if (v.kind === "interval") return `{${v.lo > v.hi ? "" : span(v.lo, v.hi)}}`;
+  return v.kind === "set" ? setKey(v.members) : functionKey(v);
+};
+
+const keyCache = new WeakMap<object, string>();
+
+export const key = (v: Value): string => {
+  switch (typeof v) {
+    case "boolean":
+      return v ? "TRUE" : "FALSE";
+    case "number":
+      return String(v);
+    case "string":
+      return JSON.stringify(v);
+  }
+  if (v.kind === "model") return v.name;
+  const known = keyCache.get(v);
+  if (known !== undefined) return known;
+  const made = compositeKey(v);
+  keyCache.set(v, made);
+  return made;
+};
+
+export const stateKey = (values: Value[]) => values.map((v) => key(v)).join(",");
+
+export const memo = <K, V>(make: (k: K) => V, limit = 1 << 16) => {
+  const cache = new Map<K, V>();
+  return (k: K) => {
+    const known = cache.get(k);
+    if (known !== undefined) return known;
+    if (cache.size >= limit) cache.clear();
+    const made = make(k);
+    cache.set(k, made);
+    return made;
+  };
 };

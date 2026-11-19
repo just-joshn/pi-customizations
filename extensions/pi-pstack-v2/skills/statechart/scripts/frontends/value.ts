@@ -63,18 +63,25 @@ const model = (name: string) => {
   return v;
 };
 
-export function parseValue(text: string): Value {
-  const tokens: string[] = [];
-  const starts: number[] = [];
+function* scanTokens(text: string) {
   for (let pos = 0; ;) {
     while (pos < text.length && isSpace(text.charCodeAt(pos))) pos++;
-    if (pos === text.length) break;
+    if (pos === text.length) return;
     const end = tokenEnd(text, pos);
     if (end === -1) throw unreadable(text, pos);
-    tokens.push(text.slice(pos, end));
-    starts.push(pos);
+    yield { token: text.slice(pos, end), start: pos };
     pos = end;
   }
+}
+
+const tokenize = (text: string) => {
+  const found = Array.from(scanTokens(text));
+  return { tokens: found.map((f) => f.token), starts: found.map((f) => f.start) };
+};
+
+/** A read position over the tokens of one value; every failure reports the text near the position. */
+const makeCursor = (text: string) => {
+  const { tokens, starts } = tokenize(text);
   let i = 0;
   const fail = (): never => {
     throw unreadable(text, i < starts.length ? starts[Math.max(i - 1, 0)] : text.length);
@@ -83,84 +90,123 @@ export function parseValue(text: string): Value {
   const eat = (t: string) => {
     if (next() !== t) fail();
   };
-  const items = <T>(close: string, item: () => T) => {
-    const out: T[] = [];
-    if (tokens[i] === close) {
-      i++;
-      return out;
-    }
+  function* gather<T>(close: string, item: () => T) {
     for (;;) {
-      out.push(item());
+      yield item();
       const t = next();
-      if (t === close) return out;
+      if (t === close) return;
       if (t !== ",") fail();
     }
-  };
-  const string = (t: string) => {
-    let s = "";
-    for (let j = 1, from = 1; ;) {
-      const k = t.indexOf("\\", j);
-      if (k === -1 || k >= t.length - 1) return s + t.slice(from, -1);
-      const c = UNESCAPED[t[k + 1]];
-      if (c === undefined) fail();
-      s += t.slice(from, k) + c;
-      j = from = k + 2;
-    }
-  };
-  const value = (): Value => {
-    const t = next();
-    switch (t) {
-      case "TRUE":
-        return true;
-      case "FALSE":
-        return false;
-      case "{":
-        return { kind: "set", members: items("}", value) };
-      case "<<": {
-        const values = items(">>", value);
-        const keys: Value[] = [];
-        for (let k = 1; k <= values.length; k++) keys.push(k);
-        return { kind: "function", printedAs: "tuple", keys, values };
-      }
-      case "[": {
-        const keys: Value[] = [];
-        const values: Value[] = [];
-        items("]", () => {
-          const name = next();
-          if (!NAME.test(name)) fail();
-          eat("|->");
-          keys.push(name);
-          values.push(value());
-        });
-        return { kind: "function", printedAs: "record", keys, values };
-      }
-      case "(": {
-        const keys: Value[] = [];
-        const values: Value[] = [];
-        do {
-          keys.push(value());
-          eat(":>");
-          values.push(value());
-        } while (next() === "@@");
-        if (tokens[i - 1] !== ")") fail();
-        return { kind: "function", printedAs: "pairs", keys, values };
-      }
-    }
-    if (t.charCodeAt(0) === 34) return string(t);
-    if (INT.test(t)) {
-      if (tokens[i] !== "..") return Number(t);
-      i++;
-      const hi = next();
-      if (!INT.test(hi)) fail();
-      return { kind: "interval", lo: Number(t), hi: Number(hi) };
-    }
-    if (NAME.test(t)) return model(t);
-    return fail();
-  };
-  const out = value();
-  if (i < tokens.length) {
+  }
+  const items = <T>(close: string, item: () => T) => {
+    if (tokens[i] !== close) return Array.from(gather(close, item));
     i++;
-    fail();
+    return [];
+  };
+  return {
+    fail,
+    next,
+    eat,
+    items,
+    peek: () => tokens[i],
+    skip: () => i++,
+    previous: () => tokens[i - 1],
+    atEnd: () => i >= tokens.length,
+  };
+};
+
+type Cursor = ReturnType<typeof makeCursor>;
+
+const readString = (c: Cursor, t: string) => {
+  let s = "";
+  for (let j = 1, from = 1; ;) {
+    const k = t.indexOf("\\", j);
+    if (k === -1 || k >= t.length - 1) return s + t.slice(from, -1);
+    const unescaped = UNESCAPED[t[k + 1]];
+    if (unescaped === undefined) c.fail();
+    s += t.slice(from, k) + unescaped;
+    j = from = k + 2;
+  }
+};
+
+const readRecord = (c: Cursor): Value => {
+  const fields = c.items("]", () => {
+    const name = c.next();
+    if (!NAME.test(name)) c.fail();
+    c.eat("|->");
+    return [name, readValue(c)] as const;
+  });
+  return {
+    kind: "function",
+    printedAs: "record",
+    keys: fields.map(([name]) => name),
+    values: fields.map(([, v]) => v),
+  };
+};
+
+function* pairsOf(c: Cursor) {
+  do {
+    const key = readValue(c);
+    c.eat(":>");
+    yield [key, readValue(c)] as const;
+  } while (c.next() === "@@");
+}
+
+const readPairs = (c: Cursor): Value => {
+  const pairs = Array.from(pairsOf(c));
+  if (c.previous() !== ")") c.fail();
+  return {
+    kind: "function",
+    printedAs: "pairs",
+    keys: pairs.map(([key]) => key),
+    values: pairs.map(([, value]) => value),
+  };
+};
+
+const readTuple = (c: Cursor): Value => {
+  const values = c.items(">>", () => readValue(c));
+  const keys = Array.from({ length: values.length }, (_, k) => k + 1);
+  return { kind: "function", printedAs: "tuple", keys, values };
+};
+
+const readAtom = (c: Cursor, t: string): Value => {
+  if (t.charCodeAt(0) === 34) return readString(c, t);
+  if (INT.test(t)) {
+    if (c.peek() !== "..") return Number(t);
+    c.skip();
+    const hi = c.next();
+    if (!INT.test(hi)) c.fail();
+    return { kind: "interval", lo: Number(t), hi: Number(hi) };
+  }
+  return NAME.test(t) ? model(t) : c.fail();
+};
+
+function readValue(c: Cursor): Value {
+  const t = c.next();
+  switch (t) {
+    case "TRUE":
+      return true;
+    case "FALSE":
+      return false;
+    case "{":
+      return { kind: "set", members: c.items("}", () => readValue(c)) };
+    case "<<":
+      return readTuple(c);
+    case "[":
+      return readRecord(c);
+    case "(":
+      return readPairs(c);
+    default:
+      return readAtom(c, t);
+  }
+}
+
+export function parseValue(text: string): Value {
+  const c = makeCursor(text);
+  const out = readValue(c);
+  if (!c.atEnd()) {
+    c.skip();
+    c.fail();
   }
   return out;
 }

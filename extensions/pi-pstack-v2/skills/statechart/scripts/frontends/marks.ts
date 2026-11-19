@@ -1,5 +1,5 @@
-import { EC, type Mark, memo, type Part, type TraceState, type Value } from "../ir.ts";
-import { actionOf, messageState } from "./messages.ts";
+import { type Mark, memo, type Part, type TraceState, type Value } from "../ir.ts";
+import { stateOf } from "./trace.ts";
 import { BRACKET, isSpace, parseValue, tokenEnd, unreadable } from "./value.ts";
 
 const markTexts = (chunk: string, top: number[], inner: number[]) => {
@@ -11,22 +11,57 @@ const markTexts = (chunk: string, top: number[], inner: number[]) => {
   if (open < 0 || chunk.slice(a + 1, open).trim() || chunk.slice(close + 2, b).trim())
     return undefined;
   if (!chunk.startsWith(">>", end)) return undefined;
-  const cuts = [open + 1];
-  for (const k of inner) if (k > open && k < close) cuts.push(k);
-  cuts.push(close);
-  const texts: string[] = [];
-  for (let k = 1; k < cuts.length; k++) texts.push(chunk.slice(cuts[k - 1] + 1, cuts[k]));
+  const cuts = [open + 1, ...inner.filter((k) => k > open && k < close), close];
+  const texts = cuts.slice(1).map((cut, k) => chunk.slice(cuts[k] + 1, cut));
   return { values: texts, rules: chunk.slice(b + 1, end) };
 };
 
 const ruleNames = (v: Value) => {
   if (typeof v !== "object" || v.kind !== "set") return undefined;
-  const names: string[] = [];
-  for (const m of v.members) {
-    if (typeof m !== "string") return undefined;
-    names.push(m);
+  const names = v.members.filter((m): m is string => typeof m === "string");
+  return names.length === v.members.length ? names : undefined;
+};
+
+type Comma = { depth: 1 | 2; at: number };
+
+function* scanCommas(line: string, base: number, startDepth: number) {
+  let depth = startDepth;
+  let i = 0;
+  let last = 0;
+  while (i < line.length) {
+    const c = line.charCodeAt(i);
+    if (isSpace(c)) {
+      i++;
+      continue;
+    }
+    const j = tokenEnd(line, i);
+    if (j === -1) throw unreadable(line + "\n", last);
+    if (c === 44 && (depth === 1 || depth === 2)) yield { depth, at: base + i } as Comma;
+    depth += BRACKET[c];
+    i = last = j;
   }
-  return names;
+  return depth;
+}
+
+/** Tokenises one line of a mark; returns the new depth and the offsets of its commas at depth 1 and 2. */
+const scanLine = (line: string, base: number, startDepth: number) => {
+  let depth = startDepth;
+  const commas = Array.from(
+    (function* () {
+      depth = yield* scanCommas(line, base, startDepth);
+    })(),
+  );
+  const at = (level: number) => commas.filter((c) => c.depth === level).map((c) => c.at);
+  return { depth, top: at(1), inner: at(2) };
+};
+
+const finishMark = (chunk: string, top: number[], inner: number[], read: (s: string) => Value) => {
+  const texts = markTexts(chunk, top, inner);
+  const values = texts ? texts.values.map(read) : [];
+  const broken = texts && ruleNames(read(texts.rules));
+  if (!texts || !broken)
+    throw new Error(`TLC printed a mark that the command cannot read:\n${chunk.slice(0, 2000)}`);
+  return { values, broken };
 };
 
 export function* readMarks(messages: Iterable<Part>, tag: string): Generator<Mark> {
@@ -44,32 +79,15 @@ export function* readMarks(messages: Iterable<Part>, tag: string): Generator<Mar
       top = [];
       inner = [];
     }
-    const base = chunk.length;
+    const scan = scanLine(line, chunk.length, depth);
     chunk += line + "\n";
-    let i = 0;
-    let last = 0;
-    while (i < line.length) {
-      const c = line.charCodeAt(i);
-      if (isSpace(c)) {
-        i++;
-        continue;
-      }
-      const j = tokenEnd(line, i);
-      if (j === -1) throw unreadable(line + "\n", last);
-      if (c === 44 && depth === 1) top.push(base + i);
-      else if (c === 44 && depth === 2) inner.push(base + i);
-      depth += BRACKET[c];
-      i = last = j;
-    }
+    depth = scan.depth;
+    top = [...top, ...scan.top];
+    inner = [...inner, ...scan.inner];
     if (depth > 0) continue;
-    const texts = markTexts(chunk, top, inner);
-    const values: Value[] = [];
-    if (texts) for (const v of texts.values) values.push(read(v));
-    const broken = texts && ruleNames(read(texts.rules));
-    if (!broken)
-      throw new Error(`TLC printed a mark that the command cannot read:\n${chunk.slice(0, 2000)}`);
+    const mark = finishMark(chunk, top, inner, read);
     chunk = "";
-    yield { values, broken };
+    yield mark;
   }
   if (chunk)
     throw new Error(
@@ -77,17 +95,9 @@ export function* readMarks(messages: Iterable<Part>, tag: string): Generator<Mar
     );
 }
 
-export function readCounterexample(messages: Iterable<Part>) {
-  const trace: TraceState[] = [];
-  for (const m of messages) {
-    if (typeof m === "string") continue;
-    const action = m.code === EC.TLC_STATE_PRINT2 ? actionOf(m) : undefined;
-    if (action !== undefined) trace.push({ action, vars: messageState(m) });
-    else if (
-      m.code === EC.TLC_INVARIANT_VIOLATED_INITIAL ||
-      m.code === EC.TLC_PROPERTY_VIOLATED_INITIAL
-    )
-      trace.push({ action: "", vars: messageState(m) });
-  }
-  return trace;
-}
+export const readCounterexample = (messages: Iterable<Part>): TraceState[] =>
+  Array.from(messages).flatMap((m) => {
+    if (typeof m === "string") return [];
+    const state = stateOf(m);
+    return state ? [state] : [];
+  });

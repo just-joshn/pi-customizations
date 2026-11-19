@@ -13,57 +13,50 @@ import {
   type Walk,
 } from "../ir.ts";
 
-export function walk(graph: Graph): Walk {
-  const ids: string[] = [];
-  const states: State[] = [];
-  const nameOf: string[] = [];
-  const starts: number[] = [];
-  const unique = new Set<string>();
-  for (const [id, s] of graph.states) {
-    const name = defaultState(s.vars);
-    if (s.start) starts.push(ids.length);
-    ids.push(id);
-    states.push(s);
-    nameOf.push(name);
-    unique.add(name);
-  }
-  const names = Array.from(unique).sort(byText);
-  const rankOf = new Map<string, number>();
-  for (let i = 0; i < names.length; i++) rankOf.set(names[i], i);
-  const n = ids.length;
-  const index = new Map<string, number>();
-  const nameRank = new Int32Array(n);
-  for (let i = 0; i < n; i++) {
-    index.set(ids[i], i);
-    nameRank[i] = must(rankOf, nameOf[i]);
-  }
-  const m = graph.steps.length;
-  const from = new Int32Array(m);
-  const to = new Int32Array(m);
-  const action = new Int32Array(m);
-  const actions = new Map<string, number>();
-  for (let j = 0; j < m; j++) {
-    const t = graph.steps[j];
-    from[j] = must(index, t.from);
-    to[j] = must(index, t.to);
-    let a = actions.get(t.action);
-    if (a === undefined) actions.set(t.action, (a = actions.size));
-    action[j] = a;
-  }
-  const actionRank = new Int32Array(actions.size);
-  for (const [i, a] of [...actions.keys()].sort(byText).entries()) actionRank[must(actions, a)] = i;
-  const toName = new Int32Array(m);
-  for (let j = 0; j < m; j++) {
-    action[j] = actionRank[action[j]];
-    toName[j] = nameRank[to[j]];
-  }
+const nodesOf = (graph: Graph) => {
+  const entries = [...graph.states];
+  const ids = entries.map(([id]) => id);
+  const states = entries.map(([, s]) => s);
+  const nameOf = states.map((s) => defaultState(s.vars));
+  const startIdx = states.flatMap((s, i) => (s.start ? [i] : []));
+  const names = Array.from(new Set(nameOf)).toSorted(byText);
+  const rankOf = new Map(names.map((name, i) => [name, i]));
+  const nameRank = Int32Array.from(nameOf, (name) => must(rankOf, name));
+  const index = new Map(ids.map((id, i) => [id, i]));
+  return { ids, states, nameOf, nameRank, index, startIdx };
+};
+
+const edgesOf = (graph: Graph, index: Map<string, number>, nameRank: Int32Array) => {
+  const steps = graph.steps;
+  const actionRank = new Map(
+    Array.from(new Set(steps.map((t) => t.action)))
+      .toSorted(byText)
+      .map((a, i) => [a, i]),
+  );
+  const from = Int32Array.from(steps, (t) => must(index, t.from));
+  const to = Int32Array.from(steps, (t) => must(index, t.to));
+  const action = Int32Array.from(steps, (t) => must(actionRank, t.action));
+  const toName = Int32Array.from(to, (t) => nameRank[t]);
+  return { from, to, action, toName };
+};
+
+const adjacency = (n: number, from: Int32Array, sortedSteps: Int32Array) => {
+  const m = from.length;
   const first = new Int32Array(n + 1);
   for (let j = 0; j < m; j++) first[from[j] + 1]++;
   for (let i = 0; i < n; i++) first[i + 1] += first[i];
   const fill = first.slice(0, n);
   const next = new Int32Array(m);
-  for (const j of sortBy(count(m), [action, toName])) next[fill[from[j]]++] = j;
-  starts.sort((a, b) => nameRank[a] - nameRank[b]);
+  for (const j of sortedSteps) next[fill[from[j]]++] = j;
+  return { first, next };
+};
+
+const breadthFirst = (
+  n: number,
+  starts: number[],
+  { first, next }: { first: Int32Array; next: Int32Array },
+  to: Int32Array,
+) => {
   const depth = new Int32Array(n).fill(-1);
   const via = new Int32Array(n).fill(-1);
   const reached = new Int32Array(n);
@@ -82,20 +75,17 @@ export function walk(graph: Graph): Walk {
       reached[size++] = t;
     }
   }
-  return {
-    ids,
-    states,
-    index,
-    nameOf,
-    nameRank,
-    from,
-    to,
-    action,
-    depth,
-    via,
-    reached: reached.subarray(0, size),
-    starts,
-  };
+  return { depth, via, reached: reached.subarray(0, size) };
+};
+
+export function walk(graph: Graph): Walk {
+  const { ids, states, nameOf, nameRank, index, startIdx } = nodesOf(graph);
+  const n = ids.length;
+  const { from, to, action, toName } = edgesOf(graph, index, nameRank);
+  const csr = adjacency(n, from, sortBy(count(from.length), [action, toName]));
+  const starts = startIdx.toSorted((a, b) => nameRank[a] - nameRank[b]);
+  const { depth, via, reached } = breadthFirst(n, starts, csr, to);
+  return { ids, states, index, nameOf, nameRank, from, to, action, depth, via, reached, starts };
 }
 
 export function drawOrder({ depth, nameRank }: Walk) {
@@ -110,6 +100,27 @@ export function drawOrder({ depth, nameRank }: Walk) {
   return { order, rank };
 }
 
+function* viaChain(via: Int32Array, from: Int32Array, end: number) {
+  for (let at = end, j = via[at]; j >= 0; j = via[at]) {
+    yield j;
+    at = from[j];
+  }
+}
+
+const routeTo = (
+  graph: Graph,
+  { ids, from, via }: Pick<Walk, "ids" | "from" | "via">,
+  end: number,
+) => {
+  const js = Array.from(viaChain(via, from, end));
+  const start = js.length ? from[js[js.length - 1]] : end;
+  const path: PathStep[] = js.toReversed().map((j) => {
+    const step = graph.steps[j];
+    return { action: step.action, state: step.to, step };
+  });
+  return { start: ids[start], path };
+};
+
 export function bugs(graph: Graph, { ids, from, via, reached }: Walk = walk(graph)) {
   const ends = new Map<string, string>();
   for (const [id, s] of graph.states) for (const rule of s.ends ?? []) ends.set(ruleKey(rule), id);
@@ -121,15 +132,8 @@ export function bugs(graph: Graph, { ids, from, via, reached }: Walk = walk(grap
       if (!first.has(k) && (ends.get(k) ?? ids[i]) === ids[i]) first.set(k, { rule, i });
     }
   }
-  const found: Bug[] = [];
-  for (const { rule, i } of first.values()) {
-    const path: PathStep[] = [];
-    let start = i;
-    for (let j: number; (j = via[start]) >= 0; start = from[j]) {
-      const step = graph.steps[j];
-      path.unshift({ action: step.action, state: step.to, step });
-    }
-    found.push({ rule, start: ids[start], path });
-  }
-  return found;
+  return [...first.values()].map(({ rule, i }): Bug => ({
+    rule,
+    ...routeTo(graph, { ids, from, via }, i),
+  }));
 }
