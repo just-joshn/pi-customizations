@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
@@ -276,14 +276,7 @@ function seccompFile(agentDir: string): string {
   return path;
 }
 
-function available(command: string): boolean {
-  try {
-    execFileSync(SHELL, ['-c', command], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
+const available = (command: string): boolean => spawnSync(SHELL, ['-c', command], { stdio: 'ignore' }).status === 0;
 
 /**
  * Wraps argv so it runs with writes limited to the policy. bubblewrap nests, so a Linux job inside a sandbox gets its own

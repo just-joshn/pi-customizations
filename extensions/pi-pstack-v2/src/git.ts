@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { type ExtensionContext } from '@earendil-works/pi-coding-agent';
@@ -9,12 +9,15 @@ export function git(cwd: string, args: string[]): string {
   return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
+/** Like `git`, but undefined when git exits non-zero, is killed, or does not start. */
+function tryGit(cwd: string, args: string[]): string | undefined {
+  const result = spawnSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  return result.status === 0 ? result.stdout.trim() : undefined;
+}
+
 export function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--absolute-git-dir'): string | undefined {
-  try {
-    return resolve(cwd, git(cwd, ['rev-parse', flag]));
-  } catch {
-    return undefined;
-  }
+  const found = tryGit(cwd, ['rev-parse', flag]);
+  return found === undefined ? undefined : resolve(cwd, found);
 }
 
 /** A job may only work inside the session's project, so the model cannot widen its own sandbox by naming another directory. */
@@ -58,13 +61,8 @@ export function protectedPaths(cwd: string, common: string | undefined): { prote
   if (common) {
     const own = gitPath(cwd, '--absolute-git-dir') ?? common;
     const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
-    let hooksPath: string[] = [];
-    try {
-      const configured = git(cwd, ['config', '--get', 'core.hooksPath']);
-      if (configured) hooksPath = [resolve(gitPath(cwd, '--show-toplevel') ?? cwd, configured)];
-    } catch {
-      // No custom hooks path.
-    }
+    const configured = tryGit(cwd, ['config', '--get', 'core.hooksPath']);
+    const hooksPath = configured ? [resolve(gitPath(cwd, '--show-toplevel') ?? cwd, configured)] : [];
     protect = [...protect, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
     lock = [join(cwd, '.git'), own, common];
   }
@@ -76,12 +74,7 @@ export function protectedPaths(cwd: string, common: string | undefined): { prote
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
 export function addWorktree(cwd: string, path: string, branch: string, base: string | undefined): boolean {
   if (branch.startsWith('-') || base?.startsWith('-')) throw new Error('worktree and base cannot start with "-".');
-  let exists = true;
-  try {
-    git(cwd, ['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`]);
-  } catch {
-    exists = false;
-  }
+  const exists = tryGit(cwd, ['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`]) !== undefined;
   git(cwd, exists ? ['worktree', 'add', path, branch] : ['worktree', 'add', '-b', branch, path, base === undefined ? 'HEAD' : baseOrSoleRemoteBranch(cwd, base)]);
   return !exists;
 }
@@ -92,13 +85,9 @@ export function dropWorktree(repo: string, createdBranch: string | undefined): v
 }
 
 function baseOrSoleRemoteBranch(cwd: string, base: string): string {
-  try {
-    git(cwd, ['rev-parse', '--verify', '--quiet', `${base}^{commit}`]);
-    return base;
-  } catch {
-    const remote = git(cwd, ['for-each-ref', '--format=%(refname:short)', `refs/remotes/*/${base}`])
-      .split('\n')
-      .filter(Boolean);
-    return remote.length === 1 ? (remote[0] ?? base) : base;
-  }
+  if (tryGit(cwd, ['rev-parse', '--verify', '--quiet', `${base}^{commit}`]) !== undefined) return base;
+  const remote = git(cwd, ['for-each-ref', '--format=%(refname:short)', `refs/remotes/*/${base}`])
+    .split('\n')
+    .filter(Boolean);
+  return remote.length === 1 ? (remote[0] ?? base) : base;
 }

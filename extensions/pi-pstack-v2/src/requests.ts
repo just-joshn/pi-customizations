@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
@@ -53,22 +53,12 @@ const readGrant = (out: string): string[] => {
 
 const isStrings = (value: unknown): value is string[] => strings.safeParse(value).success;
 
+// A session that is already gone makes this fail, which is expected.
 const tmuxKill = (socket: string, session: string): void => {
-  try {
-    execFileSync('tmux', ['-S', socket, 'kill-session', '-t', `=${session}`], { stdio: 'ignore' });
-  } catch {
-    // Already gone.
-  }
+  spawnSync('tmux', ['-S', socket, 'kill-session', '-t', `=${session}`], { stdio: 'ignore' });
 };
 
-function hasSession(socket: string, session: string): boolean {
-  try {
-    execFileSync('tmux', ['-S', socket, 'has-session', '-t', `=${session}`], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
+const hasSession = (socket: string, session: string): boolean => spawnSync('tmux', ['-S', socket, 'has-session', '-t', `=${session}`], { stdio: 'ignore' }).status === 0;
 
 /** A worker writes these files, so anything malformed is skipped instead of stopping every other request. */
 const wellFormed = (spec: JobSpec): boolean => {

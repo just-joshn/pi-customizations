@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -144,14 +144,19 @@ export function tmuxSocket(owner: string): string {
 
 // tmux reaches the socket through a relative path from its directory, so a deeply nested socket stays under the
 // 104 to 108 byte limit on Unix socket paths.
-function tmux(socket: string, args: string[]): void {
+function tmuxRun(socket: string, args: string[]): SpawnSyncReturns<Buffer> {
   const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
-  try {
-    execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
-    throw error;
-  }
+  return spawnSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
+}
+
+/** Whether tmux ran and exited zero. A missing tmux or session reads as false. */
+const tmuxOk = (socket: string, args: string[]): boolean => tmuxRun(socket, args).status === 0;
+
+function tmux(socket: string, args: string[]): void {
+  const result = tmuxRun(socket, args);
+  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`Command failed: tmux -S ${basename(socket)} ${args.join(' ')}`);
 }
 
 function write(dir: string, spec: JobSpec, files: Record<string, string>): void {
@@ -370,13 +375,9 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   const before = exited();
   if (before) return before;
   if (spec.brokered) return existsSync(join(dir, 'stop')) ? { state: 'exited', code: STOPPED_EXIT_CODE } : { state: 'running' };
-  try {
-    tmux(spec.socket, ['has-session', '-t', `=${spec.id}`]);
-    return { state: 'running' };
-  } catch {
-    // The job may have written its exit code and closed its session between the two checks.
-    return exited() ?? { state: 'lost' };
-  }
+  if (tmuxOk(spec.socket, ['has-session', '-t', `=${spec.id}`])) return { state: 'running' };
+  // The job may have written its exit code and closed its session between the two checks.
+  return exited() ?? { state: 'lost' };
 }
 
 export function readSpec(dir: string): JobSpec | undefined {
@@ -412,11 +413,8 @@ export async function stop(job: Job): Promise<void> {
   if (job.spec.brokered) {
     writeFileSync(join(job.dir, 'stop'), '');
   } else {
-    try {
-      tmux(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
-    } catch {
-      // Already gone.
-    }
+    // A session that is already gone makes this fail, which is expected.
+    tmuxOk(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
     // The wrapper records the exit once it has ended the job and cleaned up. Only a wrapper that is already gone, and so
     // can never record it, leaves that to stop.
     const exit = exitPath(job.spec.out);

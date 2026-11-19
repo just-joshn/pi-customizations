@@ -15,43 +15,19 @@
     "file": "src/credentials.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "Unreadable or malformed credentials file returns undefined, which callers treat as 'no credentials'. A console.error would add stderr text to a normal path, and a throw would abort the job start."
+    "reason": "JSON.parse throws on a malformed credentials file and has no non-throwing form. The catch returns undefined, which callers read as \"no credentials\"; a throw would abort the job start."
   },
   {
     "file": "src/credentials.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "Failed lstat returns false (not a symlink). Callers depend on that fallback; a throw or stderr line changes the result and output."
+    "reason": "lstatSync throws ENOENT, ENOTDIR and EACCES for a missing or unreachable path. The catch returns false (not a symlink) for all of them; { throwIfNoEntry: false } would still throw for ENOTDIR and EACCES."
   },
   {
     "file": "src/credentials.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "Failed lock acquisition returns false and the finally cleans up; callers depend on the boolean. Throwing or logging adds new behavior/output."
-  },
-  {
-    "file": "src/git.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed git rev-parse (not a repository) returns undefined; callers fall back on it. A throw would break non-git directories, a log adds stderr."
-  },
-  {
-    "file": "src/git.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A missing core.hooksPath makes git config fail by design; the catch swallows it so no custom hooks path is protected. A throw or log would break every checkout without that setting."
-  },
-  {
-    "file": "src/git.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed git rev-parse --verify means the branch does not exist, which selects 'worktree add -b'. Throwing would stop creating new branches."
-  },
-  {
-    "file": "src/git.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed rev-parse means base is not a local ref, and the catch falls through to the remote-branch lookup. Throwing would break remote-only bases."
+    "reason": "mkdirSync is the atomic lock and throws EEXIST when another holder has it. The catch also covers any error from the locked function and returns false; the finally releases what was taken."
   },
   {
     "file": "src/index.ts",
@@ -68,20 +44,8 @@
   {
     "file": "src/index.ts",
     "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failing probe returns false, which callers use as the 'not alive' answer. Throw or stderr output changes that."
-  },
-  {
-    "file": "src/index.ts",
-    "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The catch removes the half-created job directory and rethrows the original error unchanged, so the tool error text Pi shows is exact. A console.error would add stderr output in the TUI."
-  },
-  {
-    "file": "src/jobs.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "The catch rethrows the original tmux error, or a precise 'needs tmux' Error for ENOENT; messages are tested/user-facing. Adding console.error would print new stderr text."
   },
   {
     "file": "src/jobs.ts",
@@ -93,31 +57,19 @@
     "file": "src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A tmux probe failure falls back to the exit file or state 'lost'; job status values depend on this fallback."
+    "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed job.json, and neither has a non-throwing form. The catch returns undefined so job listing skips it."
   },
   {
     "file": "src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "An unreadable or invalid job.json returns undefined so job listing skips it; throwing would break listing every job."
+    "reason": "process.kill(pid, 0) throws ESRCH or EPERM and is the only liveness probe that needs no child process. The catch returns false (wrapper gone), which the stop logic depends on."
   },
   {
     "file": "src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "Killing an already-gone tmux session is expected and ignored; a throw or log would fail every stop of a finished job."
-  },
-  {
-    "file": "src/jobs.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed wrapper-liveness probe returns false (wrapper gone); the stop logic depends on that fallback."
-  },
-  {
-    "file": "src/jobs.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed probe returns false, meaning 'not available'; callers branch on it, and logging adds stderr."
+    "reason": "claimWake creates the woken marker with flag wx, which throws EEXIST once the wake was claimed. The catch returns false so each wake is delivered once; no non-throwing exclusive create exists."
   },
   {
     "file": "src/requests.ts",
@@ -129,19 +81,7 @@
     "file": "src/requests.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A missing or malformed granted.json returns [] (no grants); throwing would break requests without grants."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "Killing an already-gone session is expected and ignored."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed probe returns false, which the broker uses as its answer; logging adds stderr in the root Pi."
+    "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed granted.json. The catch returns [] (no grants); throwing would break requests without grants."
   },
   {
     "file": "src/requests.ts",
@@ -156,82 +96,58 @@
     "reason": "One failing request must not stop the others (documented); the catch swallows by design."
   },
   {
-    "file": "src/sandbox.ts",
+    "file": "src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A failed 'command -v' probe returns false, selecting the next sandbox backend or the 'found none' Error. Throwing would break fallback."
+    "reason": "readFileSync throws EACCES, EISDIR and similar, with no non-throwing form. The catch returns undefined and discovery skips the file."
   },
   {
     "file": "src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "An unreadable agent file returns undefined and is skipped; throwing would stop discovery of other agents."
+    "reason": "existsSync passed, but readdirSync still throws ENOTDIR or EACCES, with no non-throwing form. The catch returns [] (no agents) instead of failing discovery."
   },
   {
     "file": "src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A missing agents directory returns [] (no agents); throwing would fail when the directory does not exist."
-  },
-  {
-    "file": "src/subagent/agents.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "A failed stat returns false (not a directory); callers branch on that."
+    "reason": "statSync throws ENOENT, ENOTDIR, EACCES and ELOOP, while { throwIfNoEntry: false } covers only ENOENT. The catch returns false (not a directory) for all of them."
   },
   {
     "file": "src/subagent/result-stream.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A non-JSON output line returns { success: false } and is ignored while streaming; throwing would abort on any stray line."
+    "reason": "JSON.parse throws on a non-JSON stdout line and has no non-throwing form. The catch returns { success: false } and the line is ignored while streaming."
   },
   {
     "file": "src/subagent/run-in-tmux.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A failed probe returns false, which callers use as the answer."
-  },
-  {
-    "file": "src/subagent/run-in-tmux.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "Killing an already-gone session is expected and ignored."
-  },
-  {
-    "file": "src/subagent/run-in-tmux.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "The output file may not exist yet while polling; the catch swallows by design (comment in source)."
-  },
-  {
-    "file": "src/subagent/run-in-tmux.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A tmux start failure is returned as spawnError in the result after cleanup; the caller reports it. Throwing changes the contract, logging adds stderr."
+    "reason": "The catch swallows every error from statSync, readRange and the onChunk callback, not only ENOENT, so the poll loop never dies on one bad chunk. Narrowing it would change that."
   },
   {
     "file": "src/sweep.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A failed probe returns false; sweep logic depends on it."
+    "reason": "lstatSync throws ENOENT, ENOTDIR and EACCES. The catch returns false (absent) for all of them; { throwIfNoEntry: false } would still throw for ENOTDIR and EACCES."
   },
   {
     "file": "src/sweep.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A failed read falls through to the repair attempt, or returns { unreadable: [] }; swallowing is the behavior."
+    "reason": "readdirSync and lstatSync throw EACCES, ENOENT and the like, with no non-throwing form. Without repair the catch returns no value; with repair it falls through to the chmod retry."
   },
   {
     "file": "src/sweep.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "A failed read after repair returns { unreadable: [path] } so the sweep quarantines it; throwing would abort the sweep."
+    "reason": "The retry after chmod can still throw; the catch returns { unreadable: [path] } so the sweep reports and quarantines it. Throwing would abort the sweep."
   },
   {
     "file": "src/sweep.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
-    "reason": "The catch rethrows non-EXDEV errors unchanged and copies across devices for EXDEV; a console.error would add new stderr text in the sweep process."
+    "reason": "renameSync has no non-throwing form. The catch copies across devices only for EXDEV and rethrows every other error unchanged; a console.error would add stderr text in the sweep process."
   },
   {
     "file": "src/sweep.ts",
@@ -249,6 +165,6 @@
     "file": "src/transcript.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "An unreadable transcript returns undefined (no report); throwing would break job reports."
+    "reason": "lstatSync, readdirSync and readFileSync throw for a missing or unreadable session directory or file, with no non-throwing form. The catch returns undefined (no report); throwing would break job reports."
   }
 ]

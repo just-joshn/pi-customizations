@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -261,12 +261,7 @@ const tick = (pi: ExtensionAPI, state: PstackState, ctx: ExtensionContext): void
 
 /** Ends the session's tmux server; false when it started no jobs and so had none. */
 function killTmuxServer(socket: string): boolean {
-  try {
-    execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
+  return spawnSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' }).status === 0;
 }
 
 function registerWatcher(pi: ExtensionAPI, state: PstackState): void {

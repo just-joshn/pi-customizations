@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -18,21 +18,11 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
 
-function tmuxHasSession(session: string): boolean {
-  try {
-    execFileSync('tmux', ['has-session', '-t', `=${session}`], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
+const tmuxHasSession = (session: string): boolean => spawnSync('tmux', ['has-session', '-t', `=${session}`], { stdio: 'ignore' }).status === 0;
 
+/** A session that is already gone makes this fail, which is expected. */
 function tmuxKillSession(session: string): void {
-  try {
-    execFileSync('tmux', ['kill-session', '-t', `=${session}`], { stdio: 'ignore' });
-  } catch {
-    /* already gone */
-  }
+  spawnSync('tmux', ['kill-session', '-t', `=${session}`], { stdio: 'ignore' });
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,11 +127,11 @@ export async function runPiInTmux(options: {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
-  try {
-    execFileSync('tmux', ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper], { stdio: 'ignore' });
-  } catch (error) {
+  const newSessionArgs = ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper];
+  const started = spawnSync('tmux', newSessionArgs, { stdio: 'ignore' });
+  if (started.status !== 0) {
     fs.rmSync(files.dir, { recursive: true, force: true });
-    return { code: null, signal: null, spawnError: error instanceof Error ? error : new Error(String(error)) };
+    return { code: null, signal: null, spawnError: started.error ?? new Error(`Command failed: ${['tmux', ...newSessionArgs].join(' ')}`) };
   }
 
   options.onSessionStarted?.(session);
