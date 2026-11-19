@@ -8,7 +8,8 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { OAUTH_CONFIG } from './oauth/config.ts';
 import { loginAnthropic, refreshAnthropicToken } from './oauth/login.ts';
-import { PROVIDER_CONFIG, PROVIDER_MODELS } from './provider/config.ts';
+import { PROVIDER_CONFIG } from './provider/config.ts';
+import { loadAnthropicModels } from './provider/models.ts';
 import { streamCustomAnthropic } from './stream/stream.ts';
 
 export default function (pi: ExtensionAPI) {
@@ -17,7 +18,7 @@ export default function (pi: ExtensionAPI) {
       baseUrl: PROVIDER_CONFIG.baseUrl,
       apiKey: PROVIDER_CONFIG.apiKey,
       api: PROVIDER_CONFIG.api,
-      models: [...PROVIDER_MODELS],
+      models: loadAnthropicModels(),
       oauth: {
         name: OAUTH_CONFIG.name,
         login: loginAnthropic,

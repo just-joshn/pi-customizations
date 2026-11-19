@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth-v2",
   "version": "0.1.0",
-  "description": "Use your Claude subscription in Pi, signing in with subscription OAuth only and never an API key.",
+  "description": "Use Claude models in Pi through a custom Anthropic provider built on @anthropic-ai/sdk, with Claude Pro/Max sign-in or an API key.",
   "type": "module",
   "license": "MIT",
   "publishConfig": {
@@ -46,7 +46,7 @@
     "vitest": "^5.0.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.52.0",
+    "@anthropic-ai/sdk": "1.10.0",
     "zod": "^4"
   }
 }

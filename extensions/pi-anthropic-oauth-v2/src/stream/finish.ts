@@ -1,4 +1,5 @@
 import type { AssistantMessage, AssistantMessageEvent } from '@earendil-works/pi-ai';
+import { describeError } from './errors.ts';
 
 type DoneEvent = Extract<AssistantMessageEvent, { type: 'done' }>;
 type ErrorEvent = Extract<AssistantMessageEvent, { type: 'error' }>;
@@ -13,6 +14,5 @@ export function toDoneEvent(output: AssistantMessage, signal: AbortSignal | unde
 
 export function toErrorEvent(output: AssistantMessage, error: unknown, signal: AbortSignal | undefined): ErrorEvent {
   const reason = signal?.aborted ? 'aborted' : 'error';
-  const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
-  return { type: 'error', reason, error: { ...output, stopReason: reason, errorMessage } };
+  return { type: 'error', reason, error: { ...output, stopReason: reason, errorMessage: describeError(error) } };
 }
