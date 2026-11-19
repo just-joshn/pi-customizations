@@ -30,6 +30,7 @@ import {
 import { addPast, deadEnds, finder, type Index, lasso, mark } from "./passes/annotate.ts";
 import { graphOf, type PathGraph, pathGraph, withBug, withLasso } from "./passes/paths.ts";
 import { type FileResult, fileLines, messagesOf, runToFiles } from "./run-io.ts";
+import { hostEnv } from "./host-env.ts";
 import { judge } from "./run-judge.ts";
 import { exitClass, findTlc, only, PINNED_FLAGS, sanyErrors, stopOf, tail } from "./run-tlc.ts";
 
@@ -58,7 +59,7 @@ const makeRunner = (dir: string, folder: string, tlc: { jar: string; java: strin
       {
         cwd: dir,
         out: path.join(dir, name),
-        env: process.platform === "darwin" ? process.env : { ...process.env, LC_ALL: "C.UTF-8" },
+        env: process.platform === "darwin" ? hostEnv() : { ...hostEnv(), LC_ALL: "C.UTF-8" },
       },
     );
   },

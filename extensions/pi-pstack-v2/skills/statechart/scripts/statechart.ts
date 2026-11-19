@@ -4,7 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { hostEnv } from "./host-env.ts";
 import { killGroup, messageOf } from "./run.ts";
+import { SHELL } from "./run-io.ts";
 
 const USAGE = [
   "Usage: statechart SPEC.tla [--config FILE] [--view FILE] [--out DIR]",
@@ -104,11 +106,11 @@ const startWorker = (job: Job, tmp: string) => {
     {
       detached: true,
       stdio: ["ignore", "inherit", "inherit"],
-      env: { ...process.env, TMPDIR: tmp },
+      env: { ...hostEnv(), TMPDIR: tmp },
     },
   );
   const janitor = spawn(
-    "/bin/sh",
+    SHELL,
     ["-c", JANITOR_SCRIPT, "sh", String(worker.pid), job.stage, tmp],
     {
       detached: true,

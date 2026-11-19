@@ -37,6 +37,7 @@ export type ChildResult = {
 };
 
 const MAX_CHILD_BUFFER = 1 << 30;
+export const SHELL = "/bin/sh";
 
 const childResult = (
   error: ExecFileException | null,
@@ -62,7 +63,7 @@ export const runChild = (
 
 export const killGroup = (pid: number) =>
   new Promise((resolve) =>
-    spawn("/bin/sh", ["-c", 'kill -s KILL -- "-$1"', "sh", String(pid)], { stdio: "ignore" }).on(
+    spawn(SHELL, ["-c", 'kill -s KILL -- "-$1"', "sh", String(pid)], { stdio: "ignore" }).on(
       "exit",
       resolve,
     ),
