@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
 import { jobAgentDir } from './credentials.ts';
+import { hostEnv } from './host-env.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, SandboxPolicySchema, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
@@ -144,7 +145,7 @@ export function tmuxSocket(owner: string): string {
 // tmux reaches the socket through a relative path from its directory, so a deeply nested socket stays under the
 // 104 to 108 byte limit on Unix socket paths.
 function tmux(socket: string, args: string[]): void {
-  const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = process.env;
+  const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
   try {
     execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
   } catch (error) {
@@ -320,7 +321,7 @@ function run(job: Run): void {
 
 const takeInventory = (spec: JobSpec, out: string): Inventory => inventory(spec.sweep.roots, spec.sweep.protect, join(out, 'quarantine'), outputPath(out));
 
-const inheritedTop = (dir: string): string => (process.env[SANDBOX_ENV] === '1' ? (process.env[TOP_DIR_ENV] ?? dir) : dir);
+const inheritedTop = (dir: string): string => (hostEnv()[SANDBOX_ENV] === '1' ? (hostEnv()[TOP_DIR_ENV] ?? dir) : dir);
 
 /** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
 export function launch(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
@@ -334,7 +335,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
 /** Writes a job for the root Pi to launch, from inside a macOS sandbox that cannot start a narrower one itself. */
 export function request(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
   const dir = jobDir(root, spec.id);
-  const top = process.env[TOP_DIR_ENV];
+  const top = hostEnv()[TOP_DIR_ENV];
   if (!top) throw new Error('A sandboxed worker needs its top-level job directory to request a job.');
   const full = { ...spec, argv: [], socket: '', brokered: true, out: resultsDir(top, dir) };
   write(dir, full, files);

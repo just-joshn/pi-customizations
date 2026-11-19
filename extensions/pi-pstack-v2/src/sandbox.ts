@@ -4,6 +4,7 @@ import { basename, dirname, join } from 'node:path';
 
 import { z } from 'zod';
 
+import { hostEnv } from './host-env.ts';
 import { EDITOR_CODE, HARNESS_DIRS, HARNESS_INSTRUCTIONS, WORKSPACE_SUFFIX } from './sweep.ts';
 
 type Env = NodeJS.ProcessEnv;
@@ -163,6 +164,17 @@ function existingRedirects(common: string): string[] {
   return [join(common, 'config.worktree'), ...linked, ...walk(join(common, 'modules'), 0)].filter(existsSync);
 }
 
+const ROOT_DIR = '/';
+const DEV_DIR = '/dev';
+const PROC_DIR = '/proc';
+const PRIVATE_TMP_DIR = '/tmp';
+const RUN_DIR = '/run';
+const VAR_RUN_DIR = '/var/run';
+const SYSTEMD_RESOLVE_DIR = '/run/systemd/resolve';
+const RESOLVCONF_DIR = '/run/resolvconf';
+const RESOLVER_DIRS = [SYSTEMD_RESOLVE_DIR, RESOLVCONF_DIR];
+const SHELL = '/bin/sh';
+
 const bind = (flag: string, path: string): string[] => [flag, path, path];
 
 /** The job's agent directory becomes a throwaway tmpfs holding its entries read-only, and only its credentials copy is bound writable. */
@@ -171,20 +183,20 @@ const credentialMounts = (credentials: string): string[] =>
     ? ['--tmpfs', credentials, ...readdirSync(credentials).flatMap((name) => bind(name === 'auth.json' ? '--bind' : '--ro-bind', join(credentials, name)))]
     : [];
 
-export function bwrapArgs(policy: SandboxPolicy, env: Env = process.env, uid: number = process.getuid?.() ?? 0): string[] {
+export function bwrapArgs(policy: SandboxPolicy, env: Env = hostEnv(), uid: number = process.getuid?.() ?? 0): string[] {
   // Service sockets live under /run, such as Docker's and the system bus, so it is hidden, except the DNS resolver's files.
-  const hidden = [...new Set(['/run', '/var/run', `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])].filter((path): path is string => Boolean(path) && existsSync(path as string) && !lstatSync(path as string).isSymbolicLink());
+  const hidden = [...new Set([RUN_DIR, VAR_RUN_DIR, `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])].filter((path): path is string => Boolean(path) && existsSync(path as string) && !lstatSync(path as string).isSymbolicLink());
   const worktreeGitDirs = policy.gitDirs.flatMap((common) => ['worktrees', 'modules'].map((name) => join(common, name)).filter(existsSync));
   return [
     // Its own PID namespace means every process a job starts dies with it, and none can signal the wrapper outside.
     // A private /tmp, since unsandboxed programs load code they cached in the shared one. It also hides outside tmux sockets.
-    ...['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--tmpfs', '/tmp'],
+    ...['--ro-bind', ROOT_DIR, ROOT_DIR, '--dev', DEV_DIR, '--proc', PROC_DIR, '--unshare-pid', '--tmpfs', PRIVATE_TMP_DIR],
     // Pi's agent directory stays visible, read-only, even when it sits under the private /tmp.
     ...(existsSync(policy.agentDir) ? bind('--ro-bind', policy.agentDir) : []),
     ...policy.writable.filter(existsSync).flatMap((path) => bind('--bind', path)),
     // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
     ...hidden.flatMap((path) => ['--tmpfs', path]),
-    ...['/run/systemd/resolve', '/run/resolvconf'].filter(existsSync).flatMap((path) => bind('--ro-bind', path)),
+    ...RESOLVER_DIRS.filter(existsSync).flatMap((path) => bind('--ro-bind', path)),
     ...credentialMounts(policy.credentials),
     // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
     ...policy.lock.filter(existsSync).flatMap((path) => bind(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path)),
@@ -192,7 +204,7 @@ export function bwrapArgs(policy: SandboxPolicy, env: Env = process.env, uid: nu
     ...ownWorktrees(policy).flatMap((path) => bind('--bind', path)),
     ...[...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync).flatMap((path) => bind('--ro-bind', path)),
     // Shared /tmp is read-only, as on macOS, once everything under it is mounted.
-    ...['--remount-ro', '/tmp', '--die-with-parent', '--'],
+    ...['--remount-ro', PRIVATE_TMP_DIR, '--die-with-parent', '--'],
   ];
 }
 
@@ -266,7 +278,7 @@ function seccompFile(agentDir: string): string {
 
 function available(command: string): boolean {
   try {
-    execFileSync('/bin/sh', ['-c', command], { stdio: 'ignore' });
+    execFileSync(SHELL, ['-c', command], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -277,7 +289,7 @@ function available(command: string): boolean {
  * Wraps argv so it runs with writes limited to the policy. bubblewrap nests, so a Linux job inside a sandbox gets its own
  * narrower one. macOS refuses a second Seatbelt profile, so a sandboxed macOS worker asks the root Pi to launch instead.
  */
-export function sandboxed(argv: string[], policy: SandboxPolicy, platform: Platform = process.platform, env: Env = process.env): string[] {
+export function sandboxed(argv: string[], policy: SandboxPolicy, platform: Platform = process.platform, env: Env = hostEnv()): string[] {
   if (platform === 'darwin' && available('command -v sandbox-exec')) {
     placeholders(policy);
     return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];
@@ -285,7 +297,7 @@ export function sandboxed(argv: string[], policy: SandboxPolicy, platform: Platf
   if (platform === 'linux' && available('command -v bwrap')) {
     placeholders(policy);
     // bubblewrap reads the filter from a file descriptor, which the shell opens just before it becomes bwrap.
-    return ['/bin/sh', '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', seccompFile(policy.agentDir), ...bwrapArgs(policy, env), ...argv];
+    return [SHELL, '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', seccompFile(policy.agentDir), ...bwrapArgs(policy, env), ...argv];
   }
   throw new Error(`pstack runs every job in a sandbox and found none on ${platform}. Install bubblewrap (bwrap) on Linux or WSL2, or use macOS, where Seatbelt (sandbox-exec) is built in.`);
 }
