@@ -18,7 +18,7 @@ import { CONFIG_DIR_NAME, type ExtensionAPI, getAgentDir } from '@earendil-works
 import { executeSubagent } from './dispatch.ts';
 import { renderSubagentCall } from './render-call.ts';
 import { renderSubagentResult } from './render-result.ts';
-import { SubagentParams, SubagentParamsSchema } from './schema.ts';
+import { type ParsedSubagentParams, SubagentParams, SubagentParamsSchema } from './schema.ts';
 import type { SubagentDetails } from './types.ts';
 
 const toolDescription = (): string =>
@@ -43,8 +43,8 @@ export default function subagentExtension(pi: ExtensionAPI): void {
     description: toolDescription(),
     parameters: SubagentParams,
     execute: (_toolCallId, params, signal, onUpdate, ctx) => {
-      const parsed = SubagentParamsSchema.parse(params);
-      return executeSubagent(parsed, signal, onUpdate, ctx);
+      SubagentParamsSchema.parse(params);
+      return executeSubagent(params as ParsedSubagentParams, signal, onUpdate, ctx);
     },
     renderCall: (args, theme) => renderSubagentCall(args, theme),
     renderResult: (result, { expanded }, theme) => renderSubagentResult(result, expanded, theme),

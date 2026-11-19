@@ -9,11 +9,9 @@ import { executeSubagent } from '../src/subagent/dispatch.ts';
 import { getPiInvocation } from '../src/subagent/pi-invocation.ts';
 import { applyMessage, createResultStream, parseMessageEnd } from '../src/subagent/result-stream.ts';
 import { createUnstartedResult } from '../src/subagent/results.ts';
-import { SubagentParamsSchema } from '../src/subagent/schema.ts';
 
 const AGENT_DIR_ENV = 'PI_CODING_AGENT_DIR';
 const TOKENS = 3;
-const NUMBER_VALUE = 5;
 const COST_TOTAL = 0.25;
 const FULL_USAGE = {
   input: TOKENS,
@@ -131,19 +129,6 @@ describe('an assistant message with an incomplete usage', () => {
   test('throws out of the stream, which gives up on the chunk', () => {
     const stream = createResultStream(baseResult(), () => undefined);
     expect(() => stream.onStdoutChunk(`${endLine({ role: 'assistant' })}\n`)).toThrow(TypeError);
-  });
-});
-
-describe('subagent tool parameters', () => {
-  test('are returned as given, with nulls, odd values, missing keys, and extra keys', () => {
-    const input = { future: 1, agentScope: 'nope', chain: [{ agent: 'a' }], tasks: [{ task: 't', extra: null }], cwd: null, agent: null };
-    const parsed = SubagentParamsSchema.parse(input);
-    expect(parsed).toStrictEqual(input);
-    expect(Object.keys(parsed)).toEqual(Object.keys(input));
-  });
-
-  test('reject only a value that is not an object, as reading its keys always did', () => {
-    expect([null, undefined, 'x', NUMBER_VALUE].map((value) => SubagentParamsSchema.safeParse(value).success)).toEqual([false, false, false, false]);
   });
 });
 

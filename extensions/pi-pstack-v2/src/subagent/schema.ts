@@ -1,6 +1,6 @@
 import { StringEnum } from '@earendil-works/pi-ai';
 import { type Static, Type } from 'typebox';
-import { passthroughObject } from '../object-schema.ts';
+import { z } from 'zod';
 import type { AgentScope } from './agents.ts';
 
 const TaskItem = Type.Object({
@@ -33,12 +33,21 @@ export const SubagentParams = Type.Object({
 export type SubagentParamsType = Static<typeof SubagentParams>;
 export type ParsedSubagentParams = Omit<SubagentParamsType, 'agentScope'> & { agentScope?: AgentScope | undefined };
 
+const WorkItemSchema = z.looseObject({ agent: z.string(), task: z.string(), cwd: z.string().optional() });
+
 /**
- * Pi checks SubagentParams before the tool runs, and the original code read what it was given. This accepts any object and
- * returns it untouched, so a chain step without a task, a null optional, an unknown scope, or an extra key reach the
- * dispatcher as they did.
+ * Mirrors SubagentParams, which Pi checks before the tool runs, so it accepts exactly the calls that reach the tool. The
+ * tool validates with it and passes Pi's own params object on, so every key and its order reach the dispatcher unchanged.
  */
-export const SubagentParamsSchema = passthroughObject<ParsedSubagentParams>();
+export const SubagentParamsSchema = z.looseObject({
+  agent: z.string().optional(),
+  task: z.string().optional(),
+  tasks: z.array(WorkItemSchema).optional(),
+  chain: z.array(WorkItemSchema).optional(),
+  agentScope: z.enum(['user', 'project', 'both']).optional(),
+  confirmProjectAgents: z.boolean().optional(),
+  cwd: z.string().optional(),
+});
 
 export const toAgentScope = (value: unknown): AgentScope => (value === 'project' || value === 'both' ? value : 'user');
 

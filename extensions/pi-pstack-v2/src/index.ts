@@ -4,13 +4,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
-import { type Static, Type } from 'typebox';
+import { Type } from 'typebox';
 import { z } from 'zod';
 import { jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
 import { gitPath, projectPath, protectedPaths } from './git.ts';
 import { hostEnv } from './host-env.ts';
 import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
-import { passthroughObject } from './object-schema.ts';
 import { within } from './paths.ts';
 import { serveRequests, sweepFor } from './requests.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
@@ -51,10 +50,12 @@ const tmuxJobsParameters = Type.Object({
   lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
   timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
 });
-// Pi checks a tool's declared parameters before it runs, and the original code read them as given. Any other check would
-// reject what it tolerated, such as a null wake or lines, and would report an unknown action as a schema error.
-const TmuxRunParamsSchema = passthroughObject<Static<typeof tmuxRunParameters>>();
-const TmuxJobsParamsSchema = passthroughObject<Static<typeof tmuxJobsParameters>>();
+// Mirror the TypeBox parameters, which Pi checks before a tool runs, so these accept exactly the calls that reach it.
+// Each tool validates with them and keeps Pi's own params object, so every key and its order reach the tool unchanged.
+export const TmuxRunParamsSchema = z.looseObject({ name: z.string(), command: z.string(), cwd: z.string().optional(), wake: z.string().optional(), repeat: z.boolean().optional() });
+export const TmuxJobsParamsSchema = z.looseObject({ action: z.enum(['list', 'output', 'wait', 'stop']), ids: z.array(z.string()).optional(), lines: z.number().optional(), timeout_seconds: z.number().optional() });
+export { tmuxJobsParameters, tmuxRunParameters };
+
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
 
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
@@ -387,7 +388,8 @@ function registerTmuxRun(pi: ExtensionAPI): void {
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: tmuxRunParameters,
     async execute(_id, params, _signal, _update, ctx) {
-      const input = TmuxRunParamsSchema.parse(params);
+      TmuxRunParamsSchema.parse(params);
+      const input = params;
       if (input.repeat && input.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
       const root = jobsRoot();
       const id = newJobId(input.name);
@@ -449,7 +451,8 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
       "Inspect or control this session's tmux_run jobs. list shows every job with its state, a command to follow its output, and for a running job a command to attach to its tmux session, where the output shows live and Ctrl-C stops it. output shows the last lines of a command or running job. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
     parameters: tmuxJobsParameters,
     async execute(_id, params, signal, update, ctx) {
-      const input = TmuxJobsParamsSchema.parse(params);
+      TmuxJobsParamsSchema.parse(params);
+      const input = params;
       const root = jobsRoot();
       const owner = ctx.sessionManager.getSessionId();
       const named = (): Job[] => namedJobs(root, owner, input.action, input.ids);

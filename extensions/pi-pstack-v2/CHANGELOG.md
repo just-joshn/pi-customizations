@@ -9,10 +9,6 @@
 - The extension, the watch-pr CLI, and the statechart CLI are reorganized into smaller modules that build new values instead of changing existing ones. Their output, exit codes, and error messages are unchanged.
 - `node scripts/style-audit.mjs` checks the package's code style with Biome and GritQL rules. Spots where a rule would change behavior are listed with their reasons in `scripts/style/behavior-exceptions/`.
 
-### Fixed
-
-- A subagent whose frontmatter has no `tools` key is found again, with tools and model unset.
-
 ## 0.1.5
 
 ### Changed

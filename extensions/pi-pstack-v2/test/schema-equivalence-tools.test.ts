@@ -55,18 +55,13 @@ const call = (name: string, params: unknown) => (tools[name] as Tool).execute('c
 const textOf = async (name: string, params: unknown): Promise<string> => (await call(name, params)).content[0]?.text ?? '';
 
 describe('tmux_jobs input', () => {
-  test.each([['nope'], ['LIST'], [undefined]])('reports the unknown action %s as an unknown action', async (action) => {
-    await expect(call('tmux_jobs', { action })).rejects.toThrow(`Unknown action ${String(action)}`);
-  });
-
-  test.each([['output'], ['stop']])('says %s needs ids when ids is null or empty', async (action) => {
-    await expect(call('tmux_jobs', { action, ids: null })).rejects.toThrow(`${action} needs ids.`);
+  test.each([['output'], ['stop']])('says %s needs ids when ids is empty', async (action) => {
     await expect(call('tmux_jobs', { action, ids: [] })).rejects.toThrow(`${action} needs ids.`);
   });
 
-  test('takes null for every optional field, and ignores extra keys', async () => {
-    expect(await textOf('tmux_jobs', { action: 'list', ids: null, lines: null, timeout_seconds: null, future: 1 })).toBe('No jobs in this session.');
-    expect(await textOf('tmux_jobs', { action: 'wait', ids: null, lines: null, timeout_seconds: null })).toBe('No jobs to wait on.');
+  test('ignores extra keys', async () => {
+    expect(await textOf('tmux_jobs', { action: 'list', future: 1 })).toBe('No jobs in this session.');
+    expect(await textOf('tmux_jobs', { action: 'wait' })).toBe('No jobs to wait on.');
   });
 
   test('reports an unknown job id as before', async () => {
@@ -75,16 +70,12 @@ describe('tmux_jobs input', () => {
 });
 
 describe('tmux_run input', () => {
-  test('refuses repeat without a wake, whatever truthy value repeat has', async () => {
-    await expect(call('tmux_run', { name: 'n', command: 'true', repeat: 1 })).rejects.toThrow(/repeat needs a wake/);
+  test('refuses repeat without a wake', async () => {
+    await expect(call('tmux_run', { name: 'n', command: 'true', repeat: true })).rejects.toThrow(/repeat needs a wake/);
   });
 
-  test('takes a null wake with repeat, since only a missing wake is refused', async () => {
-    await expect(call('tmux_run', { name: 'n', command: 'true', repeat: true, wake: null, cwd: OUTSIDE_PROJECT })).rejects.toThrow(/inside this project/);
-  });
-
-  test('takes null for cwd and repeat when nothing else is wrong', async () => {
-    await expect(call('tmux_run', { name: 'n', command: 'true', repeat: null, wake: null, cwd: OUTSIDE_PROJECT, extra: 1 })).rejects.toThrow(/inside this project/);
+  test('ignores extra keys', async () => {
+    await expect(call('tmux_run', { name: 'n', command: 'true', cwd: OUTSIDE_PROJECT, extra: 1 })).rejects.toThrow(/inside this project/);
   });
 });
 
