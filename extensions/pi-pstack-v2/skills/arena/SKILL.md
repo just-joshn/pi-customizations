@@ -19,7 +19,7 @@ Every candidate gets the same prompt, so the prompt is the contract.
 
 ## Phase B: Fan out
 
-Start all N workers in one `subagent` call with one `tasks` entry per runner and `agent: "poteto-agent"`, each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected.
+Start all N workers in one `subagent` call with one `tasks` entry per runner and `agent: "worker"`, each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected.
 
 The call returns when every runner finishes, with their reports. If a candidate produces no output, proceed with N-1 and note the dropout.
 
