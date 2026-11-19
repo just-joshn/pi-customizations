@@ -31,6 +31,10 @@ test('the container gets only the job variables and a short list of host ones, n
   expect(Object.keys(env)).not.toEqual(expect.arrayContaining(['PATH', 'SSH_AUTH_SOCK']));
 });
 
+test('git trusts the checkouts in a container, where bind-mounted directories are owned by root', () => {
+  expect(jobEnv({ dir: '/jobs/a', top: '/jobs/top', agentDir: '/x' }, {})).toMatchObject({ GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'safe.directory', GIT_CONFIG_VALUE_0: '*' });
+});
+
 test("a command a worker starts shares the worker's temp directory but keeps its own home", () => {
   expect(jobEnv({ dir: '/jobs/a', top: '/jobs/top', agentDir: '/x', tmp: '/jobs/worker/tmp' }, {})).toMatchObject({ TMPDIR: '/jobs/worker/tmp', HOME: '/jobs/a/tmp/home', XDG_CACHE_HOME: '/jobs/a/tmp/cache' });
 });

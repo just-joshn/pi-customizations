@@ -153,6 +153,12 @@ const COMPAT_ENV: Record<string, string> = {
   npm_config_manage_package_manager_versions: 'false',
 };
 
+/**
+ * A bind-mounted directory is owned by root inside Apple `container`, whatever owns its contents, so git refuses every
+ * checkout a job works in as unsafe. The container holds nothing but the paths the job was granted, so the check guards nothing.
+ */
+const GIT_ENV: Record<string, string> = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'safe.directory', GIT_CONFIG_VALUE_0: '*' };
+
 /** Host variables a job still needs, since nothing else of the host's environment crosses into the container. */
 const PASSTHROUGH = /^(LANG|LC_[A-Z_]+|TZ|TERM|NO_COLOR|CI|GH_TOKEN|GITHUB_TOKEN|GIT_(AUTHOR|COMMITTER)_(NAME|EMAIL)|[A-Z0-9_]+_API_KEY)$/;
 
@@ -176,6 +182,7 @@ export const jobEnv = ({ dir, top, agentDir, tmp }: JobEnvInput, host: NodeJS.Pr
   PI_CODING_AGENT_DIR: agentDir,
   HOME: join(dir, 'tmp', 'home'),
   ...COMPAT_ENV,
+  ...GIT_ENV,
   ...privateEnv(join(dir, 'tmp')),
   ...(tmp ? tempEnv(tmp) : {}),
 });

@@ -261,6 +261,12 @@ const within = (path: string, roots: string[]): boolean =>
     return inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside);
   });
 
+/** A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings. */
+function refuseAgentDirHolder(writable: string[], agentDir: string): void {
+  const holder = writable.find((path) => within(agentDir, [path]));
+  if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${agentDir}. Run Pi from a project directory.`);
+}
+
 // A contained worker asks the root Pi to launch for it on every platform, since it holds no container runtime, and
 // so nested jobs get the same container everywhere and no job needs a tmux server of its own.
 const brokering = (): boolean => insideJob();
@@ -338,9 +344,7 @@ function start(root: string, spec: JobSpec, files: Record<string, string> = {}, 
     // The root adds a request's agent directory itself, where no worker can plant a link in it.
     writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : []), ...(brokering() ? [] : [agent])])],
   };
-  // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
-  const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
-  if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
+  refuseAgentDirHolder(policy.writable, policy.agentDir);
   spec = { ...spec, sweep: sweepFor(policy), ...(tmp ? { tmp } : {}) };
   policy.checkouts = spec.sweep.roots;
   mkdirSync(join(jobDir, 'tmp', 'home'), { recursive: true });
@@ -450,7 +454,8 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
         makeJobAgentDir(getAgentDir(), agent, credsDir(top.dir));
         // The container is built from the paths just validated, so swapping a link afterwards changes nothing.
         const granted: ContainerPolicy = {
-          writable: [...writable, agent],
+          // The job's own temp directory is where its TMPDIR points, and its job directory is read-only on top of the grant.
+          writable: [...writable, ...(within(join(dir, 'tmp'), grant) ? [join(dir, 'tmp')] : []), agent],
           protect: [...guarded.protect, ...top.spec.policy.protect],
           guardFiles: [...guarded.guardFiles, ...top.spec.policy.guardFiles],
           checkouts: [],
@@ -777,6 +782,8 @@ export default function pstack(pi: ExtensionAPI) {
       const owner = ctx.sessionManager.getSessionId();
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
+      // Refused before protectedPaths walks cwd, which can be a directory holding the whole home.
+      refuseAgentDirHolder([cwd, ...(common ? [common] : [])], getAgentDir());
       const guarded = protectedPaths(cwd, common);
       const policy = containerPolicy(id, join(root, id), {
         writable: [cwd, ...(common ? [common] : []), ...(guarded.ownGitDir ? [guarded.ownGitDir] : [])],

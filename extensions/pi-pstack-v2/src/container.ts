@@ -123,13 +123,17 @@ export interface ContainedOptions {
   top?: string;
 }
 
-/** The directory holding the `node_modules` the running Pi was installed in, which the container mounts to run the same Pi. */
+/**
+ * The outermost `node_modules` the running Pi was installed in, which the container mounts to run the same Pi. A package
+ * manager that nests installs, such as bun in `node_modules/.bun`, links a package to its dependencies in sibling
+ * directories, so only the outermost directory holds them all.
+ */
 export function piInstallRoot(entry: string | undefined = process.argv[1]): string | undefined {
   if (!entry) return undefined;
   const file = real(entry);
   const marker = `${sep}node_modules${sep}`;
-  const at = file.lastIndexOf(marker);
-  return at === -1 ? dirname(file) : file.slice(0, at);
+  const at = file.indexOf(marker);
+  return at === -1 ? dirname(file) : file.slice(0, at + marker.length - 1);
 }
 
 /** The read-only mounts every job needs beside its policy: the Pi that runs it and the pstack package it loads. */
@@ -152,6 +156,8 @@ export function contained(argv: string[], policy: ContainerPolicy, runtime: Cont
   const mounts = mountsForPolicy(policy, options.readonlyMounts ?? hostMounts());
   const args = [
     'run',
+    // Apple `container` writes pull and start progress to stderr, which would mix into the job's own output.
+    ...(runtime.bin === 'container' ? ['--progress', 'none'] : []),
     '--rm',
     '--init',
     '--name',

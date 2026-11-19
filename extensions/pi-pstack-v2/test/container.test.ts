@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { type ContainerPolicy, contained, detectRuntime, ensureImage, IMAGE_ENV, imageTag, type Mount, mountsForPolicy, reapArgv } from '../src/container.ts';
+import { type ContainerPolicy, contained, detectRuntime, ensureImage, IMAGE_ENV, imageTag, type Mount, mountsForPolicy, piInstallRoot, reapArgv } from '../src/container.ts';
 
 const AGENT = '/home/u/.pi/agent';
 const JOBS = `${AGENT}/pstack-v2/jobs`;
@@ -124,6 +124,7 @@ describe('contained', () => {
   const base = (bin: string, extra: string[] = []): string[] => [
     bin,
     'run',
+    ...(bin === 'container' ? ['--progress', 'none'] : []),
     '--rm',
     '--init',
     '--name',
@@ -201,6 +202,14 @@ describe('contained', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('piInstallRoot', () => {
+  test('a flat install mounts its node_modules, and a nested one mounts the outermost, which holds the dependencies it links to', () => {
+    expect(piInstallRoot('/opt/pi/node_modules/@scope/pi/dist/cli.js')).toBe('/opt/pi/node_modules');
+    expect(piInstallRoot('/repo/node_modules/.bun/@scope+pi@1/node_modules/@scope/pi/dist/cli.js')).toBe('/repo/node_modules');
+    expect(piInstallRoot('/opt/pi/cli.js')).toBe('/opt/pi');
   });
 });
 
