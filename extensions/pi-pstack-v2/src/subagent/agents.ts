@@ -2,41 +2,28 @@
  * Agent discovery and configuration
  */
 
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { CONFIG_DIR_NAME, getAgentDir, parseFrontmatter } from "@earendil-works/pi-coding-agent";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-export type AgentScope = "user" | "project" | "both";
+import { CONFIG_DIR_NAME, getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { z } from 'zod';
+
+export type AgentScope = 'user' | 'project' | 'both';
 
 export interface AgentConfig {
-	name: string;
-	description: string;
-	tools?: string[];
-	model?: string;
-	systemPrompt: string;
-	source: "user" | "project";
-	filePath: string;
+  name: string;
+  description: string;
+  tools?: string[] | undefined;
+  model?: string | undefined;
+  systemPrompt: string;
+  source: 'user' | 'project';
+  filePath: string;
 }
 
 export interface AgentDiscoveryResult {
-	agents: AgentConfig[];
-	projectAgentsDir: string | null;
+  agents: AgentConfig[];
+  projectAgentsDir: string | null;
 }
-
-/**
- * Raw agent frontmatter. Values are `unknown` because `parseFrontmatter` runs a
- * real YAML parser, so any scalar or collection can appear here.
- *
- * A type alias rather than an interface: `parseFrontmatter` constrains its
- * parameter to `Record<string, unknown>`, and only an alias picks up the
- * implicit index signature that satisfies it.
- */
-type AgentFrontmatter = {
-	name?: unknown;
-	description?: unknown;
-	tools?: unknown;
-	model?: unknown;
-};
 
 /**
  * Normalize a frontmatter `tools` value to a list of tool names.
@@ -51,107 +38,99 @@ type AgentFrontmatter = {
  * bad file must not take down every other agent in the same directory.
  */
 function parseToolList(value: unknown): string[] | undefined {
-	const raw = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
-	const tools = raw
-		.filter((t): t is string => typeof t === "string")
-		.map((t) => t.trim())
-		.filter(Boolean);
-	return tools.length > 0 ? tools : undefined;
+  const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  const tools = raw
+    .filter((t): t is string => typeof t === 'string')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  return tools.length > 0 ? tools : undefined;
 }
 
-function loadAgentsFromDir(dir: string, source: "user" | "project"): AgentConfig[] {
-	const agents: AgentConfig[] = [];
+/**
+ * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML
+ * parser, so any scalar or collection can appear. `name` and `description` are
+ * required strings; a non-string `model` is dropped rather than rejected.
+ */
+const AgentFrontmatterSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  tools: z.unknown().transform(parseToolList),
+  model: z.string().optional().catch(undefined),
+});
 
-	if (!fs.existsSync(dir)) {
-		return agents;
-	}
+function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'): AgentConfig | undefined {
+  if (!entry.name.endsWith('.md')) return undefined;
+  if (!entry.isFile() && !entry.isSymbolicLink()) return undefined;
 
-	let entries: fs.Dirent[];
-	try {
-		entries = fs.readdirSync(dir, { withFileTypes: true });
-	} catch {
-		return agents;
-	}
+  const filePath = path.join(dir, entry.name);
+  let content: string;
+  try {
+    content = fs.readFileSync(filePath, 'utf-8');
+  } catch {
+    return undefined;
+  }
 
-	for (const entry of entries) {
-		if (!entry.name.endsWith(".md")) continue;
-		if (!entry.isFile() && !entry.isSymbolicLink()) continue;
+  const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
+  const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
+  if (!parsed.success) return undefined;
+  return { ...parsed.data, systemPrompt: body, source, filePath };
+}
 
-		const filePath = path.join(dir, entry.name);
-		let content: string;
-		try {
-			content = fs.readFileSync(filePath, "utf-8");
-		} catch {
-			continue;
-		}
+function loadAgentsFromDir(dir: string, source: 'user' | 'project'): AgentConfig[] {
+  if (!fs.existsSync(dir)) return [];
 
-		const { frontmatter, body } = parseFrontmatter<AgentFrontmatter>(content);
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
 
-		if (typeof frontmatter.name !== "string" || typeof frontmatter.description !== "string") {
-			continue;
-		}
-
-		agents.push({
-			name: frontmatter.name,
-			description: frontmatter.description,
-			tools: parseToolList(frontmatter.tools),
-			model: typeof frontmatter.model === "string" ? frontmatter.model : undefined,
-			systemPrompt: body,
-			source,
-			filePath,
-		});
-	}
-
-	return agents;
+  return entries.flatMap((entry) => {
+    const agent = readAgentFile(dir, entry, source);
+    return agent ? [agent] : [];
+  });
 }
 
 function isDirectory(p: string): boolean {
-	try {
-		return fs.statSync(p).isDirectory();
-	} catch {
-		return false;
-	}
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 function findNearestProjectAgentsDir(cwd: string): string | null {
-	let currentDir = cwd;
-	while (true) {
-		const candidate = path.join(currentDir, CONFIG_DIR_NAME, "agents");
-		if (isDirectory(candidate)) return candidate;
+  let currentDir = cwd;
+  while (true) {
+    const candidate = path.join(currentDir, CONFIG_DIR_NAME, 'agents');
+    if (isDirectory(candidate)) return candidate;
 
-		const parentDir = path.dirname(currentDir);
-		if (parentDir === currentDir) return null;
-		currentDir = parentDir;
-	}
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) return null;
+    currentDir = parentDir;
+  }
 }
 
 export function discoverAgents(cwd: string, scope: AgentScope): AgentDiscoveryResult {
-	const userDir = path.join(getAgentDir(), "agents");
-	const projectAgentsDir = findNearestProjectAgentsDir(cwd);
+  const userDir = path.join(getAgentDir(), 'agents');
+  const projectAgentsDir = findNearestProjectAgentsDir(cwd);
 
-	const userAgents = scope === "project" ? [] : loadAgentsFromDir(userDir, "user");
-	const projectAgents = scope === "user" || !projectAgentsDir ? [] : loadAgentsFromDir(projectAgentsDir, "project");
+  const userAgents = scope === 'project' ? [] : loadAgentsFromDir(userDir, 'user');
+  const projectAgents = scope === 'user' || !projectAgentsDir ? [] : loadAgentsFromDir(projectAgentsDir, 'project');
 
-	const agentMap = new Map<string, AgentConfig>();
+  // Later entries win, so project agents override user agents of the same name under scope "both".
+  const agentMap = new Map([...userAgents, ...projectAgents].map((agent) => [agent.name, agent] as const));
 
-	if (scope === "both") {
-		for (const agent of userAgents) agentMap.set(agent.name, agent);
-		for (const agent of projectAgents) agentMap.set(agent.name, agent);
-	} else if (scope === "user") {
-		for (const agent of userAgents) agentMap.set(agent.name, agent);
-	} else {
-		for (const agent of projectAgents) agentMap.set(agent.name, agent);
-	}
-
-	return { agents: Array.from(agentMap.values()), projectAgentsDir };
+  return { agents: Array.from(agentMap.values()), projectAgentsDir };
 }
 
 export function formatAgentList(agents: AgentConfig[], maxItems: number): { text: string; remaining: number } {
-	if (agents.length === 0) return { text: "none", remaining: 0 };
-	const listed = agents.slice(0, maxItems);
-	const remaining = agents.length - listed.length;
-	return {
-		text: listed.map((a) => `${a.name} (${a.source}): ${a.description}`).join("; "),
-		remaining,
-	};
+  if (agents.length === 0) return { text: 'none', remaining: 0 };
+  const listed = agents.slice(0, maxItems);
+  const remaining = agents.length - listed.length;
+  return {
+    text: listed.map((a) => `${a.name} (${a.source}): ${a.description}`).join('; '),
+    remaining,
+  };
 }
