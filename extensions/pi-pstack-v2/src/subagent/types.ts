@@ -1,6 +1,6 @@
 import type { AgentToolResult, ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Message } from '@earendil-works/pi-ai';
-import type { AgentConfig } from './agents.ts';
+import type { AgentConfig, AgentSource } from './agents.ts';
 
 export interface UsageStats {
   input: number;
@@ -16,7 +16,7 @@ export type ChildStatus = 'pending' | 'running' | 'completed' | 'failed' | 'abor
 
 export interface SingleResult {
   agent: string;
-  agentSource: 'user' | 'project' | 'unknown';
+  agentSource: AgentSource | 'unknown';
   task: string;
   status: ChildStatus;
   exitCode: number | null;

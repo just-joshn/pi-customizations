@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7
+
+### Fixed
+
+- A subagent's `pi` gets the dispatching Pi's environment (agent dir, credentials, PATH). Each run now starts its own tmux server, so an already-running default server no longer replaces that environment with its own.
+- The agents this package ships under `src/subagent/agents`, including `poteto-agent`, are discovered in every scope. User agents override them, and project agents override both.
+
 ## 0.1.6
 
 ### Changed

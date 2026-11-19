@@ -4,11 +4,17 @@ import * as path from 'node:path';
 
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { discoverAgents } from '../src/subagent/agents.ts';
+import { type AgentScope, discoverAgents } from '../src/subagent/agents.ts';
 import { executeSubagent } from '../src/subagent/dispatch.ts';
 import { getPiInvocation } from '../src/subagent/pi-invocation.ts';
 import { applyMessage, createResultStream, parseMessageEnd } from '../src/subagent/result-stream.ts';
 import { createUnstartedResult } from '../src/subagent/results.ts';
+
+/** Discovery minus the agents this package ships, so a test sees only the user and project fixtures it wrote. */
+const localAgents = (cwd: string, scope: AgentScope) => {
+  const result = discoverAgents(cwd, scope);
+  return { ...result, agents: result.agents.filter((agent) => agent.source !== 'package') };
+};
 
 const AGENT_DIR_ENV = 'PI_CODING_AGENT_DIR';
 const TOKENS = 3;
@@ -49,7 +55,7 @@ const baseResult = () => createUnstartedResult('scout', 'look', undefined, 'pend
 describe('agent frontmatter', () => {
   test('an agent without tools or model keeps both keys, set to undefined, in the original order', () => {
     writeAgent(path.join(userHome, 'agents'), 'plain', 'name: plain\ndescription: d\n');
-    const [agent] = discoverAgents(project, 'user').agents;
+    const [agent] = localAgents(project, 'user').agents;
     expect(agent).toStrictEqual({
       name: 'plain',
       description: 'd',
@@ -64,7 +70,7 @@ describe('agent frontmatter', () => {
 
   test('extra frontmatter keys are ignored and tools and model are normalized', () => {
     writeAgent(path.join(userHome, 'agents'), 'rich', 'name: rich\ndescription: d\ntools: read, bash\nmodel: m\nfuture: [1]\n');
-    expect(discoverAgents(project, 'user').agents[0]).toMatchObject({ tools: ['read', 'bash'], model: 'm' });
+    expect(localAgents(project, 'user').agents[0]).toMatchObject({ tools: ['read', 'bash'], model: 'm' });
   });
 
   test.each([
@@ -74,7 +80,7 @@ describe('agent frontmatter', () => {
     ['a scalar', 'just text\n'],
   ])('skips an agent with %s', (_label, frontmatter) => {
     writeAgent(path.join(userHome, 'agents'), 'bad', frontmatter);
-    expect(discoverAgents(project, 'user').agents).toEqual([]);
+    expect(localAgents(project, 'user').agents).toEqual([]);
   });
 });
 

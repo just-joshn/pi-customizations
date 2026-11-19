@@ -3,6 +3,8 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
+import { hostEnv } from '../host-env.ts';
+
 export interface ProcessOutcome {
   code: number | null;
   signal: NodeJS.Signals | null;
@@ -18,12 +20,27 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
 
-const tmuxHasSession = (session: string): boolean => spawnSync('tmux', ['has-session', '-t', `=${session}`], { stdio: 'ignore' }).status === 0;
+const SOCKET_NAME = 'tmux.sock';
 
-/** A session that is already gone makes this fail, which is expected. */
-function tmuxKillSession(session: string): void {
-  spawnSync('tmux', ['kill-session', '-t', `=${session}`], { stdio: 'ignore' });
+/**
+ * Each run gets its own tmux server, started with this process's environment, so the child inherits the dispatching
+ * Pi's agent dir, credentials, and PATH. A shared server would hand it the environment that server started with.
+ * tmux reaches the socket by a relative path from the run directory, which keeps it under the Unix socket path limit.
+ */
+function tmuxArgs(dir: string, args: string[]): [string, string[], { cwd: string; env: NodeJS.ProcessEnv }] {
+  const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
+  return ['tmux', ['-S', SOCKET_NAME, ...args], { cwd: dir, env }];
 }
+
+function tmuxOk(dir: string, args: string[]): boolean {
+  const [command, argv, options] = tmuxArgs(dir, args);
+  return spawnSync(command, argv, { ...options, stdio: 'ignore' }).status === 0;
+}
+
+/** A server that is already gone makes this fail, which is expected. */
+const tmuxKillServer = (dir: string): void => {
+  tmuxOk(dir, ['kill-server']);
+};
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -82,16 +99,17 @@ function prepareRunFiles(command: string, args: string[]): RunFiles {
 
 interface WaitContext {
   exitFile: string;
+  dir: string;
   session: string;
   pump: () => void;
   aborted: () => boolean;
 }
 
 /** Polls until the exit file appears. Resolves false when the session vanished without writing one. */
-async function waitForExit({ exitFile, session, pump, aborted }: WaitContext): Promise<boolean> {
+async function waitForExit({ exitFile, dir, session, pump, aborted }: WaitContext): Promise<boolean> {
   while (!fs.existsSync(exitFile)) {
     pump();
-    const alive = tmuxHasSession(session);
+    const alive = tmuxOk(dir, ['has-session', '-t', `=${session}`]);
     if (!alive && aborted()) return true;
     if (!alive) {
       await sleep(POLL_INTERVAL_MS);
@@ -121,26 +139,27 @@ export async function runPiInTmux(options: {
   signal?: AbortSignal | undefined;
   onStdoutChunk: (chunk: string) => void;
   onStderrChunk: (chunk: string) => void;
-  /** Test hook: called after the tmux session exists and before waiting for exit. */
-  onSessionStarted?: ((session: string) => void) | undefined;
+  /** Test hook: called after the tmux session exists and before waiting for exit, with the session and its server's socket. */
+  onSessionStarted?: ((session: string, socket: string) => void) | undefined;
 }): Promise<ProcessOutcome> {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
   try {
-    execFileSync('tmux', ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper], { stdio: 'ignore' });
+    const [command, argv, spawnOptions] = tmuxArgs(files.dir, ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper]);
+    execFileSync(command, argv, { ...spawnOptions, stdio: 'ignore' });
   } catch (error) {
     fs.rmSync(files.dir, { recursive: true, force: true });
     return { code: null, signal: null, spawnError: error instanceof Error ? error : new Error(String(error)) };
   }
 
-  options.onSessionStarted?.(session);
+  options.onSessionStarted?.(session, path.join(files.dir, SOCKET_NAME));
 
   let wasAborted = false;
   const abort = () => {
     if (wasAborted) return;
     wasAborted = true;
-    tmuxKillSession(session);
+    tmuxKillServer(files.dir);
   };
   if (options.signal?.aborted) abort();
   else options.signal?.addEventListener('abort', abort, { once: true });
@@ -153,13 +172,13 @@ export async function runPiInTmux(options: {
   };
 
   try {
-    const exited = await waitForExit({ exitFile: files.exitFile, session, pump, aborted: () => wasAborted });
+    const exited = await waitForExit({ exitFile: files.exitFile, dir: files.dir, session, pump, aborted: () => wasAborted });
     if (!exited) return { code: null, signal: wasAborted ? 'SIGTERM' : null };
     pump();
     return readOutcome(files.exitFile, wasAborted);
   } finally {
     options.signal?.removeEventListener('abort', abort);
-    tmuxKillSession(session);
+    tmuxKillServer(files.dir);
     fs.rmSync(files.dir, { recursive: true, force: true });
   }
 }
