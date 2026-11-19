@@ -48,7 +48,7 @@
     },
     "extensions/pi-pstack-v2": {
       "name": "@justjoshn/pi-pstack-v2",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "dependencies": {
         "zod": "^4",
       },
