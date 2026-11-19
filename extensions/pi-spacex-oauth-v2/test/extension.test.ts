@@ -2,6 +2,9 @@ import type { OAuthLoginCallbacks, RefreshModelsContext } from '@earendil-works/
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import piSpacexOauth from '../src/index.ts';
+import { fakeSdk, sdk } from './fake-sdk.ts';
+
+vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
 // biome-ignore lint/suspicious/noExplicitAny: the registered provider and command configs are read by shape
 type Loose = any;
@@ -35,18 +38,8 @@ function makeCtx(opts: { provider?: string; tokens?: Record<string, string>; has
   return { ctx, setStatus, notify };
 }
 
-const cursorBodies: Record<string, unknown> = {
-  GetCurrentPeriodUsage: { billingCycleEnd: String(Date.UTC(2026, 10, 30)), planUsage: { totalPercentUsed: 12.34 } },
-  GetPlanInfo: { planInfo: { planName: 'Super', includedUsageResetsAt: String(Date.UTC(2026, 10, 22, 10, 21)) } },
-};
-
-function stubNetwork(overrides: { cursorStatus?: number; grokStatus?: number; cursorBodies?: Record<string, unknown>; grokBody?: unknown } = {}) {
+function stubNetwork(overrides: { grokStatus?: number; grokBody?: unknown } = {}) {
   const fetch = vi.fn(async (url: string) => {
-    if (url.includes('DashboardService')) {
-      if (overrides.cursorStatus) return new Response('', { status: overrides.cursorStatus });
-      const method = url.split('/').pop() as string;
-      return json(200, (overrides.cursorBodies ?? cursorBodies)[method]);
-    }
     if (url.endsWith('/billing')) {
       if (overrides.grokStatus) return new Response('', { status: overrides.grokStatus });
       return json(200, overrides.grokBody ?? { config: { used: { val: 42 }, billingPeriodEnd: '2026-11-28T00:00:00Z' } });
@@ -58,6 +51,8 @@ function stubNetwork(overrides: { cursorStatus?: number; grokStatus?: number; cu
 }
 
 beforeEach(() => {
+  sdk.reset();
+  fakeSdk.Cursor.me.mockResolvedValue({ apiKeyName: 'Pi', userEmail: 'me@example.com', createdAt: '2026-11-01' });
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-11-15T12:00:00Z'));
 });
@@ -71,7 +66,7 @@ describe('registration', () => {
     const { providers, commands } = loadExtension();
     expect([...providers.keys()].sort()).toStrictEqual(['spacex-cursor', 'spacex-grok']);
     expect(providers.get('spacex-grok').models.map((m: { id: string }) => m.id)).toContain('grok-4.7');
-    expect(providers.get('spacex-cursor').models.map((m: { id: string }) => m.id)).toContain('auto');
+    expect(providers.get('spacex-cursor').models.map((m: { id: string }) => m.id)).toContain('composer-2.5');
     expect(commands.has('spacex-usage')).toBe(true);
   });
 });
@@ -85,36 +80,30 @@ describe('/spacex-usage', () => {
     expect(notify).toHaveBeenCalledWith('Sign in with /login (Grok Build or Cursor) to see usage.', 'info');
   });
 
-  test('shows Cursor plan usage and Grok billing when both are signed in', async () => {
+  test('shows the signed-in Cursor account and Grok billing when both are signed in', async () => {
     stubNetwork();
     const { ctx, notify } = makeCtx({ tokens: { 'spacex-cursor': 'c-tok', 'spacex-grok': 'g-tok' } });
     await run(ctx);
     const [text, level] = notify.mock.calls[0] as [string, string];
     expect(level).toBe('info');
-    expect(text).toMatch(/^Super: 12\.3% of included usage, resets .*Nov/);
-    expect(text).toContain('Grok Build credits used: 42, period ends');
+    expect(text).toMatch(/^Cursor: signed in as me@example\.com\. See cursor\.com\/dashboard\/usage for plan usage\.\nGrok Build credits used: 42, period ends/);
+    expect(fakeSdk.Cursor.me).toHaveBeenCalledWith({ apiKey: 'c-tok' });
   });
 
-  test('falls back to defaults when the servers omit fields', async () => {
-    stubNetwork({ cursorBodies: { GetCurrentPeriodUsage: {}, GetPlanInfo: {} }, grokBody: {} });
+  test('names the Cursor key when the account has no email, and Grok falls back to defaults', async () => {
+    stubNetwork({ grokBody: {} });
+    fakeSdk.Cursor.me.mockResolvedValue({ apiKeyName: 'Pi key', createdAt: '2026-11-01' });
     const { ctx, notify } = makeCtx({ tokens: { 'spacex-cursor': 'c', 'spacex-grok': 'g' } });
     await run(ctx);
-    expect(notify.mock.calls[0]?.[0]).toMatch(/^Cursor: 0\.0% of included usage/);
+    expect(notify.mock.calls[0]?.[0]).toMatch(/^Cursor: signed in as Pi key\./);
     expect(notify.mock.calls[0]?.[0]).toContain('Grok Build credits used: 0');
   });
 
-  test('uses the billing-cycle end when the plan has no reset time', async () => {
-    stubNetwork({ cursorBodies: { GetCurrentPeriodUsage: { billingCycleEnd: String(Date.UTC(2026, 11, 3)) }, GetPlanInfo: { planInfo: { planName: 'Pro' } } } });
-    const { ctx, notify } = makeCtx({ tokens: { 'spacex-cursor': 'c' } });
-    await run(ctx);
-    expect(notify.mock.calls[0]?.[0]).toMatch(/^Pro: 0\.0%.*Dec/);
-  });
-
   test('reports a failed Cursor lookup instead of throwing', async () => {
-    stubNetwork({ cursorStatus: 401 });
+    fakeSdk.Cursor.me.mockRejectedValue(new Error('Invalid User API Key'));
     const { ctx, notify } = makeCtx({ tokens: { 'spacex-cursor': 'bad' } });
     await run(ctx);
-    expect(notify.mock.calls[0]?.[0]).toMatch(/^Usage lookup failed: Cursor (GetCurrentPeriodUsage|GetPlanInfo) failed: HTTP 401$/);
+    expect(notify.mock.calls[0]?.[0]).toBe('Usage lookup failed: Invalid User API Key');
   });
 
   test('reports a failed Grok billing lookup', async () => {
@@ -158,22 +147,6 @@ describe('footer status', () => {
     expect(noModel.setStatus).toHaveBeenCalledWith('spacex-usage', undefined);
   });
 
-  test('shows Cursor plan usage and throttles turn_end refreshes to one a minute', async () => {
-    const fetch = stubNetwork();
-    const { handlers } = loadExtension();
-    const { ctx, setStatus } = makeCtx({ provider: 'spacex-cursor', tokens: { 'spacex-cursor': 'c' } });
-    await handlers.get('session_start')?.({} as never, ctx);
-    await vi.waitFor(() => expect(setStatus).toHaveBeenCalledTimes(1));
-    expect(setStatus.mock.calls[0]?.[1]).toMatch(/^<Super: 12\.3%/);
-    const calls = fetch.mock.calls.length;
-    handlers.get('turn_end')?.({} as never, ctx);
-    await vi.advanceTimersByTimeAsync(10);
-    expect(fetch.mock.calls.length).toBe(calls);
-    vi.setSystemTime(Date.now() + 61_000);
-    handlers.get('turn_end')?.({} as never, ctx);
-    await vi.waitFor(() => expect(setStatus).toHaveBeenCalledTimes(2));
-  });
-
   test('shows remaining Grok requests when only Grok is signed in', async () => {
     const { handlers } = loadExtension();
     const { ctx, setStatus } = makeCtx({ provider: 'spacex-grok' });
@@ -199,12 +172,14 @@ describe('footer status', () => {
     await vi.waitFor(() => expect(setStatus).toHaveBeenCalledWith('spacex-usage', undefined));
   });
 
-  test('clears the status when the usage lookup fails', async () => {
-    stubNetwork({ cursorStatus: 500 });
+  test('refreshes on every turn without a network call', async () => {
+    const fetch = stubNetwork();
     const { handlers } = loadExtension();
-    const { ctx, setStatus } = makeCtx({ provider: 'spacex-cursor', tokens: { 'spacex-cursor': 'c' } });
-    await handlers.get('session_start')?.({} as never, ctx);
-    await vi.waitFor(() => expect(setStatus).toHaveBeenCalledWith('spacex-usage', undefined));
+    const { ctx, setStatus } = makeCtx({ provider: 'spacex-grok' });
+    handlers.get('after_provider_response')?.({ headers: rateHeaders } as never, ctx);
+    handlers.get('turn_end')?.({} as never, ctx);
+    expect(setStatus).toHaveBeenCalledWith('spacex-usage', '<8299 req left>');
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
 
@@ -218,7 +193,7 @@ describe('model catalog refresh', () => {
     const stored = [{ id: 'stored-model' }];
     expect(await grok.refreshModels(refreshCtx({ allowNetwork: false, stored: { models: stored } as never }))).toBe(stored);
     expect(await grok.refreshModels(refreshCtx({ credential: { type: 'api_key' } as never }))).toStrictEqual(grok.models);
-    expect((await providers.get('spacex-cursor').refreshModels(refreshCtx({ allowNetwork: false }))).map((m: { id: string }) => m.id)).toContain('auto');
+    expect((await providers.get('spacex-cursor').refreshModels(refreshCtx({ allowNetwork: false }))).map((m: { id: string }) => m.id)).toStrictEqual(['composer-2.5']);
   });
 
   test('a signed-in refresh fetches the live Grok list and persists it', async () => {
@@ -246,24 +221,12 @@ describe('model catalog refresh', () => {
     ).rejects.toThrow('HTTP 403');
   });
 
-  test('a signed-in Cursor refresh collapses the live list; failures surface the status', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => json(200, { models: [{ modelId: 'composer-3', displayName: 'Composer 3' }] })),
-    );
-    const ctx = refreshCtx({ credential: oauthCredential });
+  test('a signed-in Cursor refresh lists the live catalog; failures surface', async () => {
     const cursor = loadExtension().providers.get('spacex-cursor');
-    expect((await cursor.refreshModels(ctx)).map((m: { id: string }) => m.id)).toStrictEqual(['auto', 'composer-3']);
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => json(200, {})),
-    );
-    expect((await cursor.refreshModels(ctx)).map((m: { id: string }) => m.id)).toStrictEqual(['auto']);
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response('', { status: 502 })),
-    );
-    await expect(cursor.refreshModels(ctx)).rejects.toThrow('HTTP 502');
+    const ctx = refreshCtx({ credential: { type: 'oauth', access: 'cursor-refresh', refresh: '', expires: 0 } as never });
+    expect((await cursor.refreshModels(ctx)).map((m: { id: string }) => m.id)).toContain('grok-4.7');
+    fakeSdk.Cursor.models.list.mockRejectedValue(new Error('Invalid User API Key'));
+    await expect(cursor.refreshModels(ctx)).rejects.toThrow('Invalid User API Key');
   });
 });
 

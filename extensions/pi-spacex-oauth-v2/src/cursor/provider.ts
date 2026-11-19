@@ -1,30 +1,24 @@
 import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
-import { refreshCatalog } from '../catalog.ts';
-import { cursorLogin, cursorRefresh } from './auth.ts';
-import { collapseModels, fetchCursorModels } from './models.ts';
-import { AGENT_URL } from './run.ts';
+import { loginCursor, refreshCursorKey } from './auth.ts';
+import { FALLBACK_MODELS, refreshCursorModels } from './catalog.ts';
+import { CURSOR_CONFIG } from './config.ts';
 import { streamCursor } from './stream.ts';
 
-export const CURSOR_PROVIDER_ID = 'spacex-cursor';
-
-// Composer and Auto until the first live refresh replaces the list with GetUsableModels.
-const FALLBACK_MODELS = collapseModels([
-  { modelId: 'composer-2.5', displayName: 'Composer 2.5' },
-  { modelId: 'composer-2.5-fast', displayName: 'Composer 2.5 Fast' },
-]);
+export const CURSOR_PROVIDER_ID = CURSOR_CONFIG.providerId;
 
 export const cursorProvider: ProviderConfig = {
-  name: 'Cursor (X subscription)',
-  baseUrl: AGENT_URL,
-  api: 'cursor-agent',
-  streamSimple: streamCursor,
+  name: CURSOR_CONFIG.name,
+  baseUrl: CURSOR_CONFIG.baseUrl,
+  apiKey: `$${CURSOR_CONFIG.apiKeyEnv}`,
+  api: CURSOR_CONFIG.api,
   models: FALLBACK_MODELS,
-  refreshModels: (ctx) => refreshCatalog(ctx, { provider: CURSOR_PROVIDER_ID, api: 'cursor-agent', baseUrl: AGENT_URL }, FALLBACK_MODELS, fetchCursorModels),
+  refreshModels: refreshCursorModels,
   oauth: {
-    name: 'Cursor (X subscription)',
+    name: CURSOR_CONFIG.name,
     isSubscription: true,
-    login: cursorLogin,
-    refreshToken: cursorRefresh,
+    login: loginCursor,
+    refreshToken: refreshCursorKey,
     getApiKey: (credentials) => credentials.access,
   },
+  streamSimple: streamCursor,
 };

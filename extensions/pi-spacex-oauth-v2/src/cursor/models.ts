@@ -1,126 +1,85 @@
+import type { ModelParameterValue, ModelSelection, SDKModel } from '@cursor/sdk';
+import type { ThinkingLevel, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
-import { CURSOR_API } from './auth.ts';
 
-export const CURSOR_CLIENT_VERSION = 'cli-2026.11.13-eacade1';
-export const cursorHeaders = (token: string) => ({
-  authorization: `Bearer ${token}`,
-  'x-cursor-client-type': 'cli',
-  'x-cursor-client-version': CURSOR_CLIENT_VERSION,
-  'x-ghost-mode': 'true',
-});
+type PiLevel = keyof ThinkingLevelMap;
 
-const EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
-type Effort = (typeof EFFORTS)[number];
-const EFFORT_WORDS = /\s+(None|Minimal|Low|Medium|High|Extra High|Max)(?=\s+Thinking|\s+Fast|\s+\(|$)/;
+// Catalog parameter ids that carry reasoning effort. Models name it differently.
+const EFFORT_PARAMS = new Set(['effort', 'reasoning_effort', 'reasoning']);
+const THINKING_PARAM = 'thinking';
+const CONTEXT_PARAM = 'context';
+const PI_LEVELS: PiLevel[] = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 
-export interface CursorModelDetails {
-  modelId: string;
-  displayName?: string;
+// Catalog effort values per Pi thinking level.
+const EFFORT_VALUES: Record<PiLevel, readonly string[]> = {
+  off: ['none'],
+  minimal: ['minimal'],
+  low: ['low'],
+  medium: ['medium'],
+  high: ['high'],
+  xhigh: ['xhigh', 'extra-high'],
+  max: ['max'],
+};
+
+const DEFAULT_CONTEXT_WINDOW = 200_000;
+const MAX_OUTPUT_TOKENS = 64_000;
+const CONTEXT_UNITS: Record<string, number> = { k: 1_000, m: 1_000_000 };
+
+const effortParam = (model: SDKModel) => model.parameters?.find((p) => EFFORT_PARAMS.has(p.id));
+const thinkingParam = (model: SDKModel) => model.parameters?.find((p) => p.id === THINKING_PARAM);
+const defaultParams = (model: SDKModel): ModelParameterValue[] => model.variants?.find((v) => v.isDefault)?.params ?? [];
+
+/** The catalog value that selects a Pi level on this model, or undefined when the model lacks it. */
+function effortValueFor(model: SDKModel, level: PiLevel): string | undefined {
+  const values = effortParam(model)?.values.map((v) => v.value) ?? [];
+  return EFFORT_VALUES[level].find((v) => values.includes(v));
 }
 
-interface Variant {
-  id: string;
-  effort?: Effort;
-  displayName: string;
+/** Whether Pi's "off" can be honored: an effort of "none", or thinking=false. */
+const canTurnOff = (model: SDKModel) => effortValueFor(model, 'off') !== undefined || thinkingParam(model)?.values.some((v) => v.value === 'false') === true;
+
+export function thinkingLevelMap(model: SDKModel): ThinkingLevelMap | undefined {
+  if (!effortParam(model)) return thinkingParam(model) ? { minimal: null, low: null, medium: null, off: canTurnOff(model) ? 'false' : null } : undefined;
+  const entries = PI_LEVELS.map((level) => [level, level === 'off' ? (canTurnOff(model) ? 'off' : null) : (effortValueFor(model, level) ?? null)]);
+  return Object.fromEntries(entries) as ThinkingLevelMap;
 }
 
-/** Splits a flat Cursor id like `claude-opus-5-5-high-fast` into its pi model id and effort. */
-export function parseVariant(id: string): { piId: string; effort?: Effort } {
-  const fast = id.endsWith('-fast');
-  const stem = fast ? id.slice(0, -5) : id;
-  const effort = EFFORTS.find((e) => stem.endsWith(`-${e}`));
-  const base = effort ? stem.slice(0, -(effort.length + 1)) : stem;
-  return { piId: fast ? `${base}-fast` : base, ...(effort ? { effort } : {}) };
+function contextWindow(model: SDKModel): number {
+  const value = defaultParams(model).find((p) => p.id === CONTEXT_PARAM)?.value ?? '';
+  const [, amount, unit] = /^(\d+(?:\.\d+)?)([km])$/i.exec(value) ?? [];
+  const scale = unit ? CONTEXT_UNITS[unit.toLowerCase()] : undefined;
+  return amount && scale ? Math.round(Number(amount) * scale) : DEFAULT_CONTEXT_WINDOW;
 }
 
-const cleanName = (name: string) => name.replace(/[​-‍]/g, '').replace(/\s+/g, ' ').trim();
+export function toPiModel(model: SDKModel): ProviderModelConfig {
+  const levels = thinkingLevelMap(model);
+  return {
+    id: model.id,
+    name: model.displayName,
+    reasoning: levels !== undefined,
+    ...(levels ? { thinkingLevelMap: levels } : {}),
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: contextWindow(model),
+    maxTokens: MAX_OUTPUT_TOKENS,
+  };
+}
+
+const withParam = (params: ModelParameterValue[], id: string, value: string) => [...params.filter((p) => p.id !== id), { id, value }];
 
 /**
- * Collapses Cursor's per-effort ids into one pi model per base id (and one per `-fast` base).
- * The pi thinking level picks the variant through thinkingLevelMap, whose values are real Cursor ids.
+ * The model selection for one run. Starts from the catalog's default variant, so every parameter is explicit,
+ * then applies Pi's thinking level. `level` undefined means thinking is off.
  */
-export function collapseModels(models: CursorModelDetails[], windows: ReadonlyMap<string, number> = new Map()): ProviderModelConfig[] {
-  const groups = new Map<string, Variant[]>();
-  for (const m of models) {
-    if (m.modelId === 'default') continue;
-    const { piId, effort } = parseVariant(m.modelId);
-    groups.set(piId, [...(groups.get(piId) ?? []), { id: m.modelId, ...(effort ? { effort } : {}), displayName: cleanName(m.displayName ?? m.modelId) }]);
-  }
-  const out: ProviderModelConfig[] = [{ id: 'auto', name: 'Auto', reasoning: false, input: ['text'], cost: zeroCost, contextWindow: windows.get('default') ?? fallbackWindow('auto'), maxTokens: 64_000 }];
-  for (const [piId, variants] of groups) {
-    const plain = variants.find((v) => !v.effort);
-    const byEffort = new Map(variants.filter((v) => v.effort).map((v) => [v.effort as Effort, v.id]));
-    const named = plain ?? variants.find((v) => v.effort === 'high') ?? variants[0];
-    const name = (named?.displayName ?? piId).replace(EFFORT_WORDS, '');
-    out.push({
-      id: piId,
-      name,
-      reasoning: byEffort.size > 0,
-      ...(byEffort.size > 0
-        ? {
-            thinkingLevelMap: {
-              off: plain?.id ?? byEffort.get('none') ?? null,
-              minimal: byEffort.get('minimal') ?? null,
-              low: byEffort.get('low') ?? null,
-              medium: byEffort.get('medium') ?? null,
-              high: byEffort.get('high') ?? null,
-              xhigh: byEffort.get('xhigh') ?? null,
-              max: byEffort.get('max') ?? null,
-            },
-          }
-        : {}),
-      input: ['text'],
-      cost: zeroCost,
-      contextWindow: variants.map((v) => windows.get(v.id)).find((w) => w !== undefined) ?? fallbackWindow(piId),
-      maxTokens: 64_000,
-    });
-  }
-  return out;
-}
-
-const zeroCost = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-
-/**
- * For models AvailableModels does not describe. Grok and Auto run at 256k and Composer at 200k, per token_details.max_tokens
- * in Cursor's conversation state; anything else gets the smaller window rather than a guess from its name.
- */
-const fallbackWindow = (piId: string) => (piId === 'auto' || piId.includes('grok') ? 256_000 : 200_000);
-
-/** Non-max-mode windows from AvailableModels tooltips ("256k context window"), the only place Cursor states them. */
-async function fetchContextWindows(token: string, signal?: AbortSignal): Promise<Map<string, number>> {
-  const res = await fetch(`${CURSOR_API}/aiserver.v1.AiService/AvailableModels`, {
-    method: 'POST',
-    headers: { ...cursorHeaders(token), 'content-type': 'application/json', 'connect-protocol-version': '1' },
-    body: '{}',
-    ...(signal ? { signal } : {}),
-  });
-  if (!res.ok) return new Map();
-  const body = (await res.json()) as { models?: { name: string; tooltipData?: { markdownContent?: string } }[] };
-  const windows = new Map<string, number>();
-  for (const m of body.models ?? []) {
-    const match = /(\d+(?:\.\d+)?)([kM]) context window/.exec(m.tooltipData?.markdownContent ?? '');
-    if (match) windows.set(m.name, Number(match[1]) * (match[2] === 'M' ? 1_000_000 : 1_000));
-  }
-  return windows;
-}
-
-/** The Cursor id to request for a pi model at a pi thinking level. */
-export function resolveCursorModelId(piId: string, map: Partial<Record<string, string | null>> | undefined, level: string | undefined): string {
-  if (piId === 'auto') return 'default';
-  if (!map) return piId;
-  const pick = (l: string) => map[l] ?? undefined;
-  return pick(level ?? 'off') ?? pick('medium') ?? pick('high') ?? pick('low') ?? Object.values(map).find((v): v is string => !!v) ?? piId;
-}
-
-export async function fetchCursorModels(token: string, signal?: AbortSignal): Promise<ProviderModelConfig[]> {
-  const windows = fetchContextWindows(token, signal).catch(() => new Map<string, number>());
-  const res = await fetch(`${CURSOR_API}/agent.v1.AgentService/GetUsableModels`, {
-    method: 'POST',
-    headers: { ...cursorHeaders(token), 'content-type': 'application/json', 'connect-protocol-version': '1' },
-    body: '{}',
-    ...(signal ? { signal } : {}),
-  });
-  if (!res.ok) throw new Error(`Cursor model list failed: HTTP ${res.status}`);
-  const body = (await res.json()) as { models?: CursorModelDetails[] };
-  return collapseModels(body.models ?? [], await windows);
+export function selectModel(model: SDKModel | undefined, modelId: string, level: ThinkingLevel | undefined): ModelSelection {
+  if (!model) return { id: modelId };
+  const base = defaultParams(model);
+  const effort = effortParam(model);
+  const thinking = thinkingParam(model);
+  const wanted: PiLevel = level ?? 'off';
+  const effortValue = effort ? effortValueFor(model, wanted) : undefined;
+  let params = effort && effortValue ? withParam(base, effort.id, effortValue) : base;
+  if (thinking && wanted === 'off' && !effortValue) params = withParam(params, thinking.id, 'false');
+  else if (thinking && wanted !== 'off') params = withParam(params, thinking.id, 'true');
+  return params.length > 0 ? { id: model.id, params } : { id: model.id };
 }
