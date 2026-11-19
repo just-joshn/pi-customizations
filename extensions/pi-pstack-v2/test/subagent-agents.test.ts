@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -211,6 +212,19 @@ describe('bundled agents', () => {
       expect(resolved.agent).toMatchObject({ name: 'poteto-agent', source: 'package' });
       expect(resolved.agent?.systemPrompt).toContain('Poteto subagent');
     }
+  });
+
+  test('ships a neutral worker agent with every editing tool and no system prompt, for candidates that must not be steered', () => {
+    const worker = resolveAgent(project, 'user', 'worker').agent;
+    expect(worker).toMatchObject({ name: 'worker', source: 'package' });
+    expect(worker?.tools).toEqual(['read', 'grep', 'find', 'ls', 'bash', 'edit', 'write']);
+    expect(worker?.systemPrompt.trim()).toBe('');
+  });
+
+  test('no bundled agent sends the model to a Cursor path that does not exist under Pi', () => {
+    const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'subagent', 'agents');
+    const offenders = fs.readdirSync(dir).filter((name) => /~\/\.cursor|\.cursor-plugin/.test(fs.readFileSync(path.join(dir, name), 'utf8')));
+    expect(offenders).toEqual([]);
   });
 
   test('a user agent of the same name overrides the bundled one', () => {
