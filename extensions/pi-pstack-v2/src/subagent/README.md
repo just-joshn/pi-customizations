@@ -140,10 +140,11 @@ System prompt for the agent goes here.
 When `model` is omitted, the subagent inherits the dispatching session's active model and thinking level.
 
 **Locations:**
+- `src/subagent/agents/*.md` - Bundled with this package (every scope)
 - `~/.pi/agent/agents/*.md` - User-level (with `agentScope: "user"` or `"both"`)
 - `.pi/agents/*.md` - Project-level (only with `agentScope: "project"` or `"both"`)
 
-Project agents override user agents with the same name when `agentScope: "both"`.
+User agents override bundled agents with the same name, and project agents override both.
 
 ## Sample Agents
 
