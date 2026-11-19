@@ -112,12 +112,12 @@ beforeEach(() => {
   tools = {};
   handlers = {};
   const api = {
-    registerCommand: () => {},
+    registerCommand: () => undefined,
     on: (event: string, handler: Handler) => {
-      handlers[event] = handler;
+      handlers = { ...handlers, [event]: handler };
     },
     registerTool: (tool: Tool & { name: string }) => {
-      tools[tool.name] = tool;
+      tools = { ...tools, [tool.name]: tool };
     },
     sendMessage: vi.fn(),
   };
