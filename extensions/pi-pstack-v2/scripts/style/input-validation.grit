@@ -1,0 +1,10 @@
+language js
+
+or {
+  `JSON.parse($...)`,
+  `process.argv`
+} as $m where {
+  not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
+  not $m <: within `$schema.safeParse($...)`,
+  register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
+}
