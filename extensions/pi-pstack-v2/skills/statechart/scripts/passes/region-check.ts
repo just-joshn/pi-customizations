@@ -1,5 +1,4 @@
 import {
-  append,
   type Arrow,
   holds,
   type Labels,
@@ -12,6 +11,59 @@ import {
 type Move = { from: string[]; text: string; to: string[] };
 type Enabled = { i: number; a: Arrow };
 
+const moveEntry = (m: Move) => [tupleKey([m.from, m.text, m.to]), m] as const;
+
+const groupsOf = (list: Enabled[], isTogether: boolean) => {
+  if (!isTogether) return list.map((m) => [m]);
+  return [...Map.groupBy(list, (m) => m.i).values()].reduce<Enabled[][]>(
+    (groups, opts) => groups.flatMap((g) => opts.map((m) => [...g, m])),
+    [[]],
+  );
+};
+
+const movesFrom = (regions: Region[], c: string[], together: Labels["together"]): Move[] => {
+  const enabled = regions.flatMap((r, i) => {
+    const rest = c.filter((_, k) => k !== i);
+    return r.arrows
+      .filter((a) => a.from === c[i] && holds(a.condition, rest))
+      .map((a): Enabled => ({ i, a }));
+  });
+  return [...Map.groupBy(enabled, ({ a }) => a.label)].flatMap(([text, list]) =>
+    groupsOf(list, together.has(text)).map((group) => ({
+      from: c,
+      text,
+      to: group.reduce((acc, { i, a }) => acc.with(i, a.to), c),
+    })),
+  );
+};
+
+const drawnMoves = (
+  regions: Region[],
+  combos: Map<string, string[]>,
+  together: Labels["together"],
+) =>
+  new Map(
+    [...combos.values()].flatMap((c) => movesFrom(regions, c, together)).map(moveEntry),
+  );
+
+const startsLie = (regions: Region[], realStarts: Set<string>, words: (c: string[]) => string) => {
+  const product = regions.reduce<string[][]>(
+    (acc, r) =>
+      acc.flatMap((c) => r.states.filter((s) => s.start).map((s) => [...c, tupleKey(s.path)])),
+    [[]],
+  );
+  const bad = product.find((c) => !realStarts.has(tupleKey(c)));
+  return bad && `The regions chart starts at ${words(bad)}, where the model never starts.`;
+};
+
+const conditionLie = (regions: Region[], names: string[]) => {
+  for (const [i, r] of regions.entries())
+    for (const a of r.arrows)
+      if (a.condition.kind === "tuples")
+        return `In ${names[i]}, ${a.label} from ${unkey(a.from).join(" / ")} depends on the other regions in a way that one "and" or "or" condition cannot say.`;
+  return undefined;
+};
+
 export function regionsLie(
   regions: Region[],
   { names, keys, sorted, drawnLabels, together }: Labels,
@@ -19,74 +71,24 @@ export function regionsLie(
   order: Int32Array,
 ) {
   if (names.length < 2) return undefined;
-  const combo = (i: number) => {
-    const c: string[] = [];
-    for (let r = 0; r < names.length; r++) c.push(keys[r][i]);
-    return c;
-  };
-  const words = (c: string[]) => {
-    const parts: string[] = [];
-    for (let i = 0; i < names.length; i++) parts.push(`${names[i]} ${unkey(c[i]).join(" / ")}`);
-    return parts.join(", ");
-  };
-  const addMove = (moves: Map<string, Move>, m: Move) =>
-    moves.set(tupleKey([m.from, m.text, m.to]), m);
-  let product: string[][] = [[]];
-  for (const r of regions) {
-    const next: string[][] = [];
-    for (const c of product)
-      for (const s of r.states) if (s.start) next.push([...c, tupleKey(s.path)]);
-    product = next;
-  }
-  const realStarts = new Set<string>();
-  for (const i of starts) realStarts.add(tupleKey(combo(i)));
-  for (const c of product)
-    if (!realStarts.has(tupleKey(c)))
-      return `The regions chart starts at ${words(c)}, where the model never starts.`;
-  for (const [i, r] of regions.entries())
-    for (const a of r.arrows)
-      if (a.condition.kind === "tuples")
-        return `In ${names[i]}, ${a.label} from ${unkey(a.from).join(" / ")} depends on the other regions in a way that one "and" or "or" condition cannot say.`;
-  const real = new Map<string, Move>();
-  for (const j of sorted) {
-    const before = combo(from[j]);
-    const after = combo(to[j]);
-    if (tupleKey(before) !== tupleKey(after))
-      addMove(real, { from: before, text: drawnLabels[j], to: after });
-  }
-  const combos = new Map<string, string[]>();
-  for (const i of order) {
-    const c = combo(i);
-    combos.set(tupleKey(c), c);
-  }
-  const drawn = new Map<string, Move>();
-  for (const c of combos.values()) {
-    const enabled = new Map<string, Enabled[]>();
-    for (const [i, r] of regions.entries()) {
-      const rest: string[] = [];
-      for (let k = 0; k < c.length; k++) if (k !== i) rest.push(c[k]);
-      for (const a of r.arrows)
-        if (a.from === c[i] && holds(a.condition, rest)) append(enabled, a.label, { i, a });
-    }
-    for (const [text, list] of enabled) {
-      let groups: Enabled[][] = [];
-      if (together.has(text)) {
-        const byRegion = new Map<number, Enabled[]>();
-        for (const m of list) append(byRegion, m.i, m);
-        groups = [[]];
-        for (const opts of byRegion.values()) {
-          const next: Enabled[][] = [];
-          for (const g of groups) for (const m of opts) next.push([...g, m]);
-          groups = next;
-        }
-      } else for (const m of list) groups.push([m]);
-      for (const group of groups) {
-        const to = [...c];
-        for (const { i, a } of group) to[i] = a.to;
-        addMove(drawn, { from: c, text, to });
-      }
-    }
-  }
+  const combo = (i: number) => names.map((_, r) => keys[r][i]);
+  const words = (c: string[]) =>
+    names.map((name, i) => `${name} ${unkey(c[i]).join(" / ")}`).join(", ");
+  const early =
+    startsLie(regions, new Set(Array.from(starts, (i) => tupleKey(combo(i)))), words) ??
+    conditionLie(regions, names);
+  if (early) return early;
+  const real = new Map(
+    Array.from(sorted).flatMap((j): Move[] => {
+      const before = combo(from[j]);
+      const after = combo(to[j]);
+      return tupleKey(before) === tupleKey(after)
+        ? []
+        : [{ from: before, text: drawnLabels[j], to: after }];
+    }).map(moveEntry),
+  );
+  const combos = new Map(Array.from(order, (i) => [tupleKey(combo(i)), combo(i)] as const));
+  const drawn = drawnMoves(regions, combos, together);
   for (const [k, extra] of drawn)
     if (!real.has(k))
       return `The regions chart lets ${words(extra.from)} go to ${words(extra.to)} by ${extra.text}, which the model never does.`;
