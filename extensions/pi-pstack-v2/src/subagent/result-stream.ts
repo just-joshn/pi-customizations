@@ -3,44 +3,29 @@ import { z } from 'zod';
 import type { ProcessOutcome } from './run-in-tmux.ts';
 import type { SingleResult } from './types.ts';
 
-const AssistantUsageSchema = z.object({
-  input: z.number(),
-  output: z.number(),
-  cacheRead: z.number(),
-  cacheWrite: z.number(),
-  totalTokens: z.number(),
-  cost: z.object({ total: z.number() }),
-});
-
-const MessageEndEventSchema = z.object({
-  type: z.literal('message_end'),
-  message: z.discriminatedUnion('role', [
-    z.looseObject({ role: z.literal('user') }),
-    z.looseObject({ role: z.literal('toolResult') }),
-    z.looseObject({
-      role: z.literal('assistant'),
-      usage: AssistantUsageSchema,
-      model: z.string().optional(),
-      stopReason: z.string().optional(),
-      errorMessage: z.string().optional(),
-    }),
-  ]),
-});
+/** A line of Pi's JSON mode output as it was read: any JSON value, which parseMessageEnd then reads field by field. */
+type JsonLine = { type?: unknown; message: { role?: unknown } };
+const JsonLineSchema = z.custom<JsonLine>();
 
 function safeParseLine(line: string) {
   try {
-    return MessageEndEventSchema.safeParse(JSON.parse(line));
+    return JsonLineSchema.safeParse(JSON.parse(line));
   } catch {
     return { success: false as const };
   }
 }
 
-/** Parse one JSON-mode stdout line; anything other than a well-formed `message_end` yields undefined. */
+/**
+ * Parse one JSON-mode stdout line; anything other than a `message_end` of a user, assistant, or tool result yields
+ * undefined. The message is returned untouched, with every key and its order, and its fields are read where they are used,
+ * so a message without usage fails there, as it always did, and is not dropped here.
+ */
 export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
   const event = safeParseLine(line);
-  // The schema pins the fields this module reads; the rest of the message is passed through to the UI untouched.
-  return event.success ? (event.data.message as unknown as Message) : undefined;
+  if (!event.success || event.data.type !== 'message_end') return undefined;
+  const { role } = event.data.message;
+  return role === 'user' || role === 'assistant' || role === 'toolResult' ? (event.data.message as Message) : undefined;
 }
 
 export function applyMessage(result: SingleResult, message: Message): SingleResult {

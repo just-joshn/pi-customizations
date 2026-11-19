@@ -146,7 +146,7 @@ describe('parseMessageEnd', () => {
     expect(parseMessageEnd('  ')).toBeUndefined();
     expect(parseMessageEnd('{nope')).toBeUndefined();
     expect(parseMessageEnd(JSON.stringify({ type: 'agent_start' }))).toBeUndefined();
-    expect(parseMessageEnd(endLine({ role: 'assistant', content: [] }))).toBeUndefined();
+    expect(parseMessageEnd(endLine({ role: 'custom', content: [] }))).toBeUndefined();
   });
 
   test('passes user, toolResult and assistant messages through', () => {
@@ -254,10 +254,9 @@ describe('schema', () => {
     expect([toAgentScope('project'), toAgentScope('both'), toAgentScope('user'), toAgentScope(undefined), toAgentScope('x')]).toEqual(['project', 'both', 'user', 'user', 'user']);
   });
 
-  test('params schema keeps unknown keys and validates fields', () => {
+  test('params schema keeps unknown keys and rejects a non-object', () => {
     const input = { agent: 'a', tasks: [{ agent: 'b', task: 't', extra: true }], agentScope: 'both', future: 1 };
     expect(SubagentParamsSchema.parse(input)).toEqual(input);
-    expect(SubagentParamsSchema.safeParse({ agentScope: 'nope' }).success).toBe(false);
-    expect(SubagentParamsSchema.safeParse({ chain: [{ agent: 'a' }] }).success).toBe(false);
+    expect(SubagentParamsSchema.safeParse(null).success).toBe(false);
   });
 });

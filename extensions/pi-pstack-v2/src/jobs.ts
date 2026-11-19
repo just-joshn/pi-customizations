@@ -5,10 +5,10 @@ import { createRequire } from 'node:module';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { z } from 'zod';
 import { jobAgentDir } from './credentials.ts';
 import { hostEnv } from './host-env.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, SandboxPolicySchema, TOP_DIR_ENV } from './sandbox.ts';
+import { passthroughObject } from './object-schema.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
 const sweepSource = fileURLToPath(new URL('./sweep.ts', import.meta.url));
@@ -53,26 +53,8 @@ export interface JobSpec {
   createdAt: string;
 }
 
-const JobSpecSchema: z.ZodType<JobSpec> = z.object({
-  id: z.string(),
-  name: z.string(),
-  kind: z.enum(['pi', 'command']),
-  cwd: z.string(),
-  argv: z.array(z.string()),
-  command: z.array(z.string()),
-  policy: SandboxPolicySchema,
-  brokered: z.boolean(),
-  out: z.string(),
-  owner: z.string(),
-  wake: z.string().nullable(),
-  repeat: z.boolean(),
-  series: z.string(),
-  socket: z.string(),
-  sweep: z.object({ roots: z.array(z.string()), protect: z.array(z.string()) }),
-  tmp: z.string().optional(),
-  createWorktree: z.object({ branch: z.string(), base: z.string().optional() }).optional(),
-  createdAt: z.string(),
-}) as z.ZodType<JobSpec>;
+/** A job.json is read as written: older and newer versions of it, and requests from workers, differ in which keys they hold. */
+const JobSpecSchema = passthroughObject<JobSpec>();
 
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 

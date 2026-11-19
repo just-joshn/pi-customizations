@@ -47,15 +47,15 @@ function parseToolList(value: unknown): string[] | undefined {
 }
 
 /**
- * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML
- * parser, so any scalar or collection can appear. `name` and `description` are
- * required strings; a non-string `model` is dropped rather than rejected.
+ * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML parser, so any scalar or collection can
+ * appear. `name` and `description` are required strings, and `tools` and `model` may be absent or of any type: the agent
+ * is built from them by hand, since a non-string `model` is dropped and `tools` is normalized rather than rejected.
  */
-const AgentFrontmatterSchema = z.object({
+const AgentFrontmatterSchema = z.looseObject({
   name: z.string(),
   description: z.string(),
-  tools: z.unknown().transform(parseToolList),
-  model: z.string().optional().catch(undefined),
+  tools: z.unknown().optional(),
+  model: z.unknown().optional(),
 });
 
 function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'): AgentConfig | undefined {
@@ -73,7 +73,8 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  return { ...parsed.data, systemPrompt: body, source, filePath };
+  const { name, description, tools, model } = parsed.data;
+  return { name, description, tools: parseToolList(tools), model: typeof model === 'string' ? model : undefined, systemPrompt: body, source, filePath };
 }
 
 function loadAgentsFromDir(dir: string, source: 'user' | 'project'): AgentConfig[] {
@@ -116,7 +117,8 @@ export function discoverAgents(cwd: string, scope: AgentScope): AgentDiscoveryRe
   const userDir = path.join(getAgentDir(), 'agents');
   const projectAgentsDir = findNearestProjectAgentsDir(cwd);
 
-  const userAgents = scope === 'project' ? [] : loadAgentsFromDir(userDir, 'user');
+  // Only the user and both scopes read user agents. Any other value is read as the project scope, as it always was.
+  const userAgents = scope === 'user' || scope === 'both' ? loadAgentsFromDir(userDir, 'user') : [];
   const projectAgents = scope === 'user' || !projectAgentsDir ? [] : loadAgentsFromDir(projectAgentsDir, 'project');
 
   // Later entries win, so project agents override user agents of the same name under scope "both".
