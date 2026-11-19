@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+### Fixed
+
+- The published package no longer ships the `node_modules` that the release tests install under `skills/*/scripts`. 0.2.1 carried 1,885 such files, including a 23 MB macOS-only `tsc` binary, in a 14.9 MB tarball that npm took about 11 minutes to serve. `pi update` failed with a 404 for the whole window. The package drops from 2,524 files and 47.7 MB unpacked to 639 files and 6.0 MB. A test packs the package and rejects any `node_modules` path.
+
 ## 0.2.1
 
 ### Added
