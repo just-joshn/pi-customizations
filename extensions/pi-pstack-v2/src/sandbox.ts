@@ -2,7 +2,13 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
+import { z } from 'zod';
+
 import { EDITOR_CODE, HARNESS_DIRS, HARNESS_INSTRUCTIONS, WORKSPACE_SUFFIX } from './sweep.ts';
+
+type Env = NodeJS.ProcessEnv;
+type Arch = NodeJS.Architecture;
+type Platform = NodeJS.Platform;
 
 export const SANDBOX_ENV = 'PSTACK_V2_SANDBOXED';
 /** The job directory of the sandboxed process. Jobs it asks the root to start are requested under its writable `nested/` directory. */
@@ -31,6 +37,18 @@ export interface SandboxPolicy {
   jobDir: string;
 }
 
+/** Validates a policy read back from a job's spec file. */
+export const SandboxPolicySchema: z.ZodType<SandboxPolicy> = z.object({
+  writable: z.array(z.string()),
+  protect: z.array(z.string()),
+  lock: z.array(z.string()),
+  gitDirs: z.array(z.string()),
+  checkouts: z.array(z.string()),
+  agentDir: z.string(),
+  credentials: z.string(),
+  jobDir: z.string(),
+});
+
 const real = (path: string): string => (existsSync(path) ? realpathSync(path) : path);
 /** A path as the kernel sees it when the entry itself is the target: the real parent plus the entry's own name, links unresolved. */
 const entry = (path: string): string => join(real(dirname(path)), basename(path));
@@ -57,6 +75,47 @@ function placeholders(policy: SandboxPolicy): void {
   }
 }
 
+/** Rules refusing a checkout's git entries, Pi code, and editor and harness configuration. */
+function checkoutRules(policy: SandboxPolicy): string[] {
+  return [
+    // Any .git a checkout gains is a repository git would run hooks from, apart from the checkout's own git directory.
+    ...policy.checkouts.map((root) => {
+      const git = existsSync(join(root, '.git')) && statSync(join(root, '.git')).isDirectory() ? '.+/\\.git' : '(.*/)?\\.git';
+      return `(deny file-write* (regex #"^${escapeRegex(real(root))}/(${git}|(.*/)?\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`;
+    }),
+    // Editor and agent-harness configuration runs unsandboxed when the checkout is opened, so it is refused at any depth,
+    // apart from the harnesses' instruction directories.
+    ...policy.checkouts.map((root) => {
+      const under = `^${escapeRegex(real(root))}/(.*/)?`;
+      const alt = (names: readonly string[]): string => names.map(escapeRegex).join('|');
+      const harness = `${under}(${alt(HARNESS_DIRS)})`;
+      return `(deny file-write* (regex #"${under}(${alt(EDITOR_CODE)}|[^/]*${escapeRegex(WORKSPACE_SUFFIX)})(/|$)") (require-all (regex #"${harness}(/|$)") (require-not (regex #"${harness}/(${alt(HARNESS_INSTRUCTIONS)})(/|$)"))))`;
+    }),
+  ];
+}
+
+/** Rules that hold for every job: local sockets, launch services, signals, and preference writes. */
+const SEATBELT_TAIL: string[] = [
+  // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS is reachable.
+  '(deny network-outbound (remote unix-socket))',
+  // biome-ignore lint/security/noSecrets: macOS DNS uses this fixed mDNSResponder Unix socket path.
+  '(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))',
+  // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
+  '(deny network-bind (local unix-socket))',
+  // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
+  // `open -a` on an app the job wrote launches it through launchd, so the lookup rules below cannot stop it, and lsopen does.
+  '(deny appleevent-send)',
+  '(deny lsopen)',
+  // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
+  '(deny signal)',
+  '(allow signal (target same-sandbox))',
+  // launchservicesd stays reachable because Firefox checks in with it at startup and aborts without it. Opening goes through lsopen.
+  '(deny mach-lookup (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
+  // launchd would run a job it is handed outside the sandbox, and preference writes go through a daemon outside it.
+  '(deny mach-lookup (global-name-regex #"^com\\.apple\\.xpc\\.launchd\\."))',
+  '(deny user-preference-write)',
+];
+
 export function seatbeltProfile(policy: SandboxPolicy): string {
   const subpaths = (paths: string[]): string => paths.map((path) => `(subpath ${quote(real(path))})`).join(' ');
   // A protected path that is itself a symlink is guarded at the link as well as at its target, so it cannot be swapped.
@@ -79,91 +138,66 @@ export function seatbeltProfile(policy: SandboxPolicy): string {
     ...policy.gitDirs.map((common) => `(deny file-write* (subpath ${quote(real(join(common, 'worktrees')))}) (subpath ${quote(real(join(common, 'modules')))}))`),
     ...(ownWorktrees(policy).length ? [`(allow file-write* ${subpaths(ownWorktrees(policy))})`] : []),
     `(deny file-write* (regex #"${TMUX_SOCKETS}") ${guarded.join(' ')} ${policy.gitDirs.map((common) => `(regex #"${gitRedirects(common)}")`).join(' ')})`,
-    // Any .git a checkout gains is a repository git would run hooks from, apart from the checkout's own git directory.
-    ...policy.checkouts.map((root) => {
-      const git = existsSync(join(root, '.git')) && statSync(join(root, '.git')).isDirectory() ? '.+/\\.git' : '(.*/)?\\.git';
-      return `(deny file-write* (regex #"^${escapeRegex(real(root))}/(${git}|(.*/)?\\.pi/(extensions|settings\\.json|mcp\\.json|npm|git))(/|$)"))`;
-    }),
-    // Editor and agent-harness configuration runs unsandboxed when the checkout is opened, so it is refused at any depth,
-    // apart from the harnesses' instruction directories.
-    ...policy.checkouts.map((root) => {
-      const under = `^${escapeRegex(real(root))}/(.*/)?`;
-      const alt = (names: readonly string[]): string => names.map(escapeRegex).join('|');
-      const harness = `${under}(${alt(HARNESS_DIRS)})`;
-      return `(deny file-write* (regex #"${under}(${alt(EDITOR_CODE)}|[^/]*${escapeRegex(WORKSPACE_SUFFIX)})(/|$)") (require-all (regex #"${harness}(/|$)") (require-not (regex #"${harness}/(${alt(HARNESS_INSTRUCTIONS)})(/|$)"))))`;
-    }),
-    // Any local service socket could start a process outside the sandbox, such as Docker's, so only DNS is reachable.
-    '(deny network-outbound (remote unix-socket))',
-    // biome-ignore lint/security/noSecrets: macOS DNS uses this fixed mDNSResponder Unix socket path.
-    '(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))',
-    // Nor may it serve one, such as a tmux server of its own. Linux refuses the same through seccomp.
-    '(deny network-bind (local unix-socket))',
-    // Services that start processes on a caller's behalf would run them outside the sandbox: LaunchServices (`open`) and Apple Events.
-    // `open -a` on an app the job wrote launches it through launchd, so the lookup rules below cannot stop it, and lsopen does.
-    '(deny appleevent-send)',
-    '(deny lsopen)',
-    // A job may signal only processes in its own sandbox, never the wrapper that cleans up after it or the root Pi.
-    '(deny signal)',
-    '(allow signal (target same-sandbox))',
-    // launchservicesd stays reachable because Firefox checks in with it at startup and aborts without it. Opening goes through lsopen.
-    '(deny mach-lookup (global-name-regex #"^com\\.apple\\.lsd\\.") (global-name "com.apple.coreservices.appleevents"))',
-    // launchd would run a job it is handed outside the sandbox, and preference writes go through a daemon outside it.
-    '(deny mach-lookup (global-name-regex #"^com\\.apple\\.xpc\\.launchd\\."))',
-    '(deny user-preference-write)',
+    ...checkoutRules(policy),
+    ...SEATBELT_TAIL,
   ];
   return lines.join('\n');
 }
 
+const REDIRECT_FILES = ['commondir', 'gitdir', 'config.worktree'];
+const MODULE_REDIRECTS = ['hooks', 'config', 'info', ...REDIRECT_FILES];
+const MAX_MODULE_DEPTH = 6;
+
 /** Existing worktree and submodule redirection files under a git common directory, for bubblewrap, which can only bind what exists. */
 function existingRedirects(common: string): string[] {
-  const found: string[] = [];
   const worktrees = join(common, 'worktrees');
-  found.push(join(common, 'config.worktree'));
-  if (existsSync(worktrees)) for (const name of readdirSync(worktrees)) for (const file of ['commondir', 'gitdir', 'config.worktree']) found.push(join(worktrees, name, file));
-  const walk = (dir: string, depth: number): void => {
-    if (depth > 6 || !existsSync(dir)) return;
-    for (const name of readdirSync(dir)) {
+  const linked = existsSync(worktrees) ? readdirSync(worktrees).flatMap((name) => REDIRECT_FILES.map((file) => join(worktrees, name, file))) : [];
+  const walk = (dir: string, depth: number): string[] => {
+    if (depth > MAX_MODULE_DEPTH || !existsSync(dir)) return [];
+    return readdirSync(dir).flatMap((name) => {
       const path = join(dir, name);
-      if (['hooks', 'config', 'info', 'commondir', 'gitdir', 'config.worktree'].includes(name)) found.push(path);
-      else if (statSync(path).isDirectory()) walk(path, depth + 1);
-    }
+      if (MODULE_REDIRECTS.includes(name)) return [path];
+      return statSync(path).isDirectory() ? walk(path, depth + 1) : [];
+    });
   };
-  walk(join(common, 'modules'), 0);
-  return found.filter(existsSync);
+  return [join(common, 'config.worktree'), ...linked, ...walk(join(common, 'modules'), 0)].filter(existsSync);
 }
 
-export function bwrapArgs(policy: SandboxPolicy, env: NodeJS.ProcessEnv = process.env, uid: number = process.getuid?.() ?? 0): string[] {
-  // Its own PID namespace means every process a job starts dies with it, and none can signal the wrapper outside.
-  // A private /tmp, since unsandboxed programs load code they cached in the shared one. It also hides outside tmux sockets.
-  const args = ['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--tmpfs', '/tmp'];
-  // Pi's agent directory stays visible, read-only, even when it sits under the private /tmp.
-  if (existsSync(policy.agentDir)) args.push('--ro-bind', policy.agentDir, policy.agentDir);
-  const writable = policy.writable.filter(existsSync);
-  for (const path of writable) args.push('--bind', path, path);
-  // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
+const bind = (flag: string, path: string): string[] => [flag, path, path];
+
+/** The job's agent directory becomes a throwaway tmpfs holding its entries read-only, and only its credentials copy is bound writable. */
+const credentialMounts = (credentials: string): string[] =>
+  credentials && existsSync(credentials)
+    ? ['--tmpfs', credentials, ...readdirSync(credentials).flatMap((name) => bind(name === 'auth.json' ? '--bind' : '--ro-bind', join(credentials, name)))]
+    : [];
+
+export function bwrapArgs(policy: SandboxPolicy, env: Env = process.env, uid: number = process.getuid?.() ?? 0): string[] {
   // Service sockets live under /run, such as Docker's and the system bus, so it is hidden, except the DNS resolver's files.
-  for (const hidden of new Set(['/run', '/var/run', `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])) if (hidden && existsSync(hidden) && !lstatSync(hidden).isSymbolicLink()) args.push('--tmpfs', hidden);
-  for (const resolver of ['/run/systemd/resolve', '/run/resolvconf']) if (existsSync(resolver)) args.push('--ro-bind', resolver, resolver);
-  // The job's agent directory becomes a throwaway tmpfs holding its entries read-only, so Pi can create lock directories,
-  // and only its credentials copy is bound writable.
-  if (policy.credentials && existsSync(policy.credentials)) {
-    args.push('--tmpfs', policy.credentials);
-    for (const name of readdirSync(policy.credentials)) {
-      const path = join(policy.credentials, name);
-      args.push(name === 'auth.json' ? '--bind' : '--ro-bind', path, path);
-    }
-  }
-  // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
-  for (const path of policy.lock.filter(existsSync)) args.push(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path, path);
-  for (const common of policy.gitDirs) for (const name of ['worktrees', 'modules']) if (existsSync(join(common, name))) args.push('--ro-bind', join(common, name), join(common, name));
-  for (const own of ownWorktrees(policy)) args.push('--bind', own, own);
-  for (const path of [...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync)) args.push('--ro-bind', path, path);
-  // Shared /tmp is read-only, as on macOS, once everything under it is mounted.
-  return [...args, '--remount-ro', '/tmp', '--die-with-parent', '--'];
+  const hidden = [...new Set(['/run', '/var/run', `/run/user/${uid}`, env['XDG_RUNTIME_DIR']])].filter((path): path is string => Boolean(path) && existsSync(path as string) && !lstatSync(path as string).isSymbolicLink());
+  const worktreeGitDirs = policy.gitDirs.flatMap((common) => ['worktrees', 'modules'].map((name) => join(common, name)).filter(existsSync));
+  return [
+    // Its own PID namespace means every process a job starts dies with it, and none can signal the wrapper outside.
+    // A private /tmp, since unsandboxed programs load code they cached in the shared one. It also hides outside tmux sockets.
+    ...['--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--unshare-pid', '--tmpfs', '/tmp'],
+    // Pi's agent directory stays visible, read-only, even when it sits under the private /tmp.
+    ...(existsSync(policy.agentDir) ? bind('--ro-bind', policy.agentDir) : []),
+    ...policy.writable.filter(existsSync).flatMap((path) => bind('--bind', path)),
+    // Later mounts win, so everything below lands on top of the writable paths, even one that contains these.
+    ...hidden.flatMap((path) => ['--tmpfs', path]),
+    ...['/run/systemd/resolve', '/run/resolvconf'].filter(existsSync).flatMap((path) => bind('--ro-bind', path)),
+    ...credentialMounts(policy.credentials),
+    // A mount point cannot be renamed, so a locked directory is bound onto itself, still writable inside, and a locked file read-only.
+    ...policy.lock.filter(existsSync).flatMap((path) => bind(statSync(path).isDirectory() ? '--bind' : '--ro-bind', path)),
+    ...worktreeGitDirs.flatMap((path) => bind('--ro-bind', path)),
+    ...ownWorktrees(policy).flatMap((path) => bind('--bind', path)),
+    ...[...policy.protect, ...policy.gitDirs.flatMap(existingRedirects)].filter(existsSync).flatMap((path) => bind('--ro-bind', path)),
+    // Shared /tmp is read-only, as on macOS, once everything under it is mounted.
+    ...['--remount-ro', '/tmp', '--die-with-parent', '--'],
+  ];
 }
 
 /** Linux syscall numbers and audit architecture for the seccomp filter, per Node architecture. */
-const SYSCALLS: Partial<Record<NodeJS.Architecture, { audit: number; socket: number; ioUringSetup: number }>> = {
+const SYSCALLS: Partial<Record<Arch, { audit: number; socket: number; ioUringSetup: number }>> = {
   x64: { audit: 0xc000003e, socket: 41, ioUringSetup: 425 },
   arm64: { audit: 0xc00000b7, socket: 198, ioUringSetup: 425 },
 };
@@ -174,7 +208,7 @@ const SYSCALLS: Partial<Record<NodeJS.Architecture, { audit: number; socket: num
  * use for pipes, stay allowed. io_uring could open a socket around the filter, and another architecture's syscall
  * numbers around its checks, so both are refused.
  */
-export function seccompFilter(arch: NodeJS.Architecture = process.arch): Buffer {
+export function seccompFilter(arch: Arch = process.arch): Buffer {
   const nr = SYSCALLS[arch];
   if (!nr) throw new Error(`pstack's Linux sandbox supports x64 and arm64, not ${arch}.`);
   const LD = 0x20;
@@ -229,7 +263,7 @@ function available(command: string): boolean {
  * Wraps argv so it runs with writes limited to the policy. bubblewrap nests, so a Linux job inside a sandbox gets its own
  * narrower one. macOS refuses a second Seatbelt profile, so a sandboxed macOS worker asks the root Pi to launch instead.
  */
-export function sandboxed(argv: string[], policy: SandboxPolicy, platform: NodeJS.Platform = process.platform, env: NodeJS.ProcessEnv = process.env): string[] {
+export function sandboxed(argv: string[], policy: SandboxPolicy, platform: Platform = process.platform, env: Env = process.env): string[] {
   if (platform === 'darwin' && available('command -v sandbox-exec')) {
     placeholders(policy);
     return ['sandbox-exec', '-p', seatbeltProfile(policy), ...argv];

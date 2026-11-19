@@ -1,6 +1,8 @@
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
+import { z } from 'zod';
+
 /**
  * Jobs never write your real `auth.json`. Pi runs a credential whose key starts with `!` as a shell command, so a job able
  * to write that file could plant a command for your next unsandboxed Pi to run. Instead each top-level job, and every job
@@ -9,6 +11,8 @@ import { isAbsolute, join, resolve } from 'node:path';
  */
 
 type Credentials = Record<string, Record<string, unknown>>;
+/** Any JSON object is accepted, as Pi's own reader does. Entries are checked where they are used. */
+const CredentialsSchema = z.record(z.string(), z.any());
 
 export const jobAgentDir = (top: string): string => join(top, 'agent');
 
@@ -42,8 +46,8 @@ function anchoredSettings(realAgentDir: string, settings: Record<string, unknown
 function parse(text: string | undefined): Credentials | undefined {
   if (text === undefined) return undefined;
   try {
-    const data: unknown = JSON.parse(text.replace(/^﻿/, ''));
-    return data !== null && typeof data === 'object' && !Array.isArray(data) ? (data as Credentials) : undefined;
+    const parsed = CredentialsSchema.safeParse(JSON.parse(text.replace(/^﻿/, '')));
+    return parsed.success ? parsed.data : undefined;
   } catch {
     return undefined;
   }
@@ -99,12 +103,12 @@ function isLink(path: string): boolean {
 const resolved = (file: string): string => (existsSync(file) ? realpathSync(file) : file);
 
 export function withLocks(files: string[], fn: () => void): boolean {
-  const held: string[] = [];
+  let held: readonly string[] = [];
   try {
     for (const file of files) {
       const lock = `${resolved(file)}.lock`;
       mkdirSync(lock);
-      held.push(lock);
+      held = [...held, lock];
     }
     fn();
     return true;

@@ -1,11 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { z } from 'zod';
+
 import { jobAgentDir } from './credentials.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, SandboxPolicySchema, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
 const sweepSource = fileURLToPath(new URL('./sweep.ts', import.meta.url));
@@ -49,6 +52,27 @@ export interface JobSpec {
   createWorktree?: { branch: string; base?: string };
   createdAt: string;
 }
+
+const JobSpecSchema: z.ZodType<JobSpec> = z.object({
+  id: z.string(),
+  name: z.string(),
+  kind: z.enum(['pi', 'command']),
+  cwd: z.string(),
+  argv: z.array(z.string()),
+  command: z.array(z.string()),
+  policy: SandboxPolicySchema,
+  brokered: z.boolean(),
+  out: z.string(),
+  owner: z.string(),
+  wake: z.string().nullable(),
+  repeat: z.boolean(),
+  series: z.string(),
+  socket: z.string(),
+  sweep: z.object({ roots: z.array(z.string()), protect: z.array(z.string()) }),
+  tmp: z.string().optional(),
+  createWorktree: z.object({ branch: z.string(), base: z.string().optional() }).optional(),
+  createdAt: z.string(),
+}) as z.ZodType<JobSpec>;
 
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 
@@ -181,16 +205,19 @@ interface Run {
   tmp: string | undefined;
 }
 
-/**
- * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
- * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
- * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
- * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
- * gets KILL after a short grace period.
- */
-function run(job: Run): void {
+const requireFromHere = createRequire(import.meta.url);
+
+/** The copied sweep script imports zod, which resolves from a node_modules beside it, so one is linked there. */
+function linkZod(out: string): void {
+  const modules = join(out, 'node_modules');
+  mkdirSync(modules, { recursive: true });
+  symlinkSync(dirname(requireFromHere.resolve('zod/package.json')), join(modules, 'zod'), 'dir');
+}
+
+/** The assignments that put a job in its own Pi agent directory, sandbox markers, and private temp directories. */
+function jobEnv(job: Run): string {
   // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
-  const env = Object.entries({
+  return Object.entries({
     [SANDBOX_ENV]: '1',
     [JOB_DIR_ENV]: job.dir,
     [TOP_DIR_ENV]: job.top,
@@ -201,25 +228,16 @@ function run(job: Run): void {
   })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
-  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
-  const bin = join(job.out, 'bin');
-  if (process.platform === 'darwin') {
-    mkdirSync(bin, { recursive: true });
-    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
-  }
-  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
-  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+}
+
+/** The shell script that runs the job in its own process group, mirrors its output, and cleans up on every exit path. */
+function wrapperScript(job: Run, body: string, sweepCopy: string): string {
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
-  // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
-  const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
-  // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
-  // job's results directory, which the job cannot write.
-  const sweepCopy = join(job.out, 'sweep.ts');
   const caches = Object.values(CACHES)
     .map((dir) => shellQuote(join(job.dir, 'tmp', dir)))
     .join(' ');
-  const script = [
+  return [
     'set -m',
     `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
     'finished=0',
@@ -243,11 +261,38 @@ function run(job: Run): void {
     'wait $pid',
     'finish "$?"',
   ].join('\n');
+}
+
+/**
+ * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
+ * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
+ * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
+ * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
+ * gets KILL after a short grace period.
+ */
+function run(job: Run): void {
+  const env = jobEnv(job);
+  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
+  const bin = join(job.out, 'bin');
+  if (process.platform === 'darwin') {
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
+  }
+  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
+  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+  const out = shellQuote(outputPath(job.out));
+  // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
+  const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
+  // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
+  // job's results directory, which the job cannot write.
+  const sweepCopy = join(job.out, 'sweep.ts');
+  const script = wrapperScript(job, body, sweepCopy);
   // The script lives beside the job's results, where only the process that launched it can write, and runs from there,
   // since a long list of protected paths would not fit on a tmux command line.
   const file = join(job.out, 'wrapper.sh');
   writeFileSync(inventoryFile(job.out), JSON.stringify(job.inventory));
   copyFileSync(sweepSource, sweepCopy);
+  linkZod(job.out);
   writeFileSync(file, `${script}\n`);
   tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
@@ -314,7 +359,7 @@ export function status(dir: string, spec: JobSpec): JobStatus {
 
 export function readSpec(dir: string): JobSpec | undefined {
   try {
-    return JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')) as JobSpec;
+    return JobSpecSchema.parse(JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')));
   } catch {
     return undefined;
   }
@@ -332,7 +377,7 @@ export function list(root: string, owner: string): Job[] {
   return readdirSync(root)
     .map((id) => read(root, id, owner))
     .filter((job): job is Job => job !== undefined)
-    .sort((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
+    .toSorted((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
 }
 
 /**
