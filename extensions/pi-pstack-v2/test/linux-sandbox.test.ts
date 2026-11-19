@@ -6,6 +6,25 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { bwrapArgs, type SandboxPolicy, sandboxed, seccompFilter } from '../src/sandbox.ts';
 
+const BPF_INSN_BYTES = 8;
+const BPF_JT_OFFSET = 2;
+const BPF_JF_OFFSET = 3;
+const BPF_K_OFFSET = 4;
+const BPF_LOAD_ABSOLUTE = 0x20;
+const BPF_JUMP_EQUAL = 0x15;
+const BPF_JUMP_GREATER_EQUAL = 0x35;
+const BPF_RETURN = 0x06;
+const SECCOMP_RET_ALLOW = 0x7fff0000;
+const SECCOMP_DATA_ARCH_OFFSET = 4;
+const SECCOMP_DATA_ARG0_OFFSET = 16;
+const X32_SYSCALL_BIT = 0x40000000;
+const X32_AUDIT_ARCH = 0x40000003;
+const X32_SOCKET_NR = 41;
+const UNRELATED_SYSCALL_NR = 102;
+const SAMPLE_UID = 501;
+const EXECUTABLE_MODE = 0o755;
+const LAUNCH_PREFIX_ARGS = 5;
+
 type Access = 'writable' | 'read-only' | 'hidden';
 
 type Mount = { at: string; access: Access; tmpfs: boolean };
@@ -37,17 +56,18 @@ function access(args: string[], path: string): Access {
 
 /** Runs the classic BPF program bubblewrap hands the kernel against one syscall, as seccomp would. */
 function verdict(filter: Buffer, call: { arch: number; nr: number; arg0?: number }): 'allow' | 'deny' {
-  const data = { 0: call.nr, 4: call.arch, 16: call.arg0 ?? 0 } as Record<number, number>;
+  const data = { 0: call.nr, [SECCOMP_DATA_ARCH_OFFSET]: call.arch, [SECCOMP_DATA_ARG0_OFFSET]: call.arg0 ?? 0 } as Record<number, number>;
   let accumulator = 0;
-  for (let pc = 0; pc * 8 < filter.length; pc++) {
-    const code = filter.readUInt16LE(pc * 8);
-    const jt = filter.readUInt8(pc * 8 + 2);
-    const jf = filter.readUInt8(pc * 8 + 3);
-    const k = filter.readUInt32LE(pc * 8 + 4);
-    if (code === 0x20) accumulator = data[k] ?? 0;
-    else if (code === 0x15) pc += accumulator === k ? jt : jf;
-    else if (code === 0x35) pc += accumulator >= k ? jt : jf;
-    else if (code === 0x06) return k === 0x7fff0000 ? 'allow' : 'deny';
+  for (let pc = 0; pc * BPF_INSN_BYTES < filter.length; pc++) {
+    const at = pc * BPF_INSN_BYTES;
+    const code = filter.readUInt16LE(at);
+    const jt = filter.readUInt8(at + BPF_JT_OFFSET);
+    const jf = filter.readUInt8(at + BPF_JF_OFFSET);
+    const k = filter.readUInt32LE(at + BPF_K_OFFSET);
+    if (code === BPF_LOAD_ABSOLUTE) accumulator = data[k] ?? 0;
+    else if (code === BPF_JUMP_EQUAL) pc += accumulator === k ? jt : jf;
+    else if (code === BPF_JUMP_GREATER_EQUAL) pc += accumulator >= k ? jt : jf;
+    else if (code === BPF_RETURN) return k === SECCOMP_RET_ALLOW ? 'allow' : 'deny';
     else throw new Error(`unexpected BPF instruction ${code}`);
   }
   throw new Error('the filter fell off its end');
@@ -71,8 +91,8 @@ describe('the Linux seccomp filter', () => {
     const filter = seccompFilter(arch);
     const { audit } = ARCH[arch];
     expect(verdict(filter, { arch: audit, nr: IO_URING_SETUP })).toBe('deny');
-    expect(verdict(filter, { arch: audit, nr: 0x40000000 + 41, arg0: AF_UNIX })).toBe('deny');
-    expect(verdict(filter, { arch: 0x40000003, nr: 102, arg0: AF_UNIX })).toBe('deny');
+    expect(verdict(filter, { arch: audit, nr: X32_SYSCALL_BIT + X32_SOCKET_NR, arg0: AF_UNIX })).toBe('deny');
+    expect(verdict(filter, { arch: X32_AUDIT_ARCH, nr: UNRELATED_SYSCALL_NR, arg0: AF_UNIX })).toBe('deny');
   });
 
   test('an architecture without known syscall numbers is refused rather than run unfiltered', () => {
@@ -80,49 +100,64 @@ describe('the Linux seccomp filter', () => {
   });
 });
 
-describe('the bubblewrap mounts', () => {
-  let work: string;
-  let repo: string;
-  let common: string;
-  let policy: SandboxPolicy;
+type BwrapFixture = { work: string; repo: string; common: string; policy: SandboxPolicy };
 
-  beforeEach(() => {
-    // Outside /tmp, which the job sees as its own empty directory on Linux, so the fixture reads the same on every platform.
-    work = realpathSync(mkdtempSync(join(homedir(), '.pstack-bwrap-')));
-    repo = join(work, 'repo');
-    execFileSync('git', ['init', '-q', repo]);
-    execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
-    execFileSync('git', ['-C', repo, 'worktree', 'add', '-q', '--detach', join(work, 'own')]);
-    execFileSync('git', ['-C', repo, 'worktree', 'add', '-q', '--detach', join(work, 'other')]);
-    common = join(repo, '.git');
-    mkdirSync(join(common, 'modules', 'sub', 'hooks'), { recursive: true });
-    writeFileSync(join(common, 'modules', 'sub', 'config'), '');
-    const agentDir = join(work, 'agent');
-    const credentials = join(work, 'job', 'agent');
-    mkdirSync(agentDir, { recursive: true });
-    mkdirSync(credentials, { recursive: true });
-    writeFileSync(join(credentials, 'auth.json'), '{}');
-    writeFileSync(join(credentials, 'settings.json'), '{}');
-    mkdirSync(join(repo, 'locked-dir'));
-    writeFileSync(join(repo, 'locked-file'), '');
-    policy = {
-      writable: [join(work, 'own'), common, join(work, 'missing')],
-      protect: [join(common, 'hooks'), join(common, 'config')],
-      lock: [join(common, 'worktrees', 'own'), join(repo, 'locked-dir'), join(repo, 'locked-file')],
-      gitDirs: [common],
+let work: string;
+let repo: string;
+let common: string;
+let policy: SandboxPolicy;
+
+function makeBwrapFixture(): BwrapFixture {
+  // Outside /tmp, which the job sees as its own empty directory on Linux, so the fixture reads the same on every platform.
+  const fixtureWork = realpathSync(mkdtempSync(join(homedir(), '.pstack-bwrap-')));
+  const fixtureRepo = join(fixtureWork, 'repo');
+  execFileSync('git', ['init', '-q', fixtureRepo]);
+  execFileSync('git', ['-C', fixtureRepo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
+  execFileSync('git', ['-C', fixtureRepo, 'worktree', 'add', '-q', '--detach', join(fixtureWork, 'own')]);
+  execFileSync('git', ['-C', fixtureRepo, 'worktree', 'add', '-q', '--detach', join(fixtureWork, 'other')]);
+  const gitCommon = join(fixtureRepo, '.git');
+  mkdirSync(join(gitCommon, 'modules', 'sub', 'hooks'), { recursive: true });
+  writeFileSync(join(gitCommon, 'modules', 'sub', 'config'), '');
+  const agentDir = join(fixtureWork, 'agent');
+  const credentials = join(fixtureWork, 'job', 'agent');
+  mkdirSync(agentDir, { recursive: true });
+  mkdirSync(credentials, { recursive: true });
+  writeFileSync(join(credentials, 'auth.json'), '{}');
+  writeFileSync(join(credentials, 'settings.json'), '{}');
+  mkdirSync(join(fixtureRepo, 'locked-dir'));
+  writeFileSync(join(fixtureRepo, 'locked-file'), '');
+  return {
+    work: fixtureWork,
+    repo: fixtureRepo,
+    common: gitCommon,
+    policy: {
+      writable: [join(fixtureWork, 'own'), gitCommon, join(fixtureWork, 'missing')],
+      protect: [join(gitCommon, 'hooks'), join(gitCommon, 'config')],
+      lock: [join(gitCommon, 'worktrees', 'own'), join(fixtureRepo, 'locked-dir'), join(fixtureRepo, 'locked-file')],
+      gitDirs: [gitCommon],
       checkouts: [],
       credentials,
       agentDir,
-      jobDir: join(work, 'job'),
-    };
+      jobDir: join(fixtureWork, 'job'),
+    },
+  };
+}
+
+const useBwrapFixture = () => {
+  beforeEach(() => {
+    ({ work, repo, common, policy } = makeBwrapFixture());
   });
 
   afterEach(() => {
     rmSync(work, { recursive: true, force: true });
   });
+};
+
+describe('the bubblewrap mounts', () => {
+  useBwrapFixture();
 
   test("a job writes its checkout and git directory, and the rest of the machine and Pi's agent directory stay read-only", () => {
-    const args = bwrapArgs(policy, {}, 501);
+    const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, join(work, 'own', 'file.ts'))).toBe('writable');
     expect(access(args, join(common, 'objects'))).toBe('writable');
     expect(access(args, '/usr/bin')).toBe('read-only');
@@ -132,20 +167,25 @@ describe('the bubblewrap mounts', () => {
   });
 
   test('the shared /tmp is private and read-only', () => {
-    const args = bwrapArgs(policy, {}, 501);
+    const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, '/tmp')).toBe('read-only');
-    expect(access(args, '/tmp/tmux-501/default')).toBe('hidden');
+    expect(access(args, `/tmp/tmux-${SAMPLE_UID}/default`)).toBe('hidden');
   });
 
   test('only the credentials copy is writable in the job agent directory, which still takes new lock directories', () => {
-    const args = bwrapArgs(policy, {}, 501);
+    const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, join(policy.credentials, 'auth.json'))).toBe('writable');
     expect(access(args, join(policy.credentials, 'settings.json'))).toBe('read-only');
     expect(access(args, policy.credentials)).toBe('writable');
   });
 
+});
+
+describe('the bubblewrap mounts, git paths and runtime', () => {
+  useBwrapFixture();
+
   test('git config, hooks, other worktrees, and submodule git directories stay read-only, while its own worktree metadata does not', () => {
-    const args = bwrapArgs(policy, {}, 501);
+    const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, join(common, 'hooks', 'pre-commit'))).toBe('read-only');
     expect(access(args, join(common, 'config'))).toBe('read-only');
     expect(access(args, join(common, 'worktrees', 'other', 'HEAD'))).toBe('read-only');
@@ -155,7 +195,7 @@ describe('the bubblewrap mounts', () => {
   });
 
   test('a locked directory keeps its contents writable and a locked file is read-only, so neither can be swapped out', () => {
-    const args = bwrapArgs(policy, {}, 501);
+    const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, join(repo, 'locked-dir', 'x'))).toBe('writable');
     expect(access(args, join(repo, 'locked-file'))).toBe('read-only');
   });
@@ -163,14 +203,14 @@ describe('the bubblewrap mounts', () => {
   test('the runtime directory is hidden, but a runtime path that is a link is left for the mount it points into', () => {
     const runtime = join(work, 'runtime');
     mkdirSync(runtime);
-    expect(access(bwrapArgs(policy, { XDG_RUNTIME_DIR: runtime }, 501), join(runtime, 'bus'))).toBe('hidden');
+    expect(access(bwrapArgs(policy, { XDG_RUNTIME_DIR: runtime }, SAMPLE_UID), join(runtime, 'bus'))).toBe('hidden');
     const linked = join(work, 'runtime-link');
     symlinkSync(runtime, linked);
-    expect(bwrapArgs(policy, { XDG_RUNTIME_DIR: linked }, 501)).not.toContain(linked);
+    expect(bwrapArgs(policy, { XDG_RUNTIME_DIR: linked }, SAMPLE_UID)).not.toContain(linked);
   });
 
   test('a policy without a credentials copy mounts no job agent directory', () => {
-    const args = bwrapArgs({ ...policy, credentials: '' }, {}, 501);
+    const args = bwrapArgs({ ...policy, credentials: '' }, {}, SAMPLE_UID);
     expect(access(args, join(policy.credentials, 'auth.json'))).toBe('read-only');
   });
 });
@@ -183,7 +223,7 @@ describe('launching under bubblewrap', () => {
     const bin = join(work, 'bin');
     mkdirSync(bin);
     writeFileSync(join(bin, 'bwrap'), '#!/bin/sh\n');
-    chmodSync(join(bin, 'bwrap'), 0o755);
+    chmodSync(join(bin, 'bwrap'), EXECUTABLE_MODE);
     vi.stubEnv('PATH', `${bin}:${process.env['PATH'] ?? ''}`);
   });
 
@@ -199,7 +239,7 @@ describe('launching under bubblewrap', () => {
     mkdirSync(common);
     const argv = sandboxed(['pi', '-p'], policyIn(common), 'linux', {});
     const file = join(work, 'agent', 'pstack-v2', `seccomp-${process.arch}.bpf`);
-    expect(argv.slice(0, 5)).toEqual(['/bin/sh', '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', file]);
+    expect(argv.slice(0, LAUNCH_PREFIX_ARGS)).toEqual(['/bin/sh', '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', file]);
     expect(argv.slice(-2)).toEqual(['pi', '-p']);
     expect(readFileSync(file).equals(seccompFilter())).toBe(true);
     writeFileSync(file, 'loosened');
