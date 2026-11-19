@@ -82,16 +82,14 @@ interface RawOptions {
   readonly allowDraft: boolean;
   readonly pretty: boolean;
 }
+const MS_PER_SECOND = 1_000;
 const DEFAULT_INTERVAL_SECONDS = 60;
 const DEFAULT_SWEEP_INTERVAL_SECONDS = 300;
 const DEFAULT_MAX_QUERY_ERRORS = 5;
 const PROGRAM_DESCRIPTION =
   "Watch one pull request, a connected stack, or an immutable queued stack.\nJSON (NDJSON while polling) is the default; --pretty renders human text.";
-const buildProgram = (io: Pick<CliRuntime, "stdout" | "stderr">): Command =>
-  new Command("watch-pr")
-    .description(PROGRAM_DESCRIPTION)
-    .configureOutput({ writeOut: io.stdout, writeErr: io.stderr })
-    .exitOverride()
+const addTargetOptions = (program: Command): Command =>
+  program
     .option("--owner <owner>", "GitHub repository owner")
     .option("--repo <repo>", "GitHub repository name")
     .option("--pr <number>", "pull request number", prNumber)
@@ -109,7 +107,9 @@ const buildProgram = (io: Pick<CliRuntime, "stdout" | "stderr">): Command =>
       "--stack-prs <n,...>",
       "frozen bottom-to-top queue (queued mode only)",
       stackPrList
-    )
+    );
+const addPollingOptions = (program: Command): Command =>
+  program
     .option(
       "--interval <seconds>",
       "poll interval",
@@ -133,10 +133,22 @@ const buildProgram = (io: Pick<CliRuntime, "stdout" | "stderr">): Command =>
       "consecutive query-error budget",
       positiveInteger,
       DEFAULT_MAX_QUERY_ERRORS
-    )
+    );
+const addModeOptions = (program: Command): Command =>
+  program
     .option("--status-only", "print one status table and exit 0", false)
     .option("--allow-draft", "do not treat a draft as a merge gate", false)
     .option("--pretty", "render human text instead of JSON", false);
+const buildProgram = (io: Pick<CliRuntime, "stdout" | "stderr">): Command => {
+  const base = new Command("watch-pr")
+    .description(PROGRAM_DESCRIPTION)
+    .configureOutput({ writeOut: io.stdout, writeErr: io.stderr })
+    .exitOverride();
+  return [addTargetOptions, addPollingOptions, addModeOptions].reduce(
+    (program, addOptions) => addOptions(program),
+    base
+  );
+};
 const watchMode = (raw: RawOptions): WatchMode =>
   raw.queuedStack ? "queued-stack" : raw.stack ? "stack" : "single";
 export function parseArgs(
@@ -175,10 +187,10 @@ function realRuntime(): CliRuntime {
   return {
     reader: new GhGitHubReader(),
     clock: {
-      now: () => performance.now() / 1_000,
+      now: () => performance.now() / MS_PER_SECOND,
       observedAt: () => new Date().toISOString(),
       sleep: async (seconds) => {
-        await delay(seconds * 1_000);
+        await delay(seconds * MS_PER_SECOND);
       },
     },
     stdout: (value) => process.stdout.write(value),

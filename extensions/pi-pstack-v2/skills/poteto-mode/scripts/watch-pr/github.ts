@@ -43,7 +43,8 @@ interface CommandResult {
   readonly stderr: string;
 }
 type Argv = readonly [string, ...string[]];
-const FAST_PATH_EXIT_CODES = [0, 1, 8];
+const GH_CHECKS_PENDING_EXIT_CODE = 8;
+const FAST_PATH_EXIT_CODES = [0, 1, GH_CHECKS_PENDING_EXIT_CODE];
 const PR_LIST_LIMIT = "300";
 const PR_VIEW_FIELDS =
   "mergeable,mergeStateStatus,reviewDecision,headRefOid,headRefName,baseRefName,state,mergedAt,isDraft";
@@ -53,17 +54,18 @@ function run(argv: Argv): Promise<CommandResult> {
     const child = spawn(argv[0], argv.slice(1), {
       stdio: ["ignore", "pipe", "pipe"],
     });
-    const chunks = { stdout: "", stderr: "" };
+    let stdout = "";
+    let stderr = "";
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {
-      chunks.stdout += chunk;
+      stdout += chunk;
     });
     child.stderr.on("data", (chunk: string) => {
-      chunks.stderr += chunk;
+      stderr += chunk;
     });
     child.on("error", reject);
-    child.on("close", (code) => resolve({ code: code ?? -1, ...chunks }));
+    child.on("close", (code) => resolve({ code: code ?? -1, stdout, stderr }));
   });
 }
 async function runJson(argv: Argv): Promise<unknown> {

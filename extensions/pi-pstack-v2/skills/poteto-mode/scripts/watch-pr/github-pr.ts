@@ -70,10 +70,11 @@ export function parseRemote(value: string): Repository | null {
     return null;
   }
 }
+const PULL_URL_PART_COUNT = 4;
 function canonicalPullParts(value: string): readonly string[] {
   const url = new URL(value);
   const parts = url.pathname.split("/").filter(Boolean);
-  if (hasNonCanonicalParts(url) || parts.length !== 4 || parts[2] !== "pull")
+  if (hasNonCanonicalParts(url) || parts.length !== PULL_URL_PART_COUNT || parts[2] !== "pull")
     throw new Error("not a canonical GitHub pull URL");
   return parts;
 }

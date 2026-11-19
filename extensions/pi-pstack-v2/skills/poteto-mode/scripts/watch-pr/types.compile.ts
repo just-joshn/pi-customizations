@@ -7,12 +7,13 @@ import type {
   TerminalVerdict,
 } from "./types.ts";
 
+const EXAMPLE_PR_NUMBER = 123;
 type ReadyVerdict = Extract<TerminalVerdict, { readonly kind: "READY" }>;
 
 const context = {
   owner: "octocat",
   repo: "hello-world",
-  number: parsePrNumber(123),
+  number: parsePrNumber(EXAMPLE_PR_NUMBER),
 } satisfies PrContext;
 const cleanCi = {
   kind: "ci-clean",
