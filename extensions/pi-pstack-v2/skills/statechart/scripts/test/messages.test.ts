@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { plainText, runtime } from "../backends/plain-text.ts";
 import { readMessages } from "../frontends/messages.ts";
+import { CONJUNCTION } from "./tla-text.ts";
 
 const CODE = {
   tlcVersion: 2262,
@@ -49,8 +50,8 @@ const toolOutput = [
   tool(CODE.missingType, LEVEL.warning, "The spec has no TypeOK."),
   tool(CODE.progress, LEVEL.none, "Progress(1) at 2026-10-25 12:58:36: 3 states generated."),
   tool(CODE.temporalViolated, LEVEL.error, "Temporal properties were violated.", ""),
-  tool(CODE.stateStep, LEVEL.state, "1: <Initial predicate>", "/\\ x = 0", ""),
-  tool(CODE.stateStep, LEVEL.state, "2: <Next line 5, col 9 to line 5, col 20 of module Spec>", "/\\ x = 1", ""),
+  tool(CODE.stateStep, LEVEL.state, "1: <Initial predicate>", `${CONJUNCTION} x = 0`, ""),
+  tool(CODE.stateStep, LEVEL.state, "2: <Next line 5, col 9 to line 5, col 20 of module Spec>", `${CONJUNCTION} x = 1`, ""),
   tool(CODE.backToState, LEVEL.state, "1: Back to state: <Back line 6, col 9 to line 6, col 23 of module Spec>", ""),
   tool(CODE.stuttering, LEVEL.state, "3: Stuttering"),
   tool(CODE.tlcBug, LEVEL.bug, "This was a bug."),
@@ -73,10 +74,10 @@ const toolPlain = [
   "Error: Temporal properties were violated.",
   "",
   "State 1: <Initial predicate>",
-  "/\\ x = 0",
+  `${CONJUNCTION} x = 0`,
   "",
   "State 2: <Next line 5, col 9 to line 5, col 20 of module Spec>",
-  "/\\ x = 1",
+  `${CONJUNCTION} x = 1`,
   "",
   "Back to state 1: <Back line 6, col 9 to line 6, col 23 of module Spec>",
   "",

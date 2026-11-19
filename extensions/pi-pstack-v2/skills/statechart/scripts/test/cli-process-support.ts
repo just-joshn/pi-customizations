@@ -6,6 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { corpus, here, read } from "./cli-support.ts";
+import { hostEnv } from "./host-env.ts";
+import { attempt } from "./attempt.ts";
 
 export const signalExitBase = 128;
 export const pollMs = 20;
@@ -34,7 +36,7 @@ export function startCommand(
     ],
     {
       env: {
-        ...process.env,
+        ...hostEnv(),
         JAVA: java,
         TLA2TOOLS: "tla2tools.jar",
         STATECHART_REPLAY: dir,
@@ -71,16 +73,12 @@ export async function signalWhile<T extends { dir: string; reached: (parent: str
 
 export async function assertGone(pid: number) {
   for (let i = 0; ; i++) {
-    let code: string | undefined;
-    try {
-      process.kill(pid, 0);
-    } catch (error) {
-      code = (error as NodeJS.ErrnoException).code;
-      // macOS gives EPERM for a process group of only zombies, until they are reaped.
-      if (code !== "EPERM") {
-        assert.equal(code, "ESRCH");
-        return;
-      }
+    const { error } = await attempt(() => process.kill(pid, 0));
+    const code = (error as NodeJS.ErrnoException | undefined)?.code;
+    // macOS gives EPERM for a process group of only zombies, until they are reaped.
+    if (error && code !== "EPERM") {
+      assert.equal(code, "ESRCH");
+      return;
     }
     assert.ok(
       i < pollAttempts,

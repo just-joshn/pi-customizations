@@ -8,10 +8,11 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { plainText } from "../backends/plain-text.ts";
 import { readMessages } from "../frontends/messages.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const corpus = path.join(here, "corpus");
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 const read = (file: string) => fs.readFileSync(file, "utf8");
 const maybe = (file: string) => (fs.existsSync(file) ? read(file) : "");
 const plain = (text: string) => [...plainText(readMessages(text))].join("");
@@ -43,9 +44,9 @@ async function checkSpec(name: string) {
     ],
     {
       env: {
-        ...process.env,
+        ...hostEnv(),
         JAVA: path.join(here, "java.ts"),
-        STATECHART_JAVA: process.env.JAVA ?? "java",
+        STATECHART_JAVA: hostEnv().JAVA ?? "java",
         STATECHART_RECORD: tool,
         STATECHART_PLAIN: twin,
       },

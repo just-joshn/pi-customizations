@@ -7,18 +7,19 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, PINNED_FLAGS } from "../run.ts";
 import { commandExit } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const corpus = path.join(here, "corpus");
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 const repeatingStates = 3;
 const checkChild = path.join(here, "check-child.ts");
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
 const recordEnv = (record: string) => ({
-  ...process.env,
+  ...hostEnv(),
   JAVA: path.join(here, "java.ts"),
-  STATECHART_JAVA: process.env.JAVA ?? "java",
+  STATECHART_JAVA: hostEnv().JAVA ?? "java",
   STATECHART_RECORD: record,
 });
 
@@ -45,7 +46,7 @@ for (const name of fs.readdirSync(corpus)) {
       },
     );
     assert.equal(r.stderr, "");
-    if (process.env.STATECHART_UPDATE) {
+    if (hostEnv().STATECHART_UPDATE) {
       for (const f of fs.readdirSync(dir))
         if (/\.(out|exit|dot|mmd|md)$/.test(f)) fs.rmSync(path.join(dir, f));
       for (const f of fs.readdirSync(tlc)) fs.copyFileSync(path.join(tlc, f), path.join(dir, f));
@@ -75,7 +76,7 @@ test("a spec in a folder whose name is not ASCII checks under the POSIX locale",
       "--out",
       out,
     ],
-    { encoding: "utf8", env: { ...process.env, LC_ALL: "POSIX", LC_CTYPE: "", LANG: "" } },
+    { encoding: "utf8", env: { ...hostEnv(), LC_ALL: "POSIX", LC_CTYPE: "", LANG: "" } },
   );
   assert.equal(r.stderr, "");
   assert.equal(r.status, 0);
@@ -124,10 +125,10 @@ const broken = () =>
 const plainTlc = (base: string) => {
   const name = path.basename(base);
   const r = spawnSync(
-    process.env.JAVA ?? "java",
+    hostEnv().JAVA ?? "java",
     [
       "-cp",
-      String(process.env.TLA2TOOLS),
+      String(hostEnv().TLA2TOOLS),
       "tlc2.TLC",
       ...PINNED_FLAGS,
       "-config",
@@ -429,7 +430,7 @@ test(
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-corpus-"));
     const r = spawnSync(process.execPath, [...process.execArgv, checkChild, login, base], {
       encoding: "utf8",
-      env: { ...process.env, TMPDIR: tmp },
+      env: { ...hostEnv(), TMPDIR: tmp },
     });
     assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(fs.readdirSync(tmp), []);

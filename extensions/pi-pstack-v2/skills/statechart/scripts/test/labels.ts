@@ -5,6 +5,8 @@ import type { Chart, State, Step, View } from "../ir.ts";
 import { walk } from "../passes/reach.ts";
 import { project } from "../pipeline.ts";
 import { expected, readMermaid, readPele, type Tools } from "./labels-oracle.ts";
+import { attempt } from "./attempt.ts";
+import { CONJUNCTION } from "./tla-text.ts";
 
 export type { Html, Mermaid, Render } from "./labels-oracle.ts";
 
@@ -94,7 +96,7 @@ const SYNTAX = [
   "|->",
   ":>",
   "@@",
-  "/\\",
+  CONJUNCTION,
   "\\/",
   "..",
   '"A"',
@@ -341,30 +343,28 @@ async function check(c: Case, labels: string[], tools: Tools): Promise<Checked> 
   let refuse = false;
   for (const [, value] of Object.entries(view.colors ?? {}))
     if (typeof value !== "string" || !THEME.includes(value)) refuse = true;
-  let checked: View;
-  try {
-    checked = checkView(view, inspect);
-  } catch (e) {
-    if (!(e instanceof Error)) throw e;
-    if (refuse && /^The view\x27s colors give /.test(e.message))
+  const viewed = await attempt(() => checkView(view, inspect));
+  if (viewed.error) {
+    if (refuse && /^The view\x27s colors give /.test(viewed.error.message))
       return { refused: true, problems: [] };
-    return { problems: [`skill-throws: ${e.message}`] };
+    return { problems: [`skill-throws: ${viewed.error.message}`] };
   }
+  const checked: View = viewed.value;
   if (refuse) return { problems: ["colors: checkView accepts a color that is not in the theme"] };
-  let chart: Chart;
-  let text: string;
-  try {
-    ({ chart } = project(graph, walk(graph), checked, []));
-    text = chartText(chart);
-  } catch (e) {
-    if (!(e instanceof Error)) throw e;
+  const projected = await attempt(() => {
+    const { chart } = project(graph, walk(graph), checked, []);
+    return { chart, text: chartText(chart) };
+  });
+  if (projected.error) {
+    const e = projected.error;
     if (/^The view\x27s (state|step)\(\) returned /.test(e.message))
       return { refused: true, problems: [] };
     return { problems: [`skill-throws: ${e.constructor.name}: ${e.message}`] };
   }
+  const { chart, text } = projected.value;
   const want = expected(chart);
   const mermaidProblems = await readMermaid(text, want, tools);
-  return { text, problems: [...mermaidProblems, ...readPele(text, want, tools.render)] };
+  return { text, problems: [...mermaidProblems, ...(await readPele(text, want, tools.render))] };
 }
 
 const kind = (problem: string) => problem.slice(0, problem.indexOf(":"));

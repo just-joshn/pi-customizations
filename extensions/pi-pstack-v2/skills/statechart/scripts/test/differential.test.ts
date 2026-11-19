@@ -8,9 +8,10 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import fc from "fast-check";
 import { TLC_DEADLOCK_STATUS, TLC_INVARIANT_STATUS, TLC_LIVENESS_STATUS } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 
 const PROTOTYPE_KEYS = ["constructor", "__proto__", "toString", "valueOf", "hasOwnProperty"];
 const NAMES = [
@@ -312,7 +313,7 @@ async function run(command: string, args: string[], cwd: string): Promise<Run> {
   const child = spawn(command, args, {
     cwd,
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, LC_ALL: "C.UTF-8" },
+    env: { ...hostEnv(), LC_ALL: "C.UTF-8" },
   });
   const closed = new Promise<number | null>((resolve, reject) => {
     child.on("error", reject);
@@ -330,11 +331,11 @@ const plainTlc = (dir: string, c: Case, name: string, lines: string[]) => {
   fs.writeFileSync(path.join(dir, `${name}.cfg`), `${[...c.base, ...lines].join("\n")}\n`);
   fs.mkdirSync(path.join(dir, `tmp-${name}`));
   return run(
-    process.env.JAVA || "java",
+    hostEnv().JAVA || "java",
     [
       `-Djava.io.tmpdir=${path.join(dir, `tmp-${name}`)}`,
       "-cp",
-      String(process.env.TLA2TOOLS),
+      String(hostEnv().TLA2TOOLS),
       "tlc2.TLC",
       "-tool",
       "-workers",
@@ -389,11 +390,14 @@ async function plainAnswers(dir: string, c: Case) {
       throw new Error(`plain TLC exited ${r.status}:\n${r.stdout}${r.stderr}`);
     return Number(found[1].replaceAll(",", ""));
   });
-  const answers = new Map<string, Claim>(
-    await Promise.all(
-      rules.map(async ([name, claim]): Promise<[string, Claim]> => [name, await claim]),
-    ),
+  const settled = await rules.reduce(
+    async (chain, [name, claim]): Promise<[string, Claim][]> => [
+      ...(await chain),
+      [name, await claim],
+    ],
+    Promise.resolve<[string, Claim][]>([]),
   );
+  const answers = new Map<string, Claim>(settled);
   const broke = [...answers.values()].some((a) => a.breaks);
   return { status: broke ? 1 : 0, states: await states, rules: answers };
 }
@@ -446,8 +450,8 @@ async function answer(c: Case) {
   }
 }
 
-const differentialSeed = process.env.STATECHART_DIFFERENTIAL_SEED
-  ? Number(process.env.STATECHART_DIFFERENTIAL_SEED)
+const differentialSeed = hostEnv().STATECHART_DIFFERENTIAL_SEED
+  ? Number(hostEnv().STATECHART_DIFFERENTIAL_SEED)
   : undefined;
 
 test(
@@ -459,7 +463,7 @@ test(
         await answer(c);
       }),
       {
-        numRuns: Number(process.env.STATECHART_DIFFERENTIAL_RUNS ?? DEFAULT_RUNS),
+        numRuns: Number(hostEnv().STATECHART_DIFFERENTIAL_RUNS ?? DEFAULT_RUNS),
         seed: differentialSeed,
         includeErrorInReport: true,
       },

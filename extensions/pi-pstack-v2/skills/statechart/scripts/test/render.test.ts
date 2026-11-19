@@ -6,13 +6,14 @@ import os from "node:os";
 import path from "node:path";
 import { before, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import vm from "node:vm";
 import { mermaid as chartText } from "../backends/mermaid.ts";
 import type { Graph } from "../ir.ts";
 import { walk } from "../passes/reach.ts";
 import { project } from "../pipeline.ts";
 import { fuzz, type Html, type Mermaid, type Render } from "./labels.ts";
+import { hostEnv } from "./host-env.ts";
 
+const PATH_SEPARATOR = "/";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const charts = [
   ...fs.readdirSync(path.join(here, "charts")).map((f) => path.join(here, "charts", f)),
@@ -22,10 +23,7 @@ const guide = fs.readFileSync(path.join(here, "../../references/render.md"), "ut
 const css = guide.match(/```css\n([\s\S]*?)```/);
 assert.ok(css, "references/render.md has no css block");
 const theme = css[1];
-const cache = path.join(
-  process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"),
-  "statechart",
-);
+const cache = path.join(hostEnv().XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "statechart");
 const install = (name: string, ...packages: string[]) => {
   const dir = path.join(cache, name);
   execFileSync(
@@ -34,32 +32,6 @@ const install = (name: string, ...packages: string[]) => {
     { stdio: ["ignore", "pipe", "pipe"] },
   );
   return createRequire(path.join(dir, "package.json"));
-};
-
-type Rejects<T> = (text: string) => Promise<T>;
-type BrowserMermaid = {
-  parse: Rejects<unknown>;
-  mermaidAPI: { getDiagramFromText: Rejects<Awaited<ReturnType<Mermaid["mermaidAPI"]["getDiagramFromText"]>>> };
-};
-
-// Mermaid runs inside the jsdom window, so its errors are that window's Error.
-// Rethrow them as this realm's Error so the oracle's `instanceof Error` sees them.
-const inHostRealm = (browser: BrowserMermaid, BrowserError: ErrorConstructor): Mermaid => {
-  const hosted =
-    <T>(call: Rejects<T>): Rejects<T> =>
-    async (text) => {
-      try {
-        return await call(text);
-      } catch (error) {
-        throw error instanceof BrowserError ? new Error(error.message) : error;
-      }
-    };
-  return {
-    parse: hosted((text) => browser.parse(text)),
-    mermaidAPI: {
-      getDiagramFromText: hosted((text) => browser.mermaidAPI.getDiagramFromText(text)),
-    },
-  };
 };
 
 let render: Render;
@@ -71,10 +43,9 @@ before(async () => {
 
   const parser = install("test-mermaid-11.16.0", "mermaid@11.16.0", "jsdom@26.1.0");
   const { JSDOM } = parser("jsdom");
-  const dom = new JSDOM("", { runScripts: "outside-only" });
-  const bundle = fs.readFileSync(parser.resolve("mermaid/dist/mermaid.min.js"), "utf8");
-  new vm.Script(bundle).runInContext(dom.getInternalVMContext());
-  mermaid = inHostRealm(dom.window.mermaid, dom.window.Error);
+  const { window } = new JSDOM("");
+  Object.assign(globalThis, { window, document: window.document, DOMParser: window.DOMParser });
+  mermaid = (await import(pathToFileURL(parser.resolve("mermaid")).href)).default;
   html = (markup) => JSDOM.fragment(markup).textContent ?? "";
 });
 
@@ -186,7 +157,7 @@ const parentGraph = (): Graph => {
 
 test("an arrow into a parent from its only way in stays out of the parent's title bar in Pele 1.9.0", () => {
   const graph = parentGraph();
-  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split("/") }, []);
+  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split(PATH_SEPARATOR) }, []);
   const { svg } = render(chartText(chart));
   const bars = titleBars(svg);
   assert.equal(bars.length, 1);

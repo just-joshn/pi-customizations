@@ -9,9 +9,11 @@ import { z } from "zod";
 import { configText } from "../backends/cfg.ts";
 import { readConfig } from "../frontends/config.ts";
 import { type Checks, readChecks } from "../frontends/spec.ts";
+import { attempt } from "./attempt.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 const SEED = 1;
 const CONFIGS = 4000;
 const KEYWORDS =
@@ -220,7 +222,7 @@ function generate(random: () => number) {
 
 function readInTlc(files: string[], jar: string) {
   const r = spawnSync(
-    process.env.JAVA || "java",
+    hostEnv().JAVA || "java",
     ["-cp", jar, path.join(here, "ConfigOracle.java")],
     { input: `${files.join("\n")}\n`, encoding: "utf8", maxBuffer: 1 << 30 },
   );
@@ -269,23 +271,21 @@ type Case = {
   written: string;
 };
 
-function readSkill(file: string, text: string, written: string): Checks | Error {
-  try {
+async function readSkill(file: string, text: string, written: string): Promise<Checks | Error> {
+  const read = await attempt(() => {
     const skill = readChecks({ configFile: file, config: readConfig({ file, text }) });
     fs.writeFileSync(written, configText(skill.written, []));
     return skill;
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
-    return error;
-  }
+  });
+  return read.error ?? read.value;
 }
 
-function buildCase(dir: string, random: () => number, i: number): Case {
+async function buildCase(dir: string, random: () => number, i: number): Promise<Case> {
   const { text, mutated } = generate(random);
   const file = path.join(dir, `${i}.cfg`);
   fs.writeFileSync(file, text);
   const written = path.join(dir, `${i}-written.cfg`);
-  return { i, text, mutated, skill: readSkill(file, text, written), file, written };
+  return { i, text, mutated, skill: await readSkill(file, text, written), file, written };
 }
 
 function checkCase(c: Case, tlc: Map<string, Reading>) {
@@ -324,13 +324,15 @@ function checkCase(c: Case, tlc: Map<string, Reading>) {
 test(
   `${CONFIGS} configs from seed ${SEED} read in the skill as in TLC, or stop before TLC runs`,
   { skip },
-  (t) => {
+  async (t) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-fuzz-"));
     t.after(() => fs.rmSync(dir, { recursive: true }));
     const random = mulberry32(SEED);
-    const cases = Array.from({ length: CONFIGS }, (_, i) => buildCase(dir, random, i));
+    const cases = await Promise.all(
+      Array.from({ length: CONFIGS }, (_, i) => buildCase(dir, random, i)),
+    );
     const files = cases.flatMap((c) => (c.skill instanceof Error ? [c.file] : [c.file, c.written]));
-    const tlc = readInTlc(files, String(process.env.TLA2TOOLS));
+    const tlc = readInTlc(files, String(hostEnv().TLA2TOOLS));
     for (const c of cases) checkCase(c, tlc);
   },
 );

@@ -1,6 +1,7 @@
 import { drawnEdges } from "../backends/mermaid.ts";
 import { z } from "zod";
 import type { Chart, ChartState, Region } from "../ir.ts";
+import { attempt } from "./attempt.ts";
 
 export type Render = (text: string) => { svg: string };
 
@@ -268,13 +269,12 @@ export async function readMermaid(
   want: Want,
   { mermaid, html }: Tools,
 ): Promise<string[]> {
-  let data: MermaidData;
-  try {
-    data = (await mermaid.mermaidAPI.getDiagramFromText(text)).db.getData();
-  } catch (e) {
-    if (!(e instanceof Error)) throw e;
-    return [`mermaid-refuses: ${firstLine(e)}`];
-  }
+  const read = await attempt(
+    async (): Promise<MermaidData> =>
+      (await mermaid.mermaidAPI.getDiagramFromText(text)).db.getData(),
+  );
+  if (read.error) return [`mermaid-refuses: ${firstLine(read.error)}`];
+  const data = read.value;
   const byId = new Map<string | undefined, MermaidNode>(data.nodes.map((n) => [n.id, n]));
   const nodes = data.nodes.filter((n) => !IGNORED_SHAPES.includes(n.shape ?? ""));
   const count =
@@ -349,13 +349,9 @@ const peleTitleProblems = (svg: string, want: Want): string[] => {
   return [];
 };
 
-export function readPele(text: string, want: Want, render: Render): string[] {
-  let svg: string;
-  try {
-    ({ svg } = render(text));
-  } catch (e) {
-    if (!(e instanceof Error)) throw e;
-    return [`pele-refuses: ${firstLine(e)}`];
-  }
+export async function readPele(text: string, want: Want, render: Render): Promise<string[]> {
+  const drawn = await attempt(() => render(text));
+  if (drawn.error) return [`pele-refuses: ${firstLine(drawn.error)}`];
+  const { svg } = drawn.value;
   return [...peleNodeProblems(svg, want), ...peleEdgeProblems(svg, want), ...peleTitleProblems(svg, want)];
 }
