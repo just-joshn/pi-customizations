@@ -4,7 +4,8 @@ Users ask Pi to run work without blocking their session, inspect its output, rec
 
 ## Sub-features
 
-- `jobs-run`: sandboxed command writes a result and exits successfully.
+- `jobs-run`: a command runs on the host, outside the VM, writes a result and exits successfully.
+- `jobs-cwd`: a job's `cwd` may be any existing directory, relative to the session's.
 - `jobs-inspect`: list, output and wait report the returned job ID and result.
 - `jobs-stop`: stopping a running command terminates it.
 - `jobs-wake`: a completion notice reaches the parent without an extra user prompt.
@@ -19,11 +20,12 @@ Users ask Pi to run work without blocking their session, inspect its output, rec
 
 Preconditions:
 
-- Unsandboxed live launcher, genuine model access and healthy doctor.
-- Parent tools pi_spawn, tmux_run and tmux_jobs are available; do not use host-session calls as replacement proof.
+- Genuine model access and healthy doctor.
+- Parent tools tmux_run and tmux_jobs are available; do not use host-session calls as replacement proof.
 
 - **Run and inspect:** send `python3 "$HELPER" send "$EVIDENCE" $'Use tmux_run to start name verify-shell with command printf PSTACK_JOB_OK > job-result.txt and wake PSTACK_WAKE_OK. Record the returned ID. Use tmux_jobs list, then wait on that exact ID with timeout_seconds 30, then output for it. Do not use bash to run the command yourself.'`. Require actual calls, exited 0, output/list state for that ID and scratch work/job-result.txt containing PSTACK_JOB_OK. Read the file independently.
 - **Wake:** in a fresh request ask `Use tmux_run with name verify-wake, command sleep 2; printf PSTACK_WAKE_BODY, and wake PSTACK_WAKE_NOTICE. End your turn without wait. When the notice arrives report it; do not start another job.` Submit through send with Enter. Require the actual pstack-job notice and output without an additional user message. Wait in the observer, not by sending a new prompt.
+- **Host cwd:** ask `Use tmux_run name verify-cwd with cwd .., command pwd > cwd.txt. Wait on its returned ID.` Require exit 0 and scratch `cwd.txt` (the parent of work) containing the scratch path. The job runs on the host, so `..` is a real host directory, unlike the VM's.
 - **Stop:** ask `Use tmux_run name verify-stop with command sleep 300 and no wake. Use tmux_jobs list, then stop the exact returned ID, then list again. Do not start other jobs.` Require running before stop and non-running afterwards; preserve returned ID, stop result and exit marker.
 - **Heartbeat:** ask `Use tmux_run name verify-tick with command sleep 2; printf PSTACK_TICK, wake PSTACK_TICK_NOTICE, repeat true. After one notice stop that series with tmux_jobs stop and list jobs. Do not start another series.` Require multiple same-series runs before stopping, then no new run over two further tick periods. If only one ran, do not claim restart coverage.
 - **Print entry:** repeat the run/wake request with native `pi -p`, isolated profile/cwd and the exact resource flags from command.json; capture stdout/stderr/exit. Require the wake report before the process returns.
@@ -34,4 +36,5 @@ Preconditions:
 - tmux_run commands read no stdin. Use the PTY helper for terminal input.
 - A wait result is not proof of asynchronous wake delivery; test those separately.
 - Print runs can remain alive while a wake job never finishes. Set a bounded external timeout, and stop only owned jobs on failure.
-- Interactive Pi exit leaves jobs running. Stop jobs and preserve their logs before scratch cleanup.
+- Interactive Pi exit leaves jobs running. Stop jobs and preserve their logs before scratch cleanup. A print-mode Pi kills its session's tmux server at shutdown, and its settle waits only for non-repeating wake jobs.
+- Jobs are not sandboxed: a job can write anywhere the host user can. Use scratch paths only.

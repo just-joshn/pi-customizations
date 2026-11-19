@@ -20,6 +20,13 @@ import time
 REPO = Path(__file__).resolve().parents[4]
 PACKAGE = REPO / "extensions/pi-pstack-v2"
 SCRATCH = REPO / ".audit/verify-pi-pstack-v2/scratch"
+QEMU = ("qemu-system-aarch64", "qemu-system-x86_64")
+
+
+def extensions():
+    """Every extension the package ships, from package.json, so the isolated Pi loads the package as it ships."""
+    manifest = json.loads((PACKAGE / "package.json").read_text())
+    return [str((PACKAGE / entry).resolve()) for entry in manifest["pi"]["extensions"]]
 
 
 def fingerprint(root):
@@ -46,7 +53,7 @@ def main():
         (scratch / "agent/settings.json").write_text(json.dumps({
             "retry": {"enabled": False}, "compaction": {"enabled": False},
             "quietStartup": False,
-            "extensions": [str(PACKAGE / "src/index.ts")], "skills": [str(PACKAGE / "skills")],
+            "extensions": extensions(), "skills": [str(PACKAGE / "skills")],
         }))
         subprocess.run(["git", "init", "-q", str(scratch / "work")], check=True)
         (evidence / "state.json").write_text(json.dumps({
@@ -88,15 +95,14 @@ def main():
         raise RuntimeError("Missing scratch or changed package: clean up, then initialize a fresh run")
     if args.action == "doctor":
         version = subprocess.check_output(["pi", "--version"], text=True).strip()
+        qemu = next((path for path in map(shutil.which, QEMU) if path), None)
         report = {"piVersion": version, "packageVersion": json.loads((PACKAGE / "package.json").read_text())["version"],
-                  "packageUnchanged": True, "tmux": shutil.which("tmux"),
-                  "sandbox": shutil.which("sandbox-exec" if sys.platform == "darwin" else "bwrap"),
+                  "packageUnchanged": True, "tmux": shutil.which("tmux"), "qemu": qemu, "extensions": extensions(),
                   "agent": str(scratch / "agent"), "work": str(scratch / "work"),
-                  "authPresent": (scratch / "agent/auth.json").exists(), "launcherRecorded": pid_file.exists(),
-                  "sandboxedLauncher": os.environ.get("PSTACK_V2_SANDBOXED") == "1"}
+                  "authPresent": (scratch / "agent/auth.json").exists(), "launcherRecorded": pid_file.exists()}
         print(json.dumps(report, indent=2))
-        if version != "1.5.2" or not report["tmux"] or not report["sandbox"]:
-            raise RuntimeError("Need Pi 1.5.2, tmux and a supported sandbox")
+        if version != "1.5.2" or not report["tmux"] or not qemu:
+            raise RuntimeError("Need Pi 1.5.2, tmux and QEMU for the Gondolin VM")
         return
 
     if args.action == "send":
@@ -115,7 +121,8 @@ def main():
            if not key.startswith("PI_") and key != "NODE_OPTIONS" and not key.endswith(("_API_KEY", "_TOKEN"))}
     env.update(PI_CODING_AGENT_DIR=str(scratch / "agent"), PI_OFFLINE="1", PI_SKIP_VERSION_CHECK="1",
                PI_TELEMETRY="0", TERM="xterm-256color")
-    command = ["pi", "--offline", "--no-approve", "--no-mcp", "-ne", "-e", str(PACKAGE / "src/index.ts"),
+    loads = [flag for path in extensions() for flag in ("-e", path)]
+    command = ["pi", "--offline", "--no-approve", "--no-mcp", "-ne", *loads,
                "-ns", "--skill", str(PACKAGE / "skills"), "-nc", "-np", "--no-themes",
                "--session-dir", str(scratch / "sessions")]
     (evidence / "command.json").write_text(json.dumps(command, indent=2) + "\n")
