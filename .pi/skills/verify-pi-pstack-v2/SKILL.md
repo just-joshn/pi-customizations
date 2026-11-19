@@ -1,6 +1,6 @@
 ---
 name: verify-pi-pstack-v2
-description: Drive the pi-pstack-v2 extension in the real Pi 1.5.2 terminal UI with an isolated profile and workspace. Use to verify bundled workflow discovery, model-role setup, sandboxed tmux jobs, Pi workers, wakeups, and write boundaries.
+description: Drive the pi-pstack-v2 extension in the real Pi 1.5.2 terminal UI with an isolated profile and workspace. Use to verify bundled workflow discovery, model-role setup, contained tmux jobs, Pi workers, wakeups, and write boundaries.
 ---
 
 # Verify pi-pstack-v2
@@ -9,7 +9,7 @@ Read [features/README.md](features/README.md), then the feature being verified. 
 
 ## Launch
 
-Requirements: Pi **1.5.2**, Node >=22.19, Python 3, tmux, Bun; macOS Seatbelt (`sandbox-exec`) or Linux/WSL2 bubblewrap (`bwrap`). `gh`, `jq`, and `rg` are needed by some bundled workflows, not by the offline discovery journey. From the checkout root:
+Requirements: Pi **1.5.2**, Node >=22.19, Python 3, tmux, Bun; a container runtime: Apple `container` on macOS, Podman or Docker on Linux/WSL2. `gh`, `jq`, and `rg` are needed by some bundled workflows, not by the offline discovery journey. From the checkout root:
 
 ```sh
 bun install --frozen-lockfile
@@ -43,23 +43,23 @@ The helper owns a real 160x50 PTY and receives input via its private FIFO. Manag
 
 These need a real configured model and incur provider requests. The empty baseline deliberately has none. Do not substitute a fake provider, copied response, or direct tool `execute()` call.
 
-Run a **fresh** `init` from an ordinary, unsandboxed terminal and launch `python3 "$HELPER" serve "$EVIDENCE"` in the foreground there, after arranging owner participation for `/login`. Drive it from another terminal with `send`. Use a built-in Pi provider; provider extensions are not loaded by this helper. Login alone does not prove any pstack feature. Never pass secrets through `send`: it records every input. Enter secrets/browser callbacks only through an owner-controlled secure path and keep login artifacts private. If that is not possible, report the auth precondition as unmet.
+Run a **fresh** `init` from an ordinary, uncontained terminal and launch `python3 "$HELPER" serve "$EVIDENCE"` in the foreground there, after arranging owner participation for `/login`. Drive it from another terminal with `send`. Use a built-in Pi provider; provider extensions are not loaded by this helper. Login alone does not prove any pstack feature. Never pass secrets through `send`: it records every input. Enter secrets/browser callbacks only through an owner-controlled secure path and keep login artifacts private. If that is not possible, report the auth precondition as unmet.
 
-**Do not attempt live pstack job verification inside a `tmux_run`-hosted Pi.** That Pi inherits `PSTACK_V2_*` sandbox/broker markers from the host job; jobs can be brokered under the outer session rather than this disposable profile. Never unset those markers to bypass sandboxing. The managed baseline proves discovery only. `doctor` reports `sandboxedLauncher`; require `false` in the terminal hosting a live run. A shell launched by Pi's ordinary `bash` tool is not necessarily sandboxed: inspect this field rather than assuming.
+**Do not attempt live pstack job verification inside a `tmux_run`-hosted Pi.** That Pi inherits `PSTACK_V2_*` container/broker markers from the host job; jobs can be brokered under the outer session rather than this disposable profile. Never unset those markers to bypass containment. The managed baseline proves discovery only. `doctor` reports `containedLauncher` (from `PSTACK_V2_CONTAINED=1`) and `containerRuntime`, and fails without a runtime. It reports; require `false` in the terminal hosting a live run. A shell launched by Pi's ordinary `bash` tool is not necessarily contained: inspect this field rather than assuming.
 
 The helper uses `--offline` to suppress automatic catalog/version work; explicit `/login` and model prompts can still use the network. After genuine login use `/model` to select the available model. No auth is copied from the user's normal Pi profile. Parent resource discovery is disabled except for this checkout's explicit extension and skill directory. Scratch settings also name these paths so spawned workers can load pstack. Workers use native Pi discovery and may additionally discover user-level `~/.agents/skills`; review startup diagnostics rather than claiming complete resource hermeticity.
 
-Optional regression suite, **in an unsandboxed host terminal**, not through pstack's `tmux_run`:
+Optional regression suite, **in an uncontained host terminal**, not through pstack's `tmux_run`:
 
 ```sh
 bun run --filter @justjoshn/pi-pstack-v2 test
 ```
 
-The suite starts actual sandboxes/tmux servers and creates temporary home-directory paths. Running it inside a pstack job causes nested-sandbox/home-write EPERM failures. Record command, environment, output and exit/timeout; do not relabel those as extension startup failures or as a passing suite. Unit/integration results support but do not replace terminal proof.
+The suite starts actual job containers/tmux servers and creates temporary home-directory paths. Running it inside a pstack job causes nested-container/home-write EPERM failures. Record command, environment, output and exit/timeout; do not relabel those as extension startup failures or as a passing suite. Unit/integration results support but do not replace terminal proof.
 
 ## Doctor
 
-Run `python3 "$HELPER" doctor "$EVIDENCE"` first when anything looks off. It reads local version, package fingerprints, exact profile/workspace paths, sandbox/tmux availability, auth-file presence, launcher-record presence, and whether the current launcher shell is sandboxed. It does **not** refresh credentials, inspect secret values, prove provider acceptance, or assert the TUI is alive. Redirect its JSON into evidence when needed.
+Run `python3 "$HELPER" doctor "$EVIDENCE"` first when anything looks off. It reads local version, package fingerprints, exact profile/workspace paths, container-runtime/tmux availability, auth-file presence, launcher-record presence, and whether the current launcher shell is contained. It does **not** refresh credentials, inspect secret values, prove provider acceptance, or assert the TUI is alive. Redirect its JSON into evidence when needed.
 
 For a running baseline also inspect `tmux_jobs list` for the recorded job and capture **its owned pane**. Require the scratch footer and expected resource labels. A stale PID file or pane alone is insufficient. For live runs inspect `/model` and a real response to establish provider readiness. If source changed, clean up and initialize a new run. If the Pi version changed, revalidate CLI flags and UI handles before relaxing the version gate.
 
@@ -85,7 +85,7 @@ Durable location: **`<repo>/.audit/verify-pi-pstack-v2/evidence/<run-id>/`**, ou
 
 - `state.json`, `doctor.json`, `command.json`, `actions.jsonl`, unmodified `terminal.ansi`, and readable numbered pane captures before/after each action.
 - `result.md`: feature/sub-feature IDs, every entry point attempted, unmet preconditions, concrete assertions, and VERIFIED / NOT VERIFIED / INCONCLUSIVE. Discovery does not verify workflow execution, workers, job lifecycle, setup writes, or safety.
-- For live tools: copy relevant scratch `sessions/` transcripts and safe job `job.json`, `output.log`, `exit`, wake/stop markers, and worker answer transcripts **before cleanup**. Do not copy credential directories. Use the exact paths returned by the tools; the standard root is scratch `agent/pstack-v2/jobs/` only for an unsandboxed launcher.
+- For live tools: copy relevant scratch `sessions/` transcripts and safe job `job.json`, `output.log`, `exit`, wake/stop markers, and worker answer transcripts **before cleanup**. Do not copy credential directories. Use the exact paths returned by the tools; the standard root is scratch `agent/pstack-v2/jobs/` only for an uncontained launcher.
 - Independently observe mutations: read workspace output files, role config contents, branch/worktree state when applicable, and the outside sentinel after denied writes. Capture action **and** state; final assistant prose or an exit code alone is not proof.
 
 Exercise real user paths, not internal setters or test-only endpoints. No mocks are required for these recipes. If an external model/login boundary is unavailable, record the failure rather than simulating success. `--offline` is **not a network sandbox or dry-run**: no no-network claim follows without separately observing attempted connections. For any safety/dry-run claim, observe files/network/git refs relevant to that claim instead of trusting the mode's name.
@@ -98,7 +98,7 @@ After **every attempt**, including failures:
 
 1. Preserve the feature artifacts, safe job logs, and `result.md` outside scratch. For live jobs, ask the isolated Pi to call `tmux_jobs` `stop` with the exact returned IDs; confirm all this run's jobs/heartbeat series stopped. **Interactive Pi shutdown does not stop its pstack jobs.** If the model is unavailable, use the owned socket and exact session IDs from its job specs to stop just those sessions; never kill by process name or kill another run's server. Do not erase live job specs.
 2. Clear the editor with `send EVIDENCE $'\025'`, observe it empty, type `/quit` with `send EVIDENCE '/quit'`, observe that command, then submit with `send EVIDENCE $'\r'` in a separate tool call. Wait for exit, then stop the recorded managed job with `tmux_jobs stop` to release its resources (or stop a stuck wrapper). The helper's `finally` terminates only its child process group. A SIGKILL can prevent finalizers: inspect the recorded child PID if cleanup reports it still alive; do not delete the PID file merely to pass cleanup.
-3. Run `python3 "$HELPER" cleanup "$EVIDENCE"`. It refuses while recorded launchers/children or recorded tmux sessions remain alive, deletes only this manifest's scratch tree, and writes `cleanup.json` outside it. Retry after termination completes. The report's `outsideUnchanged` is a single sentinel check, **not** proof of every sandbox boundary.
+3. Run `python3 "$HELPER" cleanup "$EVIDENCE"`. It refuses while recorded launchers/children or recorded tmux sessions remain alive, deletes only this manifest's scratch tree, and writes `cleanup.json` outside it. Retry after termination completes. The report's `outsideUnchanged` is a single sentinel check, **not** proof of every container boundary.
 4. Confirm `scratchRemoved: true`, inspect `outsideUnchanged`, and run `test -s "$EVIDENCE/state.json" && test -s "$EVIDENCE/cleanup.json" && test -s "$EVIDENCE/result.md"`. Confirm the numbered captures and `terminal.ansi` also survived. Never remove evidence as part of cleanup.
 
 Each run has its own profile, workspace, sessions and FIFO. No service port is needed. Real account quota/browser state remain shared; do not double-drive a TUI or concurrent sign-ins. Worktree recipes must create an initial scratch commit first; the empty baseline has no HEAD. Cleanup removes disposable repos/branches, not anything in the user's working checkout or normal agent profile.
@@ -109,7 +109,7 @@ Executable, Python-standard-library-only `scripts/verify.py`:
 
 - `init EVIDENCE`: create a new private evidence directory, disposable profile/Git workspace, outside sentinel, and source manifest. Refuses an existing evidence directory.
 - `doctor EVIDENCE`: read-only local health JSON (redirect to `doctor.json`); does not create/update instance state.
-- `serve EVIDENCE`: launch real Pi in a PTY with explicit checkout resources. Managed tmux for offline discovery; unsandboxed foreground terminal for live tool journeys. Output is saved to `terminal.ansi`; input comes from scratch `input` FIFO.
+- `serve EVIDENCE`: launch real Pi in a PTY with explicit checkout resources. Managed tmux for offline discovery; uncontained foreground terminal for live tool journeys. Output is saved to `terminal.ansi`; input comes from scratch `input` FIFO.
 - `send EVIDENCE TEXT`: send bytes to that FIFO and log action. Fails instead of blocking if no reader exists. Never use for credentials.
 - `cleanup EVIDENCE`: verify no recorded live processes/jobs, remove scratch, preserve evidence and write `cleanup.json`.
 
