@@ -14,9 +14,9 @@ The npm package `@justjoshn/pi-pstack-v2` is not published yet. Once it is, `pi 
 
 Add `--local` to write the declaration to the project's `.pi/settings.json` instead of your personal settings. `pi list` shows what is installed. Installing adds the skills and tools but starts no workflow. Nothing changes until you send `/skill:poteto-mode` or turn on `/pstack-mode`. Pi runs each skill as `/skill:<name>`, so every command in this guide takes that prefix.
 
-The package adds three tools. `pi_spawn` starts a separate Pi in its own tmux session. `tmux_run` runs a shell command in its own tmux session. `tmux_jobs` lists, waits on, and stops both kinds of job. Pi has no sub-agents and no detached shell, so every parallel worker and every watcher in this guide is one of these jobs.
+The package adds three tools. `subagent` starts separate Pi workers, each in its own tmux session, and returns their reports when they finish. `tmux_run` runs a shell command in its own tmux session. `tmux_jobs` lists, waits on, and stops those shell jobs. Pi has no sub-agents and no detached shell, so every parallel worker in this guide is a `subagent` worker and every watcher is a `tmux_run` job.
 
-**Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
+**Watch your jobs.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
 
 ## Check tmux and Gondolin
 
@@ -43,7 +43,7 @@ The defaults are the same as the `large` budget. Code, prose, and judgment run a
 
 You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps any role whose model differs from the default. When a default changes, a file written before the change still pins the old default until you run `/skill:setup-pstack` again. That run replaces the old defaults it recognizes, tells you which, and keeps your other choices. To drop a pin it does not recognize, delete that role's line or the file first.
 
-You might be wondering what happens if you want a role to follow whatever model you're using. Set it to `inherit-parent` or `auto` and pstack omits the model on that role's `pi_spawn` call, so the spawned Pi runs on your session model. Both values mean the same thing, and neither is a model. For a panel role the value is a list, and one spawned Pi runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
+You might be wondering what happens if you want a role to follow whatever model you're using. Set it to `inherit-parent` or `auto` and pstack omits the model on that role's `subagent` call, so the worker runs on your session model. Both values mean the same thing, and neither is a model. For a panel role the value is a list, and one spawned Pi runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
 
 ## Accept the verification offers, or don't
 

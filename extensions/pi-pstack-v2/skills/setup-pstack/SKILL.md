@@ -11,7 +11,7 @@ Write `pstack-v2-models.md` in the Pi agent directory (`~/.pi/agent`, or `$PI_CO
 
 ### 1. Detect available models
 
-Run `pi --list-models`. It prints one line per model, with the provider and model columns that make up the `provider/id` you pass to `pi_spawn` and a `thinking` column that says whether the model reasons. That is the dependable source, and `pi_spawn` accepts only models it prints. If the command fails or lists none, ask the user to paste the `provider/id` values they have access to. Never write a real model you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected models.
+Run `pi --list-models`. It prints one line per model, with the provider and model columns that make up the `provider/id` you pass to `subagent` and a `thinking` column that says whether the model reasons. That is the dependable source, and a worker on a model it does not print fails. If the command fails or lists none, ask the user to paste the `provider/id` values they have access to. Never write a real model you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected models.
 
 ### 2. Load current state
 
@@ -47,7 +47,7 @@ Write `pstack-v2-models.md` in the Pi agent directory with the `# defaults: 3` l
 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
-# `inherit-parent` or `auto` as a value: the role runs on the session model (omit pi_spawn `model`). Alias entries in a panel list still count toward its fan-out.
+# `inherit-parent` or `auto` as a value: the role runs on the session model (omit subagent `model`). Alias entries in a panel list still count toward its fan-out.
 # defaults: 3
 # budget: large (xhigh)
 feature, refactoring: <provider>/<id> xhigh

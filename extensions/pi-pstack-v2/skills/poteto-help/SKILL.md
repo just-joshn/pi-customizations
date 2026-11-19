@@ -45,7 +45,7 @@ If cost is the worry, say where the tokens go and how to spend fewer. pstack spe
 
 pstack was ported from Cursor and runs on Pi as a Pi package. [How pstack maps onto Pi](../../docs/pi-mechanisms.md) lists what each part uses.
 
-Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/skill:poteto-mode`, `/skill:how`, and `/skill:teach`, spawn Pi workers with `pi_spawn`, some with per-role models, and watchers and heartbeats run through `tmux_run`. Those tools come from this package's extension, so those parts may not work elsewhere.
+Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/skill:poteto-mode`, `/skill:how`, and `/skill:teach`, spawn Pi workers with `subagent`, some with per-role models, and watchers and heartbeats run through `tmux_run`. Those tools come from this package's extension, so those parts may not work elsewhere.
 
 ## Start a task with `/skill:poteto-mode`
 
@@ -53,7 +53,7 @@ Other tools can read the skills, because they use the Agent Skills format. But m
 
 `/skill:poteto-mode` attaches the skill to one message, and it fades as the session moves on. To keep it on for the whole session, type `/pstack-mode poteto-mode` instead. That is pstack's Custom Mode. The skill rides in the system prompt every turn, survives `/compact`, and comes back when you resume the session. `/pstack-mode off` ends it. Any pstack skill works as a mode.
 
-Point the user to Pi's skills documentation (`docs/skills.md` in the Pi package, or Pi's docs site) when this comes up. Mid-session, "new task" makes the skill match a fresh playbook. `/skill:poteto-mode` already uses `poteto-agent` for the workers its playbook steps spawn. To get the same style from a worker of your own, spawn it with `pi_spawn` and `agent: "poteto-agent"`.
+Point the user to Pi's skills documentation (`docs/skills.md` in the Pi package, or Pi's docs site) when this comes up. Mid-session, "new task" makes the skill match a fresh playbook. `/skill:poteto-mode` already uses `poteto-agent` for the workers its playbook steps spawn. To get the same style from a worker of your own, start it with `subagent` and `agent: "poteto-agent"`.
 
 ## Pick a skill
 
@@ -138,7 +138,7 @@ Principles are one-rule skills that `/skill:poteto-mode` reads and cites in its 
 | A new model choice had no effect | The file from `/skill:setup-pstack` is read at the start of each turn. Send a new message, and check the role has a line in `~/.pi/agent/pstack-v2-models.md`. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |
 | A skill didn't load on its own | Only `/skill:setup-pstack` loads from the user's words. The others load when the user types them or when `/skill:poteto-mode` runs them, and it doesn't run every skill. |
-| Parallel workers overwrote each other | Give each worker its own worktree with the `worktree` parameter of `pi_spawn`. |
+| Parallel workers overwrote each other | Give each worker its own worktree. Create it with `tmux_run` running `git worktree add -b <branch> .pi/worktrees/<slug> <ref>` inside the working directory, then pass that path as the worker's `cwd`. |
 | An overnight run moved but finished nothing | A `tmux_run` heartbeat needs a check that can pass or fail, not a duration. See [guide page 7](../../docs/guide/07-overnight.md). |
 | The reply claims success from a green build | Ask for the real command, flow, stored value, or profile. That's the prove-it-works principle. |
 
