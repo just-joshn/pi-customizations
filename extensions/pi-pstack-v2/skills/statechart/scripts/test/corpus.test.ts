@@ -6,10 +6,13 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, PINNED_FLAGS } from "../run.ts";
+import { commandExit } from "./exit-status.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const corpus = path.join(here, "corpus");
 const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const repeatingStates = 3;
+const checkChild = path.join(here, "check-child.ts");
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
 const recordEnv = (record: string) => ({
@@ -52,7 +55,7 @@ for (const name of fs.readdirSync(corpus)) {
     const report = read(path.join(out, "report.md"));
     const first = path.join(dir, "verdict-1.exit");
     const plain = fs.existsSync(first) ? Number(read(first)) : 0;
-    assert.equal(r.status, plain === 0 ? 0 : [11, 12, 13].includes(plain) ? 1 : 2);
+    assert.equal(r.status, commandExit(plain));
     assert.equal(report, read(path.join(dir, "report.md")));
     assert.equal(read(path.join(out, "chart.mmd")), read(path.join(dir, "chart.mmd")));
   });
@@ -134,7 +137,7 @@ const plainTlc = (base: string) => {
     { cwd: path.dirname(base), encoding: "utf8" },
   );
   return {
-    exit: r.status === 0 ? 0 : [11, 12, 13].includes(r.status ?? -1) ? 1 : 2,
+    exit: commandExit(r.status ?? -1),
     rule: r.stdout.match(/^Error: Invariant (\w+) is violated\.$/m)?.[1],
     path: [...r.stdout.matchAll(/^State \d+: <(\w+) line/gm)].map((m) => m[1]),
   };
@@ -251,7 +254,7 @@ test("a property that breaks on a loop draws the loop and reports it", { skip },
     read(path.join(out, "report.md")),
     /^## Prop breaks\nTLC's counterexample is in tlc-Prop\.out\. It has 3 steps:\n0\. 0\n1\. Next: 1\n2\. Next: 2\n3\. Next: 0\nThe run loops through "0", "1" and "2" forever\.$/m,
   );
-  assert.equal(read(path.join(out, "chart.mmd")).match(/^ {2}class s\d+ repeats$/gm)?.length, 3);
+  assert.equal(read(path.join(out, "chart.mmd")).match(/^ {2}class s\d+ repeats$/gm)?.length, repeatingStates);
 });
 
 test(
@@ -312,52 +315,52 @@ const writeWide = (width: number, height: number, config: string) =>
     `INIT Init\nNEXT Next\n${config}\nCHECK_DEADLOCK FALSE\n`,
   );
 
-for (const [width, height, config, status, drawn, chart, header] of [
-  [
-    20,
-    25,
-    "INVARIANT Typed",
-    0,
-    true,
-    true,
-    "TLC reached 500 states and 955 steps. The chart draws 500 states and 955 arrows.",
-  ],
-  [
-    3,
-    167,
-    "INVARIANT Typed",
-    0,
-    false,
-    false,
-    "TLC reached 501 states, more than the chart budget of 500, so the command wrote no chart.mmd.",
-  ],
-  [
-    40,
-    40,
-    "INVARIANT Typed",
-    0,
-    false,
-    false,
-    "TLC reached 1,600 states, more than the chart budget of 500, so the command wrote no chart.mmd.",
-  ],
-  [
-    40,
-    40,
-    "INVARIANT Near",
-    1,
-    true,
-    true,
-    "TLC reached more states than the chart budget of 500, so the chart draws only the bug paths: 4 states and 3 arrows.",
-  ],
-  [
-    40,
-    40,
-    "INVARIANT Far",
-    1,
-    false,
-    true,
-    "TLC reached more states than the chart budget of 500, so the chart draws only the bug paths: 79 states and 78 arrows.",
-  ],
+for (const { width, height, config, status, drawn, chart, header } of [
+  {
+    width: 20,
+    height: 25,
+    config: "INVARIANT Typed",
+    status: 0,
+    drawn: true,
+    chart: true,
+    header: "TLC reached 500 states and 955 steps. The chart draws 500 states and 955 arrows.",
+  },
+  {
+    width: 3,
+    height: 167,
+    config: "INVARIANT Typed",
+    status: 0,
+    drawn: false,
+    chart: false,
+    header: "TLC reached 501 states, more than the chart budget of 500, so the command wrote no chart.mmd.",
+  },
+  {
+    width: 40,
+    height: 40,
+    config: "INVARIANT Typed",
+    status: 0,
+    drawn: false,
+    chart: false,
+    header: "TLC reached 1,600 states, more than the chart budget of 500, so the command wrote no chart.mmd.",
+  },
+  {
+    width: 40,
+    height: 40,
+    config: "INVARIANT Near",
+    status: 1,
+    drawn: true,
+    chart: true,
+    header: "TLC reached more states than the chart budget of 500, so the chart draws only the bug paths: 4 states and 3 arrows.",
+  },
+  {
+    width: 40,
+    height: 40,
+    config: "INVARIANT Far",
+    status: 1,
+    drawn: false,
+    chart: true,
+    header: "TLC reached more states than the chart budget of 500, so the chart draws only the bug paths: 79 states and 78 arrows.",
+  },
 ] as const)
   test(
     `TLC keeps the chart within its budget of 500 states on a ${width} by ${height} grid with ${config}`,
@@ -424,15 +427,11 @@ test(
   async () => {
     const base = broken();
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-corpus-"));
-    const saved = process.env.TMPDIR;
-    Object.assign(process.env, { TMPDIR: tmp });
-    try {
-      await check(`${login}.tla`, `${login}.cfg`);
-      await assert.rejects(check(`${base}.tla`, `${base}.cfg`), /SANY could not read/);
-    } finally {
-      if (saved === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
-      else Object.assign(process.env, { TMPDIR: saved });
-    }
+    const r = spawnSync(process.execPath, [...process.execArgv, checkChild, login, base], {
+      encoding: "utf8",
+      env: { ...process.env, TMPDIR: tmp },
+    });
+    assert.equal(r.status, 0, r.stderr);
     assert.deepEqual(fs.readdirSync(tmp), []);
   },
 );

@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { before, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import vm from "node:vm";
 import { mermaid as chartText } from "../backends/mermaid.ts";
 import type { Graph } from "../ir.ts";
 import { walk } from "../passes/reach.ts";
@@ -35,6 +36,32 @@ const install = (name: string, ...packages: string[]) => {
   return createRequire(path.join(dir, "package.json"));
 };
 
+type Rejects<T> = (text: string) => Promise<T>;
+type BrowserMermaid = {
+  parse: Rejects<unknown>;
+  mermaidAPI: { getDiagramFromText: Rejects<Awaited<ReturnType<Mermaid["mermaidAPI"]["getDiagramFromText"]>>> };
+};
+
+// Mermaid runs inside the jsdom window, so its errors are that window's Error.
+// Rethrow them as this realm's Error so the oracle's `instanceof Error` sees them.
+const inHostRealm = (browser: BrowserMermaid, BrowserError: ErrorConstructor): Mermaid => {
+  const hosted =
+    <T>(call: Rejects<T>): Rejects<T> =>
+    async (text) => {
+      try {
+        return await call(text);
+      } catch (error) {
+        throw error instanceof BrowserError ? new Error(error.message) : error;
+      }
+    };
+  return {
+    parse: hosted((text) => browser.parse(text)),
+    mermaidAPI: {
+      getDiagramFromText: hosted((text) => browser.mermaidAPI.getDiagramFromText(text)),
+    },
+  };
+};
+
 let render: Render;
 let mermaid: Mermaid;
 let html: Html;
@@ -43,22 +70,24 @@ before(async () => {
   ({ render } = await import(pathToFileURL(pele.resolve("pele")).href));
 
   const parser = install("test-mermaid-11.16.0", "mermaid@11.16.0", "jsdom@26.1.0");
-  const { window } = new (parser("jsdom").JSDOM)("");
-  Object.assign(globalThis, { window, document: window.document, DOMParser: window.DOMParser });
-  mermaid = (await import(pathToFileURL(parser.resolve("mermaid")).href)).default;
-  html = (markup) => {
-    const t = window.document.createElement("template");
-    return Object.assign(t, { innerHTML: markup }).content.textContent ?? "";
-  };
+  const { JSDOM } = parser("jsdom");
+  const dom = new JSDOM("", { runScripts: "outside-only" });
+  const bundle = fs.readFileSync(parser.resolve("mermaid/dist/mermaid.min.js"), "utf8");
+  new vm.Script(bundle).runInContext(dom.getInternalVMContext());
+  mermaid = inHostRealm(dom.window.mermaid, dom.window.Error);
+  html = (markup) => JSDOM.fragment(markup).textContent ?? "";
 });
 
-const classes = new Set<string>();
-for (const chart of charts) {
-  const name = path.relative(here, chart);
+const loaded = charts.map((chart) => {
   const text = fs.readFileSync(chart, "utf8");
-  const marks = [...text.matchAll(/^ {2}class (\w+) (\w+)$/gm)];
-  for (const [, , mark] of marks) classes.add(mark);
-
+  return {
+    name: path.relative(here, chart),
+    text,
+    marks: [...text.matchAll(/^ {2}class (\w+) (\w+)$/gm)],
+  };
+});
+const classes = new Set(loaded.flatMap(({ marks }) => marks.map(([, , mark]) => mark)));
+for (const { name, text, marks } of loaded) {
   test(`${name} renders in Pele 1.9.0 with each class on its node`, () => {
     const { svg } = render(text);
     assert.match(svg, /^<svg /);
@@ -74,8 +103,12 @@ for (const chart of charts) {
 test("random labels and colors keep their text and the chart's shape in Mermaid and Pele", async () => {
   const { drawn, refused, failure } = await fuzz({ seed: 1, charts: 500, render, mermaid, html });
   if (failure) assert.fail(failure);
-  assert.ok(drawn > 400 && refused > 20, `${drawn} charts drawn, ${refused} refused`);
+  assert.ok(drawn > MIN_DRAWN && refused > MIN_REFUSED, `${drawn} charts drawn, ${refused} refused`);
 });
+
+const MIN_DRAWN = 400;
+const MIN_REFUSED = 20;
+const CUBIC = 3;
 
 type Point = readonly [number, number];
 const SAMPLES = 64;
@@ -84,7 +117,7 @@ const bezier = (from: Point, n: readonly number[], t: number): Point => {
   const [ax, ay] = from;
   const u = 1 - t;
   const blend = (a: number, c1: number, c2: number, end: number) =>
-    u ** 3 * a + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t ** 3 * end;
+    u ** CUBIC * a + CUBIC * u * u * t * c1 + CUBIC * u * t * t * c2 + t ** CUBIC * end;
   return [blend(ax, n[0], n[2], n[4]), blend(ay, n[1], n[3], n[5])];
 };
 
