@@ -23,13 +23,13 @@ Write `bot.md` in that directory. It is the prompt every wake sends before the e
 
 ## Choose how the bot wakes
 
-The bot is a Pi session stored in the UI's directory, so a sandboxed job can write it. On each POST the server runs:
+The bot is a Pi session stored in the UI's directory. On each POST the server runs:
 
 ```
 pi -p --session-dir <ui dir>/session --session-id <slug> @<ui dir>/bot.md "<event>"
 ```
 
-`--session-id` opens the session if it exists and creates it otherwise, so the first wake and every later wake use the same command. The event is the JSON text the browser sent, wrapped as in the last section. Run one wake at a time, so two clicks never write the session together. The woken Pi is a child of the sandboxed server, so it can write only what the server can, which is the project.
+`--session-id` opens the session if it exists and creates it otherwise, so the first wake and every later wake use the same command. The event is the JSON text the browser sent, wrapped as in the last section. Run one wake at a time, so two clicks never write the session together.
 
 ## Request secrets
 

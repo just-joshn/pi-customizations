@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+### Changed
+
+- Pi's built-in tools (`read`, `write`, `edit`, `bash`, `ls`, `find`, `grep`) and `!` shell commands run inside a Gondolin micro-VM, through Pi's `gondolin` example extension ported to `src/gondolin`. The directory Pi started in is mounted at `/workspace`. `/gondolin` shows the VM. QEMU is now required.
+- `tmux_run` jobs run on the host without a sandbox. A job's `cwd` is any directory, relative to the session's.
+
+### Removed
+
+- The Seatbelt and bubblewrap sandbox, with its protected paths, quarantine sweep, per-job credentials copy, private temp directories, and brokered nested jobs. bubblewrap is no longer required on Linux.
+
 ## 0.1.7
 
 ### Fixed

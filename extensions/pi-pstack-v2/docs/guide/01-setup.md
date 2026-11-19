@@ -18,14 +18,14 @@ The package adds three tools. `pi_spawn` starts a separate Pi in its own tmux se
 
 **Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
 
-## Check tmux and the sandbox
+## Check tmux and Gondolin
 
 pstack needs two things on your machine.
 
 - **tmux.** Every job runs in a tmux session, and the wake that brings a finished job's report back to your session depends on it.
-- **A sandbox.** Pi has no permission popups. Each `pi_spawn` and `tmux_run` job runs inside a sandbox instead, and a job can write only to its own directory, its worktree or working directory, the repository's git directory, and temp directories. macOS has Seatbelt built in. Linux and WSL2 need bubblewrap (`bwrap`). With neither, the tools refuse to start.
+- **QEMU, for Gondolin.** Pi has no permission popups. Pi's built-in tools run inside a Gondolin micro-VM instead, with the directory Pi started in mounted at `/workspace`. Writes there reach your checkout, and every other guest path is the VM's own. Install QEMU (`brew install qemu` on macOS). Gondolin downloads its guest image on first use, and `/gondolin` shows the VM.
 
-The sandbox covers the jobs, not your main session. To contain the main session too, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
+The VM covers Pi's own tools, not `tmux_run` jobs, which run on your machine. The guest has no `git` or `gh`, so commits, pushes, and PRs go through `tmux_run`. To contain everything, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
 
 ## Pick your models
 

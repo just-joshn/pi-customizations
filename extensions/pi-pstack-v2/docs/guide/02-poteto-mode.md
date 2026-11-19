@@ -125,7 +125,7 @@ A long chat accumulates context from the last task. When you change subjects, sa
 
 ## Give parallel work its own worktree
 
-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a git worktree per worker. A spawned Pi started with a `worktree` branch gets its own checkout, and its sandbox confines its writes there, so it can install dependencies, run your app, and record video of the result without touching your working tree. A worktree does not isolate ports, so two workers that start the same dev server still collide. Give each its own port. The coordinator does this on its own for parallel code work. You can also ask for a worktree up front:
+If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a git worktree per worker. A spawned Pi started with a `worktree` branch gets its own checkout, and its Gondolin VM mounts only that checkout, so it can install dependencies, run your app, and record video of the result without touching your working tree. A worktree does not isolate ports, so two workers that start the same dev server still collide. Give each its own port. The coordinator does this on its own for parallel code work. You can also ask for a worktree up front:
 
 ```text
 /skill:poteto-mode new task. branch off <base> in a fresh worktree, then port the parser change there.

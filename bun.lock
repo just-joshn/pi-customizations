@@ -48,7 +48,7 @@
     },
     "extensions/pi-pstack-v2": {
       "name": "@justjoshn/pi-pstack-v2",
-      "version": "0.1.7",
+      "version": "0.2.0",
       "dependencies": {
         "@earendil-works/gondolin": "0.14.0",
         "zod": "^4",
