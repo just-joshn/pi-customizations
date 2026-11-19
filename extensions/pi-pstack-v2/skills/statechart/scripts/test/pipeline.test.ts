@@ -102,15 +102,18 @@ test("ir.ts, the passes, pipeline.ts, the frontends, the backends, and every fil
   for (const file of files) assert.deepEqual(codeOf(file).match(RUNTIME), null, file);
 });
 
+const assertNoNodeModule = (folder: string, f: string) => {
+  for (const [, to] of loads(path.join(folder, f)))
+    assert.ok(!to.startsWith("node:"), `${folder}/${f} reaches ${to}`);
+};
+
 test("no frontend or backend loads a node: module when imported, even through another file", () => {
   for (const folder of ["frontends", "backends"]) {
     const files = fs
       .readdirSync(path.join(scripts, folder), { encoding: "utf8", recursive: true })
       .filter((f) => f.endsWith(".ts"));
     assert.ok(files.length > 0, folder);
-    for (const f of files)
-      for (const [, to] of loads(path.join(folder, f)))
-        assert.ok(!to.startsWith("node:"), `${folder}/${f} reaches ${to}`);
+    for (const f of files) assertNoNodeModule(folder, f);
   }
 });
 
@@ -118,11 +121,18 @@ const small: Rule = { kind: "invariant", name: "Small" };
 
 const noView = checkView({}, inspect);
 
-const holding = (spec: Spec) => {
-  const verdicts: Verdict[] = [];
-  for (const rule of stateRules(spec))
-    verdicts.push({ rule, outcome: "holds", messages: undefined });
-  return verdicts;
+const holding = (spec: Spec): Verdict[] =>
+  stateRules(spec).map((rule) => ({ rule, outcome: "holds", messages: undefined }));
+
+const withSpec = (result: CheckResult, patch: Partial<Spec>): CheckResult => ({
+  ...result,
+  spec: { ...result.spec, ...patch },
+});
+
+const initialStateMessage = {
+  code: EC.TLC_STATE_PRINT2,
+  level: LEVEL.STATE,
+  body: ["1: <Initial predicate>", "x = 0"],
 };
 
 const twoStates = (breaks: Rule[], property = "Settles"): CheckResult => ({
@@ -148,13 +158,7 @@ const twoStates = (breaks: Rule[], property = "Settles"): CheckResult => ({
     {
       rule: { kind: "property", name: property },
       outcome: breaks.length ? "broken" : "holds",
-      messages: [
-        {
-          code: EC.TLC_STATE_PRINT2,
-          level: LEVEL.STATE,
-          body: ["1: <Initial predicate>", "x = 0"],
-        },
-      ],
+      messages: [initialStateMessage],
       bug: undefined,
       initialOnly: false,
     },
@@ -166,12 +170,10 @@ const twoStates = (breaks: Rule[], property = "Settles"): CheckResult => ({
   messages: [{ code: EC.TLC_FINISHED, level: LEVEL.NONE, body: ["Finished in 394ms at (T)"] }],
 });
 
-const body = (files: Map<string, Iterable<string | Uint8Array>>, name: string) => {
-  let text = "";
-  for (const part of files.get(name) ?? [])
-    text += typeof part === "string" ? part : new TextDecoder().decode(part);
-  return text;
-};
+const body = (files: Map<string, Iterable<string | Uint8Array>>, name: string) =>
+  Array.from(files.get(name) ?? [], (part) =>
+    typeof part === "string" ? part : new TextDecoder().decode(part),
+  ).join("");
 
 test("the pipeline turns a hand-built graph into the out folder's files with no TLC", () => {
   const broken = compile(twoStates([small]), noView);
@@ -215,17 +217,19 @@ test("an invariant and a property with one name stay two rules", () => {
   const reportWithSmallProperty = (breaks: Rule[]) => {
     const result = twoStates(breaks);
     const step = result.graph.steps[0];
-    result.spec.properties = ["Small"];
-    result.properties = [
-      {
-        rule: { kind: "property", name: "Small" },
-        outcome: "broken",
-        messages: [],
-        bug: { start: "1", path: [{ action: "Grow", state: "2", step }], loop: 1, stutters: true },
-        initialOnly: false,
-      },
-    ];
-    return compile(result, noView).report;
+    const bug = { start: "1", path: [{ action: "Grow", state: "2", step }], loop: 1, stutters: true };
+    const property = {
+      rule: { kind: "property", name: "Small" },
+      outcome: "broken",
+      messages: [],
+      bug,
+      initialOnly: false,
+    } as const;
+    const withProperty: CheckResult = {
+      ...withSpec(result, { properties: ["Small"] }),
+      properties: [property],
+    };
+    return compile(withProperty, noView).report;
   };
   const both = reportWithSmallProperty([small]);
   assert.match(both, /^## Small breaks\nThe shortest path has 1 step:$/m);
@@ -238,8 +242,11 @@ test("an invariant and a property with one name stay two rules", () => {
 
 test("a PROPERTY that breaks with no path writes TLC's counterexample", () => {
   const result = twoStates([]);
-  result.properties[0].outcome = "broken";
-  const { report, files } = compile(result, noView);
+  const broken: CheckResult = {
+    ...result,
+    properties: result.properties.map((p, i) => (i === 0 ? { ...p, outcome: "broken" } : p)),
+  };
+  const { report, files } = compile(broken, noView);
   assert.match(
     report,
     /^## Settles breaks\nTLC found a counterexample\. It is in tlc-Settles\.out\.$/m,
@@ -248,23 +255,22 @@ test("a PROPERTY that breaks with no path writes TLC's counterexample", () => {
 });
 
 test("a rule named NoDeadlock leaves the deadlock rule a name of its own", () => {
-  const holds = (result: CheckResult) => {
-    result.spec.deadlock = true;
-    result.rules = holding(result.spec);
-    return compile(result, noView).report.match(/^## Rules that hold\n(.*)$/m)?.[1];
+  const holds = (base: CheckResult) => {
+    const result = withSpec(base, { deadlock: true });
+    return compile({ ...result, rules: holding(result.spec) }, noView).report.match(
+      /^## Rules that hold\n(.*)$/m,
+    )?.[1];
   };
-  const invariant = twoStates([]);
-  invariant.spec.invariants = ["NoDeadlock"];
+  const invariant = withSpec(twoStates([]), { invariants: ["NoDeadlock"] });
   assert.equal(holds(invariant), "NoDeadlock, CHECK_DEADLOCK, Settles");
   assert.equal(holds(twoStates([], "NoDeadlock")), "Small, CHECK_DEADLOCK, NoDeadlock");
   assert.equal(holds(twoStates([])), "Small, NoDeadlock, Settles");
 });
 
 test("a run that does not check for deadlock never names CHECK_DEADLOCK", () => {
-  const invariant = twoStates([]);
-  invariant.spec.invariants = ["Small", "NoDeadlock"];
+  const invariant = withSpec(twoStates([]), { invariants: ["Small", "NoDeadlock"] });
   for (const result of [invariant, twoStates([], "NoDeadlock")]) {
-    result.rules = holding(result.spec);
-    assert.doesNotMatch(compile(result, noView).report, /CHECK_DEADLOCK/);
+    const rules = holding(result.spec);
+    assert.doesNotMatch(compile({ ...result, rules }, noView).report, /CHECK_DEADLOCK/);
   }
 });

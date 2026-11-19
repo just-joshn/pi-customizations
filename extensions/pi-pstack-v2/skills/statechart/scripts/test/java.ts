@@ -19,6 +19,9 @@ if (log && config) fs.appendFileSync(log, `## ${name}\n${fs.readFileSync(config,
 
 const TAG = /"chart-[0-9a-f]{32}"/g;
 
+const metadirSuffix = (a: string, i: number, all: string[]) =>
+  all[i - 1] === "-metadir" || all[i - 2] === "-dump" ? `${a}-plain` : a;
+
 const java = (folder: string, args: string[]) => {
   const r = spawnSync(process.env.STATECHART_JAVA ?? "java", args, {
     encoding: "utf8",
@@ -40,9 +43,7 @@ if (record) {
       plain,
       tool
         .filter((a) => a !== "-tool")
-        .map((a, i, all) =>
-          all[i - 1] === "-metadir" || all[i - 2] === "-dump" ? `${a}-plain` : a,
-        ),
+        .map(metadirSuffix),
     );
   const shown = (text: string) =>
     wantsPlainText ? [...plainText(readMessages(text))].join("") : text;

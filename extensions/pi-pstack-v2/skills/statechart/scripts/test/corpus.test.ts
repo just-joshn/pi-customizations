@@ -12,6 +12,13 @@ const corpus = path.join(here, "corpus");
 const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
+const recordEnv = (record: string) => ({
+  ...process.env,
+  JAVA: path.join(here, "java.ts"),
+  STATECHART_JAVA: process.env.JAVA ?? "java",
+  STATECHART_RECORD: record,
+});
+
 for (const name of fs.readdirSync(corpus)) {
   test(`${name} gives the committed chart and report when TLC runs`, { skip }, () => {
     const dir = path.join(corpus, name);
@@ -31,12 +38,7 @@ for (const name of fs.readdirSync(corpus)) {
       ],
       {
         encoding: "utf8",
-        env: {
-          ...process.env,
-          JAVA: path.join(here, "java.ts"),
-          STATECHART_JAVA: process.env.JAVA ?? "java",
-          STATECHART_RECORD: tlc,
-        },
+        env: recordEnv(tlc),
       },
     );
     assert.equal(r.stderr, "");
@@ -291,6 +293,25 @@ test(
   },
 );
 
+const writeWide = (width: number, height: number, config: string) =>
+  writeSpec(
+    "Wide",
+    [
+      "---- MODULE Wide ----",
+      "EXTENDS Naturals",
+      "VARIABLES x, y",
+      "Init == x = 0 /\\ y = 0",
+      `IncX == x < ${width - 1} /\\ x' = x + 1 /\\ y' = y`,
+      `IncY == y < ${height - 1} /\\ y' = y + 1 /\\ x' = x`,
+      "Next == IncX \\/ IncY",
+      "Typed == x \\in 0..39",
+      "Near == ~(x = 2 /\\ y = 1)",
+      `Far == ~(x = ${width - 1} /\\ y = ${height - 1})`,
+      "====",
+    ],
+    `INIT Init\nNEXT Next\n${config}\nCHECK_DEADLOCK FALSE\n`,
+  );
+
 for (const [width, height, config, status, drawn, chart, header] of [
   [
     20,
@@ -342,38 +363,14 @@ for (const [width, height, config, status, drawn, chart, header] of [
     `TLC keeps the chart within its budget of 500 states on a ${width} by ${height} grid with ${config}`,
     { skip },
     () => {
-      const base = writeSpec(
-        "Wide",
-        [
-          "---- MODULE Wide ----",
-          "EXTENDS Naturals",
-          "VARIABLES x, y",
-          "Init == x = 0 /\\ y = 0",
-          `IncX == x < ${width - 1} /\\ x' = x + 1 /\\ y' = y`,
-          `IncY == y < ${height - 1} /\\ y' = y + 1 /\\ x' = x`,
-          "Next == IncX \\/ IncY",
-          "Typed == x \\in 0..39",
-          "Near == ~(x = 2 /\\ y = 1)",
-          `Far == ~(x = ${width - 1} /\\ y = ${height - 1})`,
-          "====",
-        ],
-        `INIT Init\nNEXT Next\n${config}\nCHECK_DEADLOCK FALSE\n`,
-      );
+      const base = writeWide(width, height, config);
       const tlc = path.join(path.dirname(base), "tlc");
       const out = path.join(path.dirname(base), "out");
       fs.mkdirSync(tlc);
       const r = spawnSync(
         process.execPath,
         [path.join(here, "../statechart.ts"), `${base}.tla`, "--out", out],
-        {
-          encoding: "utf8",
-          env: {
-            ...process.env,
-            JAVA: path.join(here, "java.ts"),
-            STATECHART_JAVA: process.env.JAVA ?? "java",
-            STATECHART_RECORD: tlc,
-          },
-        },
+        { encoding: "utf8", env: recordEnv(tlc) },
       );
       assert.equal(r.stderr, "");
       assert.equal(r.status, status);
@@ -428,13 +425,13 @@ test(
     const base = broken();
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-corpus-"));
     const saved = process.env.TMPDIR;
-    process.env.TMPDIR = tmp;
+    Object.assign(process.env, { TMPDIR: tmp });
     try {
       await check(`${login}.tla`, `${login}.cfg`);
       await assert.rejects(check(`${base}.tla`, `${base}.cfg`), /SANY could not read/);
     } finally {
-      if (saved === undefined) delete process.env.TMPDIR;
-      else process.env.TMPDIR = saved;
+      if (saved === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
+      else Object.assign(process.env, { TMPDIR: saved });
     }
     assert.deepEqual(fs.readdirSync(tmp), []);
   },

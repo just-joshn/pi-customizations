@@ -107,52 +107,106 @@ function mulberry32(seed: number) {
   };
 }
 
-function generate(random: () => number) {
+type Token = { gap: string; text: string };
+type Rng = { int: (n: number) => number; pick: <T>(list: T[]) => T };
+
+const makeRng = (random: () => number): Rng => {
   const int = (n: number) => Math.floor(random() * n);
-  const pick = <T>(list: T[]) => list[int(list.length)];
-  const section = (key: string) => {
-    const out = [{ gap: pick(BREAKS), text: key }];
-    const add = (text: string) => out.push({ gap: pick(SPACES), text });
-    if (key === "CHECK_DEADLOCK") add(pick(["TRUE", "FALSE"]));
-    else if (ONE_NAME.includes(key)) add(pick(NAMES));
-    else if (!key.startsWith("CONSTANT")) for (let n = 1 + int(3); n--;) add(pick(NAMES));
-    else
-      for (let n = 1 + int(2); n--;) {
-        const form = pick(["=", "<-", "<-[M]"]);
-        add(pick(["N", "K", "S"]));
-        add(form.slice(0, 2));
-        if (form === "<-[M]") add("[M]");
-        add(form === "=" ? pick(VALUES) : pick(NAMES));
-      }
-    return out;
-  };
-  const tokens = [];
-  for (const key of pick([["SPECIFICATION"], ["INIT", "NEXT"]])) tokens.push(...section(key));
-  for (let n = int(4); n--;) tokens.splice(pick([0, tokens.length]), 0, ...section(pick(KEYWORDS)));
-  for (let n = int(3); n--;)
-    tokens.splice(int(tokens.length + 1), 0, { gap: pick(GAPS), text: pick(COMMENTS) });
-  const mutations = int(4);
-  for (let n = mutations; n--;) {
-    const kind = pick(["typo", "case", "space", "insert", "drop", "section"]);
-    const t = tokens[int(tokens.length)];
-    const at = int(tokens.length + 1);
-    if (kind === "typo") {
-      const k = int(t.text.length);
-      t.text =
-        t.text.slice(0, k) +
-        pick(["", "E", "_", "0", ",", t.text[k] + t.text[k]]) +
-        t.text.slice(k + 1);
-    } else if (kind === "case")
-      t.text = pick([t.text.toLowerCase(), t.text[0] + t.text.slice(1).toLowerCase()]);
-    else if (kind === "space") t.gap = pick(ODD_SPACES);
-    else if (kind === "insert")
-      tokens.splice(at, 0, { gap: pick(GAPS), text: pick(pick([INSERTS, KEYWORDS])) });
-    else if (kind === "drop" && tokens.length > 1) tokens.splice(at % tokens.length, 1);
-    else if (kind === "section") tokens.splice(at, 0, ...section(pick(KEYWORDS)));
+  return { int, pick: (list) => list[int(list.length)] };
+};
+
+const repeat = <T>(n: number, step: (acc: T) => T, init: T): T =>
+  Array.from({ length: n }).reduce<T>((acc) => step(acc), init);
+
+const insertAt = (tokens: Token[], at: number, added: Token[]) => [
+  ...tokens.slice(0, at),
+  ...added,
+  ...tokens.slice(at),
+];
+
+const constantEntry = ({ pick }: Rng, spaced: (text: string) => Token): Token[] => {
+  const form = pick(["=", "<-", "<-[M]"]);
+  return [
+    spaced(pick(["N", "K", "S"])),
+    spaced(form.slice(0, 2)),
+    ...(form === "<-[M]" ? [spaced("[M]")] : []),
+    spaced(form === "=" ? pick(VALUES) : pick(NAMES)),
+  ];
+};
+
+const section = (rng: Rng, key: string): Token[] => {
+  const { int, pick } = rng;
+  const head = { gap: pick(BREAKS), text: key };
+  const spaced = (text: string) => ({ gap: pick(SPACES), text });
+  if (key === "CHECK_DEADLOCK") return [head, spaced(pick(["TRUE", "FALSE"]))];
+  if (ONE_NAME.includes(key)) return [head, spaced(pick(NAMES))];
+  if (!key.startsWith("CONSTANT"))
+    return [head, ...Array.from({ length: 1 + int(3) }, () => spaced(pick(NAMES)))];
+  const count = 1 + int(2);
+  return [head, ...Array.from({ length: count }, () => constantEntry(rng, spaced)).flat()];
+};
+
+const replaceAt = (tokens: Token[], index: number, next: Token) =>
+  tokens.map((t, i) => (i === index ? next : t));
+
+function typo({ int, pick }: Rng, t: Token): Token {
+  const k = int(t.text.length);
+  const text =
+    t.text.slice(0, k) +
+    pick(["", "E", "_", "0", ",", t.text[k] + t.text[k]]) +
+    t.text.slice(k + 1);
+  return { ...t, text };
+}
+
+function mutate(rng: Rng, tokens: Token[]): Token[] {
+  const { int, pick } = rng;
+  const kind = pick(["typo", "case", "space", "insert", "drop", "section"]);
+  const index = int(tokens.length);
+  const t = tokens[index];
+  const at = int(tokens.length + 1);
+  if (kind === "typo") return replaceAt(tokens, index, typo(rng, t));
+  if (kind === "case") {
+    const text = pick([t.text.toLowerCase(), t.text[0] + t.text.slice(1).toLowerCase()]);
+    return replaceAt(tokens, index, { ...t, text });
   }
-  let text = "";
-  for (const t of tokens) text += t.gap + t.text;
-  return { text: `${text}\n`, mutated: mutations > 0 };
+  if (kind === "space") return replaceAt(tokens, index, { ...t, gap: pick(ODD_SPACES) });
+  if (kind === "insert") {
+    const added = { gap: pick(GAPS), text: pick(pick([INSERTS, KEYWORDS])) };
+    return insertAt(tokens, at, [added]);
+  }
+  if (kind === "drop" && tokens.length > 1)
+    return tokens.filter((_, i) => i !== at % tokens.length);
+  if (kind === "section") return insertAt(tokens, at, section(rng, pick(KEYWORDS)));
+  return tokens;
+}
+
+function baseTokens(rng: Rng): Token[] {
+  const { int, pick } = rng;
+  const first = pick([["SPECIFICATION"], ["INIT", "NEXT"]]).flatMap((key) => section(rng, key));
+  const withSections = repeat(
+    int(4),
+    (tokens) => {
+      const at = pick([0, tokens.length]);
+      return insertAt(tokens, at, section(rng, pick(KEYWORDS)));
+    },
+    first,
+  );
+  return repeat(
+    int(3),
+    (tokens) => {
+      const at = int(tokens.length + 1);
+      return insertAt(tokens, at, [{ gap: pick(GAPS), text: pick(COMMENTS) }]);
+    },
+    withSections,
+  );
+}
+
+function generate(random: () => number) {
+  const rng = makeRng(random);
+  const base = baseTokens(rng);
+  const mutations = rng.int(4);
+  const tokens = repeat(mutations, (acc) => mutate(rng, acc), base);
+  return { text: `${tokens.map((t) => t.gap + t.text).join("")}\n`, mutated: mutations > 0 };
 }
 
 function readInTlc(files: string[], jar: string) {
@@ -194,6 +248,67 @@ function model(reading: Reading | undefined) {
   return out;
 }
 
+type Case = {
+  i: number;
+  text: string;
+  mutated: boolean;
+  skill: Checks | Error;
+  file: string;
+  written: string;
+};
+
+function readSkill(file: string, text: string, written: string): Checks | Error {
+  try {
+    const skill = readChecks({ configFile: file, config: readConfig({ file, text }) });
+    fs.writeFileSync(written, configText(skill.written, []));
+    return skill;
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    return error;
+  }
+}
+
+function buildCase(dir: string, random: () => number, i: number): Case {
+  const { text, mutated } = generate(random);
+  const file = path.join(dir, `${i}.cfg`);
+  fs.writeFileSync(file, text);
+  const written = path.join(dir, `${i}-written.cfg`);
+  return { i, text, mutated, skill: readSkill(file, text, written), file, written };
+}
+
+function checkCase(c: Case, tlc: Map<string, Reading>) {
+  const { i, text, mutated, skill, file, written } = c;
+  const want = tlc.get(file);
+  assert.ok(want, `TLC printed nothing for config ${i}`);
+  const where = `config ${i} of seed ${SEED}: ${JSON.stringify(text)}\nTLC reads ${JSON.stringify(want)}`;
+  if (skill instanceof Error) {
+    if (skill.message.startsWith("TLC refuses"))
+      assert.ok(!passesTlcStartChecks(want), `The skill says TLC refuses ${where}`);
+    else
+      assert.ok(
+        mutated && skill.message.startsWith("The command cannot read"),
+        `${skill.message}\n${where}`,
+      );
+    return;
+  }
+  assert.ok(passesTlcStartChecks(want), `The skill reads ${where}`);
+  assert.deepEqual(
+    {
+      invariants: skill.invariants,
+      properties: skill.properties,
+      deadlock: skill.deadlock,
+      model: model(tlc.get(written)),
+    },
+    {
+      invariants: tableOf(want).INVARIANT,
+      properties: tableOf(want).PROPERTY,
+      deadlock: want.deadlock,
+      model: model(want),
+    },
+    where,
+  );
+}
+
 test(
   `${CONFIGS} configs from seed ${SEED} read in the skill as in TLC, or stop before TLC runs`,
   { skip },
@@ -201,63 +316,9 @@ test(
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-fuzz-"));
     t.after(() => fs.rmSync(dir, { recursive: true }));
     const random = mulberry32(SEED);
-    const cases: {
-      i: number;
-      text: string;
-      mutated: boolean;
-      skill: Checks | Error;
-      file: string;
-      written: string;
-    }[] = [];
-    const files: string[] = [];
-    for (let i = 0; i < CONFIGS; i++) {
-      const { text, mutated } = generate(random);
-      const file = path.join(dir, `${i}.cfg`);
-      fs.writeFileSync(file, text);
-      files.push(file);
-      const written = path.join(dir, `${i}-written.cfg`);
-      let skill: Checks | Error;
-      try {
-        skill = readChecks({ configFile: file, config: readConfig({ file, text }) });
-        fs.writeFileSync(written, configText(skill.written, []));
-        files.push(written);
-      } catch (error) {
-        if (!(error instanceof Error)) throw error;
-        skill = error;
-      }
-      cases.push({ i, text, mutated, skill, file, written });
-    }
+    const cases = Array.from({ length: CONFIGS }, (_, i) => buildCase(dir, random, i));
+    const files = cases.flatMap((c) => (c.skill instanceof Error ? [c.file] : [c.file, c.written]));
     const tlc = readInTlc(files, String(process.env.TLA2TOOLS));
-    for (const { i, text, mutated, skill, file, written } of cases) {
-      const want = tlc.get(file);
-      assert.ok(want, `TLC printed nothing for config ${i}`);
-      const where = `config ${i} of seed ${SEED}: ${JSON.stringify(text)}\nTLC reads ${JSON.stringify(want)}`;
-      if (skill instanceof Error) {
-        if (skill.message.startsWith("TLC refuses"))
-          assert.ok(!passesTlcStartChecks(want), `The skill says TLC refuses ${where}`);
-        else
-          assert.ok(
-            mutated && skill.message.startsWith("The command cannot read"),
-            `${skill.message}\n${where}`,
-          );
-        continue;
-      }
-      assert.ok(passesTlcStartChecks(want), `The skill reads ${where}`);
-      assert.deepEqual(
-        {
-          invariants: skill.invariants,
-          properties: skill.properties,
-          deadlock: skill.deadlock,
-          model: model(tlc.get(written)),
-        },
-        {
-          invariants: tableOf(want).INVARIANT,
-          properties: tableOf(want).PROPERTY,
-          deadlock: want.deadlock,
-          model: model(want),
-        },
-        where,
-      );
-    }
+    for (const c of cases) checkCase(c, tlc);
   },
 );

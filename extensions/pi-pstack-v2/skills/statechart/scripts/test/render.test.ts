@@ -13,11 +13,10 @@ import { project } from "../pipeline.ts";
 import { fuzz, type Html, type Mermaid, type Render } from "./labels.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const charts = [];
-for (const f of fs.readdirSync(path.join(here, "charts")))
-  charts.push(path.join(here, "charts", f));
-for (const d of fs.readdirSync(path.join(here, "corpus")))
-  charts.push(path.join(here, "corpus", d, "chart.mmd"));
+const charts = [
+  ...fs.readdirSync(path.join(here, "charts")).map((f) => path.join(here, "charts", f)),
+  ...fs.readdirSync(path.join(here, "corpus")).map((d) => path.join(here, "corpus", d, "chart.mmd")),
+];
 const guide = fs.readFileSync(path.join(here, "../../references/render.md"), "utf8");
 const css = guide.match(/```css\n([\s\S]*?)```/);
 assert.ok(css, "references/render.md has no css block");
@@ -49,8 +48,7 @@ before(async () => {
   mermaid = (await import(pathToFileURL(parser.resolve("mermaid")).href)).default;
   html = (markup) => {
     const t = window.document.createElement("template");
-    t.innerHTML = markup;
-    return t.content.textContent ?? "";
+    return Object.assign(t, { innerHTML: markup }).content.textContent ?? "";
   };
 });
 
@@ -79,64 +77,87 @@ test("random labels and colors keep their text and the chart's shape in Mermaid 
   assert.ok(drawn > 400 && refused > 20, `${drawn} charts drawn, ${refused} refused`);
 });
 
-const pathPoints = (d: string) => {
-  const points: number[][] = [];
-  let [ax, ay] = [0, 0];
-  for (const [, cmd, args] of d.matchAll(/([MLC])([^MLC]*)/g)) {
-    const n = args.split(/[ ,]/).filter(Boolean).map(Number);
-    const [x, y] = n.slice(-2);
-    if (cmd !== "M")
-      for (let t = 0; t <= 1; t += 1 / 64) {
-        const u = 1 - t;
-        points.push(
-          cmd === "L"
-            ? [ax + (x - ax) * t, ay + (y - ay) * t]
-            : [
-                u ** 3 * ax + 3 * u * u * t * n[0] + 3 * u * t * t * n[2] + t ** 3 * x,
-                u ** 3 * ay + 3 * u * u * t * n[1] + 3 * u * t * t * n[3] + t ** 3 * y,
-              ],
-        );
-      }
-    [ax, ay] = [x, y];
-  }
-  return points;
+type Point = readonly [number, number];
+const SAMPLES = 64;
+
+const bezier = (from: Point, n: readonly number[], t: number): Point => {
+  const [ax, ay] = from;
+  const u = 1 - t;
+  const blend = (a: number, c1: number, c2: number, end: number) =>
+    u ** 3 * a + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t ** 3 * end;
+  return [blend(ax, n[0], n[2], n[4]), blend(ay, n[1], n[3], n[5])];
 };
 
-test("an arrow into a parent from its only way in stays out of the parent's title bar in Pele 1.9.0", () => {
-  const graph: Graph = { states: new Map(), steps: [] };
-  for (const [id, at] of [
-    ["ask", "Asking your view for labels"],
-    ["flat", "Laying out the chart/Flat"],
-    ["parents", "Laying out the chart/Parent states"],
-    ["regions", "Laying out the chart/Regions"],
-  ])
-    graph.states.set(id, { vars: { at }, start: id === "ask", breaks: [] });
-  for (const [to, action] of [
-    ["flat", "String"],
-    ["parents", "Array"],
-    ["regions", "Object"],
-  ])
-    graph.steps.push({ from: "ask", to, action });
-  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split("/") }, []);
-  const { svg } = render(chartText(chart));
-  const bars = [
+const segmentPoints = (cmd: string, from: Point, n: readonly number[]): Point[] => {
+  const [ax, ay] = from;
+  const [x, y] = n.slice(-2);
+  const ts = Array.from({ length: SAMPLES + 1 }, (_, i) => i / SAMPLES);
+  if (cmd === "L") return ts.map((t) => [ax + (x - ax) * t, ay + (y - ay) * t]);
+  return ts.map((t) => bezier(from, n, t));
+};
+
+const pathPoints = (d: string): Point[] => {
+  const segments = [...d.matchAll(/([MLC])([^MLC]*)/g)].map(([, cmd, args]) => ({
+    cmd,
+    n: args.split(/[ ,]/).filter(Boolean).map(Number),
+  }));
+  return segments.reduce(
+    (acc, { cmd, n }) => {
+      const [x, y] = n.slice(-2);
+      const points = cmd === "M" ? [] : segmentPoints(cmd, acc.at, n);
+      return { at: [x, y] as Point, points: [...acc.points, ...points] };
+    },
+    { at: [0, 0] as Point, points: [] as Point[] },
+  ).points;
+};
+
+const titleBars = (svg: string) =>
+  [
     ...svg.matchAll(
       /<g class="pele-cluster [^"]*" data-id="([^"]*)"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)"[^>]*\/><path d="M[\d.]+,([\d.]+)H/g,
     ),
   ].map(([, id, x, y, w, rule]) => ({ id, left: +x, right: +x + +w, top: +y, bottom: +rule }));
+
+type Bar = ReturnType<typeof titleBars>[number];
+const crosses = (d: string, bar: Bar) =>
+  pathPoints(d).some(([x, y]) => x > bar.left && x < bar.right && y > bar.top && y < bar.bottom);
+
+const barCrossings = (svg: string, bars: Bar[]) =>
+  [
+    ...svg.matchAll(
+      /<g class="pele-edge pele-transition" data-id="([^"]*)"><path d="([^"]*)"/g,
+    ),
+  ].flatMap(([, id, d]) =>
+    bars.filter((bar) => crosses(d, bar)).map((bar) => `${id} crosses the title bar of ${bar.id}`),
+  );
+
+const parentGraph = (): Graph => {
+  const states = [
+    ["ask", "Asking your view for labels"],
+    ["flat", "Laying out the chart/Flat"],
+    ["parents", "Laying out the chart/Parent states"],
+    ["regions", "Laying out the chart/Regions"],
+  ];
+  const steps = [
+    ["flat", "String"],
+    ["parents", "Array"],
+    ["regions", "Object"],
+  ];
+  return {
+    states: new Map(
+      states.map(([id, at]) => [id, { vars: { at }, start: id === "ask", breaks: [] }]),
+    ),
+    steps: steps.map(([to, action]) => ({ from: "ask", to, action })),
+  };
+};
+
+test("an arrow into a parent from its only way in stays out of the parent's title bar in Pele 1.9.0", () => {
+  const graph = parentGraph();
+  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split("/") }, []);
+  const { svg } = render(chartText(chart));
+  const bars = titleBars(svg);
   assert.equal(bars.length, 1);
-  const crossings: string[] = [];
-  for (const [, id, d] of svg.matchAll(
-    /<g class="pele-edge pele-transition" data-id="([^"]*)"><path d="([^"]*)"/g,
-  ))
-    for (const bar of bars)
-      if (
-        pathPoints(d).some(
-          ([x, y]) => x > bar.left && x < bar.right && y > bar.top && y < bar.bottom,
-        )
-      )
-        crossings.push(`${id} crosses the title bar of ${bar.id}`);
-  assert.deepEqual(crossings, []);
+  assert.deepEqual(barCrossings(svg, bars), []);
 });
 
 test("the theme in references/render.md colors each class that the charts use", () => {

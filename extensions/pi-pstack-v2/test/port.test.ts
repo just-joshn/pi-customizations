@@ -65,8 +65,10 @@ describe('the Pi port of pstack', () => {
   });
 
   test('every upstream file is still present', () => {
+    // Split past the 800-line hard max; siblings replace these lock paths.
+    const removed = new Set(['skills/statechart/scripts/test/chart.test.ts', 'skills/statechart/scripts/test/cli.test.ts']);
     const located = (path: string) => (path.startsWith('agents/') ? join(root, 'src', 'subagent', path) : join(root, path));
-    expect(upstream.filter((path) => !existsSync(located(path)))).toEqual([]);
+    expect(upstream.filter((path) => !removed.has(path) && !existsSync(located(path)))).toEqual([]);
   });
 
   test('unported upstream scripts are byte-identical', () => {
@@ -88,6 +90,20 @@ describe('the Pi port of pstack', () => {
       'skills/poteto-mode/scripts/watch-pr/policy.ts',
       'skills/poteto-mode/scripts/watch-pr/render.ts',
       'skills/poteto-mode/scripts/watch-pr/types.ts',
+      // statechart scripts/test reshaped for style-audit (split >800, immutability)
+      'skills/statechart/scripts/test/chart.test.ts',
+      'skills/statechart/scripts/test/cli.test.ts',
+      'skills/statechart/scripts/test/config-fuzz.test.ts',
+      'skills/statechart/scripts/test/corpus.test.ts',
+      'skills/statechart/scripts/test/differential.test.ts',
+      'skills/statechart/scripts/test/drawn.ts',
+      'skills/statechart/scripts/test/java.ts',
+      'skills/statechart/scripts/test/labels.ts',
+      'skills/statechart/scripts/test/pipeline.test.ts',
+      'skills/statechart/scripts/test/plain-tlc.test.ts',
+      'skills/statechart/scripts/test/render.test.ts',
+      'skills/statechart/scripts/test/tlc-out.test.ts',
+      'skills/statechart/scripts/test/tlc.ts',
     ]);
     const digest = (path: string) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
     const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path)).filter((path) => digest(path) !== lock.files[path]);
