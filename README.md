@@ -4,7 +4,7 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. Each on
 
 | Package | What it adds |
 | --- | --- |
-| [`@justjoshn/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2) | Claude models through your Claude subscription, plus `/claude-usage`. |
+| [`@justjoshn/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2) | Claude models through a custom Anthropic provider, with Claude Pro/Max sign-in or an API key. |
 | [`@justjoshn/pi-google-oauth-v2`](extensions/pi-google-oauth-v2) | The Gemini and partner models your Google AI plan serves. |
 | [`@justjoshn/pi-spacex-oauth-v2`](extensions/pi-spacex-oauth-v2) | Grok and Cursor models through your X subscription, plus `/spacex-usage`. |
 | [`@justjoshn/pi-pstack-v2`](extensions/pi-pstack-v2) | The pstack workflows and skills, such as `/poteto-mode`, built on Pi's own tools. |

@@ -1,53 +1,34 @@
-import { anthropicMessagesApi, type ProviderStreams } from '@earendil-works/pi-ai/compat';
-import { createProvider, hasApi } from '@earendil-works/pi-ai/models';
-import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
+/**
+ * Custom Anthropic provider, adapted from Pi's custom-provider-anthropic example.
+ *
+ * Registers "custom-anthropic" with OAuth login (/login custom-anthropic) or an API key
+ * from CUSTOM_ANTHROPIC_API_KEY, then use /model to select custom-anthropic/claude-sonnet-4-5.
+ */
+
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { createUsageCommand } from './usage.ts';
+import { OAUTH_CONFIG } from './oauth/config.ts';
+import { loginAnthropic, refreshAnthropicToken } from './oauth/login.ts';
+import { PROVIDER_CONFIG } from './provider/config.ts';
+import { loadAnthropicModels } from './provider/models.ts';
+import { streamCustomAnthropic } from './stream/stream.ts';
 
-const ID = 'anthropic-oauth-v2';
-
-type StreamArgs = Parameters<ProviderStreams['stream']>;
-
-const ALLOWED_HEADERS = new Set(['anthropic-beta', 'anthropic-version']);
-const isAllowedHeader = ([name, value]: [string, string | null]) => value === null || (ALLOWED_HEADERS.has(name.toLowerCase()) && !value.includes('sk-ant-'));
-
-const assertOAuthOnly = (model: StreamArgs[0], options: StreamArgs[2]) => {
-  const headers = Object.entries({ ...model.headers, ...options?.headers });
-  const usesOwnClient = options !== undefined && 'client' in options;
-  // The Anthropic SDK also reads ANTHROPIC_CUSTOM_HEADERS into every request.
-  const setsSdkHeaders = Boolean(process.env['ANTHROPIC_CUSTOM_HEADERS']?.trim());
-  if (!options?.apiKey?.startsWith('sk-ant-oat') || usesOwnClient || setsSdkHeaders || !headers.every(isAllowedHeader)) {
-    throw new Error(`${ID}: refusing non-OAuth credential; run /login and remove any apiKey and any headers other than anthropic-beta or anthropic-version for ${ID} from models.json, and unset ANTHROPIC_CUSTOM_HEADERS`);
-  }
-};
-
-export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerCommand'>) {
-  const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
-  const oauth = anthropic?.auth.oauth;
-  if (!anthropic || !oauth) throw new Error(`${ID}: this Pi build has no Anthropic OAuth login`);
-  const api = anthropicMessagesApi();
-
-  pi.registerProvider(
-    createProvider({
-      id: ID,
-      name: 'Anthropic (Claude subscription)',
-      auth: { oauth: { ...oauth, name: 'Anthropic (Claude subscription, OAuth)' } },
-      models: anthropic
-        .getModels()
-        .filter((model) => hasApi(model, 'anthropic-messages'))
-        .map((model) => ({ ...model, provider: ID, compat: { supportsMessageThreads: true, ...model.compat } })),
-      api: {
-        ...api,
-        stream: (model, context, options) => {
-          assertOAuthOnly(model, options);
-          return api.stream(model, context, options);
-        },
-        streamSimple: (model, context, options) => {
-          assertOAuthOnly(model, options);
-          return api.streamSimple(model, context, options);
-        },
+export default function (pi: ExtensionAPI) {
+  try {
+    pi.registerProvider(PROVIDER_CONFIG.id, {
+      baseUrl: PROVIDER_CONFIG.baseUrl,
+      apiKey: PROVIDER_CONFIG.apiKey,
+      api: PROVIDER_CONFIG.api,
+      models: loadAnthropicModels(),
+      oauth: {
+        name: OAUTH_CONFIG.name,
+        login: loginAnthropic,
+        refreshToken: refreshAnthropicToken,
+        getApiKey: (credentials) => credentials.access,
       },
-    }),
-  );
-  pi.registerCommand('claude-usage', createUsageCommand(ID));
+      streamSimple: streamCustomAnthropic,
+    });
+  } catch (error) {
+    console.error('Custom Anthropic provider registration failed:', error);
+    throw new Error(`Could not register the ${PROVIDER_CONFIG.id} provider.`, { cause: error });
+  }
 }

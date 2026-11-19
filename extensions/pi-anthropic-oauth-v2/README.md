@@ -1,8 +1,8 @@
 # pi-anthropic-oauth-v2
 
-Use your Claude subscription in Pi. The extension signs in with your claude.ai account and refuses to send any request that does not carry a subscription OAuth token, so an API key never reaches Anthropic through it. It is for people who want Pi to bill their Claude plan and never an API account.
+Use Claude models in Pi through your own streaming code instead of Pi's built-in Anthropic provider. The extension is a reworked version of Pi's [`custom-provider-anthropic` example](https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/custom-provider-anthropic). It adds the provider `custom-anthropic`, which signs in with your Claude Pro or Max account or reads an API key from `CUSTOM_ANTHROPIC_API_KEY`.
 
-It adds the provider `anthropic-oauth-v2`. Login, token refresh, requests, and the model list all come from Pi's built-in Anthropic provider. Pi's own `anthropic` provider is unchanged.
+The models and their prices come from Pi's built-in Anthropic catalog, so new Claude models appear when you update Pi. Requests go through `@anthropic-ai/sdk` 1.10.0, which uses Claude API version `2026-10-21`.
 
 ## Install
 
@@ -15,38 +15,25 @@ Built and tested against Pi 1.5.2.
 ## Sign in
 
 1. Start Pi and run `/login`.
-2. Choose **Anthropic (Claude subscription, OAuth)** and sign in with your claude.ai account.
-3. Run `/model` and pick an `anthropic-oauth-v2/...` model.
+2. Choose **Custom Anthropic (Claude Pro/Max)**.
+3. Open the link, sign in to Claude, and paste the code that Claude shows.
+4. Run `/model` and pick a `custom-anthropic/...` model.
 
-## Commands
+To use an API key instead, set `CUSTOM_ANTHROPIC_API_KEY` before you start Pi.
 
-`/claude-usage` shows how much of your plan's limits you have used. It sends your subscription token to `https://api.anthropic.com/api/oauth/usage` and prints one line per limit:
+## How requests are sent
 
-```text
-Current session: 19% used, resets in 15m
-Current week (all models): 78% used, resets in 1d 15h 55m
-```
-
-Anthropic decides which limits exist, so a new limit appears without an extension update. The notice becomes a warning when Anthropic marks a limit above normal. Without a subscription login, the command sends nothing and tells you to run `/login`. In print mode (`pi -p "/claude-usage"`) the lines go to stderr.
-
-## Notes
-
-- **No API keys.** The provider has no API-key handler, so Pi does not read `ANTHROPIC_API_KEY` or `ANTHROPIC_OAUTH_TOKEN` for it.
-- **Request check.** Just before each request, the provider refuses it unless the credential is an `sk-ant-oat` token, no prebuilt SDK client is passed in, and every extra header is `anthropic-beta` or `anthropic-version` without an `sk-ant-` key in its value. This also covers `apiKey` and `headers` set for the provider in Pi's `models.json`.
-- **`ANTHROPIC_CUSTOM_HEADERS`.** The provider refuses every request while this variable is set, because the Anthropic SDK reads it on its own.
-- **One Claude login.** `anthropic` and `anthropic-oauth-v2` offer the same model ids. Pick models by their provider prefix.
-
-## Replaces `@justjoshn/pi-anthropic-oauth`
-
-```sh
-pi install npm:@justjoshn/pi-anthropic-oauth-v2
-pi remove npm:@justjoshn/pi-anthropic-oauth
-```
-
-Then run `/login` again. The old package stored its login under a different provider.
+- **Thinking.** Models that Pi's catalog marks for adaptive thinking get `thinking: { type: "adaptive" }` with an `output_config.effort` that matches the Pi thinking level. Older models get a token budget. Both ask for summarized thinking.
+- **Subscription sign-in.** Requests carry the Claude Code identity: the system prompt line, the `claude-cli` user agent, and the `claude-code-20250219` and `oauth-2025-04-20` betas. Pi tool names that match Claude Code tools are renamed on the way out and back.
+- **Tool input.** Each tool sets `eager_input_streaming`, so tool arguments stream as Claude writes them.
+- **Errors.** A failed request shows the SDK error name, the HTTP status, the request ID, and the API message, for example `RateLimitError 429 (request req_123): Slow down`. Every failure is also written to stderr with `console.error`.
 
 ## Develop
 
 ```sh
 bun run --filter @justjoshn/pi-anthropic-oauth-v2 test
+bun run --filter @justjoshn/pi-anthropic-oauth-v2 typecheck
+npx tsx extensions/pi-anthropic-oauth-v2/scripts/verify-wire.ts
 ```
+
+`scripts/verify-wire.ts` sends real SDK requests to a local server that answers like the Claude API. It checks the headers, the request body, and the parsed reply.
