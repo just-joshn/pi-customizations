@@ -86,7 +86,7 @@
     },
     "extensions/pi-spacex-oauth-v2": {
       "name": "@justjoshn/pi-spacex-oauth-v2",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "dependencies": {
         "@cursor/sdk": "1.4.2",
       },

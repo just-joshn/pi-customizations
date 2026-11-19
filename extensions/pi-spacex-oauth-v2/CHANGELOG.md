@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
-- Rebuilds `spacex-cursor` on `@cursor/sdk` 1.4.2, following Pi's `custom-provider-anthropic` example and the Cursor TypeScript SDK docs. The private Cursor protocol client, its desktop OAuth flow, and the dashboard usage calls are gone.
+- Rebuilds `spacex-cursor` on `@cursor/sdk` 1.4.2, following Pi's `custom-provider-anthropic` example and the Cursor TypeScript SDK docs. The private Cursor protocol client, its desktop OAuth flow, and the dashboard usage calls are gone. Sign in to Cursor again with `/login` after upgrading (#269).
 - `/login` mints a Cursor API key through `Cursor.auth.login()`. The key lasts 90 days, then `/login` asks again. `CURSOR_API_KEY` also works.
 - Lists every model from `Cursor.models.list()`. Pi's thinking level picks the model's effort value, and the context window comes from the default variant.
 - Runs Pi's tools inside Cursor's agent as SDK custom tools. A tool call pauses the Cursor run until Pi returns the result, and a follow-up message reuses the same Cursor agent.
