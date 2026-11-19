@@ -1,14 +1,16 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { brokeredSession, claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
+import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
-import { codePaths, PI_CODE } from './sweep.ts';
+import { gitPath, projectPath, protectedPaths } from './git.ts';
+import { within } from './paths.ts';
+import { serveRequests, sweepFor } from './requests.ts';
 import { workerReport } from './transcript.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,7 +23,7 @@ export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v
 const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
 const topJobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
 // A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
-const jobsRoot = (env: NodeJS.ProcessEnv = process.env): string => {
+const jobsRoot = (env: Readonly<Record<string, string | undefined>> = process.env): string => {
   const parent = env[JOB_DIR_ENV];
   return env[SANDBOX_ENV] === '1' && parent ? join(parent, 'nested') : topJobsRoot();
 };
@@ -41,121 +43,6 @@ const modeSection = (name: string): string => {
 const SANDBOX_NOTE =
   'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf. Unix sockets are refused, so ssh-agent, gpg-agent, and git over SSH with agent-held keys fail: use an HTTPS remote (`gh auth setup-git`) or leave the push to the session that started you. Code that runs outside the sandbox later stays read-only: `.git/hooks` and git config, `.pi` extensions and settings, and editor and harness configuration (`.vscode`, `.idea`, `*.code-workspace`, `.cursorignore`, and `.cursor` and `.claude` apart from their rules, commands, worktrees, skills, and agents). Any such file you create anyway moves to quarantine when your job ends.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
-
-function git(cwd: string, args: string[]): string {
-  return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-}
-
-function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--absolute-git-dir'): string | undefined {
-  try {
-    return resolve(cwd, git(cwd, ['rev-parse', flag]));
-  } catch {
-    return undefined;
-  }
-}
-
-/** A job may only work inside the session's project, so the model cannot widen its own sandbox by naming another directory. */
-function projectPath(ctx: ExtensionContext, path: string | undefined): string {
-  const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
-  const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
-  // A linked worktree of the same repository, such as a worker's checkout, is the same project on another branch.
-  const common = gitPath(ctx.cwd, '--git-common-dir');
-  const targetCommon = gitPath(target, '--git-common-dir');
-  const sameRepository = common !== undefined && targetCommon !== undefined && landing(targetCommon) === landing(common);
-  const worktree = sameRepository ? gitPath(target, '--show-toplevel') : undefined;
-  if (!within(target, [root, ...(worktree ? [worktree] : [])])) throw new Error(`cwd must be inside this project (${root}), got ${target}. To work on another branch, pass worktree and the job gets its own checkout.`);
-  // A checkout of another repository can sit inside the project, and a job there would be handed that repository's git directory.
-  if (targetCommon !== undefined && !sameRepository && !within(targetCommon, [root])) throw new Error(`cwd ${target} is a checkout of another repository (${targetCommon}). A job works only in this session's repository.`);
-  return target;
-}
-
-/**
- * Paths an unsandboxed process later executes from: git hooks and config, Pi's project extensions and settings, and
- * editor and agent-harness configuration. Git finds hooks through `.git`, and in a linked worktree through its `commondir`
- * and `gitdir` files, so each of those is protected too. A job that could repoint any of them would make the next
- * `git commit` run its own hooks unsandboxed.
- */
-function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
-  // Every code entry already in the checkout, at any depth, since Pi, git, editors, and harnesses find them anywhere.
-  const found = codePaths([cwd]);
-  const piDirs = [...new Set([join(cwd, '.pi'), ...found.filter((path) => basename(dirname(path)) === '.pi').map(dirname)])];
-  const pi = piDirs.flatMap((dir) => PI_CODE.map((name) => join(dir, name)));
-  // The checkout's own .git is its git directory, which the job may write. Any other is a repository git would run hooks
-  // from, and an editor or harness entry runs as it stands. `pi` already covers each .pi directory, and a .pi link stays as it is.
-  const others = found.filter((path) => basename(path) !== '.pi' && basename(dirname(path)) !== '.pi' && path !== join(cwd, '.git'));
-  let protect = [...pi, ...others];
-  let lock: string[] = [];
-  if (common) {
-    const own = gitPath(cwd, '--absolute-git-dir') ?? common;
-    const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
-    let hooksPath: string[] = [];
-    try {
-      const configured = git(cwd, ['config', '--get', 'core.hooksPath']);
-      if (configured) hooksPath = [resolve(gitPath(cwd, '--show-toplevel') ?? cwd, configured)];
-    } catch {
-      // No custom hooks path.
-    }
-    protect = [...protect, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
-    lock = [join(cwd, '.git'), own, common];
-  }
-  // A directory above a protected path could be renamed away and replaced, so each existing one up to the checkout is locked.
-  const ancestors = protect.flatMap((path) => {
-    const chain: string[] = [];
-    for (let dir = dirname(path); within(dir, [cwd]) && dir !== cwd; dir = dirname(dir)) if (existsSync(dir)) chain.push(dir);
-    return chain;
-  });
-  return { protect, lock: [...new Set([...lock, ...ancestors])], gitDirs: common ? [common] : [] };
-}
-
-/** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
-function addWorktree(cwd: string, path: string, branch: string, base: string | undefined): boolean {
-  if (branch.startsWith('-') || base?.startsWith('-')) throw new Error('worktree and base cannot start with "-".');
-  let exists = true;
-  try {
-    git(cwd, ['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`]);
-  } catch {
-    exists = false;
-  }
-  git(cwd, exists ? ['worktree', 'add', path, branch] : ['worktree', 'add', '-b', branch, path, base === undefined ? 'HEAD' : baseOrSoleRemoteBranch(cwd, base)]);
-  return !exists;
-}
-
-function dropWorktree(repo: string, createdBranch: string | undefined): void {
-  git(repo, ['worktree', 'prune']);
-  if (createdBranch !== undefined) git(repo, ['branch', '-D', createdBranch]);
-}
-
-type CreatedWorktree = { path: string; repo: string; createdBranch: string | undefined };
-
-const requestedWorktreePath = (out: string): string => landing(join(out, 'worktree'));
-
-function createRequestedWorktree(top: Job, spec: JobSpec, out: string, grant: string[]): CreatedWorktree | { refused: string } {
-  const asked: unknown = spec.createWorktree;
-  if (spec.kind !== 'pi' || typeof asked !== 'object' || asked === null) return { refused: 'Only a Pi worker request can ask for a worktree.' };
-  const { branch, base } = asked as Record<string, unknown>;
-  if (typeof branch !== 'string' || (base !== undefined && typeof base !== 'string')) return { refused: 'Its worktree request is malformed.' };
-  const repo = top.spec.cwd;
-  const common = gitPath(repo, '--git-common-dir');
-  if (common === undefined || !within(common, grant)) return { refused: `The worker that asked may not write the repository at ${repo}, so it cannot get a worktree of it.` };
-  const path = requestedWorktreePath(out);
-  try {
-    return { path, repo, createdBranch: addWorktree(repo, path, branch, base) ? branch : undefined };
-  } catch (error) {
-    return { refused: `pstack could not create the worktree: ${error instanceof Error ? error.message : String(error)}` };
-  }
-}
-
-function baseOrSoleRemoteBranch(cwd: string, base: string): string {
-  try {
-    git(cwd, ['rev-parse', '--verify', '--quiet', `${base}^{commit}`]);
-    return base;
-  } catch {
-    const remote = git(cwd, ['for-each-ref', '--format=%(refname:short)', `refs/remotes/*/${base}`])
-      .split('\n')
-      .filter(Boolean);
-    return remote.length === 1 ? (remote[0] ?? base) : base;
-  }
-}
 
 const duration = (ms: number): string => {
   const seconds = Math.max(0, Math.round(ms / 1000));
@@ -197,20 +84,6 @@ function describe(job: Job): string {
   return `${job.spec.id}  ${job.spec.kind}  ${state}  ${job.spec.name}\n  follow: tail -f ${outputPath(job.spec.out)}${attach}`;
 }
 
-/** Resolves symlinks in the longest existing prefix, so a path that does not exist yet still compares by where it would land. */
-function landing(path: string): string {
-  const absolute = resolve(path);
-  if (existsSync(absolute)) return realpathSync(absolute);
-  const parent = dirname(absolute);
-  return parent === absolute ? absolute : join(landing(parent), relative(parent, absolute));
-}
-
-const within = (path: string, roots: string[]): boolean =>
-  roots.some((root) => {
-    const inside = relative(landing(root), landing(path));
-    return inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside);
-  });
-
 // A sandboxed worker asks the root Pi to launch for it on every platform, so nested jobs get the same sandbox everywhere
 // and no job needs a tmux server of its own. macOS could not apply a second Seatbelt profile anyway.
 const brokering = (): boolean => insideJob();
@@ -226,138 +99,46 @@ function start(root: string, spec: JobSpec, files: Record<string, string> = {}, 
   // A command a worker starts shares the worker's temp directory, so a path the worker hands it under $TMPDIR exists for both.
   const parent = process.env[JOB_DIR_ENV];
   const tmp = insideJob() && parent && spec.kind === 'command' ? join(parent, 'tmp') : undefined;
-  const policy: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : [])])] };
+  const sized: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : [])])] };
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
-  const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
-  if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
-  spec = { ...spec, sweep: sweepFor(policy), ...(tmp ? { tmp } : {}) };
-  policy.checkouts = spec.sweep.roots;
+  const holder = sized.writable.find((path) => within(sized.agentDir, [path]));
+  if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${sized.agentDir}. Run Pi from a project directory.`);
+  spec = { ...spec, sweep: sweepFor(sized), ...(tmp ? { tmp } : {}) };
+  const policy: SandboxPolicy = { ...sized, checkouts: spec.sweep.roots };
   // bubblewrap binds only paths that exist, so the private temp directory exists before the sandbox is built.
   mkdirSync(join(jobDir, 'tmp'), { recursive: true });
   if (brokering()) return request(root, { ...spec, policy }, files);
   return launch(root, { ...spec, policy, argv: sandboxed(spec.command, policy) }, files);
 }
 
-/** The checkouts a job may write, and the protected paths in them, which its wrapper sweeps after it for code that appeared. */
-const sweepFor = (policy: SandboxPolicy): JobSpec['sweep'] => ({
-  // A job's own session, nested, temp, and agent directories live under Pi's agent directory. A worktree does too, and is a checkout.
-  roots: policy.writable.filter((path) => (basename(path) === 'worktree' || !within(path, [policy.agentDir])) && !within(path, policy.gitDirs)),
-  protect: policy.protect.filter((path) => within(path, policy.writable)),
-});
+type Waiter = { signal: AbortSignal | undefined; update: ((partial: ReturnType<typeof text>) => void) | undefined; ctx: ExtensionContext };
 
-const readGrant = (out: string): string[] => {
-  try {
-    const grant: unknown = JSON.parse(readFileSync(join(out, 'granted.json'), 'utf8'));
-    return isStrings(grant) ? grant : [];
-  } catch {
-    return [];
-  }
-};
-
-const isStrings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string');
-
-const tmuxKill = (socket: string, session: string): void => {
-  try {
-    execFileSync('tmux', ['-S', socket, 'kill-session', '-t', `=${session}`], { stdio: 'ignore' });
-  } catch {
-    // Already gone.
-  }
-};
-
-function hasSession(socket: string, session: string): boolean {
-  try {
-    execFileSync('tmux', ['-S', socket, 'has-session', '-t', `=${session}`], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
+/** Polls until no job runs, the deadline passes, or the user sends a message, so they are never shut out until the timeout. */
+async function blockWhileRunning(current: () => Job[], deadline: number, { signal, update, ctx }: Waiter): Promise<void> {
+  const running = (): number => current().filter((job) => job.status.state === 'running').length;
+  while (running() > 0 && Date.now() < deadline && !signal?.aborted && !ctx.hasPendingMessages()) {
+    update?.(text(`Waiting on ${running()} job(s)...`));
+    await new Promise((done) => setTimeout(done, POLL_MS));
   }
 }
 
-/**
- * Launches the requests that sandboxed workers under one of this session's jobs wrote. A request may write only inside
- * what the root granted the top-level job, so no worker can hand a descendant more than it was given. The root only
- * reads from the request directory, which a worker controls, and writes results under the top-level job.
- */
-export function serveRequests(top: Job, socket: string, nested: string, requesterDone: boolean, depth = 0, grant: string[] = top.spec.policy.writable): void {
-  // A worker could link its nested directory back up its own tree, so only real directories are followed, and not far.
-  if (depth > 8 || !existsSync(nested) || !lstatSync(nested).isDirectory()) return;
-  for (const name of readdirSync(nested)) {
-    try {
-      const dir = join(nested, name);
-      // A worker could link an entry back up its own tree, so only real directories are followed.
-      if (!lstatSync(dir).isDirectory()) continue;
-      const spec = readSpec(dir);
-      const policy = spec?.policy;
-      // A worker writes these files, so anything malformed is skipped instead of stopping every other request.
-      if (!spec || !policy || (spec.kind !== 'pi' && spec.kind !== 'command') || typeof spec.cwd !== 'string' || !isStrings(spec.command) || spec.command.length === 0) continue;
-      if (!isStrings(policy.writable) || !isStrings(policy.protect) || !isStrings(policy.lock) || !isStrings(policy.gitDirs)) continue;
-      const out = resultsDir(top.dir, dir);
-      const stopped = existsSync(join(dir, 'stop'));
-      const done = existsSync(exitPath(out)) || stopped;
-      // A request's own requests may write only what the root granted it, recorded where no worker can write.
-      const own = readGrant(out);
-      serveRequests(top, socket, join(dir, 'nested'), requesterDone || done, depth + 1, own);
-      if (!spec.brokered || existsSync(exitPath(out))) continue;
-      const session = brokeredSession(dir);
-      if (existsSync(join(out, 'launched'))) {
-        if (requesterDone || stopped) tmuxKill(socket, session);
-        else if (!hasSession(socket, session)) settleBrokered(out, 137, 'pstack lost this job: its tmux session ended without an exit code.');
-        continue;
-      }
-      if (requesterDone || stopped) continue;
-      if (spec.kind === 'pi' && depth > 0) {
-        settleBrokered(out, 126, 'pstack refused to start this Pi worker. A worker started by another worker cannot start workers of its own.');
-        continue;
-      }
-      const worktree = spec.createWorktree === undefined ? undefined : requestedWorktreePath(out);
-      const askedWritable = policy.writable.map(landing);
-      const writesWorktree = worktree !== undefined && askedWritable.includes(worktree);
-      const checked = askedWritable.filter((path) => path !== worktree);
-      const cwdAllowed = worktree === undefined ? within(spec.cwd, [top.spec.cwd, ...grant]) : landing(spec.cwd) === worktree;
-      const refused = [...checked.filter((path) => !within(path, grant)), ...(cwdAllowed ? [] : [`cwd ${spec.cwd}`])];
-      if (refused.length) {
-        settleBrokered(out, 126, `pstack refused to launch this job. It asked to write outside what the job that requested it may write: ${refused.join(', ')}`);
-        continue;
-      }
-      const made = worktree === undefined ? undefined : createRequestedWorktree(top, spec, out, grant);
-      if (made !== undefined && 'refused' in made) {
-        settleBrokered(out, 126, `pstack refused to launch this job. ${made.refused}`);
-        continue;
-      }
-      let launched = false;
-      try {
-        const common = made === undefined ? undefined : gitPath(made.path, '--git-common-dir');
-        const guarded = made === undefined ? policy : protectedPaths(made.path, common);
-        const writable = made !== undefined && writesWorktree ? [...checked, made.path, ...(common ? [landing(common)] : [])] : checked;
-        // The sandbox is built from the paths just validated, so swapping a link afterwards changes nothing.
-        const granted: SandboxPolicy = {
-          writable,
-          protect: [...guarded.protect, ...top.spec.policy.protect],
-          lock: [...guarded.lock, ...top.spec.policy.lock],
-          gitDirs: [...guarded.gitDirs, ...top.spec.policy.gitDirs],
-          checkouts: [],
-          credentials: jobAgentDir(top.dir),
-          agentDir: getAgentDir(),
-          jobDir: dir,
-        };
-        granted.checkouts = sweepFor(granted).roots;
-        mkdirSync(out, { recursive: true });
-        writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
-        // The worker supplies tmp, so it is trusted only if it is one of the writable paths validated above.
-        const { tmp: asked, ...rest } = spec;
-        const tmp = typeof asked === 'string' && writable.includes(landing(asked)) ? landing(asked) : undefined;
-        launched = launchBrokered(top.dir, dir, { ...rest, ...(made ? { cwd: made.path } : {}), ...(tmp ? { tmp } : {}) }, sweepFor(granted), sandboxed(spec.command, granted), socket);
-      } catch (error) {
-        settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
-      }
-      if (made !== undefined && !launched) {
-        rmSync(made.path, { recursive: true, force: true });
-        dropWorktree(made.repo, made.createdBranch);
-      }
-    } catch {
-      // One request failing must not stop the others.
-    }
-  }
+const outputOf = (job: Job, lines: number): string =>
+  job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), lines)}`;
+
+/** A heartbeat or a server never stops on its own, so waiting on everything leaves them out. */
+const waitableIds = (root: string, owner: string): string[] =>
+  list(root, owner)
+    .filter((job) => job.status.state === 'running' && !job.spec.repeat && job.spec.wake !== null)
+    .map((job) => job.spec.id);
+
+/** The jobs a tmux_jobs action named, each of which must belong to this session. */
+function namedJobs(root: string, owner: string, action: string, ids: string[] | undefined): Job[] {
+  if (!ids?.length) throw new Error(`${action} needs ids.`);
+  return ids.map((id) => {
+    const job = read(root, id, owner);
+    if (!job) throw new Error(`No job ${id} in this session.`);
+    return job;
+  });
 }
 
 export default function pstack(pi: ExtensionAPI) {
@@ -502,7 +283,7 @@ export default function pstack(pi: ExtensionAPI) {
 
   pi.on('before_agent_start', async (event, ctx) => {
     const options = event.systemPromptOptions;
-    if (!options.promptGuidelines.includes(skillsHint)) options.promptGuidelines.push(skillsHint);
+    if (!options.promptGuidelines.includes(skillsHint)) Object.assign(options.promptGuidelines, [...options.promptGuidelines, skillsHint]);
     const transcript = ctx.sessionManager.getSessionFile();
     if (transcript)
       options.sections['pstack-session'] =
@@ -563,6 +344,21 @@ export default function pstack(pi: ExtensionAPI) {
     },
   });
 
+  /** Blocks on the named jobs, or every waitable one, and reports each. */
+  const waitFor = async (root: string, owner: string, named: string[] | undefined, timeout: number | undefined, waiter: Waiter): Promise<string> => {
+    const ids = named?.length ? named : waitableIds(root, owner);
+    const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
+    for (const id of ids) awaited.add(id);
+    try {
+      await blockWhileRunning(current, Date.now() + (timeout ?? 300) * 1000, waiter);
+      // A job whose wake the watcher already delivered is reported plainly, without restarting a heartbeat twice.
+      const reports = current().map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : claimWake(job) ? finish(job) : report(job)));
+      return reports.join('\n\n') || 'No jobs to wait on.';
+    } finally {
+      for (const id of ids) awaited.delete(id);
+    }
+  };
+
   pi.registerTool({
     name: 'tmux_jobs',
     label: 'tmux jobs',
@@ -577,63 +373,20 @@ export default function pstack(pi: ExtensionAPI) {
     async execute(_id, params, signal, update, ctx) {
       const root = jobsRoot();
       const owner = ctx.sessionManager.getSessionId();
-      const named = (): Job[] => {
-        if (!params.ids?.length) throw new Error(`${params.action} needs ids.`);
-        return params.ids.map((id) => {
-          const job = read(root, id, owner);
-          if (!job) throw new Error(`No job ${id} in this session.`);
-          return job;
-        });
-      };
-      switch (params.action) {
-        case 'list': {
-          const jobs = list(root, owner);
-          return text(jobs.length ? jobs.map(describe).join('\n') : 'No jobs in this session.');
-        }
-        case 'output':
-          return text(
-            named()
-              .map((job) => (job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), params.lines ?? 80)}`))
-              .join('\n\n'),
-          );
-        case 'stop': {
-          const series = new Set(named().map((job) => job.spec.series));
-          // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
-          for (const id of series) stoppedSeries.add(id);
-          // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
-          const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
-          await Promise.all(jobs.map(stop));
-          return text(`Stopped ${jobs.map((job) => job.spec.id).join(', ')}.`);
-        }
-        case 'wait': {
-          const ids = params.ids?.length
-            ? params.ids
-            : list(root, owner)
-                // A heartbeat or a server never stops on its own, so waiting on everything leaves them out.
-                .filter((job) => job.status.state === 'running' && !job.spec.repeat && job.spec.wake !== null)
-                .map((job) => job.spec.id);
-          const deadline = Date.now() + (params.timeout_seconds ?? 300) * 1000;
-          const current = () => ids.map((id) => read(root, id, owner)).filter((job): job is Job => job !== undefined);
-          for (const id of ids) awaited.add(id);
-          try {
-            // A message the user sends while this blocks ends the wait, so they are never shut out until the timeout.
-            while (current().some((job) => job.status.state === 'running') && Date.now() < deadline && !signal?.aborted && !ctx.hasPendingMessages()) {
-              update?.(text(`Waiting on ${current().filter((job) => job.status.state === 'running').length} job(s)...`));
-              await new Promise((done) => setTimeout(done, POLL_MS));
-            }
-            const jobs = current();
-            // A job whose wake the watcher already delivered is reported plainly, without restarting a heartbeat twice.
-            const reports = jobs.map((job) => (job.status.state === 'running' ? `${describe(job)}\n  still running` : claimWake(job) ? finish(job) : report(job)));
-            return text(reports.join('\n\n') || 'No jobs to wait on.');
-          } finally {
-            for (const id of ids) awaited.delete(id);
-          }
-        }
-        default: {
-          const unreachable: never = params.action;
-          throw new Error(`Unknown action ${String(unreachable)}`);
-        }
+      const named = (): Job[] => namedJobs(root, owner, params.action, params.ids);
+      if (params.action === 'list') {
+        const jobs = list(root, owner);
+        return text(jobs.length ? jobs.map(describe).join('\n') : 'No jobs in this session.');
       }
+      if (params.action === 'output') return text(named().map((job) => outputOf(job, params.lines ?? 80)).join('\n\n'));
+      if (params.action === 'wait') return text(await waitFor(root, owner, params.ids, params.timeout_seconds, { signal, update, ctx }));
+      const series = new Set(named().map((job) => job.spec.series));
+      // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
+      for (const id of series) stoppedSeries.add(id);
+      // Every run in the series, finished ones included, so a run that just exited is not restarted after the stop.
+      const jobs = list(root, owner).filter((job) => series.has(job.spec.series));
+      await Promise.all(jobs.map(stop));
+      return text(`Stopped ${jobs.map((job) => job.spec.id).join(', ')}.`);
     },
   });
 }
