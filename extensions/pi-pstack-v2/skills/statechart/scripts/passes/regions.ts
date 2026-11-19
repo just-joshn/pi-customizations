@@ -1,5 +1,4 @@
 import {
-  append,
   type Arrow,
   type Bug,
   byText,
@@ -41,8 +40,9 @@ type BuiltStates = {
 const compareRules = (a: Rule, b: Rule) => byText(a.name, b.name) || byText(a.kind, b.kind);
 
 const breaksOf = (members: number[], tla: Walk["states"]) => {
-  const rules = new Map<string, Rule>();
-  for (const i of members) for (const rule of tla[i].breaks) rules.set(ruleKey(rule), rule);
+  const rules = new Map(
+    members.flatMap((i) => tla[i].breaks.map((rule) => [ruleKey(rule), rule] as const)),
+  );
   return [...rules.values()].toSorted(compareRules).map((rule) => ({
     rule,
     always: members.every((i) => hasRule(tla[i].breaks, rule)),
@@ -59,7 +59,8 @@ function buildStates(
   name: string,
   r: number,
   { states: tla }: Walk,
-  { shapes, group, keys, kinds, sizes }: Labels,
+  { shapes, keys, kinds, sizes }: Labels,
+  groups: unknown[],
   order: Int32Array,
   flags: StateFlags,
 ): BuiltStates {
@@ -80,33 +81,32 @@ function buildStates(
       group: undefined as unknown,
     },
   }));
-  const parents = new Set<string>();
-  for (const { state } of base)
-    for (let i = 1; i < state.path.length; i++) parents.add(tupleKey(state.path.slice(0, i)));
+  const parents = new Set(
+    base.flatMap(({ state }) =>
+      Array.from({ length: Math.max(state.path.length - 1, 0) }, (_, k) =>
+        tupleKey(state.path.slice(0, k + 1)),
+      ),
+    ),
+  );
   const built = base.map(({ c, members, state }) => {
     if (parents.size && parents.has(tupleKey(state.path))) throw parentConflict(state.path, name);
     const breaks = breaksOf(members, tla);
-    const groups = new Set<unknown>(members.map((i) => group(i)));
+    const asked = new Set<unknown>(members.map((i) => groups[i]));
     const done: ChartState = {
       ...state,
       breaks,
-      group: groups.size === 1 ? [...groups][0] : undefined,
+      group: asked.size === 1 ? [...asked][0] : undefined,
     };
     return { c, key: key[members[0]], state: done };
   });
-  const objectOf = new Array<ChartState>(sizes[r]);
-  const keyOf = new Array<string>(sizes[r]);
-  const position = new Int32Array(sizes[r]);
-  for (const [p, { c, key: k, state }] of built.entries()) {
-    objectOf[c] = state;
-    keyOf[c] = k;
-    position[c] = p;
-  }
+  const placed = new Map(built.map((b, p) => [b.c, { ...b, p }]));
+  const at = (c: number) => must(placed, c);
+  const kindNumbers = Array.from({ length: sizes[r] }, (_, c) => c);
   return {
     states: built.map(({ key: k, state }) => ({ key: k, state })),
-    objectOf,
-    position,
-    keyOf,
+    objectOf: kindNumbers.map((c) => at(c).state),
+    position: Int32Array.from(kindNumbers, (c) => at(c).p),
+    keyOf: kindNumbers.map((c) => at(c).key),
   };
 }
 
@@ -133,25 +133,40 @@ type MoveEnv = {
   loop: (j: number) => boolean;
 };
 
-/** One move per (from state, to state, label) among the drawn steps of a region. */
-function collectMoves({ R, kind, position, size, from, to, sorted, drawnLabels, loop }: MoveEnv) {
-  const pairOf = (j: number) => position[kind[from[j]]] * size + position[kind[to[j]]];
-  const drawn = Array.from(sorted).filter((j) => kind[from[j]] !== kind[to[j]] || loop(j));
-  const groups = Map.groupBy(drawn, (j) => `${pairOf(j)}:${drawnLabels[j]}`);
-  const lastOfPair = new Map<number, RegionMove>();
-  return [...groups.values()].map((js) => {
+type MoveInfo = { pair: number; js: number[] };
+
+/** Makes the moves of one pair of states in order, each pointing at the one before. */
+function* chainOf(infos: MoveInfo[], env: MoveEnv): Generator<RegionMove> {
+  const { R, kind, from, to, drawnLabels } = env;
+  let previous: RegionMove | undefined;
+  for (const { js } of infos) {
     const j = js[0];
-    const pair = pairOf(j);
-    const move: RegionMove = {
+    previous = {
       f: kind[from[j]],
       t: kind[to[j]],
       text: drawnLabels[j],
       group: R > 1 ? js : [],
-      other: lastOfPair.get(pair),
+      other: previous,
     };
-    lastOfPair.set(pair, move);
-    return move;
-  });
+    yield previous;
+  }
+}
+
+/** One move per (from state, to state, label) among the drawn steps of a region. */
+function collectMoves(env: MoveEnv) {
+  const { kind, position, size, from, to, sorted, drawnLabels, loop } = env;
+  const pairOf = (j: number) => position[kind[from[j]]] * size + position[kind[to[j]]];
+  const drawn = Array.from(sorted).filter((j) => kind[from[j]] !== kind[to[j]] || loop(j));
+  const infos = [...Map.groupBy(drawn, (j) => `${pairOf(j)}:${drawnLabels[j]}`).values()].map(
+    (js): MoveInfo => ({ pair: pairOf(js[0]), js }),
+  );
+  const made = new Map(
+    [...Map.groupBy(infos, ({ pair }) => pair).values()].flatMap((chain) => {
+      const moves = [...chainOf(chain, env)];
+      return chain.map((info, k) => [info, moves[k]] as const);
+    }),
+  );
+  return infos.map((info) => must(made, info));
 }
 
 const phrases = (names: string[], others: number[]) => {
@@ -197,15 +212,13 @@ type ArrowEnv = {
 function arrowsOf(moves: RegionMove[], keyOf: string[], env: ArrowEnv): Arrow[] {
   const { names, others, tuple, tuplesAt, from } = env;
   const { two, is, isNot } = phrases(names, others);
-  const seenAt = new Map<number, string[][]>();
-  const seenOf = (f: number) => {
-    const cached = seenAt.get(f);
-    if (cached) return cached;
-    const unique = new Map(must(tuplesAt, f).map((i) => [tupleKey(tuple(i)), tuple(i)] as const));
-    const seen = [...unique.values()];
-    seenAt.set(f, seen);
-    return seen;
-  };
+  const seenAt = new Map(
+    [...new Set(moves.map((move) => move.f))].map((f): [number, string[][]] => {
+      const unique = new Map(must(tuplesAt, f).map((i) => [tupleKey(tuple(i)), tuple(i)] as const));
+      return [f, [...unique.values()]];
+    }),
+  );
+  const seenOf = (f: number) => must(seenAt, f);
   const andWhen = ({ all, and }: Sets) => {
     const parts = others.flatMap((o, j) => {
       const no = [...all[j]].filter((v) => !and[j].has(v));
@@ -244,6 +257,7 @@ const soloArrows = (moves: RegionMove[], keyOf: string[]): Arrow[] =>
 export function drawRegions(
   walk: Walk,
   labels: Labels,
+  groups: unknown[],
   order: Int32Array,
   found: Bug[],
   view: View,
@@ -251,22 +265,20 @@ export function drawRegions(
   const { states: tla, index, from, to } = walk;
   const { names, shapes, drawnLabels, kinds, sorted, pathSteps, notes } = labels;
   const R = names.length;
-  const lead = new Uint8Array(shapes.length);
-  const looped = new Uint8Array(shapes.length);
-  for (const b of found) {
-    for (const i of seqOf(b, index).slice(0, b.loop)) lead[i] = 1;
-    for (const i of loopOf(b, index)) looped[i] = 1;
-  }
+  const leading = new Set(found.flatMap((b) => seqOf(b, index).slice(0, b.loop)));
+  const looping = new Set(found.flatMap((b) => [...loopOf(b, index)]));
+  const lead = Uint8Array.from({ length: shapes.length }, (_, i) => (leading.has(i) ? 1 : 0));
+  const looped = Uint8Array.from({ length: shapes.length }, (_, i) => (looping.has(i) ? 1 : 0));
   const loop = (j: number) => R === 1 && pathSteps[j] === 1;
   const stays = (j: number) => kinds.every((kind) => kind[from[j]] === kind[to[j]]);
-  let inside = 0;
-  for (const j of sorted) if (stays(j) && !loop(j)) inside++;
+  const inside = Array.from(sorted).filter((j) => stays(j) && !loop(j)).length;
   const dirty = dirtyStates(tla, order, kinds);
   const comboOf = comboFn(kinds);
-  const clean = new Uint8Array(shapes.length);
-  for (let i = 0; i < shapes.length; i++) clean[i] = !dirty.size || !dirty.has(comboOf(i)) ? 1 : 0;
+  const clean = Uint8Array.from({ length: shapes.length }, (_, i) =>
+    !dirty.size || !dirty.has(comboOf(i)) ? 1 : 0,
+  );
   const flags = { lead, looped, clean };
-  const built = names.map((name, r) => regionOf(name, r, walk, labels, order, flags, loop));
+  const built = names.map((name, r) => regionOf(name, r, { walk, labels, groups, order, flags, loop }));
   const hidden = hiddenStates(dirty, built, kinds);
   const regions = built.map(({ name, states, steps, arrows }) => ({
     name,
@@ -293,13 +305,8 @@ const comboFn = (kinds: Int32Array[]) =>
 
 const dirtyStates = (tla: Walk["states"], order: Int32Array, kinds: Int32Array[]) => {
   const comboOf = comboFn(kinds);
-  const dirty = new Map<number | string, number>();
-  for (const i of order)
-    if (tla[i].breaks.length) {
-      const c = comboOf(i);
-      if (!dirty.has(c)) dirty.set(c, i);
-    }
-  return dirty;
+  const breaking = Array.from(order).filter((i) => tla[i].breaks.length);
+  return new Map([...Map.groupBy(breaking, comboOf)].map(([c, is]) => [c, is[0]]));
 };
 
 type BuiltRegion = {
@@ -323,20 +330,22 @@ const hiddenStates = (
     }),
   );
 
-const regionOf = (
-  name: string,
-  r: number,
-  walk: Walk,
-  labels: Labels,
-  order: Int32Array,
-  flags: StateFlags,
-  loop: (j: number) => boolean,
-): BuiltRegion => {
+type RegionEnv = {
+  walk: Walk;
+  labels: Labels;
+  groups: unknown[];
+  order: Int32Array;
+  flags: StateFlags;
+  loop: (j: number) => boolean;
+};
+
+const regionOf = (name: string, r: number, env: RegionEnv): BuiltRegion => {
+  const { walk, labels, groups, order, flags, loop } = env;
   const { from, to } = walk;
   const { names, keys, kinds, sizes, sorted, drawnLabels } = labels;
   const R = names.length;
   const kind = kinds[r];
-  const { states, objectOf, position, keyOf } = buildStates(name, r, walk, labels, order, flags);
+  const { states, objectOf, position, keyOf } = buildStates(name, r, walk, labels, groups, order, flags);
   const moves = collectMoves({
     R,
     kind,
@@ -349,14 +358,14 @@ const regionOf = (
     loop,
   });
   const others = names.flatMap((_, o) => (o === r ? [] : [o]));
-  const env = {
+  const arrowEnv = {
     names,
     others,
     tuple: (i: number) => others.map((o) => keys[o][i]),
     tuplesAt: Map.groupBy(order, (i) => kind[i]),
     from,
   };
-  const arrows = R === 1 ? soloArrows(moves, keyOf) : arrowsOf(moves, keyOf, env);
+  const arrows = R === 1 ? soloArrows(moves, keyOf) : arrowsOf(moves, keyOf, arrowEnv);
   const steps = arrows.map((a, k): ChartStep => ({
     from: objectOf[moves[k].f].path,
     to: objectOf[moves[k].t].path,

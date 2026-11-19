@@ -11,7 +11,6 @@ export type JudgeContext = {
   specFile: string;
   module: string;
   all: Rule[];
-  verdicts: Map<string, Verdict>;
   runJava: JavaRun;
   config: (name: string, extra: string[]) => string[];
 };
@@ -22,16 +21,21 @@ type Judging = {
   first: FileResult | undefined;
   stop: Stop | undefined;
   states: States;
+  verdicts: ReadonlyMap<string, Verdict>;
 };
 
 type Verdicts = ReturnType<typeof readVerdict>;
 
-const decide = ({ verdicts }: JudgeContext, rule: Rule, outcome: Outcome, r?: FileResult) =>
-  verdicts.set(ruleKey(rule), { rule, outcome, messages: r && messagesOf(r.output) });
-
-const decideAll = (c: JudgeContext, rules: Rule[], outcome: Outcome) => {
-  for (const rule of rules) decide(c, rule, outcome);
-};
+const decide = (j: Judging, rules: Rule[], outcome: Outcome, r?: FileResult): Judging => ({
+  ...j,
+  verdicts: new Map([
+    ...j.verdicts,
+    ...rules.map((rule) => {
+      const verdict: Verdict = { rule, outcome, messages: r && messagesOf(r.output) };
+      return [ruleKey(rule), verdict] as const;
+    }),
+  ]),
+});
 
 const sectionsFor = (group: Rule[], bounded: boolean) => {
   const invariants = names(group, "invariant");
@@ -58,40 +62,30 @@ type Outcomes = { group: Rule[]; r: FileResult; broke: Break | undefined; cut: b
 
 const splitProperties = (c: JudgeContext, j: Judging, { group, r }: Outcomes): Judging => {
   const pending = group.filter((rule) => rule.kind === "property").map((rule) => [rule]);
-  const rest = group.filter((rule) => rule.kind !== "property" && !c.verdicts.has(ruleKey(rule)));
-  if (pending.length === 1) {
-    decide(c, pending[0][0], "broken", r);
-    return j;
-  }
+  const rest = group.filter((rule) => rule.kind !== "property" && !j.verdicts.has(ruleKey(rule)));
+  if (pending.length === 1) return decide(j, pending[0], "broken", r);
   return { ...j, groups: [rest, ...pending, ...j.groups.slice(1)] };
 };
 
 const brokenProperty = (c: JudgeContext, j: Judging, o: Outcomes): Judging => {
   if (o.broke?.kind !== "temporal") return splitProperties(c, j, o);
-  decideAll(
-    c,
+  const holding = decide(
+    j,
     o.group.filter((rule) => rule.kind !== "property"),
     "holds",
   );
-  return splitProperties(c, { ...j, states: { ...j.states, complete: true } }, o);
+  return splitProperties(c, { ...holding, states: { ...j.states, complete: true } }, o);
 };
 
 const settle = (c: JudgeContext, j: Judging, o: Outcomes): Judging => {
   const { group, r, broke, cut } = o;
   const rule = broke && brokenRule(group, broke);
   if (exitClass(r.status) === 2) return { ...j, stop: stopOf(r) };
-  if (rule) {
-    decide(c, rule, "broken", r);
-    return j;
-  }
-  if (cut && (r.status === 0 || broke?.kind === "temporal")) {
-    decideAll(c, group, "not checked");
-    return { ...j, states: { ...j.states, cut: true } };
-  }
-  if (r.status === 0) {
-    decideAll(c, group, "holds");
-    return { ...j, states: { ...j.states, complete: true } };
-  }
+  if (rule) return decide(j, [rule], "broken", r);
+  if (cut && (r.status === 0 || broke?.kind === "temporal"))
+    return { ...decide(j, group, "not checked"), states: { ...j.states, cut: true } };
+  if (r.status === 0)
+    return { ...decide(j, group, "holds"), states: { ...j.states, complete: true } };
   if (broke && names(group, "property").length) return brokenProperty(c, j, o);
   throw new Error(
     `TLC exited ${r.status} on ${c.specFile}, but its output names no rule that broke:\n${tail(r)}`,
@@ -99,7 +93,7 @@ const settle = (c: JudgeContext, j: Judging, o: Outcomes): Judging => {
 };
 
 const judgeStep = async (c: JudgeContext, j: Judging): Promise<Judging> => {
-  const group = j.groups[0].filter((rule) => !c.verdicts.has(ruleKey(rule)));
+  const group = j.groups[0].filter((rule) => !j.verdicts.has(ruleKey(rule)));
   if (j.first && !group.length) return { ...j, groups: j.groups.slice(1) };
   const bounded = j.first !== undefined && !j.states.complete;
   const r = await runGroup(c, j, group, bounded);
@@ -118,19 +112,20 @@ const judgeStep = async (c: JudgeContext, j: Judging): Promise<Judging> => {
   return settle(c, seen, { group, r, broke: read.broke, cut });
 };
 
+const judgeUntilDone = async (c: JudgeContext, j: Judging): Promise<Judging> =>
+  j.groups.length && !j.stop ? judgeUntilDone(c, await judgeStep(c, j)) : j;
+
 export async function judge(c: JudgeContext) {
-  let j: Judging = {
+  const start: Judging = {
     groups: [c.all],
     k: 1,
     first: undefined,
     stop: undefined,
     states: { distinct: 0, initial: 0, complete: false, cut: false },
+    verdicts: new Map(),
   };
-  while (j.groups.length && !j.stop) j = await judgeStep(c, j);
-  decideAll(
-    c,
-    c.all.filter((rule) => !c.verdicts.has(ruleKey(rule))),
-    "not checked",
-  );
-  return { first: j.first as FileResult, stop: j.stop, states: j.states };
+  const j = await judgeUntilDone(c, start);
+  const left = c.all.filter((rule) => !j.verdicts.has(ruleKey(rule)));
+  const { verdicts } = decide(j, left, "not checked");
+  return { first: j.first as FileResult, stop: j.stop, states: j.states, verdicts };
 }

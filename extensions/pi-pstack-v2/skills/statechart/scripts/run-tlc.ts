@@ -9,10 +9,13 @@ const TLC_TOOL =
 const JAVA_TOOL = "java@temurin-25";
 export const PINNED_FLAGS = ["-workers", "1", "-fp", "0", "-lncheck", "final"];
 const SANY_ERRORS = /^\*\*\* ?(?:Errors|Abort messages|Parse Error)/m;
+const EXIT_SAFETY = 11;
+const EXIT_LIVENESS = 12;
+const EXIT_ASSERTION = 13;
 const TAIL_CHARS = 1 << 28;
 const TAIL_LINES = 30;
 const ERROR_LINES = 40;
-const BROKEN_EXITS = new Set([11, 12, 13]);
+const BROKEN_EXITS = new Set([EXIT_SAFETY, EXIT_LIVENESS, EXIT_ASSERTION]);
 
 export async function findTlc(cwd: string) {
   const { TLA2TOOLS, JAVA } = process.env;

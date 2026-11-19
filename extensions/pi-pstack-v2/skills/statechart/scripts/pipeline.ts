@@ -37,16 +37,27 @@ function* inParts(lines: string[]) {
 const shortestFirst = (a: { path: unknown[] }, b: { path: unknown[] }) =>
   a.path.length - b.path.length;
 
+/** Asks the view for each state's group once, in the order the first region draws its states. */
+const askGroups = ({ group, shapes }: Answers, kind: Int32Array, order: Int32Array) => {
+  const asked = new Map(
+    [...Map.groupBy(order, (i) => kind[i]).values()].flatMap((members) =>
+      Array.from(members, (i) => [i, group(i)] as const),
+    ),
+  );
+  return Array.from({ length: shapes.length }, (_, i) => asked.get(i));
+};
+
 export function project(graph: Graph, walked: Walk, view: View, found: Bug[]) {
   const { order, rank } = drawOrder(walked);
-  const draw = (answers: Answers) => {
+  const draw = (answers: Answers, known?: unknown[]) => {
     const labels = labelGraph(graph, walked, answers, rank, found);
-    return { labels, chart: drawRegions(walked, labels, order, found, view) };
+    const groups = known ?? askGroups(answers, labels.kinds[0], order);
+    return { labels, groups, chart: drawRegions(walked, labels, groups, order, found, view) };
   };
   const answers = ask(graph, walked, view);
   const first = draw(answers);
   const lie = regionsLie(first.chart.regions, first.labels, walked, order);
-  const { labels, chart } = lie ? draw(asParents(walked, answers)) : first;
+  const { labels, chart } = lie ? draw(asParents(walked, answers), first.groups) : first;
   loopCheck(chart, labels, walked, found);
   return {
     chart: lift(lie ? { ...chart, lie } : chart),
@@ -65,14 +76,15 @@ export function compile(result: CheckResult, view: CheckedView) {
       ? project(result.graph, walked, view, found)
       : { chart: undefined, stories: new Map<Bug, Story>() };
   const text = report(result, found, chart, stories);
-  const files = new Map<string, Iterable<string | Uint8Array>>();
-  if (chart) files.set("chart.mmd", inParts(mermaidLines(chart)));
-  files.set("report.md", [text]);
-  files.set("tlc.out", plainText(result.messages));
-  const drawn = new Set<string>();
-  for (const b of found) if (b.rule.kind !== "property") drawn.add(ruleKey(b.rule));
-  for (const { rule, outcome, messages } of [...result.rules, ...result.properties])
-    if (outcome === "broken" && messages && !drawn.has(ruleKey(rule)))
-      files.set(`tlc-${rule.name}.out`, plainText(messages));
+  const drawn = new Set(found.filter((b) => b.rule.kind !== "property").map((b) => ruleKey(b.rule)));
+  const tlcOuts = [...result.rules, ...result.properties]
+    .filter(({ rule, outcome, messages }) => outcome === "broken" && messages && !drawn.has(ruleKey(rule)))
+    .map(({ rule, messages }) => [`tlc-${rule.name}.out`, plainText(messages ?? [])] as const);
+  const files = new Map<string, Iterable<string | Uint8Array>>([
+    ...(chart ? [["chart.mmd", inParts(mermaidLines(chart))] as const] : []),
+    ["report.md", [text]],
+    ["tlc.out", plainText(result.messages)],
+    ...tlcOuts,
+  ]);
   return { report: text, files, exit: result.exit };
 }

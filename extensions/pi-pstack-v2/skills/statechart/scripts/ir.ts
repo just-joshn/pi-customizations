@@ -254,10 +254,6 @@ export const must = <K, V>(map: ReadonlyMap<K, V>, key: K): V => {
   return value;
 };
 
-export const append = <K, V>(groups: Map<K, V[]>, key: K, item: V) => {
-  groups.set(key, [...(groups.get(key) ?? []), item]);
-};
-
 export const seqOf = (bug: Bug, index: ReadonlyMap<string, number>) => [
   must(index, bug.start),
   ...bug.path.map((p) => must(index, p.state)),
@@ -279,20 +275,17 @@ export const stateText = (vars: Vars) =>
 
 export const count = (n: number) => Int32Array.from({ length: n }, (_, i) => i);
 
-export const sortBy = (items: Int32Array, keys: Int32Array[]) => {
-  for (let k = keys.length - 1; k >= 0; k--) {
-    const key = keys[k];
-    let size = 0;
-    for (let p = 0; p < items.length; p++) if (key[items[p]] >= size) size = key[items[p]] + 1;
-    const start = new Int32Array(size + 1);
-    for (let p = 0; p < items.length; p++) start[key[items[p]] + 1]++;
-    for (let v = 0; v < size; v++) start[v + 1] += start[v];
-    const sorted = new Int32Array(items.length);
-    for (let p = 0; p < items.length; p++) sorted[start[key[items[p]]]++] = items[p];
-    items = sorted;
-  }
-  return items;
-};
+const byNumber = ([a]: [number, unknown], [b]: [number, unknown]) => a - b;
+
+/** A stable sort of `items` by each of `keys` in turn, the first key most significant. */
+export const sortBy = (items: Int32Array, keys: Int32Array[]) =>
+  keys.toReversed().reduce(
+    (current, key) =>
+      Int32Array.from(
+        [...Map.groupBy(current, (item) => key[item])].toSorted(byNumber).flatMap(([, group]) => group),
+      ),
+    items,
+  );
 
 export function holds(condition: Condition, others: string[]) {
   switch (condition.kind) {
@@ -471,8 +464,6 @@ const compositeKey = (v: Exclude<Value, boolean | number | string | { kind: "mod
   return v.kind === "set" ? setKey(v.members) : functionKey(v);
 };
 
-const keyCache = new WeakMap<object, string>();
-
 export const key = (v: Value): string => {
   switch (typeof v) {
     case "boolean":
@@ -483,23 +474,7 @@ export const key = (v: Value): string => {
       return JSON.stringify(v);
   }
   if (v.kind === "model") return v.name;
-  const known = keyCache.get(v);
-  if (known !== undefined) return known;
-  const made = compositeKey(v);
-  keyCache.set(v, made);
-  return made;
+  return compositeKey(v);
 };
 
 export const stateKey = (values: Value[]) => values.map((v) => key(v)).join(",");
-
-export const memo = <K, V>(make: (k: K) => V, limit = 1 << 16) => {
-  const cache = new Map<K, V>();
-  return (k: K) => {
-    const known = cache.get(k);
-    if (known !== undefined) return known;
-    if (cache.size >= limit) cache.clear();
-    const made = make(k);
-    cache.set(k, made);
-    return made;
-  };
-};

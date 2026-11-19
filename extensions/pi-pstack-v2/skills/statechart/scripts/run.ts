@@ -18,6 +18,7 @@ import {
   hasSection,
   type Lasso,
   must,
+  type Past,
   type Property,
   type Rule,
   ruleKey,
@@ -26,8 +27,8 @@ import {
   type Trace,
   type Verdict,
 } from "./ir.ts";
-import { addPast, deadEnds, finder, lasso, mark } from "./passes/annotate.ts";
-import { pathGraph } from "./passes/paths.ts";
+import { addPast, deadEnds, finder, type Index, lasso, mark } from "./passes/annotate.ts";
+import { graphOf, type PathGraph, pathGraph, withBug, withLasso } from "./passes/paths.ts";
 import { type FileResult, fileLines, messagesOf, runToFiles } from "./run-io.ts";
 import { judge } from "./run-judge.ts";
 import { exitClass, findTlc, only, PINNED_FLAGS, sanyErrors, stopOf, tail } from "./run-tlc.ts";
@@ -35,6 +36,7 @@ import { exitClass, findTlc, only, PINNED_FLAGS, sanyErrors, stopOf, tail } from
 export { fileLines, killGroup, messageOf } from "./run-io.ts";
 export { PINNED_FLAGS } from "./run-tlc.ts";
 
+const TAG_BYTES = 16;
 const SANY_JVM = ["-XX:TieredStopAtLevel=1"];
 
 type Runner = {
@@ -87,7 +89,7 @@ type Checked = {
   dir: string;
   rules: Rule[];
   all: Rule[];
-  verdicts: Map<string, Verdict>;
+  verdicts: ReadonlyMap<string, Verdict>;
   run: Runner;
   initialOnly: Set<string>;
 };
@@ -97,63 +99,81 @@ type Dot = ReturnType<typeof parseDot>;
 const failed = (specFile: string, r: FileResult) =>
   new Error(`TLC could not check ${specFile} (exit ${r.status}):\n${stopOf(r).message}`);
 
-const propertiesWith = (k: Checked, bugOf: (trace: Trace) => Lasso | undefined): Property[] =>
+type Described<S> = { properties: Property[]; state: S };
+
+const describe = <S>(
+  k: Checked,
+  lassoOf: (state: S, trace: Trace) => [S, Lasso | undefined],
+  { properties, state }: Described<S>,
+  rule: Rule,
+): Described<S> => {
+  const v = must(k.verdicts, ruleKey(rule));
+  const [next, bug] =
+    v.outcome === "broken" && v.messages
+      ? lassoOf(state, readTrace(v.messages))
+      : [state, undefined];
+  const property = { ...v, bug, initialOnly: k.initialOnly.has(rule.name) };
+  return { properties: [...properties, property], state: next };
+};
+
+/** Describes each property, passing `state` from one broken property's trace to the next. */
+const propertiesWith = <S>(
+  k: Checked,
+  lassoOf: (state: S, trace: Trace) => [S, Lasso | undefined],
+  initial: S,
+): Described<S> =>
   k.all
     .filter((rule) => rule.kind === "property")
-    .map((rule) => {
-      const v = must(k.verdicts, ruleKey(rule));
-      return {
-        ...v,
-        bug: v.outcome === "broken" && v.messages ? bugOf(readTrace(v.messages)) : undefined,
-        initialOnly: k.initialOnly.has(rule.name),
-      };
+    .reduce<Described<S>>((done, rule) => describe(k, lassoOf, done, rule), {
+      properties: [],
+      state: initial,
     });
 
 type Drawing = { status: number | null } | undefined;
 type Annotation = {
   graph: Dot;
   drawing: Drawing;
-  find: ReturnType<typeof finder>;
-  past: ReturnType<typeof mark>;
+  index: Index;
+  past: Past;
 };
 
-const annotateRule = (k: Checked, rule: Rule, { graph, drawing, find, past }: Annotation): Dot => {
+const annotateRule = (k: Checked, rule: Rule, annotation: Annotation): Annotation => {
+  const { graph, drawing, index, past } = annotation;
   const { outcome, messages } = must(k.verdicts, ruleKey(rule));
   const deadlocked = rule.kind === "deadlock" && outcome === "broken";
-  if (deadlocked && !drawing && !hasSection(k.spec, "CONSTRAINT", "ACTION_CONSTRAINT"))
-    deadEnds(graph, rule);
-  if (outcome !== "broken" || !messages) return graph;
+  const marked =
+    deadlocked && !drawing && !hasSection(k.spec, "CONSTRAINT", "ACTION_CONSTRAINT")
+      ? deadEnds(graph, rule)
+      : graph;
+  if (outcome !== "broken" || !messages) return { ...annotation, graph: marked };
   const counterexample = readCounterexample(messages);
   const { variables } = k.spec;
-  if (drawing && !lasso(graph, { seq: counterexample, loop: undefined }, variables, find))
-    return graph;
+  if (drawing && !lasso(marked, { seq: counterexample, loop: undefined }, variables, index))
+    return { ...annotation, graph: marked };
   const excludes = hasSection(k.spec, "ACTION_CONSTRAINT");
-  return addPast(graph, counterexample, variables, rule, past, excludes, find);
+  const added = addPast(marked, counterexample, variables, rule, past, excludes, index);
+  return { ...annotation, ...added };
 };
 
-const annotate = (k: Checked, graph: Dot, drawn: FileResult, tag: string): Annotation => {
-  const find = finder(graph, k.spec.variables);
+const annotate = (k: Checked, parsed: Dot, drawn: FileResult, tag: string): Annotation => {
   const broken = new Set(
     [...k.verdicts.values()]
       .filter(({ rule, outcome }) => rule.kind === "invariant" && outcome === "broken")
       .map(({ rule }) => rule.name),
   );
   const marks = only(readMarks(readMessages(fileLines(drawn.stdout)), tag), broken);
-  const past = mark(graph, marks, k.spec.variables, k.rules, find);
+  const index = finder(parsed, k.spec.variables);
+  const { graph, past } = mark(parsed, marks, k.spec.variables, k.rules, index);
   const drawing = drawn.status === 0 ? undefined : { status: drawn.status };
-  const annotation = { graph, drawing, find, past };
-  const annotated = k.rules.reduce(
-    (g, rule) => annotateRule(k, rule, { ...annotation, graph: g }),
-    graph,
-  );
-  return { ...annotation, graph: annotated };
+  const start = { graph, drawing, index, past };
+  return k.rules.reduce((annotation, rule) => annotateRule(k, rule, annotation), start);
 };
 
 type Common = Omit<CheckResult, "graph" | "paths" | "properties" | "drawing">;
 
 async function drawChart(k: Checked, common: Common): Promise<CheckResult | undefined> {
   const { spec, run, dir } = k;
-  const tag = `chart-${randomBytes(16).toString("hex")}`;
+  const tag = `chart-${randomBytes(TAG_BYTES).toString("hex")}`;
   fs.writeFileSync(path.join(dir, "ChartRun.tla"), chartRun(spec, tag));
   const drawn = await run.java("ChartRun", "tlc2.TLC", [
     "-tool",
@@ -168,32 +188,42 @@ async function drawChart(k: Checked, common: Common): Promise<CheckResult | unde
   const file = path.join(dir, "graph.dot");
   if (!fs.existsSync(file)) throw failed(k.specFile, drawn);
   if (readVerdict(messagesOf(drawn.output)).distinct > CHART_STATES) return undefined;
-  const { graph, drawing, find } = annotate(k, parseDot(fileLines(file)), drawn, tag);
-  const properties = propertiesWith(k, (trace) => lasso(graph, trace, spec.variables, find));
+  const { graph, drawing, index } = annotate(k, parseDot(fileLines(file)), drawn, tag);
+  const { properties } = propertiesWith<undefined>(
+    k,
+    (state, trace) => [state, lasso(graph, trace, spec.variables, index)],
+    undefined,
+  );
   return { ...common, graph, paths: undefined, properties, drawing };
 }
 
 const pathResult = (k: Checked, common: Common): CheckResult => {
-  const drawn = pathGraph(k.spec.variables);
-  const paths: Bug[] = k.rules.flatMap((rule) => {
+  const drawn = k.rules.flatMap((rule) => {
     const { outcome, messages } = must(k.verdicts, ruleKey(rule));
-    return outcome === "broken" && messages ? [drawn.bug(rule, readCounterexample(messages))] : [];
+    return outcome === "broken" && messages ? [{ rule, trace: readCounterexample(messages) }] : [];
   });
+  const bugged = drawn.reduce<{ paths: PathGraph; found: Bug[] }>(
+    ({ paths, found }, { rule, trace }) => {
+      const [next, bug] = withBug(paths, rule, trace);
+      return { paths: next, found: [...found, bug] };
+    },
+    { paths: pathGraph(k.spec.variables), found: [] },
+  );
+  const { properties, state } = propertiesWith(k, withLasso, bugged.paths);
   return {
     ...common,
-    graph: drawn.graph,
-    paths,
-    properties: propertiesWith(k, drawn.lasso),
+    graph: graphOf(state),
+    paths: bugged.found,
+    properties,
     drawing: undefined,
   };
 };
 
-const judged = (k: Omit<Checked, "initialOnly">) =>
+const judged = (k: Omit<Checked, "initialOnly" | "verdicts">) =>
   judge({
     specFile: k.specFile,
     module: k.spec.module,
     all: k.all,
-    verdicts: k.verdicts,
     runJava: k.run.java,
     config: (name, extra) => k.run.config(name, k.spec.written, extra),
   });
@@ -210,10 +240,14 @@ async function checkIn(dir: string, specFile: string, configFile: string): Promi
     ...rules,
     ...spec.properties.map((name) => ({ kind: "property" as const, name })),
   ];
-  const base = { spec, specFile, dir, rules, all, verdicts: new Map<string, Verdict>(), run };
+  const base = { spec, specFile, dir, rules, all, run };
   fs.writeFileSync(path.join(dir, "ChartBound.tla"), boundRun(spec.module));
   const result = await judged(base);
-  const k: Checked = { ...base, initialOnly: initialOnlyProperties(sany, spec) };
+  const k: Checked = {
+    ...base,
+    verdicts: result.verdicts,
+    initialOnly: initialOnlyProperties(sany, spec),
+  };
   const exit = exitClass(result.first.status);
   if (exit === 2) throw failed(specFile, result.first);
   const common: Common = {

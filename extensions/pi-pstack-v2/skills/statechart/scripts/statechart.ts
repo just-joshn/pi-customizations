@@ -133,6 +133,8 @@ const publish = (done: string, dest: string, out: string) => {
   process.stdout.write(`\nWrote ${out}\n`);
 };
 
+const SIGNAL_EXIT_BASE = 128;
+
 const outcome = async (worker: ChildProcess, done: string, dest: string, out: string) => {
   const exited = new Promise<number>((resolve) => worker.on("exit", (code) => resolve(code ?? 2)));
   await Promise.race([stopped, exited]);
@@ -140,7 +142,7 @@ const outcome = async (worker: ChildProcess, done: string, dest: string, out: st
   const verdict = await exited;
   if (stop) {
     console.error(`${stop} stopped the check, so the command wrote nothing.`);
-    return 128 + os.constants.signals[stop];
+    return SIGNAL_EXIT_BASE + os.constants.signals[stop];
   }
   if (worker.signalCode) {
     console.error(`${worker.signalCode} killed the check, so the command wrote nothing.`);

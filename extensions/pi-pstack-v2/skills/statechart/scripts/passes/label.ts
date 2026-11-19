@@ -61,32 +61,22 @@ function unlabeled(
 }
 
 export function ask(graph: Graph, { states: tla, nameOf, from, to }: Walk, view: View): Answers {
-  const n = nameOf.length;
-  const m = from.length;
   const state = view.state;
-  const shapes = new Array<Shape>(n);
-  for (let i = 0; i < n; i++)
-    shapes[i] = shapeOf(state ? state(tla[i].vars) : nameOf[i], tla[i].vars);
+  const shapes = Array.from({ length: nameOf.length }, (_, i) =>
+    shapeOf(state ? state(tla[i].vars) : nameOf[i], tla[i].vars),
+  );
   const names = Object.keys(shapes[0] ?? { "": [] });
   const regionsKey = tupleKey(names);
-  for (let i = 0; i < n; i++)
-    if (tupleKey(Object.keys(shapes[i])) !== regionsKey)
-      throw new Error(
-        `The view's state() returned the regions ${names.join(", ")} for one state and ${Object.keys(shapes[i]).join(", ")} for the state ${stateText(tla[i].vars)}. Return the same regions for every state.`,
-      );
+  const odd = shapes.findIndex((shape) => tupleKey(Object.keys(shape)) !== regionsKey);
+  if (odd >= 0)
+    throw new Error(
+      `The view's state() returned the regions ${names.join(", ")} for one state and ${Object.keys(shapes[odd]).join(", ")} for the state ${stateText(tla[odd].vars)}. Return the same regions for every state.`,
+    );
   const step = stepOf(view);
-  const labels = new Array<string | Hidden>(m);
-  for (let j = 0; j < m; j++)
-    labels[j] = step(graph.steps[j].action, tla[from[j]].vars, tla[to[j]].vars);
-  const groups = new Array<unknown>(n);
-  const asked = new Uint8Array(n);
-  const group = (i: number) => {
-    if (view.group && !asked[i]) {
-      groups[i] = view.group(tla[i].vars);
-      asked[i] = 1;
-    }
-    return groups[i];
-  };
+  const labels = Array.from({ length: from.length }, (_, j): string | Hidden =>
+    step(graph.steps[j].action, tla[from[j]].vars, tla[to[j]].vars),
+  );
+  const group = (i: number) => view.group?.(tla[i].vars);
   return { names, shapes, labels, group };
 }
 
@@ -104,27 +94,10 @@ export function asParents(
 }
 
 const regionKeys = (name: string, shapes: Shape[]) => {
-  const n = shapes.length;
-  const key = new Array<string>(n);
-  const kind = new Int32Array(n);
-  const tops = new Map<string, number>();
-  const nested = new Map<string, number>();
-  const keyOf = new Array<string>(n);
-  let size = 0;
-  for (let i = 0; i < n; i++) {
-    const path = shapes[i][name];
-    const top = path.length === 1;
-    const seen = top ? tops : nested;
-    const k = top ? path[0] : tupleKey(path);
-    let c = seen.get(k);
-    if (c === undefined) {
-      seen.set(k, (c = size++));
-      keyOf[c] = top ? tupleKey(path) : k;
-    }
-    key[i] = keyOf[c];
-    kind[i] = c;
-  }
-  return { key, kind, size };
+  const key = shapes.map((shape) => tupleKey(shape[name]));
+  const firstSeen = [...new Set(key)];
+  const code = new Map(firstSeen.map((k, c) => [k, c]));
+  return { key, kind: Int32Array.from(key, (k) => must(code, k)), size: firstSeen.length };
 };
 
 const unlabeledStep = (
@@ -157,7 +130,7 @@ const checkLabeled = (
   }
 };
 
-type Together = { changed: Uint8Array; sets: Set<string> };
+type Together = { changed: boolean[]; sets: Set<string> };
 
 const changesByLabel = (
   names: string[],
@@ -166,17 +139,16 @@ const changesByLabel = (
   drawnLabels: string[],
   { from, to }: Walk,
 ) => {
-  const R = names.length;
-  const byLabel = new Map<string, Together>();
-  if (R < 2) return byLabel;
-  for (const j of sorted) {
-    const entry = byLabel.get(drawnLabels[j]) ?? { changed: new Uint8Array(R), sets: new Set() };
-    byLabel.set(drawnLabels[j], entry);
-    const changed = names.filter((_, r) => kinds[r][from[j]] !== kinds[r][to[j]]);
-    for (const r of names.keys()) if (kinds[r][from[j]] !== kinds[r][to[j]]) entry.changed[r] = 1;
-    if (changed.length > 1) entry.sets.add(list(changed));
-  }
-  return byLabel;
+  if (names.length < 2) return new Map<string, Together>();
+  const movesOf = (j: number) => names.map((_, r) => kinds[r][from[j]] !== kinds[r][to[j]]);
+  const changedAt = (j: number) => names.filter((_, r) => movesOf(j)[r]);
+  const togetherOf = (js: number[]): Together => ({
+    changed: names.map((_, r) => js.some((j) => movesOf(j)[r])),
+    sets: new Set(js.map(changedAt).flatMap((changed) => (changed.length > 1 ? [list(changed)] : []))),
+  });
+  return new Map(
+    [...Map.groupBy(sorted, (j) => drawnLabels[j])].map(([text, js]) => [text, togetherOf(js)]),
+  );
 };
 
 const notesOf = (names: string[], byLabel: Map<string, Together>, together: Set<string>) =>
@@ -193,11 +165,9 @@ const notesOf = (names: string[], byLabel: Map<string, Together>, together: Set<
 
 const pathIndexOf = (graph: Graph, found: Bug[], m: number) => {
   const onPath = new Set<Step>(found.flatMap((b) => b.path.map((p) => p.step)));
-  const pathStepIndex = new Map<Step, number>();
-  if (onPath.size)
-    for (let j = 0; j < m; j++)
-      if (onPath.has(graph.steps[j])) pathStepIndex.set(graph.steps[j], j);
-  return pathStepIndex;
+  return new Map(
+    graph.steps.slice(0, m).flatMap((step, j) => (onPath.has(step) ? [[step, j] as const] : [])),
+  );
 };
 
 export function labelGraph(
@@ -217,13 +187,12 @@ export function labelGraph(
   const sizes = perRegion.map((p) => p.size);
   checkLabeled(graph, found, stepLabels, pathStepIndex, walk);
   const drawn = Array.from({ length: m }, (_, j) => j).filter((j) => stepLabels[j] !== null);
-  const drawnLabels = new Array<string>(m);
-  for (const j of drawn) drawnLabels[j] = stepLabels[j] as string;
+  const drawnLabels = stepLabels.map((label) => (label === null ? undefined : label)) as string[];
   const fromRank = Int32Array.from(from, (f) => rank[f]);
   const toRank = Int32Array.from(to, (t) => rank[t]);
   const sorted = sortBy(Int32Array.from(drawn), [fromRank, toRank, action]);
-  const pathSteps = new Uint8Array(m);
-  for (const j of pathStepIndex.values()) pathSteps[j] = 1;
+  const onPathStep = new Set(pathStepIndex.values());
+  const pathSteps = Uint8Array.from({ length: m }, (_, j) => (onPathStep.has(j) ? 1 : 0));
   const byLabel = changesByLabel(names, kinds, sorted, drawnLabels, walk);
   const together = new Set([...byLabel].filter(([, e]) => e.sets.size).map(([text]) => text));
   const notes = notesOf(names, byLabel, together);

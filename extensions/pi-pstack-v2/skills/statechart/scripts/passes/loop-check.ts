@@ -1,5 +1,4 @@
 import {
-  append,
   type Arrow,
   type Bug,
   type Chart,
@@ -37,17 +36,15 @@ export function loopCheck(
   found: Bug[],
 ) {
   const combo = (i: number) => tupleKey(names.map((_, r) => keys[r][i]));
-  const stepsFrom = new Map<number, number[]>();
-  const arrowsFrom: Map<string, Arrow[]>[] = (loops.length ? regions : []).map(({ arrows }) => {
-    const out = new Map<string, Arrow[]>();
-    for (const a of arrows) append(out, a.from, a);
-    return out;
-  });
-  if (loops.length) for (const j of sorted) append(stepsFrom, from[j], j);
+  const stepsFrom: Map<number, number[]> = loops.length
+    ? Map.groupBy(sorted, (j) => from[j])
+    : new Map();
+  const arrowsFrom: Map<string, Arrow[]>[] = (loops.length ? regions : []).map(({ arrows }) =>
+    Map.groupBy(arrows, (a) => a.from),
+  );
   for (const b of found) {
     if (b.loop === undefined) continue;
-    const twinsOf = new Map<string, number[]>();
-    for (const i of loopOf(b, index)) append(twinsOf, combo(i), i);
+    const twinsOf = Map.groupBy(loopOf(b, index), combo);
     const inLoop = new Set(twinsOf.keys());
     for (const i of loopOf(b, index)) {
       const twins = must(twinsOf, combo(i));
