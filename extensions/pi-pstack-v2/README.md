@@ -3,7 +3,7 @@
 pstack for Pi. The package ships pstack's skills, playbooks, principles, agent roles, scripts, and guide, plus the cursor-team-kit skills that pstack depends on. It is for people who want `/skill:poteto-mode` and its workflow in Pi. Each Cursor mechanism is replaced with a Pi one.
 
 - Workers are separate Pi processes in tmux, started with `pi_spawn`. Pi has no subagents.
-- Every worker and long-running command runs in a sandbox, Seatbelt on macOS and bubblewrap on Linux and WSL2. There are no permission prompts.
+- Every worker and long-running command runs in a container, Apple `container` on macOS and Podman or Docker on Linux and WSL2. There are no permission prompts.
 - Plans are files, and checklists live in `TODO.md`.
 - Watchers, dev servers, and heartbeat ticks run through `tmux_run`, never as background shell jobs.
 
@@ -20,7 +20,7 @@ Built and tested against Pi 1.5.2. Do not install another pstack package alongsi
 ## Requirements
 
 - tmux. Pi's `docs/tmux.md` covers the extended-keys setup.
-- A sandbox. macOS has Seatbelt built in. On Linux and WSL2, install bubblewrap (`bwrap`). Jobs refuse to start without one.
+- A container runtime. On macOS, install Apple `container` and run `container system start`. On Linux and WSL2, install Podman (preferred) or Docker. Jobs refuse to start without one.
 - bun and `gh`, for the scripts some skills run, such as `watch-pr` and `statechart`.
 - `jq` and `rg` (ripgrep), for `worktree-audit.sh` and the `pr-review-canvas` skill.
 
@@ -40,8 +40,8 @@ The package adds three tools for the model to call and one slash command. Every 
 
 | Tool | Does |
 | --- | --- |
-| `pi_spawn` | Starts a sandboxed `pi -p` worker in its own tmux session with a standalone brief. Takes an optional role from `agents/`, model, thinking level, git worktree, or readonly mode. Wakes your session with the worker's report when it exits. |
-| `tmux_run` | Runs a sandboxed shell command in tmux. Optionally wakes your session when it exits, or repeats it as a heartbeat. |
+| `pi_spawn` | Starts a contained `pi -p` worker in its own tmux session with a standalone brief. Takes an optional role from `agents/`, model, thinking level, git worktree, or readonly mode. Wakes your session with the worker's report when it exits. |
+| `tmux_run` | Runs a contained shell command in tmux. Optionally wakes your session when it exits, or repeats it as a heartbeat. |
 | `tmux_jobs` | Lists, tails, waits on, or stops this session's jobs. |
 
 ## Notes

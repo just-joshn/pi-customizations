@@ -18,14 +18,14 @@ The package adds three tools. `pi_spawn` starts a separate Pi in its own tmux se
 
 **Watch your workers.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
 
-## Check tmux and the sandbox
+## Check tmux and a container runtime
 
 pstack needs two things on your machine.
 
 - **tmux.** Every job runs in a tmux session, and the wake that brings a finished job's report back to your session depends on it.
-- **A sandbox.** Pi has no permission popups. Each `pi_spawn` and `tmux_run` job runs inside a sandbox instead, and a job can write only to its own directory, its worktree or working directory, the repository's git directory, and temp directories. macOS has Seatbelt built in. Linux and WSL2 need bubblewrap (`bwrap`). With neither, the tools refuse to start.
+- **A container runtime.** Pi has no permission popups. Each `pi_spawn` and `tmux_run` job runs inside an isolated Linux container instead, and a job can write only to its own directory, its worktree or working directory, the repository's git directory, and private temp directories. On macOS, install Apple `container`, then run `container system start`. On Linux and WSL2, install Podman (preferred) or Docker. With no runtime, the tools refuse to start. The first job builds a job image, which can take a few minutes.
 
-The sandbox covers the jobs, not your main session. To contain the main session too, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
+The container covers the jobs, not your main session. To contain the main session too, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
 
 ## Pick your models
 

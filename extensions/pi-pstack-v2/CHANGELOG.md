@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Every `pi_spawn` and `tmux_run` job runs in a Linux container, Apple `container` on macOS and Podman or Docker on Linux and WSL2, and refuses to start without one. Seatbelt and bubblewrap are gone, with no fallback. Mounts are directories only, git `config` and other files that cannot be mounted are guarded and restored when the job exits, and nested jobs are still brokered by the root. The main session stays uncontained. The docs, setup guide, and skills say container and "container suspect" where they said sandbox.
+
 ## 0.1.5
 
 ### Changed

@@ -1,6 +1,6 @@
 # Run work while you sleep
 
-This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree inside a sandbox, and a decision log you audit in the morning.
+This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree inside a container, and a decision log you audit in the morning.
 
 ![She waves goodnight from the door while robots keep the factory running, one updating a DECISION LOG wall board under a BUILD LOOP ACTIVE sign.](./images/overnight.jpg)
 
@@ -33,7 +33,7 @@ Walk through what each line buys you:
 - "fresh worktree off `<base>`" keeps the run from colliding with anything else you have open.
 - "don't ask me before committing" pre-answers the permission the agent would otherwise block on.
 - The heartbeat is a `tmux_run` job, not a pstack skill. A watcher runs with a `wake` message and wakes your session when it exits. A timer runs `sleep <seconds>` with `repeat: true`, and each tick wakes the session with the tick prompt. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses both to re-check the finish condition on events or on a timer. Stop a heartbeat with `tmux_jobs` and `action: "stop"`.
-- The sandbox is the permission model. Pi has no permission popups, so a job can write only to its own worktree, the repository's git directory, and temp directories. Run the main session in an isolated environment too, as the [setup page](./01-setup.md#check-tmux-and-the-sandbox) says.
+- The container is the permission model. Pi has no permission popups, so a job can write only to its own worktree, the repository's git directory, and temp directories. Run the main session in an isolated environment too, as the [setup page](./01-setup.md#check-tmux-and-a-container-runtime) says.
 - The escape hatch lets it stop at a genuine dead end and write up why, which beats eight hours of creative goal reinterpretation.
 
 Because you'll review this work after stepping away, `/skill:poteto-mode` routes it through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs the run's phases before any code and wires in the decision log.
@@ -94,7 +94,7 @@ A whole program, such as a migration across many packages, has no playbook of it
 
 ## Run many projects in parallel
 
-A coordinator session is the Project. It doesn't write code. It directs spawned Pis, each in its own worktree and sandbox, and each one wakes the coordinator with its report when it exits. Run the coordinator inside an isolated environment, as Pi's guide to isolated environments describes, so it can sit through the night. Start your prompts to the coordinator with `/skill:poteto-mode`, and the Pis it spawns follow the playbooks. Each Pi it starts reads [`worker.md`](../../skills/poteto-mode/worker.md) first, so workers hold to the kickoff's bar, decide reversible calls instead of asking you, and open PRs ready for review.
+A coordinator session is the Project. It doesn't write code. It directs spawned Pis, each in its own worktree and container, and each one wakes the coordinator with its report when it exits. Run the coordinator inside an isolated environment, as Pi's guide to isolated environments describes, so it can sit through the night. Start your prompts to the coordinator with `/skill:poteto-mode`, and the Pis it spawns follow the playbooks. Each Pi it starts reads [`worker.md`](../../skills/poteto-mode/worker.md) first, so workers hold to the kickoff's bar, decide reversible calls instead of asking you, and open PRs ready for review.
 
 A few habits help:
 
