@@ -43,11 +43,9 @@ test("TLC's marks place on their states even when TLC wraps them over lines", ()
   const spec = corpusSpec("TwoPhase");
   const out = fs.readFileSync(corpus("TwoPhase", "ChartRun.out"), "utf8");
   const graph = parseDot(fs.readFileSync(corpus("TwoPhase", "graph.dot"), "utf8"));
-  assert.equal(
-    mark(graph, readMarks(readMessages(out), "chart"), spec.variables, stateRules(spec)).size,
-    0,
-  );
-  const bad: Value[][] = [...graph.states.values()]
+  const marked = mark(graph, readMarks(readMessages(out), "chart"), spec.variables, stateRules(spec));
+  assert.equal(marked.past.size, 0);
+  const bad: Value[][] = [...marked.graph.states.values()]
     .filter((s) => s.breaks.length)
     .map((s) => [field(s.vars.rmState, "r1"), field(s.vars.rmState, "r2")].toSorted());
   assert.deepEqual(bad, [
@@ -106,16 +104,14 @@ const inv: Rule = { kind: "invariant", name: "Inv" };
 
 test("a wrapped mark with a model value named constructor places on its state", () => {
   const graph = graphOf([["s0", { x: parseValue("constructor") }, true]], []);
-  assert.equal(
-    mark(
-      graph,
-      readMarks(readMessages('<<"chart",\n<<constructor>>,\n{"Inv"}>>\n'), "chart"),
-      ["x"],
-      [inv],
-    ).size,
-    0,
+  const marked = mark(
+    graph,
+    readMarks(readMessages('<<"chart",\n<<constructor>>,\n{"Inv"}>>\n'), "chart"),
+    ["x"],
+    [inv],
   );
-  assert.deepEqual(graph.states.get("s0")?.breaks, [inv]);
+  assert.equal(marked.past.size, 0);
+  assert.deepEqual(marked.graph.states.get("s0")?.breaks, [inv]);
 });
 
 test("a tagged line in the wrong shape is an error, not spec output", () => {
