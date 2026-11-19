@@ -111,7 +111,7 @@ const tokenize = (text: string) => {
 };
 
 /** A read position over the tokens of one value; every failure reports the text near the position. */
-const makeCursor = (text: string) => {
+const makeScanner = (text: string) => {
   const { tokens, starts } = tokenize(text);
   let i = 0;
   const fail = (): never => {
@@ -146,9 +146,9 @@ const makeCursor = (text: string) => {
   };
 };
 
-type Cursor = ReturnType<typeof makeCursor>;
+type Scanner = ReturnType<typeof makeScanner>;
 
-const readString = (c: Cursor, t: string) => {
+const readString = (c: Scanner, t: string) => {
   let s = "";
   for (let j = 1, from = 1; ;) {
     const k = t.indexOf("\\", j);
@@ -160,7 +160,7 @@ const readString = (c: Cursor, t: string) => {
   }
 };
 
-const readRecord = (c: Cursor): Value => {
+const readRecord = (c: Scanner): Value => {
   const fields = c.items("]", () => {
     const name = c.next();
     if (!NAME.test(name)) c.fail();
@@ -175,7 +175,7 @@ const readRecord = (c: Cursor): Value => {
   };
 };
 
-function* pairsOf(c: Cursor) {
+function* pairsOf(c: Scanner) {
   do {
     const key = readValue(c);
     c.eat(":>");
@@ -183,7 +183,7 @@ function* pairsOf(c: Cursor) {
   } while (c.next() === "@@");
 }
 
-const readPairs = (c: Cursor): Value => {
+const readPairs = (c: Scanner): Value => {
   const pairs = Array.from(pairsOf(c));
   if (c.previous() !== ")") c.fail();
   return {
@@ -194,13 +194,13 @@ const readPairs = (c: Cursor): Value => {
   };
 };
 
-const readTuple = (c: Cursor): Value => {
+const readTuple = (c: Scanner): Value => {
   const values = c.items(">>", () => readValue(c));
   const keys = Array.from({ length: values.length }, (_, k) => k + 1);
   return { kind: "function", printedAs: "tuple", keys, values };
 };
 
-const readAtom = (c: Cursor, t: string): Value => {
+const readAtom = (c: Scanner, t: string): Value => {
   if (t.charCodeAt(0) === QUOTE) return readString(c, t);
   if (INT.test(t)) {
     if (c.peek() !== "..") return Number(t);
@@ -212,7 +212,7 @@ const readAtom = (c: Cursor, t: string): Value => {
   return NAME.test(t) ? model(t) : c.fail();
 };
 
-function readValue(c: Cursor): Value {
+function readValue(c: Scanner): Value {
   const t = c.next();
   switch (t) {
     case "TRUE":
@@ -233,7 +233,7 @@ function readValue(c: Cursor): Value {
 }
 
 export function parseValue(text: string): Value {
-  const c = makeCursor(text);
+  const c = makeScanner(text);
   const out = readValue(c);
   if (!c.atEnd()) {
     c.skip();

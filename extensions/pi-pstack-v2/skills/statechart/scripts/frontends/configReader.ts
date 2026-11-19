@@ -10,8 +10,8 @@ export const configErrors = (file: string) => ({
     new Error(`The command cannot read the config ${file} at line ${line}. ${words}`),
 });
 
-/** A cursor over the config tokens that defers the first soft error. */
-function makeCursor(file: string, tokens: Token[], end: number) {
+/** A scanner over the config tokens that defers the first soft error. */
+function makeScanner(file: string, tokens: Token[], end: number) {
   const eof: Token = { image: "", line: end };
   let at = 0;
   let deferred: Error | undefined;
@@ -25,12 +25,12 @@ function makeCursor(file: string, tokens: Token[], end: number) {
   };
 }
 
-type Cursor = ReturnType<typeof makeCursor>;
+type Scanner = ReturnType<typeof makeScanner>;
 
 const valueMessage = (t: Token) =>
   `TLC would read ${t.image} as a value. A value is a name, a number, a string, or a set in braces.`;
 
-const makeChecks = ({ refuse, cannot, defer, next, eof }: Cursor) => {
+const makeChecks = ({ refuse, cannot, defer, next, eof }: Scanner) => {
   const defined = (t: Token, undefinedNoun: string | undefined) => {
     if (NAME.test(t.image)) return;
     defer(
@@ -64,7 +64,7 @@ const makeChecks = ({ refuse, cannot, defer, next, eof }: Cursor) => {
 
 type Checks = ReturnType<typeof makeChecks>;
 
-const makeConstant = (c: Cursor, { name, value }: Checks) => {
+const makeConstant = (c: Scanner, { name, value }: Checks) => {
   const { refuse, next, eof } = c;
   /** Reads `[ module ]` after the opening bracket; `open` names the text before it for errors. */
   const moduleBracket = (open: string) => {
@@ -108,9 +108,9 @@ const makeConstant = (c: Cursor, { name, value }: Checks) => {
 };
 
 export function makeReader(file: string, tokens: Token[], end: number) {
-  const cursor = makeCursor(file, tokens, end);
-  const checks = makeChecks(cursor);
-  return { ...cursor, defined: checks.defined, constant: makeConstant(cursor, checks) };
+  const scanner = makeScanner(file, tokens, end);
+  const checks = makeChecks(scanner);
+  return { ...scanner, defined: checks.defined, constant: makeConstant(scanner, checks) };
 }
 
 export type Reader = ReturnType<typeof makeReader>;
