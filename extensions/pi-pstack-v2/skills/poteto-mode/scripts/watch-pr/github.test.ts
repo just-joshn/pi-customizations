@@ -148,6 +148,9 @@ describe("rollup node mapping", () => {
     });
   });
 
+});
+
+describe("rollup node mapping", () => {
   it("classifies a fast-path Code Review Gate waiting on an owner approval as the gate", () => {
     expect(
       parseFastCheck({
