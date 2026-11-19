@@ -59,17 +59,15 @@ const toHttps = (value: string): string => {
   return value;
 };
 export function parseRemote(value: string): Repository | null {
-  try {
-    const url = new URL(toHttps(value.trim()));
-    const parts = url.pathname
-      .replace(/\.git$/, "")
-      .split(PATH_SEPARATOR)
-      .filter(Boolean);
-    if (hasNonCanonicalParts(url) || parts.length !== 2) return null;
-    return { owner: parts[0], repo: parts[1] };
-  } catch {
-    return null;
-  }
+  const candidate = toHttps(value.trim());
+  if (!URL.canParse(candidate)) return null;
+  const url = new URL(candidate);
+  const parts = url.pathname
+    .replace(/\.git$/, "")
+    .split(PATH_SEPARATOR)
+    .filter(Boolean);
+  if (hasNonCanonicalParts(url) || parts.length !== 2) return null;
+  return { owner: parts[0], repo: parts[1] };
 }
 const PULL_URL_PART_COUNT = 4;
 function canonicalPullParts(value: string): readonly string[] {
