@@ -4,6 +4,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { describe, expect, test, vi } from 'vitest';
+import { hostEnv } from '../src/host-env.ts';
 import { runPiInTmux } from '../src/subagent/run-in-tmux.ts';
 
 const TEST_TIMEOUT_MS = 15_000;
@@ -19,9 +20,9 @@ async function startsInsideTmux(): Promise<void> {
       chunks = [...chunks, chunk];
     },
     onStderrChunk: () => undefined,
-    onSessionStarted: (session) => {
+    onSessionStarted: (session, socket) => {
       seen = session;
-      execFileSync('tmux', ['has-session', '-t', `=${session}`], { stdio: 'ignore' });
+      execFileSync('tmux', ['-S', socket, 'has-session', '-t', `=${session}`], { stdio: 'ignore' });
     },
   });
   expect(seen).toMatch(/^pi-subagent-/);
@@ -32,6 +33,7 @@ async function startsInsideTmux(): Promise<void> {
 async function abortKillsSession(): Promise<void> {
   const controller = new AbortController();
   let session: string | undefined;
+  let socket = '';
   const outcomePromise = runPiInTmux({
     command: 'bash',
     args: ['-c', 'sleep 30'],
@@ -39,14 +41,15 @@ async function abortKillsSession(): Promise<void> {
     signal: controller.signal,
     onStdoutChunk: () => undefined,
     onStderrChunk: () => undefined,
-    onSessionStarted: (name) => {
+    onSessionStarted: (name, socketPath) => {
       session = name;
+      socket = socketPath;
       controller.abort();
     },
   });
   const outcome = await outcomePromise;
   expect(session).toBeDefined();
-  expect(() => execFileSync('tmux', ['has-session', '-t', `=${session}`], { stdio: 'ignore' })).toThrow();
+  expect(() => execFileSync('tmux', ['-S', socket, 'has-session', '-t', `=${session}`], { stdio: 'ignore' })).toThrow();
   expect(outcome.signal).toBe('SIGTERM');
 }
 
@@ -58,7 +61,7 @@ async function childSeesParentEnvWithRunningServer(): Promise<void> {
   const tmuxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-subagent-tmux-test-'));
   vi.stubEnv('TMUX_TMPDIR', tmuxDir);
   vi.stubEnv('TMUX', '');
-  const { PI_SUBAGENT_TEST_VAR: _unset, ...serverEnv } = process.env;
+  const { PI_SUBAGENT_TEST_VAR: _unset, ...serverEnv } = hostEnv();
   execFileSync('tmux', ['new-session', '-d', '-s', 'already-running', 'sleep 30'], { stdio: 'ignore', env: serverEnv });
   vi.stubEnv('PI_SUBAGENT_TEST_VAR', 'from-parent');
   try {
@@ -75,7 +78,7 @@ async function childSeesParentEnvWithRunningServer(): Promise<void> {
     expect(outcome.code).toBe(0);
     expect(chunks.join('')).toContain('var=[from-parent]');
   } finally {
-    execFileSync('tmux', ['kill-server'], { stdio: 'ignore', env: { ...process.env } });
+    execFileSync('tmux', ['kill-server'], { stdio: 'ignore', env: hostEnv() });
     vi.unstubAllEnvs();
     fs.rmSync(tmuxDir, { recursive: true, force: true });
   }
