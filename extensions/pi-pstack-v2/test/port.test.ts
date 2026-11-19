@@ -136,11 +136,13 @@ describe('the Pi port of pstack', () => {
   });
 
   test('unported upstream scripts are byte-identical', () => {
-    const digest = (path: string) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
+    const digest = (path: string) =>
+      createHash('sha256')
+        .update(readFileSync(join(root, path)))
+        .digest('hex');
     const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !portedUpstreamFiles.has(path)).filter((path) => digest(path) !== lock.files[path]);
     expect(changed).toEqual([]);
   });
-
 });
 
 describe('the Pi port of pstack, prose rules', () => {
@@ -166,7 +168,6 @@ describe('the Pi port of pstack, prose rules', () => {
     const offenders = [...prose, join(root, 'docs', 'pi-mechanisms.md')].filter((path) => /TODO\.[\w-]+\.md/.test(readFileSync(path, 'utf8'))).map((path) => relative(root, path));
     expect(offenders).toEqual([]);
   });
-
 });
 
 describe('the Pi port of pstack, links and names', () => {

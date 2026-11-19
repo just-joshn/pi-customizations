@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
+
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 import { jobAgentDir } from './credentials.ts';
@@ -118,9 +119,15 @@ function launchRequest(request: Launch): void {
   const worktree = spec.createWorktree === undefined ? undefined : requestedWorktreePath(out);
   const asked = spec.policy.writable.map(landing);
   const refusal = refusalFor(top, spec, worktree, grant);
-  if (refusal) return settleBrokered(out, EXIT_REFUSED, refusal);
+  if (refusal) {
+    settleBrokered(out, EXIT_REFUSED, refusal);
+    return;
+  }
   const made = worktree === undefined ? undefined : createRequestedWorktree(top, spec, out, grant);
-  if (made !== undefined && 'refused' in made) return settleBrokered(out, EXIT_REFUSED, `pstack refused to launch this job. ${made.refused}`);
+  if (made !== undefined && 'refused' in made) {
+    settleBrokered(out, EXIT_REFUSED, `pstack refused to launch this job. ${made.refused}`);
+    return;
+  }
   const checked = asked.filter((path) => path !== worktree);
   let launched = false;
   try {
@@ -145,9 +152,15 @@ function serveRequest(top: Job, socket: string, dir: string, requesterDone: bool
   // A request's own requests may write only what the root granted it, recorded where no worker can write.
   serveRequests(top, socket, join(dir, 'nested'), requesterDone || done, depth + 1, readGrant(out));
   if (!spec.brokered || existsSync(exitPath(out))) return;
-  if (existsSync(join(out, 'launched'))) return superviseLaunched(socket, brokeredSession(dir), out, requesterDone || stopped);
+  if (existsSync(join(out, 'launched'))) {
+    superviseLaunched(socket, brokeredSession(dir), out, requesterDone || stopped);
+    return;
+  }
   if (requesterDone || stopped) return;
-  if (spec.kind === 'pi' && depth > 0) return settleBrokered(out, EXIT_REFUSED, 'pstack refused to start this Pi worker. A worker started by another worker cannot start workers of its own.');
+  if (spec.kind === 'pi' && depth > 0) {
+    settleBrokered(out, EXIT_REFUSED, 'pstack refused to start this Pi worker. A worker started by another worker cannot start workers of its own.');
+    return;
+  }
   launchRequest({ top, socket, spec, dir, out, grant });
 }
 

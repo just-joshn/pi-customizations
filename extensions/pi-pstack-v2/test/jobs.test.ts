@@ -106,7 +106,6 @@ describe('tmux jobs', { timeout: CONTAINMENT_TIMEOUT_MS }, () => {
     const job = launch(root, spec(`echo "marker=$${SANDBOX_ENV}"`));
     expect(tail(outputPath((await settled(job.spec.id)).dir), TAIL_LINES)).toContain('marker=1');
   });
-
 });
 
 describe('tmux jobs, wrapper and lifecycle', { timeout: CONTAINMENT_TIMEOUT_MS }, () => {
@@ -314,7 +313,6 @@ describe.runIf(supportsSandbox)('sandbox containment', { timeout: CONTAINMENT_TI
     await run(`mv ${agentDir}/extensions ${agentDir}/old; echo injected > ${agentDir}/pstack-v2-models.md`);
     expect([existsSync(join(agentDir, 'extensions')), existsSync(join(agentDir, 'old')), existsSync(join(agentDir, 'pstack-v2-models.md'))]).toEqual([true, false, false]);
   });
-
 });
 
 describe.runIf(supportsSandbox)('sandbox containment, agent directory and hooks', { timeout: CONTAINMENT_TIMEOUT_MS }, () => {
@@ -363,7 +361,6 @@ describe.runIf(supportsSandbox)('sandbox containment, agent directory and hooks'
     const done = await settled(launch(jobsIn(), spec('', { id, argv, cwd: work })).spec.id, jobsIn());
     expect(tail(outputPath(done.dir), BUS_TAIL_LINES).trim()).toBe('0');
   });
-
 });
 
 describe.runIf(supportsSandbox)('sandbox containment, processes and credentials', { timeout: CONTAINMENT_TIMEOUT_MS }, () => {

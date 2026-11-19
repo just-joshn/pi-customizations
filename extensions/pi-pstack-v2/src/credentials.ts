@@ -25,24 +25,28 @@ function anchored(realAgentDir: string, entry: string): string {
   return `${prefix}${resolve(realAgentDir, path)}`;
 }
 
+/** Anchors one packages entry, a path string or an object with a source path, to the real agent directory. */
+function anchoredPackage(realAgentDir: string, entry: unknown): unknown {
+  if (typeof entry === 'string') return anchored(realAgentDir, entry);
+  if (entry && typeof entry === 'object' && typeof (entry as { source?: unknown }).source === 'string') {
+    return { ...entry, source: anchored(realAgentDir, (entry as { source: string }).source) };
+  }
+  return entry;
+}
+
 function anchoredSettings(realAgentDir: string, settings: Record<string, unknown>): Record<string, unknown> {
   const listed = Object.fromEntries(
     ['extensions', 'skills', 'prompts', 'themes'].flatMap((key) => {
       const list = settings[key];
-      return Array.isArray(list)
-        ? [[key, list.map((entry) => (typeof entry === 'string' ? anchored(realAgentDir, entry) : entry))]]
-        : [];
+      return Array.isArray(list) ? [[key, list.map((entry) => (typeof entry === 'string' ? anchored(realAgentDir, entry) : entry))]] : [];
     }),
   );
   const copy = { ...settings, ...listed };
   if (Array.isArray(copy['packages'])) {
-    return { ...copy, packages: copy['packages'].map((entry: unknown) => {
-      if (typeof entry === 'string') return anchored(realAgentDir, entry);
-      if (entry && typeof entry === 'object' && typeof (entry as { source?: unknown }).source === 'string') {
-        return { ...entry, source: anchored(realAgentDir, (entry as { source: string }).source) };
-      }
-      return entry;
-    }) };
+    return {
+      ...copy,
+      packages: copy['packages'].map((entry: unknown) => anchoredPackage(realAgentDir, entry)),
+    };
   }
   return copy;
 }
@@ -149,9 +153,7 @@ export function syncTokens(realAgentDir: string, jobDir: string): boolean {
     const copyUpdates = providers.flatMap((provider) => {
       const [mine, theirs] = [real[provider], copy[provider]];
       const toReal = expiry(theirs) > expiry(mine) && mine?.['type'] === 'oauth';
-      return !toReal && expiry(mine) > expiry(theirs) && (theirs === undefined || theirs['type'] === 'oauth')
-        ? [[provider, mine as Record<string, unknown>] as const]
-        : [];
+      return !toReal && expiry(mine) > expiry(theirs) && (theirs === undefined || theirs['type'] === 'oauth') ? [[provider, mine as Record<string, unknown>] as const] : [];
     });
     const realChanged = realUpdates.length > 0;
     const copyChanged = copyUpdates.length > 0;

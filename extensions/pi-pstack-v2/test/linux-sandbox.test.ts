@@ -184,7 +184,6 @@ describe('the bubblewrap mounts', () => {
     expect(access(args, join(policy.credentials, 'settings.json'))).toBe('read-only');
     expect(access(args, policy.credentials)).toBe('writable');
   });
-
 });
 
 describe('the bubblewrap mounts, git paths and runtime', () => {

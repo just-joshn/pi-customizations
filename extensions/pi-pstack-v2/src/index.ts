@@ -7,12 +7,12 @@ import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter
 import { Type } from 'typebox';
 import { z } from 'zod';
 import { jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
-import { hostEnv } from './host-env.ts';
 import { gitPath, projectPath, protectedPaths } from './git.ts';
+import { hostEnv } from './host-env.ts';
+import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
 import { within } from './paths.ts';
 import { serveRequests, sweepFor } from './requests.ts';
+import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
 import { workerReport } from './transcript.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -132,8 +132,7 @@ async function blockWhileRunning(current: () => Job[], deadline: number, { signa
   }
 }
 
-const outputOf = (job: Job, lines: number): string =>
-  job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), lines)}`;
+const outputOf = (job: Job, lines: number): string => (job.spec.kind === 'pi' && job.status.state !== 'running' ? report(job) : `${describe(job)}\n${tail(outputPath(job.spec.out), lines)}`);
 
 /** A heartbeat or a server never stops on its own, so waiting on everything leaves them out. */
 const waitableIds = (root: string, owner: string): string[] =>
@@ -306,9 +305,7 @@ const showMode = (state: PstackState, ctx: ExtensionContext): void => {
 
 // The mode lives on the session branch, so a resumed session or a /tree jump gets the mode that branch had.
 const restoreMode = (state: PstackState, ctx: ExtensionContext): void => {
-  const recorded = ctx.sessionManager
-    .getBranch()
-    .reduce<string | undefined>((current, entry) => (entry.type === 'custom' && entry.customType === MODE ? (entry.data as { skill?: string } | undefined)?.skill : current), undefined);
+  const recorded = ctx.sessionManager.getBranch().reduce<string | undefined>((current, entry) => (entry.type === 'custom' && entry.customType === MODE ? (entry.data as { skill?: string } | undefined)?.skill : current), undefined);
   state.setMode(recorded && skillNames.includes(recorded) ? recorded : undefined);
   showMode(state, ctx);
 };
@@ -415,7 +412,6 @@ function registerTmuxRun(pi: ExtensionAPI): void {
       }
     },
   });
-
 }
 
 /** Blocks on the named jobs, or every waitable one, and reports each. */
@@ -432,6 +428,8 @@ async function waitFor(state: PstackState, root: string, owner: string, named: s
     state.release(ids);
   }
 }
+
+const jobOutputs = (jobs: Job[], lines: number): string => jobs.map((job) => outputOf(job, lines)).join('\n\n');
 
 function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
   pi.registerTool({
@@ -454,7 +452,7 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
         const jobs = list(root, owner);
         return text(jobs.length ? jobs.map(describe).join('\n') : 'No jobs in this session.');
       }
-      if (input.action === 'output') return text(named().map((job) => outputOf(job, input.lines ?? DEFAULT_OUTPUT_LINES)).join('\n\n'));
+      if (input.action === 'output') return text(jobOutputs(named(), input.lines ?? DEFAULT_OUTPUT_LINES));
       if (input.action === 'wait') return text(await waitFor(state, root, owner, input.ids, input.timeout_seconds, { signal, update, ctx }));
       const series = new Set(named().map((job) => job.spec.series));
       // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.

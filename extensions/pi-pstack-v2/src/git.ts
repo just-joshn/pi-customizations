@@ -1,7 +1,8 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { type ExtensionContext } from '@earendil-works/pi-coding-agent';
+
+import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { landing, within } from './paths.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
 

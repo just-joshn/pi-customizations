@@ -214,7 +214,6 @@ describe('system prompt', () => {
     expect(await prompt()).toContain('<skill name="poteto-mode"');
     expect((ctx['ui'] as { notify: ReturnType<typeof vi.fn> }).notify).toHaveBeenLastCalledWith(expect.stringContaining('not a pstack skill'), 'error');
   });
-
 });
 
 describe('system prompt, roles and session', () => {
@@ -281,7 +280,6 @@ describe('sandbox guidance', () => {
     expect(note).toMatch(/Unix sockets.*ssh-agent.*HTTPS remote/s);
     expect(note).toMatch(/\.git\/hooks.*\.vscode.*\.claude.*quarantine/s);
   });
-
 });
 
 const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
@@ -315,7 +313,6 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     expect(report).toContain('built-output');
     expect(report).not.toContain('still running');
   });
-
 });
 
 describe('tmux_jobs, waiting and output', { timeout: 20_000 }, () => {
@@ -347,7 +344,6 @@ describe('tmux_jobs, waiting and output', { timeout: 20_000 }, () => {
     await call('tmux_jobs', { action: 'stop', ids: [jobs()[0] ?? ''] });
     expect(sendMessage).not.toHaveBeenCalled();
   });
-
 });
 
 describe('tmux_jobs, live sessions', { timeout: 20_000 }, () => {
@@ -469,7 +465,6 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
     const alive = (): boolean => spawnSync('kill', ['-0', String(sleeper)]).status === 0;
     await expect.poll(alive, { timeout: 5_000 }).toBe(false);
   });
-
 });
 
 describe('cleanup a job cannot dodge, stop and heartbeat', { timeout: 20_000 }, () => {
@@ -606,7 +601,6 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     expect(readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8').trim()).toBe('refused');
     server.close();
   });
-
 });
 
 describe('a sweep a job cannot switch off', { timeout: 20_000 }, () => {
@@ -673,7 +667,6 @@ describe('workers and the jobs they start', { timeout: INTERROGATE_TIMEOUT_MS },
     expect(await handlers['agent_before_settle']?.({ entries: [] }, ctx)).toBeUndefined();
   });
 
-
   test('tmux_run may run in a linked worktree of this repository, such as a worker checkout', async () => {
     const worktree = join(jobsRoot(), 'manual-000001', 'worktree');
     mkdirSync(dirname(worktree), { recursive: true });
@@ -683,7 +676,6 @@ describe('workers and the jobs they start', { timeout: INTERROGATE_TIMEOUT_MS },
     await expect.poll(() => exitOf(join(jobsRoot(), id)), { timeout: 10_000 }).toBe('0');
     expect(existsSync(join(worktree, 'from-job'))).toBe(true);
   });
-
 });
 
 const firefox = (() => {
@@ -731,7 +723,6 @@ describe('the macOS sandbox and the tools jobs run', { timeout: MACOS_SANDBOX_TI
       rmSync(fixture, { force: true });
     }
   });
-
 });
 
 describe('the macOS sandbox, temp directories and shells', { timeout: MACOS_SANDBOX_TIMEOUT_MS }, () => {

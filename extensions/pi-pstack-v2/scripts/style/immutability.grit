@@ -42,7 +42,23 @@ or {
   `--$o.$p`,
   `--$o[$k]`,
   `delete $gone`,
-  `$r.$f($...)` where { $f <: or { `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, `reverse`, `fill`, `copyWithin`, `set`, `add`, `delete`, `clear` } },
+  `$r.$f($...)` where {
+    $f <: or {
+      `push`,
+      `pop`,
+      `shift`,
+      `unshift`,
+      `splice`,
+      `sort`,
+      `reverse`,
+      `fill`,
+      `copyWithin`,
+      `set`,
+      `add`,
+      `delete`,
+      `clear`
+    }
+  },
   `Object.assign($f, $...)` where { not $f <: `{$...}` },
   `Object.defineProperty($...)`,
   `Object.defineProperties($...)`,
@@ -50,6 +66,4 @@ or {
   `Reflect.set($...)`,
   `Reflect.deleteProperty($...)`,
   `Reflect.defineProperty($...)`
-} as $m where {
-  register_diagnostic(span=$m, message="immutability: this mutates an existing object; build a new value instead")
-}
+} as $m where { register_diagnostic(span=$m, message="immutability: this mutates an existing object; build a new value instead") }

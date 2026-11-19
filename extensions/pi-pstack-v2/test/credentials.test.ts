@@ -63,7 +63,6 @@ describe('a job agent directory', () => {
     const script = `import { FileModelsStore } from ${JSON.stringify(storeModule)}; console.log(JSON.stringify(await new FileModelsStore(${JSON.stringify(join(job, 'models-store.json'))}).read('spacex-cursor', { signal: AbortSignal.timeout(1000) })));`;
     expect(execFileSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 3000 }).trim()).toBe(JSON.stringify(entry));
   });
-
 });
 
 describe('a job agent directory, resolved settings and commands', () => {
@@ -123,7 +122,6 @@ describe('token sync', () => {
     expect(syncTokens(real, job)).toBe(false);
     expect(read(real)['oauth']?.['refresh']).toBe('r1');
   });
-
 });
 
 describe('token sync, rejected and locked cases', () => {

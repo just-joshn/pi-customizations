@@ -156,8 +156,11 @@ function absentMoveOf({ path, parentWasLink }: Inventory['absent'][number]): Mov
 }
 
 /** Moves each path in order, then returns the earlier moves with the ones that happened. */
-const moveAll = (inv: Inventory, moves: Move[], moved: string[]): string[] =>
-  moves.reduce((done, { path, reason }) => (quarantine(inv, path, reason, done.length) ? [...done, path] : done), moved);
+const moveAll = (inv: Inventory, moves: Move[], moved: string[]): string[] => {
+  const [head, ...rest] = moves;
+  if (head === undefined) return moved;
+  return moveAll(inv, rest, quarantine(inv, head.path, head.reason, moved.length) ? moved.concat(head.path) : moved);
+};
 
 /** Moves each path that appeared during the job into quarantine, never following a link, and returns what it moved. */
 export function sweep(inv: Inventory): string[] {
@@ -165,7 +168,11 @@ export function sweep(inv: Inventory): string[] {
   const afterAbsent = inv.absent.reduce((moved, entry) => moveAll(inv, [absentMoveOf(entry)], moved), [] as string[]);
   const present = new Set(inv.present);
   const scan = scanCode(inv.roots, true);
-  const moved = moveAll(inv, scan.found.filter((path) => !present.has(path)).map((path) => ({ path, reason: 'Pi, git, editor, or harness code that appeared while the job ran' })), afterAbsent);
+  const moved = moveAll(
+    inv,
+    scan.found.filter((path) => !present.has(path)).map((path) => ({ path, reason: 'Pi, git, editor, or harness code that appeared while the job ran' })),
+    afterAbsent,
+  );
   for (const path of new Set(scan.unreadable)) appendFileSync(inv.output, `pstack could not search ${path} for Pi, git, editor, or harness code the job may have left there. Check it before you start Pi in this checkout.\n`);
   return moved;
 }

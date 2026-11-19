@@ -3,7 +3,6 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSy
 import { basename, dirname, join } from 'node:path';
 
 import { z } from 'zod';
-
 import { hostEnv } from './host-env.ts';
 import { EDITOR_CODE, HARNESS_DIRS, HARNESS_INSTRUCTIONS, WORKSPACE_SUFFIX } from './sweep.ts';
 
@@ -179,9 +178,7 @@ const bind = (flag: string, path: string): string[] => [flag, path, path];
 
 /** The job's agent directory becomes a throwaway tmpfs holding its entries read-only, and only its credentials copy is bound writable. */
 const credentialMounts = (credentials: string): string[] =>
-  credentials && existsSync(credentials)
-    ? ['--tmpfs', credentials, ...readdirSync(credentials).flatMap((name) => bind(name === 'auth.json' ? '--bind' : '--ro-bind', join(credentials, name)))]
-    : [];
+  credentials && existsSync(credentials) ? ['--tmpfs', credentials, ...readdirSync(credentials).flatMap((name) => bind(name === 'auth.json' ? '--bind' : '--ro-bind', join(credentials, name)))] : [];
 
 export function bwrapArgs(policy: SandboxPolicy, env: Env = hostEnv(), uid: number = process.getuid?.() ?? 0): string[] {
   // Service sockets live under /run, such as Docker's and the system bus, so it is hidden, except the DNS resolver's files.

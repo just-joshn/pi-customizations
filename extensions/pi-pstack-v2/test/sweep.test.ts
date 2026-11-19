@@ -49,7 +49,6 @@ describe.runIf(notRoot)('sweep', () => {
     expect(sweep(inventory)).toEqual([second]);
     expect(readFileSync(inventory.output, 'utf8')).toContain(`pstack could not quarantine ${first}`);
   });
-
 });
 
 describe.runIf(notRoot)('sweep, appearing code', () => {
@@ -86,7 +85,6 @@ describe.runIf(notRoot)('sweep, appearing code', () => {
     expect(existsSync(join(work, '.claude', 'skills', 'probe', 'SKILL.md'))).toBe(true);
     expect(existsSync(join(work, 'sub', '.cursor', 'rules'))).toBe(true);
   });
-
 });
 
 describe.runIf(notRoot)('sweep, installed and protected paths', () => {

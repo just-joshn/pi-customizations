@@ -6,7 +6,6 @@ import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { z } from 'zod';
-
 import { jobAgentDir } from './credentials.ts';
 import { hostEnv } from './host-env.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, SandboxPolicySchema, TOP_DIR_ENV } from './sandbox.ts';
@@ -497,8 +496,5 @@ function clipRanges(first: Buffer, last: Buffer, size: number, path: string): st
 }
 
 export function tail(path: string, lines: number): string {
-  return readEnd(path, TAIL_WINDOW_BYTES)
-    .split('\n')
-    .slice(-lines)
-    .join('\n');
+  return readEnd(path, TAIL_WINDOW_BYTES).split('\n').slice(-lines).join('\n');
 }

@@ -11,8 +11,7 @@ const isAssistant = (entry: SessionEntry): entry is Assistant => entry.type === 
 /** The entries from the last one back to the root, oldest first. A cycle in parent ids ends the walk. */
 function branchOf(turns: SessionEntry[]): SessionEntry[] {
   const byId = new Map(turns.map((entry) => [entry.id, entry]));
-  const walk = (entry: SessionEntry | undefined, seen: ReadonlySet<string>): SessionEntry[] =>
-    entry && !seen.has(entry.id) ? [entry, ...walk(entry.parentId ? byId.get(entry.parentId) : undefined, new Set([...seen, entry.id]))] : [];
+  const walk = (entry: SessionEntry | undefined, seen: ReadonlySet<string>): SessionEntry[] => (entry && !seen.has(entry.id) ? [entry, ...walk(entry.parentId ? byId.get(entry.parentId) : undefined, new Set([...seen, entry.id]))] : []);
   return walk(turns.at(-1), new Set()).toReversed();
 }
 
