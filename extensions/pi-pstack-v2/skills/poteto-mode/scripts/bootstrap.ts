@@ -51,7 +51,7 @@ export function ensureDependenciesInstalled(): void {
 
   writeFileSync(installKeyPath, `${installKey}\n`);
 
-  const restarted = Bun.spawnSync([process.execPath, ...process.argv.slice(1)], {
+  const restarted = Bun.spawnSync([process.execPath, ...Bun.argv.slice(1)], {
     cwd: process.cwd(),
     env: process.env,
     stdin: "inherit",

@@ -1,33 +1,40 @@
 import { describe, expect, it } from "bun:test";
 import { type CliRuntime, main, parseArgs } from "./cli.ts";
 import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
+import { createRecorder } from "./recorder.test-helper.ts";
 import { renderJson, renderPretty } from "./render.ts";
 import type { GitHubReader, WatcherVerdict } from "./types.ts";
 import { parsePrNumber } from "./types.ts";
 
 const silentIo = { stdout: () => {}, stderr: () => {} };
 
+const neverSleepClock = {
+  now: () => 0,
+  observedAt: () => "2026-07-26T00:00:00.000Z",
+  async sleep(): Promise<void> {
+    throw new Error("test unexpectedly slept");
+  },
+};
+
 function testRuntime(reader: GitHubReader): {
   readonly runtime: CliRuntime;
-  readonly stdout: string[];
-  readonly stderr: string[];
+  readonly stdout: readonly string[];
+  readonly stderr: readonly string[];
 } {
-  const stdout: string[] = [];
-  const stderr: string[] = [];
+  const stdout = createRecorder<string>();
+  const stderr = createRecorder<string>();
   return {
-    stdout,
-    stderr,
+    get stdout() {
+      return stdout.items;
+    },
+    get stderr() {
+      return stderr.items;
+    },
     runtime: {
       reader,
-      clock: {
-        now: () => 0,
-        observedAt: () => "2026-07-26T00:00:00.000Z",
-        async sleep() {
-          throw new Error("test unexpectedly slept");
-        },
-      },
-      stdout: (value) => stdout.push(value),
-      stderr: (value) => stderr.push(value),
+      clock: neverSleepClock,
+      stdout: (value) => stdout.add(value),
+      stderr: (value) => stderr.add(value),
     },
   };
 }
@@ -109,6 +116,18 @@ describe("rendering", () => {
     repo: "repo",
     number: parsePrNumber(1),
   };
+  const mergedFacts = {
+    context,
+    mergeable: "MERGEABLE",
+    mergeStateStatus: "CLEAN",
+    reviewDecision: "APPROVED",
+    headRefOid: "head",
+    headRefName: "feature",
+    baseRefName: "main",
+    state: "MERGED",
+    mergedAt: "now",
+    isDraft: false,
+  } as const;
   const status = {
     schemaVersion: 1,
     sequence: 1,
@@ -118,24 +137,7 @@ describe("rendering", () => {
     terminal: true,
     exitCode: 0,
     reason: "status-only",
-    rows: [
-      {
-        kind: "merged",
-        context,
-        facts: {
-          context,
-          mergeable: "MERGEABLE",
-          mergeStateStatus: "CLEAN",
-          reviewDecision: "APPROVED",
-          headRefOid: "head",
-          headRefName: "feature",
-          baseRefName: "main",
-          state: "MERGED",
-          mergedAt: "now",
-          isDraft: false,
-        },
-      },
-    ],
+    rows: [{ kind: "merged", context, facts: mergedFacts }],
   } satisfies WatcherVerdict;
 
   it("emits compact valid JSON by default", () => {

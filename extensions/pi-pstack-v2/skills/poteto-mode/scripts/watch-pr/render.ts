@@ -42,14 +42,17 @@ function mergeCell(row: T.PrSnapshot): string {
     ? "⚠️ conflict"
     : "✅";
 }
+const statusRow = (row: T.PrSnapshot): string => {
+  const { owner, repo, number } = row.context;
+  const url = `https://github.com/${owner}/${repo}/pull/${number}`;
+  return `| [#${number}](${url}) | ${ciCell(row)} | ${reviewCell(row)} | ${mergeCell(row)} |`;
+};
 export function renderStatusTable(rows: T.NonEmpty<T.PrSnapshot>): string {
-  const lines = ["| PR | CI | Review | Merge |", "| --- | --- | --- | --- |"];
-  for (const row of rows) {
-    const url = `https://github.com/${row.context.owner}/${row.context.repo}/pull/${row.context.number}`;
-    lines.push(
-      `| [#${row.context.number}](${url}) | ${ciCell(row)} | ${reviewCell(row)} | ${mergeCell(row)} |`
-    );
-  }
+  const lines = [
+    "| PR | CI | Review | Merge |",
+    "| --- | --- | --- | --- |",
+    ...rows.map(statusRow),
+  ];
   return `${lines.join("\n")}\n`;
 }
 function threadLine(thread: T.ReviewThread): string {
@@ -69,66 +72,94 @@ type StatusQueryBlocker = {
   readonly failures: number;
   readonly failure: { readonly detail: string };
 };
+const MERGE_GATE_ACTIONS = {
+  "closed-without-merge":
+    "restore or remove the closed PR from the queued stack",
+  "draft-pr":
+    "mark the PR ready for review before waiting for the merge queue",
+  "changes-requested":
+    "resolve the changes-requested review before waiting for the merge queue",
+} as const satisfies Record<T.MergeGateReason, string>;
+const renderConflicts = (
+  blocker: Extract<T.MergeBlocker, { readonly kind: "merge-conflicts" }>
+): string =>
+  [
+    "BLOCKER: merge-conflicts",
+    `pr=${blocker.pr.number}`,
+    `mergeable=${blocker.facts.mergeable}`,
+    `mergeStateStatus=${blocker.facts.mergeStateStatus}`,
+    "action=resolve merge conflicts before waiting for CI",
+  ].join("\n");
+const renderThreads = (
+  blocker: Extract<T.MergeBlocker, { readonly kind: "review-threads" }>
+): string =>
+  [
+    "BLOCKER: review-threads",
+    `pr=${blocker.pr.number}`,
+    `unresolved=${blocker.threads.length}`,
+    ...blocker.threads.map(threadLine),
+  ].join("\n");
+const rejectionLines = (ci: T.CiGithubRejected): string[] => [
+  `mergeStateStatus=${ci.github.mergeStateStatus}`,
+  `headRollupState=${ci.github.headRollupState}`,
+];
+function renderFailingChecks(
+  blocker: Extract<T.MergeBlocker, { readonly kind: "failing-checks" }>
+): string {
+  const failed = blocker.ci.kind === "ci-failing" ? blocker.ci.failed : [];
+  const checkDetails = failed.map(
+    (check) =>
+      `${check.name} ${check.reportedState} ${check.description} ${check.link}`
+  );
+  const rejection = blocker.ci.kind === "ci-github-rejected" ? rejectionLines(blocker.ci) : [];
+  return [
+    "BLOCKER: failing-checks",
+    `pr=${blocker.pr.number}`,
+    `failed=${failed.length}`,
+    ...checkDetails,
+    ...rejection,
+  ].join("\n");
+}
+const renderMergeGate = (
+  blocker: Extract<T.MergeBlocker, { readonly kind: "merge-gate" }>
+): string =>
+  [
+    `BLOCKER: ${blocker.reason}`,
+    `pr=${blocker.pr.number}`,
+    `action=${MERGE_GATE_ACTIONS[blocker.reason]}`,
+  ].join("\n");
+const renderStatusQuery = (blocker: StatusQueryBlocker): string =>
+  [
+    "BLOCKER: status-query",
+    `failures=${blocker.failures}`,
+    `detail=${blocker.failure.detail}`,
+    "action=verify current PR context, GitHub authentication, and API availability, then rearm",
+  ].join("\n");
 function renderBlocker(blocker: T.MergeBlocker | StatusQueryBlocker): string {
   switch (blocker.kind) {
     case "merge-conflicts":
-      return [
-        "BLOCKER: merge-conflicts",
-        `pr=${blocker.pr.number}`,
-        `mergeable=${blocker.facts.mergeable}`,
-        `mergeStateStatus=${blocker.facts.mergeStateStatus}`,
-        "action=resolve merge conflicts before waiting for CI",
-      ].join("\n");
+      return renderConflicts(blocker);
     case "review-threads":
-      return [
-        "BLOCKER: review-threads",
-        `pr=${blocker.pr.number}`,
-        `unresolved=${blocker.threads.length}`,
-        ...blocker.threads.map(threadLine),
-      ].join("\n");
-    case "failing-checks": {
-      const failed = blocker.ci.kind === "ci-failing" ? blocker.ci.failed : [];
-      const details = failed.map(
-        (check) =>
-          `${check.name} ${check.reportedState} ${check.description} ${check.link}`
-      );
-      if (blocker.ci.kind === "ci-github-rejected")
-        details.push(
-          `mergeStateStatus=${blocker.ci.github.mergeStateStatus}`,
-          `headRollupState=${blocker.ci.github.headRollupState}`
-        );
-      return [
-        "BLOCKER: failing-checks",
-        `pr=${blocker.pr.number}`,
-        `failed=${failed.length}`,
-        ...details,
-      ].join("\n");
-    }
-    case "merge-gate": {
-      const action =
-        blocker.reason === "closed-without-merge"
-          ? "restore or remove the closed PR from the queued stack"
-          : blocker.reason === "draft-pr"
-            ? "mark the PR ready for review before waiting for the merge queue"
-            : "resolve the changes-requested review before waiting for the merge queue";
-      return [
-        `BLOCKER: ${blocker.reason}`,
-        `pr=${blocker.pr.number}`,
-        `action=${action}`,
-      ].join("\n");
-    }
+      return renderThreads(blocker);
+    case "failing-checks":
+      return renderFailingChecks(blocker);
+    case "merge-gate":
+      return renderMergeGate(blocker);
     case "status-query":
-      return [
-        "BLOCKER: status-query",
-        `failures=${blocker.failures}`,
-        `detail=${blocker.failure.detail}`,
-        "action=verify current PR context, GitHub authentication, and API availability, then rearm",
-      ].join("\n");
+      return renderStatusQuery(blocker);
     default: {
       const exhaustive: never = blocker;
       return exhaustive;
     }
   }
+}
+const DRAFT_NOTE =
+  "\nnote=draft allowed (--allow-draft); leave draft \u2014 do not mark ready";
+function readyDetail(scope: T.ReadyScope): string {
+  if (scope.kind !== "single" || scope.pr.kind !== "ready-pr") return "";
+  const { proof } = scope.pr;
+  const draftAllowed = proof.gate.draft === "draft-allowed";
+  return `\nmergeStateStatus=${proof.ci.github.mergeStateStatus}\nreviewDecision=${proof.gate.reviewDecision}\nisDraft=${draftAllowed}${draftAllowed ? DRAFT_NOTE : ""}`;
 }
 export function renderPretty(verdict: T.WatcherVerdict): string {
   switch (verdict.kind) {
@@ -147,11 +178,7 @@ export function renderPretty(verdict: T.WatcherVerdict): string {
     case "BLOCKER":
       return `${renderBlocker(verdict.blocker)}\n`;
     case "READY": {
-      const detail =
-        verdict.scope.kind === "single" && verdict.scope.pr.kind === "ready-pr"
-          ? `\nmergeStateStatus=${verdict.scope.pr.proof.ci.github.mergeStateStatus}\nreviewDecision=${verdict.scope.pr.proof.gate.reviewDecision}\nisDraft=${verdict.scope.pr.proof.gate.draft === "draft-allowed"}${verdict.scope.pr.proof.gate.draft === "draft-allowed" ? "\nnote=draft allowed (--allow-draft); leave draft \u2014 do not mark ready" : ""}`
-          : "";
-      return `READY: no merge conflicts, no unresolved review threads, no failing or pending checks${detail}\n`;
+      return `READY: no merge conflicts, no unresolved review threads, no failing or pending checks${readyDetail(verdict.scope)}\n`;
     }
     case "COMPLETE":
       return `COMPLETE: queued stack merged (${verdict.queue.length} PR${verdict.queue.length === 1 ? "" : "s"})\n`;

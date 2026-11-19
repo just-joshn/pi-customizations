@@ -275,6 +275,12 @@ interface Terminal<
   readonly terminal: true;
   readonly exitCode: C;
 }
+export type WaitReason =
+  | {
+      readonly kind: "pending-checks";
+      readonly pending: NonEmpty<PendingCheck>;
+    }
+  | { readonly kind: "merge-queue"; readonly unmergedCount: number };
 export type ProgressVerdict =
   | (Progress<"QUEUE", "queued-stack"> & {
       readonly queue: NonEmpty<PrContext>;
@@ -285,12 +291,7 @@ export type ProgressVerdict =
     })
   | (Progress<"WAITING"> & {
       readonly frontier: PrContext;
-      readonly reason:
-        | {
-            readonly kind: "pending-checks";
-            readonly pending: NonEmpty<PendingCheck>;
-          }
-        | { readonly kind: "merge-queue"; readonly unmergedCount: number };
+      readonly reason: WaitReason;
     })
   | (Progress<"ADVANCE", "queued-stack"> & {
       readonly merged: PrContext;
@@ -344,18 +345,16 @@ export type TimeoutVerdict = Terminal<"TIMEOUT", 5> & {
         readonly unmergedCount: number;
       };
 };
+export type ReadyScope =
+  | { readonly kind: "single"; readonly pr: ReadyPr | MergedPr }
+  | { readonly kind: "stack"; readonly prs: NonEmpty<ReadyPr | MergedPr> };
 export type TerminalVerdict =
   | (Terminal<"STATUS", 0> & {
       readonly reason: "status-only";
       readonly rows: NonEmpty<PrSnapshot>;
     })
   | (Terminal<"READY", 0, "single" | "stack"> & {
-      readonly scope:
-        | { readonly kind: "single"; readonly pr: ReadyPr | MergedPr }
-        | {
-            readonly kind: "stack";
-            readonly prs: NonEmpty<ReadyPr | MergedPr>;
-          };
+      readonly scope: ReadyScope;
     })
   | (Terminal<"COMPLETE", 0, "queued-stack"> & {
       readonly queue: NonEmpty<PrContext>;

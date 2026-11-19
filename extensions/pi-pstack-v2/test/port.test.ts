@@ -75,6 +75,19 @@ describe('the Pi port of pstack', () => {
       'LICENSE', // adds cursor-team-kit's copyright beside pstack's
       'skills/pr-review-canvas/renderer.js', // style-audit immutability and no JSON.parse without zod
       'skills/pr-review-canvas/template.html', // assigns window.__PR_DIFFS__ so the injected script needs no JSON.parse
+      // poteto watch-pr / bootstrap reshaped for style-audit (immutability, file size, zod)
+      'skills/poteto-mode/scripts/bootstrap.ts',
+      'skills/poteto-mode/scripts/bun.lock',
+      'skills/poteto-mode/scripts/package.json',
+      'skills/poteto-mode/scripts/watch-pr/cli.test.ts',
+      'skills/poteto-mode/scripts/watch-pr/cli.ts',
+      'skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts',
+      'skills/poteto-mode/scripts/watch-pr/github.test.ts',
+      'skills/poteto-mode/scripts/watch-pr/github.ts',
+      'skills/poteto-mode/scripts/watch-pr/policy.test.ts',
+      'skills/poteto-mode/scripts/watch-pr/policy.ts',
+      'skills/poteto-mode/scripts/watch-pr/render.ts',
+      'skills/poteto-mode/scripts/watch-pr/types.ts',
     ]);
     const digest = (path: string) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
     const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path)).filter((path) => digest(path) !== lock.files[path]);

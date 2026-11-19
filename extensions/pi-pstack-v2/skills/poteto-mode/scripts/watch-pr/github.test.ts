@@ -96,16 +96,10 @@ describe("rollup node mapping", () => {
       ["COMPLETED", "TIMED_OUT", "failed", "FAILURE"],
       ["COMPLETED", "FUTURE_VALUE", "failed", "FAILURE"],
     ] as const;
-    for (const [status, conclusion, kind, reportedState] of cases) {
-      expect(
-        mapRollupNode({
-          __typename: "CheckRun",
-          name: "ci",
-          status,
-          conclusion,
-        })
-      ).toMatchObject({ kind, reportedState });
-    }
+    cases.forEach(([status, conclusion, kind, reportedState]) => {
+      const node = { __typename: "CheckRun", name: "ci", status, conclusion };
+      expect(mapRollupNode(node)).toMatchObject({ kind, reportedState });
+    });
   });
 
   it("classifies an in-progress Code Review Gate from the rollup as the gate", () => {
@@ -230,64 +224,40 @@ describe("closed enum parsing", () => {
   });
 });
 
+const botComment = (
+  body: string,
+  login: string,
+  location: { path: string | null; line: number | null }
+) => ({ body, createdAt: "now", ...location, author: { login } });
+const threadNode = (
+  id: string,
+  isResolved: boolean,
+  comment: ReturnType<typeof botComment>
+) => ({ id, isResolved, comments: { nodes: [comment] } });
+const NO_LOCATION = { path: null, line: null };
+const bugbotThreadNodes = [
+  threadNode(
+    "one",
+    false,
+    botComment("RUN_ID: run-1", "bugbot", { path: "a.ts", line: 1 })
+  ),
+  threadNode(
+    "two",
+    false,
+    botComment("CURSOR_AUTOMATION_ID: run-2 severity high", "cursor", NO_LOCATION)
+  ),
+  threadNode(
+    "resolved",
+    true,
+    botComment("RUN_ID: run-3", "bugbot", NO_LOCATION)
+  ),
+];
+
 it("annotates Bugbot threads with distinct review-pass counts", () => {
+  const pageInfo = { hasNextPage: false, endCursor: null };
+  const reviewThreads = { pageInfo, nodes: bugbotThreadNodes };
   const response = {
-    data: {
-      repository: {
-        pullRequest: {
-          reviewThreads: {
-            pageInfo: { hasNextPage: false, endCursor: null },
-            nodes: [
-              {
-                id: "one",
-                isResolved: false,
-                comments: {
-                  nodes: [
-                    {
-                      body: "RUN_ID: run-1",
-                      createdAt: "now",
-                      path: "a.ts",
-                      line: 1,
-                      author: { login: "bugbot" },
-                    },
-                  ],
-                },
-              },
-              {
-                id: "two",
-                isResolved: false,
-                comments: {
-                  nodes: [
-                    {
-                      body: "CURSOR_AUTOMATION_ID: run-2 severity high",
-                      createdAt: "now",
-                      path: null,
-                      line: null,
-                      author: { login: "cursor" },
-                    },
-                  ],
-                },
-              },
-              {
-                id: "resolved",
-                isResolved: true,
-                comments: {
-                  nodes: [
-                    {
-                      body: "RUN_ID: run-3",
-                      createdAt: "now",
-                      path: null,
-                      line: null,
-                      author: { login: "bugbot" },
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
+    data: { repository: { pullRequest: { reviewThreads } } },
   };
   const threads = buildReviewThreads(parseReviewThreadPage(response).threads);
   expect(threads).toHaveLength(2);
@@ -379,13 +349,8 @@ describe("review thread pagination", () => {
   });
 
   it("rejects a page that omits pageInfo instead of assuming one page", async () => {
-    const response = {
-      data: {
-        repository: {
-          pullRequest: { reviewThreads: { nodes: [] } },
-        },
-      },
-    };
+    const pullRequest = { reviewThreads: { nodes: [] } };
+    const response = { data: { repository: { pullRequest } } };
     expect(() => parseReviewThreadPage(response)).toThrow(WatcherQueryError);
   });
 });

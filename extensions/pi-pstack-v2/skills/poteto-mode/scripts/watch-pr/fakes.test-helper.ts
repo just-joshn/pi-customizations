@@ -12,6 +12,7 @@ import type {
   ReviewThreadPage,
   RollupPage,
 } from "./types.ts";
+import { createRecorder } from "./recorder.test-helper.ts";
 import { parsePrNumber } from "./types.ts";
 
 export interface FakeReaderOptions {
@@ -66,7 +67,7 @@ export function failedCheck(name = "ci"): Check {
 export function fakeReader(
   options: FakeReaderOptions = {}
 ): GitHubReader & { readonly calls: readonly string[] } {
-  const calls: string[] = [];
+  const log = createRecorder<string>();
   const context = options.current ?? {
     owner: "owner",
     repo: "repo",
@@ -87,42 +88,44 @@ export function fakeReader(
   let page = 0;
   let threadPage = 0;
   return {
-    calls,
+    get calls() {
+      return log.items;
+    },
     async originRepo() {
-      calls.push("originRepo");
+      log.add("originRepo");
       return options.origin === undefined
         ? { owner: "owner", repo: "repo" }
         : options.origin;
     },
     async currentPr(pr) {
-      calls.push("currentPr");
+      log.add("currentPr");
       return { ...context, number: pr ?? context.number };
     },
     async pullRequest(requested) {
-      calls.push("pullRequest");
+      log.add("pullRequest");
       return { ...defaults, ...options.facts, context: requested };
     },
     async openPullRequests() {
-      calls.push("openPullRequests");
+      log.add("openPullRequests");
       return options.openPullRequests ?? [];
     },
     async checksFastPath() {
-      calls.push("checksFastPath");
+      log.add("checksFastPath");
       return options.fastPath ?? { kind: "checks", checks: [passingCheck()] };
     },
     async checkRollupPage(_requested, after) {
-      calls.push(`checkRollupPage:${after ?? "null"}`);
+      log.add(`checkRollupPage:${after ?? "null"}`);
       return options.rollupPages?.[page++] ?? { checks: [], endCursor: null };
     },
     async reviewThreadPage(_requested, after) {
-      calls.push(`reviewThreadPage:${after ?? "null"}`);
+      log.add(`reviewThreadPage:${after ?? "null"}`);
       return options.threadPages?.[threadPage++] ?? {
         threads: (options.threads ?? []).map(toRawThread),
         endCursor: null,
       };
     },
     async commitRollups() {
-      calls.push("commitRollups");
+      log.add("commitRollups");
       return options.commitRollups ?? [{ oid: "head", state: "SUCCESS" }];
     },
   };

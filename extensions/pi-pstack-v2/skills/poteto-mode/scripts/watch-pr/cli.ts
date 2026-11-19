@@ -16,10 +16,12 @@ import {
   runSimple,
   statusQueryVerdict,
   verdictFactory,
+  type RunDependencies,
   type WatchClock,
 } from "./policy.ts";
 import { renderJson, renderPretty } from "./render.ts";
 import type * as T from "./types.ts";
+import type { WatchMode } from "./types.ts";
 import { nonEmpty, parsePrNumber } from "./types.ts";
 export interface CliOptions {
   readonly owner: string | null;
@@ -31,6 +33,7 @@ export interface CliOptions {
   readonly pretty: boolean;
   readonly polling: T.PollingOptions;
 }
+const EXIT_USAGE = 64;
 function positiveNumber(value: string): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0)
@@ -79,14 +82,14 @@ interface RawOptions {
   readonly allowDraft: boolean;
   readonly pretty: boolean;
 }
-export function parseArgs(
-  argv: readonly string[],
-  io: Pick<CliRuntime, "stdout" | "stderr">
-): CliOptions {
-  const program = new Command("watch-pr")
-    .description(
-      "Watch one pull request, a connected stack, or an immutable queued stack.\nJSON (NDJSON while polling) is the default; --pretty renders human text."
-    )
+const DEFAULT_INTERVAL_SECONDS = 60;
+const DEFAULT_SWEEP_INTERVAL_SECONDS = 300;
+const DEFAULT_MAX_QUERY_ERRORS = 5;
+const PROGRAM_DESCRIPTION =
+  "Watch one pull request, a connected stack, or an immutable queued stack.\nJSON (NDJSON while polling) is the default; --pretty renders human text.";
+const buildProgram = (io: Pick<CliRuntime, "stdout" | "stderr">): Command =>
+  new Command("watch-pr")
+    .description(PROGRAM_DESCRIPTION)
     .configureOutput({ writeOut: io.stdout, writeErr: io.stderr })
     .exitOverride()
     .option("--owner <owner>", "GitHub repository owner")
@@ -107,12 +110,17 @@ export function parseArgs(
       "frozen bottom-to-top queue (queued mode only)",
       stackPrList
     )
-    .option("--interval <seconds>", "poll interval", positiveNumber, 60)
+    .option(
+      "--interval <seconds>",
+      "poll interval",
+      positiveNumber,
+      DEFAULT_INTERVAL_SECONDS
+    )
     .option(
       "--sweep-interval <seconds>",
       "whole-stack sweep interval",
       positiveNumber,
-      300
+      DEFAULT_SWEEP_INTERVAL_SECONDS
     )
     .option(
       "--timeout <seconds>",
@@ -124,11 +132,18 @@ export function parseArgs(
       "--max-query-errors <count>",
       "consecutive query-error budget",
       positiveInteger,
-      5
+      DEFAULT_MAX_QUERY_ERRORS
     )
     .option("--status-only", "print one status table and exit 0", false)
     .option("--allow-draft", "do not treat a draft as a merge gate", false)
     .option("--pretty", "render human text instead of JSON", false);
+const watchMode = (raw: RawOptions): WatchMode =>
+  raw.queuedStack ? "queued-stack" : raw.stack ? "stack" : "single";
+export function parseArgs(
+  argv: readonly string[],
+  io: Pick<CliRuntime, "stdout" | "stderr">
+): CliOptions {
+  const program = buildProgram(io);
   program.parse(argv, { from: "user" });
   const raw = program.opts<RawOptions>();
   if (raw.stackPrs !== undefined && !raw.queuedStack)
@@ -137,7 +152,7 @@ export function parseArgs(
     owner: raw.owner ?? null,
     repo: raw.repo ?? null,
     pr: raw.pr ?? null,
-    mode: raw.queuedStack ? "queued-stack" : raw.stack ? "stack" : "single",
+    mode: watchMode(raw),
     stackPrs: raw.stackPrs ?? [],
     statusOnly: raw.statusOnly,
     pretty: raw.pretty,
@@ -170,33 +185,63 @@ function realRuntime(): CliRuntime {
     stderr: (value) => process.stderr.write(value),
   };
 }
+async function resolveContexts(
+  runtime: CliRuntime,
+  options: CliOptions
+): Promise<T.NonEmpty<T.PrContext>> {
+  const seed = await resolveContext({
+    reader: runtime.reader,
+    owner: options.owner,
+    repo: options.repo,
+    pr: options.pr ?? options.stackPrs[0] ?? null,
+  });
+  return (
+    nonEmpty(options.stackPrs.map((number) => ({ ...seed, number }))) ??
+    (options.mode === "single"
+      ? [seed]
+      : await discoverStack(runtime.reader, seed))
+  );
+}
+const exitCodeFor = (error: CommanderError): number =>
+  error.exitCode === 0 ? 0 : EXIT_USAGE;
+function tryParseArgs(
+  argv: readonly string[],
+  runtime: CliRuntime
+): CliOptions | number {
+  try {
+    return parseArgs(argv, runtime);
+  } catch (error) {
+    if (!(error instanceof CommanderError)) throw error;
+    return exitCodeFor(error);
+  }
+}
+function runWatch(
+  dependencies: RunDependencies,
+  options: CliOptions,
+  contexts: T.NonEmpty<T.PrContext>
+): Promise<T.TerminalVerdict> {
+  if (options.mode === "queued-stack" && !options.statusOnly)
+    return runQueued({ dependencies, contexts, options: options.polling });
+  return runSimple({
+    dependencies,
+    contexts,
+    mode: options.mode,
+    statusOnly: options.statusOnly,
+    options: options.polling,
+  });
+}
 export async function main(
   argv: readonly string[],
   runtime: CliRuntime = realRuntime()
 ): Promise<number> {
-  let options: CliOptions;
-  try {
-    options = parseArgs(argv, runtime);
-  } catch (error) {
-    if (!(error instanceof CommanderError)) throw error;
-    return error.exitCode === 0 ? 0 : 64;
-  }
+  const options = tryParseArgs(argv, runtime);
+  if (typeof options === "number") return options;
   const render = options.pretty ? renderPretty : renderJson;
   const emit = (verdict: T.ProgressVerdict): void =>
     runtime.stdout(render(verdict));
   let contexts: T.NonEmpty<T.PrContext>;
   try {
-    const seed = await resolveContext({
-      reader: runtime.reader,
-      owner: options.owner,
-      repo: options.repo,
-      pr: options.pr ?? options.stackPrs[0] ?? null,
-    });
-    contexts =
-      nonEmpty(options.stackPrs.map((number) => ({ ...seed, number }))) ??
-      (options.mode === "single"
-        ? [seed]
-        : await discoverStack(runtime.reader, seed));
+    contexts = await resolveContexts(runtime, options);
   } catch (error) {
     if (!(error instanceof WatcherQueryError)) throw error;
     const verdict = statusQueryVerdict(
@@ -208,16 +253,7 @@ export async function main(
     return verdict.exitCode;
   }
   const dependencies = { reader: runtime.reader, clock: runtime.clock, emit };
-  const verdict =
-    options.mode === "queued-stack" && !options.statusOnly
-      ? await runQueued({ dependencies, contexts, options: options.polling })
-      : await runSimple({
-          dependencies,
-          contexts,
-          mode: options.mode,
-          statusOnly: options.statusOnly,
-          options: options.polling,
-        });
+  const verdict = await runWatch(dependencies, options, contexts);
   runtime.stdout(render(verdict));
   return verdict.exitCode;
 }
