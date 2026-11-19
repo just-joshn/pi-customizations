@@ -5,6 +5,8 @@
 ### Added
 
 - `subagent` takes `model` and `thinking` on a single call, each parallel task, and each chain step, ahead of the agent's and the session's. The `pstack-models` role lines can now be honored.
+- `subagent` with `wake` returns a job id at once and wakes the session with the message and the report when every worker finishes, so a root can tick, verify, and replace a stuck worker while its workers run. `stop: "<job id>"` aborts a running job, session shutdown aborts them all, and a print-mode Pi waits for its wake jobs before it settles. Autopilot-full runs each owner as a wake job and starts a fresh owner job after each verdict, since a worker takes no input mid-run.
+- A bundled `worker` agent with every editing tool and no role prompt. Eval candidates, arena runners, and interrogate adversaries run on it, so no role prompt steers or unblinds them.
 
 ### Fixed
 
@@ -12,6 +14,7 @@
 - The guest system prompt says the VM has no `git`, `gh`, `tmux`, or `bun`, that other host paths such as the Pi agent directory are absent, and that `tmux_run` and `tmux_jobs` `output` reach them.
 - Skills and docs no longer name `pi_spawn` or its `readonly`, `worktree`, `base`, and `resume` parameters, which `subagent` replaced in 0.1.6. They describe `subagent` as it works: an `agent` is required, `scout` serves read-only work, the call blocks until its workers finish, and a worker gets its own checkout from a worktree created inside the working directory and passed as `cwd`. Tests reject `pi_spawn`, a `key: value` that `subagent` does not accept, and worker session paths, which `subagent` workers never write.
 - Opening a PR puts the worktree inside the working directory, the only host directory the VM can edit.
+- `poteto-agent` no longer searches `~/.cursor/plugins` for poteto-mode when its brief gives no path, which made it refuse every task under Pi. It reads poteto-mode beside any pstack skill in its skill list.
 - The README explains npm's install-scripts warning for `ssh2` and `cpu-features`, which arrive through Gondolin since 0.2.0, and gives the `npm install-scripts deny` command that silences it. A test checks that the command names every dependency with an install script.
 
 ## 0.2.0
