@@ -74,7 +74,7 @@ Comments need their own pass, and not from the agent that wrote them. An author 
 /skill:no-comments the diff
 ```
 
-[`/skill:no-comments`](../../skills/no-comments/SKILL.md) spawns [Comment Sicko](../../agents/comment-sicko.md) as a reviewer Pi whose report and edits the skill inspects, a reviewer with a short keep list: license headers, doc comments on a public API, links that explain what code can't, behavior forced by an external dependency you can't reshape. Everything else goes. A surprise in your own code gets no such pass. The comment comes back as a refactor flag, and `/skill:no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint, "do not remove", the skill offers to encode the claim as a type, test, or lint. Either way, the comment comes out.
+[`/skill:no-comments`](../../skills/no-comments/SKILL.md) spawns [Comment Sicko](../../src/subagent/agents/comment-sicko.md) as a reviewer Pi whose report and edits the skill inspects, a reviewer with a short keep list: license headers, doc comments on a public API, links that explain what code can't, behavior forced by an external dependency you can't reshape. Everything else goes. A surprise in your own code gets no such pass. The comment comes back as a refactor flag, and `/skill:no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint, "do not remove", the skill offers to encode the claim as a type, test, or lint. Either way, the comment comes out.
 
 The division of labor is worth keeping straight. `/skill:deslop` cleans slop out of the code, `/skill:unslop` cleans it out of prose, and `/skill:no-comments` hands the comments to a reviewer who didn't write them.
 

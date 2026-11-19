@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
   "version": "0.1.5",
-  "description": "Use the pstack skills and workflow in Pi, with sandboxed Pi workers and shell jobs running in tmux.",
+  "description": "Use the pstack skills and workflow in Pi, with the upstream subagent tool spawning Pi in tmux and shell jobs running in tmux.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -20,14 +20,14 @@
   "files": [
     "src",
     "skills",
-    "agents",
     "docs",
     "README.md",
     "LICENSE"
   ],
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./src/index.ts",
+      "./src/subagent/index.ts"
     ],
     "skills": [
       "./skills"
@@ -35,16 +35,23 @@
   },
   "scripts": {
     "test": "vitest run --coverage && cd skills/poteto-mode/scripts && bun install --frozen-lockfile && bun test watch-pr",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "style-audit": "node scripts/style-audit.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "typebox": "*"
   },
   "devDependencies": {
+    "@earendil-works/pi-agent-core": "1.5.2",
+    "@earendil-works/pi-ai": "1.5.2",
     "@earendil-works/pi-coding-agent": "1.5.2",
+    "@earendil-works/pi-tui": "1.5.2",
     "@vitest/coverage-v8": "5.1.0",
     "typebox": "1.3.27",
     "vitest": "5.1.0"
+  },
+  "dependencies": {
+    "zod": "^4"
   }
 }

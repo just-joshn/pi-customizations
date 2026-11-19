@@ -25,15 +25,16 @@ const portedScripts = walk(join(root, 'skills'))
   .map((path) => relative(root, path))
   .filter((path) => /\/scripts\//.test(path) && /\.(sh|mjs|ts)$/.test(path) && lock.files[path] !== sha(join(root, path)));
 
-const prose = [...['skills', 'agents', 'docs/guide'].flatMap((dir) => walk(join(root, dir))).filter((path) => /\.(md|tsv)$/.test(path)), join(root, 'README.md')];
+// Agent personas under src/subagent/agents are Cursor-sourced; port bans apply to Pi-ported skills/docs only.
+const prose = [...['skills', 'docs/guide'].flatMap((dir) => walk(join(root, dir))).filter((path) => /\.(md|tsv)$/.test(path)), join(root, 'README.md')];
 const scanned = [...prose, ...portedScripts.map((path) => join(root, path))];
 
 // Each pattern names a Cursor or Claude Code mechanism that Pi replaces. `allow` admits lines that only name the
 // mechanism to say what replaced it, or that refer to an external service that still exists under Pi.
 const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
-  { pattern: /\bsub-?agents?\b/i, why: 'Pi has no sub-agents; spawn a Pi instance with pi_spawn', allow: /Pi has no sub-?agents/i },
-  { pattern: /`Task`|\bTask (call|tool|spawn|subagent)s?\b/, why: 'Cursor Task tool; use pi_spawn' },
-  { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use pi_spawn parameters' },
+  { pattern: /\bsub-agents?\b|\bsubagents\b/i, why: 'Pi has no sub-agents; use the packaged subagent tool', allow: /Pi has no sub-?agents/i },
+  { pattern: /`Task`|\bTask (call|tool|spawn|subagent)s?\b/, why: 'Cursor Task tool; use the packaged subagent tool' },
+  { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use subagent parameters' },
   { pattern: /todolist|todo list|TodoWrite/i, why: 'Pi has no built-in to-dos; use TODO.md' },
   { pattern: /AskQuestion|AskUserQuestion/, why: 'Pi has no question popups; ask in plain text' },
   { pattern: /(^|[\s`(])\/loop\b/, why: 'Cursor /loop; use tmux_run' },
@@ -42,12 +43,12 @@ const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /\.cursor\b|\.mdc\b|cursor-plugin|\/add-plugin|~\/\.claude|Claude Code|\.claude-plugin/, why: 'Cursor or Claude Code path or command', allow: /names a Cursor or Claude Code mechanism/ },
   { pattern: /claude-(opus|sonnet|haiku|fable)-\d|grok-\d|composer-\d|\bfast mode\b|(?<!fail)-fast\b/i, why: 'Cursor model slug or fast mode; use provider/id and thinking' },
   { pattern: /\bCursor\b/, why: 'Cursor-only mechanism', allow: /Bugbot|cursor\/plugins|security review|built for Cursor|ported from Cursor|Each Cursor mechanism is replaced|names a Cursor or Claude Code mechanism/ },
-  { pattern: /\bAsk mode\b/, why: 'Cursor Ask mode; use pi_spawn readonly' },
+  { pattern: /\bAsk mode\b/, why: 'Cursor Ask mode; use a readonly subagent' },
   { pattern: /SendToUser/, why: 'Cursor SendToUser; Pi has no equivalent' },
   { pattern: /agent-transcripts/, why: 'Cursor transcripts; read Pi sessions' },
   { pattern: /\b(nohup|setsid|disown)\b/, why: 'background bash; use tmux_run', allow: /\b(never|not|no|without|don't)\b/i },
   { pattern: /CLAUDE\.md|\.claude\//, why: 'Claude Code path; use AGENTS.md or the Pi agent directory' },
-  { pattern: /cloud[- ]agent/i, why: 'Cursor cloud agents; use a pi_spawn worktree' },
+  { pattern: /cloud[- ]agent/i, why: 'Cursor cloud agents; use a worktree-backed subagent' },
   { pattern: /coordinator chat/i, why: 'Cursor chat; the session that runs the playbook' },
   { pattern: /\bpstack\/skills\//, why: 'upstream monorepo path; use the path relative to the skill directory' },
 ];
@@ -64,7 +65,8 @@ describe('the Pi port of pstack', () => {
   });
 
   test('every upstream file is still present', () => {
-    expect(upstream.filter((path) => !existsSync(join(root, path)))).toEqual([]);
+    const located = (path: string) => (path.startsWith('agents/') ? join(root, 'src', 'subagent', path) : join(root, path));
+    expect(upstream.filter((path) => !existsSync(located(path)))).toEqual([]);
   });
 
   test('unported upstream scripts are byte-identical', () => {
