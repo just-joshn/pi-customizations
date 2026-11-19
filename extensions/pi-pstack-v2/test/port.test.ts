@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 
 import { loadSkills } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
+import { z } from 'zod';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const lock = JSON.parse(readFileSync(join(root, 'upstream.lock.json'), 'utf8')) as { files: Record<string, string> };
+const lock = z.object({ files: z.record(z.string(), z.string()) }).parse(JSON.parse(readFileSync(join(root, 'upstream.lock.json'), 'utf8')));
 const upstream = Object.keys(lock.files);
 
 function walk(dir: string): string[] {
@@ -31,7 +32,8 @@ const scanned = [...prose, ...portedScripts.map((path) => join(root, path))];
 
 // Each pattern names a Cursor or Claude Code mechanism that Pi replaces. `allow` admits lines that only name the
 // mechanism to say what replaced it, or that refer to an external service that still exists under Pi.
-const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
+const LINE_PREVIEW_CHARS = 160;
+const bannedBase: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /\bsub-agents?\b|\bsubagents\b/i, why: 'Pi has no sub-agents; use the packaged subagent tool', allow: /Pi has no sub-?agents/i },
   { pattern: /`Task`|\bTask (call|tool|spawn|subagent)s?\b/, why: 'Cursor Task tool; use the packaged subagent tool' },
   { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use subagent parameters' },
@@ -53,8 +55,42 @@ const banned: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /\bpstack\/skills\//, why: 'upstream monorepo path; use the path relative to the skill directory' },
 ];
 
+const portedUpstreamFiles = new Set([
+  'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
+  'LICENSE', // adds cursor-team-kit's copyright beside pstack's
+  'skills/pr-review-canvas/renderer.js', // style-audit immutability and no JSON.parse without zod
+  'skills/pr-review-canvas/template.html', // assigns window.__PR_DIFFS__ so the injected script needs no JSON.parse
+  // poteto watch-pr / bootstrap reshaped for style-audit (immutability, file size, zod)
+  'skills/poteto-mode/scripts/bootstrap.ts',
+  'skills/poteto-mode/scripts/bun.lock',
+  'skills/poteto-mode/scripts/package.json',
+  'skills/poteto-mode/scripts/watch-pr/cli.test.ts',
+  'skills/poteto-mode/scripts/watch-pr/cli.ts',
+  'skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts',
+  'skills/poteto-mode/scripts/watch-pr/github.test.ts',
+  'skills/poteto-mode/scripts/watch-pr/github.ts',
+  'skills/poteto-mode/scripts/watch-pr/policy.test.ts',
+  'skills/poteto-mode/scripts/watch-pr/policy.ts',
+  'skills/poteto-mode/scripts/watch-pr/render.ts',
+  'skills/poteto-mode/scripts/watch-pr/types.ts',
+  // statechart scripts/test reshaped for style-audit (split >800, immutability)
+  'skills/statechart/scripts/test/chart.test.ts',
+  'skills/statechart/scripts/test/cli.test.ts',
+  'skills/statechart/scripts/test/config-fuzz.test.ts',
+  'skills/statechart/scripts/test/corpus.test.ts',
+  'skills/statechart/scripts/test/differential.test.ts',
+  'skills/statechart/scripts/test/drawn.ts',
+  'skills/statechart/scripts/test/java.ts',
+  'skills/statechart/scripts/test/labels.ts',
+  'skills/statechart/scripts/test/pipeline.test.ts',
+  'skills/statechart/scripts/test/plain-tlc.test.ts',
+  'skills/statechart/scripts/test/render.test.ts',
+  'skills/statechart/scripts/test/tlc-out.test.ts',
+  'skills/statechart/scripts/test/tlc.ts',
+]);
+
 const skillNames = readdirSync(join(root, 'skills'));
-banned.push({ pattern: new RegExp(`(^|[\\s\`("'])/(${skillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' });
+const banned = [...bannedBase, { pattern: new RegExp(`(^|[\\s\`("'])/(${skillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' }];
 
 describe('the Pi port of pstack', () => {
   test('every skill loads through Pi with no diagnostics', () => {
@@ -72,49 +108,19 @@ describe('the Pi port of pstack', () => {
   });
 
   test('unported upstream scripts are byte-identical', () => {
-    const ported = new Set([
-      'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
-      'LICENSE', // adds cursor-team-kit's copyright beside pstack's
-      'skills/pr-review-canvas/renderer.js', // style-audit immutability and no JSON.parse without zod
-      'skills/pr-review-canvas/template.html', // assigns window.__PR_DIFFS__ so the injected script needs no JSON.parse
-      // poteto watch-pr / bootstrap reshaped for style-audit (immutability, file size, zod)
-      'skills/poteto-mode/scripts/bootstrap.ts',
-      'skills/poteto-mode/scripts/bun.lock',
-      'skills/poteto-mode/scripts/package.json',
-      'skills/poteto-mode/scripts/watch-pr/cli.test.ts',
-      'skills/poteto-mode/scripts/watch-pr/cli.ts',
-      'skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts',
-      'skills/poteto-mode/scripts/watch-pr/github.test.ts',
-      'skills/poteto-mode/scripts/watch-pr/github.ts',
-      'skills/poteto-mode/scripts/watch-pr/policy.test.ts',
-      'skills/poteto-mode/scripts/watch-pr/policy.ts',
-      'skills/poteto-mode/scripts/watch-pr/render.ts',
-      'skills/poteto-mode/scripts/watch-pr/types.ts',
-      // statechart scripts/test reshaped for style-audit (split >800, immutability)
-      'skills/statechart/scripts/test/chart.test.ts',
-      'skills/statechart/scripts/test/cli.test.ts',
-      'skills/statechart/scripts/test/config-fuzz.test.ts',
-      'skills/statechart/scripts/test/corpus.test.ts',
-      'skills/statechart/scripts/test/differential.test.ts',
-      'skills/statechart/scripts/test/drawn.ts',
-      'skills/statechart/scripts/test/java.ts',
-      'skills/statechart/scripts/test/labels.ts',
-      'skills/statechart/scripts/test/pipeline.test.ts',
-      'skills/statechart/scripts/test/plain-tlc.test.ts',
-      'skills/statechart/scripts/test/render.test.ts',
-      'skills/statechart/scripts/test/tlc-out.test.ts',
-      'skills/statechart/scripts/test/tlc.ts',
-    ]);
     const digest = (path: string) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
-    const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !ported.has(path)).filter((path) => digest(path) !== lock.files[path]);
+    const changed = upstream.filter((path) => !/\.(md|tsv)$/.test(path) && !portedUpstreamFiles.has(path)).filter((path) => digest(path) !== lock.files[path]);
     expect(changed).toEqual([]);
   });
 
+});
+
+describe('the Pi port of pstack, prose rules', () => {
   test('no prose or ported script names a Cursor or Claude Code mechanism', () => {
     const hits = scanned.flatMap((path) =>
       readFileSync(path, 'utf8')
         .split('\n')
-        .flatMap((line, index) => banned.filter(({ pattern, allow }) => pattern.test(line) && !allow?.test(line)).map(({ why }) => `${relative(root, path)}:${index + 1} ${why}: ${line.trim().slice(0, 160)}`)),
+        .flatMap((line, index) => banned.filter(({ pattern, allow }) => pattern.test(line) && !allow?.test(line)).map(({ why }) => `${relative(root, path)}:${index + 1} ${why}: ${line.trim().slice(0, LINE_PREVIEW_CHARS)}`)),
     );
     expect(hits).toEqual([]);
   });
@@ -133,6 +139,9 @@ describe('the Pi port of pstack', () => {
     expect(offenders).toEqual([]);
   });
 
+});
+
+describe('the Pi port of pstack, links and names', () => {
   test('every /skill:<name> in prose names a shipped skill', () => {
     const hits = prose.flatMap((path) =>
       [...readFileSync(path, 'utf8').matchAll(/\/skill:([A-Za-z0-9<>_-]+)/g)]

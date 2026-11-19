@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, test } from 'vitest';
 import { runPiInTmux } from '../src/subagent/run-in-tmux.ts';
 
+const TEST_TIMEOUT_MS = 15_000;
+
 describe('runPiInTmux', () => {
   test('starts the command inside a live tmux session', async () => {
     let seen: string | undefined;
@@ -22,7 +24,7 @@ describe('runPiInTmux', () => {
     expect(seen).toMatch(/^pi-subagent-/);
     expect(outcome.code).toBe(0);
     expect(chunks.join('')).toContain('hello-from-tmux');
-  }, 15_000);
+  }, TEST_TIMEOUT_MS);
 
   test('abort kills the tmux session', async () => {
     const controller = new AbortController();
@@ -43,5 +45,5 @@ describe('runPiInTmux', () => {
     expect(session).toBeDefined();
     expect(() => execFileSync('tmux', ['has-session', '-t', `=${session!}`], { stdio: 'ignore' })).toThrow();
     expect(outcome.signal).toBe('SIGTERM');
-  }, 15_000);
+  }, TEST_TIMEOUT_MS);
 });

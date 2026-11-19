@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import pstack, { modelsFile } from '../src/index.ts';
 import { tmuxSocket } from '../src/jobs.ts';
 import { externalTempCases } from './fixtures/temp-mutations.ts';
@@ -18,6 +19,16 @@ type Tool = {
   execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }>;
 };
 
+const WAIT_SHORT_SECONDS = 10;
+const WAIT_LONG_SECONDS = 15;
+const WAIT_BUDGET_MS = 10_000;
+const WAIT_DEFAULT_ELAPSED_MS = 301_000;
+const MACOS_TOOL_POLL_TIMEOUT_MS = 45_000;
+const MACOS_SANDBOX_TIMEOUT_MS = 60_000;
+const INTERROGATE_TIMEOUT_MS = 30_000;
+const RANDOM_SUFFIX_BYTES = 3;
+const PNPM_MIN_MAJOR = 11;
+const askedSchema = z.object({ brokered: z.boolean(), argv: z.array(z.unknown()) });
 const owner = `ext${process.pid}`;
 let agentDir: string;
 let repo: string;
@@ -27,7 +38,6 @@ let commands: Record<string, { handler: (args: string, ctx: unknown) => Promise<
 let sendMessage: ReturnType<typeof vi.fn>;
 let branch: { type: string; customType?: string; data?: unknown }[];
 let ctx: Record<string, unknown>;
-const savedArgv = process.argv[1] ?? '';
 
 const jobs = () => {
   const root = join(agentDir, 'pstack-v2', 'jobs');
@@ -59,13 +69,13 @@ beforeEach(() => {
       branch = [...branch, { type: 'custom', customType, data }];
     },
     registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => {
-      commands[name] = command;
+      commands = { ...commands, [name]: command };
     },
     on: (event: string, handler: Handler) => {
-      handlers[event] = handler;
+      handlers = { ...handlers, [event]: handler };
     },
     registerTool: (tool: Tool & { name: string }) => {
-      tools[tool.name] = tool;
+      tools = { ...tools, [tool.name]: tool };
     },
     sendMessage,
   };
@@ -90,7 +100,6 @@ beforeEach(() => {
 
 afterEach(async () => {
   await handlers?.['session_shutdown']?.({}, ctx);
-  process.argv[1] = savedArgv;
   vi.unstubAllEnvs();
   try {
     execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
@@ -202,6 +211,9 @@ describe('system prompt', () => {
     expect((ctx['ui'] as { notify: ReturnType<typeof vi.fn> }).notify).toHaveBeenLastCalledWith(expect.stringContaining('not a pstack skill'), 'error');
   });
 
+});
+
+describe('system prompt, roles and session', () => {
   test('carries the model roles when configured, and no team-kit rule, since pstack uses none', async () => {
     writeFileSync(modelsFile(agentDir), 'swarm workers: prov/model high\n');
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
@@ -268,13 +280,13 @@ describe('sandbox guidance', () => {
 
 });
 
-describe('tmux_jobs', { timeout: 20_000 }, () => {
-  const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
+const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
 
+describe('tmux_jobs', { timeout: 20_000 }, () => {
   test('wait returns the report of a finished job and suppresses its wake', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'quick', command: 'echo waited-output', wake: 'Next.' });
-    const report = await text({ action: 'wait', timeout_seconds: 10 });
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_SHORT_SECONDS });
     expect(report).toContain('exited with code 0');
     expect(report).toContain('waited-output');
     expect(sendMessage).not.toHaveBeenCalled();
@@ -294,18 +306,21 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     await call('tmux_run', { name: 'server', command: 'sleep 30' });
     await call('tmux_run', { name: 'build', command: 'echo built-output', wake: 'Built.' });
     const started = Date.now();
-    const report = await text({ action: 'wait', timeout_seconds: 15 });
-    expect(Date.now() - started).toBeLessThan(10_000);
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_LONG_SECONDS });
+    expect(Date.now() - started).toBeLessThan(WAIT_BUDGET_MS);
     expect(report).toContain('built-output');
     expect(report).not.toContain('still running');
   });
 
+});
+
+describe('tmux_jobs, waiting and output', { timeout: 20_000 }, () => {
   test('wait hands the turn back as soon as the user sends a message', async () => {
     await call('tmux_run', { name: 'slow', command: 'sleep 30', wake: 'Slow.' });
     ctx = { ...ctx, hasPendingMessages: () => true };
     const started = Date.now();
-    const report = await text({ action: 'wait', timeout_seconds: 15 });
-    expect(Date.now() - started).toBeLessThan(10_000);
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_LONG_SECONDS });
+    expect(Date.now() - started).toBeLessThan(WAIT_BUDGET_MS);
     expect(report).toContain('still running');
   });
 
@@ -314,7 +329,7 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
     try {
       const waiting = text({ action: 'wait' });
-      await vi.advanceTimersByTimeAsync(301_000);
+      await vi.advanceTimersByTimeAsync(WAIT_DEFAULT_ELAPSED_MS);
       expect(await Promise.race([waiting, Promise.resolve('STILL WAITING')])).toContain('still running');
     } finally {
       vi.useRealTimers();
@@ -329,6 +344,9 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     expect(sendMessage).not.toHaveBeenCalled();
   });
 
+});
+
+describe('tmux_jobs, live sessions', { timeout: 20_000 }, () => {
   test("a job's output shows live in its tmux session, and list says how to attach to it", async () => {
     await call('tmux_run', { name: 'live', command: 'echo live-in-pane; sleep 30' });
     const [id] = jobs();
@@ -361,7 +379,7 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     await call('tmux_run', { name: 'asked', command: 'true' });
     const nested = join(agentDir, 'fake-worker', 'nested');
     const [id] = readdirSync(nested);
-    const asked = JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8'));
+    const asked = askedSchema.parse(JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8')));
     expect([asked.brokered, asked.argv]).toEqual([true, []]);
     expect(existsSync(join(nested, id ?? '', 'launched'))).toBe(false);
   });
@@ -455,6 +473,9 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
     await expect.poll(alive, { timeout: 5_000 }).toBe(false);
   });
 
+});
+
+describe('cleanup a job cannot dodge, stop and heartbeat', { timeout: 20_000 }, () => {
   test('stop does not touch a tmux server a job points its socket at', async () => {
     const victim = join(tmpdir(), `pstack-victim-${process.pid}.sock`);
     execFileSync('tmux', ['-S', victim, 'new-session', '-d', '-s', 'victim', 'sleep 30']);
@@ -471,7 +492,7 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
   test('a heartbeat keeps running after tmux_jobs wait returns its tick', async () => {
     await call('tmux_run', { name: 'tick', command: 'sleep 0.5', wake: 'Tick.', repeat: true });
     const [first] = jobs();
-    await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: 10 });
+    await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: WAIT_SHORT_SECONDS });
     expect(jobs()).toHaveLength(2);
     await call('tmux_jobs', { action: 'stop', ids: [first] });
   });
@@ -500,17 +521,18 @@ describe('round five', { timeout: 20_000 }, () => {
   });
 });
 
+const alive = (pid: number): boolean => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 describe('round four', { timeout: 20_000 }, () => {
   const jobDir = () => join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '');
   const exited = async () => expect.poll(() => existsSync(join(jobDir(), 'exit')), { timeout: 10_000 }).toBe(true);
-  const alive = (pid: number): boolean => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   test('a job may not write a directory that holds Pi itself', async () => {
     ctx = { ...ctx, cwd: dirname(agentDir) };
@@ -612,7 +634,7 @@ describe('a sweep a job cannot switch off', { timeout: 20_000 }, () => {
   });
 });
 
-describe('interrogate round', { timeout: 30_000 }, () => {
+describe('interrogate round', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
   const jobsRootLocal = () => join(agentDir, 'pstack-v2', 'jobs');
 
   test('a job cannot write your credentials at all', async () => {
@@ -620,7 +642,7 @@ describe('interrogate round', { timeout: 30_000 }, () => {
     writeFileSync(auth, JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
     await call('tmux_run', { name: 'plant', command: `printf '{"evil":{"type":"api_key","key":"!touch /tmp/pwned"}}' > ${auth}; echo rc=$?` });
     await expect.poll(() => existsSync(join(jobsRootLocal(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
-    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
+    expect(z.record(z.string(), z.unknown()).parse(JSON.parse(readFileSync(auth, 'utf8')))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
   });
 
   test('Pi code planted very deep is swept', async () => {
@@ -649,7 +671,7 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
   });
 });
 
-describe('workers and the jobs they start', { timeout: 30_000 }, () => {
+describe('workers and the jobs they start', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
   const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
 
   test('a print-mode worker hears about a finished job while it works', async () => {
@@ -689,14 +711,14 @@ const pnpmVersion = (() => {
   }
 })();
 
-describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => {
-  const run = async (command: string) => {
-    await call('tmux_run', { name: 'tool', command });
-    const dir = join(jobsRoot(), jobs()[0] ?? '');
-    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 45_000 }).toBe(true);
-    return readFileSync(join(dir, 'output.log'), 'utf8').trim();
-  };
+const run = async (command: string) => {
+  await call('tmux_run', { name: 'tool', command });
+  const dir = join(jobsRoot(), jobs()[0] ?? '');
+  await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: MACOS_TOOL_POLL_TIMEOUT_MS }).toBe(true);
+  return readFileSync(join(dir, 'output.log'), 'utf8').trim();
+};
 
+describe('the macOS sandbox and the tools jobs run', { timeout: MACOS_SANDBOX_TIMEOUT_MS }, () => {
   test.skipIf(process.platform !== 'darwin')('a job cannot start an app it wrote outside the sandbox through LaunchServices', async () => {
     const marker = join(agentDir, 'escaped');
     const plist = `<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleExecutable</key><string>Probe</string><key>CFBundleIdentifier</key><string>dev.pstack.probe${Date.now()}</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>`;
@@ -712,7 +734,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
 
   test.skipIf(process.platform !== 'darwin').each(['.com.google.Chrome.', '.com.google.Chrome.pstack-long-', 'pstack-other-'])('a job cannot create %s names in the per-user temp directory', async (prefix) => {
     const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
-    const fixture = join(shared, prefix + randomBytes(3).toString('hex'));
+    const fixture = join(shared, prefix + randomBytes(RANDOM_SUFFIX_BYTES).toString('hex'));
     expect(existsSync(fixture)).toBe(false);
     try {
       expect(await run(`printf x > '${fixture}' && echo TEMP-CREATED`)).not.toContain('TEMP-CREATED');
@@ -723,6 +745,9 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     }
   });
 
+});
+
+describe('the macOS sandbox, temp directories and shells', { timeout: MACOS_SANDBOX_TIMEOUT_MS }, () => {
   test('top-level commands point Chromium at their private temp directory', async () => {
     const output = await run('printf "%s|%s" "$TMPDIR" "$MAC_CHROMIUM_TMPDIR"');
     const tmp = join(jobsRoot(), jobs()[0] ?? '', 'tmp');
@@ -743,7 +768,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
 
   test.skipIf(process.platform !== 'darwin').each(externalTempCases)('a job cannot $operation an external $browser temp file', async ({ browser, statement }) => {
     const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
-    const fixture = join(shared, `.${browser}.${randomBytes(3).toString('hex')}`);
+    const fixture = join(shared, `.${browser}.${randomBytes(RANDOM_SUFFIX_BYTES).toString('hex')}`);
     const original = Buffer.from('outside-original\n');
     writeFileSync(fixture, original, { flag: 'wx' });
     try {
@@ -759,7 +784,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     }
   });
 
-  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < 11)('pnpm runs a script in a project that pins another pnpm version', async () => {
+  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < PNPM_MIN_MAJOR)('pnpm runs a script in a project that pins another pnpm version', async () => {
     const pinned = pnpmVersion === '10.0.0' ? '10.0.1' : '10.0.0';
     writeFileSync(join(repo, 'package.json'), JSON.stringify({ name: 'probe', packageManager: `pnpm@${pinned}`, scripts: { hi: 'echo hi-ran' } }));
     expect(await run('pnpm run hi 2>&1')).toContain('hi-ran');
