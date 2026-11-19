@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,7 +28,7 @@ jobs:
       - run: bun run ci
 
   plan:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
@@ -49,7 +49,7 @@ jobs:
           fi
           packages=$(for p in $packages; do [ -f "extensions/$p/package.json" ] && echo "$p"; done)
           # pi-pstack-v2 sandboxes shells with Seatbelt on macOS and bubblewrap on Linux, so it runs on both.
-          matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-24.04"}, (select(. == "pi-pstack-v2") | {package: ., os: "macos-15"})]' <<< "$packages")
+          matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-latest"}, (select(. == "pi-pstack-v2") | {package: ., os: "macos-latest"})]' <<< "$packages")
           echo "full=$full" >> "$GITHUB_OUTPUT"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "Packages: ${packages:-none}. Full suites: $full." >> "$GITHUB_STEP_SUMMARY"
