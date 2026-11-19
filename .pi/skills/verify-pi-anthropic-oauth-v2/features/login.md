@@ -1,38 +1,36 @@
-# Subscription sign-in and sign-out
+# Sign in and sign out
 
-Users connect a Claude subscription to the extension's own provider and can disconnect it without changing Pi's built-in Anthropic provider.
+Users connect a Claude Pro or Max account to the `custom-anthropic` provider, or give it an API key, and can disconnect it without changing Pi's built-in Anthropic provider.
 
 ## Sub-features
 
-- `login-picker`: discover the exact subscription OAuth provider in `/login`.
-- `login-direct`: start the same flow through `/login anthropic-oauth-v2`.
-- `login-complete`: browser authorization persists subscription access in the disposable profile.
-- `login-cancel`: cancel without creating credentials.
-- `logout`: remove only this provider's disposable login.
+- `login-picker`: `/login` → **Sign in with an account** lists **Custom Anthropic (Claude Pro/Max)**.
+- `login-direct`: `/login custom-anthropic` opens the method menu for this provider only.
+- `login-code-prompt`: choosing the account method shows a `https://claude.ai/oauth/authorize?...` link and `Paste the authorization code:`.
+- `login-complete`: pasting the code Claude shows (`code#state`) stores an OAuth credential in the disposable profile.
+- `login-api-key`: the menu's **Sign in with an API key** option stores a key instead.
+- `logout`: `/logout` removes only this provider's credential.
 
 ## How to get to it (user POV)
 
-- Run `/login`, then choose **Anthropic (Claude subscription, OAuth)**.
-- Run `/login anthropic-oauth-v2` directly.
+- Run `/login`, choose **Sign in with an account**, then **Custom Anthropic (Claude Pro/Max)**.
+- Run `/login custom-anthropic`, then choose **Sign in with an account** or **Sign in with an API key**.
 - Run `/logout` and choose this provider after signing in.
 
 ## Driving it with verify.py and tmux
 
-Preconditions:
+Preconditions: fresh `init` and passing doctor per journey. Completion needs a consenting user with a Claude subscription and browser access. Never borrow the parent session's auth.
 
-- Start `"$V" run "$E"` through `tmux_run`, record its job/session, and pass doctor.
-- Completion needs a consenting user with a Claude subscription and browser access. Do not borrow the parent session's auth.
-
-- **Discover.** Send `/login` with literal `tmux send-keys` and Enter. Capture the picker and its `Anthropic (Claude subscription, OAuth)` label. Filter by that exact text and capture it before Enter.
-- **Cancel.** Press Escape before confirming authorization. Capture the restored editor; inspect scratch `agent/auth.json` read-only and require no `anthropic-oauth-v2` credential. Never print the file.
-- **Direct entry.** Send `/login anthropic-oauth-v2`. Capture the beginning of the same OAuth flow, then let the user authorize in the browser. Do not automate secret entry.
-- **Complete.** After Pi reports success, inspect only the stored provider ID, credential type `oauth`, and expiry metadata. Capture `/claude-usage` returning real plan rows or the explicit no-limits notice rather than login guidance. Metadata alone cannot prove valid access.
-- **Logout.** Send `/logout`, filter/select the extension's provider, and confirm. Independently require that credential to be absent. Send `/claude-usage` and require the logged-out guidance again.
+- **Picker (zero network).** `"$V" drive "$E" --feature login-picker --step '/login' 'Sign in with an account' --step '' 'Custom Anthropic (Claude Pro/Max)'`. The provider row reads `Custom Anthropic (Claude Pro/Max) • not configured` in an empty profile.
+- **Direct entry (zero network).** `"$V" drive "$E" --feature login-direct --step '/login custom-anthropic' 'Select authentication method for Custom Anthropic (Claude Pro/Max):' --step '' 'Paste the authorization code:'`. PKCE is local, so nothing is sent until a code is pasted. Require `network.jsonl` to hold only `observer-loaded` rows and scratch `agent/auth.json` to be absent or `{}`.
+- **Complete.** Start `"$V" run "$E"` through `tmux_run` and repeat direct entry in `TARGET`. The user opens the link, signs in, and pastes the code themselves; never send it with `send-keys`. After Pi reports success, inspect only the stored provider ID, credential type `oauth`, and expiry. Then prove access with a real prompt (see [models](models.md)). Metadata alone is not login proof.
+- **API key.** Choose **Sign in with an API key** and let the user enter a real key. Prove it with a real prompt. A fake key only proves the error path (see [requests](requests.md)).
+- **Logout.** Send `/logout`, select this provider, and confirm. Require its credential to be absent, then send a prompt and require `No API key found for custom-anthropic.`
 
 ## Gotchas
 
-- The baseline cannot prove authorization, refresh, or logout of an authenticated account; missing user consent/subscription is a failed precondition, not a successful login test.
-- Browser authorization may expose temporary codes and account identifiers. Redact shared captures, never record tokens or copy auth files to evidence.
-- Provider names are deliberately similar to built-in Anthropic. Selecting `anthropic` is not extension proof.
-- Tests of refresh require real expiry and server behavior; do not force expiry on the user's active credentials.
+- In Pi 1.5.2, `/login` opens an authentication-method menu before any provider list. Waiting for the provider label right after `/login` times out.
+- The built-in provider also says Anthropic. Selecting `anthropic` is not extension proof; look for `Custom Anthropic` and `custom-anthropic`.
+- The authorize URL holds a PKCE challenge and state. Redact shared captures, and never record tokens or copy auth files into evidence.
+- A pasted bogus code sends a real token request to `console.anthropic.com`. Do not do that to prove the error path.
 - Local cleanup removes this profile's login but does not revoke the upstream grant.

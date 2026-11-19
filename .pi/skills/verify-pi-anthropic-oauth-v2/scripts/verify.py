@@ -20,7 +20,9 @@ import time
 ROOT = Path(__file__).resolve().parents[4]
 EXTENSION = ROOT / 'extensions/pi-anthropic-oauth-v2/src/index.ts'
 AUDIT = Path(__file__).with_name('network-audit.cjs')
-MODEL = 'anthropic-oauth-v2/claude-sonnet-4-6'
+MODEL = 'custom-anthropic/claude-sonnet-4-6'
+FAKE_API_KEY = 'sk-ant-api03-VERIFY-FAKE'
+PROMPT = 'Reply with exactly OAUTH_VERIFY_OK; do not call tools.'
 ANSI = re.compile(r'\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-?]*[ -/]*[@-~]')
 
 
@@ -30,11 +32,12 @@ def save(path, value):
 
 def sources():
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(EXTENSION.parent.glob('*.ts'))}
+            for p in sorted(EXTENSION.parent.rglob('*.ts'))}
 
 
-def environment(state, evidence):
-    return {'PATH': os.environ['PATH'], 'HOME': str(state / 'home'),
+def environment(state, evidence, fake_api_key):
+    key = {'CUSTOM_ANTHROPIC_API_KEY': FAKE_API_KEY} if fake_api_key else {}
+    return {**key, 'PATH': os.environ['PATH'], 'HOME': str(state / 'home'),
             'TMPDIR': str(state), 'TERM': 'xterm-256color', 'COLORTERM': 'truecolor',
             'PI_CODING_AGENT_DIR': str(state / 'agent'), 'PI_OFFLINE': '1',
             'PI_SKIP_VERSION_CHECK': '1', 'PI_TELEMETRY': '0',
@@ -57,7 +60,7 @@ def doctor(manifest, state):
     assert version == manifest['version'] == '1.5.2', f'Unverified Pi version: {version}'
     print(json.dumps({'status': 'ready', 'version': version, 'pi': manifest['pi'],
                       'profile': str(state / 'agent'), 'model': MODEL,
-                      'sources': manifest['sources']}))
+                      'source_files': len(manifest['sources'])}))
 
 
 def drive(args, cmd, state, evidence, env):
@@ -123,11 +126,13 @@ def drive(args, cmd, state, evidence, env):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=['init', 'doctor', 'drive', 'print', 'run', 'cleanup'])
+    parser.add_argument('mode', choices=['init', 'doctor', 'drive', 'print', 'list-models', 'run', 'cleanup'])
     parser.add_argument('evidence', type=Path)
-    parser.add_argument('--feature', default='usage-logged-out')
+    parser.add_argument('--feature', default='smoke')
+    parser.add_argument('--fake-api-key', action='store_true',
+                        help=f'Set CUSTOM_ANTHROPIC_API_KEY to the invalid {FAKE_API_KEY}')
     parser.add_argument('--step', nargs=2, action='append', default=[], metavar=('TEXT', 'EXPECT'))
-    parser.add_argument('--message', default='/claude-usage')
+    parser.add_argument('--message', default=PROMPT)
     args = parser.parse_args()
     evidence = args.evidence.resolve()
     manifest_path = evidence / 'run.json'
@@ -158,20 +163,22 @@ def main():
     doctor(manifest, state)
     if args.mode == 'doctor':
         return
-    env = environment(state, evidence)
+    env = environment(state, evidence, args.fake_api_key)
     cmd = command(manifest['pi'])
     if args.mode == 'drive':
         assert args.step, 'Supply at least one --step TEXT EXPECT'
         drive(args, cmd, state, evidence, env)
-    elif args.mode == 'print':
-        assert not (evidence / 'print.json').exists(), 'Use fresh evidence for another print journey'
-        result = subprocess.run(cmd + ['-p', args.message], cwd=state / 'work', env=env,
+    elif args.mode in ('print', 'list-models'):
+        out = evidence / f'{args.mode}.json'
+        assert not out.exists(), f'Use fresh evidence for another {args.mode} journey'
+        argv = cmd + ['-p', args.message] if args.mode == 'print' else cmd + ['--list-models', 'custom-anthropic']
+        result = subprocess.run(argv, cwd=state / 'work', env=env,
                                 capture_output=True, text=True, timeout=45)
-        save(evidence / 'print.json', {'feature': args.feature, 'argv': cmd + ['-p', args.message],
-                                     'stdout': result.stdout, 'stderr': result.stderr,
-                                     'exit_code': result.returncode})
-        print(result.stderr, end='')
-        assert result.returncode == 0, f'Pi exited {result.returncode}'
+        save(out, {'feature': args.feature, 'argv': argv, 'fake_api_key': args.fake_api_key,
+                   'stdout': result.stdout, 'stderr': result.stderr,
+                   'exit_code': result.returncode})
+        print(result.stdout + result.stderr, end='')
+        print(f'exit={result.returncode}')
     elif args.mode == 'run':
         sys.exit(subprocess.call(cmd, cwd=state / 'work', env=env))
 

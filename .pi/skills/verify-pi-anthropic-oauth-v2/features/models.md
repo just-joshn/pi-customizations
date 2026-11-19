@@ -1,41 +1,36 @@
-# Select Claude and send a prompt
+# Models
 
-Users select Claude models under the extension's provider prefix and send a real prompt billed through their subscription, while the built-in Anthropic provider remains available independently.
+Users pick Claude models under `custom-anthropic/...` and send prompts through the extension's own streaming code. The model list is Pi's built-in Anthropic catalog with ` (Custom)` added to each name, so new Claude models appear when Pi updates.
 
 ## Sub-features
 
-- `model-picker`: select an extension model through `/model`.
-- `model-shortcut`: reach the same selector through Ctrl+L.
-- `model-direct`: switch by full provider/model through the direct slash command.
-- `model-cli`: choose the extension provider explicitly on startup.
-- `model-response`: receive an actual assistant response under the selected provider.
-- `model-builtin`: built-in Anthropic remains separately listed.
+- `models-list`: `pi --list-models custom-anthropic` lists the catalog once credentials exist.
+- `model-picker`: `/model` shows rows like `Claude Sonnet 4.6 (Custom) [custom-anthropic]`.
+- `model-direct`: `/model custom-anthropic/<id>` switches the footer to `<id> • <thinking level>`.
+- `model-cli`: `--model custom-anthropic/<id>` selects it at startup.
+- `model-response`: a real assistant response under the selected model.
+- `model-thinking`: adaptive-thinking models send `thinking: adaptive` with an effort matching Pi's thinking level, and older models send a token budget.
 
 ## How to get to it (user POV)
 
-- Run `/model` or press Ctrl+L.
-- Run `/model anthropic-oauth-v2/claude-sonnet-4-6`.
-- Launch Pi with `--model anthropic-oauth-v2/claude-sonnet-4-6`.
-- Use `pi --list-models anthropic-oauth-v2` after signing in.
+- Run `/model` or press Ctrl+L, and filter by `custom-anthropic`.
+- Run `/model custom-anthropic/claude-opus-4-6`.
+- Launch Pi with `--model custom-anthropic/claude-sonnet-4-6`.
+- Run `pi --list-models custom-anthropic`.
 
 ## Driving it with verify.py and tmux
 
-Preconditions:
+Preconditions: fresh `init` and passing doctor per journey. The helper always launches with `--model custom-anthropic/claude-sonnet-4-6`. Pi lists only models whose provider has credentials, so offline listing needs `--fake-api-key`.
 
-- Launch and doctor pass. A valid disposable subscription login is required for an assistant response and authenticated model listing.
-- The helper's baseline already selects `anthropic-oauth-v2/claude-sonnet-4-6` through the real CLI flag.
-
-- **Picker entry.** Send `/model`, filter by `anthropic-oauth-v2/claude-sonnet-4-6`, and capture the exact provider/model before Enter. Capture the selected model in the footer. A footer showing only the model ID needs the picker/launch argv as provider evidence.
-- **Shortcut entry.** Send `tmux send-keys -t "$TARGET" C-l`; filter by the same full provider/model, capture, and select. This entry point is not covered by the slash-command capture.
-- **Direct switch.** Send `/model anthropic-oauth-v2/claude-sonnet-4-6`; capture the confirmation and footer. This direct command is distinct from selecting a menu row.
-- **Built-in provider.** Reopen the picker, filter by `anthropic/`, and capture its separate provider identity without sending a request through it. If the picker hides unauthenticated built-in models, record that unmet precondition instead of adding a second login silently. Return to the extension model.
-- **Send prompt.** After authorized login, send `Reply with exactly OAUTH_VERIFY_OK; do not call tools.` and capture the submitted prompt and resulting assistant text. Require no authentication/request error. Do not claim exact deterministic wording if the model deviates; report what appeared.
-- **CLI entry.** In a fresh authenticated evidence run/profile, or after stopping its interactive job while retaining scratch, run `"$V" print "$E" --feature model-cli --message 'Reply with exactly OAUTH_VERIFY_OK; do not call tools.'`. `print.json` records the explicit model flag, actual assistant stdout, stderr, and exit code. An actual response proves this entry; the flag alone does not.
+- **List (zero network).** `"$V" list-models "$E" --feature models-list --fake-api-key`. `list-models.json` must show `custom-anthropic` rows and exit 0. Without the flag the list is empty, which is not a registration failure.
+- **Picker (zero network).** `"$V" drive "$E" --feature model-picker --fake-api-key --step '/model' '(Custom)'`. Capture the `(Custom) [custom-anthropic]` row.
+- **Direct switch (zero network).** `"$V" drive "$E" --feature model-direct --fake-api-key --step '/model custom-anthropic/claude-opus-4-6' 'claude-opus-4-6 •'`. The transcript shows `Model: claude-opus-4-6` and the new footer.
+- **Response.** After a real [login](login.md), send `Reply with exactly OAUTH_VERIFY_OK; do not call tools.` in `TARGET` and capture the assistant text. Or stop the job, keep scratch, and run `"$V" print "$E" --feature model-cli`. An actual response proves this entry; the flag alone does not.
+- **Thinking.** With a real login, set a thinking level (Shift+Tab) on an adaptive model such as `claude-opus-4-6`, send a prompt, and capture the thinking block. Supporting evidence: `npx tsx extensions/pi-anthropic-oauth-v2/scripts/verify-wire.ts` and `test/provider.test.ts` check the request body against a local server.
 
 ## Gotchas
 
-- Fresh logged-out state can launch with an explicit model but cannot prove a paid request. Report `model-response` and authenticated listing as NOT VERIFIED until sign-in.
-- Pi's `--list-models` reports no models for the empty profile because it lists available authenticated models. That is not evidence that extension registration failed.
-- The helper disables tools, so this small paid prompt cannot modify the repository.
-- Catalog contents come from installed Pi. Do not replace a missing pinned model with a different provider silently; record the failure and refresh the skill intentionally.
+- `--list-models` and the picker show nothing for this provider in an empty profile.
+- Catalog contents come from installed Pi. If the pinned `claude-sonnet-4-6` disappears, update `MODEL` in `verify.py` on purpose; do not swap providers.
+- The helper disables tools, so a paid prompt cannot modify the repository.
 - A response through built-in `anthropic` does not prove extension behavior.
