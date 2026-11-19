@@ -53,11 +53,10 @@ function positiveInteger(value: string): number {
   return parsed;
 }
 function prNumber(value: string): T.PrNumber {
-  try {
-    return parsePrNumber(Number(value.replace(/^#/, "")));
-  } catch {
+  const parsed = Number(value.replace(/^#/, ""));
+  if (!Number.isInteger(parsed) || parsed <= 0)
     throw new InvalidArgumentError("must be a positive integer");
-  }
+  return parsePrNumber(parsed);
 }
 function stackPrList(value: string): T.NonEmpty<T.PrNumber> {
   const numbers = value.split(",").map((part) => prNumber(part.trim()));

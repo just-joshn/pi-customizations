@@ -36,6 +36,7 @@ const PR_STATES = ["OPEN", "CLOSED", "MERGED"] as const;
 const SCP_PREFIX = "git@github.com:";
 const SSH_PREFIX = "ssh://git@github.com/";
 const GITHUB_HOST = "github.com";
+const PATH_SEPARATOR = "/";
 
 // `gh pr view` reports no review decision as "", not null. Only this field does
 // it, so the normalization stays here rather than in nullableEnum, where it
@@ -62,7 +63,7 @@ export function parseRemote(value: string): Repository | null {
     const url = new URL(toHttps(value.trim()));
     const parts = url.pathname
       .replace(/\.git$/, "")
-      .split("/")
+      .split(PATH_SEPARATOR)
       .filter(Boolean);
     if (hasNonCanonicalParts(url) || parts.length !== 2) return null;
     return { owner: parts[0], repo: parts[1] };
@@ -73,7 +74,7 @@ export function parseRemote(value: string): Repository | null {
 const PULL_URL_PART_COUNT = 4;
 function canonicalPullParts(value: string): readonly string[] {
   const url = new URL(value);
-  const parts = url.pathname.split("/").filter(Boolean);
+  const parts = url.pathname.split(PATH_SEPARATOR).filter(Boolean);
   if (hasNonCanonicalParts(url) || parts.length !== PULL_URL_PART_COUNT || parts[2] !== "pull")
     throw new Error("not a canonical GitHub pull URL");
   return parts;

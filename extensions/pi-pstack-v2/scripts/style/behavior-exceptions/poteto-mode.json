@@ -1,0 +1,56 @@
+[
+  {
+    "file": "skills/poteto-mode/scripts/bootstrap.ts",
+    "rule": "plugin",
+    "line": "env: process.env,",
+    "reason": "bootstrap.ts runs before `bun install` has installed zod, so it cannot import a zod schema; the restarted child must inherit the full process.env unchanged."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "tryParseArgs converts a CommanderError into a numeric exit code (returned fallback) instead of throwing; logging would add stderr text the CLI tests and users do not see today."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "main converts a WatcherQueryError into a rendered STATUS verdict on stdout and an exit code (returned fallback); a console.error would add new stderr output."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-json.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "parseJson throws a WatcherQueryError whose detail is the verdict-visible failure; a console.error would add new stderr output on every retryable JSON parse failure that today is reported only through the verdict."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-json.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "raw() returns String(value) as a fallback when JSON.stringify throws; logging would add new output and the fallback must stay."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-pr.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "parseRemote returns null for unparsable remotes (fallback used by context discovery); logging would add new output for every non-GitHub remote."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-pr.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "parsePrUrl throws a WatcherQueryError that is reported through the verdict; a console.error would add new stderr output that tests and users do not see today."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "checksFastPath returns the `unusable` fallback for a retryable WatcherQueryError so the slow path runs; logging would add new stderr output on a normal path."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/poll.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "attempt converts a WatcherQueryError into a `failed` attempt that the poll loop retries or reports via verdict; logging would add stderr output on every retryable failure."
+  }
+]

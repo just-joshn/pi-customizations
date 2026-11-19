@@ -25,6 +25,7 @@ import {
 } from "./fakes.test-helper.ts";
 import { parsePrNumber } from "./types.ts";
 
+const GITHUB_MODULE_PATH = `${import.meta.dir}/github.ts`;
 const BASE_PR_NUMBER = 41;
 const STACK_PR_NUMBER = 42;
 const UPSTACK_PR_NUMBER = 43;
@@ -32,6 +33,14 @@ const BUGBOT_REVIEW_PASSES = 3;
 const SUBPROCESS_TIMEOUT_MS = 2000;
 const EXECUTABLE_MODE = 0o755;
 const numberedRows = z.array(z.object({ number: z.number() }));
+const forkedRows = z.array(
+  z.object({
+    number: z.number(),
+    headRefName: z.string(),
+    baseRefName: z.string(),
+    isCrossRepository: z.boolean(),
+  })
+);
 
 const context = {
   owner: "owner",
@@ -232,7 +241,10 @@ describe("closed enum parsing", () => {
       throw new Error("expected parser to throw");
     } catch (error) {
       expect(error).toBeInstanceOf(WatcherQueryError);
-      if (!(error instanceof WatcherQueryError)) throw error;
+      if (!(error instanceof WatcherQueryError)) {
+        console.error(error);
+        throw error;
+      }
       expect(error.failure).toMatchObject({
         kind: "missing-key",
         retryable: true,
@@ -466,7 +478,7 @@ describe("context and stack discovery", () => {
 describe("context and stack discovery", () => {
   it("terminates when an unrelated fork opens main against main", () => {
     // Bound the subprocess so this regression reports a failure instead of hanging the suite.
-    const program = `import { orderStack } from ${JSON.stringify(import.meta.dir + "/github.ts")};
+    const program = `import { orderStack } from ${JSON.stringify(GITHUB_MODULE_PATH)};
       console.log(JSON.stringify(orderStack(${JSON.stringify(context)}, [
         { number: 41, headRefName: "main", baseRefName: "main", isCrossRepository: true },
         { number: 42, headRefName: "feature", baseRefName: "main", isCrossRepository: false }
@@ -487,15 +499,16 @@ case "$*" in
 esac
 printf '%s\\n' '[{"number":42,"headRefName":"feature","baseRefName":"main","isCrossRepository":true}]'
 `, { mode: EXECUTABLE_MODE });
-      const program = `import { GhGitHubReader } from ${JSON.stringify(import.meta.dir + "/github.ts")};
+      const program = `import { GhGitHubReader } from ${JSON.stringify(GITHUB_MODULE_PATH)};
         console.log(JSON.stringify(await new GhGitHubReader().openPullRequests({ owner: "owner", repo: "repo" })));`;
+      const parentEnv = z.record(z.string(), z.string().optional()).parse(process.env);
       const child = spawnSync(process.execPath, ["-e", program], {
         encoding: "utf8", timeout: SUBPROCESS_TIMEOUT_MS,
-        env: { ...process.env, PATH: directory + ":" + process.env.PATH },
+        env: { ...parentEnv, PATH: `${directory}:${parentEnv.PATH}` },
       });
       expect(child.error).toBeUndefined();
       expect(child.status).toBe(0);
-      expect(JSON.parse(child.stdout)).toEqual([
+      expect(forkedRows.parse(JSON.parse(child.stdout))).toEqual([
         { number: STACK_PR_NUMBER, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
       ]);
     } finally {

@@ -13,6 +13,11 @@ const FIRST_STACK_PR = 10;
 const SECOND_STACK_PR = 11;
 const THIRD_STACK_PR = 12;
 
+const verdictOutput = z.looseObject({
+  kind: z.string(),
+  exitCode: z.number(),
+});
+
 const silentIo = { stdout: () => undefined, stderr: () => undefined };
 
 const neverSleepClock = {
@@ -160,7 +165,7 @@ describe("rendering", () => {
   it("emits compact valid JSON by default", () => {
     const rendered = renderJson(status);
     expect(rendered.endsWith("\n")).toBe(true);
-    expect(JSON.parse(rendered)).toEqual(status);
+    expect(verdictOutput.parse(JSON.parse(rendered))).toEqual(status);
   });
 
   it("renders the Markdown table from the same verdict only", () => {
@@ -200,7 +205,7 @@ describe("main", () => {
     );
     expect(code).toBe(0);
     expect(harness.stdout).toHaveLength(1);
-    const verdict: unknown = JSON.parse(harness.stdout[0]);
+    const verdict = verdictOutput.parse(JSON.parse(harness.stdout[0]));
     expect(verdict).toMatchObject({
       kind: "STATUS",
       terminal: true,
@@ -226,7 +231,7 @@ describe("main", () => {
     );
     expect(code).toBe(EXIT_CI_BLOCKER);
     expect(harness.stdout).toHaveLength(1);
-    expect(JSON.parse(harness.stdout[0])).toMatchObject({
+    expect(verdictOutput.parse(JSON.parse(harness.stdout[0]))).toMatchObject({
       kind: "BLOCKER",
       exitCode: 4,
       blocker: {
