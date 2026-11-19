@@ -37,27 +37,18 @@ function* inParts(lines: string[]) {
 const shortestFirst = (a: { path: unknown[] }, b: { path: unknown[] }) =>
   a.path.length - b.path.length;
 
-/** Asks the view for each state's group once, in the order the first region draws its states. */
-const askGroups = ({ group, shapes }: Answers, kind: Int32Array, order: Int32Array) => {
-  const asked = new Map(
-    [...Map.groupBy(order, (i) => kind[i]).values()].flatMap((members) =>
-      Array.from(members, (i) => [i, group(i)] as const),
-    ),
-  );
-  return Array.from({ length: shapes.length }, (_, i) => asked.get(i));
-};
-
 export function project(graph: Graph, walked: Walk, view: View, found: Bug[]) {
   const { order, rank } = drawOrder(walked);
-  const draw = (answers: Answers, known?: unknown[]) => {
+  const draw = (answers: Answers) => {
     const labels = labelGraph(graph, walked, answers, rank, found);
-    const groups = known ?? askGroups(answers, labels.kinds[0], order);
-    return { labels, groups, chart: drawRegions(walked, labels, groups, order, found, view) };
+    return { labels, ...drawRegions(walked, labels, order, found, view) };
   };
   const answers = ask(graph, walked, view);
   const first = draw(answers);
   const lie = regionsLie(first.chart.regions, first.labels, walked, order);
-  const { labels, chart } = lie ? draw(asParents(walked, answers), first.groups) : first;
+  const { labels, chart } = lie
+    ? draw(asParents(walked, { ...answers, group: (i) => first.groups[i] }))
+    : first;
   loopCheck(chart, labels, walked, found);
   return {
     chart: lift(lie ? { ...chart, lie } : chart),

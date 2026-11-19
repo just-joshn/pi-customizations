@@ -35,6 +35,8 @@ type BuiltStates = {
   position: Int32Array;
   /** Drawn key per kind number. */
   keyOf: string[];
+  /** The view's group for each model state, as asked while the states were built. */
+  groupOf: Map<number, unknown>;
 };
 
 const compareRules = (a: Rule, b: Rule) => byText(a.name, b.name) || byText(a.kind, b.kind);
@@ -54,13 +56,17 @@ const parentConflict = (path: string[], name: string) =>
     `The view's state() returned ${path.join(" / ")} both as a state and as a parent state${name ? ` in ${name}` : ""}. Give that state a child name of its own.`,
   );
 
-/** Groups the model states of one region into chart states, checking parents and collecting breaks. */
+/**
+ * Groups the model states of one region into chart states, checking parents and collecting breaks.
+ * It asks `group` for one chart state's members right after checking that state's parents, so the
+ * view's group() runs lazily, in draw order, after the parent checks of the states before it.
+ */
 function buildStates(
   name: string,
   r: number,
   { states: tla }: Walk,
   { shapes, keys, kinds, sizes }: Labels,
-  groups: unknown[],
+  group: (i: number) => unknown,
   order: Int32Array,
   flags: StateFlags,
 ): BuiltStates {
@@ -91,13 +97,14 @@ function buildStates(
   const built = base.map(({ c, members, state }) => {
     if (parents.size && parents.has(tupleKey(state.path))) throw parentConflict(state.path, name);
     const breaks = breaksOf(members, tla);
-    const asked = new Set<unknown>(members.map((i) => groups[i]));
+    const asked = members.map((i): [number, unknown] => [i, group(i)]);
+    const values = new Set(asked.map(([, value]) => value));
     const done: ChartState = {
       ...state,
       breaks,
-      group: asked.size === 1 ? [...asked][0] : undefined,
+      group: values.size === 1 ? [...values][0] : undefined,
     };
-    return { c, key: key[members[0]], state: done };
+    return { c, key: key[members[0]], state: done, asked };
   });
   const placed = new Map(built.map((b, p) => [b.c, { ...b, p }]));
   const at = (c: number) => must(placed, c);
@@ -107,6 +114,7 @@ function buildStates(
     objectOf: kindNumbers.map((c) => at(c).state),
     position: Int32Array.from(kindNumbers, (c) => at(c).p),
     keyOf: kindNumbers.map((c) => at(c).key),
+    groupOf: new Map(built.flatMap(({ asked }) => asked)),
   };
 }
 
@@ -254,14 +262,14 @@ const soloArrows = (moves: RegionMove[], keyOf: string[]): Arrow[] =>
     when: undefined,
   }));
 
+/** The chart, and the view's group for each model state as the first region asked for it. */
 export function drawRegions(
   walk: Walk,
   labels: Labels,
-  groups: unknown[],
   order: Int32Array,
   found: Bug[],
   view: View,
-): Chart {
+): { chart: Chart; groups: unknown[] } {
   const { states: tla, index, from, to } = walk;
   const { names, shapes, drawnLabels, kinds, sorted, pathSteps, notes } = labels;
   const R = names.length;
@@ -278,7 +286,12 @@ export function drawRegions(
     !dirty.size || !dirty.has(comboOf(i)) ? 1 : 0,
   );
   const flags = { lead, looped, clean };
-  const built = names.map((name, r) => regionOf(name, r, { walk, labels, groups, order, flags, loop }));
+  const env = { walk, labels, order, flags, loop };
+  const head = names.slice(0, 1).map((name) => regionOf(name, 0, { ...env, group: labels.group }));
+  const asked = head[0]?.groupOf;
+  const group = (i: number) => asked?.get(i);
+  const tail = names.slice(1).map((name, k) => regionOf(name, k + 1, { ...env, group }));
+  const built = [...head, ...tail];
   const hidden = hiddenStates(dirty, built, kinds);
   const regions = built.map(({ name, states, steps, arrows }) => ({
     name,
@@ -286,7 +299,7 @@ export function drawRegions(
     steps,
     arrows,
   }));
-  return {
+  const chart = {
     title: view.title,
     regions,
     notes,
@@ -296,6 +309,7 @@ export function drawRegions(
     paths: found.filter((b) => b.loop !== 0).map((b) => b.rule.name),
     loops: found.filter((b) => b.loop !== undefined).map((b) => b.rule.name),
   };
+  return { chart, groups: Array.from({ length: shapes.length }, (_, i) => group(i)) };
 }
 
 const comboFn = (kinds: Int32Array[]) =>
@@ -315,6 +329,7 @@ type BuiltRegion = {
   steps: ChartStep[];
   arrows: Arrow[];
   objectOf: ChartState[];
+  groupOf: Map<number, unknown>;
 };
 
 /** Chart states that work in every region but sit in a combination that breaks a rule. */
@@ -333,19 +348,27 @@ const hiddenStates = (
 type RegionEnv = {
   walk: Walk;
   labels: Labels;
-  groups: unknown[];
+  group: (i: number) => unknown;
   order: Int32Array;
   flags: StateFlags;
   loop: (j: number) => boolean;
 };
 
 const regionOf = (name: string, r: number, env: RegionEnv): BuiltRegion => {
-  const { walk, labels, groups, order, flags, loop } = env;
+  const { walk, labels, group, order, flags, loop } = env;
   const { from, to } = walk;
   const { names, keys, kinds, sizes, sorted, drawnLabels } = labels;
   const R = names.length;
   const kind = kinds[r];
-  const { states, objectOf, position, keyOf } = buildStates(name, r, walk, labels, groups, order, flags);
+  const { states, objectOf, position, keyOf, groupOf } = buildStates(
+    name,
+    r,
+    walk,
+    labels,
+    group,
+    order,
+    flags,
+  );
   const moves = collectMoves({
     R,
     kind,
@@ -372,5 +395,5 @@ const regionOf = (name: string, r: number, env: RegionEnv): BuiltRegion => {
     label: a.label,
     when: a.label.endsWith("]") ? undefined : a.when,
   }));
-  return { name, states: states.map((s) => s.state), steps, arrows, objectOf };
+  return { name, states: states.map((s) => s.state), steps, arrows, objectOf, groupOf };
 };
