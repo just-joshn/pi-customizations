@@ -252,6 +252,14 @@ describe('oauth', () => {
 });
 
 describe('request', () => {
+  it('keeps emoji and other surrogate pairs and replaces only unpaired surrogates', async () => {
+    sdk.events.push(...streamEvents);
+    const messages: Message[] = [{ role: 'user', content: 'ship it \u{1F680} \uD800 then \uDC00 end', timestamp: 1 }];
+    const { call } = await run({ apiKey: 'k' }, normalizeContext({ systemPrompt: 'Use \u{1F44D}.', messages }));
+    expect(call?.params['messages']).toEqual([{ role: 'user', content: 'ship it \u{1F680} \uFFFD then \uFFFD end' }]);
+    expect(call?.params['system']).toEqual([{ type: 'text', text: 'Use \u{1F44D}.', cache_control: { type: 'ephemeral' } }]);
+  });
+
   it('sends Claude Code identity, renamed tools, and converted messages for OAuth tokens', async () => {
     sdk.events.push(...streamEvents);
     const { call } = await run({ apiKey: 'sk-ant-oat01-x', reasoning: 'high' });

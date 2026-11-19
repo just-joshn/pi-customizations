@@ -7,7 +7,9 @@ export type UserContentBlock = Anthropic.Beta.BetaTextBlockParam | Anthropic.Bet
 
 const mediaTypeSchema = z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 
-export const sanitizeSurrogates = (text: string): string => text.replace(/[\uD800-\uDFFF]/g, '\uFFFD');
+const UNPAIRED_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+export const sanitizeSurrogates = (text: string): string => text.replace(UNPAIRED_SURROGATE, '\uFFFD');
 
 function parseMediaType(mimeType: string): Anthropic.Beta.BetaBase64ImageSource['media_type'] {
   try {
