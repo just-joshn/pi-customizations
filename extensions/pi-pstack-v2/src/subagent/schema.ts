@@ -39,6 +39,8 @@ export const SubagentParams = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process (single mode)' })),
   model: ModelParam,
   thinking: ThinkingParam,
+  wake: Type.Optional(Type.String({ description: 'Return a job id at once and wake the session with this message and the report when every worker finishes.' })),
+  stop: Type.Optional(Type.String({ description: 'Abort the running wake job with this id.' })),
 });
 
 export type SubagentParamsType = Static<typeof SubagentParams>;
@@ -67,6 +69,8 @@ export const SubagentParamsSchema = z.looseObject({
   cwd: z.string().optional(),
   model: z.string().optional(),
   thinking: ThinkingSchema,
+  wake: z.string().optional(),
+  stop: z.string().optional(),
 });
 
 export const toAgentScope = (value: unknown): AgentScope => (value === 'project' || value === 'both' ? value : 'user');
