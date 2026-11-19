@@ -5,7 +5,7 @@ import { runChain } from './dispatch-chain.ts';
 import { runParallel } from './dispatch-parallel.ts';
 import { getFinalOutput, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
-import { type ParsedSubagentParams, toAgentScope, type WorkItem } from './schema.ts';
+import type { ParsedSubagentParams, WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SubagentMode } from './types.ts';
 
 const listAgents = (agents: AgentConfig[]): string => agents.map((a) => `${a.name} (${a.source})`).join(', ') || 'none';
@@ -38,7 +38,7 @@ function dispatchMode(mode: SubagentMode, run: DispatchRun, items: WorkItem[], r
 }
 
 export async function executeSubagent(params: ParsedSubagentParams, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext): Promise<ToolResult> {
-  const agentScope = toAgentScope(params.agentScope);
+  const agentScope = params.agentScope ?? 'user';
   const discovery = discoverAgents(ctx.cwd, agentScope);
   const modes = detectModes(params);
   const [mode] = modes;
@@ -49,7 +49,7 @@ export async function executeSubagent(params: ParsedSubagentParams, signal: Abor
 
   const items = workItems(params, mode);
   const resolved = items.map((item) => resolveAgent(ctx.cwd, agentScope, item.agent, item.cwd));
-  const needsApproval = agentScope !== 'user' && (params.confirmProjectAgents ?? true) && ctx.hasUI;
+  const needsApproval = (agentScope === 'project' || agentScope === 'both') && (params.confirmProjectAgents ?? true) && ctx.hasUI;
   if (needsApproval && !(await projectAgentsApproved(ctx, resolved, discovery.projectAgentsDir))) {
     return textResult('Canceled: project-local agents not approved.', makeDetails(mode)([]));
   }

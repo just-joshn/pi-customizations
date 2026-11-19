@@ -2,8 +2,8 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
-import { z } from 'zod';
 import { hostEnv } from './host-env.ts';
+import { passthroughObject } from './object-schema.ts';
 import { EDITOR_CODE, HARNESS_DIRS, HARNESS_INSTRUCTIONS, WORKSPACE_SUFFIX } from './sweep.ts';
 
 type Env = NodeJS.ProcessEnv;
@@ -37,17 +37,8 @@ export interface SandboxPolicy {
   jobDir: string;
 }
 
-/** Validates a policy read back from a job's spec file. */
-export const SandboxPolicySchema: z.ZodType<SandboxPolicy> = z.object({
-  writable: z.array(z.string()),
-  protect: z.array(z.string()),
-  lock: z.array(z.string()),
-  gitDirs: z.array(z.string()),
-  checkouts: z.array(z.string()),
-  agentDir: z.string(),
-  credentials: z.string(),
-  jobDir: z.string(),
-});
+/** A policy read back from a job's spec file, as written: its keys are not checked here, and requests.ts checks the lists it relies on. */
+export const SandboxPolicySchema = passthroughObject<SandboxPolicy>();
 
 const real = (path: string): string => (existsSync(path) ? realpathSync(path) : path);
 /** A path as the kernel sees it when the entry itself is the target: the real parent plus the entry's own name, links unresolved. */

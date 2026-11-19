@@ -20,13 +20,9 @@ export interface Inventory {
   output: string;
 }
 
-const InventorySchema: z.ZodType<Inventory> = z.object({
-  roots: z.array(z.string()),
-  absent: z.array(z.object({ path: z.string(), parentWasLink: z.boolean() })),
-  present: z.array(z.string()),
-  quarantine: z.string(),
-  output: z.string(),
-});
+// The inventory is read as written, since this file runs alone in the job's output directory and a missing or odd key is
+// reported by the sweep's own catch into the job's output, as it always was.
+const InventorySchema = z.custom<Inventory>((value) => typeof value === 'object' && value !== null);
 
 /** Pi loads code from these entries of any `.pi` directory, at any depth, once the project is trusted. */
 export const PI_CODE = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'] as const;

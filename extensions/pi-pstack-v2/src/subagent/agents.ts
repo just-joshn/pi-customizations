@@ -47,12 +47,11 @@ function parseToolList(value: unknown): string[] | undefined {
 }
 
 /**
- * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML
- * parser, so any scalar or collection can appear. `name` and `description` are
- * required strings. `tools` and `model` may be missing or of any type: unusable
- * tools are dropped by parseToolList, and a non-string `model` is dropped.
+ * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML parser, so any scalar or collection can
+ * appear. `name` and `description` are required strings, and `tools` and `model` may be absent or of any type: the agent
+ * is built from them by hand, since a non-string `model` is dropped and `tools` is normalized rather than rejected.
  */
-const AgentFrontmatterSchema = z.object({
+const AgentFrontmatterSchema = z.looseObject({
   name: z.string(),
   description: z.string(),
   tools: z.unknown().optional(),
@@ -118,7 +117,8 @@ export function discoverAgents(cwd: string, scope: AgentScope): AgentDiscoveryRe
   const userDir = path.join(getAgentDir(), 'agents');
   const projectAgentsDir = findNearestProjectAgentsDir(cwd);
 
-  const userAgents = scope === 'project' ? [] : loadAgentsFromDir(userDir, 'user');
+  // Only the user and both scopes read user agents. Any other value is read as the project scope, as it always was.
+  const userAgents = scope === 'user' || scope === 'both' ? loadAgentsFromDir(userDir, 'user') : [];
   const projectAgents = scope === 'user' || !projectAgentsDir ? [] : loadAgentsFromDir(projectAgentsDir, 'project');
 
   // Later entries win, so project agents override user agents of the same name under scope "both".

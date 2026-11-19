@@ -377,17 +377,18 @@ describe('refused worktree requests', () => {
     expect(message(dir)).toContain('Only a Pi worker');
   });
 
-  // The spec schema rejects these before the broker looks at them, so the request is skipped, not refused.
+  // The spec is read as written, so the broker looks at these and refuses them, as it always did, rather than skipping them.
   test.each([
-    ['non-object', 'x'],
-    ['null', null],
-    ['non-string branch', { branch: 1 }],
-    ['non-string base', { branch: 'b', base: 2 }],
-  ])('skips a request with a %s worktree request', (_label, createWorktree) => {
+    ['non-object', 'x', 'Only a Pi worker'],
+    ['null', null, 'Only a Pi worker'],
+    ['non-string branch', { branch: 1 }, 'malformed'],
+    ['non-string base', { branch: 'b', base: 2 }, 'malformed'],
+  ])('refuses a request with a %s worktree request', (_label, createWorktree, reason) => {
     vi.mocked(gitPath).mockReturnValue(common());
     const dir = piRequest({ createWorktree });
     serve();
-    expect(existsSync(exitPath(outFor(dir)))).toBe(false);
+    expect(exitCode(dir)).toBe(EXIT_REFUSED);
+    expect(message(dir)).toContain(reason);
     expect(launchBrokered).not.toHaveBeenCalled();
   });
 

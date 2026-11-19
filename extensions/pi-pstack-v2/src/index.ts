@@ -4,12 +4,13 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
-import { Type } from 'typebox';
+import { type Static, Type } from 'typebox';
 import { z } from 'zod';
 import { jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
 import { gitPath, projectPath, protectedPaths } from './git.ts';
 import { hostEnv } from './host-env.ts';
 import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
+import { passthroughObject } from './object-schema.ts';
 import { within } from './paths.ts';
 import { serveRequests, sweepFor } from './requests.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
@@ -37,8 +38,23 @@ const jobsRoot = (env: Readonly<Record<string, string | undefined>> = hostEnv())
 };
 // A plain string enum, which every provider accepts, typed for TypeBox inference.
 const stringEnum = <T extends readonly string[]>(values: T, description?: string) => Type.Unsafe<T[number]>({ type: 'string', enum: [...values], ...(description ? { description } : {}) });
-const TmuxRunParamsSchema = z.looseObject({ name: z.string(), command: z.string(), cwd: z.string().optional(), wake: z.string().optional(), repeat: z.boolean().optional() });
-const TmuxJobsParamsSchema = z.looseObject({ action: z.enum(['list', 'output', 'wait', 'stop']), ids: z.array(z.string()).optional(), lines: z.number().optional(), timeout_seconds: z.number().optional() });
+const tmuxRunParameters = Type.Object({
+  name: Type.String({ description: 'Short label, such as "watch-pr-123" or "dev-server".' }),
+  command: Type.String({ description: 'Shell command, run with bash -c.' }),
+  cwd: Type.Optional(Type.String({ description: 'Working directory inside this project. Default this session cwd. The command may write only here, in its git directory, and in temp directories.' })),
+  wake: Type.Optional(Type.String({ description: 'Message to wake this session with when the command exits. Omit for a server you will stop yourself.' })),
+  repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each clean exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
+});
+const tmuxJobsParameters = Type.Object({
+  action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
+  ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
+  lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
+  timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
+});
+// Pi checks a tool's declared parameters before it runs, and the original code read them as given. Any other check would
+// reject what it tolerated, such as a null wake or lines, and would report an unknown action as a schema error.
+const TmuxRunParamsSchema = passthroughObject<Static<typeof tmuxRunParameters>>();
+const TmuxJobsParamsSchema = passthroughObject<Static<typeof tmuxJobsParameters>>();
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
 
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
@@ -369,13 +385,7 @@ function registerTmuxRun(pi: ExtensionAPI): void {
       'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory. The command reads no input.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
-    parameters: Type.Object({
-      name: Type.String({ description: 'Short label, such as "watch-pr-123" or "dev-server".' }),
-      command: Type.String({ description: 'Shell command, run with bash -c.' }),
-      cwd: Type.Optional(Type.String({ description: 'Working directory inside this project. Default this session cwd. The command may write only here, in its git directory, and in temp directories.' })),
-      wake: Type.Optional(Type.String({ description: 'Message to wake this session with when the command exits. Omit for a server you will stop yourself.' })),
-      repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each clean exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
-    }),
+    parameters: tmuxRunParameters,
     async execute(_id, params, _signal, _update, ctx) {
       const input = TmuxRunParamsSchema.parse(params);
       if (input.repeat && input.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
@@ -437,12 +447,7 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
     label: 'tmux jobs',
     description:
       "Inspect or control this session's tmux_run jobs. list shows every job with its state, a command to follow its output, and for a running job a command to attach to its tmux session, where the output shows live and Ctrl-C stops it. output shows the last lines of a command or running job. wait blocks until the named jobs (default every running job with a wake) exit, the timeout passes, or the user sends a message, then returns their reports. A job with a wake reports on its own, so end your turn instead of waiting unless the wait is short. stop ends jobs, and every later run of a repeating one, and suppresses their wake.",
-    parameters: Type.Object({
-      action: stringEnum(['list', 'output', 'wait', 'stop'] as const),
-      ids: Type.Optional(Type.Array(Type.String(), { description: 'Job ids. Required for output and stop.' })),
-      lines: Type.Optional(Type.Number({ description: 'Lines for raw output. Exited Pi workers show their completed answers instead. Default 80.' })),
-      timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
-    }),
+    parameters: tmuxJobsParameters,
     async execute(_id, params, signal, update, ctx) {
       const input = TmuxJobsParamsSchema.parse(params);
       const root = jobsRoot();
@@ -454,6 +459,7 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
       }
       if (input.action === 'output') return text(jobOutputs(named(), input.lines ?? DEFAULT_OUTPUT_LINES));
       if (input.action === 'wait') return text(await waitFor(state, root, owner, input.ids, input.timeout_seconds, { signal, update, ctx }));
+      if (input.action !== 'stop') throw new Error(`Unknown action ${String(input.action)}`);
       const series = new Set(named().map((job) => job.spec.series));
       // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
       state.stopSeries(series);

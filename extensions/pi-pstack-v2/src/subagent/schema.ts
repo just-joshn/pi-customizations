@@ -1,6 +1,6 @@
 import { StringEnum } from '@earendil-works/pi-ai';
 import { type Static, Type } from 'typebox';
-import { z } from 'zod';
+import { passthroughObject } from '../object-schema.ts';
 import type { AgentScope } from './agents.ts';
 
 const TaskItem = Type.Object({
@@ -30,23 +30,17 @@ export const SubagentParams = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process (single mode)' })),
 });
 
-const WorkItemSchema = z.looseObject({ agent: z.string(), task: z.string(), cwd: z.string().optional() });
+export type SubagentParamsType = Static<typeof SubagentParams>;
+export type ParsedSubagentParams = Omit<SubagentParamsType, 'agentScope'> & { agentScope?: AgentScope | undefined };
 
-/** Mirrors SubagentParams field for field and keeps any other keys, so it accepts and returns exactly what Pi's TypeBox validation passed in. */
-export const SubagentParamsSchema = z.looseObject({
-  agent: z.string().optional(),
-  task: z.string().optional(),
-  tasks: z.array(WorkItemSchema).optional(),
-  chain: z.array(WorkItemSchema).optional(),
-  agentScope: z.enum(['user', 'project', 'both']).optional(),
-  confirmProjectAgents: z.boolean().optional(),
-  cwd: z.string().optional(),
-});
+/**
+ * Pi checks SubagentParams before the tool runs, and the original code read what it was given. This accepts any object and
+ * returns it untouched, so a chain step without a task, a null optional, an unknown scope, or an extra key reach the
+ * dispatcher as they did.
+ */
+export const SubagentParamsSchema = passthroughObject<ParsedSubagentParams>();
 
 export const toAgentScope = (value: unknown): AgentScope => (value === 'project' || value === 'both' ? value : 'user');
-
-export type SubagentParamsType = Static<typeof SubagentParams>;
-export type ParsedSubagentParams = z.infer<typeof SubagentParamsSchema>;
 
 export interface WorkItem {
   agent: string;
