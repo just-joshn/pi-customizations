@@ -1,14 +1,23 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { claimWake, excerpt, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, request, STOPPED_EXIT_CODE, stop, tail, tmuxSocket } from '../src/jobs.ts';
 import { bwrapArgs, SANDBOX_ENV, type SandboxPolicy, sandboxed, seatbeltProfile, TOP_DIR_ENV } from '../src/sandbox.ts';
 
 const owner = `test${process.pid}`;
 const socket = tmuxSocket(owner);
+const MISSING_PATH = '/nonexistent';
+const ROOT_DIR = '/';
+const WORK_TREE = '/work/tree';
+const WORK_TREE_HOOKS = '/work/tree/.git/hooks';
+const SAMPLE_AGENT_DIR = '/home/u/.pi/agent';
+const SAMPLE_JOB_DIR = '/home/u/.pi/agent/pstack-v2/jobs/j';
+const SAMPLE_CREDENTIALS = '/home/u/.pi/agent/pstack-v2/jobs/j/agent';
+const envSchema = z.object({ PATH: z.string().optional() });
 const TAIL_LINES = 5;
 const SPAWN_FAILURE_EXIT_CODE = 127;
 const BROKERED_EXIT_CODE = 4;
@@ -64,17 +73,13 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  try {
-    execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
-  } catch {
-    // No server was started.
-  }
+  spawnSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
   rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
 describe('tmux jobs', { timeout: CONTAINMENT_TIMEOUT_MS }, () => {
   test('without tmux a job is refused with a way to fix it, never run another way', () => {
-    vi.stubEnv('PATH', '/nonexistent');
+    vi.stubEnv('PATH', MISSING_PATH);
     try {
       expect(() => launch(root, spec('true'))).toThrow(/needs tmux/);
     } finally {
@@ -120,14 +125,7 @@ describe('tmux jobs, wrapper and lifecycle', { timeout: CONTAINMENT_TIMEOUT_MS }
     rmSync(join(job.dir, 'inventory.json'));
     execFileSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' });
     await expect.poll(() => read(root, job.spec.id, owner)?.status, { timeout: SETTLE_TIMEOUT_MS }).toEqual({ state: 'exited', code: STOPPED_EXIT_CODE });
-    const alive = (): boolean => {
-      try {
-        process.kill(wrapper, 0);
-        return true;
-      } catch {
-        return false;
-      }
-    };
+    const alive = (): boolean => spawnSync('kill', ['-0', String(wrapper)]).status === 0;
     await expect.poll(alive, { timeout: SHORT_POLL_TIMEOUT_MS }).toBe(false);
   });
 
@@ -194,9 +192,9 @@ describe('jobs a sandboxed macOS worker asks the root to start', { timeout: CONT
   test('a request the root cannot start ends at once with the reason, instead of running forever', () => {
     vi.stubEnv(TOP_DIR_ENV, root);
     const job = request(join(root, 'nested'), spec('true'));
-    vi.stubEnv('PATH', '/nonexistent');
+    vi.stubEnv('PATH', MISSING_PATH);
     launchBrokered(root, job.dir, job.spec, job.spec.sweep, ['true'], socket);
-    vi.stubEnv('PATH', process.env['PATH'] ?? '');
+    vi.stubEnv('PATH', envSchema.parse(process.env).PATH ?? '');
     const done = read(join(root, 'nested'), job.spec.id, owner);
     expect(done?.status).toEqual({ state: 'exited', code: SPAWN_FAILURE_EXIT_CODE });
     expect(tail(outputPath(done?.spec.out ?? ''), TAIL_LINES)).toMatch(/could not launch this job: .*needs tmux/);
@@ -232,14 +230,14 @@ describe('reports', () => {
 });
 
 describe('sandbox policy', () => {
-  const policy: SandboxPolicy = { writable: ['/work/tree'], protect: ['/work/tree/.git/hooks'], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: '/home/u/.pi/agent', jobDir: '/home/u/.pi/agent/pstack-v2/jobs/j' };
+  const policy: SandboxPolicy = { writable: [WORK_TREE], protect: [WORK_TREE_HOOKS], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir: SAMPLE_AGENT_DIR, jobDir: SAMPLE_JOB_DIR };
 
   test('a platform without a sandbox refuses to run', () => {
     expect(() => sandboxed(['pi'], policy, 'win32', {})).toThrow(/found none on win32/);
   });
 
   test('seatbelt closes the Pi agent directory, opening only the job credentials copy', () => {
-    const credentials = '/home/u/.pi/agent/pstack-v2/jobs/j/agent';
+    const credentials = SAMPLE_CREDENTIALS;
     const profile = seatbeltProfile({ ...policy, credentials });
     expect(profile).toContain('(deny file-write* (subpath "/home/u/.pi/agent"))');
     expect(profile).toContain(`(allow file-write-data (literal "${credentials}/auth.json"))`);
@@ -254,7 +252,7 @@ describe('sandbox policy', () => {
     const agentDir = mkdtempSync(join(tmpdir(), 'pstack-agent-'));
     const hidden = mkdtempSync(join(tmpdir(), 'pstack-runtime-'));
     const args = bwrapArgs({ ...policy, writable: [tmpdir()], protect: [], agentDir }, { XDG_RUNTIME_DIR: hidden }, SAMPLE_UID);
-    expect(args.slice(0, BWRAP_PREFIX_ARGS)).toEqual(['--ro-bind', '/', '/']);
+    expect(args.slice(0, BWRAP_PREFIX_ARGS)).toEqual(['--ro-bind', ROOT_DIR, ROOT_DIR]);
     expect(args).toEqual(expect.arrayContaining(['--unshare-pid', '--tmpfs', hidden]));
     expect(args.filter((arg, i) => arg === agentDir && args[i - 2] !== '--ro-bind' && args[i - 1] !== '--ro-bind')).toEqual([]);
     rmSync(agentDir, { recursive: true });

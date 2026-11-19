@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import { homedir, tmpdir } from 'node:os';
@@ -136,11 +136,7 @@ beforeEach(() => {
 afterEach(async () => {
   await handlers['session_shutdown']?.({}, ctx);
   vi.unstubAllEnvs();
-  try {
-    execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
-  } catch {
-    // No server was started.
-  }
+  spawnSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
   rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   rmSync(`${repo}-other`, { recursive: true, force: true });

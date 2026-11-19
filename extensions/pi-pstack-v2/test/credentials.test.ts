@@ -11,6 +11,7 @@ let real: string;
 let job: string;
 const authSchema = z.record(z.string(), z.record(z.string(), z.unknown()));
 const read = (dir: string) => authSchema.parse(JSON.parse(readFileSync(join(dir, 'auth.json'), 'utf8')));
+const settingsSchema = z.record(z.string(), z.unknown());
 const targetSchema = z.object({ oauth: z.object({ refresh: z.string() }) });
 const write = (dir: string, data: unknown) => writeFileSync(join(dir, 'auth.json'), JSON.stringify(data));
 
@@ -79,7 +80,7 @@ describe('a job agent directory, resolved settings and commands', () => {
   test('keeps local packages in settings resolving to the same place', () => {
     writeFileSync(join(real, 'settings.json'), JSON.stringify({ packages: ['../pkg-a', 'npm:@x/y', { source: './pkg-b', skills: [] }], extensions: ['ext/one.ts'], theme: 'dark' }));
     makeJobAgentDir(real, job);
-    const settings = JSON.parse(readFileSync(join(job, 'settings.json'), 'utf8'));
+    const settings = settingsSchema.parse(JSON.parse(readFileSync(join(job, 'settings.json'), 'utf8')));
     expect(lstatSync(join(job, 'settings.json')).isSymbolicLink()).toBe(false);
     expect(settings).toEqual({ packages: [join(real, '../pkg-a'), 'npm:@x/y', { source: join(real, 'pkg-b'), skills: [] }], extensions: [join(real, 'ext/one.ts')], theme: 'dark' });
   });
