@@ -1,4 +1,4 @@
-import type { RawContentBlockStopEvent } from '@anthropic-ai/sdk/resources/messages.js';
+import type Anthropic from '@anthropic-ai/sdk';
 import { type AssistantMessageEvent, parseToolCallArguments } from '@earendil-works/pi-ai';
 import { type ContentBlock, replaceBlock, type StreamState, type StreamStep, unchanged, withoutOpenBlock } from './state.ts';
 
@@ -17,7 +17,7 @@ function finishBlock(state: StreamState, contentIndex: number, block: ContentBlo
   }
 }
 
-export function stopBlock(state: StreamState, event: RawContentBlockStopEvent): StreamStep {
+export function stopBlock(state: StreamState, event: Anthropic.Beta.BetaRawContentBlockStopEvent): StreamStep {
   const open = state.blocks.get(event.index);
   const block = open ? state.output.content[open.contentIndex] : undefined;
   if (!open || !block) return unchanged(state);

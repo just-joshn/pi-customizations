@@ -1,28 +1,34 @@
 import { createHash } from 'node:crypto';
 
 import { type AssistantMessageEvent, type Context, type Message, normalizeContext, type Tool } from '@earendil-works/pi-ai';
+import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type ClientCall = { readonly options: Record<string, unknown>; readonly params: Record<string, unknown>; readonly signal: unknown };
 
 const sdk = vi.hoisted(() => ({ calls: [] as ClientCall[], events: [] as unknown[] }));
 
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: class {
+vi.mock('@anthropic-ai/sdk', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@anthropic-ai/sdk')>();
+  class FakeAnthropic {
+    static readonly APIError = actual.APIError;
     readonly options: Record<string, unknown>;
-    readonly messages = {
-      stream: (params: Record<string, unknown>, request: { signal?: unknown }) => {
-        sdk.calls.push({ options: this.options, params, signal: request.signal });
-        return (async function* () {
-          yield* sdk.events;
-        })();
+    readonly beta = {
+      messages: {
+        create: async (params: Record<string, unknown>, request: { signal?: unknown }) => {
+          sdk.calls.push({ options: this.options, params, signal: request.signal });
+          return (async function* () {
+            yield* sdk.events;
+          })();
+        },
       },
     };
     constructor(options: Record<string, unknown>) {
       this.options = options;
     }
-  },
-}));
+  }
+  return { ...actual, default: FakeAnthropic };
+});
 
 const { default: extension } = await import('../src/index.ts');
 
@@ -48,9 +54,9 @@ const register = () => {
   return entry;
 };
 
-const model = () => {
+const model = (id = 'claude-sonnet-4-5') => {
   const { config } = register();
-  return { ...config.models[1], api: config.api, provider: 'custom-anthropic', baseUrl: config.baseUrl };
+  return { ...config.models.find((entry) => entry['id'] === id), api: config.api, provider: 'custom-anthropic', baseUrl: config.baseUrl };
 };
 
 const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
@@ -117,9 +123,9 @@ const collect = async (iterable: AsyncIterable<AssistantMessageEvent>) => {
   return events;
 };
 
-const run = async (options: Record<string, unknown>, ctx = context()) => {
+const run = async (options: Record<string, unknown>, ctx = context(), modelId = 'claude-sonnet-4-5') => {
   const { config } = register();
-  const events = await collect(config.streamSimple(model(), ctx, options));
+  const events = await collect(config.streamSimple(model(modelId), ctx, options));
   const call = sdk.calls.at(-1);
   return { events, call };
 };
@@ -141,16 +147,30 @@ afterEach(() => {
 });
 
 describe('provider registration', () => {
-  it('registers custom-anthropic with two models and OAuth', () => {
+  it('registers custom-anthropic with the current Anthropic catalog and OAuth', () => {
     const { name, config } = register();
+    const catalog = builtinProviders()
+      .find((provider) => provider.id === 'anthropic')
+      ?.getModels()
+      .filter((entry) => entry.api === 'anthropic-messages');
     expect(name).toBe('custom-anthropic');
     expect(config.baseUrl).toBe('https://api.anthropic.com');
     expect(config.apiKey).toBe('$CUSTOM_ANTHROPIC_API_KEY');
     expect(config.api).toBe('custom-anthropic-api');
-    expect(config.models).toEqual([
-      { id: 'claude-opus-4-5', name: 'Claude Opus 4.5 (Custom)', reasoning: true, input: ['text', 'image'], cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 }, contextWindow: 200000, maxTokens: 64000 },
-      { id: 'claude-sonnet-4-5', name: 'Claude Sonnet 4.5 (Custom)', reasoning: true, input: ['text', 'image'], cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }, contextWindow: 200000, maxTokens: 64000 },
-    ]);
+    expect(config.models.map((entry) => entry['id'])).toEqual(catalog?.map((entry) => entry.id));
+    expect(config.models.find((entry) => entry['id'] === 'claude-sonnet-4-5')).toEqual({
+      id: 'claude-sonnet-4-5',
+      name: 'Claude Sonnet 4.5 (latest) (Custom)',
+      reasoning: true,
+      input: ['text', 'image'],
+      cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
+      contextWindow: 200000,
+      maxTokens: 64000,
+    });
+    expect(config.models.find((entry) => entry['id'] === 'claude-sonnet-5-5')).toMatchObject({
+      compat: { forceAdaptiveThinking: true },
+      thinkingLevelMap: { xhigh: 'xhigh', max: 'max' },
+    });
     expect(config.oauth.name).toBe('Custom Anthropic (Claude Pro/Max)');
     expect(config.oauth.getApiKey({ access: 'tok' })).toBe('tok');
   });
@@ -237,14 +257,10 @@ describe('request', () => {
     const { call } = await run({ apiKey: 'sk-ant-oat01-x', reasoning: 'high' });
     expect(call?.options).toEqual({
       baseURL: 'https://api.anthropic.com',
-      dangerouslyAllowBrowser: true,
-      apiKey: null,
       authToken: 'sk-ant-oat01-x',
       defaultHeaders: {
-        accept: 'application/json',
         'anthropic-dangerous-direct-browser-access': 'true',
-        'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20,fine-grained-tool-streaming-2025-05-14,interleaved-thinking-2025-05-14',
-        'user-agent': 'claude-cli/2.1.2 (external, cli)',
+        'user-agent': 'claude-cli/2.1.322 (external, cli)',
         'x-app': 'cli',
       },
     });
@@ -256,11 +272,12 @@ describe('request', () => {
         { type: 'text', text: "You are Claude Code, Anthropic's official CLI for Claude.", cache_control: { type: 'ephemeral' } },
         { type: 'text', text: 'Be brief.', cache_control: { type: 'ephemeral' } },
       ],
+      betas: ['claude-code-20250219', 'oauth-2025-04-20', 'interleaved-thinking-2025-05-14'],
       tools: [
-        { name: 'Read', description: 'Read a file', input_schema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
-        { name: 'my_tool', description: 'Custom', input_schema: { type: 'object', properties: {}, required: [] } },
+        { name: 'Read', description: 'Read a file', eager_input_streaming: true, input_schema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
+        { name: 'my_tool', description: 'Custom', eager_input_streaming: true, input_schema: { type: 'object', properties: {}, required: [] } },
       ],
-      thinking: { type: 'enabled', budget_tokens: 20480 },
+      thinking: { type: 'enabled', budget_tokens: 20480, display: 'summarized' },
       messages: [
         { role: 'user', content: 'hello' },
         {
@@ -303,15 +320,11 @@ describe('request', () => {
   it('sends an API key without Claude Code identity and honors maxTokens and custom budgets', async () => {
     sdk.events.push(...streamEvents);
     const { call } = await run({ apiKey: 'sk-ant-api-x', maxTokens: 100, reasoning: 'low', thinkingBudgets: { low: 7 } });
-    expect(call?.options).toEqual({
-      baseURL: 'https://api.anthropic.com',
-      dangerouslyAllowBrowser: true,
-      apiKey: 'sk-ant-api-x',
-      defaultHeaders: { accept: 'application/json', 'anthropic-dangerous-direct-browser-access': 'true', 'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14,interleaved-thinking-2025-05-14' },
-    });
+    expect(call?.options).toEqual({ baseURL: 'https://api.anthropic.com', apiKey: 'sk-ant-api-x' });
+    expect(call?.params['betas']).toEqual(['interleaved-thinking-2025-05-14']);
     expect(call?.params['max_tokens']).toBe(100);
     expect(call?.params['system']).toEqual([{ type: 'text', text: 'Be brief.', cache_control: { type: 'ephemeral' } }]);
-    expect(call?.params['thinking']).toEqual({ type: 'enabled', budget_tokens: 7 });
+    expect(call?.params['thinking']).toEqual({ type: 'enabled', budget_tokens: 7, display: 'summarized' });
     expect(call?.params['tools']).toMatchObject([{ name: 'read' }, { name: 'my_tool' }]);
   });
 
@@ -321,7 +334,22 @@ describe('request', () => {
     expect(Object.keys(plain.call?.params ?? {}).sort()).toEqual(['max_tokens', 'messages', 'model', 'stream']);
     const xhigh = await run({ apiKey: 'sk-ant-oat-x', reasoning: 'xhigh' }, normalizeContext({ messages: [] }));
     expect(xhigh.call?.params['system']).toEqual([{ type: 'text', text: "You are Claude Code, Anthropic's official CLI for Claude.", cache_control: { type: 'ephemeral' } }]);
-    expect(xhigh.call?.params['thinking']).toEqual({ type: 'enabled', budget_tokens: 10240 });
+    expect(xhigh.call?.params['thinking']).toEqual({ type: 'enabled', budget_tokens: 10240, display: 'summarized' });
+    expect(xhigh.call?.params['betas']).toEqual(['claude-code-20250219', 'oauth-2025-04-20', 'interleaved-thinking-2025-05-14']);
+  });
+
+  it.each([
+    ['high', 'high'],
+    ['xhigh', 'xhigh'],
+    ['max', 'max'],
+    ['minimal', 'low'],
+  ])('uses adaptive thinking with effort for %s on adaptive models', async (reasoning, effort) => {
+    sdk.events.push(...streamEvents);
+    const { call } = await run({ apiKey: 'sk-ant-api-x', reasoning }, context(), 'claude-sonnet-5-5');
+    expect(call?.params['thinking']).toEqual({ type: 'adaptive', display: 'summarized' });
+    expect(call?.params['output_config']).toEqual({ effort });
+    expect(call?.params['betas']).toBeUndefined();
+    expect(call?.params['max_tokens']).toBe(42666);
   });
 });
 
@@ -387,6 +415,30 @@ describe('response stream', () => {
     sdk.events.push({ type: 'message_delta', delta: { stop_reason: reason }, usage: { output_tokens: 1 } });
     const { events } = await run({ apiKey: 'k' });
     expect(terminal(events).stopReason).toBe(expected);
+  });
+
+  it('maps a context window overflow to length', async () => {
+    sdk.events.push({ type: 'message_delta', delta: { stop_reason: 'model_context_window_exceeded' }, usage: { output_tokens: 1 } });
+    const { events } = await run({ apiKey: 'k' });
+    expect(terminal(events).stopReason).toBe('length');
+  });
+
+  it('reports a refusal with its explanation', async () => {
+    sdk.events.push({ type: 'message_delta', delta: { stop_reason: 'refusal', stop_details: { type: 'refusal', explanation: 'Not allowed.' } }, usage: { output_tokens: 1 } });
+    const { events } = await run({ apiKey: 'k' });
+    expect(terminal(events)).toMatchObject({ stopReason: 'error', errorMessage: 'Not allowed.' });
+  });
+
+  it('reports an API error with its status and request id', async () => {
+    const { APIError } = await vi.importActual<typeof import('@anthropic-ai/sdk')>('@anthropic-ai/sdk');
+    const failure = APIError.generate(429, { type: 'error', error: { type: 'rate_limit_error', message: 'Slow down' } }, undefined, new Headers({ 'request-id': 'req_123' }));
+    sdk.events.push({
+      get type() {
+        throw failure;
+      },
+    });
+    const { events } = await run({ apiKey: 'k' });
+    expect(terminal(events)).toMatchObject({ stopReason: 'error', errorMessage: 'RateLimitError 429 (request req_123): Slow down' });
   });
 
   it('reports an unknown stop reason as an error', async () => {

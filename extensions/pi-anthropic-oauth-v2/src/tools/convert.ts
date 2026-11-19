@@ -1,4 +1,4 @@
-import type { Tool as AnthropicTool } from '@anthropic-ai/sdk/resources/messages.js';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { Tool } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import { toClaudeCodeName } from './names.ts';
@@ -18,13 +18,14 @@ function parseParameters(tool: Tool): z.infer<typeof parametersSchema> {
   }
 }
 
-function convertTool(tool: Tool, isOAuth: boolean): AnthropicTool {
+function convertTool(tool: Tool, isOAuth: boolean): Anthropic.Beta.BetaTool {
   const { properties, required } = parseParameters(tool);
   return {
     name: isOAuth ? toClaudeCodeName(tool.name) : tool.name,
     description: tool.description,
+    eager_input_streaming: true,
     input_schema: { type: 'object', properties: properties || {}, required: required || [] },
   };
 }
 
-export const convertTools = (tools: readonly Tool[], isOAuth: boolean): AnthropicTool[] => tools.map((tool) => convertTool(tool, isOAuth));
+export const convertTools = (tools: readonly Tool[], isOAuth: boolean): Anthropic.Beta.BetaTool[] => tools.map((tool) => convertTool(tool, isOAuth));

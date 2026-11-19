@@ -27,14 +27,14 @@ function toStreamRequest(model: Model<Api>, context: TranscriptContext, options:
 
 function openAnthropicStream(request: StreamRequest) {
   const client = new Anthropic(buildClientOptions(request.model, request.apiKey, request.isOAuth));
-  return client.messages.stream(buildParams(request), { signal: request.options?.signal });
+  return client.beta.messages.create(buildParams(request), { signal: request.options?.signal });
 }
 
 async function runStream(stream: AssistantMessageEventStream, model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): Promise<void> {
   let state = createStreamState(model);
   try {
     const request = toStreamRequest(model, context, options);
-    const events = openAnthropicStream(request);
+    const events = await openAnthropicStream(request);
     stream.push({ type: 'start', partial: state.output });
     for await (const event of events) {
       const step = reduceEvent(state, event, request);

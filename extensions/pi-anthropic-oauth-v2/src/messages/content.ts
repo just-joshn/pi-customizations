@@ -1,15 +1,15 @@
-import type { Base64ImageSource, ImageBlockParam, TextBlockParam } from '@anthropic-ai/sdk/resources/messages.js';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { ImageContent, TextContent } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import { REQUEST_CONFIG } from '../request/config.ts';
 
-export type UserContentBlock = TextBlockParam | ImageBlockParam;
+export type UserContentBlock = Anthropic.Beta.BetaTextBlockParam | Anthropic.Beta.BetaImageBlockParam;
 
 const mediaTypeSchema = z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 
 export const sanitizeSurrogates = (text: string): string => text.replace(/[\uD800-\uDFFF]/g, '\uFFFD');
 
-function parseMediaType(mimeType: string): Base64ImageSource['media_type'] {
+function parseMediaType(mimeType: string): Anthropic.Beta.BetaBase64ImageSource['media_type'] {
   try {
     const mediaType = mediaTypeSchema.parse(mimeType);
     return mediaType;

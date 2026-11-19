@@ -1,8 +1,9 @@
-import type { RawContentBlockDeltaEvent } from '@anthropic-ai/sdk/resources/messages.js';
+import type Anthropic from '@anthropic-ai/sdk';
 import { parseStreamingJson } from '@earendil-works/pi-ai';
 import { type ContentBlock, type OpenBlock, replaceBlock, type StreamState, type StreamStep, unchanged, withOpenBlock } from './state.ts';
 
-type Delta = RawContentBlockDeltaEvent['delta'];
+type DeltaEvent = Anthropic.Beta.BetaRawContentBlockDeltaEvent;
+type Delta = DeltaEvent['delta'];
 
 type DeltaTarget = {
   readonly state: StreamState;
@@ -52,7 +53,7 @@ function applyDelta(target: DeltaTarget, delta: Delta): StreamStep {
   }
 }
 
-export function updateBlock(state: StreamState, event: RawContentBlockDeltaEvent): StreamStep {
+export function updateBlock(state: StreamState, event: DeltaEvent): StreamStep {
   const open = state.blocks.get(event.index);
   const block = open ? state.output.content[open.contentIndex] : undefined;
   if (!open || !block) return unchanged(state);

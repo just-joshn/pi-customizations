@@ -1,11 +1,12 @@
-import type { MessageParam, TextBlockParam, ThinkingBlockParam, ToolResultBlockParam, ToolUseBlockParam } from '@anthropic-ai/sdk/resources/messages.js';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { AssistantMessage, Message, ToolResultMessage, UserMessage } from '@earendil-works/pi-ai';
 import { EPHEMERAL_CACHE } from '../request/config.ts';
 import { toClaudeCodeName } from '../tools/names.ts';
 import { sanitizeSurrogates, toToolResultContent, toUserBlock, type UserContentBlock } from './content.ts';
 
-type AssistantBlock = TextBlockParam | ThinkingBlockParam | ToolUseBlockParam;
-type UserParam = { readonly role: 'user'; readonly content: string | readonly (UserContentBlock | ToolResultBlockParam)[] };
+type AssistantBlock = Anthropic.Beta.BetaTextBlockParam | Anthropic.Beta.BetaThinkingBlockParam | Anthropic.Beta.BetaToolUseBlockParam;
+type ToolResultBlock = Anthropic.Beta.BetaToolResultBlockParam;
+type UserParam = { readonly role: 'user'; readonly content: string | readonly (UserContentBlock | ToolResultBlock)[] };
 type AssistantParam = { readonly role: 'assistant'; readonly content: readonly AssistantBlock[] };
 type ConvertedParam = UserParam | AssistantParam;
 
@@ -50,7 +51,7 @@ function convertAssistant(message: AssistantMessage, isOAuth: boolean): Assistan
   return blocks.length > 0 ? [{ role: 'assistant', content: blocks }] : [];
 }
 
-const toToolResult = (message: ToolResultMessage): ToolResultBlockParam => ({
+const toToolResult = (message: ToolResultMessage): ToolResultBlock => ({
   type: 'tool_result',
   tool_use_id: message.toolCallId,
   content: toToolResultContent(message.content),
@@ -74,7 +75,12 @@ function withCacheOnLastUserBlock(params: readonly ConvertedParam[]): readonly C
   return [...params.slice(0, -1), { ...last, content }];
 }
 
-export function convertMessages(messages: readonly Message[], isOAuth: boolean): MessageParam[] {
+function toMessageParam(param: ConvertedParam): Anthropic.Beta.BetaMessageParam {
+  if (param.role === 'assistant') return { role: 'assistant', content: [...param.content] };
+  return { role: 'user', content: typeof param.content === 'string' ? param.content : [...param.content] };
+}
+
+export function convertMessages(messages: readonly Message[], isOAuth: boolean): Anthropic.Beta.BetaMessageParam[] {
   const params = groupMessages(messages).flatMap((group) => convertGroup(group, isOAuth));
-  return withCacheOnLastUserBlock(params).map((param) => ({ role: param.role, content: typeof param.content === 'string' ? param.content : [...param.content] }));
+  return withCacheOnLastUserBlock(params).map(toMessageParam);
 }
