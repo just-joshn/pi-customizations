@@ -5,6 +5,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inspect } from "node:util";
+import { z } from "zod";
 import { checkView } from "../frontends/view.ts";
 import {
   type CheckResult,
@@ -48,7 +49,7 @@ const loads = (...targets: string[]) => {
   });
   const name = (url: string) =>
     url.startsWith("file:") ? path.relative(scripts, fileURLToPath(url)) : url;
-  return (JSON.parse(out) as string[][]).map(([from, to]) => [name(from), name(to)]);
+  return z.array(z.array(z.string())).parse(JSON.parse(out)).map(([from, to]) => [name(from), name(to)]);
 };
 
 const COMMENT =

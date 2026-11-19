@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 import { configText } from "../backends/cfg.ts";
 import { readConfig } from "../frontends/config.ts";
 import { type Checks, readChecks } from "../frontends/spec.ts";
@@ -93,17 +94,25 @@ type Reading = { [key: string]: unknown };
 const isRecord = (v: unknown): v is Reading =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
+const readingSchema = z.record(z.string(), z.unknown());
+
 const tableOf = (reading: Reading) => {
   if (!isRecord(reading.table)) throw new Error(`TLC printed no table: ${JSON.stringify(reading)}`);
   return reading.table;
 };
 
+const MULBERRY_STEP = 0x6d2b79f5;
+const UINT32_RANGE = 4294967296;
+const MAX_SECTION_NAMES = 3;
+const MAX_MUTATIONS = 4;
+const MAX_COMMENTS = 3;
+
 function mulberry32(seed: number) {
   return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
+    seed = (seed + MULBERRY_STEP) | 0;
     let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    return ((t ^ (t >>> 14)) >>> 0) / UINT32_RANGE;
   };
 }
 
@@ -141,7 +150,7 @@ const section = (rng: Rng, key: string): Token[] => {
   if (key === "CHECK_DEADLOCK") return [head, spaced(pick(["TRUE", "FALSE"]))];
   if (ONE_NAME.includes(key)) return [head, spaced(pick(NAMES))];
   if (!key.startsWith("CONSTANT"))
-    return [head, ...Array.from({ length: 1 + int(3) }, () => spaced(pick(NAMES)))];
+    return [head, ...Array.from({ length: 1 + int(MAX_SECTION_NAMES) }, () => spaced(pick(NAMES)))];
   const count = 1 + int(2);
   return [head, ...Array.from({ length: count }, () => constantEntry(rng, spaced)).flat()];
 };
@@ -184,7 +193,7 @@ function baseTokens(rng: Rng): Token[] {
   const { int, pick } = rng;
   const first = pick([["SPECIFICATION"], ["INIT", "NEXT"]]).flatMap((key) => section(rng, key));
   const withSections = repeat(
-    int(4),
+    int(MAX_MUTATIONS),
     (tokens) => {
       const at = pick([0, tokens.length]);
       return insertAt(tokens, at, section(rng, pick(KEYWORDS)));
@@ -192,7 +201,7 @@ function baseTokens(rng: Rng): Token[] {
     first,
   );
   return repeat(
-    int(3),
+    int(MAX_COMMENTS),
     (tokens) => {
       const at = int(tokens.length + 1);
       return insertAt(tokens, at, [{ gap: pick(GAPS), text: pick(COMMENTS) }]);
@@ -204,7 +213,7 @@ function baseTokens(rng: Rng): Token[] {
 function generate(random: () => number) {
   const rng = makeRng(random);
   const base = baseTokens(rng);
-  const mutations = rng.int(4);
+  const mutations = rng.int(MAX_MUTATIONS);
   const tokens = repeat(mutations, (acc) => mutate(rng, acc), base);
   return { text: `${tokens.map((t) => t.gap + t.text).join("")}\n`, mutated: mutations > 0 };
 }
@@ -217,13 +226,12 @@ function readInTlc(files: string[], jar: string) {
   );
   assert.equal(r.status, 0, r.error?.message ?? r.stderr);
   const lines = r.stdout.split("\n");
-  const readings = new Map<string, Reading>();
-  for (let i = 0; i < files.length; i++) {
-    const reading: unknown = JSON.parse(lines[i]);
-    if (!isRecord(reading)) throw new Error(`TLC printed ${lines[i]}`);
-    readings.set(files[i], reading);
-  }
-  return readings;
+  const readOne = (file: string, i: number): [string, Reading] => {
+    const parsed = readingSchema.safeParse(JSON.parse(lines[i]));
+    if (!parsed.success) throw new Error(`TLC printed ${lines[i]}`);
+    return [file, parsed.data];
+  };
+  return new Map(files.map(readOne));
 }
 
 function passesTlcStartChecks(reading: Reading) {
@@ -243,8 +251,12 @@ function model(reading: Reading | undefined) {
   if (!reading || reading.error) return reading;
   const { overrides, modConstants, modOverrides } = reading;
   const table = tableOf(reading);
-  const out: Reading = { overrides, modConstants, modOverrides };
-  for (const key of MODEL) out[key] = table[key];
+  const out: Reading = {
+    overrides,
+    modConstants,
+    modOverrides,
+    ...Object.fromEntries(MODEL.map((key) => [key, table[key]])),
+  };
   return out;
 }
 

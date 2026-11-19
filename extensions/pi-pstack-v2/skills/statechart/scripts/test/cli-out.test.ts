@@ -26,9 +26,7 @@ const contents = (p: string) => {
   const stat = fs.lstatSync(p);
   if (stat.isSymbolicLink()) return fs.readlinkSync(p);
   if (!stat.isDirectory()) return read(p);
-  const files: { [name: string]: string } = {};
-  for (const f of fs.readdirSync(p)) files[f] = read(path.join(p, f));
-  return files;
+  return Object.fromEntries(fs.readdirSync(p).map((f) => [f, read(path.join(p, f))]));
 };
 
 for (const [what, make, words] of [
