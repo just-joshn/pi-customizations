@@ -2,8 +2,16 @@
 
 ## 0.2.1
 
+### Added
+
+- `subagent` takes `model` and `thinking` on a single call, each parallel task, and each chain step, ahead of the agent's and the session's. The `pstack-models` role lines can now be honored.
+
 ### Fixed
 
+- The Gondolin VM mounts this package read-only at its host path, so the model can read the skill, playbook, and principle files Pi and the skills name. Writes to it fail.
+- The guest system prompt says the VM has no `git`, `gh`, `tmux`, or `bun`, that other host paths such as the Pi agent directory are absent, and that `tmux_run` and `tmux_jobs` `output` reach them.
+- Skills and docs no longer name `pi_spawn` or its `readonly`, `worktree`, `base`, and `resume` parameters, which `subagent` replaced in 0.1.6. They describe `subagent` as it works: an `agent` is required, `scout` serves read-only work, the call blocks until its workers finish, and a worker gets its own checkout from a worktree created inside the working directory and passed as `cwd`. Tests reject `pi_spawn`, a `key: value` that `subagent` does not accept, and worker session paths, which `subagent` workers never write.
+- Opening a PR puts the worktree inside the working directory, the only host directory the VM can edit.
 - The README explains npm's install-scripts warning for `ssh2` and `cpu-features`, which arrive through Gondolin since 0.2.0, and gives the `npm install-scripts deny` command that silences it. A test checks that the command names every dependency with an install script.
 
 ## 0.2.0
