@@ -99,7 +99,7 @@ afterEach(() => {
 test('rejects a call with no mode and lists the bundled agents', async () => {
   const result = await run({});
   expect(textOf(result)).toContain('Invalid parameters. Provide exactly one mode.');
-  expect(textOf(result)).toContain('Available agents: ci-watcher (package), comment-sicko (package), poteto-agent (package), scout (package), thermo-nuclear-code-quality-review (package)');
+  expect(textOf(result)).toContain('Available agents: ci-watcher (package), comment-sicko (package), poteto-agent (package), scout (package), thermo-nuclear-code-quality-review (package), worker (package)');
   expect(result.details?.isError).toBe(true);
   expect(tmux).not.toHaveBeenCalled();
 });
@@ -133,6 +133,27 @@ test('single mode falls back to the session model and thinking level', async () 
   expect(args).not.toContain('--tools');
 });
 
+test('a call-level model and thinking level override the agent and session defaults', async () => {
+  writeAgent(userAgents, 'scout', 'tools: read, bash\nmodel: fancy/model\n');
+  const ctx = makeCtx({ model: { provider: 'p', id: 'default' }, thinkingLevel: 'high' });
+  await run({ agent: 'scout', task: 'look', model: 'role/model', thinking: 'low' }, ctx);
+  const args = tmux.mock.calls[0]?.[0].args ?? [];
+  expect(args).toEqual(expect.arrayContaining(['--model', 'role/model', '--thinking', 'low']));
+  expect(args).not.toContain('fancy/model');
+});
+
+test('parallel tasks and chain steps each take their own model and thinking level', async () => {
+  writeAgent(userAgents, 'a');
+  const modelArgs = (index: number) => {
+    const args = tmux.mock.calls[index]?.[0].args ?? [];
+    return [args[args.indexOf('--model') + 1], args[args.indexOf('--thinking') + 1]];
+  };
+  await run({ tasks: [{ agent: 'a', task: 'one', model: 'x/one', thinking: 'minimal' }] });
+  expect(modelArgs(0)).toEqual(['x/one', 'minimal']);
+  await run({ chain: [{ agent: 'a', task: 'two', model: 'x/two', thinking: 'xhigh' }] });
+  expect(modelArgs(1)).toEqual(['x/two', 'xhigh']);
+});
+
 test('single mode resolves a relative cwd against the context cwd', async () => {
   writeAgent(userAgents, 'scout');
   await run({ agent: 'scout', task: 'look', cwd: 'sub' });
@@ -149,7 +170,7 @@ test('single mode reports an unknown agent with the available names', async () =
 
 test('single mode reports an unknown agent when only the bundled agents exist', async () => {
   const result = await run({ agent: 'ghost', task: 'look' });
-  expect(textOf(result)).toContain('Available agents: "ci-watcher", "comment-sicko", "poteto-agent", "scout", "thermo-nuclear-code-quality-review".');
+  expect(textOf(result)).toContain('Available agents: "ci-watcher", "comment-sicko", "poteto-agent", "scout", "thermo-nuclear-code-quality-review", "worker".');
 });
 
 test('single mode says (no output) when the child produced no text', async () => {

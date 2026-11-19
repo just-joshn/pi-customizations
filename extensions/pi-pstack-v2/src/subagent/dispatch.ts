@@ -22,7 +22,7 @@ function detectModes(params: ParsedSubagentParams): SubagentMode[] {
 function workItems(params: ParsedSubagentParams, mode: SubagentMode): WorkItem[] {
   if (mode === 'chain') return params.chain ?? [];
   if (mode === 'parallel') return params.tasks ?? [];
-  return params.agent && params.task ? [{ agent: params.agent, task: params.task, cwd: params.cwd }] : [];
+  return params.agent && params.task ? [{ agent: params.agent, task: params.task, cwd: params.cwd, model: params.model, thinking: params.thinking }] : [];
 }
 
 async function runSingle(run: DispatchRun, item: WorkItem, resolved: ResolvedAgent): Promise<ToolResult> {
@@ -48,7 +48,7 @@ export async function executeSubagent(params: ParsedSubagentParams, signal: Abor
   }
 
   const items = workItems(params, mode);
-  const resolved = items.map((item) => resolveAgent(ctx.cwd, agentScope, item.agent, item.cwd));
+  const resolved = items.map((item) => ({ ...resolveAgent(ctx.cwd, agentScope, item.agent, item.cwd), call: { model: item.model, thinking: item.thinking } }));
   const needsApproval = (agentScope === 'project' || agentScope === 'both') && (params.confirmProjectAgents ?? true) && ctx.hasUI;
   if (needsApproval && !(await projectAgentsApproved(ctx, resolved, discovery.projectAgentsDir))) {
     return textResult('Canceled: project-local agents not approved.', makeDetails(mode)([]));

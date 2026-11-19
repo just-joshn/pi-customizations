@@ -17,6 +17,12 @@ pi install npm:@justjoshn/pi-pstack-v2
 
 Built and tested against Pi 1.5.2. Do not install another pstack package alongside it. Skill names collide, and Pi keeps only the first it finds.
 
+npm 11.20 and later warn that `ssh2` and `cpu-features` have install scripts not yet covered by `allowScripts`. Both come from Gondolin, through its SSH support. Their scripts only try to compile optional native speedups, which pstack does not need. The VM boots without either build. Only the root `package.json` in Pi's npm directory can hold `allowScripts`, so this package cannot answer for you. After installing, deny both once. npm keeps the entry across `pi update`.
+
+```sh
+cd ~/.pi/agent/npm && npm install-scripts deny ssh2 cpu-features
+```
+
 ## Requirements
 
 - tmux. Pi's `docs/tmux.md` covers the extended-keys setup.
@@ -51,7 +57,7 @@ The package adds the upstream `subagent` tool (tmux-backed), `tmux_run`, `tmux_j
 - Each Pi process boots one VM when its session starts and closes it when the session ends. A `subagent` worker is its own Pi process, so it gets its own VM.
 - The directory Pi started in is mounted at `/workspace`. Writes there reach the host. Every other guest path is the VM's own filesystem, and changes there stay in the VM.
 - The system prompt names `/workspace` as the working directory, so the model works in guest paths.
-- A host path outside the working directory does not exist in the guest. That includes this package's skills when Pi runs elsewhere, so the model cannot `read` them.
+- A host path outside the working directory does not exist in the guest, except this package, which is mounted read-only at its host path so the model can `read` the skill files Pi names. The system prompt says so, and says which commands only the host has.
 - The guest image ships `node` but not `git`, `gh`, `tmux`, or `bun`. Commands that need them run on the host through `tmux_run`.
 - `tmux_run`, `tmux_jobs`, and the `pi` processes `subagent` starts run on the host, outside the VM.
 
