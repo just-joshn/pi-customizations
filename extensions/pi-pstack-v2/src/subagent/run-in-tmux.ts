@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -127,11 +127,11 @@ export async function runPiInTmux(options: {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
-  const newSessionArgs = ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper];
-  const started = spawnSync('tmux', newSessionArgs, { stdio: 'ignore' });
-  if (started.status !== 0) {
+  try {
+    execFileSync('tmux', ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper], { stdio: 'ignore' });
+  } catch (error) {
     fs.rmSync(files.dir, { recursive: true, force: true });
-    return { code: null, signal: null, spawnError: started.error ?? new Error(`Command failed: ${['tmux', ...newSessionArgs].join(' ')}`) };
+    return { code: null, signal: null, spawnError: error instanceof Error ? error : new Error(String(error)) };
   }
 
   options.onSessionStarted?.(session);
