@@ -55,9 +55,13 @@ describe('discoverAgents', () => {
     expect(byName['empty']?.tools).toBeUndefined();
   });
 
-  test('skips agents whose frontmatter has no tools key (current behavior: zod rejects the missing key)', () => {
+  test('reads an agent whose frontmatter has no tools key, with tools and model unset', () => {
     write(path.join(userHome, 'agents', 'notools.md'), agentMd('notools', ''));
-    expect(discoverAgents(project, 'user').agents).toEqual([]);
+    const [agent] = discoverAgents(project, 'user').agents;
+    expect(agent).toMatchObject({ name: 'notools', description: 'does notools', systemPrompt: 'You are helpful.' });
+    expect(Object.keys(agent ?? {})).toEqual(['name', 'description', 'tools', 'model', 'systemPrompt', 'source', 'filePath']);
+    expect(agent?.tools).toBeUndefined();
+    expect(agent?.model).toBeUndefined();
   });
 
   test('skips non-markdown files, directories, and files missing required frontmatter', () => {

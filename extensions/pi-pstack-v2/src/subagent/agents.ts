@@ -49,13 +49,14 @@ function parseToolList(value: unknown): string[] | undefined {
 /**
  * Frontmatter values are `unknown` because `parseFrontmatter` runs a real YAML
  * parser, so any scalar or collection can appear. `name` and `description` are
- * required strings; a non-string `model` is dropped rather than rejected.
+ * required strings. `tools` and `model` may be missing or of any type: unusable
+ * tools are dropped by parseToolList, and a non-string `model` is dropped.
  */
 const AgentFrontmatterSchema = z.object({
   name: z.string(),
   description: z.string(),
-  tools: z.unknown().transform(parseToolList),
-  model: z.string().optional().catch(undefined),
+  tools: z.unknown().optional(),
+  model: z.unknown().optional(),
 });
 
 function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'): AgentConfig | undefined {
@@ -73,7 +74,8 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  return { ...parsed.data, systemPrompt: body, source, filePath };
+  const { name, description, tools, model } = parsed.data;
+  return { name, description, tools: parseToolList(tools), model: typeof model === 'string' ? model : undefined, systemPrompt: body, source, filePath };
 }
 
 function loadAgentsFromDir(dir: string, source: 'user' | 'project'): AgentConfig[] {
