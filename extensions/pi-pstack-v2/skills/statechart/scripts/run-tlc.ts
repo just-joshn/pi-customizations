@@ -1,6 +1,7 @@
 import path from "node:path";
 import { plainText } from "./backends/plain-text.ts";
 import type { Break } from "./frontends/verdict.ts";
+import { hostEnv } from "./host-env.ts";
 import { LEVEL, type Mark, type Part, type Rule, type Stop } from "./ir.ts";
 import { type FileResult, messagesOf, runChild } from "./run-io.ts";
 
@@ -18,10 +19,10 @@ const ERROR_LINES = 40;
 const BROKEN_EXITS = new Set([EXIT_SAFETY, EXIT_LIVENESS, EXIT_ASSERTION]);
 
 export async function findTlc(cwd: string) {
-  const { TLA2TOOLS, JAVA } = process.env;
+  const { TLA2TOOLS, JAVA } = hostEnv();
   if (TLA2TOOLS) return { jar: TLA2TOOLS, java: JAVA || "java" };
   const mise = (...args: string[]) =>
-    runChild("mise", args, { cwd, env: { ...process.env, MISE_CEILING_PATHS: cwd } });
+    runChild("mise", args, { cwd, env: { ...hostEnv(), MISE_CEILING_PATHS: cwd } });
   const where = () =>
     Promise.all([mise("where", TLC_TOOL), mise("which", "java", "--tool", JAVA_TOOL)]);
   const first = await where();
@@ -47,15 +48,37 @@ async function install(
 export const exitClass = (status: number | null) =>
   status === 0 ? 0 : status !== null && BROKEN_EXITS.has(status) ? 1 : 2;
 
-export const tail = (r: FileResult) => {
-  if (r.error) return r.error.message;
-  let text = "";
-  for (const chunk of plainText(messagesOf(r.output))) {
-    text += chunk;
-    if (text.length > 2 * TAIL_CHARS) text = text.slice(-TAIL_CHARS);
+type Link = { chunk: string; older: Link | undefined };
+type Chunks = { newest: Link | undefined; fresh: number };
+
+/** The chunks from the newest back to the oldest one that the chunks after it do not already fill `limit` without. */
+function* newestFirst(newest: Link | undefined, limit: number) {
+  let after = 0;
+  for (let link = newest; link && after < limit; link = link.older) {
+    yield link;
+    after += link.chunk.length;
   }
-  return text.trim().split("\n").slice(-TAIL_LINES).join("\n");
+}
+
+/** Keeps only the chunks `newestFirst` yields, once `limit` more characters have come in. */
+const withChunk = ({ newest, fresh }: Chunks, chunk: string, limit: number): Chunks => {
+  const added = { newest: { chunk, older: newest }, fresh: fresh + chunk.length };
+  if (added.fresh < limit) return added;
+  const kept = [...newestFirst(added.newest, limit)];
+  const compacted = kept.toReversed().reduce<Link | undefined>((older, l) => ({ chunk: l.chunk, older }), undefined);
+  return { newest: compacted, fresh: 0 };
 };
+
+/** The last `lines` lines of the chunks, cut to the oldest whole chunk that `limit` characters of newer ones leave room for. */
+export const tailText = (chunks: Iterable<string>, limit: number, lines: number) => {
+  let seen: Chunks = { newest: undefined, fresh: 0 };
+  for (const chunk of chunks) seen = withChunk(seen, chunk, limit);
+  const text = [...newestFirst(seen.newest, limit)].toReversed().map((l) => l.chunk).join("");
+  return text.trim().split("\n").slice(-lines).join("\n");
+};
+
+export const tail = (r: FileResult) =>
+  r.error ? r.error.message : tailText(plainText(messagesOf(r.output)), TAIL_CHARS, TAIL_LINES);
 
 const firstLines = (text: string) => {
   const lines = text.trim().split("\n");
