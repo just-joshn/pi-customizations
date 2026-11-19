@@ -6,7 +6,16 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { setTimeout as sleep } from "node:timers/promises";
-import { assertEmpty, assertGone, gridCase, signalWhile, sleepyJava, startCommand } from "./cli-process-support.ts";
+import {
+  assertEmpty,
+  assertGone,
+  gridCase,
+  pollMs,
+  signalExitBase,
+  signalWhile,
+  sleepyJava,
+  startCommand,
+} from "./cli-process-support.ts";
 import { copyCase, corpus, read, run } from "./cli-support.ts";
 
 
@@ -46,7 +55,7 @@ test(
     const { java, pidFile } = sleepyJava(fakes);
     const child = startCommand(path.join(corpus, "DieHard"), parent, { java, tmpdir });
     const exited = once(child, "exit");
-    while (!fs.existsSync(pidFile)) await sleep(20);
+    while (!fs.existsSync(pidFile)) await sleep(pollMs);
     child.kill("SIGKILL");
     await exited;
     await assertGone(Number(read(pidFile)));
@@ -69,7 +78,7 @@ test(
     );
     const child = startCommand(dir, parent, { tmpdir });
     const exited = once(child, "exit");
-    while (!fs.existsSync(drawing) || !read(drawing)) await sleep(20);
+    while (!fs.existsSync(drawing) || !read(drawing)) await sleep(pollMs);
     child.kill("SIGKILL");
     await exited;
     fs.writeFileSync(release, "");
@@ -90,7 +99,7 @@ test(
     let stderr = "";
     child.stderr.on("data", (chunk: Buffer) => (stderr += chunk));
     const closed = once(child, "close");
-    while (!fs.existsSync(pidFile) || !read(pidFile)) await sleep(20);
+    while (!fs.existsSync(pidFile) || !read(pidFile)) await sleep(pollMs);
     const ps = spawnSync("ps", ["-o", "ppid=", "-p", read(pidFile)], { encoding: "utf8" });
     process.kill(Number(ps.stdout), "SIGKILL");
     const [status] = await closed;
@@ -126,7 +135,8 @@ const wroteChart = (parent: string) =>
         fs.statSync(path.join(parent, f), { throwIfNoEntry: false })?.size,
     );
 
-const writingPhase = () => ({ dir: gridCase(150), reached: wroteChart });
+const writingGridSize = 150;
+const writingPhase = () => ({ dir: gridCase(writingGridSize), reached: wroteChart });
 
 for (const signal of ["SIGINT", "SIGTERM"] satisfies NodeJS.Signals[]) {
   test(
@@ -179,7 +189,7 @@ spawn(process.execPath, ["-e", ${JSON.stringify(sendWhileRead)}, dot, command, $
     );
     const r = run(path.join(corpus, "Login"), { java, env: { TMPDIR: tmpdir } });
     assert.equal(r.stderr, `${signal} stopped the check, so the command wrote nothing.\n`);
-    assert.equal(r.status, 128 + os.constants.signals[signal]);
+    assert.equal(r.status, signalExitBase + os.constants.signals[signal]);
     assert.deepEqual(fs.readdirSync(tmpdir), []);
     assert.equal(fs.existsSync(r.out), false);
   });

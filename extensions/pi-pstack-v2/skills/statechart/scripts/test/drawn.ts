@@ -24,9 +24,11 @@ const arrowOf = (
 };
 
 export const drawn = (chart: string) => {
-  const names = new Map<string, string>();
-  for (const m of chart.matchAll(/^ *(?:state "(.*)" as (s\d+) \{|(s\d+): (.*))$/gm))
-    names.set(m[2] ?? m[3], shown(m[1] ?? m[4]));
+  const names = new Map<string, string>(
+    [...chart.matchAll(/^ *(?:state "(.*)" as (s\d+) \{|(s\d+): (.*))$/gm)].map(
+      (m): [string, string] => [m[2] ?? m[3], shown(m[1] ?? m[4])],
+    ),
+  );
   const walked = chart.split("\n").reduce(
     (acc, line) => {
       const stack = stackAfter(acc.stack, line);

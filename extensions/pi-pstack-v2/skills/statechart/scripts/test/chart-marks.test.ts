@@ -11,6 +11,12 @@ import { readMarks } from "../frontends/marks.ts";
 import { readMessages } from "../frontends/messages.ts";
 import { corpus, corpusSpec, graphOf, field } from "./chart-support.ts";
 
+const idWidth = 18;
+const commentLines = 1022;
+const commentWidth = 1020;
+const keptBudgetMiB = 4;
+const markedValue = 3;
+
 test("the graph that parseDot returns keeps none of the text it read", () => {
   v8.setFlagsFromString("--expose-gc");
   const gc: () => void = vm.runInNewContext("gc");
@@ -23,11 +29,11 @@ test("the graph that parseDot returns keeps none of the text it read", () => {
   const pieces = 16;
   function* dot() {
     for (let i = 0; i < pieces; i++) {
-      const id = `-${String(i).padStart(18, "7")}`;
+      const id = `-${String(i).padStart(idWidth, "7")}`;
       const lines = [
         `${id} [label="n = ${i}"];`,
         `${id} -> ${id} [label="StayAtStateNumber${i}"];`,
-        ...Array.from({ length: 1022 }, () => `// ${"x".repeat(1020)}`),
+        ...Array.from({ length: commentLines }, () => `// ${"x".repeat(commentWidth)}`),
       ];
       yield* `${lines.join("\n")}\n`.split("\n");
     }
@@ -36,7 +42,7 @@ test("the graph that parseDot returns keeps none of the text it read", () => {
   const graph = parseDot(dot());
   const kept = heapUsed() - before;
   assert.equal(graph.states.size, pieces);
-  assert.ok(kept < 4 * MiB, `the graph keeps ${(kept / MiB).toFixed(1)} MiB of ${pieces} MiB read`);
+  assert.ok(kept < keptBudgetMiB * MiB, `the graph keeps ${(kept / MiB).toFixed(1)} MiB of ${pieces} MiB read`);
 });
 
 test("TLC's marks place on their states even when TLC wraps them over lines", () => {
@@ -98,7 +104,7 @@ test("a line that the spec prints in the shape of a mark is spec output, not a m
   ].join("\n");
   assert.deepEqual(
     [...readMarks(readMessages(out), "chart-0123")],
-    [{ values: [3], broken: ["Bad"] }],
+    [{ values: [markedValue], broken: ["Bad"] }],
   );
 });
 

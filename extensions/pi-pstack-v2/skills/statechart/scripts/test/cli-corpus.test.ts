@@ -5,7 +5,15 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { copyCase, corpus, here, read, run } from "./cli-support.ts";
+import { commandExit } from "./exit-status.ts";
 
+
+const launcherMissingStatus = 127;
+const idStart = 9000;
+const idStep = 17;
+const lcgMultiplier = 48271;
+const lcgModulus = 2147483647;
+const lcgSeed = 7;
 
 const named = (report: string) => [
   ...new Set([...report.matchAll(/\btlc-\w+\.out\b/g)].map(([file]) => file)),
@@ -19,7 +27,7 @@ for (const name of fs.readdirSync(corpus)) {
     assert.equal(r.stderr, "");
     const first = path.join(dir, "verdict-1.exit");
     const plain = fs.existsSync(first) ? Number(read(first)) : 0;
-    assert.equal(r.status, plain === 0 ? 0 : [11, 12, 13].includes(plain) ? 1 : 2);
+    assert.equal(r.status, commandExit(plain));
     assert.equal(r.report, read(path.join(dir, "report.md")));
     assert.equal(read(path.join(r.out, "chart.mmd")), read(path.join(dir, "chart.mmd")));
     assert.deepEqual(r.files, ["chart.mmd", "report.md", "tlc.out", ...named(r.report)].toSorted());
@@ -103,7 +111,7 @@ for (const [what, bin] of [
 ] satisfies [string, () => string][]) {
   test(`the launcher stops with exit 127 and names only the runtimes when PATH ${what}`, () => {
     const r = run(path.join(corpus, "Login"), { command: [launcher], env: { PATH: bin() } });
-    assert.equal(r.status, 127);
+    assert.equal(r.status, launcherMissingStatus);
     assert.equal(
       r.stderr,
       "statechart needs Node 22.18 to 22.x, Node 23.6 or later, Bun 1.1.5 or later, or Deno 2.0 or later.\n",
@@ -113,17 +121,16 @@ for (const [what, bin] of [
 }
 
 const renumbered = (dot: string, random: () => number) => {
-  const ids = new Map<string, string>();
-  const id = (n: string) => ids.get(n) ?? ids.set(n, String(9000 - ids.size * 17)).get(n);
+  const edge = /^(-?\d+)(?: -> (-?\d+))?/;
+  const kept = dot.split("\n").filter((l) => /^-?\d+ (\[|->)/.test(l));
+  const firstSeen = [
+    ...new Set(kept.flatMap((l) => (edge.exec(l) ?? []).slice(1).filter((n) => n !== undefined))),
+  ];
+  const ids = new Map(firstSeen.map((n, i) => [n, String(idStart - i * idStep)]));
+  const id = (n: string) => ids.get(n);
   const renumber = (l: string) =>
-    l.replace(
-      /^(-?\d+)(?: -> (-?\d+))?/,
-      (_: string, a: string, b: string | undefined) => id(a) + (b ? ` -> ${id(b)}` : ""),
-    );
-  const lines = dot
-    .split("\n")
-    .filter((l) => /^-?\d+ (\[|->)/.test(l))
-    .map(renumber);
+    l.replace(edge, (_: string, a: string, b: string | undefined) => id(a) + (b ? ` -> ${id(b)}` : ""));
+  const lines = kept.map(renumber);
   const shuffled = lines.reduceRight((rest, _, i) => {
     if (i === 0) return rest;
     const j = Math.floor(random() * (i + 1));
@@ -133,8 +140,8 @@ const renumbered = (dot: string, random: () => number) => {
 };
 
 test("the order of TLC's dump and its state IDs do not change the chart or the report", () => {
-  let seed = 7;
-  const random = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+  let seed = lcgSeed;
+  const random = () => (seed = (seed * lcgMultiplier) % lcgModulus) / lcgModulus;
   for (const name of ["DieHard", "LoginParallel", "TwoPhase"]) {
     const dir = copyCase(name, (d) => {
       const file = path.join(d, "graph.dot");

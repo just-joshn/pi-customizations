@@ -128,9 +128,9 @@ test("a chart that draws parent states in place of regions still names each regi
 });
 
 test("the view answers once for each state and step, so a chart of parent states agrees with its report", () => {
-  const asked: { [question: string]: number } = {};
+  let asked: { [question: string]: number } = {};
   const answer = (question: string) => {
-    asked[question] = (asked[question] ?? 0) + 1;
+    asked = { ...asked, [question]: (asked[question] ?? 0) + 1 };
     return asked[question] === 1 ? "first" : "later";
   };
   const { chart, report: text } = draw(forkToBug, {

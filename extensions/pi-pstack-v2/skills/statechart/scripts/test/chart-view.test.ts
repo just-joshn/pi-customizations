@@ -5,6 +5,9 @@ import { checkView } from "../frontends/view.ts";
 import { type Vars, type View } from "../ir.ts";
 import { graphOf, draw, type StateRow, type StepRow } from "./chart-support.ts";
 
+const msPerSecond = 1000;
+const drawBudgetSeconds = 5;
+
 test("a region named __proto__ is a region like any other", () => {
   const graph = graphOf(
     [
@@ -18,7 +21,11 @@ test("a region named __proto__ is a region like any other", () => {
     ],
   );
   const { chart } = draw(graph, {
-    state: (v): unknown => JSON.parse(`{"__proto__": "X${v.x}", "Other": "Y${v.y}"}`),
+    state: (v): unknown =>
+      Object.fromEntries([
+        ["__proto__", `X${v.x}`],
+        ["Other", `Y${v.y}`],
+      ]),
   });
   assert.match(chart, /^ {4}state "#95;#95;proto#95;#95;" as r0 \{$/m);
   assert.match(chart, /^ {6}s0 --> s1: GoX \[when Y0\]$/m);
@@ -59,8 +66,9 @@ test("a group named like an Object method still needs its own color", () => {
 });
 
 test("a message writes each value the way JavaScript shows it", () => {
-  const loop: { self?: unknown } = {};
-  Object.assign(loop, { self: loop });
+  const loop = new (class {
+    self = this;
+  })();
   assert.throws(
     () =>
       checkView(
@@ -77,8 +85,10 @@ test("a message writes each value the way JavaScript shows it", () => {
 });
 
 test("checkView takes colors only as a plain object", () => {
-  const bare: object = Object.create(null);
-  checkView({ colors: Object.assign(bare, { Busy: "blue" }) }, inspect);
+  const bare: object = Object.create(null, {
+    Busy: { value: "blue", enumerable: true, writable: true, configurable: true },
+  });
+  checkView({ colors: bare }, inspect);
   const inherited: object = Object.create({ Busy: "blue" });
   for (const colors of [new Map([["Busy", "blue"]]), inherited, new String("blue")])
     assert.throws(() => checkView({ colors }, inspect), {
@@ -95,9 +105,14 @@ test("the chart uses the colors that checkView read once from the view's own key
       return reads === 1 ? "blue" : "breaks";
     },
   };
-  const changed = { Busy: "blue" };
+  let current = "blue";
+  const changed = {
+    get Busy() {
+      return current;
+    },
+  };
   const changes = () => {
-    Object.assign(changed, { Busy: "breaks" });
+    current = "breaks";
     return "Busy";
   };
   for (const view of [
@@ -108,7 +123,7 @@ test("the chart uses the colors that checkView read once from the view's own key
     assert.match(chart, /^ {2}class s\d+ blue$/m);
     assert.doesNotMatch(chart, /\bbreaks\b/);
   }
-  const hidden = Object.defineProperty({}, "Busy", { value: "breaks" });
+  const hidden = Object.create(Object.prototype, { Busy: { value: "breaks" } });
   assert.throws(
     () => draw(graph, checkView({ group: () => "Busy", colors: hidden }, inspect)),
     /group\(\) returned "Busy", which colors does not name/,
@@ -151,8 +166,8 @@ test("a graph of 10,000 states draws in seconds with no view", () => {
   ]);
   const start = performance.now();
   const { chart, report: text } = draw(graphOf(states, steps), {});
-  const seconds = (performance.now() - start) / 1000;
+  const seconds = (performance.now() - start) / msPerSecond;
   assert.match(text, /^The shortest path has 198 steps:$/m);
   assert.equal(chart.match(/^ {2}s\d+: /gm)?.length, n * n);
-  assert.ok(seconds < 5, `drawing took ${seconds.toFixed(1)} s`);
+  assert.ok(seconds < drawBudgetSeconds, `drawing took ${seconds.toFixed(1)} s`);
 });

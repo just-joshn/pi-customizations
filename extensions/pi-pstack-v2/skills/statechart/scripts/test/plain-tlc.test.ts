@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { agrees, skip } from "./tlc.ts";
 
+const earlyBreakSteps = 3;
+
 const late = [
   "---- MODULE Late ----",
   "EXTENDS Naturals, TLC",
@@ -244,7 +246,7 @@ test(
       "SPECIFICATION Spec\nINVARIANT Early\nPROPERTY Back\n",
     );
     assert.equal(v.status, 1);
-    assert.deepEqual(v.breaks, new Map([["Early", 3]]));
+    assert.deepEqual(v.breaks, new Map([["Early", earlyBreakSteps]]));
     assert.deepEqual(v.holds, []);
     assert.deepEqual(v.unchecked, ["Back", "NoDeadlock"]);
     assert.match(

@@ -70,7 +70,7 @@ export function run(
   };
 }
 
-export function copyCase(name: string, edit: (dir: string) => void = () => {}) {
+export function copyCase(name: string, edit: (dir: string) => void = () => undefined) {
   const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "statechart-case-")), name);
   fs.cpSync(path.join(corpus, name), dir, { recursive: true });
   edit(dir);

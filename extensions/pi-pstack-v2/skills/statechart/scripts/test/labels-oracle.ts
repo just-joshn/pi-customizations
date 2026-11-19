@@ -1,4 +1,5 @@
 import { drawnEdges } from "../backends/mermaid.ts";
+import { z } from "zod";
 import type { Chart, ChartState, Region } from "../ir.ts";
 
 export type Render = (text: string) => { svg: string };
@@ -46,9 +47,14 @@ const NAMED: { [name: string]: string } = {
   nbsp: "\u00a0",
 };
 const WINDOWS_1252 = "€\x81‚ƒ„…†‡ˆ‰Š‹Œ\x8dŽ\x8f\x90‘’“”•–—˜™š›œ\x9džŸ";
+const MAX_CODE_POINT = 0x10ffff;
+const SURROGATE_FIRST = 0xd800;
+const SURROGATE_LAST = 0xdfff;
+const C1_FIRST = 0x80;
+const C1_LAST = 0x9f;
 const fromRef = (n: number) => {
-  if (n === 0 || n > 0x10ffff || (n >= 0xd800 && n <= 0xdfff)) return "\ufffd";
-  if (n >= 0x80 && n <= 0x9f) return WINDOWS_1252[n - 0x80];
+  if (n === 0 || n > MAX_CODE_POINT || (n >= SURROGATE_FIRST && n <= SURROGATE_LAST)) return "\ufffd";
+  if (n >= C1_FIRST && n <= C1_LAST) return WINDOWS_1252[n - C1_FIRST];
   return String.fromCodePoint(n);
 };
 const fromMermaid = (s: string) =>
@@ -84,29 +90,26 @@ export type Want = {
 type Ids = (region: string, path: string[]) => string;
 
 const idAllocator = (): Ids => {
-  const ids = new Map<string, string>();
+  let ids = new Map<string, string>();
   return (region, path) => {
     const key = JSON.stringify([region, path]);
     const found = ids.get(key) ?? `s${ids.size}`;
-    ids.set(key, found);
+    ids = new Map([...ids, [key, found]]);
     return found;
   };
 };
 
 type Walk = {
-  nodes: Map<string, Node>;
-  used: Set<string>;
   id: Ids;
   chart: Chart;
   region: Region;
   drawn: ReturnType<typeof drawnEdges>;
 };
 
+type Walked = { nodes: [string, Node][]; edges: string[][]; used: string[] };
+
 const groupByHead = (below: ChartState[], depth: number) =>
-  below.reduce((heads, s) => {
-    const head = s.path[depth];
-    return heads.set(head, [...(heads.get(head) ?? []), s]);
-  }, new Map<string, ChartState[]>());
+  Map.groupBy(below, (s) => s.path[depth]);
 
 const startEdges = (w: Walk, path: string[], node: string) => {
   const key = JSON.stringify(path);
@@ -120,19 +123,32 @@ const treeEdges = (
   prefix: string[],
   parent: string | null,
   below: ChartState[],
-): string[][] =>
-  [...groupByHead(below, prefix.length)].flatMap(([head, under]) => {
+): Walked => {
+  const parts = [...groupByHead(below, prefix.length)].map(([head, under]): Walked => {
     const path = [...prefix, head];
     const inner = under.filter((s) => s.path.length > path.length);
     const leaf = under.findLast((s) => s.path.length <= path.length);
     const node = w.id(w.region.name, path);
-    w.nodes.set(node, { text: head, parent, group: inner.length > 0 });
-    if (inner.length) return [...treeEdges(w, path, node, inner), ...startEdges(w, path, node)];
-    if (leaf?.group !== undefined) w.used.add(w.chart.colors[String(leaf.group)]);
-    return [];
+    const self: [string, Node] = [node, { text: head, parent, group: inner.length > 0 }];
+    if (inner.length) {
+      const nested = treeEdges(w, path, node, inner);
+      return {
+        nodes: [self, ...nested.nodes],
+        edges: [...nested.edges, ...startEdges(w, path, node)],
+        used: nested.used,
+      };
+    }
+    const used = leaf?.group !== undefined ? [w.chart.colors[String(leaf.group)]] : [];
+    return { nodes: [self], edges: [], used };
   });
+  return {
+    nodes: parts.flatMap((p) => p.nodes),
+    edges: parts.flatMap((p) => p.edges),
+    used: parts.flatMap((p) => p.used),
+  };
+};
 
-const regionEdges = (w: Walk, wrap: string | null) => {
+const regionEdges = (w: Walk, wrap: string | null): Walked => {
   const nested = treeEdges(w, [], wrap, w.region.states);
   const top = w.drawn
     .filter((e) => !e.start || !e.from.length)
@@ -141,23 +157,34 @@ const regionEdges = (w: Walk, wrap: string | null) => {
       w.id(w.region.name, e.to),
       e.label ?? "",
     ]);
-  return [...nested, ...top];
+  return { ...nested, edges: [...nested.edges, ...top] };
 };
 
 export function expected(chart: Chart): Want {
-  const nodes = new Map<string, Node>();
-  const used = new Set<string>();
   const id = idAllocator();
   const multi = chart.regions.length > 1;
-  if (multi) nodes.set("all", { text: "At the same time", parent: null, group: true });
-  const edges = chart.regions.flatMap((region, i) => {
+  const allNode: [string, Node][] = multi
+    ? [["all", { text: "At the same time", parent: null, group: true }]]
+    : [];
+  const walks = chart.regions.map((region, i): Walked => {
     const wrap = multi ? `r${i}` : null;
-    if (wrap) nodes.set(wrap, { text: region.name, parent: "all", group: true });
-    return regionEdges({ nodes, used, id, chart, region, drawn: drawnEdges(region) }, wrap);
+    const wrapNode: [string, Node][] = wrap
+      ? [[wrap, { text: region.name, parent: "all", group: true }]]
+      : [];
+    const walked = regionEdges({ id, chart, region, drawn: drawnEdges(region) }, wrap);
+    return { ...walked, nodes: [...wrapNode, ...walked.nodes] };
   });
+  const used = new Set(walks.flatMap((x) => x.used));
   const legend = Object.entries(chart.colors).filter(([, cls]) => used.has(cls));
-  legend.forEach(([text], n) => nodes.set(`lg${n}`, { text, parent: "legend", group: false }));
-  if (legend.length) nodes.set("legend", { text: "Legend", parent: null, group: true });
+  const legendNodes = legend.map(([text], n): [string, Node] => [
+    `lg${n}`,
+    { text, parent: "legend", group: false },
+  ]);
+  const legendRoot: [string, Node][] = legend.length
+    ? [["legend", { text: "Legend", parent: null, group: true }]]
+    : [];
+  const nodes = new Map([...allNode, ...walks.flatMap((x) => x.nodes), ...legendNodes, ...legendRoot]);
+  const edges = walks.flatMap((x) => x.edges);
   return { nodes, edges, direction: multi ? "LR" : "TB", title: chart.title };
 }
 
@@ -204,7 +231,7 @@ const mermaidNodeProblems = (
 
 const mermaidTitleProblems = (text: string, want: Want): string[] => {
   const head = text.match(/^---\ntitle: (.*)\n---\n/);
-  const raw = head ? String(JSON.parse(head[1])) : undefined;
+  const raw = head ? z.coerce.string().parse(JSON.parse(head[1])) : undefined;
   const title = raw === undefined ? undefined : fromMermaid(raw);
   const wanted = JSON.stringify(want.title);
   if ((title !== undefined) !== titled(want))

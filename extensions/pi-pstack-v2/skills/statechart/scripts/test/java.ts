@@ -2,10 +2,11 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import { plainText } from "../backends/plain-text.ts";
 import { readMessages } from "../frontends/messages.ts";
 
-const args = process.argv.slice(2);
+const [, , ...args] = z.array(z.string()).parse(process.argv);
 const config = args.includes("-config") ? args[args.indexOf("-config") + 1] : undefined;
 const name = config ? path.basename(config, ".cfg") : "sany";
 const dump = args.includes("-dump") ? `${args[args.indexOf("-dump") + 2]}.dot` : undefined;

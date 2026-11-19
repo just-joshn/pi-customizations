@@ -4,7 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { inspect } from "node:util";
 import { checkView } from "../frontends/view.ts";
-import { type Bug, type Graph, hasSection, type Rule, stateRules, type View } from "../ir.ts";
+import { type Bug, type Graph, hasSection, type Rule, type Spec, stateRules, type View } from "../ir.ts";
 import { addPast, deadEnds, finder, lasso, mark } from "../passes/annotate.ts";
 import { pathGraph } from "../passes/paths.ts";
 import { bugs } from "../passes/reach.ts";
@@ -15,6 +15,8 @@ import { readVerdict } from "../frontends/verdict.ts";
 import { compile } from "../pipeline.ts";
 import { fileLines } from "../run.ts";
 import { here, corpus, corpusSpec } from "./chart-support.ts";
+
+const longPathSteps = 5;
 
 const verdictFiles = (name: string) =>
   fs
@@ -55,12 +57,14 @@ function replay(name: string, graph: Graph) {
 }
 
 test("each corpus bug path is the shortest way to its rule", () => {
-  const paths: { [rule: string]: string[] } = {};
-  for (const name of ["DieHard", "MediaPlayer", "LoginParallel", "TwoPhase", "FirstRule"]) {
-    const graph = parseDot(fileLines(corpus(name, "graph.dot")));
-    replay(name, graph);
-    for (const bug of bugs(graph)) paths[bug.rule.name] = bug.path.map((p) => p.action);
-  }
+  const names = ["DieHard", "MediaPlayer", "LoginParallel", "TwoPhase", "FirstRule"];
+  const paths: { [rule: string]: string[] } = Object.fromEntries(
+    names.flatMap((name) => {
+      const graph = parseDot(fileLines(corpus(name, "graph.dot")));
+      replay(name, graph);
+      return bugs(graph).map((bug) => [bug.rule.name, bug.path.map((p) => p.action)] as const);
+    }),
+  );
   assert.deepEqual(paths.NotSolved, [
     "FillBig",
     "BigToSmall",
@@ -70,13 +74,26 @@ test("each corpus bug path is the shortest way to its rule", () => {
     "BigToSmall",
   ]);
   assert.deepEqual(paths.LoudWhenStopped, ["YouTurnItUp"]);
-  assert.equal(paths.SignedInWhileLocked.length, 5);
-  assert.equal(paths.TCConsistent.length, 5);
+  assert.equal(paths.SignedInWhileLocked.length, longPathSteps);
+  assert.equal(paths.TCConsistent.length, longPathSteps);
   assert.equal(paths.TCConsistent.at(-1), "RMRcvCommitMsg");
   assert.deepEqual(paths.NotOne, ["Next"]);
   assert.deepEqual(paths.NotOneOrThree, ["Next"]);
   assert.deepEqual(paths.AlsoNotOne, ["Next"]);
   assert.deepEqual(paths.NoDeadlock, ["Next", "Next", "Next"]);
+});
+
+const pathsOnlyResult = (spec: Spec, graph: Graph, paths: Bug[]) => ({
+  spec: { ...spec, folder: "" },
+  graph,
+  paths,
+  rules: [],
+  properties: [],
+  exit: 1 as const,
+  stop: undefined,
+  drawing: undefined,
+  states: { distinct: 1234, initial: 1, complete: true, cut: false },
+  messages: [],
 });
 
 test("a chart of only the bug paths words each one with the view, asked once for each state and step", () => {
@@ -90,8 +107,10 @@ test("a chart of only the bug paths words each one with the view, asked once for
       broke?.kind === rule.kind && (broke.kind === "deadlock" || rule.name === broke.name);
     return rules.filter(breaks).map((rule) => drawn.bug(rule, readCounterexample(messages)));
   });
-  const asked: { [question: string]: number } = {};
-  const count = (question: string) => (asked[question] = (asked[question] ?? 0) + 1);
+  let asked: { [question: string]: number } = {};
+  const count = (question: string) => {
+    asked = { ...asked, [question]: (asked[question] ?? 0) + 1 };
+  };
   const view: View = {
     state: (v) => {
       count(`state ${v.x}`);
@@ -103,18 +122,7 @@ test("a chart of only the bug paths words each one with the view, asked once for
     },
   };
   const { report: text, files } = compile(
-    {
-      spec: { ...spec, folder: "" },
-      graph: drawn.graph,
-      paths,
-      rules: [],
-      properties: [],
-      exit: 1,
-      stop: undefined,
-      drawing: undefined,
-      states: { distinct: 1234, initial: 1, complete: true, cut: false },
-      messages: [],
-    },
+    pathsOnlyResult(spec, drawn.graph, paths),
     checkView(view, inspect),
   );
   assert.match(
