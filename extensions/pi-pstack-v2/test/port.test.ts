@@ -175,6 +175,15 @@ describe('the Pi port of pstack, prose rules', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('no prose sends the model to worker session files, since subagent workers run with no session', () => {
+    const offenders = withMechanisms.flatMap((path) =>
+      readFileSync(path, 'utf8')
+        .split('\n')
+        .flatMap((line, index) => (/jobs\/[^/\s`]+\/session/.test(line) ? [`${relative(root, path)}:${index + 1}`] : [])),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   test('every `key: value` prose passes to subagent is a parameter subagent accepts', () => {
     const accepted = new Set([...Object.keys(SubagentParams.properties), 'agent', 'task', 'cwd']);
     const offenders = withMechanisms.flatMap((path) =>
