@@ -190,12 +190,13 @@ describe('the Pi port of pstack, prose rules', () => {
       readFileSync(path, 'utf8')
         .split('\n')
         .flatMap((line, index) =>
-          /`subagent`/.test(line)
-            ? [...line.matchAll(/`(\w+): /g)]
-                .map(([, key = '']) => key)
-                .filter((key) => !accepted.has(key))
-                .map((key) => `${relative(root, path)}:${index + 1} ${key}`)
-            : [],
+          // Each key belongs to the nearest tool named before it, since one line can name tmux_run and subagent.
+          line
+            .split(/(?=`(?:subagent|tmux_run|tmux_jobs)`)/)
+            .filter((segment) => segment.startsWith('`subagent`'))
+            .flatMap((segment) => [...segment.matchAll(/`(\w+): /g)].map(([, key = '']) => key))
+            .filter((key) => !accepted.has(key))
+            .map((key) => `${relative(root, path)}:${index + 1} ${key}`),
         ),
     );
     expect(offenders).toEqual([]);
