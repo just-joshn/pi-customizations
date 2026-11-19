@@ -5,8 +5,14 @@ import * as path from 'node:path';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { projectAgentsApproved, resolveAgent } from '../src/subagent/agent-resolution.ts';
-import { type AgentConfig, discoverAgents, formatAgentList } from '../src/subagent/agents.ts';
+import { type AgentConfig, type AgentScope, discoverAgents, formatAgentList } from '../src/subagent/agents.ts';
 import type { ResolvedAgent } from '../src/subagent/types.ts';
+
+/** Discovery minus the agents this package ships, so a test sees only the user and project fixtures it wrote. */
+const localAgents = (cwd: string, scope: AgentScope) => {
+  const result = discoverAgents(cwd, scope);
+  return { ...result, agents: result.agents.filter((agent) => agent.source !== 'package') };
+};
 
 const AGENT_DIR_ENV = 'PI_CODING_AGENT_DIR';
 const TWO = 2;
@@ -38,7 +44,7 @@ afterEach(() => {
 describe('discoverAgents', () => {
   test('reads user agents with parsed tools, model and prompt body', () => {
     write(path.join(userHome, 'agents', 'a.md'), agentMd('a', 'tools: read, bash\nmodel: m1\n'));
-    const { agents, projectAgentsDir } = discoverAgents(project, 'user');
+    const { agents, projectAgentsDir } = localAgents(project, 'user');
     expect(projectAgentsDir).toBeNull();
     expect(agents).toHaveLength(1);
     expect(agents[0]).toMatchObject({ name: 'a', description: 'does a', tools: ['read', 'bash'], model: 'm1', source: 'user', systemPrompt: 'You are helpful.' });
@@ -48,7 +54,7 @@ describe('discoverAgents', () => {
     write(path.join(userHome, 'agents', 'arr.md'), agentMd('arr', 'tools: [read, " grep ", 3]\n'));
     write(path.join(userHome, 'agents', 'num.md'), agentMd('num', 'tools: 5\nmodel: 7\n'));
     write(path.join(userHome, 'agents', 'empty.md'), agentMd('empty', 'tools: " , "\n'));
-    const byName = Object.fromEntries(discoverAgents(project, 'user').agents.map((a) => [a.name, a]));
+    const byName = Object.fromEntries(localAgents(project, 'user').agents.map((a) => [a.name, a]));
     expect(byName['arr']?.tools).toEqual(['read', 'grep']);
     expect(byName['num']?.tools).toBeUndefined();
     expect(byName['num']?.model).toBeUndefined();
@@ -57,7 +63,7 @@ describe('discoverAgents', () => {
 
   test('reads an agent whose frontmatter has no tools key, with tools and model unset', () => {
     write(path.join(userHome, 'agents', 'notools.md'), agentMd('notools', ''));
-    const [agent] = discoverAgents(project, 'user').agents;
+    const [agent] = localAgents(project, 'user').agents;
     expect(agent).toMatchObject({ name: 'notools', description: 'does notools', systemPrompt: 'You are helpful.' });
     expect(Object.keys(agent ?? {})).toEqual(['name', 'description', 'tools', 'model', 'systemPrompt', 'source', 'filePath']);
     expect(agent?.tools).toBeUndefined();
@@ -71,7 +77,7 @@ describe('discoverAgents', () => {
     write(path.join(dir, 'plain.md'), 'no frontmatter');
     fs.mkdirSync(path.join(dir, 'folder.md'));
     write(path.join(dir, 'ok.md'), agentMd('ok'));
-    expect(discoverAgents(project, 'user').agents.map((a) => a.name)).toEqual(['ok']);
+    expect(localAgents(project, 'user').agents.map((a) => a.name)).toEqual(['ok']);
   });
 
   test('follows symlinked agent files and ignores unreadable broken links', () => {
@@ -80,29 +86,29 @@ describe('discoverAgents', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.symlinkSync(target, path.join(dir, 'linked.md'));
     fs.symlinkSync(path.join(root, 'missing.md'), path.join(dir, 'broken.md'));
-    expect(discoverAgents(project, 'user').agents.map((a) => a.name)).toEqual(['linked']);
+    expect(localAgents(project, 'user').agents.map((a) => a.name)).toEqual(['linked']);
   });
 });
 
 describe('discoverAgents directories', () => {
   test('returns nothing when the user agents directory is absent or unreadable as a directory', () => {
-    expect(discoverAgents(project, 'user').agents).toEqual([]);
+    expect(localAgents(project, 'user').agents).toEqual([]);
     write(path.join(userHome, 'agents'), 'a file, not a dir');
-    expect(discoverAgents(project, 'user').agents).toEqual([]);
+    expect(localAgents(project, 'user').agents).toEqual([]);
   });
 
   test('finds the nearest project agents dir walking up and ignores user agents under scope project', () => {
     write(path.join(userHome, 'agents', 'u.md'), agentMd('u'));
     const agentsDir = path.join(project, '.pi', 'agents');
     write(path.join(agentsDir, 'p.md'), agentMd('p'));
-    const result = discoverAgents(path.join(project, 'sub', 'deep'), 'project');
+    const result = localAgents(path.join(project, 'sub', 'deep'), 'project');
     expect(result.projectAgentsDir).toBe(agentsDir);
     expect(result.agents.map((a) => [a.name, a.source])).toEqual([['p', 'project']]);
   });
 
   test('scope user ignores project agents but still reports the directory', () => {
     write(path.join(project, '.pi', 'agents', 'p.md'), agentMd('p'));
-    const result = discoverAgents(project, 'user');
+    const result = localAgents(project, 'user');
     expect(result.agents).toEqual([]);
     expect(result.projectAgentsDir).toBe(path.join(project, '.pi', 'agents'));
   });
@@ -113,7 +119,7 @@ describe('discoverAgents precedence', () => {
     write(path.join(userHome, 'agents', 'same.md'), agentMd('same', undefined, 'user body'));
     write(path.join(userHome, 'agents', 'only.md'), agentMd('only'));
     write(path.join(project, '.pi', 'agents', 'same.md'), agentMd('same', undefined, 'project body'));
-    const agents = discoverAgents(project, 'both').agents;
+    const agents = localAgents(project, 'both').agents;
     expect(agents.find((a) => a.name === 'same')).toMatchObject({ source: 'project', systemPrompt: 'project body' });
     expect(agents).toHaveLength(TWO);
   });
@@ -138,14 +144,14 @@ describe('resolveAgent', () => {
     const resolved = resolveAgent(project, 'user', 'a', 'sub');
     expect(resolved.cwd).toBe(path.join(project, 'sub'));
     expect(resolved.agent?.name).toBe('a');
-    expect(resolved.available.map((a) => a.name)).toEqual(['a']);
+    expect(resolved.available.filter((a) => a.source !== 'package').map((a) => a.name)).toEqual(['a']);
   });
 
   test('leaves agent undefined for unknown names and defaults cwd', () => {
     write(path.join(userHome, 'agents', 'a.md'), agentMd('a'));
     const resolved = resolveAgent(project, 'user', 'zzz');
     expect(resolved).toMatchObject({ agent: undefined, cwd: project });
-    expect(resolved.available).toHaveLength(1);
+    expect(resolved.available.filter((a) => a.source !== 'package')).toHaveLength(1);
   });
 });
 
@@ -156,7 +162,7 @@ describe('projectAgentsApproved', () => {
   test('approves without prompting when only user agents or none are selected', async () => {
     const confirm = vi.fn();
     write(path.join(userHome, 'agents', 'a.md'), agentMd('a'));
-    const userAgent = discoverAgents(project, 'user').agents[0];
+    const userAgent = localAgents(project, 'user').agents[0];
     expect(await projectAgentsApproved(ctxFor(true, confirm), selected(userAgent, undefined), null)).toBe(true);
     expect(confirm).not.toHaveBeenCalled();
   });
@@ -164,7 +170,7 @@ describe('projectAgentsApproved', () => {
   test('approves silently for project agents inside the trusted project agents dir', async () => {
     const confirm = vi.fn();
     write(path.join(project, '.pi', 'agents', 'p.md'), agentMd('p'));
-    const { agents, projectAgentsDir } = discoverAgents(project, 'project');
+    const { agents, projectAgentsDir } = localAgents(project, 'project');
     expect(await projectAgentsApproved(ctxFor(true, confirm), selected(...agents), projectAgentsDir)).toBe(true);
     expect(confirm).not.toHaveBeenCalled();
   });
@@ -172,7 +178,7 @@ describe('projectAgentsApproved', () => {
   test('asks once per file when the project is untrusted and returns the answer', async () => {
     const confirm = vi.fn().mockResolvedValue(false);
     const file = write(path.join(project, '.pi', 'agents', 'p.md'), agentMd('p'));
-    const { agents, projectAgentsDir } = discoverAgents(project, 'project');
+    const { agents, projectAgentsDir } = localAgents(project, 'project');
     const approved = await projectAgentsApproved(ctxFor(false, confirm), selected(...agents, ...agents), projectAgentsDir);
     expect(approved).toBe(false);
     expect(confirm).toHaveBeenCalledTimes(1);
@@ -182,7 +188,7 @@ describe('projectAgentsApproved', () => {
   test('asks when there is no project agents dir at all, and approval passes through', async () => {
     const confirm = vi.fn().mockResolvedValue(true);
     write(path.join(project, '.pi', 'agents', 'p.md'), agentMd('p'));
-    const { agents } = discoverAgents(project, 'project');
+    const { agents } = localAgents(project, 'project');
     expect(await projectAgentsApproved(ctxFor(true, confirm), selected(...agents), null)).toBe(true);
     expect(confirm).toHaveBeenCalledTimes(1);
   });
@@ -192,7 +198,7 @@ describe('projectAgentsApproved', () => {
     write(path.join(project, '.pi', 'agents', 'p.md'), agentMd('p'));
     const other = path.join(root, 'other');
     fs.mkdirSync(other);
-    const { agents } = discoverAgents(project, 'project');
+    const { agents } = localAgents(project, 'project');
     await projectAgentsApproved(ctxFor(true, confirm), selected(...agents), other);
     expect(confirm).toHaveBeenCalledTimes(1);
   });

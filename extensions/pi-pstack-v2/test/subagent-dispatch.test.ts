@@ -96,10 +96,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test('rejects a call with no mode and lists no agents', async () => {
+test('rejects a call with no mode and lists the bundled agents', async () => {
   const result = await run({});
   expect(textOf(result)).toContain('Invalid parameters. Provide exactly one mode.');
-  expect(textOf(result)).toContain('Available agents: none');
+  expect(textOf(result)).toContain('Available agents: ci-watcher (package), comment-sicko (package), poteto-agent (package), scout (package), thermo-nuclear-code-quality-review (package)');
   expect(result.details?.isError).toBe(true);
   expect(tmux).not.toHaveBeenCalled();
 });
@@ -107,7 +107,7 @@ test('rejects a call with no mode and lists no agents', async () => {
 test('rejects a call mixing modes and lists available agents', async () => {
   writeAgent(userAgents, 'scout');
   const result = await run({ agent: 'scout', task: 'x', tasks: [{ agent: 'scout', task: 'y' }] });
-  expect(textOf(result)).toContain('Available agents: scout (user)');
+  expect(textOf(result)).toContain('poteto-agent (package), scout (user), thermo-nuclear');
   expect(tmux).not.toHaveBeenCalled();
 });
 
@@ -143,13 +143,13 @@ test('single mode reports an unknown agent with the available names', async () =
   writeAgent(userAgents, 'scout');
   const result = await run({ agent: 'ghost', task: 'look' });
   expect(textOf(result)).toContain('Agent failed:');
-  expect(textOf(result)).toContain('Unknown agent: "ghost". Available agents: "scout".');
+  expect(textOf(result)).toContain('Unknown agent: "ghost". Available agents: "ci-watcher", "comment-sicko", "poteto-agent", "scout",');
   expect(tmux).not.toHaveBeenCalled();
 });
 
-test('single mode reports an unknown agent when none exist', async () => {
+test('single mode reports an unknown agent when only the bundled agents exist', async () => {
   const result = await run({ agent: 'ghost', task: 'look' });
-  expect(textOf(result)).toContain('Available agents: none.');
+  expect(textOf(result)).toContain('Available agents: "ci-watcher", "comment-sicko", "poteto-agent", "scout", "thermo-nuclear-code-quality-review".');
 });
 
 test('single mode says (no output) when the child produced no text', async () => {

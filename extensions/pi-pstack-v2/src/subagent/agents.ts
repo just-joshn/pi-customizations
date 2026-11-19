@@ -4,11 +4,17 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { CONFIG_DIR_NAME, getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 
 export type AgentScope = 'user' | 'project' | 'both';
+
+/** Where an agent came from. Package agents ship in this extension's `agents` directory. */
+export type AgentSource = 'package' | 'user' | 'project';
+
+const PACKAGE_AGENTS_DIR = fileURLToPath(new URL('./agents', import.meta.url));
 
 export interface AgentConfig {
   name: string;
@@ -16,7 +22,7 @@ export interface AgentConfig {
   tools?: string[] | undefined;
   model?: string | undefined;
   systemPrompt: string;
-  source: 'user' | 'project';
+  source: AgentSource;
   filePath: string;
 }
 
@@ -58,7 +64,7 @@ const AgentFrontmatterSchema = z.looseObject({
   model: z.unknown().optional(),
 });
 
-function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'): AgentConfig | undefined {
+function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): AgentConfig | undefined {
   if (!entry.name.endsWith('.md')) return undefined;
   if (!entry.isFile() && !entry.isSymbolicLink()) return undefined;
 
@@ -77,7 +83,7 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: 'user' | 'project'
   return { name, description, tools: parseToolList(tools), model: typeof model === 'string' ? model : undefined, systemPrompt: body, source, filePath };
 }
 
-function loadAgentsFromDir(dir: string, source: 'user' | 'project'): AgentConfig[] {
+function loadAgentsFromDir(dir: string, source: AgentSource): AgentConfig[] {
   if (!fs.existsSync(dir)) return [];
 
   let entries: fs.Dirent[];
@@ -121,8 +127,9 @@ export function discoverAgents(cwd: string, scope: AgentScope): AgentDiscoveryRe
   const userAgents = scope === 'user' || scope === 'both' ? loadAgentsFromDir(userDir, 'user') : [];
   const projectAgents = scope === 'user' || !projectAgentsDir ? [] : loadAgentsFromDir(projectAgentsDir, 'project');
 
-  // Later entries win, so project agents override user agents of the same name under scope "both".
-  const agentMap = new Map([...userAgents, ...projectAgents].map((agent) => [agent.name, agent] as const));
+  // Later entries win: user agents override the agents this package ships, and project agents override both.
+  const packageAgents = loadAgentsFromDir(PACKAGE_AGENTS_DIR, 'package');
+  const agentMap = new Map([...packageAgents, ...userAgents, ...projectAgents].map((agent) => [agent.name, agent] as const));
 
   return { agents: Array.from(agentMap.values()), projectAgentsDir };
 }
