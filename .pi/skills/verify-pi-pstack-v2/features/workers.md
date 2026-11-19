@@ -1,42 +1,47 @@
 # Pi worker delegation
 
-Users delegate standalone tasks to separate sandboxed Pi processes and receive their completed reports, with optional role, readonly mode, branch worktree or continuation.
+Users delegate standalone tasks to separate Pi processes through the `subagent` tool and receive their reports, either when the call returns or, with `wake`, as a message after the call has returned.
 
 ## Sub-features
 
-- `worker-report`: a real worker reads a task fixture and returns a completed answer to its parent.
-- `worker-role`: a named bundled role is supplied.
-- `worker-readonly`: reads succeed and attempted project writes fail.
-- `worker-worktree`: changes stay on a disposable branch/worktree.
-- `worker-resume`: a finished worker continues the same stored session.
-- `worker-nesting`: first-level worker can delegate, next-level worker cannot.
+- `worker-report`: a single call (`agent` + `task`) returns a real worker's completed answer.
+- `worker-modes`: `tasks` runs up to 8 workers, 4 at a time; `chain` runs steps in order with `{previous}` replaced by the last step's output; a call with no mode or two modes is refused.
+- `worker-agents`: bundled agents `worker` (every editing tool, no role prompt), `scout` (no edit or write tool), `poteto-agent`, `comment-sicko`, `ci-watcher`, `thermo-nuclear-code-quality-review`; an unknown name lists the available agents.
+- `worker-model`: a call's `model` and `thinking` override the agent's and the session's.
+- `worker-wake`: with `wake`, the call returns `Started subagent job subagent-<6 hex>.` at once, and the report arrives later as a `pstack-subagent` message.
+- `worker-stop`: `stop: "<job id>"` aborts a running wake job, whose wake message then says it was aborted.
+- `worker-print`: a print-mode Pi waits for its wake jobs before it settles and continues with their reports.
+- `worker-nesting`: a worker loads the same extensions, so it can call `subagent` itself.
 
 ## How to get to it (user POV)
 
-- Ask Pi to call pi_spawn with a standalone brief.
-- Use a workflow such as poteto-mode, swarm, arena or a reviewer skill that delegates work.
-- Ask to continue a completed worker by its returned job ID.
+- Ask Pi to call `subagent` with a standalone brief.
+- Use a workflow that delegates, such as poteto-mode, swarm, arena, eval, or a reviewer skill.
+- Run native `pi -p` with the isolated profile and resources from command.json for the print-mode entry.
 
 ## Driving it with the PTY helper
 
 Preconditions:
 
-- Unsandboxed live launcher, genuine model login usable by parent and worker.
+- Owner-approved login through a built-in provider, a selected model, and healthy doctor. Workers inherit `PI_CODING_AGENT_DIR`, so they use the scratch profile and its login.
 - In scratch work create fixture.txt with the text PSTACK_FIXTURE_42. This is verification input, not an injected result.
-- Worktree journey additionally requires an initial commit in the disposable Git repo. Seed it with `git -C "$WORK" add fixture.txt && git -C "$WORK" -c user.name=Verify -c user.email=verify@example.invalid commit -m fixture`, where WORK is the exact manifest scratch/work path.
 
-- **Delegate:** send `python3 "$HELPER" send "$EVIDENCE" $'Use pi_spawn name verify-reader, readonly true, wake true. Brief: Read fixture.txt in your working directory using a real tool. Reply with the file contents and your working directory. Do not edit files or start jobs. Use tmux_jobs wait with the returned ID and timeout_seconds 120, then output for it.'`. Require a real separate worker session, fixture tool read, completed PSTACK_FIXTURE_42 answer and matching parent report.
-- **Role entry:** ask for a readonly worker with `agent: comment-sicko` to review fixture.txt without edits. Preserve the role-bearing job arguments and completed report; do not equate an ordinary worker with role coverage.
-- **Readonly:** ask a new readonly worker to attempt `printf SHOULD_NOT_EXIST > readonly-denied.txt` via bash, report failure, then read fixture.txt. Independently confirm readonly-denied.txt is absent and fixture unchanged. Absence alone without the attempted write is insufficient.
-- **Worktree:** after the seed commit ask a worker with `worktree: verify-worker-branch` and `base: HEAD` to write branch-only.txt containing BRANCH_ONLY, without committing. Require the real worktree path and file there, absence in scratch work, and `git -C "$WORK" worktree list --porcelain` showing the branch.
-- **Resume:** ask pi_spawn to resume the completed verify-reader ID with brief `Repeat the fixture content you read earlier and name the earlier task; do not reread files.` Require continued session history and a new completed report. A new worker with the old text pasted into its brief is not continuation.
-- **Nested delegation:** ask a fresh worker to start one readonly child reader and inspect its report. Require nested job evidence; ask that child to attempt another spawn and record refusal/unavailable tool. Do not replace this with invented reports.
-- **Workflow entry:** submit `/skill:poteto-mode Create hello.txt containing HELLO_PSTACK in this disposable repository.`; require its actual pi_spawn calls and reports, persisted plan/checklist files, and independently read hello.txt. Direct pi_spawn coverage does not cover workflow delegation.
+- **Report:** send `Call subagent with agent "scout" and task "Read fixture.txt in your working directory with a real tool. Reply with its contents and your working directory. Do not edit files."`. Require one `subagent` call, a report containing PSTACK_FIXTURE_42, and `/workspace` as the worker's directory (its own VM mounts its `cwd`).
+- **Modes:** ask for `tasks` with a `scout` and a `worker` reading fixture.txt; require `Parallel: 2/2 succeeded`. Ask for a `chain` whose second step uses `{previous}`; require the final output to reflect step 1. Ask for a call naming `agent` "nope"; require `Unknown agent: "nope". Available agents:` listing the bundled names.
+- **Model:** ask for a `scout` call with `model` set to an available `provider/id` other than the session's and `thinking` "low". Require those arguments on the call and that model on the result's usage line.
+- **Wake:** ask `Call subagent with agent "worker", task "Run sleep 20 with bash, then reply DONE_SLEEPING", and wake "sleeper finished". Report the job id, then end your turn without calling any other tool.` Require the immediate `Started subagent job …` result, an idle editor while the worker runs, and then, with no new user prompt, a message containing `sleeper finished`, the same job id, and DONE_SLEEPING.
+- **Stop:** start the same wake job, then ask `Call subagent with stop set to <the exact job id>.` Require `Stopped subagent job <id>.`, then a wake message for that id whose report says aborted. A second stop with the same id answers `No running subagent job <id>.`
+- **Print settle:** run native `pi -p` with the isolated profile/resources and the wake request above, under a bounded external timeout. Require the process to stay alive until the wake report arrives, then exit 0 with output that contains it.
+- **Nesting:** ask a `worker` to call `subagent` with `agent` "scout" on fixture.txt and return the nested report. Require the nested report; nothing refuses a second level.
+- **Workflow entry:** submit `/skill:poteto-mode Create hello.txt containing HELLO_PSTACK in this disposable repository.`; require its actual `subagent` calls, persisted plan/checklist files, and independently read hello.txt. Direct `subagent` coverage does not cover workflow delegation.
 
 ## Gotchas
 
-- A standalone brief must name required fixture paths; workers do not inherit parent conversation.
-- The initial Git repo has no HEAD: worktree failure before seeding is a real unmet precondition, not a reason to drop base/worktree arguments.
+- A standalone brief must name required fixture paths; workers do not inherit the parent conversation.
+- Workers run `pi --no-session` in a private tmux server under `/tmp/pi-subagent-tmux-*`, deleted when they finish. There is no worker session file and no resume; the parent session's `subagent` result or wake message is the record. Preserve the parent session JSONL before cleanup.
+- A blocking call holds the parent turn until every worker finishes, and a wake message waits for the parent's running tool call. Do not count a report as a wake if it arrived as the call's own result.
+- `scout` has no edit or write tool, but its `bash` can still write. A read-only claim needs an attempted write through the missing tool, not just an unchanged file.
+- There is no `readonly`, `worktree`, `base`, `resume`, or `name` parameter. A worktree is created first, for example with `tmux_run` running `git worktree add`, and passed as `cwd`; the empty baseline has no HEAD, so seed a commit before any worktree journey.
+- Project agents under `.pi/agents` need `agentScope: "project"` or `"both"`, and an untrusted project asks `Run project-local agents?` first.
 - Model/provider errors, missing credentials or rate limits are failures/blockers, not successful worker reports.
-- Native workers can discover user ~/.agents/skills; review their loaded resources and avoid claiming full resource isolation.
-- Preserve completed worker session transcripts before cleanup; raw terminal output alone can omit prior completed answers.
+- Native workers can discover user `~/.agents/skills` through the inherited `HOME`; review their loaded resources and avoid claiming full resource isolation.
