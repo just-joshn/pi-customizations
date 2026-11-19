@@ -14,14 +14,14 @@ afterEach(() => vi.unstubAllEnvs());
 describe('sign-in', () => {
   test('mints a key through Cursor.auth.login, shows its URL in Pi, and keeps it out of ~/.cursor', async () => {
     fakeSdk.Cursor.auth.login.mockImplementation(async (options: { onLoginUrl: (url: string) => void }) => {
-      options.onLoginUrl('https://cursor.com/loginDeepControl?x=1');
+      options.onLoginUrl('https://cursor.com/login');
       return { apiKey: 'crsr_key', apiKeyExpiresAtMs: 1_900_000_000_000 };
     });
     const onAuth = vi.fn();
     const signal = new AbortController().signal;
     const credentials = await loginCursor({ onAuth, signal } as unknown as OAuthLoginCallbacks);
     expect(credentials).toStrictEqual({ access: 'crsr_key', refresh: '', expires: 1_900_000_000_000 });
-    expect(onAuth).toHaveBeenCalledWith({ url: 'https://cursor.com/loginDeepControl?x=1', instructions: 'Sign in to Cursor in the browser, then return here.' });
+    expect(onAuth).toHaveBeenCalledWith({ url: 'https://cursor.com/login', instructions: 'Sign in to Cursor in the browser, then return here.' });
     expect(fakeSdk.Cursor.auth.login).toHaveBeenCalledWith(expect.objectContaining({ store: null, openBrowser: false, apiKeyName: 'Pi (pi-spacex-oauth-v2)', signal }));
   });
 
