@@ -21,7 +21,7 @@ Canonical checklist lives in the user Coding Style Rules. This file fills **Proj
 - **Pi tool parameters:** TypeBox (`Type.Object`, …) only. Do not dual-validate those with zod.
 - **All other external input** (JSON files, frontmatter bodies after parse, CLI `argv`, env-derived structured data): zod at the boundary, then trust the inferred type inside.
 - Never mutate an object, in tests too. No property or index assignment, no `delete`, no `push`/`splice`/`sort`/`fill`/…, no `Map.set`/`Set.add`/`delete`/`clear`, no `Object.assign` onto an existing object, no `Reflect.set`. Build new values with spread, `map`, `filter`, `reduce`, `toSorted`, `new Map([...])`. Rebinding a local `let` is not object mutation.
-- `JSON.parse(...)` and `process.argv` go straight into a zod `.parse`/`.safeParse` call.
+- Outside tests, `JSON.parse(...)` and `process.argv` go straight into a zod `.parse`/`.safeParse` call, and no schema may be a bare `z.unknown()` or `z.any()`. Tests read their own fixtures and program output, not user input, so this rule does not cover them.
 - `console.log` is forbidden everywhere. Boundary `catch` may `console.error` then throw a clear `Error`.
 - No magic numbers. Name every number other than 0, 1, -1 as a constant, tests included.
 - No empty blocks. A `catch` either handles the error or rethrows it.

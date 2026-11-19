@@ -4,7 +4,13 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true, "root": "../.." },
   "formatter": { "enabled": false },
   "assist": { "enabled": false },
-  "plugins": ["./immutability.grit", "./input-validation.grit"],
+  "plugins": ["./immutability.grit"],
+  "overrides": [
+    {
+      "includes": ["**", "!**/test/**", "!**/*.test.*", "!**/*.test-helper.*"],
+      "plugins": ["./input-validation.grit"]
+    }
+  ],
   "linter": {
     "enabled": true,
     "rules": {

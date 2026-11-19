@@ -1,10 +1,18 @@
 language js
 
 or {
-  `JSON.parse($...)`,
-  `process.argv`
-} as $m where {
-  not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
-  not $m <: within `$schema.safeParse($...)`,
-  register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
+  `JSON.parse($...)` as $m where {
+    not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
+    not $m <: within `$schema.safeParse($...)`,
+    register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
+  },
+  `process.argv` as $m where {
+    not $m <: within `$schema.parse($...)` where { $schema <: not `JSON` },
+    not $m <: within `$schema.safeParse($...)`,
+    register_diagnostic(span=$m, message="input-validation: external input must go straight into a zod schema's parse or safeParse")
+  },
+  or { `$z.unknown()`, `$z.any()` } as $m where {
+    not $m <: within `$z.$wrap($...)` where { $wrap <: not or { `unknown`, `any` } },
+    register_diagnostic(span=$m, message="input-validation: a schema that accepts anything validates nothing")
+  }
 }
