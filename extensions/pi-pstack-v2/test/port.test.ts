@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { loadSkills } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
 import { z } from 'zod';
+import { SubagentParams } from '../src/subagent/schema.ts';
 
 const PATH_SEPARATOR = '/';
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -30,6 +31,7 @@ const portedScripts = walk(join(root, 'skills'))
 // Agent personas under src/subagent/agents are Cursor-sourced; port bans apply to Pi-ported skills/docs only.
 const prose = [...['skills', 'docs/guide'].flatMap((dir) => walk(join(root, dir))).filter((path) => /\.(md|tsv)$/.test(path)), join(root, 'README.md')];
 const scanned = [...prose, ...portedScripts.map((path) => join(root, path))];
+const withMechanisms = [...prose, join(root, 'docs', 'pi-mechanisms.md')];
 
 // Each pattern names a Cursor or Claude Code mechanism that Pi replaces. `allow` admits lines that only name the
 // mechanism to say what replaced it, or that refer to an external service that still exists under Pi.
@@ -162,6 +164,36 @@ describe('the Pi port of pstack, prose rules', () => {
         .flatMap((line, index) => (/action: "wait"/.test(line) ? [`${relative(root, path)}:${index + 1}`] : []));
     const offenders = prose.filter((path) => relative(root, path) !== 'skills/poteto-mode/SKILL.md').flatMap(waitLines);
     expect(offenders).toEqual([]);
+  });
+
+  test('no prose names pi_spawn, which the packaged subagent tool replaced', () => {
+    const offenders = withMechanisms.flatMap((path) =>
+      readFileSync(path, 'utf8')
+        .split('\n')
+        .flatMap((line, index) => (/pi_spawn/.test(line) ? [`${relative(root, path)}:${index + 1}`] : [])),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test('every `key: value` prose passes to subagent is a parameter subagent accepts', () => {
+    const accepted = new Set([...Object.keys(SubagentParams.properties), 'agent', 'task', 'cwd']);
+    const offenders = withMechanisms.flatMap((path) =>
+      readFileSync(path, 'utf8')
+        .split('\n')
+        .flatMap((line, index) =>
+          /`subagent`/.test(line)
+            ? [...line.matchAll(/`(\w+): /g)]
+                .map(([, key = '']) => key)
+                .filter((key) => !accepted.has(key))
+                .map((key) => `${relative(root, path)}:${index + 1} ${key}`)
+            : [],
+        ),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test('Opening a PR puts the worktree inside the working directory, the only host directory the VM can edit', () => {
+    expect(readFileSync(join(root, 'skills', 'poteto-mode', 'playbooks', 'opening-a-pr.md'), 'utf8')).toMatch(/worktree[^.]*inside the working directory/);
   });
 
   test('every checklist is a file named TODO.md, as Pi asks, under whichever directory holds it', () => {

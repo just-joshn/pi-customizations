@@ -1,6 +1,7 @@
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { VM } from '@earendil-works/gondolin';
+import { ReadonlyProvider, RealFSProvider, VM } from '@earendil-works/gondolin';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test, vi } from 'vitest';
 import { createGondolinBashOps } from '../src/gondolin/bash.ts';
@@ -29,7 +30,17 @@ const THREE = 3;
 const FOUR = 4;
 const TIMEOUT_SECONDS = 0.01;
 
-vi.mock('@earendil-works/gondolin', () => ({ VM: { create: vi.fn() }, RealFSProvider: class {} }));
+vi.mock('@earendil-works/gondolin', () => ({
+  VM: { create: vi.fn() },
+  RealFSProvider: class {
+    constructor(readonly root: string) {}
+  },
+  ReadonlyProvider: class {
+    constructor(readonly backend: unknown) {}
+  },
+}));
+
+const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 
 const notFound = (guestPath: string) => Promise.reject(new Error(`ENOENT: ${guestPath}`));
 
@@ -252,6 +263,14 @@ describe('system prompt', () => {
     expect(guestSystemPrompt(`Intro\nCurrent working directory: ${HOST}\nEnd`, HOST)).toBe(`Intro\n${guestLine}\nEnd`);
     expect(guestSystemPrompt('Intro', HOST)).toBe(`Intro\n\n${guestLine}`);
   });
+
+  test('says which commands and paths exist only on the host, and how to reach them', () => {
+    const prompt = guestSystemPrompt('Intro', HOST);
+    expect(prompt).toContain('The VM has no `git`, `gh`, `tmux`, or `bun`');
+    expect(prompt).toContain('Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM');
+    expect(prompt).toContain('Run what needs them on the host with `tmux_run`');
+    expect(prompt).toContain('read its output with `tmux_jobs` `output`');
+  });
 });
 
 type FakeCtx = { ui: { setStatus: ReturnType<typeof vi.fn>; notify: ReturnType<typeof vi.fn>; theme: { fg: (color: string, text: string) => string } } };
@@ -298,6 +317,16 @@ describe('the extension', () => {
     expect(guest.exec).toHaveBeenCalledTimes(1);
     await commands['gondolin']?.handler('', ctx);
     expect(ctx.ui.notify).toHaveBeenLastCalledWith(`Gondolin VM: ${VM_ID}\nHost workspace: ${process.cwd()}\nGuest workspace: ${GUEST_WORKSPACE}\nShell: ${BASH}`, 'info');
+  });
+
+  test('mounts this package read-only at its host path, so the skill paths Pi names resolve in the guest', async () => {
+    const { handlers, ctx } = loadExtension();
+    await handlers['session_start']?.({}, ctx);
+    const mounts: Record<string, unknown> = vi.mocked(VM.create).mock.lastCall?.[0]?.vfs?.mounts ?? {};
+    expect(Object.keys(mounts).toSorted()).toEqual([GUEST_WORKSPACE, PACKAGE_ROOT].toSorted());
+    expect(mounts[PACKAGE_ROOT]).toBeInstanceOf(ReadonlyProvider);
+    expect((mounts[PACKAGE_ROOT] as { backend: { root: string } }).backend).toEqual(new RealFSProvider(PACKAGE_ROOT));
+    expect(toGuestPath(HOST, path.join(PACKAGE_ROOT, 'skills', 'poteto-mode', 'SKILL.md'))).toBe(`${PACKAGE_ROOT}/skills/poteto-mode/SKILL.md`);
   });
 
   test('closes the VM at shutdown and clears its status', async () => {

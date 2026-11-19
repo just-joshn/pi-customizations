@@ -39,6 +39,10 @@ const subagentCases = [
   { chain: [{ agent: 'a' }] },
   { agent: null, cwd: null, future: 1 },
   { confirmProjectAgents: 'true' },
+  { agent: 'a', task: 't', model: 'p/m', thinking: 'high' },
+  { tasks: [{ agent: 'a', task: 't', model: 'p/m', thinking: 'off' }] },
+  { chain: [{ agent: 'a', task: 't', thinking: 'loud' }] },
+  { agent: 'a', task: 't', model: SOME_NUMBER },
 ];
 
 const cases: Case[] = [
