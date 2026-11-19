@@ -5,9 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { z } from 'zod';
 import { jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
 import { claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, request, stop, tail, tmuxSocket } from './jobs.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
+import { hostEnv } from './host-env.ts';
 import { gitPath, projectPath, protectedPaths } from './git.ts';
 import { within } from './paths.ts';
 import { serveRequests, sweepFor } from './requests.ts';
@@ -26,15 +28,17 @@ const REPORT_LIMIT = 20000;
 const REPORT_HEAD = 4000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
-const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
+const insideJob = (): boolean => hostEnv()[SANDBOX_ENV] === '1';
 const topJobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
 // A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
-const jobsRoot = (env: Readonly<Record<string, string | undefined>> = process.env): string => {
+const jobsRoot = (env: Readonly<Record<string, string | undefined>> = hostEnv()): string => {
   const parent = env[JOB_DIR_ENV];
   return env[SANDBOX_ENV] === '1' && parent ? join(parent, 'nested') : topJobsRoot();
 };
 // A plain string enum, which every provider accepts, typed for TypeBox inference.
 const stringEnum = <T extends readonly string[]>(values: T, description?: string) => Type.Unsafe<T[number]>({ type: 'string', enum: [...values], ...(description ? { description } : {}) });
+const TmuxRunParamsSchema = z.object({ name: z.string(), command: z.string(), cwd: z.string().optional(), wake: z.string().optional(), repeat: z.boolean().optional() });
+const TmuxJobsParamsSchema = z.object({ action: z.enum(['list', 'output', 'wait', 'stop']), ids: z.array(z.string()).optional(), lines: z.number().optional(), timeout_seconds: z.number().optional() });
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
 
 const skillsHint = `pstack skills, including ones hidden from the skill list, live at ${join(packageRoot, 'skills')}/<name>/SKILL.md. When a skill says to run another skill, read that file and follow it.`;
@@ -98,12 +102,12 @@ const brokering = (): boolean => insideJob();
 function start(root: string, spec: JobSpec, files: Record<string, string> = {}, resolved: Record<string, string> = {}): Job {
   const jobDir = join(root, spec.id);
   // A job started from inside another uses its top-level job's agent directory, which that start already created.
-  const top = insideJob() ? (process.env[TOP_DIR_ENV] ?? jobDir) : jobDir;
+  const top = insideJob() ? (hostEnv()[TOP_DIR_ENV] ?? jobDir) : jobDir;
   if (!insideJob()) makeJobAgentDir(getAgentDir(), jobAgentDir(jobDir), resolved);
   // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load, and writes
   // credentials only to its top-level job's copy.
   // A command a worker starts shares the worker's temp directory, so a path the worker hands it under $TMPDIR exists for both.
-  const parent = process.env[JOB_DIR_ENV];
+  const parent = hostEnv()[JOB_DIR_ENV];
   const tmp = insideJob() && parent && spec.kind === 'command' ? join(parent, 'tmp') : undefined;
   const sized: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : [])])] };
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
@@ -322,7 +326,7 @@ function registerModeCommand(pi: ExtensionAPI, state: PstackState): void {
       return items.length ? items : null;
     },
     handler: async (args, ctx) => {
-      const name = args.trim();
+      const name = z.string().parse(args).trim();
       if (!name) {
         const mode = state.mode();
         if (ctx.hasUI) ctx.ui.notify(mode ? `${mode} mode is on. /pstack-mode off ends it.` : 'No pstack mode is on. /pstack-mode <skill> starts one.', 'info');
@@ -381,26 +385,27 @@ function registerTmuxRun(pi: ExtensionAPI): void {
       repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each clean exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
     }),
     async execute(_id, params, _signal, _update, ctx) {
-      if (params.repeat && params.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
+      const input = TmuxRunParamsSchema.parse(params);
+      if (input.repeat && input.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
       const root = jobsRoot();
-      const id = newJobId(params.name);
+      const id = newJobId(input.name);
       const owner = ctx.sessionManager.getSessionId();
-      const cwd = projectPath(ctx, params.cwd);
+      const cwd = projectPath(ctx, input.cwd);
       const common = gitPath(cwd, '--git-common-dir');
       const guarded = protectedPaths(cwd, common);
       const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: join(root, id) };
       const spec: JobSpec = {
         id,
-        name: params.name,
+        name: input.name,
         kind: 'command',
         cwd,
         argv: [],
-        command: ['bash', '-c', params.command],
+        command: ['bash', '-c', input.command],
         policy,
         brokered: false,
         owner,
-        wake: params.wake ?? null,
-        repeat: params.repeat ?? false,
+        wake: input.wake ?? null,
+        repeat: input.repeat ?? false,
         series: id,
         socket: brokering() ? '' : tmuxSocket(owner),
         sweep: { roots: [], protect: [] },
@@ -446,15 +451,16 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
       timeout_seconds: Type.Optional(Type.Number({ description: 'Longest wait. Default 300.' })),
     }),
     async execute(_id, params, signal, update, ctx) {
+      const input = TmuxJobsParamsSchema.parse(params);
       const root = jobsRoot();
       const owner = ctx.sessionManager.getSessionId();
-      const named = (): Job[] => namedJobs(root, owner, params.action, params.ids);
-      if (params.action === 'list') {
+      const named = (): Job[] => namedJobs(root, owner, input.action, input.ids);
+      if (input.action === 'list') {
         const jobs = list(root, owner);
         return text(jobs.length ? jobs.map(describe).join('\n') : 'No jobs in this session.');
       }
-      if (params.action === 'output') return text(named().map((job) => outputOf(job, params.lines ?? DEFAULT_OUTPUT_LINES)).join('\n\n'));
-      if (params.action === 'wait') return text(await waitFor(state, root, owner, params.ids, params.timeout_seconds, { signal, update, ctx }));
+      if (input.action === 'output') return text(named().map((job) => outputOf(job, input.lines ?? DEFAULT_OUTPUT_LINES)).join('\n\n'));
+      if (input.action === 'wait') return text(await waitFor(state, root, owner, input.ids, input.timeout_seconds, { signal, update, ctx }));
       const series = new Set(named().map((job) => job.spec.series));
       // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
       state.stopSeries(series);

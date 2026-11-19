@@ -10,5 +10,245 @@
     "rule": "plugin",
     "line": "Object.assign(options.sections, sections);",
     "reason": "Same host contract as above, for the prompt sections."
+  },
+  {
+    "file": "src/credentials.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Unreadable or malformed credentials file returns undefined, which callers treat as 'no credentials'. A console.error would add stderr text to a normal path, and a throw would abort the job start."
+  },
+  {
+    "file": "src/credentials.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Failed lstat returns false (not a symlink). Callers depend on that fallback; a throw or stderr line changes the result and output."
+  },
+  {
+    "file": "src/credentials.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Failed lock acquisition returns false and the finally cleans up; callers depend on the boolean. Throwing or logging adds new behavior/output."
+  },
+  {
+    "file": "src/git.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed git rev-parse (not a repository) returns undefined; callers fall back on it. A throw would break non-git directories, a log adds stderr."
+  },
+  {
+    "file": "src/git.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A missing core.hooksPath makes git config fail by design; the catch swallows it so no custom hooks path is protected. A throw or log would break every checkout without that setting."
+  },
+  {
+    "file": "src/git.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed git rev-parse --verify means the branch does not exist, which selects 'worktree add -b'. Throwing would stop creating new branches."
+  },
+  {
+    "file": "src/git.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed rev-parse means base is not a local ref, and the catch falls through to the remote-branch lookup. Throwing would break remote-only bases."
+  },
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "The catch returns the job report with a 'could not be restarted' note as the tool/wake text; it must not throw because the report would be lost."
+  },
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "The watcher reports a step failure through ctx.ui.notify and keeps polling. Throwing would kill the watcher loop; console.error would corrupt the TUI."
+  },
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failing probe returns false, which callers use as the 'not alive' answer. Throw or stderr output changes that."
+  },
+  {
+    "file": "src/index.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "The catch removes the half-created job directory and rethrows the original error unchanged, so the tool error text Pi shows is exact. A console.error would add stderr output in the TUI."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "The catch rethrows the original tmux error, or a precise 'needs tmux' Error for ENOENT; messages are tested/user-facing. Adding console.error would print new stderr text."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A launch failure is recorded into the job's output with exit code LAUNCH_FAILED_EXIT_CODE and the function returns false; throwing would skip settling the job, and console.error adds stderr."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A tmux probe failure falls back to the exit file or state 'lost'; job status values depend on this fallback."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "An unreadable or invalid job.json returns undefined so job listing skips it; throwing would break listing every job."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Killing an already-gone tmux session is expected and ignored; a throw or log would fail every stop of a finished job."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed wrapper-liveness probe returns false (wrapper gone); the stop logic depends on that fallback."
+  },
+  {
+    "file": "src/jobs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed probe returns false, meaning 'not available'; callers branch on it, and logging adds stderr."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A worktree failure returns a { refused } result whose message is sent to the requester; it must not throw, and the message is existing output."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A missing or malformed granted.json returns [] (no grants); throwing would break requests without grants."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Killing an already-gone session is expected and ignored."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed probe returns false, which the broker uses as its answer; logging adds stderr in the root Pi."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A launch failure is settled into the job output with EXIT_LAUNCH_FAILED and serving continues; throwing would stop the broker, and logging adds stderr."
+  },
+  {
+    "file": "src/requests.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "One failing request must not stop the others (documented); the catch swallows by design."
+  },
+  {
+    "file": "src/sandbox.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed 'command -v' probe returns false, selecting the next sandbox backend or the 'found none' Error. Throwing would break fallback."
+  },
+  {
+    "file": "src/subagent/agents.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "An unreadable agent file returns undefined and is skipped; throwing would stop discovery of other agents."
+  },
+  {
+    "file": "src/subagent/agents.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A missing agents directory returns [] (no agents); throwing would fail when the directory does not exist."
+  },
+  {
+    "file": "src/subagent/agents.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed stat returns false (not a directory); callers branch on that."
+  },
+  {
+    "file": "src/subagent/result-stream.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A non-JSON output line returns { success: false } and is ignored while streaming; throwing would abort on any stray line."
+  },
+  {
+    "file": "src/subagent/run-in-tmux.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed probe returns false, which callers use as the answer."
+  },
+  {
+    "file": "src/subagent/run-in-tmux.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "Killing an already-gone session is expected and ignored."
+  },
+  {
+    "file": "src/subagent/run-in-tmux.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "The output file may not exist yet while polling; the catch swallows by design (comment in source)."
+  },
+  {
+    "file": "src/subagent/run-in-tmux.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A tmux start failure is returned as spawnError in the result after cleanup; the caller reports it. Throwing changes the contract, logging adds stderr."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed probe returns false; sweep logic depends on it."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed read falls through to the repair attempt, or returns { unreadable: [] }; swallowing is the behavior."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "A failed read after repair returns { unreadable: [path] } so the sweep quarantines it; throwing would abort the sweep."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "The catch rethrows non-EXDEV errors unchanged and copies across devices for EXDEV; a console.error would add new stderr text in the sweep process."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A quarantine failure is appended to the job's output file with a specific message and returns false; throwing would abort the sweep, and the message is existing output."
+  },
+  {
+    "file": "src/sweep.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "A sweep failure is appended to the job's output file as a message; the process must still exit normally, and logging adds stderr."
+  },
+  {
+    "file": "src/transcript.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "An unreadable transcript returns undefined (no report); throwing would break job reports."
   }
 ]

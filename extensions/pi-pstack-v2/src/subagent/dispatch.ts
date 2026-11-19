@@ -5,12 +5,12 @@ import { runChain } from './dispatch-chain.ts';
 import { runParallel } from './dispatch-parallel.ts';
 import { getFinalOutput, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
-import { type SubagentParamsType, toAgentScope, type WorkItem } from './schema.ts';
+import { type ParsedSubagentParams, toAgentScope, type WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SubagentMode } from './types.ts';
 
 const listAgents = (agents: AgentConfig[]): string => agents.map((a) => `${a.name} (${a.source})`).join(', ') || 'none';
 
-function detectModes(params: SubagentParamsType): SubagentMode[] {
+function detectModes(params: ParsedSubagentParams): SubagentMode[] {
   const candidates: [SubagentMode, boolean][] = [
     ['chain', (params.chain?.length ?? 0) > 0],
     ['parallel', (params.tasks?.length ?? 0) > 0],
@@ -19,7 +19,7 @@ function detectModes(params: SubagentParamsType): SubagentMode[] {
   return candidates.filter(([, present]) => present).map(([mode]) => mode);
 }
 
-function workItems(params: SubagentParamsType, mode: SubagentMode): WorkItem[] {
+function workItems(params: ParsedSubagentParams, mode: SubagentMode): WorkItem[] {
   if (mode === 'chain') return params.chain ?? [];
   if (mode === 'parallel') return params.tasks ?? [];
   return params.agent && params.task ? [{ agent: params.agent, task: params.task, cwd: params.cwd }] : [];
@@ -37,7 +37,7 @@ function dispatchMode(mode: SubagentMode, run: DispatchRun, items: WorkItem[], r
   return runSingle(run, items[0] as WorkItem, resolved[0] as ResolvedAgent);
 }
 
-export async function executeSubagent(params: SubagentParamsType, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext): Promise<ToolResult> {
+export async function executeSubagent(params: ParsedSubagentParams, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext): Promise<ToolResult> {
   const agentScope = toAgentScope(params.agentScope);
   const discovery = discoverAgents(ctx.cwd, agentScope);
   const modes = detectModes(params);
