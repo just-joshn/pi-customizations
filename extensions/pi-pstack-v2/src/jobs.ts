@@ -4,8 +4,7 @@ import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, re
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { jobAgentDir } from './credentials.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
+import { CONTAINED_ENV, type Contained, type ContainerPolicy, JOB_DIR_ENV, reapArgv, TOP_DIR_ENV } from './container.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
 const sweepSource = fileURLToPath(new URL('./sweep.ts', import.meta.url));
@@ -17,13 +16,15 @@ export interface JobSpec {
   name: string;
   kind: JobKind;
   cwd: string;
-  /** What tmux runs: the command wrapped in its sandbox. Empty for a brokered request until the root launches it. */
+  /** What tmux runs: the command wrapped in its container. Empty for a brokered request until the root launches it. */
   argv: string[];
-  /** The command before sandboxing, and the policy it asked for. A broker launches from these after clamping the policy. */
+  /** The command before containing, and the policy it asked for. A broker launches from these after clamping the policy. */
   command: string[];
-  policy: SandboxPolicy;
+  policy: ContainerPolicy;
+  /** The container `argv` runs, which the wrapper stops and removes when the job is stopped. Unset for a request. */
+  container?: JobContainer;
   /**
-   * Launched by the root Pi on a sandboxed worker's behalf, because macOS cannot nest Seatbelt profiles. The worker cannot
+   * Launched by the root Pi on a contained worker's behalf, because a worker holds no container runtime. The worker cannot
    * reach the root's tmux server, so it reads the job's state from files only.
    */
   brokered: boolean;
@@ -42,13 +43,16 @@ export interface JobSpec {
   series: string;
   /** Path of the tmux server socket the job runs under. Empty for a brokered request. */
   socket: string;
-  /** Protected paths and checkout roots the wrapper sweeps after the job, for code that appeared while it ran. */
-  sweep: { roots: string[]; protect: string[] };
+  /** Protected paths, guarded files, and checkout roots the wrapper sweeps after the job, for code that appeared while it ran. */
+  sweep: { roots: string[]; protect: string[]; guardFiles: string[] };
   /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. Unset for a top-level job. */
   tmp?: string;
   createWorktree?: { branch: string; base?: string };
   createdAt: string;
 }
+
+/** What the wrapper needs of a job's container to end it by name. */
+export type JobContainer = Pick<Contained, 'bin' | 'name' | 'cidfile'>;
 
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 
@@ -82,7 +86,7 @@ export function newJobId(name: string): string {
 
 /**
  * One tmux server per owning session, started with that session's environment so jobs inherit PATH and credentials.
- * Its socket sits where sandboxed jobs cannot connect, since the server runs whatever it is sent outside the sandbox.
+ * Its socket sits where contained jobs cannot reach it, since the server runs whatever it is sent outside the container.
  */
 export function tmuxSocket(owner: string): string {
   const uid = process.getuid?.() ?? 0;
@@ -129,28 +133,11 @@ const CACHES: Record<string, string> = {
   npm_config_store_dir: 'pnpm',
 };
 
-// zsh writes here-documents under TMPPREFIX, which defaults to the shared /tmp.
-const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp, MAC_CHROMIUM_TMPDIR: tmp, TMPPREFIX: join(tmp, 'zsh') });
-
-/** macOS mktemp prefers the per-user temp directory to $TMPDIR, and a job may not write there, so jobs find this one first on PATH. */
-const MKTEMP = `#!/bin/sh
-flags=
-prefix=
-while getopts :dqut:p: opt; do
-  case $opt in
-    d|q|u) flags="$flags -$opt" ;;
-    t) prefix=$OPTARG ;;
-    *) exec /usr/bin/mktemp "$@" ;;
-  esac
-done
-shift $((OPTIND - 1))
-[ $# -gt 0 ] && [ -z "$prefix" ] && exec /usr/bin/mktemp $flags "$@"
-exec /usr/bin/mktemp $flags "\${TMPDIR%/}/\${prefix:-tmp}.XXXXXXXXXX"
-`;
+const tempEnv = (tmp: string): Record<string, string> => ({ TMPDIR: tmp, TMP: tmp, TEMP: tmp });
 
 /**
- * A private temp directory and caches for the job. Shared temp directories and user caches hold code that unsandboxed
- * programs later load, such as Pi's compiled-extension cache, so a job may write none of them.
+ * A private temp directory and caches for the job. The container's `/tmp` is a small tmpfs lost when the job ends, so
+ * large temp files and package caches go to the job's own directory on the host instead.
  */
 export const privateEnv = (tmp: string): Record<string, string> => ({
   ...tempEnv(tmp),
@@ -158,57 +145,64 @@ export const privateEnv = (tmp: string): Record<string, string> => ({
 });
 
 /**
- * Firefox and pnpm run their own sandbox or store-locking steps, which fail inside the job's sandbox. Firefox aborts when it
- * cannot sandbox its child processes, and pnpm cannot lock the shared store it switches engines from.
+ * Firefox and pnpm run their own sandbox or store-locking steps, which fail inside the job's container. Firefox aborts when
+ * it cannot sandbox its child processes, and pnpm cannot lock the shared store it switches engines from.
  */
-const SANDBOX_COMPAT: Record<string, string> = {
+const COMPAT_ENV: Record<string, string> = {
   ...Object.fromEntries(['CONTENT', 'GMP', 'RDD', 'SOCKET_PROCESS', 'GPU', 'UTILITY'].map((name) => [`MOZ_DISABLE_${name}_SANDBOX`, '1'])),
   npm_config_manage_package_manager_versions: 'false',
 };
+
+/** Host variables a job still needs, since nothing else of the host's environment crosses into the container. */
+const PASSTHROUGH = /^(LANG|LC_[A-Z_]+|TZ|TERM|NO_COLOR|CI|GH_TOKEN|GITHUB_TOKEN|GIT_(AUTHOR|COMMITTER)_(NAME|EMAIL)|[A-Z0-9_]+_API_KEY)$/;
+
+export interface JobEnvInput {
+  /** The job's own directory, exported to it as its job directory. */
+  dir: string;
+  /** The top-level job's directory. */
+  top: string;
+  /** The private Pi agent directory the job runs Pi from. */
+  agentDir: string;
+  /** The $TMPDIR of the worker that started this job, shared so paths it hands the job exist. */
+  tmp?: string | undefined;
+}
+
+/** The whole environment of a job's container. Pi's own variable points the job at its private agent directory, so no job's Pi writes your real credentials. */
+export const jobEnv = ({ dir, top, agentDir, tmp }: JobEnvInput, host: NodeJS.ProcessEnv = process.env): Record<string, string> => ({
+  ...Object.fromEntries(Object.entries(host).filter((entry): entry is [string, string] => PASSTHROUGH.test(entry[0]) && entry[1] !== undefined)),
+  [CONTAINED_ENV]: '1',
+  [JOB_DIR_ENV]: dir,
+  [TOP_DIR_ENV]: top,
+  PI_CODING_AGENT_DIR: agentDir,
+  HOME: join(dir, 'tmp', 'home'),
+  ...COMPAT_ENV,
+  ...privateEnv(join(dir, 'tmp')),
+  ...(tmp ? tempEnv(tmp) : {}),
+});
 
 interface Run {
   kind: JobKind;
   cwd: string;
   argv: string[];
+  container: JobContainer | undefined;
   inventory: Inventory;
   socket: string;
   session: string;
-  /** The job's own directory, exported to it as its job directory. */
+  /** The job's own directory, which holds its private temp directory. */
   dir: string;
   /** Where output and the exit code go. */
   out: string;
-  top: string;
-  tmp: string | undefined;
 }
 
 /**
- * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
- * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
- * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
- * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
- * gets KILL after a short grace period.
+ * Starts the wrapper that runs argv, captures its output, restores and quarantines what the job should not have changed,
+ * and records its exit code. The job runs in the background while the wrapper waits on it, so when `tmux_jobs stop` hangs
+ * the session up, the trap fires at once. Bash would defer a trap until a foreground command finished. A contained job is
+ * stopped by name, then killed if it ignores that, and its container removed, so nothing it started outlives it.
  */
 function run(job: Run): void {
-  // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
-  const env = Object.entries({
-    [SANDBOX_ENV]: '1',
-    [JOB_DIR_ENV]: job.dir,
-    [TOP_DIR_ENV]: job.top,
-    PI_CODING_AGENT_DIR: jobAgentDir(job.top),
-    ...SANDBOX_COMPAT,
-    ...privateEnv(join(job.dir, 'tmp')),
-    ...(job.tmp ? tempEnv(job.tmp) : {}),
-  })
-    .map(([name, value]) => `${name}=${shellQuote(value)}`)
-    .join(' ');
-  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
-  const bin = join(job.out, 'bin');
-  if (process.platform === 'darwin') {
-    mkdirSync(bin, { recursive: true });
-    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
-  }
-  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
-  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+  const { container } = job;
+  const command = `${job.argv.map(shellQuote).join(' ')} < /dev/null`;
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
   // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
@@ -219,22 +213,28 @@ function run(job: Run): void {
   const caches = Object.values(CACHES)
     .map((dir) => shellQuote(join(job.dir, 'tmp', dir)))
     .join(' ');
+  const reap = container ? reapArgv(container.bin, container.name) : undefined;
+  const words = (argv: string[]): string => argv.map(shellQuote).join(' ');
   const script = [
     'set -m',
     `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
     'finished=0',
+    'stopped=0',
+    // The container runtime refuses a container ID file that already exists.
+    ...(container ? [`rm -f ${shellQuote(container.cidfile)}`] : []),
     'finish() {',
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
-    '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
+    '  kill -KILL $pid 2>/dev/null; wait $pid 2>/dev/null',
     '  kill $mirror 2>/dev/null',
+    ...(reap ? [`  [ "$stopped" = 1 ] && ${words(reap.remove)} >/dev/null 2>&1`] : []),
     // Off the terminal: once tmux is gone, Node reopening the terminal to report an error blocks forever and holds a pty.
     `  ${shellQuote(process.execPath)} ${shellQuote(sweepCopy)} ${shellQuote(inventoryFile(job.out))} < /dev/null >> ${out} 2>&1`,
     // Go leaves its module cache read-only. find never follows a link the job planted, so only the job's own directories change.
     `  find ${caches} -type d ! -perm -u+w -exec chmod u+w {} + 2>/dev/null; rm -rf ${caches}`,
     `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
     '}',
-    `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
+    `trap 'stopped=1; ${reap ? `${words(reap.stop)} >/dev/null 2>&1` : 'kill -TERM $pid 2>/dev/null'}; for i in $(seq 50); do kill -0 $pid 2>/dev/null || break; sleep 0.1; done; ${reap ? `kill -0 $pid 2>/dev/null && ${words(reap.kill)} >/dev/null 2>&1; ` : ''}finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
     `${body} &`,
     'pid=$!',
     // The session's pane shows the output as it is written, so attaching to it is a live view of the job.
@@ -252,24 +252,23 @@ function run(job: Run): void {
   tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
 
-const takeInventory = (spec: JobSpec, out: string): Inventory => inventory(spec.sweep.roots, spec.sweep.protect, join(out, 'quarantine'), outputPath(out));
-
-const inheritedTop = (dir: string): string => (process.env[SANDBOX_ENV] === '1' ? (process.env[TOP_DIR_ENV] ?? dir) : dir);
+const takeInventory = (spec: JobSpec, out: string): Inventory =>
+  inventory(spec.sweep.roots, [...spec.sweep.protect, ...spec.sweep.guardFiles], join(out, 'quarantine'), outputPath(out), { files: spec.sweep.guardFiles, dir: join(out, 'guard') });
 
 /** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
 export function launch(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
   const dir = jobDir(root, spec.id);
   const full = { ...spec, out: dir };
   write(dir, full, files);
-  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir, top: inheritedTop(dir), tmp: spec.tmp });
+  run({ kind: spec.kind, cwd: spec.cwd, argv: spec.argv, container: spec.container, inventory: takeInventory(spec, dir), socket: spec.socket, session: spec.id, dir, out: dir });
   return { spec: full, dir, status: { state: 'running' } };
 }
 
-/** Writes a job for the root Pi to launch, from inside a macOS sandbox that cannot start a narrower one itself. */
+/** Writes a job for the root Pi to launch, from inside a container that holds no runtime to start one itself. */
 export function request(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
   const dir = jobDir(root, spec.id);
   const top = process.env[TOP_DIR_ENV];
-  if (!top) throw new Error('A sandboxed worker needs its top-level job directory to request a job.');
+  if (!top) throw new Error('A contained worker needs its top-level job directory to request a job.');
   const full = { ...spec, argv: [], socket: '', brokered: true, out: resultsDir(top, dir) };
   write(dir, full, files);
   return { spec: full, dir, status: { state: 'running' } };
@@ -283,12 +282,12 @@ export function settleBrokered(out: string, code: number, message: string): void
   writeFileSync(exitPath(out), `${code}\n`);
 }
 
-/** Launches a brokered request on the root's tmux server. The caller has already sandboxed argv under a policy it clamped. */
-export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWhat: JobSpec['sweep'], argv: string[], socket: string): boolean {
+/** Launches a brokered request on the root's tmux server. The caller has already contained argv under a policy it clamped. */
+export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWhat: JobSpec['sweep'], argv: string[], socket: string, container?: JobContainer): boolean {
   const out = resultsDir(top, dir);
   mkdirSync(out, { recursive: true });
   try {
-    run({ kind: spec.kind, cwd: spec.cwd, argv, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out, top, tmp: spec.tmp });
+    run({ kind: spec.kind, cwd: spec.cwd, argv, container, inventory: takeInventory({ ...spec, sweep: sweepWhat }, out), socket, session: brokeredSession(dir), dir, out });
     writeFileSync(join(out, 'launched'), '');
     return true;
   } catch (error) {
@@ -336,8 +335,8 @@ export function list(root: string, owner: string): Job[] {
 }
 
 /**
- * Ends a job. Hanging up its tmux session runs the wrapper's cleanup, and on Linux takes every process the job started
- * with it. A brokered job is ended by the root, which sees the stop marker on its next tick.
+ * Ends a job. Hanging up its tmux session runs the wrapper's cleanup, which stops the job's container and with it every
+ * process the job started. A brokered job is ended by the root, which sees the stop marker on its next tick.
  */
 export async function stop(job: Job): Promise<void> {
   // Claimed first, since the session is gone before the wrapper records the exit, and the watcher would report the job lost.

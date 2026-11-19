@@ -3,16 +3,19 @@ import { isAbsolute, join, resolve } from 'node:path';
 
 /**
  * Jobs never write your real `auth.json`. Pi runs a credential whose key starts with `!` as a shell command, so a job able
- * to write that file could plant a command for your next unsandboxed Pi to run. Instead each top-level job, and every job
- * it starts, uses its own Pi agent directory through Pi's `PI_CODING_AGENT_DIR`. It links to your real configuration and
- * holds a copy of your credentials without commands. Only refreshed OAuth tokens move between the copy and the real file.
+ * to write that file could plant a command for your next uncontained Pi to run. Instead each job uses its own Pi agent
+ * directory through Pi's `PI_CODING_AGENT_DIR`. It links to your real configuration, and its `auth.json` links to the
+ * credentials directory of the top-level job, which holds a copy of your credentials without commands and is the one
+ * directory every job under that top-level job shares. Only refreshed OAuth tokens move between the copy and the real file.
  */
 
 type Credentials = Record<string, Record<string, unknown>>;
 
-export const jobAgentDir = (top: string): string => join(top, 'agent');
+export const jobAgentDir = (dir: string): string => join(dir, 'agent');
+/** The credentials copy of a top-level job, shared with every job under it. Pi's lock for `auth.json` is made beside it. */
+export const credsDir = (top: string): string => join(jobAgentDir(top), 'creds');
 
-const PRIVATE = new Set(['auth.json', 'auth.json.lock', 'models-store.json', 'models-store.json.lock', 'pstack-v2', 'sessions', 'settings.json', 'settings.json.lock']);
+const PRIVATE = new Set(['auth.json', 'auth.json.lock', 'creds', 'models-store.json', 'models-store.json.lock', 'pstack-v2', 'sessions', 'settings.json', 'settings.json.lock']);
 
 /** A settings path as it resolves from your real agent directory: local ones made absolute, sources and names kept. */
 function anchored(realAgentDir: string, entry: string): string {
@@ -62,11 +65,23 @@ export const commandProviders = (realAgentDir: string): string[] =>
     .filter(([, entry]) => isCommand(entry))
     .map(([provider]) => provider);
 
+/** Creates the credentials copy, in which each command is replaced by its resolved key when given, and dropped otherwise. */
+export function makeCredsDir(realAgentDir: string, creds: string, resolved: Record<string, string> = {}): void {
+  mkdirSync(creds, { recursive: true });
+  const copy: Credentials = {};
+  for (const [provider, entry] of Object.entries(readCredentials(realAgentDir) ?? {})) {
+    if (!isCommand(entry)) copy[provider] = entry;
+    else if (resolved[provider] !== undefined) copy[provider] = { ...entry, key: resolved[provider] };
+  }
+  writeFileSync(join(creds, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
+}
+
 /**
- * Creates the job's agent directory: links to each real entry Pi reads, and a credentials copy in which each command is
- * replaced by its resolved key when given, and dropped otherwise.
+ * Creates a job's agent directory: links to each real entry Pi reads, its own copy of the model catalog and settings, and
+ * an `auth.json` linked to the shared credentials copy. Pi locks the file a link resolves to, so every job's lock lands
+ * beside that copy, in the one shared directory a job may write.
  */
-export function makeJobAgentDir(realAgentDir: string, dir: string, resolved: Record<string, string> = {}): void {
+export function makeJobAgentDir(realAgentDir: string, dir: string, creds: string): void {
   mkdirSync(dir, { recursive: true });
   for (const name of readdirSync(realAgentDir)) {
     const link = join(dir, name);
@@ -77,12 +92,8 @@ export function makeJobAgentDir(realAgentDir: string, dir: string, resolved: Rec
   const settings = join(realAgentDir, 'settings.json');
   const parsed = existsSync(settings) ? parse(readFileSync(settings, 'utf8')) : undefined;
   if (parsed) writeFileSync(join(dir, 'settings.json'), `${JSON.stringify(anchoredSettings(realAgentDir, parsed), null, 2)}\n`);
-  const copy: Credentials = {};
-  for (const [provider, entry] of Object.entries(readCredentials(realAgentDir) ?? {})) {
-    if (!isCommand(entry)) copy[provider] = entry;
-    else if (resolved[provider] !== undefined) copy[provider] = { ...entry, key: resolved[provider] };
-  }
-  writeFileSync(join(dir, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
+  const auth = join(dir, 'auth.json');
+  if (!isLink(auth)) symlinkSync(join(creds, 'auth.json'), auth);
 }
 
 function isLink(path: string): boolean {
@@ -126,10 +137,10 @@ const expiry = (entry: Record<string, unknown> | undefined): number => (validOau
  * Carries refreshed OAuth tokens both ways between the real auth.json and a job's copy, the later expiry winning. Only OAuth
  * entries move, so nothing a job writes as a key or command ever reaches the real file. Returns false when a lock was busy.
  */
-export function syncTokens(realAgentDir: string, jobDir: string): boolean {
-  return withLocks([join(realAgentDir, 'auth.json'), join(jobDir, 'auth.json')], () => {
+export function syncTokens(realAgentDir: string, creds: string): boolean {
+  return withLocks([join(realAgentDir, 'auth.json'), join(creds, 'auth.json')], () => {
     const real = readCredentials(realAgentDir);
-    const copy = readCredentials(jobDir);
+    const copy = readCredentials(creds);
     if (!real || !copy) return;
     let realChanged = false;
     let copyChanged = false;
@@ -145,12 +156,12 @@ export function syncTokens(realAgentDir: string, jobDir: string): boolean {
       }
     }
     if (realChanged) {
-      // Renamed into place so Pi never reads a half-written file. The job's copy is written in place instead, since the
-      // job may have that file bound to its own view, and a new file would leave it holding the old one.
+      // Renamed into place so Pi never reads a half-written file. The shared copy is written in place instead, since Pi in
+      // a job reaches it through a link, and a new file would leave it holding the old one.
       const path = resolved(join(realAgentDir, 'auth.json'));
       writeFileSync(`${path}.pstack-tmp`, `${JSON.stringify(real, null, 2)}\n`, { mode: 0o600 });
       renameSync(`${path}.pstack-tmp`, path);
     }
-    if (copyChanged) writeFileSync(join(jobDir, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
+    if (copyChanged) writeFileSync(join(creds, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
   });
 }

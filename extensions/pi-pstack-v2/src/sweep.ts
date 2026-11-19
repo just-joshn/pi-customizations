@@ -1,10 +1,20 @@
-import { appendFileSync, chmodSync, cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { appendFileSync, chmodSync, copyFileSync, cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
+/** A file the container cannot mount read-only, as it was at launch, so the wrapper can put it back if the job changed it. */
+export interface Guard {
+  path: string;
+  /** The launch-time copy, in a directory the job cannot write. */
+  copy: string;
+  sha: string;
+  mode: number;
+}
+
 /**
- * What a checkout held when a job started, so that the unsandboxed wrapper can quarantine, after the job, every path an
- * unsandboxed process would later execute from that the job made appear. A job can make one appear even where it may
- * not write it directly, by renaming a directory it built into place or by linking a parent elsewhere.
+ * What a checkout held when a job started, so that the wrapper, outside the container, can quarantine, after the job,
+ * every path an uncontained process would later execute from that the job made appear. A job can make one appear even
+ * where it may not write it directly, by renaming a directory it built into place or by linking a parent elsewhere.
  */
 export interface Inventory {
   /** Checkouts the job may write, walked without following links. */
@@ -13,6 +23,8 @@ export interface Inventory {
   absent: { path: string; parentWasLink: boolean }[];
   /** Code entries present at launch, which the sweep leaves alone. */
   present: string[];
+  /** Guarded files that existed at launch. A changed or removed one is quarantined and restored. */
+  guards: Guard[];
   /** Where swept paths go, and where the job's output notes them. */
   quarantine: string;
   output: string;
@@ -22,8 +34,8 @@ export interface Inventory {
 export const PI_CODE = ['extensions', 'settings.json', 'mcp.json', 'npm', 'git'] as const;
 
 /**
- * Editors and other agent harnesses run what these hold, unsandboxed, once you open the checkout in them: VS Code and
- * JetBrains tasks, and agent-harness hooks and MCP servers. pstack's sandbox refuses writing them at any depth. Every
+ * Editors and other agent harnesses run what these hold, outside the container, once you open the checkout in them: VS Code and
+ * JetBrains tasks, and agent-harness hooks and MCP servers. pstack's container keeps the existing ones read-only and the sweep removes new ones. Every
  * entry of a harness directory is code apart from its instructions, which a job may still write.
  */
 export const EDITOR_CODE = ['.vscode', '.idea', '.cursorignore'] as const;
@@ -87,9 +99,29 @@ export function codePaths(roots: string[], repair = false, unreadable: string[] 
   return found;
 }
 
-export function inventory(roots: string[], protect: string[], quarantine: string, output: string): Inventory {
+const sha = (path: string): string => createHash('sha256').update(readFileSync(path)).digest('hex');
+const isFile = (path: string): boolean => {
+  try {
+    return lstatSync(path).isFile();
+  } catch {
+    return false;
+  }
+};
+
+/** Copies each existing regular file in `files` into `dir`, with its hash, for the sweep to restore from. */
+function snapshot(files: string[], dir: string): Guard[] {
+  const present = files.filter(isFile);
+  if (present.length) mkdirSync(dir, { recursive: true });
+  return present.map((path, index) => {
+    const copy = join(dir, String(index));
+    copyFileSync(path, copy);
+    return { path, copy, sha: sha(path), mode: lstatSync(path).mode & 0o7777 };
+  });
+}
+
+export function inventory(roots: string[], protect: string[], quarantine: string, output: string, guard: { files: string[]; dir: string } = { files: [], dir: '' }): Inventory {
   const absent = protect.filter((path) => !exists(path)).map((path) => ({ path, parentWasLink: exists(dirname(path)) && lstatSync(dirname(path)).isSymbolicLink() }));
-  return { roots, absent, present: codePaths(roots), quarantine, output };
+  return { roots, absent, present: codePaths(roots), guards: snapshot(guard.files, guard.dir), quarantine, output };
 }
 
 /** Moves each path that appeared during the job into quarantine, never following a link, and returns what it moved. */
@@ -126,6 +158,18 @@ export function sweep(inv: Inventory): string[] {
     const parent = dirname(path);
     if (!parentWasLink && exists(parent) && lstatSync(parent).isSymbolicLink()) move(parent, 'a link that appeared over a protected path while the job ran');
     else move(path, 'which appeared while the job ran');
+  }
+  for (const guard of inv.guards) {
+    try {
+      if (isFile(guard.path) && sha(guard.path) === guard.sha) continue;
+      move(guard.path, 'a guarded file that the job changed or removed');
+      mkdirSync(dirname(guard.path), { recursive: true });
+      copyFileSync(guard.copy, guard.path);
+      chmodSync(guard.path, guard.mode);
+      appendFileSync(inv.output, `pstack restored ${guard.path}, which the job changed.\n`);
+    } catch (error) {
+      appendFileSync(inv.output, `pstack could not restore ${guard.path}: ${String(error)}. Check it before you start Pi in this checkout.\n`);
+    }
   }
   const present = new Set(inv.present);
   const unreadable: string[] = [];

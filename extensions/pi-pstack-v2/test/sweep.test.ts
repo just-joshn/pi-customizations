@@ -1,4 +1,4 @@
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -12,7 +12,7 @@ beforeEach(() => {
   work = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-sweep-')));
   const output = join(work, 'output.log');
   writeFileSync(output, '');
-  inventory = { roots: [], absent: [], present: [], quarantine: join(work, 'quarantine'), output };
+  inventory = { roots: [], absent: [], present: [], guards: [], quarantine: join(work, 'quarantine'), output };
 });
 
 afterEach(() => {
@@ -107,5 +107,41 @@ describe.runIf(process.getuid?.() !== 0)('sweep', () => {
     const before = takeInventory([], [join(work, 'absent', 'hooks')], inventory.quarantine, inventory.output);
     expect(sweep(before)).toEqual([]);
     expect(readFileSync(inventory.output, 'utf8')).toBe('');
+  });
+
+  test('a guarded file the job changed is quarantined and put back, one it removed is put back, and one it left alone is not touched', () => {
+    const changed = join(work, 'config');
+    const removed = join(work, 'worktree-config');
+    const same = join(work, 'info');
+    for (const path of [changed, removed, same]) writeFileSync(path, `original ${path}\n`);
+    chmodSync(changed, 0o640);
+    const before = takeInventory([], [], inventory.quarantine, inventory.output, { files: [changed, removed, same, join(work, 'absent')], dir: join(work, 'guard') });
+    writeFileSync(changed, '[core]\n\tfsmonitor = touch pwned\n');
+    rmSync(removed);
+    expect(sweep(before)).toEqual([changed]);
+    expect([readFileSync(changed, 'utf8'), readFileSync(removed, 'utf8'), readFileSync(same, 'utf8')]).toEqual([`original ${changed}\n`, `original ${removed}\n`, `original ${same}\n`]);
+    expect(lstatSync(changed).mode & 0o777).toBe(0o640);
+    expect(existsSync(join(work, 'absent'))).toBe(false);
+    const output = readFileSync(inventory.output, 'utf8');
+    expect(output).toContain(`pstack quarantined ${changed}, a guarded file that the job changed or removed`);
+    expect(output).toContain(`pstack restored ${removed}`);
+  });
+
+  test('a guarded file the job replaced with a directory is moved out and the original comes back', () => {
+    const guarded = join(work, 'commondir');
+    writeFileSync(guarded, '../..\n');
+    const before = takeInventory([], [], inventory.quarantine, inventory.output, { files: [guarded], dir: join(work, 'guard') });
+    rmSync(guarded);
+    mkdirSync(guarded);
+    sweep(before);
+    expect(readFileSync(guarded, 'utf8')).toBe('../..\n');
+  });
+
+  test('a guarded path that did not exist at launch is quarantined when it appears', () => {
+    const later = join(work, 'config.worktree');
+    const before = takeInventory([], [later], inventory.quarantine, inventory.output, { files: [later], dir: join(work, 'guard') });
+    writeFileSync(later, '[core]\n');
+    expect(sweep(before)).toEqual([later]);
+    expect(existsSync(later)).toBe(false);
   });
 });

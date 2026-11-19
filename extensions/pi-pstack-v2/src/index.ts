@@ -5,9 +5,31 @@ import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { commandProviders, jobAgentDir, makeJobAgentDir, syncTokens } from './credentials.ts';
-import { brokeredSession, claimWake, clip, excerpt, exitPath, type Job, type JobSpec, launch, launchBrokered, list, newJobId, outputPath, read, readSpec, request, resultsDir, settleBrokered, stop, tail, tmuxSocket } from './jobs.ts';
-import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, sandboxed, TOP_DIR_ENV } from './sandbox.ts';
+import { CONTAINED_ENV, type Contained, type ContainerPolicy, contained, detectRuntime, ensureImage, hostMounts, JOB_DIR_ENV, mountsForPolicy, stopContainers, TOP_DIR_ENV } from './container.ts';
+import { commandProviders, credsDir, jobAgentDir, makeCredsDir, makeJobAgentDir, syncTokens } from './credentials.ts';
+import {
+  brokeredSession,
+  claimWake,
+  clip,
+  excerpt,
+  exitPath,
+  type Job,
+  type JobSpec,
+  jobEnv,
+  launch,
+  launchBrokered,
+  list,
+  newJobId,
+  outputPath,
+  read,
+  readSpec,
+  request,
+  resultsDir,
+  settleBrokered,
+  stop,
+  tail,
+  tmuxSocket,
+} from './jobs.ts';
 import { codePaths, PI_CODE } from './sweep.ts';
 import { workerReport } from './transcript.ts';
 
@@ -20,14 +42,14 @@ const REPORT_LIMIT = 20000;
 const REPORT_HEAD = 4000;
 
 export const modelsFile = (agentDir: string): string => join(agentDir, 'pstack-v2-models.md');
-const insideJob = (): boolean => process.env[SANDBOX_ENV] === '1';
+const insideJob = (): boolean => process.env[CONTAINED_ENV] === '1';
 // The root and the workers it starts may start workers, and a worker started by another worker may not.
 const startedByWorker = (): boolean => insideJob() && process.env[JOB_DIR_ENV] !== process.env[TOP_DIR_ENV];
 const topJobsRoot = (): string => join(getAgentDir(), 'pstack-v2', 'jobs');
-// A sandboxed worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
+// A contained worker can write only inside its own job directory's `nested/`, so the jobs it starts live there.
 const jobsRoot = (env: NodeJS.ProcessEnv = process.env): string => {
   const parent = env[JOB_DIR_ENV];
-  return env[SANDBOX_ENV] === '1' && parent ? join(parent, 'nested') : topJobsRoot();
+  return env[CONTAINED_ENV] === '1' && parent ? join(parent, 'nested') : topJobsRoot();
 };
 // A plain string enum, which every provider accepts, typed for TypeBox inference.
 const stringEnum = <T extends readonly string[]>(values: T, description?: string) => Type.Unsafe<T[number]>({ type: 'string', enum: [...values], ...(description ? { description } : {}) });
@@ -43,8 +65,8 @@ const modeSection = (name: string): string => {
   const file = join(skillsDir, name, 'SKILL.md');
   return `The user turned on ${name} mode with /pstack-mode. Follow this skill on every turn until the user turns it off with /pstack-mode off or switches modes. Do not drift back to default agent behavior.\n\n<skill name="${name}" location="${file}">\nReferences are relative to ${dirname(file)}.\n\n${stripFrontmatter(readFileSync(file, 'utf8')).trim()}\n</skill>`;
 };
-const SANDBOX_NOTE =
-  'You run in the pstack sandbox. The shared /tmp, macOS per-user temp directory, and user caches are read-only. Keep temp files in $TMPDIR, your own temp directory. Chromium uses the same private directory through MAC_CHROMIUM_TMPDIR. Tools that ignore both variables cannot write shared temp files. `ps` and `top` are refused, so read the load with `uptime`. In a checkout you cannot write, a bash here-document fails, so `cd "$TMPDIR"` first or write the file with printf. Unix sockets are refused, so ssh-agent, gpg-agent, and git over SSH with agent-held keys fail: use an HTTPS remote (`gh auth setup-git`) or leave the push to the session that started you. Code that runs outside the sandbox later stays read-only: `.git/hooks` and git config, `.pi` extensions and settings, and editor and harness configuration (`.vscode`, `.idea`, `*.code-workspace`, `.cursorignore`, and `.cursor` and `.claude` apart from their rules, commands, worktrees, skills, and agents). Any such file you create anyway moves to quarantine when your job ends.';
+const CONTAINER_NOTE =
+  'You run in a pstack container: a Linux container with a read-only root filesystem, and only the directories your job was granted mounted at their host paths. /tmp is a small private tmpfs that disappears when the job ends, so keep temp files in $TMPDIR, your own temp directory on the host. Host-only tools and services are not reachable: Xcode, simulators, `open`, local displays, the host $HOME, and host Unix sockets such as ssh-agent and gpg-agent, so git over SSH with agent-held keys fails. Use an HTTPS remote (`gh auth setup-git`) or leave the push to the session that started you. Code that runs outside the container later stays read-only: `.git/hooks` and git config, `.pi` extensions and settings, and editor and harness configuration (`.vscode`, `.idea`, `*.code-workspace`, `.cursorignore`, and `.cursor` and `.claude` apart from their rules, commands, worktrees, skills, and agents). Any such file you create anyway moves to quarantine when your job ends, and a change to a git config file is reverted.';
 const flagValue = (command: string[], flag: string): string | undefined => (command.includes(flag) ? command[command.indexOf(flag) + 1] : undefined);
 
 function git(cwd: string, args: string[]): string {
@@ -59,7 +81,7 @@ function gitPath(cwd: string, flag: '--git-common-dir' | '--show-toplevel' | '--
   }
 }
 
-/** A job may only work inside the session's project, so the model cannot widen its own sandbox by naming another directory. */
+/** A job may only work inside the session's project, so the model cannot widen its own container by naming another directory. */
 function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   const root = realpathSync(gitPath(ctx.cwd, '--show-toplevel') ?? ctx.cwd);
   const target = realpathSync(path === undefined ? ctx.cwd : resolve(ctx.cwd, path));
@@ -74,13 +96,24 @@ function projectPath(ctx: ExtensionContext, path: string | undefined): string {
   return target;
 }
 
+interface Protected {
+  /** Existing directories, mounted read-only. */
+  protect: string[];
+  /** Files, links, and paths that do not exist yet, which no mount can guard. The sweep watches them. */
+  guardFiles: string[];
+  gitDirs: string[];
+  /** The git directory of the linked worktree the job works in, which it may write. */
+  ownGitDir: string | undefined;
+}
+
 /**
- * Paths an unsandboxed process later executes from: git hooks and config, Pi's project extensions and settings, and
+ * Paths an uncontained process later executes from: git hooks and config, Pi's project extensions and settings, and
  * editor and agent-harness configuration. Git finds hooks through `.git`, and in a linked worktree through its `commondir`
- * and `gitdir` files, so each of those is protected too. A job that could repoint any of them would make the next
- * `git commit` run its own hooks unsandboxed.
+ * and `gitdir` files, so each of those is guarded too. A job that could repoint any of them would make the next
+ * `git commit` run its own hooks outside the container. An existing directory is mounted read-only. A container cannot
+ * mount a file, so a file, and a path that does not exist yet, is left to the wrapper, which restores or quarantines it.
  */
-function protectedPaths(cwd: string, common: string | undefined): { protect: string[]; lock: string[]; gitDirs: string[] } {
+function protectedPaths(cwd: string, common: string | undefined): Protected {
   // Every code entry already in the checkout, at any depth, since Pi, git, editors, and harnesses find them anywhere.
   const found = codePaths([cwd]);
   const piDirs = [...new Set([join(cwd, '.pi'), ...found.filter((path) => basename(dirname(path)) === '.pi').map(dirname)])];
@@ -88,11 +121,12 @@ function protectedPaths(cwd: string, common: string | undefined): { protect: str
   // The checkout's own .git is its git directory, which the job may write. Any other is a repository git would run hooks
   // from, and an editor or harness entry runs as it stands. `pi` already covers each .pi directory, and a .pi link stays as it is.
   const others = found.filter((path) => basename(path) !== '.pi' && basename(dirname(path)) !== '.pi' && path !== join(cwd, '.git'));
-  let protect = [...pi, ...others];
-  let lock: string[] = [];
+  let candidates = [...pi, ...others];
+  let ownGitDir: string | undefined;
   if (common) {
     const own = gitPath(cwd, '--absolute-git-dir') ?? common;
     const worktree = own === common ? [] : [join(cwd, '.git'), ...['commondir', 'gitdir', 'config.worktree'].map((name) => join(own, name))];
+    ownGitDir = own === common ? undefined : own;
     let hooksPath: string[] = [];
     try {
       const configured = git(cwd, ['config', '--get', 'core.hooksPath']);
@@ -100,16 +134,19 @@ function protectedPaths(cwd: string, common: string | undefined): { protect: str
     } catch {
       // No custom hooks path.
     }
-    protect = [...protect, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
-    lock = [join(cwd, '.git'), own, common];
+    candidates = [...candidates, join(common, 'hooks'), join(common, 'config'), join(common, 'config.worktree'), join(common, 'info'), ...worktree, ...hooksPath];
   }
-  // A directory above a protected path could be renamed away and replaced, so each existing one up to the checkout is locked.
-  const ancestors = protect.flatMap((path) => {
-    const chain: string[] = [];
-    for (let dir = dirname(path); within(dir, [cwd]) && dir !== cwd; dir = dirname(dir)) if (existsSync(dir)) chain.push(dir);
-    return chain;
-  });
-  return { protect, lock: [...new Set([...lock, ...ancestors])], gitDirs: common ? [common] : [] };
+  // A directory is mountable only where it really lies, so a link out of the checkout cannot aim a mount elsewhere.
+  const roots = [cwd, ...(common ? [common] : [])];
+  const mountable = (path: string): boolean => {
+    try {
+      return lstatSync(path).isDirectory() && within(path, roots);
+    } catch {
+      return false;
+    }
+  };
+  const unique = [...new Set(candidates)];
+  return { protect: unique.filter(mountable), guardFiles: unique.filter((path) => !mountable(path)), gitDirs: common ? [common] : [], ownGitDir };
 }
 
 /** Adds the worktree and returns whether it created the branch, so a failed start can remove it. */
@@ -224,38 +261,100 @@ const within = (path: string, roots: string[]): boolean =>
     return inside !== '..' && !inside.startsWith(`..${sep}`) && !isAbsolute(inside);
   });
 
-// A sandboxed worker asks the root Pi to launch for it on every platform, so nested jobs get the same sandbox everywhere
-// and no job needs a tmux server of its own. macOS could not apply a second Seatbelt profile anyway.
+// A contained worker asks the root Pi to launch for it on every platform, since it holds no container runtime, and
+// so nested jobs get the same container everywhere and no job needs a tmux server of its own.
 const brokering = (): boolean => insideJob();
 
-/** Starts a job under its own sandbox, or writes it as a request for the root Pi when this process cannot. */
+/** What a policy needs that every job of a kind shares. The job's own name, paths, and credentials are set when it starts. */
+const containerPolicy = (id: string, dir: string, fields: Pick<ContainerPolicy, 'writable' | 'protect' | 'guardFiles' | 'gitDirs' | 'cwd' | 'readonly'>): ContainerPolicy => ({
+  ...fields,
+  checkouts: [],
+  agentDir: getAgentDir(),
+  credsDir: '',
+  jobDir: dir,
+  name: `pstack-${id}`,
+  cidFile: join(dir, 'cid'),
+  network: 'default',
+});
+
+/** The git identity a job commits with. Nothing of your home directory is mounted, so what git would read from it travels as variables. */
+function identityEnv(cwd: string): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [field, setting] of [
+    ['NAME', 'user.name'],
+    ['EMAIL', 'user.email'],
+  ] as const) {
+    if (process.env[`GIT_AUTHOR_${field}`]) continue;
+    try {
+      const value = git(cwd, ['config', setting]);
+      if (value) Object.assign(env, { [`GIT_AUTHOR_${field}`]: value, [`GIT_COMMITTER_${field}`]: value });
+    } catch {
+      // No identity is configured.
+    }
+  }
+  return env;
+}
+
+interface ContainedJob {
+  command: string[];
+  policy: ContainerPolicy;
+  /** The directory of the top-level job the container descends from. */
+  top: string;
+  agentDir: string;
+  tmp: string | undefined;
+  /** Where the image build streams, when this launch has to build it. */
+  log: string;
+}
+
+/** Wraps a command in its job container. Only the root runs this, since only it holds a container runtime. */
+function containerize({ command, policy, top, agentDir, tmp, log }: ContainedJob): Contained {
+  const runtime = detectRuntime();
+  ensureImage(runtime, log);
+  return contained(command, policy, runtime, { env: { ...jobEnv({ dir: policy.jobDir, top, agentDir, tmp }), ...identityEnv(policy.cwd) }, readonlyMounts: hostMounts(), top });
+}
+
+/** Starts a job in its own container, or writes it as a request for the root Pi when this process holds no runtime. */
 function start(root: string, spec: JobSpec, files: Record<string, string> = {}, resolved: Record<string, string> = {}): Job {
   const jobDir = join(root, spec.id);
-  // A job started from inside another uses its top-level job's agent directory, which that start already created.
+  // A job started from inside another uses its top-level job's credentials, which that start already created.
   const top = insideJob() ? (process.env[TOP_DIR_ENV] ?? jobDir) : jobDir;
-  if (!insideJob()) makeJobAgentDir(getAgentDir(), jobAgentDir(jobDir), resolved);
-  // Every job gets a private temp directory, since the shared ones hold code unsandboxed programs load, and writes
-  // credentials only to its top-level job's copy.
-  // A command a worker starts shares the worker's temp directory, so a path the worker hands it under $TMPDIR exists for both.
+  const agent = jobAgentDir(jobDir);
+  // Refuses before anything is created when there is no container runtime to run the job in.
+  if (!brokering()) detectRuntime();
+  if (!insideJob()) {
+    makeCredsDir(getAgentDir(), credsDir(top), resolved);
+    makeJobAgentDir(getAgentDir(), agent, credsDir(top));
+  }
+  // Every job gets a private temp directory and home on the host, since the container's own /tmp is small and lost when
+  // it ends. A command a worker starts shares the worker's temp directory, so a path the worker hands it under $TMPDIR exists for both.
   const parent = process.env[JOB_DIR_ENV];
   const tmp = insideJob() && parent && spec.kind === 'command' ? join(parent, 'tmp') : undefined;
-  const policy: SandboxPolicy = { ...spec.policy, jobDir, credentials: jobAgentDir(top), writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : [])])] };
+  const policy: ContainerPolicy = {
+    ...spec.policy,
+    jobDir,
+    credsDir: credsDir(top),
+    name: `pstack-${spec.id}`,
+    cidFile: join(jobDir, 'cid'),
+    // The root adds a request's agent directory itself, where no worker can plant a link in it.
+    writable: [...new Set([...spec.policy.writable, join(jobDir, 'tmp'), ...(tmp ? [tmp] : []), ...(brokering() ? [] : [agent])])],
+  };
   // A writable path that holds Pi's agent directory would let the job rewrite Pi's own code and settings.
   const holder = policy.writable.find((path) => within(policy.agentDir, [path]));
   if (holder) throw new Error(`pstack will not let a job write ${holder}, because it contains Pi's agent directory ${policy.agentDir}. Run Pi from a project directory.`);
   spec = { ...spec, sweep: sweepFor(policy), ...(tmp ? { tmp } : {}) };
   policy.checkouts = spec.sweep.roots;
-  // bubblewrap binds only paths that exist, so the private temp directory exists before the sandbox is built.
-  mkdirSync(join(jobDir, 'tmp'), { recursive: true });
+  mkdirSync(join(jobDir, 'tmp', 'home'), { recursive: true });
   if (brokering()) return request(root, { ...spec, policy }, files);
-  return launch(root, { ...spec, policy, argv: sandboxed(spec.command, policy) }, files);
+  const wrapped = containerize({ command: spec.command, policy, top, agentDir: agent, tmp, log: join(jobDir, 'build.log') });
+  return launch(root, { ...spec, policy, argv: wrapped.argv, container: wrapped }, files);
 }
 
 /** The checkouts a job may write, and the protected paths in them, which its wrapper sweeps after it for code that appeared. */
-const sweepFor = (policy: SandboxPolicy): JobSpec['sweep'] => ({
+const sweepFor = (policy: ContainerPolicy): JobSpec['sweep'] => ({
   // A job's own session, nested, temp, and agent directories live under Pi's agent directory. A worktree does too, and is a checkout.
   roots: policy.writable.filter((path) => (basename(path) === 'worktree' || !within(path, [policy.agentDir])) && !within(path, policy.gitDirs)),
   protect: policy.protect.filter((path) => within(path, policy.writable)),
+  guardFiles: policy.guardFiles.filter((path) => within(path, policy.writable)),
 });
 
 const readGrant = (out: string): string[] => {
@@ -287,7 +386,7 @@ function hasSession(socket: string, session: string): boolean {
 }
 
 /**
- * Launches the requests that sandboxed workers under one of this session's jobs wrote. A request may write only inside
+ * Launches the requests that contained workers under one of this session's jobs wrote. A request may write only inside
  * what the root granted the top-level job, so no worker can hand a descendant more than it was given. The root only
  * reads from the request directory, which a worker controls, and writes results under the top-level job.
  */
@@ -303,7 +402,7 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       const policy = spec?.policy;
       // A worker writes these files, so anything malformed is skipped instead of stopping every other request.
       if (!spec || !policy || (spec.kind !== 'pi' && spec.kind !== 'command') || typeof spec.cwd !== 'string' || !isStrings(spec.command) || spec.command.length === 0) continue;
-      if (!isStrings(policy.writable) || !isStrings(policy.protect) || !isStrings(policy.lock) || !isStrings(policy.gitDirs)) continue;
+      if (!isStrings(policy.writable)) continue;
       const out = resultsDir(top.dir, dir);
       const stopped = existsSync(join(dir, 'stop'));
       const done = existsSync(exitPath(out)) || stopped;
@@ -339,27 +438,42 @@ export function serveRequests(top: Job, socket: string, nested: string, requeste
       }
       let launched = false;
       try {
-        const common = made === undefined ? undefined : gitPath(made.path, '--git-common-dir');
-        const guarded = made === undefined ? policy : protectedPaths(made.path, common);
-        const writable = made !== undefined && writesWorktree ? [...checked, made.path, ...(common ? [landing(common)] : [])] : checked;
-        // The sandbox is built from the paths just validated, so swapping a link afterwards changes nothing.
-        const granted: SandboxPolicy = {
-          writable,
+        const cwd = made === undefined ? landing(spec.cwd) : made.path;
+        const common = gitPath(cwd, '--git-common-dir');
+        // The worker's own protected paths are never trusted, since each would become a mount. The root works them out from the validated cwd.
+        const guarded = protectedPaths(cwd, common);
+        const writesGit = made !== undefined && writesWorktree;
+        const writable = writesGit ? [...checked, made.path, ...(common ? [landing(common)] : []), ...(guarded.ownGitDir ? [guarded.ownGitDir] : [])] : checked;
+        mkdirSync(out, { recursive: true });
+        // The request gets its own agent directory in its results, which no worker can write, so no link can be planted in it.
+        const agent = jobAgentDir(out);
+        makeJobAgentDir(getAgentDir(), agent, credsDir(top.dir));
+        // The container is built from the paths just validated, so swapping a link afterwards changes nothing.
+        const granted: ContainerPolicy = {
+          writable: [...writable, agent],
           protect: [...guarded.protect, ...top.spec.policy.protect],
-          lock: [...guarded.lock, ...top.spec.policy.lock],
-          gitDirs: [...guarded.gitDirs, ...top.spec.policy.gitDirs],
+          guardFiles: [...guarded.guardFiles, ...top.spec.policy.guardFiles],
           checkouts: [],
-          credentials: jobAgentDir(top.dir),
+          gitDirs: [...guarded.gitDirs, ...top.spec.policy.gitDirs],
           agentDir: getAgentDir(),
+          credsDir: credsDir(top.dir),
           jobDir: dir,
+          cwd,
+          name: `pstack-${brokeredSession(dir)}`,
+          cidFile: join(out, 'cid'),
+          readonly: top.spec.policy.readonly || policy.readonly === true,
+          network: 'default',
         };
         granted.checkouts = sweepFor(granted).roots;
-        mkdirSync(out, { recursive: true });
+        // Every writable mount must sit inside what the requester was granted, or be one the root added itself.
+        const stray = mountsForPolicy(granted).filter((mount) => !mount.readonly && !within(mount.path, [...grant, ...writable, agent, granted.credsDir]));
+        if (stray.length) throw new Error(`the mounts ${stray.map((mount) => mount.path).join(', ')} are outside what the requester was granted`);
         writeFileSync(join(out, 'granted.json'), JSON.stringify(writable));
         // The worker supplies tmp, so it is trusted only if it is one of the writable paths validated above.
         const { tmp: asked, ...rest } = spec;
         const tmp = typeof asked === 'string' && writable.includes(landing(asked)) ? landing(asked) : undefined;
-        launched = launchBrokered(top.dir, dir, { ...rest, ...(made ? { cwd: made.path } : {}), ...(tmp ? { tmp } : {}) }, sweepFor(granted), sandboxed(spec.command, granted), socket);
+        const wrapped = containerize({ command: spec.command, policy: granted, top: top.dir, agentDir: agent, tmp, log: join(out, 'build.log') });
+        launched = launchBrokered(top.dir, dir, { ...rest, cwd, ...(tmp ? { tmp } : {}) }, sweepFor(granted), wrapped.argv, socket, wrapped);
       } catch (error) {
         settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -389,7 +503,7 @@ export default function pstack(pi: ExtensionAPI) {
     try {
       if (stoppedSeries.has(job.spec.series)) return report(job);
       // The next run gets its own temp directory in place of this one's.
-      const policy = { ...job.spec.policy, writable: job.spec.policy.writable.filter((path) => path !== join(job.dir, 'tmp')) };
+      const policy = { ...job.spec.policy, writable: job.spec.policy.writable.filter((path) => path !== join(job.dir, 'tmp') && path !== jobAgentDir(job.dir)) };
       start(jobsRoot(), { ...job.spec, policy, id: newJobId(job.spec.name), brokered: false, createdAt: new Date().toISOString() });
       return report(job);
     } catch (error) {
@@ -418,11 +532,11 @@ export default function pstack(pi: ExtensionAPI) {
     for (const top of list(jobsRoot(), owner)) if (top.spec.kind === 'pi') serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), top.status.state !== 'running');
   };
 
-  // Carries refreshed OAuth tokens between your credentials and each top-level job's copy, once more after the job ends.
+  // Carries refreshed OAuth tokens between your credentials and each top-level job's shared copy, once more after the job ends.
   const syncCredentials = (ctx: ExtensionContext): void => {
     if (insideJob()) return;
     for (const job of list(jobsRoot(), ctx.sessionManager.getSessionId())) {
-      const copy = jobAgentDir(job.dir);
+      const copy = credsDir(job.dir);
       if (!existsSync(join(copy, 'auth.json')) || existsSync(join(job.dir, 'tokens-synced'))) continue;
       if (syncTokens(getAgentDir(), copy) && job.status.state !== 'running') writeFileSync(join(job.dir, 'tokens-synced'), '');
     }
@@ -486,11 +600,14 @@ export default function pstack(pi: ExtensionAPI) {
     watcher = undefined;
     // A print-mode worker's leftover jobs, such as a dev server it never stopped, end with it.
     if (interactive(ctx)) return;
+    const owner = ctx.sessionManager.getSessionId();
     try {
-      execFileSync('tmux', ['-S', tmuxSocket(ctx.sessionManager.getSessionId()), 'kill-server'], { stdio: 'ignore' });
+      execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
     } catch {
       // It started no jobs.
     }
+    // Each wrapper stops its own container when tmux hangs it up. Any that outlived its wrapper is stopped by name.
+    for (const { spec } of list(jobsRoot(), owner)) if (spec.container) stopContainers(spec.container.bin, [spec.container.name]);
   });
 
   // A print-mode run would exit while its jobs still run, so it waits for them and continues with their reports.
@@ -520,7 +637,7 @@ export default function pstack(pi: ExtensionAPI) {
     if (transcript)
       options.sections['pstack-session'] =
         `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
-    if (insideJob()) options.sections['pstack-sandbox'] = SANDBOX_NOTE;
+    if (insideJob()) options.sections['pstack-container'] = CONTAINER_NOTE;
     const models = modelsFile(getAgentDir());
     if (mode) options.sections[MODE] = modeSection(mode);
     if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
@@ -531,7 +648,7 @@ export default function pstack(pi: ExtensionAPI) {
       name: 'pi_spawn',
       label: 'Spawn Pi',
       description:
-        'Start a separate Pi process in its own tmux session, inside a Seatbelt (macOS) or bubblewrap (Linux) sandbox, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot. The shared /tmp is read-only to the worker, so a brief that names a scratch path uses $TMPDIR or the checkout.',
+        "Start a separate Pi process in its own tmux session, inside an isolated Linux container, with a standalone brief. It runs in parallel and does not see this conversation. When it exits you are woken with its final report. Each call starts one fresh instance; to start several, call pi_spawn several times in one message. A Pi it starts can start workers too, and those workers cannot. The container's /tmp is small, private, and lost when the worker ends, so a brief that names a scratch path uses $TMPDIR or the checkout.",
       promptSnippet: 'Start a parallel Pi instance in tmux with a standalone brief, then get woken with its report',
       promptGuidelines: [
         'Use pi_spawn wherever a pstack skill says to spawn a worker, delegate, explorer, reviewer, or Pi instance. Pi has no subagents.',
@@ -587,9 +704,11 @@ export default function pstack(pi: ExtensionAPI) {
           const cwd = params.worktree === undefined ? base : createWorktree ? join(resultsDir(process.env[TOP_DIR_ENV] ?? '', dir), 'worktree') : join(dir, 'worktree');
           if (params.worktree !== undefined && !createWorktree) createdBranch = addWorktree(base, cwd, params.worktree, params.base);
           const common = gitPath(base, '--git-common-dir');
-          if (!readonly) writable.push(cwd, ...(common ? [common] : []));
-          const guarded = createWorktree ? { protect: [], lock: [], gitDirs: [] } : protectedPaths(cwd, common);
-          const piCommand = process.argv[1] && isAbsolute(process.argv[1]) ? [process.execPath, process.argv[1]] : ['pi'];
+          const guarded: Protected = createWorktree ? { protect: [], guardFiles: [], gitDirs: [], ownGitDir: undefined } : protectedPaths(cwd, common);
+          if (!readonly) writable.push(cwd, ...(common ? [common] : []), ...(guarded.ownGitDir ? [guarded.ownGitDir] : []));
+          // The container has no Pi of its own, so it runs the host's Pi code, mounted read-only, on the image's node.
+          if (!process.argv[1] || !isAbsolute(process.argv[1])) throw new Error('pstack could not tell where this Pi is installed, so it cannot run a worker from it.');
+          const piCommand = ['node', realpathSync(process.argv[1])];
           const argv = [
             ...piCommand,
             '-p',
@@ -613,14 +732,14 @@ export default function pstack(pi: ExtensionAPI) {
             cwd,
             argv: [],
             command: argv,
-            policy: { writable, protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: dir },
+            policy: containerPolicy(id, dir, { writable, protect: guarded.protect, guardFiles: guarded.guardFiles, gitDirs: guarded.gitDirs, cwd, readonly }),
             brokered: false,
             owner,
             wake: params.wake === false ? null : 'Review this report against the brief and inspect the artifacts it names before you rely on it.',
             repeat: false,
             series: id,
             socket: brokering() ? '' : tmuxSocket(owner),
-            sweep: { roots: [], protect: [] },
+            sweep: { roots: [], protect: [], guardFiles: [] },
             out: dir,
             ...(createWorktree ? { createWorktree } : {}),
             createdAt: new Date().toISOString(),
@@ -641,7 +760,7 @@ export default function pstack(pi: ExtensionAPI) {
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session, inside the pstack sandbox, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The shared /tmp is read-only to the command, so it keeps temp files in $TMPDIR, its own temp directory. The command reads no input.',
+      "Run a shell command in its own tmux session, inside the pstack container, instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The container's /tmp is small, private, and lost when the command ends, so it keeps temp files in $TMPDIR, its own temp directory. The command reads no input.",
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: Type.Object({
@@ -659,7 +778,14 @@ export default function pstack(pi: ExtensionAPI) {
       const cwd = projectPath(ctx, params.cwd);
       const common = gitPath(cwd, '--git-common-dir');
       const guarded = protectedPaths(cwd, common);
-      const policy = { writable: [cwd, ...(common ? [common] : [])], protect: guarded.protect, lock: guarded.lock, gitDirs: guarded.gitDirs, checkouts: [], credentials: '', agentDir: getAgentDir(), jobDir: join(root, id) };
+      const policy = containerPolicy(id, join(root, id), {
+        writable: [cwd, ...(common ? [common] : []), ...(guarded.ownGitDir ? [guarded.ownGitDir] : [])],
+        protect: guarded.protect,
+        guardFiles: guarded.guardFiles,
+        gitDirs: guarded.gitDirs,
+        cwd,
+        readonly: false,
+      });
       const spec: JobSpec = {
         id,
         name: params.name,
@@ -674,7 +800,7 @@ export default function pstack(pi: ExtensionAPI) {
         repeat: params.repeat ?? false,
         series: id,
         socket: brokering() ? '' : tmuxSocket(owner),
-        sweep: { roots: [], protect: [] },
+        sweep: { roots: [], protect: [], guardFiles: [] },
         out: join(root, id),
         createdAt: new Date().toISOString(),
       };
