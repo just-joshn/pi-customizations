@@ -1,6 +1,9 @@
 import { execFileSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { runPiInTmux } from '../src/subagent/run-in-tmux.ts';
 
 const TEST_TIMEOUT_MS = 15_000;
@@ -47,7 +50,39 @@ async function abortKillsSession(): Promise<void> {
   expect(outcome.signal).toBe('SIGTERM');
 }
 
+/**
+ * A user's tmux server is usually already running, started with whatever environment it had then. The child Pi must
+ * still see the dispatching Pi's environment (agent dir, credentials, PATH), not that server's.
+ */
+async function childSeesParentEnvWithRunningServer(): Promise<void> {
+  const tmuxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-subagent-tmux-test-'));
+  vi.stubEnv('TMUX_TMPDIR', tmuxDir);
+  vi.stubEnv('TMUX', '');
+  const { PI_SUBAGENT_TEST_VAR: _unset, ...serverEnv } = process.env;
+  execFileSync('tmux', ['new-session', '-d', '-s', 'already-running', 'sleep 30'], { stdio: 'ignore', env: serverEnv });
+  vi.stubEnv('PI_SUBAGENT_TEST_VAR', 'from-parent');
+  try {
+    let chunks: readonly string[] = [];
+    const outcome = await runPiInTmux({
+      command: 'bash',
+      args: ['-c', 'echo "var=[$PI_SUBAGENT_TEST_VAR]"'],
+      cwd: process.cwd(),
+      onStdoutChunk: (chunk) => {
+        chunks = [...chunks, chunk];
+      },
+      onStderrChunk: () => undefined,
+    });
+    expect(outcome.code).toBe(0);
+    expect(chunks.join('')).toContain('var=[from-parent]');
+  } finally {
+    execFileSync('tmux', ['kill-server'], { stdio: 'ignore', env: { ...process.env } });
+    vi.unstubAllEnvs();
+    fs.rmSync(tmuxDir, { recursive: true, force: true });
+  }
+}
+
 describe('runPiInTmux', () => {
+  test('the child sees the parent environment when a tmux server is already running', childSeesParentEnvWithRunningServer, TEST_TIMEOUT_MS);
   test('starts the command inside a live tmux session', startsInsideTmux, TEST_TIMEOUT_MS);
   test('abort kills the tmux session', abortKillsSession, TEST_TIMEOUT_MS);
 });
