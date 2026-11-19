@@ -1,6 +1,7 @@
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { RealFSProvider, VM } from '@earendil-works/gondolin';
+import { ReadonlyProvider, RealFSProvider, VM } from '@earendil-works/gondolin';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { GUEST_WORKSPACE } from './paths.ts';
 
@@ -8,6 +9,8 @@ export const STATUS_KEY = 'gondolin';
 const DEFAULT_SHELL = '/bin/sh';
 const BASH_PROBE = [DEFAULT_SHELL, '-lc', 'command -v bash || true'];
 const SHORT_ID_LENGTH = 8;
+// Pi names skill files by their host path, so the package is mounted read-only at that same path in the guest.
+const PACKAGE_ROOT = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
 
 /** The session's one VM, started on first use and shared by every tool call until shutdown. */
 export type GondolinVm = {
@@ -26,7 +29,7 @@ export function createGondolinVm(localCwd: string): GondolinVm {
     ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: starting ${GUEST_WORKSPACE}`));
     const created = await VM.create({
       sessionLabel: `pi ${path.basename(localCwd)}`,
-      vfs: { mounts: { [GUEST_WORKSPACE]: new RealFSProvider(localCwd) } },
+      vfs: { mounts: { [GUEST_WORKSPACE]: new RealFSProvider(localCwd), [PACKAGE_ROOT]: new ReadonlyProvider(new RealFSProvider(PACKAGE_ROOT)) } },
     });
     const bashProbe = await created.exec(BASH_PROBE);
     shellPath = bashProbe.stdout.trim() || DEFAULT_SHELL;

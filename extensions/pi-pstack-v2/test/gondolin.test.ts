@@ -7,7 +7,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { createGondolinBashOps } from '../src/gondolin/bash.ts';
 import { createGondolinEditOps, createGondolinLsOps, createGondolinReadOps, createGondolinWriteOps } from '../src/gondolin/fs-operations.ts';
 import { executeGondolinGrep } from '../src/gondolin/grep.ts';
-import gondolin, { guestSystemPrompt } from '../src/gondolin/index.ts';
+import gondolin, { guestSystemPrompt, HOST_BOUNDARY_NOTE } from '../src/gondolin/index.ts';
 import { GUEST_WORKSPACE, toGuestPath } from '../src/gondolin/paths.ts';
 import { createGondolinFindOps, matchesToolGlob } from '../src/gondolin/search.ts';
 
@@ -33,10 +33,16 @@ const TIMEOUT_SECONDS = 0.01;
 vi.mock('@earendil-works/gondolin', () => ({
   VM: { create: vi.fn() },
   RealFSProvider: class {
-    constructor(readonly root: string) {}
+    readonly root: string;
+    constructor(root: string) {
+      this.root = root;
+    }
   },
   ReadonlyProvider: class {
-    constructor(readonly backend: unknown) {}
+    readonly backend: unknown;
+    constructor(backend: unknown) {
+      this.backend = backend;
+    }
   },
 }));
 
@@ -260,8 +266,8 @@ describe('bash operations', () => {
 describe('system prompt', () => {
   test('replaces the host cwd line, or appends the guest line when it is missing', () => {
     const guestLine = `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${HOST})`;
-    expect(guestSystemPrompt(`Intro\nCurrent working directory: ${HOST}\nEnd`, HOST)).toBe(`Intro\n${guestLine}\nEnd`);
-    expect(guestSystemPrompt('Intro', HOST)).toBe(`Intro\n\n${guestLine}`);
+    expect(guestSystemPrompt(`Intro\nCurrent working directory: ${HOST}\nEnd`, HOST)).toBe(`Intro\n${guestLine}\nEnd\n\n${HOST_BOUNDARY_NOTE}`);
+    expect(guestSystemPrompt('Intro', HOST)).toBe(`Intro\n\n${guestLine}\n\n${HOST_BOUNDARY_NOTE}`);
   });
 
   test('says which commands and paths exist only on the host, and how to reach them', () => {
@@ -360,6 +366,6 @@ describe('the extension', () => {
     expect(await userBash.operations.exec('ls', process.cwd(), { onData: vi.fn() })).toEqual({ exitCode: 0 });
     expect(guest.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'ls'], expect.objectContaining({ cwd: GUEST_WORKSPACE }));
     const prompt = await handlers['before_agent_start']?.({ systemPrompt: `Current working directory: ${process.cwd()}` }, ctx);
-    expect(prompt).toEqual({ systemPrompt: `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${process.cwd()})` });
+    expect(prompt).toEqual({ systemPrompt: `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${process.cwd()})\n\n${HOST_BOUNDARY_NOTE}` });
   });
 });

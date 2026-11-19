@@ -12,11 +12,18 @@ import { GUEST_WORKSPACE } from './paths.ts';
 import { registerGuestTools } from './tools.ts';
 import { createGondolinVm, type GondolinVm } from './vm.ts';
 
-/** Points the model at the guest workspace in place of the host cwd line, or appends the line when Pi's is absent. */
+export const HOST_BOUNDARY_NOTE = [
+  'The VM has no `git`, `gh`, `tmux`, or `bun`.',
+  'Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM, except this package, which is mounted read-only at its host path.',
+  "Run what needs them on the host with `tmux_run`, and read its output with `tmux_jobs` `output`, since the job's log file is a host path.",
+].join(' ');
+
+/** Points the model at the guest workspace in place of the host cwd line, or appends the line when Pi's is absent, then says what only the host has. */
 export function guestSystemPrompt(systemPrompt: string, localCwd: string): string {
   const localLine = `Current working directory: ${localCwd}`;
   const guestLine = `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${localCwd})`;
-  return systemPrompt.includes(localLine) ? systemPrompt.replace(localLine, guestLine) : `${systemPrompt}\n\n${guestLine}`;
+  const withGuestCwd = systemPrompt.includes(localLine) ? systemPrompt.replace(localLine, guestLine) : `${systemPrompt}\n\n${guestLine}`;
+  return `${withGuestCwd}\n\n${HOST_BOUNDARY_NOTE}`;
 }
 
 function registerStatusCommand(pi: ExtensionAPI, guest: GondolinVm, localCwd: string): void {
