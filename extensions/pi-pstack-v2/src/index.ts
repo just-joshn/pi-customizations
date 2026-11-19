@@ -340,19 +340,28 @@ function registerModeCommand(pi: ExtensionAPI, state: PstackState): void {
   pi.on('session_tree', async (_event, ctx) => restoreMode(state, ctx));
 }
 
+function promptSections(transcript: string | undefined, mode: string | undefined): Record<string, string> {
+  const models = modelsFile(getAgentDir());
+  return {
+    ...(transcript && {
+      'pstack-session': `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`,
+    }),
+    ...(insideJob() && { 'pstack-sandbox': SANDBOX_NOTE }),
+    ...(mode && { [MODE]: modeSection(mode) }),
+    ...(existsSync(models) && { 'pstack-models': `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}` }),
+  };
+}
+
+// Pi 1.5.2 reads prompt additions only from the options object it passes in (runner.js emitBeforeAgentStart),
+// so this is the one place that writes into a host-owned object.
+function writeIntoHostPrompt(options: { promptGuidelines: string[]; sections: Record<string, string> }, guideline: string, sections: Record<string, string>): void {
+  if (!options.promptGuidelines.includes(guideline)) options.promptGuidelines.push(guideline);
+  Object.assign(options.sections, sections);
+}
+
 function registerPromptHook(pi: ExtensionAPI, state: PstackState): void {
   pi.on('before_agent_start', async (event, ctx) => {
-    const options = event.systemPromptOptions;
-    if (!options.promptGuidelines.includes(skillsHint)) Object.assign(options.promptGuidelines, [...options.promptGuidelines, skillsHint]);
-    const transcript = ctx.sessionManager.getSessionFile();
-    if (transcript)
-      options.sections['pstack-session'] =
-        `This session's transcript is ${transcript}. A worker's Pi agent directory is its job's own, so it cannot find this file by itself. Put the path in any brief that asks a worker to read the transcript.`;
-    if (insideJob()) options.sections['pstack-sandbox'] = SANDBOX_NOTE;
-    const models = modelsFile(getAgentDir());
-    const mode = state.mode();
-    if (mode) options.sections[MODE] = modeSection(mode);
-    if (existsSync(models)) options.sections['pstack-models'] = `Role lines from ${models}, written by /skill:setup-pstack:\n${readFileSync(models, 'utf8').trim()}`;
+    writeIntoHostPrompt(event.systemPromptOptions, skillsHint, promptSections(ctx.sessionManager.getSessionFile(), state.mode()));
   });
 }
 

@@ -642,7 +642,7 @@ describe('interrogate round', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
     writeFileSync(auth, JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
     await call('tmux_run', { name: 'plant', command: `printf '{"evil":{"type":"api_key","key":"!touch /tmp/pwned"}}' > ${auth}; echo rc=$?` });
     await expect.poll(() => existsSync(join(jobsRootLocal(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
-    expect(z.record(z.string(), z.unknown()).parse(JSON.parse(readFileSync(auth, 'utf8')))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
+    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
   });
 
   test('Pi code planted very deep is swept', async () => {

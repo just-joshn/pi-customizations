@@ -73,6 +73,7 @@ const portedUpstreamFiles = new Set([
   'skills/poteto-mode/scripts/watch-pr/policy.ts',
   'skills/poteto-mode/scripts/watch-pr/render.ts',
   'skills/poteto-mode/scripts/watch-pr/types.ts',
+  'skills/poteto-mode/scripts/watch-pr/types.compile.ts',
   // statechart scripts/test reshaped for style-audit (split >800, immutability)
   'skills/statechart/scripts/test/chart.test.ts',
   'skills/statechart/scripts/test/cli.test.ts',
