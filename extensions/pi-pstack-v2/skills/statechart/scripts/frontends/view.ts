@@ -2,8 +2,6 @@ import { type CheckedView, checked, list, type Value, type Vars } from "../ir.ts
 
 type Json = boolean | number | string | Json[] | { [key: string]: Json };
 
-const projected = new WeakMap<object, Json>();
-
 const project = (v: Exclude<Extract<Value, object>, { kind: "model" }>): Json => {
   if (v.kind === "interval")
     return Array.from({ length: Math.max(v.hi - v.lo + 1, 0) }, (_, k) => v.lo + k);
@@ -19,23 +17,11 @@ const project = (v: Exclude<Extract<Value, object>, { kind: "model" }>): Json =>
 export const json = (v: Value): Json => {
   if (typeof v !== "object") return v;
   if (v.kind === "model") return v.name;
-  let j = projected.get(v);
-  if (j === undefined) projected.set(v, (j = project(v)));
-  return j;
+  return project(v);
 };
 
-const projectedVars = new WeakMap<Vars, { [name: string]: Json }>();
-
-const jsonVars = (vars: Vars) => {
-  let j = projectedVars.get(vars);
-  if (j === undefined) {
-    j = Object.fromEntries(
-      Object.entries(vars).map(([name, v]): [string, Json] => [name, json(v)]),
-    );
-    projectedVars.set(vars, j);
-  }
-  return j;
-};
+const jsonVars = (vars: Vars) =>
+  Object.fromEntries(Object.entries(vars).map(([name, v]): [string, Json] => [name, json(v)]));
 
 const THEME_COLORS = ["blue", "orange", "purple", "yellow", "teal", "tan", "pink"];
 
@@ -101,9 +87,10 @@ const readColors = (
     throw new Error(
       `The view's colors give ${list(bad)}. Give each group ${list(THEME_COLORS, "or")}.`,
     );
-  const colors: { [group: string]: string } = Object.create(null);
-  for (const [name, color] of entries.filter(isColor)) colors[name] = String(color);
-  return colors;
+  return {
+    __proto__: null,
+    ...Object.fromEntries(entries.filter(isColor).map(([name, color]) => [name, String(color)])),
+  } as unknown as { [group: string]: string };
 };
 
 const assertColored = (g: unknown, colors: object, literal: (v: unknown) => string) => {

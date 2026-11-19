@@ -1,41 +1,77 @@
 import type { Value } from "../ir.ts";
 
-export const BRACKET = new Int8Array(128);
-for (const c of "<{[(") BRACKET[c.charCodeAt(0)] = 1;
-for (const c of ">}])") BRACKET[c.charCodeAt(0)] = -1;
+const ASCII_END = 128;
+const TAB = 9;
+const LINE_FEED = 10;
+const CARRIAGE_RETURN = 13;
+const SPACE_CODE = 32;
+const QUOTE = 34;
+export const COMMA = 44;
+const MINUS = 45;
+const DOT = 46;
+const DIGIT_0 = 48;
+const DIGIT_9 = 57;
+const COLON = 58;
+const LESS = 60;
+const GREATER = 62;
+const AT = 64;
+const UPPER_A = 65;
+const UPPER_Z = 90;
+const BACKSLASH = 92;
+const UNDERSCORE = 95;
+const LOWER_A = 97;
+const LOWER_Z = 122;
+const PIPE = 124;
+const LINE_SEPARATOR = 0x2028;
+const PARAGRAPH_SEPARATOR = 0x2029;
+const OPENERS = "<{[(";
+const CLOSERS = ">}])";
+const UNREADABLE_CONTEXT = 20;
+
+export const BRACKET = Int8Array.from({ length: ASCII_END }, (_, c) => {
+  const ch = String.fromCharCode(c);
+  if (OPENERS.includes(ch)) return 1;
+  return CLOSERS.includes(ch) ? -1 : 0;
+});
 const PUNCT = new Map([
-  [60, "<<"],
-  [62, ">>"],
-  [124, "|->"],
-  [58, ":>"],
-  [64, "@@"],
-  [46, ".."],
+  [LESS, "<<"],
+  [GREATER, ">>"],
+  [PIPE, "|->"],
+  [COLON, ":>"],
+  [AT, "@@"],
+  [DOT, ".."],
 ]);
 const SPACE = /\s/;
 export const isSpace = (c: number) =>
-  c === 32 || (c >= 9 && c <= 13) || (c > 127 && SPACE.test(String.fromCharCode(c)));
-const isDigit = (c: number) => c >= 48 && c <= 57;
+  c === SPACE_CODE ||
+  (c >= TAB && c <= CARRIAGE_RETURN) ||
+  (c >= ASCII_END && SPACE.test(String.fromCharCode(c)));
+const isDigit = (c: number) => c >= DIGIT_0 && c <= DIGIT_9;
 const isWord = (c: number) =>
-  isDigit(c) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95;
-const isLineEnd = (c: number) => c === 10 || c === 13 || c === 0x2028 || c === 0x2029;
+  isDigit(c) ||
+  (c >= UPPER_A && c <= UPPER_Z) ||
+  (c >= LOWER_A && c <= LOWER_Z) ||
+  c === UNDERSCORE;
+const isLineEnd = (c: number) =>
+  c === LINE_FEED || c === CARRIAGE_RETURN || c === LINE_SEPARATOR || c === PARAGRAPH_SEPARATOR;
 
 export const tokenEnd = (s: string, i: number) => {
   const c = s.charCodeAt(i);
-  if (c === 34) {
+  if (c === QUOTE) {
     for (let j = i + 1; j < s.length; j++) {
       const d = s.charCodeAt(j);
-      if (d === 34) return j + 1;
-      if (d === 92 && (++j >= s.length || isLineEnd(s.charCodeAt(j)))) return -1;
+      if (d === QUOTE) return j + 1;
+      if (d === BACKSLASH && (++j >= s.length || isLineEnd(s.charCodeAt(j)))) return -1;
     }
     return -1;
   }
   const punct = PUNCT.get(c);
   if (punct) return s.startsWith(punct, i) ? i + punct.length : -1;
-  if (BRACKET[c] || c === 44) return i + 1;
+  if (BRACKET[c] || c === COMMA) return i + 1;
   let j = i + 1;
-  if (c === 45 || isDigit(c)) {
+  if (c === MINUS || isDigit(c)) {
     while (isDigit(s.charCodeAt(j))) j++;
-    return c === 45 && j === i + 1 ? -1 : j;
+    return c === MINUS && j === i + 1 ? -1 : j;
   }
   if (!isWord(c)) return -1;
   while (isWord(s.charCodeAt(j))) j++;
@@ -43,7 +79,7 @@ export const tokenEnd = (s: string, i: number) => {
 };
 
 export const unreadable = (text: string, pos: number) =>
-  new Error(`cannot read TLA+ value at "${text.slice(pos, pos + 20)}"`);
+  new Error(`cannot read TLA+ value at "${text.slice(pos, pos + UNREADABLE_CONTEXT)}"`);
 
 const INT = /^-?\d+$/;
 const NAME = /^\w*[A-Za-z]\w*$/;
@@ -56,12 +92,7 @@ const UNESCAPED: { [c: string]: string } = {
   f: "\f",
 };
 
-const models = new Map<string, Value>();
-const model = (name: string) => {
-  let v = models.get(name);
-  if (v === undefined) models.set(name, (v = { kind: "model", name }));
-  return v;
-};
+const model = (name: string): Value => ({ kind: "model", name });
 
 function* scanTokens(text: string) {
   for (let pos = 0; ;) {
@@ -170,7 +201,7 @@ const readTuple = (c: Cursor): Value => {
 };
 
 const readAtom = (c: Cursor, t: string): Value => {
-  if (t.charCodeAt(0) === 34) return readString(c, t);
+  if (t.charCodeAt(0) === QUOTE) return readString(c, t);
   if (INT.test(t)) {
     if (c.peek() !== "..") return Number(t);
     c.skip();

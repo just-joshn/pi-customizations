@@ -9,12 +9,17 @@ const SINGLE_SYMBOLS = "{}()[],=!";
 const STRING_ESCAPES = '"\\ntrf';
 const COMMENT_MARKS = /\(\*|\*\)/g;
 const LINE_BREAK = /\n|\r(?!\n)/g;
+const HEX_RADIX = 16;
+const HEX_DIGITS = 4;
+const FIRST_PRINTABLE = 0x20;
+const DELETE = 0x7f;
+const WORD_PREFIX = 3;
 
 const shown = (c: string) => {
   const code = c.codePointAt(0) ?? 0;
-  const hex = `U+${code.toString(16).toUpperCase().padStart(4, "0")}`;
-  if (code < 0x20 || code === 0x7f) return hex;
-  return code < 0x7f ? `"${c}"` : `"${c}" (${hex})`;
+  const hex = `U+${code.toString(HEX_RADIX).toUpperCase().padStart(HEX_DIGITS, "0")}`;
+  if (code < FIRST_PRINTABLE || code === DELETE) return hex;
+  return code < DELETE ? `"${c}"` : `"${c}" (${hex})`;
 };
 
 /** Maps a text offset to its 1-based line number; a lone \r also ends a line. */
@@ -69,7 +74,7 @@ const checkWord = (word: string, line: number, cannot: Cannot) => {
   if (/^[WS]F_/.test(word))
     throw cannot(
       line,
-      `TLC reads ${word.slice(0, 3)} at the start of a word as a TLA+ keyword, so it cannot read ${word} as a name.`,
+      `TLC reads ${word.slice(0, WORD_PREFIX)} at the start of a word as a TLA+ keyword, so it cannot read ${word} as a name.`,
     );
   if (/[A-Za-z]/.test(word) || word === "_") return;
   if (/\D/.test(word))

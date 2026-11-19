@@ -1,6 +1,6 @@
-import { type Mark, memo, type Part, type TraceState, type Value } from "../ir.ts";
+import { type Mark, type Part, type TraceState, type Value } from "../ir.ts";
 import { stateOf } from "./trace.ts";
-import { BRACKET, isSpace, parseValue, tokenEnd, unreadable } from "./value.ts";
+import { BRACKET, COMMA, isSpace, parseValue, tokenEnd, unreadable } from "./value.ts";
 
 const markTexts = (chunk: string, top: number[], inner: number[]) => {
   if (top.length !== 2) return undefined;
@@ -22,6 +22,8 @@ const ruleNames = (v: Value) => {
   return names.length === v.members.length ? names : undefined;
 };
 
+const PREVIEW_CHARS = 2000;
+
 type Comma = { depth: 1 | 2; at: number };
 
 function* scanCommas(line: string, base: number, startDepth: number) {
@@ -36,7 +38,7 @@ function* scanCommas(line: string, base: number, startDepth: number) {
     }
     const j = tokenEnd(line, i);
     if (j === -1) throw unreadable(line + "\n", last);
-    if (c === 44 && (depth === 1 || depth === 2)) yield { depth, at: base + i } as Comma;
+    if (c === COMMA && (depth === 1 || depth === 2)) yield { depth, at: base + i } as Comma;
     depth += BRACKET[c];
     i = last = j;
   }
@@ -60,12 +62,11 @@ const finishMark = (chunk: string, top: number[], inner: number[], read: (s: str
   const values = texts ? texts.values.map(read) : [];
   const broken = texts && ruleNames(read(texts.rules));
   if (!texts || !broken)
-    throw new Error(`TLC printed a mark that the command cannot read:\n${chunk.slice(0, 2000)}`);
+    throw new Error(`TLC printed a mark that the command cannot read:\n${chunk.slice(0, PREVIEW_CHARS)}`);
   return { values, broken };
 };
 
 export function* readMarks(messages: Iterable<Part>, tag: string): Generator<Mark> {
-  const read = memo(parseValue);
   const start = `"${tag}",`;
   let chunk = "";
   let depth = 0;
@@ -85,13 +86,13 @@ export function* readMarks(messages: Iterable<Part>, tag: string): Generator<Mar
     top = [...top, ...scan.top];
     inner = [...inner, ...scan.inner];
     if (depth > 0) continue;
-    const mark = finishMark(chunk, top, inner, read);
+    const mark = finishMark(chunk, top, inner, parseValue);
     chunk = "";
     yield mark;
   }
   if (chunk)
     throw new Error(
-      `TLC's output ends inside a marked state, so the command cannot tell which rules it breaks:\n${chunk.slice(0, 2000)}`,
+      `TLC's output ends inside a marked state, so the command cannot tell which rules it breaks:\n${chunk.slice(0, PREVIEW_CHARS)}`,
     );
 }
 

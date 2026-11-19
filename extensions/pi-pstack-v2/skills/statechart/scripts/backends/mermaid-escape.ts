@@ -8,11 +8,15 @@ const C4 = /C4(?=Container|Component|Dynamic|Deployment)/g;
 const UNDRAWN = /[\0\x80-\x9f]/;
 const REWRITTEN = ["ﬂ°", "¶ß"];
 const MARKER = /(?<=marker-end=)"/g;
-const firstOf = new Map<number, number>();
-for (const pair of REWRITTEN) {
-  const [first, second] = [...pair].map((c) => c.codePointAt(0) ?? 0);
-  firstOf.set(second, first);
-}
+const firstOf = new Map<number, number>(
+  REWRITTEN.map((pair) => {
+    const [first, second] = [...pair].map((c) => c.codePointAt(0) ?? 0);
+    return [second, first];
+  }),
+);
+const ASCII_END = 128;
+const WORD_JOINER = 0x2060;
+const SURROGATE_BITS = 10;
 const KEPT = 0;
 const BLANKED = 1;
 const DROPPED = 2;
@@ -28,14 +32,8 @@ const kindOf = (n: number) => {
   const kind = plainKind(String.fromCodePoint(n));
   return firstOf.has(n) ? kind | JOINS : kind;
 };
-const ASCII = Uint8Array.from({ length: 128 }, (_, n) => kindOf(n));
-const wide = new Map<number, number>();
-const kindAt = (n: number) => {
-  if (n < 128) return ASCII[n];
-  let kind = wide.get(n);
-  if (kind === undefined) wide.set(n, (kind = kindOf(n)));
-  return kind;
-};
+const ASCII = Uint8Array.from({ length: ASCII_END }, (_, n) => kindOf(n));
+const kindAt = (n: number) => (n < ASCII_END ? ASCII[n] : kindOf(n));
 const HIGH_SURROGATE = { from: 0xd800, to: 0xdbff };
 const LOW_SURROGATE = { from: 0xdc00, to: 0xdfff };
 const REPLACEMENT = 0xfffd;
@@ -46,7 +44,7 @@ const codePointAt = (s: string, i: number) => {
   const low = s.charCodeAt(i + 1);
   if (n <= HIGH_SURROGATE.to && low >= LOW_SURROGATE.from && low <= LOW_SURROGATE.to)
     return {
-      n: SUPPLEMENTARY + ((n - HIGH_SURROGATE.from) << 10) + (low - LOW_SURROGATE.from),
+      n: SUPPLEMENTARY + ((n - HIGH_SURROGATE.from) << SURROGATE_BITS) + (low - LOW_SURROGATE.from),
       width: 2,
     };
   return { n: REPLACEMENT, width: 1 };
@@ -69,7 +67,7 @@ const encode = (s: string, ref: (n: number) => string) => {
     const plain = kind & ~JOINS;
     last = n;
     if (!joined && plain === KEPT) continue;
-    out += s.slice(run, start) + (joined ? ref(0x2060) : "");
+    out += s.slice(run, start) + (joined ? ref(WORD_JOINER) : "");
     if (plain === KEPT) {
       run = start;
       continue;
@@ -81,7 +79,7 @@ const encode = (s: string, ref: (n: number) => string) => {
 };
 export const code = (s: string, ref: (n: number) => string) =>
   encode(s, ref)
-    .replace(MARKER, `${ref(0x2060)}"`)
+    .replace(MARKER, `${ref(WORD_JOINER)}"`)
     .replace(HAZARD, (c) => ref(c.charCodeAt(0)));
 export const esc = (s: string, quoted = false) => {
   const plain = code(s, (n) => `#${n};`);

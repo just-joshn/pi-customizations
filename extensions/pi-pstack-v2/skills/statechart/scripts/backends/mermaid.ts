@@ -81,42 +81,30 @@ const markOf = (leaf: ChartState): MarkKind | undefined => {
   return leaf.breaks.some((b) => b.always) ? "breaks" : "mayBreak";
 };
 
-const idSerial = function* () {
-  for (let n = 0; ; n++) yield `s${n}`;
+/**
+ * A state's id is a placeholder naming its region and path. `resolveIds` turns the placeholders into
+ * s0, s1, ... in the order they first appear in the drawing, which is the order they were drawn in.
+ * esc and code drop NUL, so a placeholder never collides with chart text.
+ */
+const ID_MARK = /\0[^\0]*\0/g;
+const idIn = (region: number) => (path: string[]) => `\0${region},${tupleKey(path)}\0`;
+
+const resolveIds = (lines: string[]) => {
+  const marks = new Set(lines.flatMap((line) => line.match(ID_MARK) ?? []));
+  const ids = new Map([...marks].map((mark, n) => [mark, `s${n}`]));
+  return lines.map((line) => line.replace(ID_MARK, (mark) => ids.get(mark) ?? mark));
 };
 
-type Ids = { id: (path: string[]) => string; idOf: (path: string[]) => string };
+type Drawing = { chart: Chart; drawn: Edge[]; id: (path: string[]) => string };
 
-const makeIds = (serial: Iterator<string>): Ids => {
-  const topIds = new Map<string, string>();
-  const nestedIds = new Map<string, string>();
-  const known = new Map<string[], string>();
-  const id = (path: string[]) => {
-    const top = path.length === 1;
-    const named = top ? topIds : nestedIds;
-    const k = top ? path[0] : tupleKey(path);
-    const found = named.get(k) ?? String(serial.next().value);
-    named.set(k, found);
-    return found;
-  };
-  const idOf = (path: string[]) => {
-    const found = known.get(path) ?? id(path);
-    known.set(path, found);
-    return found;
-  };
-  return { id, idOf };
-};
-
-type Drawing = { chart: Chart; drawn: Edge[]; ids: Ids };
-
-const edgeLine = ({ ids }: Drawing, e: Edge, indent: string) => {
-  const from = e.start ? "[*]" : ids.idOf(e.from);
+const edgeLine = ({ id }: Drawing, e: Edge, indent: string) => {
+  const from = e.start ? "[*]" : id(e.from);
   const label = e.label === undefined ? "" : `: ${esc(e.label)}`;
-  return `${indent}${from} --> ${ids.idOf(e.to)}${label}`;
+  return `${indent}${from} --> ${id(e.to)}${label}`;
 };
 
 const leafPiece = (d: Drawing, leaf: ChartState, head: string, indent: string): Piece => {
-  const sid = d.ids.idOf(leaf.path);
+  const sid = d.id(leaf.path);
   const mark = markOf(leaf);
   const color = leaf.group === undefined ? undefined : d.chart.colors[String(leaf.group)];
   const classes = [color, mark, leaf.lead && "bugPath", leaf.repeats && "repeats"].filter(
@@ -143,7 +131,7 @@ const headPiece = (d: Drawing, path: string[], indent: string, under: ChartState
     const leaf = under.findLast((s) => s.path.length <= path.length);
     return leaf ? leafPiece(d, leaf, head, indent) : NO_PIECE;
   }
-  const open = `${indent}state "${esc(head, true)}" as ${d.ids.id(path)} {`;
+  const open = `${indent}state "${esc(head, true)}" as ${d.id(path)} {`;
   const children = treePiece(d, path, `${indent}  `, inner);
   const key = tupleKey(path);
   const starts = d.drawn
@@ -152,8 +140,8 @@ const headPiece = (d: Drawing, path: string[], indent: string, under: ChartState
   return { ...children, lines: [open, ...children.lines, ...starts, `${indent}}`] };
 };
 
-const regionPiece = (chart: Chart, serial: Iterator<string>, r: Region): Piece => {
-  const d = { chart, drawn: drawnEdges(r), ids: makeIds(serial) };
+const regionPiece = (chart: Chart, r: Region, index: number): Piece => {
+  const d = { chart, drawn: drawnEdges(r), id: idIn(index) };
   const tree = treePiece(d, [], "  ", r.states);
   const arrows = d.drawn.filter((e) => !e.start || !e.from.length).map((e) => edgeLine(d, e, "  "));
   return { ...tree, lines: [...tree.lines, ...arrows] };
@@ -161,10 +149,10 @@ const regionPiece = (chart: Chart, serial: Iterator<string>, r: Region): Piece =
 
 const indented = (p: Piece, pad: string): Piece => ({ ...p, lines: p.lines.map((l) => pad + l) });
 
-const bodyPiece = (chart: Chart, serial: Iterator<string>): Piece => {
-  if (chart.regions.length <= 1) return regionPiece(chart, serial, chart.regions[0]);
+const bodyPiece = (chart: Chart): Piece => {
+  if (chart.regions.length <= 1) return regionPiece(chart, chart.regions[0], 0);
   const regions = chart.regions.map((r, i) => {
-    const inner = indented(regionPiece(chart, serial, r), "    ");
+    const inner = indented(regionPiece(chart, r, i), "    ");
     return {
       ...inner,
       lines: [
@@ -209,10 +197,10 @@ const rulesOf = (broken: Piece["broken"]): Record<MarkKind, Set<string>> => ({
 });
 
 export function mermaidLines(chart: Chart) {
-  const body = bodyPiece(chart, idSerial());
+  const body = bodyPiece(chart);
   const used = new Set(body.classes.map((m) => m.cls));
   const legend = legendEntries(chart, rulesOf(body.broken), used);
-  return [
+  return resolveIds([
     ...titleLines(chart),
     "stateDiagram-v2",
     ...(chart.regions.length > 1 ? ["  direction LR"] : []),
@@ -222,7 +210,7 @@ export function mermaidLines(chart: Chart) {
       .filter(([cls]) => used.has(cls))
       .map(([cls, style]) => `  classDef ${cls} ${style}`),
     ...body.classes.map(({ sid, cls }) => `  class ${sid} ${cls}`),
-  ];
+  ]);
 }
 
 export const mermaid = (chart: Chart) => mermaidLines(chart).join("\n");

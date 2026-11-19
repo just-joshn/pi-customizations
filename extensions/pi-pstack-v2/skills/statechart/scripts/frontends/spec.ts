@@ -27,10 +27,12 @@ const ENTITIES: { [name: string]: string } = { amp: "&", apos: "'", gt: ">", lt:
 const decode = (text: string) =>
   text.replace(/&(#x?)?(\w+);/g, (_, number: string | undefined, name: string) =>
     number
-      ? String.fromCodePoint(Number.parseInt(name, number === "#x" ? 16 : 10))
+      ? String.fromCodePoint(Number.parseInt(name, number === "#x" ? HEX_RADIX : DECIMAL_RADIX))
       : ENTITIES[name],
   );
 
+const HEX_RADIX = 16;
+const DECIMAL_RADIX = 10;
 const XML_TOKEN = /<(\/?)([^\s/>?!]+)[^>]*?(\/?)>|<[?!][^>]*>|([^<]+)/g;
 
 /** Reads the content of one element, starting after its open tag; returns the node and the next token index. */
@@ -77,9 +79,9 @@ const declarationsOf = (module: XmlNode | undefined, symbols: Map<string, XmlNod
 
 export function readSany(xml: string): Sany {
   const modules = child(parseXml(xml), "modules");
-  const symbols = new Map<string, XmlNode>();
-  for (const entry of child(modules, "context")?.children ?? [])
-    symbols.set(textOf(entry, "UID"), entry.children[1]);
+  const symbols = new Map<string, XmlNode>(
+    (child(modules, "context")?.children ?? []).map((entry) => [textOf(entry, "UID"), entry.children[1]]),
+  );
   const root = textOf(modules, "RootModule");
   const module = Array.from(symbols.values()).findLast(
     (node) => node.tag === "ModuleNode" && textOf(node, "uniquename") === root,
