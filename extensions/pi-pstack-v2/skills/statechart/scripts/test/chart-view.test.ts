@@ -84,6 +84,24 @@ test("a message writes each value the way JavaScript shows it", () => {
   );
 });
 
+test("group() is asked state by state as they draw, so a parent-state conflict after a bad group() never gets reported first", () => {
+  const graph = graphOf([["s0", { x: 0 }, true], ["s1", { x: 1 }]], [["s0", "s1", "Go"]]);
+  let asked: number[] = [];
+  const view = checkView(
+    {
+      state: (v: Vars) => (v.x === 0 ? ["Door", "Open"] : ["Door"]),
+      group: (v: Vars) => {
+        asked = [...asked, Number(v.x)];
+        return v.x === 0 ? "Busy" : "Bad";
+      },
+      colors: { Busy: "blue" },
+    },
+    inspect,
+  );
+  assert.throws(() => draw(graph, view), /state\(\) returned Door both as a state and as a parent state/);
+  assert.deepEqual(asked, [0]);
+});
+
 test("checkView takes colors only as a plain object", () => {
   const bare: object = Object.create(null, {
     Busy: { value: "blue", enumerable: true, writable: true, configurable: true },
