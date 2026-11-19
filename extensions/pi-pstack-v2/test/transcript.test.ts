@@ -7,6 +7,7 @@ import { clip } from '../src/jobs.ts';
 import { workerReport } from '../src/transcript.ts';
 
 let dir: string;
+const SESSION_FILE = '/session.jsonl';
 const EMOJI_REPEATS = 100;
 const CLIP_HEAD_BYTES = 11;
 const CLIP_TAIL_BYTES = 9;
@@ -94,8 +95,8 @@ test('missing, symlinked, and unreadable session locations fall back to stdout',
 
 test('clipped derived reports preserve UTF-8 and name the transcript holding the omitted bytes', () => {
   const text = `VERDICT\n${'🙂'.repeat(EMOJI_REPEATS)}\nACK`;
-  const clipped = clip(text, CLIP_HEAD_BYTES, CLIP_TAIL_BYTES, '/session.jsonl');
+  const clipped = clip(text, CLIP_HEAD_BYTES, CLIP_TAIL_BYTES, SESSION_FILE);
   expect(clipped).toMatch(/^VERDICT\n[\s\S]*full output at \/session.jsonl[\s\S]*ACK$/);
   expect(clipped).not.toContain('\uFFFD');
-  expect(clip('REPORT', SHORT_CLIP_BYTES, SHORT_CLIP_BYTES, '/session.jsonl')).toBe('REPORT');
+  expect(clip('REPORT', SHORT_CLIP_BYTES, SHORT_CLIP_BYTES, SESSION_FILE)).toBe('REPORT');
 });

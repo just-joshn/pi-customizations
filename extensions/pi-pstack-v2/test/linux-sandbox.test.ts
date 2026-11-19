@@ -4,8 +4,14 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { bwrapArgs, type SandboxPolicy, sandboxed, seccompFilter } from '../src/sandbox.ts';
 
+const ROOT_DIR = '/';
+const USR_BIN_DIR = '/usr/bin';
+const SHARED_TMP_DIR = '/tmp';
+const SHELL_PATH = '/bin/sh';
+const envSchema = z.object({ PATH: z.string().optional() });
 const BPF_INSN_BYTES = 8;
 const BPF_JT_OFFSET = 2;
 const BPF_JF_OFFSET = 3;
@@ -49,7 +55,7 @@ function parseMounts(args: string[]): readonly Mount[] {
 /** What a job inside bubblewrap sees at a path: the last mount covering it wins, and a tmpfs hides what lay beneath it. */
 function access(args: string[], path: string): Access {
   const mounts = parseMounts(args);
-  const covering = mounts.findLast((mount) => mount.at === '/' || path === mount.at || path.startsWith(`${mount.at}/`));
+  const covering = mounts.findLast((mount) => mount.at === ROOT_DIR || path === mount.at || path.startsWith(`${mount.at}/`));
   if (!covering) return 'hidden';
   return covering.tmpfs && path !== covering.at ? 'hidden' : covering.access;
 }
@@ -160,7 +166,7 @@ describe('the bubblewrap mounts', () => {
     const args = bwrapArgs(policy, {}, SAMPLE_UID);
     expect(access(args, join(work, 'own', 'file.ts'))).toBe('writable');
     expect(access(args, join(common, 'objects'))).toBe('writable');
-    expect(access(args, '/usr/bin')).toBe('read-only');
+    expect(access(args, USR_BIN_DIR)).toBe('read-only');
     expect(access(args, join(policy.agentDir, 'auth.json'))).toBe('read-only');
     expect(access(args, join(work, 'missing'))).toBe('read-only');
     expect(args.slice(-2)).toEqual(['--die-with-parent', '--']);
@@ -168,7 +174,7 @@ describe('the bubblewrap mounts', () => {
 
   test('the shared /tmp is private and read-only', () => {
     const args = bwrapArgs(policy, {}, SAMPLE_UID);
-    expect(access(args, '/tmp')).toBe('read-only');
+    expect(access(args, SHARED_TMP_DIR)).toBe('read-only');
     expect(access(args, `/tmp/tmux-${SAMPLE_UID}/default`)).toBe('hidden');
   });
 
@@ -224,7 +230,7 @@ describe('launching under bubblewrap', () => {
     mkdirSync(bin);
     writeFileSync(join(bin, 'bwrap'), '#!/bin/sh\n');
     chmodSync(join(bin, 'bwrap'), EXECUTABLE_MODE);
-    vi.stubEnv('PATH', `${bin}:${process.env['PATH'] ?? ''}`);
+    vi.stubEnv('PATH', `${bin}:${envSchema.parse(process.env).PATH ?? ''}`);
   });
 
   afterEach(() => {
@@ -239,7 +245,7 @@ describe('launching under bubblewrap', () => {
     mkdirSync(common);
     const argv = sandboxed(['pi', '-p'], policyIn(common), 'linux', {});
     const file = join(work, 'agent', 'pstack-v2', `seccomp-${process.arch}.bpf`);
-    expect(argv.slice(0, LAUNCH_PREFIX_ARGS)).toEqual(['/bin/sh', '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', file]);
+    expect(argv.slice(0, LAUNCH_PREFIX_ARGS)).toEqual([SHELL_PATH, '-c', 'exec 9<"$1"; shift; exec bwrap --seccomp 9 "$@"', 'sh', file]);
     expect(argv.slice(-2)).toEqual(['pi', '-p']);
     expect(readFileSync(file).equals(seccompFilter())).toBe(true);
     writeFileSync(file, 'loosened');

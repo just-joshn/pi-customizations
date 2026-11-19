@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -19,6 +19,14 @@ type Tool = {
   execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }>;
 };
 
+const ROOT_DIR = '/';
+const SHARED_TMP_DIR = '/tmp';
+const SKILL_PATH_PLACEHOLDER = '/<name>/SKILL.md';
+const SESSION_FILE = '/sessions/run.jsonl';
+const MODE_OFF_COMMAND = '/pstack-mode off';
+const MODE_KEEPS_SKILL_TITLE = '/pstack-mode keeps a skill in the system prompt every turn until it is turned off';
+const MODE_REFUSES_NAME_TITLE = '/pstack-mode refuses a name that is not a pstack skill and keeps the current mode';
+const authSchema = z.record(z.string(), z.record(z.string(), z.unknown()));
 const WAIT_SHORT_SECONDS = 10;
 const WAIT_LONG_SECONDS = 15;
 const WAIT_BUDGET_MS = 10_000;
@@ -101,11 +109,7 @@ beforeEach(() => {
 afterEach(async () => {
   await handlers?.['session_shutdown']?.({}, ctx);
   vi.unstubAllEnvs();
-  try {
-    execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
-  } catch {
-    // No server was started.
-  }
+  spawnSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
   if (agentDir) rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   if (repo) rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
@@ -133,7 +137,7 @@ describe('tmux_run', { timeout: 20_000 }, () => {
   });
 
   test('a directory outside the project is refused', async () => {
-    await expect(call('tmux_run', { name: 'out', command: 'true', cwd: '/' })).rejects.toThrow(/inside this project/);
+    await expect(call('tmux_run', { name: 'out', command: 'true', cwd: ROOT_DIR })).rejects.toThrow(/inside this project/);
     expect(jobs()).toEqual([]);
   });
 
@@ -181,13 +185,13 @@ describe('system prompt', () => {
     return event.systemPromptOptions.sections['pstack-mode'];
   };
 
-  test('/pstack-mode keeps a skill in the system prompt every turn until it is turned off', async () => {
+  test(MODE_KEEPS_SKILL_TITLE, async () => {
     expect(await prompt()).toBeUndefined();
     await commands['pstack-mode']?.handler('poteto-mode', ctx);
     const section = await prompt();
     expect(section).toContain('<skill name="poteto-mode"');
     expect(section).toContain('# Poteto mode');
-    expect(section).toContain('/pstack-mode off');
+    expect(section).toContain(MODE_OFF_COMMAND);
     expect(await prompt()).toBe(section);
     expect((ctx['ui'] as { setStatus: ReturnType<typeof vi.fn> }).setStatus).toHaveBeenLastCalledWith('pstack-mode', 'mode: poteto-mode');
     await commands['pstack-mode']?.handler('off', ctx);
@@ -204,7 +208,7 @@ describe('system prompt', () => {
     expect(await prompt()).toBeUndefined();
   });
 
-  test('/pstack-mode refuses a name that is not a pstack skill and keeps the current mode', async () => {
+  test(MODE_REFUSES_NAME_TITLE, async () => {
     await commands['pstack-mode']?.handler('poteto-mode', ctx);
     await commands['pstack-mode']?.handler('../../etc', ctx);
     expect(await prompt()).toContain('<skill name="poteto-mode"');
@@ -226,7 +230,7 @@ describe('system prompt, roles and session', () => {
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(event, ctx);
     await handlers['before_agent_start']?.(event, ctx);
-    const skills = event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes('/<name>/SKILL.md'));
+    const skills = event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes(SKILL_PATH_PLACEHOLDER));
     expect(skills).toHaveLength(1);
     expect(skills[0]).toContain(join(dirname(dirname(fileURLToPath(import.meta.url))), 'skills'));
     expect(skills[0]).toMatch(/read that file and follow it/);
@@ -234,8 +238,8 @@ describe('system prompt, roles and session', () => {
 
   test("names this session's transcript, since a worker's agent directory is its job's and holds no parent session", async () => {
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
-    await handlers['before_agent_start']?.(event, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => '/sessions/run.jsonl' } });
-    expect(event.systemPromptOptions.sections['pstack-session']).toContain('/sessions/run.jsonl');
+    await handlers['before_agent_start']?.(event, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => SESSION_FILE } });
+    expect(event.systemPromptOptions.sections['pstack-session']).toContain(SESSION_FILE);
     const ephemeral = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(ephemeral, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined } });
     expect(ephemeral.systemPromptOptions.sections['pstack-session']).toBeUndefined();
@@ -462,14 +466,7 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
     const sleeper = Number(readFileSync(join(repo, 'sleeper.pid'), 'utf8'));
     await call('tmux_jobs', { action: 'stop', ids: [id] });
     await expect.poll(() => existsSync(join(repo, '.pi', 'extensions')), { timeout: 10_000 }).toBe(false);
-    const alive = (): boolean => {
-      try {
-        process.kill(sleeper, 0);
-        return true;
-      } catch {
-        return false;
-      }
-    };
+    const alive = (): boolean => spawnSync('kill', ['-0', String(sleeper)]).status === 0;
     await expect.poll(alive, { timeout: 5_000 }).toBe(false);
   });
 
@@ -503,7 +500,7 @@ describe('round five', { timeout: 20_000 }, () => {
   const output = () => readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8');
 
   test('a job cannot write shared temp directories, where unsandboxed programs cache code, but has its own', async () => {
-    const shared = process.platform === 'darwin' ? realpathSync(tmpdir()) : '/tmp';
+    const shared = process.platform === 'darwin' ? realpathSync(tmpdir()) : SHARED_TMP_DIR;
     await call('tmux_run', { name: 'tmp', command: `touch ${shared}/pstack-shared-${process.pid} 2>/dev/null && echo SHARED-WRITTEN; touch "$TMPDIR/own" && echo OWN-WRITTEN` });
     await exited();
     // On Linux the write lands in the job's private /tmp, so what matters is that the shared one is untouched.
@@ -521,14 +518,7 @@ describe('round five', { timeout: 20_000 }, () => {
   });
 });
 
-const alive = (pid: number): boolean => {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-};
+const alive = (pid: number): boolean => spawnSync('kill', ['-0', String(pid)]).status === 0;
 
 describe('round four', { timeout: 20_000 }, () => {
   const jobDir = () => join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '');
@@ -642,7 +632,7 @@ describe('interrogate round', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
     writeFileSync(auth, JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
     await call('tmux_run', { name: 'plant', command: `printf '{"evil":{"type":"api_key","key":"!touch /tmp/pwned"}}' > ${auth}; echo rc=$?` });
     await expect.poll(() => existsSync(join(jobsRootLocal(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
-    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
+    expect(authSchema.parse(JSON.parse(readFileSync(auth, 'utf8')))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
   });
 
   test('Pi code planted very deep is swept', async () => {
@@ -704,11 +694,8 @@ const firefox = (() => {
   return binary && existsSync(binary) ? binary : undefined;
 })();
 const pnpmVersion = (() => {
-  try {
-    return execFileSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() }).trim();
-  } catch {
-    return undefined;
-  }
+  const result = spawnSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() });
+  return result.status === 0 ? result.stdout.trim() : undefined;
 })();
 
 const run = async (command: string) => {

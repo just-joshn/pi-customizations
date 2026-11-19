@@ -8,6 +8,7 @@ import { loadSkills } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
 import { z } from 'zod';
 
+const PATH_SEPARATOR = '/';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const lock = z.object({ files: z.record(z.string(), z.string()) }).parse(JSON.parse(readFileSync(join(root, 'upstream.lock.json'), 'utf8')));
 const upstream = Object.keys(lock.files);
@@ -97,7 +98,7 @@ describe('the Pi port of pstack', () => {
   test('every skill loads through Pi with no diagnostics', () => {
     const { skills, diagnostics } = loadSkills({ cwd: root, agentDir: join(tmpdir(), 'pstack-v2-empty-agent'), skillPaths: [join(root, 'skills')], includeDefaults: false });
     expect(diagnostics).toEqual([]);
-    const upstreamSkills = new Set(upstream.filter((path) => /^skills\/[^/]+\/SKILL\.md$/.test(path)).map((path) => path.split('/')[1]));
+    const upstreamSkills = new Set(upstream.filter((path) => /^skills\/[^/]+\/SKILL\.md$/.test(path)).map((path) => path.split(PATH_SEPARATOR)[1]));
     expect(new Set(skills.map((skill) => skill.name))).toEqual(upstreamSkills);
   });
 
