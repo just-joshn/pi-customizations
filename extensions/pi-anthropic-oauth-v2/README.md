@@ -14,12 +14,16 @@ Built and tested against Pi 1.5.2.
 
 ## Sign in
 
-1. Start Pi and run `/login`.
-2. Choose **Custom Anthropic (Claude Pro/Max)**.
+1. Start Pi and run `/login custom-anthropic`.
+2. Choose **Sign in with an account**.
 3. Open the link, sign in to Claude, and paste the code that Claude shows.
-4. Run `/model` and pick a `custom-anthropic/...` model.
+4. Run `/model` and pick a `custom-anthropic/...` model. Each one is named after its Claude model with ` (Custom)` added, such as **Claude Sonnet 4.6 (Custom)**.
 
-To use an API key instead, set `CUSTOM_ANTHROPIC_API_KEY` before you start Pi.
+To use an API key instead, choose **Sign in with an API key** in step 2, or set `CUSTOM_ANTHROPIC_API_KEY` before you start Pi.
+
+## Upgrading from 0.1.0
+
+Version 0.2.0 renamed the provider from `anthropic-oauth-v2` to `custom-anthropic` and removed `/claude-usage`. Your old sign-in and model choice used the old name, so sign in again as above and pick a `custom-anthropic/...` model. If your Pi settings name `anthropic-oauth-v2` as the default provider or model, change them to `custom-anthropic`.
 
 ## How requests are sent
 
