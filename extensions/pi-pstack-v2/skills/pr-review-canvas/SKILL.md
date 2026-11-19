@@ -100,7 +100,7 @@ Read [styles.css](styles.css) and [renderer.js](renderer.js) from this skill dir
 | `esc(string)` | HTML-escape a string |
 
 **Rendering diffs -- use `data-diff` attributes with auto-discovery.**
-Put `<div data-diff="KEY"></div>` placeholders in your body HTML wherever you want a diff rendered. The renderer finds them automatically after DOM load and fills them from the `<script id="pr-diffs-json" type="application/json">` element in `template.html`.
+Put `<div data-diff="KEY"></div>` placeholders in your body HTML wherever you want a diff rendered. The renderer finds them automatically after DOM load and fills them from the `<script id="pr-diffs-json">` element (which assigns `window.__PR_DIFFS__`) in `template.html`.
 
 **CRITICAL: Patch strings can contain `</script>` in addition to newlines, backslashes, and quotes.** Even `json.dumps(...)` is not enough if you paste raw output into executable `<script>` because HTML parsing can terminate the tag early. Never manually embed patch strings in JS/JSON. Instead, use this safe approach:
 
