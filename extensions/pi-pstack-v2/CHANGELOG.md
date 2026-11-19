@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+### Fixed
+
+- The README explains npm's install-scripts warning for `ssh2` and `cpu-features`, which arrive through Gondolin since 0.2.0, and gives the `npm install-scripts deny` command that silences it. A test checks that the command names every dependency with an install script.
+
 ## 0.2.0
 
 ### Changed

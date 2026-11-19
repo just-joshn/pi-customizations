@@ -17,6 +17,12 @@ pi install npm:@justjoshn/pi-pstack-v2
 
 Built and tested against Pi 1.5.2. Do not install another pstack package alongside it. Skill names collide, and Pi keeps only the first it finds.
 
+npm 11.20 and later warn that `ssh2` and `cpu-features` have install scripts not yet covered by `allowScripts`. Both come from Gondolin, through its SSH support. Their scripts only try to compile optional native speedups, which pstack does not need. The VM boots without either build. Only the root `package.json` in Pi's npm directory can hold `allowScripts`, so this package cannot answer for you. After installing, deny both once. npm keeps the entry across `pi update`.
+
+```sh
+cd ~/.pi/agent/npm && npm install-scripts deny ssh2 cpu-features
+```
+
 ## Requirements
 
 - tmux. Pi's `docs/tmux.md` covers the extended-keys setup.
