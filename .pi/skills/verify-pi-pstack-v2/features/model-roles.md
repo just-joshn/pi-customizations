@@ -18,7 +18,7 @@ Users run setup-pstack to choose models and thinking budgets for pstack roles. C
 
 Preconditions:
 
-- Unsandboxed live launcher, owner-approved login, real model selected.
+- Uncontained live launcher, owner-approved login, real model selected.
 - Empty baseline has no available models: report the setup journey blocked rather than inventing provider/model IDs.
 
 - **Configure:** run `python3 "$HELPER" send "$EVIDENCE" $'/skill:setup-pstack'`. Answer its model/budget questions using only available models and the actual offered choices. Record each answer (never credentials).

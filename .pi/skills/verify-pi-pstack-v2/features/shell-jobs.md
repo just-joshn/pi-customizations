@@ -4,7 +4,7 @@ Users ask Pi to run work without blocking their session, inspect its output, rec
 
 ## Sub-features
 
-- `jobs-run`: sandboxed command writes a result and exits successfully.
+- `jobs-run`: contained command writes a result and exits successfully.
 - `jobs-inspect`: list, output and wait report the returned job ID and result.
 - `jobs-stop`: stopping a running command terminates it.
 - `jobs-wake`: a completion notice reaches the parent without an extra user prompt.
@@ -19,7 +19,7 @@ Users ask Pi to run work without blocking their session, inspect its output, rec
 
 Preconditions:
 
-- Unsandboxed live launcher, genuine model access and healthy doctor.
+- Uncontained live launcher, genuine model access and healthy doctor.
 - Parent tools pi_spawn, tmux_run and tmux_jobs are available; do not use host-session calls as replacement proof.
 
 - **Run and inspect:** send `python3 "$HELPER" send "$EVIDENCE" $'Use tmux_run to start name verify-shell with command printf PSTACK_JOB_OK > job-result.txt and wake PSTACK_WAKE_OK. Record the returned ID. Use tmux_jobs list, then wait on that exact ID with timeout_seconds 30, then output for it. Do not use bash to run the command yourself.'`. Require actual calls, exited 0, output/list state for that ID and scratch work/job-result.txt containing PSTACK_JOB_OK. Read the file independently.

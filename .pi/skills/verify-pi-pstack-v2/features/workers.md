@@ -1,6 +1,6 @@
 # Pi worker delegation
 
-Users delegate standalone tasks to separate sandboxed Pi processes and receive their completed reports, with optional role, readonly mode, branch worktree or continuation.
+Users delegate standalone tasks to separate contained Pi processes and receive their completed reports, with optional role, readonly mode, branch worktree or continuation.
 
 ## Sub-features
 
@@ -21,7 +21,7 @@ Users delegate standalone tasks to separate sandboxed Pi processes and receive t
 
 Preconditions:
 
-- Unsandboxed live launcher, genuine model login usable by parent and worker.
+- Uncontained live launcher, genuine model login usable by parent and worker.
 - In scratch work create fixture.txt with the text PSTACK_FIXTURE_42. This is verification input, not an injected result.
 - Worktree journey additionally requires an initial commit in the disposable Git repo. Seed it with `git -C "$WORK" add fixture.txt && git -C "$WORK" -c user.name=Verify -c user.email=verify@example.invalid commit -m fixture`, where WORK is the exact manifest scratch/work path.
 

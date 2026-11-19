@@ -1,4 +1,4 @@
-# Sandbox boundaries
+# Container write boundaries
 
 Users expect jobs to write within their assigned workspace while outside files and unrelated directories remain protected. Each claim needs an attempted action and independently observed state.
 
@@ -19,7 +19,7 @@ Users expect jobs to write within their assigned workspace while outside files a
 
 Preconditions:
 
-- Unsandboxed live launcher and real model access; nested managed-launch discovery cannot prove these boundaries.
+- Uncontained live launcher and real model access; nested managed-launch discovery cannot prove these boundaries.
 - Resolve WORK and OUTSIDE from state.json: scratch/work and scratch/outside.txt.
 - Outside sentinel initially contains PSTACK_OUTSIDE_UNCHANGED. Never use a real user file for a negative-write test.
 
@@ -30,7 +30,7 @@ Preconditions:
 
 ## Gotchas
 
-- The scratch outside sentinel is readable and deliberately outside the child job's writable workspace. It is not outside every outer managed sandbox, hence the unsandboxed-launch requirement.
+- The scratch outside sentinel is readable and deliberately outside the child job's writable workspace. It is not outside every outer pstack container, hence the uncontained-launch requirement.
 - /tmp is not a universally safe probe: jobs receive their own writable TMPDIR and shared temp is protected differently.
 - A denied outside write proves only that tested path/platform. It does not establish network isolation, every protected path, nested-worker safety or credential sync correctness.
 - Network is permitted; --offline does not prohibit explicit model calls.

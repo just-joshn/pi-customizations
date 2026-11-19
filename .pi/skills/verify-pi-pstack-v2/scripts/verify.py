@@ -90,13 +90,13 @@ def main():
         version = subprocess.check_output(["pi", "--version"], text=True).strip()
         report = {"piVersion": version, "packageVersion": json.loads((PACKAGE / "package.json").read_text())["version"],
                   "packageUnchanged": True, "tmux": shutil.which("tmux"),
-                  "sandbox": shutil.which("sandbox-exec" if sys.platform == "darwin" else "bwrap"),
+                  "containerRuntime": next((shutil.which(n) for n in (("container",) if sys.platform == "darwin" else ("podman", "docker")) if shutil.which(n)), None),
                   "agent": str(scratch / "agent"), "work": str(scratch / "work"),
                   "authPresent": (scratch / "agent/auth.json").exists(), "launcherRecorded": pid_file.exists(),
-                  "sandboxedLauncher": os.environ.get("PSTACK_V2_SANDBOXED") == "1"}
+                  "containedLauncher": os.environ.get("PSTACK_V2_CONTAINED") == "1"}
         print(json.dumps(report, indent=2))
-        if version != "1.5.2" or not report["tmux"] or not report["sandbox"]:
-            raise RuntimeError("Need Pi 1.5.2, tmux and a supported sandbox")
+        if version != "1.5.2" or not report["tmux"] or not report["containerRuntime"]:
+            raise RuntimeError("Need Pi 1.5.2, tmux and a container runtime (Apple `container` on macOS; podman or docker on Linux)")
         return
 
     if args.action == "send":
