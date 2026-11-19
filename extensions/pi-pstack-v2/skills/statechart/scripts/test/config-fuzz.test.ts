@@ -5,12 +5,15 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 import { configText } from "../backends/cfg.ts";
 import { readConfig } from "../frontends/config.ts";
 import { type Checks, readChecks } from "../frontends/spec.ts";
+import { attempt } from "./attempt.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 const SEED = 1;
 const CONFIGS = 4000;
 const KEYWORDS =
@@ -93,17 +96,25 @@ type Reading = { [key: string]: unknown };
 const isRecord = (v: unknown): v is Reading =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
+const readingSchema = z.record(z.string(), z.unknown());
+
 const tableOf = (reading: Reading) => {
   if (!isRecord(reading.table)) throw new Error(`TLC printed no table: ${JSON.stringify(reading)}`);
   return reading.table;
 };
 
+const MULBERRY_STEP = 0x6d2b79f5;
+const UINT32_RANGE = 4294967296;
+const MAX_SECTION_NAMES = 3;
+const MAX_MUTATIONS = 4;
+const MAX_COMMENTS = 3;
+
 function mulberry32(seed: number) {
   return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
+    seed = (seed + MULBERRY_STEP) | 0;
     let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    return ((t ^ (t >>> 14)) >>> 0) / UINT32_RANGE;
   };
 }
 
@@ -141,7 +152,7 @@ const section = (rng: Rng, key: string): Token[] => {
   if (key === "CHECK_DEADLOCK") return [head, spaced(pick(["TRUE", "FALSE"]))];
   if (ONE_NAME.includes(key)) return [head, spaced(pick(NAMES))];
   if (!key.startsWith("CONSTANT"))
-    return [head, ...Array.from({ length: 1 + int(3) }, () => spaced(pick(NAMES)))];
+    return [head, ...Array.from({ length: 1 + int(MAX_SECTION_NAMES) }, () => spaced(pick(NAMES)))];
   const count = 1 + int(2);
   return [head, ...Array.from({ length: count }, () => constantEntry(rng, spaced)).flat()];
 };
@@ -184,7 +195,7 @@ function baseTokens(rng: Rng): Token[] {
   const { int, pick } = rng;
   const first = pick([["SPECIFICATION"], ["INIT", "NEXT"]]).flatMap((key) => section(rng, key));
   const withSections = repeat(
-    int(4),
+    int(MAX_MUTATIONS),
     (tokens) => {
       const at = pick([0, tokens.length]);
       return insertAt(tokens, at, section(rng, pick(KEYWORDS)));
@@ -192,7 +203,7 @@ function baseTokens(rng: Rng): Token[] {
     first,
   );
   return repeat(
-    int(3),
+    int(MAX_COMMENTS),
     (tokens) => {
       const at = int(tokens.length + 1);
       return insertAt(tokens, at, [{ gap: pick(GAPS), text: pick(COMMENTS) }]);
@@ -204,26 +215,25 @@ function baseTokens(rng: Rng): Token[] {
 function generate(random: () => number) {
   const rng = makeRng(random);
   const base = baseTokens(rng);
-  const mutations = rng.int(4);
+  const mutations = rng.int(MAX_MUTATIONS);
   const tokens = repeat(mutations, (acc) => mutate(rng, acc), base);
   return { text: `${tokens.map((t) => t.gap + t.text).join("")}\n`, mutated: mutations > 0 };
 }
 
 function readInTlc(files: string[], jar: string) {
   const r = spawnSync(
-    process.env.JAVA || "java",
+    hostEnv().JAVA || "java",
     ["-cp", jar, path.join(here, "ConfigOracle.java")],
     { input: `${files.join("\n")}\n`, encoding: "utf8", maxBuffer: 1 << 30 },
   );
   assert.equal(r.status, 0, r.error?.message ?? r.stderr);
   const lines = r.stdout.split("\n");
-  const readings = new Map<string, Reading>();
-  for (let i = 0; i < files.length; i++) {
-    const reading: unknown = JSON.parse(lines[i]);
-    if (!isRecord(reading)) throw new Error(`TLC printed ${lines[i]}`);
-    readings.set(files[i], reading);
-  }
-  return readings;
+  const readOne = (file: string, i: number): [string, Reading] => {
+    const parsed = readingSchema.safeParse(JSON.parse(lines[i]));
+    if (!parsed.success) throw new Error(`TLC printed ${lines[i]}`);
+    return [file, parsed.data];
+  };
+  return new Map(files.map(readOne));
 }
 
 function passesTlcStartChecks(reading: Reading) {
@@ -243,8 +253,12 @@ function model(reading: Reading | undefined) {
   if (!reading || reading.error) return reading;
   const { overrides, modConstants, modOverrides } = reading;
   const table = tableOf(reading);
-  const out: Reading = { overrides, modConstants, modOverrides };
-  for (const key of MODEL) out[key] = table[key];
+  const out: Reading = {
+    overrides,
+    modConstants,
+    modOverrides,
+    ...Object.fromEntries(MODEL.map((key) => [key, table[key]])),
+  };
   return out;
 }
 
@@ -257,23 +271,21 @@ type Case = {
   written: string;
 };
 
-function readSkill(file: string, text: string, written: string): Checks | Error {
-  try {
+async function readSkill(file: string, text: string, written: string): Promise<Checks | Error> {
+  const read = await attempt(() => {
     const skill = readChecks({ configFile: file, config: readConfig({ file, text }) });
     fs.writeFileSync(written, configText(skill.written, []));
     return skill;
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
-    return error;
-  }
+  });
+  return read.error ?? read.value;
 }
 
-function buildCase(dir: string, random: () => number, i: number): Case {
+async function buildCase(dir: string, random: () => number, i: number): Promise<Case> {
   const { text, mutated } = generate(random);
   const file = path.join(dir, `${i}.cfg`);
   fs.writeFileSync(file, text);
   const written = path.join(dir, `${i}-written.cfg`);
-  return { i, text, mutated, skill: readSkill(file, text, written), file, written };
+  return { i, text, mutated, skill: await readSkill(file, text, written), file, written };
 }
 
 function checkCase(c: Case, tlc: Map<string, Reading>) {
@@ -312,13 +324,15 @@ function checkCase(c: Case, tlc: Map<string, Reading>) {
 test(
   `${CONFIGS} configs from seed ${SEED} read in the skill as in TLC, or stop before TLC runs`,
   { skip },
-  (t) => {
+  async (t) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-fuzz-"));
     t.after(() => fs.rmSync(dir, { recursive: true }));
     const random = mulberry32(SEED);
-    const cases = Array.from({ length: CONFIGS }, (_, i) => buildCase(dir, random, i));
+    const cases = await Promise.all(
+      Array.from({ length: CONFIGS }, (_, i) => buildCase(dir, random, i)),
+    );
     const files = cases.flatMap((c) => (c.skill instanceof Error ? [c.file] : [c.file, c.written]));
-    const tlc = readInTlc(files, String(process.env.TLA2TOOLS));
+    const tlc = readInTlc(files, String(hostEnv().TLA2TOOLS));
     for (const c of cases) checkCase(c, tlc);
   },
 );

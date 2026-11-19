@@ -11,7 +11,9 @@ import type { Graph } from "../ir.ts";
 import { walk } from "../passes/reach.ts";
 import { project } from "../pipeline.ts";
 import { fuzz, type Html, type Mermaid, type Render } from "./labels.ts";
+import { hostEnv } from "./host-env.ts";
 
+const PATH_SEPARATOR = "/";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const charts = [
   ...fs.readdirSync(path.join(here, "charts")).map((f) => path.join(here, "charts", f)),
@@ -21,10 +23,7 @@ const guide = fs.readFileSync(path.join(here, "../../references/render.md"), "ut
 const css = guide.match(/```css\n([\s\S]*?)```/);
 assert.ok(css, "references/render.md has no css block");
 const theme = css[1];
-const cache = path.join(
-  process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"),
-  "statechart",
-);
+const cache = path.join(hostEnv().XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "statechart");
 const install = (name: string, ...packages: string[]) => {
   const dir = path.join(cache, name);
   execFileSync(
@@ -43,22 +42,23 @@ before(async () => {
   ({ render } = await import(pathToFileURL(pele.resolve("pele")).href));
 
   const parser = install("test-mermaid-11.16.0", "mermaid@11.16.0", "jsdom@26.1.0");
-  const { window } = new (parser("jsdom").JSDOM)("");
+  const { JSDOM } = parser("jsdom");
+  const { window } = new JSDOM("");
   Object.assign(globalThis, { window, document: window.document, DOMParser: window.DOMParser });
   mermaid = (await import(pathToFileURL(parser.resolve("mermaid")).href)).default;
-  html = (markup) => {
-    const t = window.document.createElement("template");
-    return Object.assign(t, { innerHTML: markup }).content.textContent ?? "";
-  };
+  html = (markup) => JSDOM.fragment(markup).textContent ?? "";
 });
 
-const classes = new Set<string>();
-for (const chart of charts) {
-  const name = path.relative(here, chart);
+const loaded = charts.map((chart) => {
   const text = fs.readFileSync(chart, "utf8");
-  const marks = [...text.matchAll(/^ {2}class (\w+) (\w+)$/gm)];
-  for (const [, , mark] of marks) classes.add(mark);
-
+  return {
+    name: path.relative(here, chart),
+    text,
+    marks: [...text.matchAll(/^ {2}class (\w+) (\w+)$/gm)],
+  };
+});
+const classes = new Set(loaded.flatMap(({ marks }) => marks.map(([, , mark]) => mark)));
+for (const { name, text, marks } of loaded) {
   test(`${name} renders in Pele 1.9.0 with each class on its node`, () => {
     const { svg } = render(text);
     assert.match(svg, /^<svg /);
@@ -74,8 +74,12 @@ for (const chart of charts) {
 test("random labels and colors keep their text and the chart's shape in Mermaid and Pele", async () => {
   const { drawn, refused, failure } = await fuzz({ seed: 1, charts: 500, render, mermaid, html });
   if (failure) assert.fail(failure);
-  assert.ok(drawn > 400 && refused > 20, `${drawn} charts drawn, ${refused} refused`);
+  assert.ok(drawn > MIN_DRAWN && refused > MIN_REFUSED, `${drawn} charts drawn, ${refused} refused`);
 });
+
+const MIN_DRAWN = 400;
+const MIN_REFUSED = 20;
+const CUBIC = 3;
 
 type Point = readonly [number, number];
 const SAMPLES = 64;
@@ -84,7 +88,7 @@ const bezier = (from: Point, n: readonly number[], t: number): Point => {
   const [ax, ay] = from;
   const u = 1 - t;
   const blend = (a: number, c1: number, c2: number, end: number) =>
-    u ** 3 * a + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t ** 3 * end;
+    u ** CUBIC * a + CUBIC * u * u * t * c1 + CUBIC * u * t * t * c2 + t ** CUBIC * end;
   return [blend(ax, n[0], n[2], n[4]), blend(ay, n[1], n[3], n[5])];
 };
 
@@ -153,7 +157,7 @@ const parentGraph = (): Graph => {
 
 test("an arrow into a parent from its only way in stays out of the parent's title bar in Pele 1.9.0", () => {
   const graph = parentGraph();
-  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split("/") }, []);
+  const { chart } = project(graph, walk(graph), { state: (v) => String(v.at).split(PATH_SEPARATOR) }, []);
   const { svg } = render(chartText(chart));
   const bars = titleBars(svg);
   assert.equal(bars.length, 1);

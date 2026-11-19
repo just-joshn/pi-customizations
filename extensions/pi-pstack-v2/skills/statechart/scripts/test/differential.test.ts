@@ -7,9 +7,11 @@ import type { Readable } from "node:stream";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import fc from "fast-check";
+import { TLC_DEADLOCK_STATUS, TLC_INVARIANT_STATUS, TLC_LIVENESS_STATUS } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 
 const PROTOTYPE_KEYS = ["constructor", "__proto__", "toString", "valueOf", "hasOwnProperty"];
 const NAMES = [
@@ -70,21 +72,27 @@ const DOMAIN: fc.Arbitrary<Domain> = fc.oneof(
   values(fc.array(INT, { maxLength: 2 }).map(tuple)),
 );
 
-const ATOM = fc.record({ v: fc.nat(2), i: fc.nat(3), not: fc.boolean() });
+const MAX_VAR_INDEX = 2;
+const MAX_VALUE_INDEX = 3;
+const MAX_PROPERTY_FORM = 3;
+const MAX_FAIRNESS_VAR = 5;
+const DEFAULT_RUNS = 20;
+
+const ATOM = fc.record({ v: fc.nat(MAX_VAR_INDEX), i: fc.nat(MAX_VALUE_INDEX), not: fc.boolean() });
 type Atom = { v: number; i: number; not: boolean };
 
 const MODEL = fc.record({
   module: fc.constantFrom("Model", "prototype"),
   names: fc.shuffledSubarray(NAMES, { minLength: NAMES.length }),
   vars: fc.array(
-    fc.record({ domain: DOMAIN, init: fc.array(fc.nat(3), { minLength: 1, maxLength: 2 }) }),
+    fc.record({ domain: DOMAIN, init: fc.array(fc.nat(MAX_VALUE_INDEX), { minLength: 1, maxLength: 2 }) }),
     { minLength: 1, maxLength: 3 },
   ),
   actions: fc.array(
     fc.record({
       guard: fc.array(ATOM, { maxLength: 2 }),
       set: fc.array(
-        fc.record({ v: fc.nat(2), to: fc.array(fc.nat(3), { minLength: 1, maxLength: 2 }) }),
+        fc.record({ v: fc.nat(MAX_VAR_INDEX), to: fc.array(fc.nat(MAX_VALUE_INDEX), { minLength: 1, maxLength: 2 }) }),
         { minLength: 1, maxLength: 2 },
       ),
     }),
@@ -94,14 +102,14 @@ const MODEL = fc.record({
   deadlock: fc.boolean(),
   initNext: fc.boolean(),
   constraint: fc.option(ATOM, { freq: 2 }),
-  actionConstraint: fc.option(fc.record({ v: fc.nat(2), from: fc.nat(3), to: fc.nat(3) }), {
+  actionConstraint: fc.option(fc.record({ v: fc.nat(MAX_VAR_INDEX), from: fc.nat(MAX_VALUE_INDEX), to: fc.nat(MAX_VALUE_INDEX) }), {
     freq: 2,
   }),
   property: fc.option(
     fc.record({
-      form: fc.nat(3),
+      form: fc.nat(MAX_PROPERTY_FORM),
       atoms: fc.tuple(ATOM, ATOM),
-      fairness: fc.option(fc.record({ strong: fc.boolean(), on: fc.option(fc.nat(5)) })),
+      fairness: fc.option(fc.record({ strong: fc.boolean(), on: fc.option(fc.nat(MAX_FAIRNESS_VAR)) })),
     }),
   ),
   view: fc.option(
@@ -305,7 +313,7 @@ async function run(command: string, args: string[], cwd: string): Promise<Run> {
   const child = spawn(command, args, {
     cwd,
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, LC_ALL: "C.UTF-8" },
+    env: { ...hostEnv(), LC_ALL: "C.UTF-8" },
   });
   const closed = new Promise<number | null>((resolve, reject) => {
     child.on("error", reject);
@@ -323,11 +331,11 @@ const plainTlc = (dir: string, c: Case, name: string, lines: string[]) => {
   fs.writeFileSync(path.join(dir, `${name}.cfg`), `${[...c.base, ...lines].join("\n")}\n`);
   fs.mkdirSync(path.join(dir, `tmp-${name}`));
   return run(
-    process.env.JAVA || "java",
+    hostEnv().JAVA || "java",
     [
       `-Djava.io.tmpdir=${path.join(dir, `tmp-${name}`)}`,
       "-cp",
-      String(process.env.TLA2TOOLS),
+      String(hostEnv().TLA2TOOLS),
       "tlc2.TLC",
       "-tool",
       "-workers",
@@ -354,34 +362,42 @@ const claimOf = (r: Run, breaks: number[], traced: boolean): Claim => {
 };
 
 async function plainAnswers(dir: string, c: Case) {
-  const rules = new Map<string, Promise<Claim>>();
-  for (const name of c.invariants)
-    rules.set(
-      name,
-      plainTlc(dir, c, `inv-${name}`, [`INVARIANT ${name}`, "CHECK_DEADLOCK FALSE"]).then((r) =>
-        claimOf(r, [12], true),
-      ),
-    );
-  if (c.deadlock)
-    rules.set(
-      "NoDeadlock",
-      plainTlc(dir, c, "deadlock", []).then((r) => claimOf(r, [11], true)),
-    );
-  if (c.property)
-    rules.set(
-      c.property,
-      plainTlc(dir, c, "property", [`PROPERTY ${c.property}`, "CHECK_DEADLOCK FALSE"]).then((r) =>
-        claimOf(r, [12, 13], false),
-      ),
-    );
+  const ask = (
+    name: string,
+    file: string,
+    lines: string[],
+    breaks: number[],
+    traced: boolean,
+  ): [string, Promise<Claim>] => [
+    name,
+    plainTlc(dir, c, file, lines).then((r) => claimOf(r, breaks, traced)),
+  ];
+  const noDeadlock = ["CHECK_DEADLOCK FALSE"];
+  const invariants = c.invariants.map((name) =>
+    ask(name, `inv-${name}`, [`INVARIANT ${name}`, ...noDeadlock], [TLC_INVARIANT_STATUS], true),
+  );
+  const deadlock = c.deadlock
+    ? [ask("NoDeadlock", "deadlock", [], [TLC_DEADLOCK_STATUS], true)]
+    : [];
+  const propertyBreaks = [TLC_INVARIANT_STATUS, TLC_LIVENESS_STATUS];
+  const property = c.property
+    ? [ask(c.property, "property", [`PROPERTY ${c.property}`, ...noDeadlock], propertyBreaks, false)]
+    : [];
+  const rules = [...invariants, ...deadlock, ...property];
   const states = plainTlc(dir, c, "states", ["CHECK_DEADLOCK FALSE"]).then((r) => {
     const found = /([\d,]+) distinct states found/.exec(r.stdout);
     if (r.status !== 0 || !found)
       throw new Error(`plain TLC exited ${r.status}:\n${r.stdout}${r.stderr}`);
     return Number(found[1].replaceAll(",", ""));
   });
-  const answers = new Map<string, Claim>();
-  for (const [name, claim] of rules) answers.set(name, await claim);
+  const settled = await rules.reduce(
+    async (chain, [name, claim]): Promise<[string, Claim][]> => [
+      ...(await chain),
+      [name, await claim],
+    ],
+    Promise.resolve<[string, Claim][]>([]),
+  );
+  const answers = new Map<string, Claim>(settled);
   const broke = [...answers.values()].some((a) => a.breaks);
   return { status: broke ? 1 : 0, states: await states, rules: answers };
 }
@@ -391,16 +407,17 @@ const claimFor = (rule: string, c: Case, steps: string | undefined): Claim =>
 
 function compilerAnswers(r: Run, c: Case) {
   const lines = r.stdout.split("\n");
-  const rules = new Map<string, Claim>();
-  for (const [i, line] of lines.entries()) {
+  const ruleEntries = (line: string, i: number): [string, Claim][] => {
     const broken = /^## (\S+) breaks$/.exec(line);
-    if (broken) {
-      const shortest = /^The shortest path has (\d+) steps?:$/.exec(lines[i + 1]);
-      rules.set(broken[1], claimFor(broken[1], c, shortest?.[1]));
-    }
-    if (line === "## Rules that hold")
-      for (const name of lines[i + 1].split(", ")) rules.set(name, { breaks: false });
-  }
+    const shortest = broken && /^The shortest path has (\d+) steps?:$/.exec(lines[i + 1]);
+    return [
+      ...(broken ? [[broken[1], claimFor(broken[1], c, shortest?.[1])] as [string, Claim]] : []),
+      ...(line === "## Rules that hold"
+        ? lines[i + 1].split(", ").map((name): [string, Claim] => [name, { breaks: false }])
+        : []),
+    ];
+  };
+  const rules = new Map<string, Claim>(lines.flatMap(ruleEntries));
   const states = /^TLC reached (\d+) states/m.exec(r.stdout);
   return { status: r.status, states: states ? Number(states[1]) : r.stderr, rules };
 }
@@ -433,8 +450,8 @@ async function answer(c: Case) {
   }
 }
 
-const differentialSeed = process.env.STATECHART_DIFFERENTIAL_SEED
-  ? Number(process.env.STATECHART_DIFFERENTIAL_SEED)
+const differentialSeed = hostEnv().STATECHART_DIFFERENTIAL_SEED
+  ? Number(hostEnv().STATECHART_DIFFERENTIAL_SEED)
   : undefined;
 
 test(
@@ -446,7 +463,7 @@ test(
         await answer(c);
       }),
       {
-        numRuns: Number(process.env.STATECHART_DIFFERENTIAL_RUNS ?? 20),
+        numRuns: Number(hostEnv().STATECHART_DIFFERENTIAL_RUNS ?? DEFAULT_RUNS),
         seed: differentialSeed,
         includeErrorInReport: true,
       },

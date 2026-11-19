@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { hostEnv } from "./host-env.ts";
 
 export const here = path.dirname(fileURLToPath(import.meta.url));
 export const corpus = path.join(here, "corpus");
@@ -51,7 +52,7 @@ export function run(
     {
       encoding: "utf8",
       env: {
-        ...process.env,
+        ...hostEnv(),
         JAVA: java,
         TLA2TOOLS: "tla2tools.jar",
         STATECHART_REPLAY: dir,
@@ -70,7 +71,7 @@ export function run(
   };
 }
 
-export function copyCase(name: string, edit: (dir: string) => void = () => {}) {
+export function copyCase(name: string, edit: (dir: string) => void = () => undefined) {
   const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "statechart-case-")), name);
   fs.cpSync(path.join(corpus, name), dir, { recursive: true });
   edit(dir);

@@ -5,6 +5,7 @@ import { lasso } from "../passes/annotate.ts";
 import { parseValue } from "../frontends/value.ts";
 import { readTrace } from "../frontends/trace.ts";
 import { graphOf, field, draw } from "./chart-support.ts";
+import { CONJUNCTION } from "./tla-text.ts";
 
 const keyGraph = () =>
   graphOf(
@@ -25,7 +26,7 @@ const keyGraph = () =>
 const keyState = (header: string, pos: string) => ({
   code: EC.TLC_STATE_PRINT2,
   level: LEVEL.STATE,
-  body: [header, `/\\ pos = "${pos}"`, "/\\ key = [at |-> 0, on |-> FALSE]", ""],
+  body: [header, `/\\ pos = "${pos}"`, `${CONJUNCTION} key = [at |-> 0, on |-> FALSE]`, ""],
 });
 const keyTrace = () =>
   readTrace([

@@ -5,15 +5,16 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PINNED_FLAGS } from "../run.ts";
+import { commandExit } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const jar = process.env.TLA2TOOLS;
+const jar = hostEnv().TLA2TOOLS;
 export const skip = !jar && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 
 const RULES = /^(INVARIANTS?|PROPERTY|PROPERTIES|CHECK_DEADLOCK)$/;
 
-const exitClass = (status: number | null) =>
-  status === 0 ? 0 : status === 11 || status === 12 || status === 13 ? 1 : 2;
+const exitClass = (status: number | null) => (status === null ? 2 : commandExit(status));
 
 const stepsIn = (text: string) =>
   Math.max((text.match(/^State \d+: (?!Stuttering$)/gm)?.length ?? 0) - 1, 0) +
@@ -46,7 +47,7 @@ function tlc(dir: string, module: string, cfg: string) {
   const tmp = path.join(dir, `${run}-tmp`);
   fs.mkdirSync(tmp);
   const r = spawnSync(
-    process.env.JAVA ?? "java",
+    hostEnv().JAVA ?? "java",
     [
       `-Djava.io.tmpdir=${tmp}`,
       "-cp",

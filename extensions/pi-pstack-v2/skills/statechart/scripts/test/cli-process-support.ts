@@ -6,6 +6,14 @@ import os from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { corpus, here, read } from "./cli-support.ts";
+import { hostEnv } from "./host-env.ts";
+import { attempt } from "./attempt.ts";
+
+export const signalExitBase = 128;
+export const pollMs = 20;
+const phaseTimeoutMs = 60_000;
+const pollAttempts = 250;
+const gridIdBase = 1_000_000;
 
 export function startCommand(
   dir: string,
@@ -28,7 +36,7 @@ export function startCommand(
     ],
     {
       env: {
-        ...process.env,
+        ...hostEnv(),
         JAVA: java,
         TLA2TOOLS: "tla2tools.jar",
         STATECHART_REPLAY: dir,
@@ -51,13 +59,13 @@ export async function signalWhile<T extends { dir: string; reached: (parent: str
   let stderr = "";
   child.stderr.on("data", (chunk: Buffer) => (stderr += chunk));
   const closed = once(child, "close");
-  const end = Date.now() + 60_000;
+  const end = Date.now() + phaseTimeoutMs;
   while (!phase.reached(parent))
     assert.ok(Date.now() < end, "The command did not reach the phase.");
   child.kill(signal);
   const [status] = await closed;
   assert.equal(stderr, `${signal} stopped the check, so the command wrote nothing.\n`);
-  assert.equal(status, 128 + os.constants.signals[signal]);
+  assert.equal(status, signalExitBase + os.constants.signals[signal]);
   assert.deepEqual(fs.readdirSync(parent), []);
   assert.deepEqual(fs.readdirSync(tmpdir), []);
   return phase;
@@ -65,27 +73,23 @@ export async function signalWhile<T extends { dir: string; reached: (parent: str
 
 export async function assertGone(pid: number) {
   for (let i = 0; ; i++) {
-    let code: string | undefined;
-    try {
-      process.kill(pid, 0);
-    } catch (error) {
-      code = (error as NodeJS.ErrnoException).code;
-      // macOS gives EPERM for a process group of only zombies, until they are reaped.
-      if (code !== "EPERM") {
-        assert.equal(code, "ESRCH");
-        return;
-      }
+    const { error } = await attempt(() => process.kill(pid, 0));
+    const code = (error as NodeJS.ErrnoException | undefined)?.code;
+    // macOS gives EPERM for a process group of only zombies, until they are reaped.
+    if (error && code !== "EPERM") {
+      assert.equal(code, "ESRCH");
+      return;
     }
     assert.ok(
-      i < 250,
+      i < pollAttempts,
       `Process ${pid} ${code ? "exited, but it was not reaped" : "is still running"}.`,
     );
-    await sleep(20);
+    await sleep(pollMs);
   }
 }
 
 export async function assertEmpty(dir: string) {
-  for (let i = 0; i < 250 && fs.readdirSync(dir).length; i++) await sleep(20);
+  for (let i = 0; i < pollAttempts && fs.readdirSync(dir).length; i++) await sleep(pollMs);
   assert.deepEqual(fs.readdirSync(dir), []);
 }
 
@@ -94,7 +98,7 @@ export function gridCase(n: number) {
   fs.cpSync(path.join(here, "grid"), dir, { recursive: true });
   for (const run of ["ChartRun.out", "verdict-1.out"])
     fs.copyFileSync(path.join(corpus, "Login", run), path.join(dir, run));
-  const id = (x: number, y: number) => String(1_000_000 + x * n + y);
+  const id = (x: number, y: number) => String(gridIdBase + x * n + y);
   const cell = (x: number, y: number) => [
     `${id(x, y)} [label="/\\\\ x = ${x}\\n/\\\\ y = ${y}"${x + y ? "" : ",style = filled"}]`,
     ...(x + 1 < n ? [`${id(x, y)} -> ${id(x + 1, y)} [label="IncX"];`] : []),
