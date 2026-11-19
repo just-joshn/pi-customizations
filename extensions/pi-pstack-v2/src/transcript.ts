@@ -3,8 +3,63 @@ import { join } from 'node:path';
 
 import { parseSessionEntries, type SessionEntry } from '@earendil-works/pi-coding-agent';
 
+type Report = { path: string; answers: string[]; toolCalls: number };
+type Assistant = Extract<SessionEntry, { type: 'message' }>;
+
+const isAssistant = (entry: SessionEntry): entry is Assistant => entry.type === 'message' && entry.message.role === 'assistant';
+
+/** The entries from the last one back to the root, oldest first. A cycle in parent ids ends the walk. */
+function branchOf(turns: SessionEntry[]): SessionEntry[] {
+  const byId = new Map(turns.map((entry) => [entry.id, entry]));
+  const walk = (entry: SessionEntry | undefined, seen: ReadonlySet<string>): SessionEntry[] => (entry && !seen.has(entry.id) ? [entry, ...walk(entry.parentId ? byId.get(entry.parentId) : undefined, new Set([...seen, entry.id]))] : []);
+  return walk(turns.at(-1), new Set()).toReversed();
+}
+
+/** What one assistant turn contributes to the answers, or nothing. */
+function answerOf(entry: Assistant, last: boolean): string[] {
+  const message = entry.message;
+  if (message.role !== 'assistant') return [];
+  const text = message.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n');
+  const ended = [`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n');
+  switch (message.stopReason) {
+    case 'stop':
+      return text.trim() ? [text] : [];
+    case 'error':
+    case 'aborted':
+      // A failed turn the worker went on from was retried, so only the one it ended on is its answer.
+      return last ? [ended] : [];
+    case 'length':
+      return [ended];
+    case 'toolUse':
+    case 'pending':
+    case 'deferred':
+      return [];
+    default: {
+      const unhandled: never = message.stopReason;
+      throw new Error(`Unhandled worker stop reason: ${unhandled}`);
+    }
+  }
+}
+
+function reportOf(path: string, entries: ReturnType<typeof parseSessionEntries>, since: string): Report {
+  const turns = entries.filter((entry): entry is SessionEntry => entry.type !== 'session');
+  const branch = branchOf(turns);
+  const prompt = branch.findLastIndex((entry) => entry.type === 'message' && entry.message.role === 'user');
+  if (prompt < 0 || !(Date.parse(branch[prompt]?.timestamp ?? '') >= Date.parse(since))) return { path, answers: [], toolCalls: 0 };
+  const after = branch.slice(prompt + 1);
+  const assistants = after.filter(isAssistant);
+  return {
+    path,
+    answers: assistants.flatMap((entry) => answerOf(entry, entry === assistants.at(-1))),
+    toolCalls: after.filter((entry) => entry.type === 'message' && entry.message.role === 'toolResult').length,
+  };
+}
+
 /** A worker's completed answers since its brief, and how many tool calls it made. */
-export function workerReport(sessionDir: string | undefined, since: string): { path: string; answers: string[]; toolCalls: number } | undefined {
+export function workerReport(sessionDir: string | undefined, since: string): Report | undefined {
   if (!sessionDir) return undefined;
   try {
     if (!lstatSync(sessionDir).isDirectory()) return undefined;
@@ -12,58 +67,13 @@ export function workerReport(sessionDir: string | undefined, since: string): { p
       .filter((name) => name.endsWith('.jsonl'))
       .map((name) => ({ path: join(sessionDir, name), stat: lstatSync(join(sessionDir, name)) }))
       .filter(({ stat }) => stat.isFile())
-      .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs);
+      .toSorted((a, b) => b.stat.mtimeMs - a.stat.mtimeMs);
     for (const { path } of files) {
       const entries = parseSessionEntries(readFileSync(path, 'utf8'));
-      if (entries[0]?.type !== 'session') continue;
-      const turns = entries.filter((entry): entry is SessionEntry => entry.type !== 'session');
-      const byId = new Map(turns.map((entry) => [entry.id, entry]));
-      const branch: SessionEntry[] = [];
-      const seen = new Set<string>();
-      for (let entry = turns.at(-1); entry && !seen.has(entry.id); entry = entry.parentId ? byId.get(entry.parentId) : undefined) {
-        seen.add(entry.id);
-        branch.push(entry);
-      }
-      branch.reverse();
-      const prompt = branch.findLastIndex((entry) => entry.type === 'message' && entry.message.role === 'user');
-      const answers: string[] = [];
-      let toolCalls = 0;
-      if (prompt >= 0 && Date.parse(branch[prompt]?.timestamp ?? '') >= Date.parse(since)) {
-        toolCalls = branch.slice(prompt + 1).filter((entry) => entry.type === 'message' && entry.message.role === 'toolResult').length;
-        const turns = branch.slice(prompt + 1).filter((entry) => entry.type === 'message' && entry.message.role === 'assistant');
-        for (const entry of turns) {
-          if (entry.type !== 'message' || entry.message.role !== 'assistant') continue;
-          const message = entry.message;
-          const text = message.content
-            .filter((block) => block.type === 'text')
-            .map((block) => block.text)
-            .join('\n');
-          switch (message.stopReason) {
-            case 'stop':
-              if (text.trim()) answers.push(text);
-              break;
-            case 'error':
-            case 'aborted':
-              // A failed turn the worker went on from was retried, so only the one it ended on is its answer.
-              if (entry !== turns.at(-1)) break;
-              answers.push([`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n'));
-              break;
-            case 'length':
-              answers.push([`[Worker answer ended with ${message.stopReason}]`, text, message.errorMessage].filter(Boolean).join('\n'));
-              break;
-            case 'toolUse':
-            case 'pending':
-            case 'deferred':
-              break;
-            default: {
-              const unhandled: never = message.stopReason;
-              throw new Error(`Unhandled worker stop reason: ${unhandled}`);
-            }
-          }
-        }
-      }
-      return { path, answers, toolCalls };
+      if (entries[0]?.type === 'session') return reportOf(path, entries, since);
     }
-  } catch {}
+  } catch {
+    return undefined;
+  }
   return undefined;
 }

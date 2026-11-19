@@ -19,52 +19,58 @@ const unescapeDot = (s: string) => {
   return out + s.slice(from);
 };
 
-export const parseState = (label: string, parsed = new Map<string, [string, Value]>()): Vars => {
-  const pairs: [string, Value][] = [];
-  for (const part of (label.startsWith("/\\ ") ? label.slice(3) : label).split("\n/\\ ")) {
-    let pair = parsed.get(part);
-    if (!pair) {
-      const [, name, value] = /^(\w+)\s*=\s*([\s\S]*)$/.exec(part) ?? [];
-      if (!name) throw new Error(`cannot read the TLC state line "${part}"`);
-      parsed.set(part, (pair = [name, parseValue(value)]));
-    }
-    pairs.push(pair);
-  }
-  return Object.fromEntries(pairs);
+const readPair = (part: string): [string, Value] => {
+  const [, name, value] = /^(\w+)\s*=\s*([\s\S]*)$/.exec(part) ?? [];
+  if (!name) throw new Error(`cannot read the TLC state line "${part}"`);
+  return [name, parseValue(value)];
 };
+
+const CONJUNCT = "/\\ ";
+
+export const parseState = (label: string): Vars =>
+  Object.fromEntries(
+    (label.startsWith(CONJUNCT) ? label.slice(CONJUNCT.length) : label)
+      .split(`\n${CONJUNCT}`)
+      .map(readPair),
+  );
+
+// A fresh string that shares no storage with the (possibly huge) line it was sliced from.
+const unshared = (s: string) => Array.from(s).join("");
 
 export type Lines = string | Iterable<string>;
 
 export const linesOf = (input: Lines) => (typeof input === "string" ? input.split("\n") : input);
 
-export function parseDot(input: Lines): Graph {
-  const states = new Map<string, State>();
-  const steps = new Map<string, Step>();
-  const parsed = new Map<string, [string, Value]>();
-  const owned = new Map<string, string>();
-  const own = (s: string) => {
-    let copy = owned.get(s);
-    if (copy === undefined) owned.set((copy = String(JSON.parse(JSON.stringify(s)))), copy);
-    return copy;
-  };
+type DotItem =
+  | { edge: [string, Step] }
+  | { node: [string, State] };
+
+const EDGE = /^(-?\d+) -> (-?\d+) \[label="([^"]*)"/;
+const NODE = /^(-?\d+) \[label="((?:[^"\\]|\\.)*)"(,style = filled)?/;
+
+const edgeItem = (edge: RegExpExecArray): DotItem => {
+  const [from, to, action] = edge.slice(1).map(unshared);
+  return { edge: [`${from} ${to} ${action}`, { from, to, action }] };
+};
+
+const nodeItem = (node: RegExpExecArray): DotItem => {
+  const vars = parseState(unescapeDot(unshared(node[2])));
+  return { node: [unshared(node[1]), { vars, start: !!node[3], breaks: [] }] };
+};
+
+function* dotItems(input: Lines): Generator<DotItem> {
   for (const line of linesOf(input)) {
-    const edge = /^(-?\d+) -> (-?\d+) \[label="([^"]*)"/.exec(line);
-    if (edge) {
-      steps.set(edge.slice(1).join(" "), {
-        from: own(edge[1]),
-        to: own(edge[2]),
-        action: own(edge[3]),
-      });
-      continue;
-    }
-    const node = /^(-?\d+) \[label="((?:[^"\\]|\\.)*)"(,style = filled)?/.exec(line);
-    if (node)
-      states.set(own(node[1]), {
-        vars: parseState(unescapeDot(node[2]), parsed),
-        start: !!node[3],
-        breaks: [],
-      });
+    const edge = EDGE.exec(line);
+    const node = edge ? null : NODE.exec(line);
+    if (edge) yield edgeItem(edge);
+    else if (node) yield nodeItem(node);
   }
+}
+
+export function parseDot(input: Lines): Graph {
+  const items = [...dotItems(input)];
+  const states = new Map<string, State>(items.flatMap((item) => ("node" in item ? [item.node] : [])));
+  const steps = new Map<string, Step>(items.flatMap((item) => ("edge" in item ? [item.edge] : [])));
   for (const loose of steps.values())
     if (!states.has(loose.from) || !states.has(loose.to))
       throw new Error(

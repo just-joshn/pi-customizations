@@ -1,0 +1,44 @@
+[
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "Commander reports --help, --version and usage errors only by throwing a CommanderError (its exitOverride callback cannot return). The catch turns it into the numeric exit code and rethrows anything else; logging would add stderr text the CLI tests and users do not see today."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "resolveContexts rejects with a WatcherQueryError when a gh or git query fails. The catch renders it as a STATUS verdict on stdout and returns that verdict's exit code, and rethrows anything else; a console.error would add new stderr output."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-json.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "JSON.parse and the zod parse throw, and the verdict reports their message as the WatcherQueryError detail. No non-throwing JSON.parse exists, and a console.error would add stderr output on every retryable parse failure that today is reported only through the verdict."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-json.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "JSON.stringify throws on a BigInt or circular value and has no non-throwing form. The catch returns String(value) so the error detail still names the value; logging would add new output."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github-pr.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "new URL throws a TypeError whose runtime-specific message, with the parsePrNumber failure, is embedded in the verdict detail, and URL.canParse cannot supply that message. The catch rethrows it as a WatcherQueryError; a console.error would add stderr output."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/github.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "parseJson and parseFastCheck throw a WatcherQueryError for unusable gh output. The catch returns the `unusable` result so the slow path runs and rethrows any other error; logging would add stderr output on a normal path."
+  },
+  {
+    "file": "skills/poteto-mode/scripts/watch-pr/poll.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "step() rejects with a WatcherQueryError for a failed query. The catch returns a `failed` attempt that the poll loop retries or reports via verdict, and rethrows anything else; logging would add stderr output on every retryable failure."
+  }
+]

@@ -2,8 +2,8 @@
 
 pstack for Pi. The package ships pstack's skills, playbooks, principles, agent roles, scripts, and guide, plus the cursor-team-kit skills that pstack depends on. It is for people who want `/skill:poteto-mode` and its workflow in Pi. Each Cursor mechanism is replaced with a Pi one.
 
-- Workers are separate Pi processes in tmux, started with `pi_spawn`. Pi has no subagents.
-- Every worker and long-running command runs in a sandbox, Seatbelt on macOS and bubblewrap on Linux and WSL2. There are no permission prompts.
+- Delegated Pi workers run through the packaged `subagent` tool, which starts each `pi` in its own tmux session.
+- Long-running commands run in a sandbox via `tmux_run`, Seatbelt on macOS and bubblewrap on Linux and WSL2. There are no permission prompts.
 - Plans are files, and checklists live in `TODO.md`.
 - Watchers, dev servers, and heartbeat ticks run through `tmux_run`, never as background shell jobs.
 
@@ -36,11 +36,11 @@ Type `/skill:poteto-help` with a question if you are unsure which skill fits.
 
 ## What it adds
 
-The package adds three tools for the model to call and one slash command. Every skill runs as `/skill:<name>`. `/pstack-mode <skill>` keeps a skill in the system prompt every turn, pstack's Custom Mode, until `/pstack-mode off`.
+The package adds the upstream `subagent` tool (tmux-backed), `tmux_run`, `tmux_jobs`, and one slash command. Every skill runs as `/skill:<name>`. `/pstack-mode <skill>` keeps a skill in the system prompt every turn, pstack's Custom Mode, until `/pstack-mode off`.
 
 | Tool | Does |
 | --- | --- |
-| `pi_spawn` | Starts a sandboxed `pi -p` worker in its own tmux session with a standalone brief. Takes an optional role from `agents/`, model, thinking level, git worktree, or readonly mode. Wakes your session with the worker's report when it exits. |
+| `subagent` | Upstream subagent extension: delegates to specialized agents as separate `pi` processes, each started in tmux. |
 | `tmux_run` | Runs a sandboxed shell command in tmux. Optionally wakes your session when it exits, or repeats it as a heartbeat. |
 | `tmux_jobs` | Lists, tails, waits on, or stops this session's jobs. |
 

@@ -8,7 +8,7 @@ Pi skips sub-agents, permission popups, plan mode, built-in to-dos, and backgrou
 
 | Pi rule | What pstack does |
 | --- | --- |
-| No sub-agents. Spawn Pi instances via tmux. | `pi_spawn` starts a separate `pi -p` process in its own tmux session with a standalone brief. It runs in parallel and wakes the spawning session with its report when it exits. |
+| Spawn Pi instances via tmux. | The packaged `subagent` tool starts each delegated `pi` in its own tmux session (upstream subagent example, with the process launch switched from `child_process.spawn` to tmux). |
 | No permission popups. Run in a sandbox. | Every `pi_spawn` and `tmux_run` job runs inside Seatbelt (`sandbox-exec`) on macOS or bubblewrap (`bwrap`) on Linux and WSL2. Writes are limited to the worker's own session directory, its worktree or working directory, the repository's git directory, and temp directories. Pi's own configuration stays read-only. No job runs unsandboxed. |
 | No plan mode. Write plans to files. | A plan is a Markdown file, such as `plans/<slug>.md`. The human reviews the file. |
 | No built-in to-dos. Use a TODO.md file. | Each checklist pstack used to keep in a todo tool lives in `TODO.md` at the root of the checkout you work in, as `- [ ]` and `- [x]` lines. It is working state, so never stage it. When the checkout already tracks a `TODO.md`, the checklist is `.pi/TODO.md`. |

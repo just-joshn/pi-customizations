@@ -1,97 +1,7 @@
-import { append, byText, type Chart, type ChartState, type Region, tupleKey } from "../ir.ts";
+import { byText, type Chart, type ChartState, type Region, tupleKey } from "../ir.ts";
+import { code, esc } from "./mermaid-escape.ts";
 
-const BLANK = /\p{White_Space}/u;
-const SAFE = /^[\p{L}\p{N} !'()+,\-./=?[\]"_|@{}:\\^%<>]$/u;
-const HAZARD =
-  /:(?=:|$|\S*#)|\\(?=n)|%(?=%)|<(?=[\p{L}/!?])|_(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])_/giu;
-const DIRECTION = /(direction)\s+(?=LR|RL|TB|BT)/gi;
-const DOUBLE_BRACKET = /\[(?=\[)/g;
-const C4 = /C4(?=Container|Component|Dynamic|Deployment)/g;
-const UNDRAWN = /[\0\x80-\x9f]/;
-const REWRITTEN = ["ﬂ°", "¶ß"];
-const MARKER = /(?<=marker-end=)"/g;
-const firstOf = new Map<number, number>();
-for (const pair of REWRITTEN) {
-  const [first, second] = [...pair].map((c) => c.codePointAt(0) ?? 0);
-  firstOf.set(second, first);
-}
-const KEPT = 0;
-const BLANKED = 1;
-const DROPPED = 2;
-const CODED = 3;
-const JOINS = 4;
-const kindOf = (n: number) => {
-  const c = String.fromCodePoint(n);
-  const kind =
-    c === " "
-      ? KEPT
-      : BLANK.test(c)
-        ? BLANKED
-        : UNDRAWN.test(c)
-          ? DROPPED
-          : SAFE.test(c)
-            ? KEPT
-            : CODED;
-  return firstOf.has(n) ? kind | JOINS : kind;
-};
-const ASCII = Uint8Array.from({ length: 128 }, (_, n) => kindOf(n));
-const wide = new Map<number, number>();
-const kindAt = (n: number) => {
-  if (n < 128) return ASCII[n];
-  let kind = wide.get(n);
-  if (kind === undefined) wide.set(n, (kind = kindOf(n)));
-  return kind;
-};
-const encode = (s: string, ref: (n: number) => string) => {
-  let out = "";
-  let run = 0;
-  let last = -1;
-  for (let i = 0; i < s.length;) {
-    let n = s.charCodeAt(i);
-    let width = 1;
-    if (n >= 0xd800 && n <= 0xdfff) {
-      const low = s.charCodeAt(i + 1);
-      if (n <= 0xdbff && low >= 0xdc00 && low <= 0xdfff) {
-        n = 0x10000 + ((n - 0xd800) << 10) + (low - 0xdc00);
-        width = 2;
-      } else n = 0xfffd;
-    }
-    let kind = kindAt(n);
-    if (kind === DROPPED) {
-      out += s.slice(run, i);
-      run = i + width;
-    } else {
-      const joined = kind >= JOINS && firstOf.get(n) === last;
-      kind &= ~JOINS;
-      if (joined || kind !== KEPT) {
-        out += s.slice(run, i);
-        if (joined) out += ref(0x2060);
-        if (kind === KEPT) run = i;
-        else {
-          out += kind === BLANKED ? " " : ref(n);
-          run = i + width;
-        }
-      }
-      last = n;
-    }
-    i += width;
-  }
-  return out + s.slice(run);
-};
-const code = (s: string, ref: (n: number) => string) =>
-  encode(s, ref)
-    .replace(MARKER, `${ref(0x2060)}"`)
-    .replace(HAZARD, (c) => ref(c.charCodeAt(0)));
-const esc = (s: string, quoted = false) => {
-  const plain = code(s, (n) => `#${n};`);
-  const out = quoted ? plain.replaceAll('"', "#34;") : plain;
-  if (!out.trim()) return "#32;";
-  const turned = out.replace(DIRECTION, "$1#32;");
-  const opened = turned.includes("[[") ? turned.replace(DOUBLE_BRACKET, "#91;") : turned;
-  return opened.includes("C4") ? opened.replace(C4, "C#52;") : opened;
-};
-
-const or = (names: Iterable<string>) => [...names].sort(byText).join(" or ");
+const or = (names: Iterable<string>) => [...names].toSorted(byText).join(" or ");
 
 type Edge = { from: string[]; start: boolean; to: string[]; label: string | undefined };
 
@@ -99,44 +9,50 @@ const within = (parent: string[], path: string[]) =>
   path.length >= parent.length && parent.every((p, i) => path[i] === p);
 const wayIn = (e: Edge) => tupleKey([e.start, e.from]);
 
+const foldInto = (edges: Edge[], parent: string[]): Edge[] => {
+  const into = edges.filter(
+    (e) => e.to.length > parent.length && within(parent, e.to) && !within(parent, e.from),
+  );
+  if (!into.length || into.some((e) => wayIn(e) !== wayIn(into[0]))) return edges;
+  const one = into.length === 1;
+  const at = edges.indexOf(into[0]);
+  const rest = edges.filter((e) => !into.includes(e));
+  return [
+    ...rest.slice(0, at),
+    { ...into[0], to: parent, label: one ? into[0].label : undefined },
+    ...into.map((e) => ({
+      from: parent,
+      start: true,
+      to: e.to,
+      label: one ? undefined : e.label,
+    })),
+    ...rest.slice(at),
+  ];
+};
+
+const parentPaths = (r: Region) => {
+  const parents = new Map(
+    r.states.flatMap((s) =>
+      Array.from({ length: Math.max(s.path.length - 1, 0) }, (_, k) => {
+        const prefix = s.path.slice(0, k + 1);
+        return [tupleKey(prefix), prefix] as const;
+      }),
+    ),
+  );
+  return [...parents.values()].toSorted((a, b) => a.length - b.length);
+};
+
 export function drawnEdges(r: Region): Edge[] {
-  let out: Edge[] = [];
-  for (const s of r.states)
-    if (s.start) out.push({ from: [], start: true, to: s.path, label: undefined });
-  for (const s of r.steps)
-    out.push({
-      from: s.from,
-      start: false,
-      to: s.to,
-      label: s.label + (s.when ? ` [${s.when}]` : ""),
-    });
-  const parents = new Map<string, string[]>();
-  for (const s of r.states)
-    for (let i = 1; i < s.path.length; i++) {
-      const prefix = s.path.slice(0, i);
-      parents.set(tupleKey(prefix), prefix);
-    }
-  for (const parent of [...parents.values()].sort((a, b) => a.length - b.length)) {
-    const into = out.filter(
-      (e) => e.to.length > parent.length && within(parent, e.to) && !within(parent, e.from),
-    );
-    if (!into.length || into.some((e) => wayIn(e) !== wayIn(into[0]))) continue;
-    const one = into.length === 1;
-    const at = out.indexOf(into[0]);
-    out = out.filter((e) => !into.includes(e));
-    out.splice(
-      at,
-      0,
-      { ...into[0], to: parent, label: one ? into[0].label : undefined },
-      ...into.map((e) => ({
-        from: parent,
-        start: true,
-        to: e.to,
-        label: one ? undefined : e.label,
-      })),
-    );
-  }
-  return out;
+  const starts: Edge[] = r.states
+    .filter((s) => s.start)
+    .map((s) => ({ from: [], start: true, to: s.path, label: undefined }));
+  const steps: Edge[] = r.steps.map((s) => ({
+    from: s.from,
+    start: false,
+    to: s.to,
+    label: s.label + (s.when ? ` [${s.when}]` : ""),
+  }));
+  return parentPaths(r).reduce(foldInto, [...starts, ...steps]);
 }
 
 const MARK_STYLES = {
@@ -144,106 +60,157 @@ const MARK_STYLES = {
   mayBreak: "fill:#fff3e6,stroke:#e8730c,stroke-width:2.5px,color:#b85a06",
 };
 
-export function mermaidLines(chart: Chart) {
-  let next = 0;
-  const marks: string[] = [];
-  const used = new Set<string>();
-  const rules = { breaks: new Set<string>(), mayBreak: new Set<string>() };
-  const region = (r: Region) => {
-    const out: string[] = [];
-    const topIds = new Map<string, string>();
-    const nestedIds = new Map<string, string>();
-    const id = (path: string[]) => {
-      const top = path.length === 1;
-      const named = top ? topIds : nestedIds;
-      const k = top ? path[0] : tupleKey(path);
-      let s = named.get(k);
-      if (s === undefined) named.set(k, (s = `s${next++}`));
-      return s;
-    };
-    const known = new Map<string[], string>();
-    const idOf = (path: string[]) => {
-      let s = known.get(path);
-      if (s === undefined) known.set(path, (s = id(path)));
-      return s;
-    };
-    const drawn = drawnEdges(r);
-    const line = (e: Edge, indent: string) =>
-      `${indent}${e.start ? "[*]" : idOf(e.from)} --> ${idOf(e.to)}${e.label === undefined ? "" : `: ${esc(e.label)}`}`;
-    const tree = (prefix: string[], indent: string, below: ChartState[]) => {
-      const heads = new Map<string, ChartState[]>();
-      for (const s of below) append(heads, s.path[prefix.length], s);
-      for (const [head, under] of heads) {
-        const path = [...prefix, head];
-        let leaf: ChartState | undefined;
-        const inner: ChartState[] = [];
-        for (const s of under)
-          if (s.path.length > path.length) inner.push(s);
-          else leaf = s;
-        if (inner.length) {
-          out.push(`${indent}state "${esc(head, true)}" as ${id(path)} {`);
-          tree(path, indent + "  ", inner);
-          const key = tupleKey(path);
-          for (const e of drawn)
-            if (e.start && tupleKey(e.from) === key) out.push(line(e, `${indent}  `));
-          out.push(`${indent}}`);
-        } else if (leaf) {
-          const sid = idOf(leaf.path);
-          out.push(`${indent}${sid}: ${esc(head)}`);
-          let mark: "breaks" | "mayBreak" | undefined =
-            leaf.breaks.length && !leaf.works ? "mayBreak" : undefined;
-          if (mark) for (const b of leaf.breaks) if (b.always) mark = "breaks";
-          if (mark) for (const b of leaf.breaks) rules[mark].add(b.rule.name);
-          const trail = [leaf.lead && "bugPath", leaf.repeats && "repeats"];
-          const color = leaf.group === undefined ? undefined : chart.colors[String(leaf.group)];
-          for (const cls of [color, mark, ...trail])
-            if (cls) {
-              used.add(cls);
-              marks.push(`  class ${sid} ${cls}`);
-            }
-        }
-      }
-    };
-    tree([], "  ", r.states);
-    for (const e of drawn) if (!e.start || !e.from.length) out.push(line(e, "  "));
-    return out;
+type MarkKind = keyof typeof MARK_STYLES;
+
+type Piece = {
+  lines: string[];
+  classes: { sid: string; cls: string }[];
+  broken: { kind: MarkKind; names: string[] }[];
+};
+
+const NO_PIECE: Piece = { lines: [], classes: [], broken: [] };
+
+const joinPieces = (pieces: Piece[]): Piece => ({
+  lines: pieces.flatMap((p) => p.lines),
+  classes: pieces.flatMap((p) => p.classes),
+  broken: pieces.flatMap((p) => p.broken),
+});
+
+const markOf = (leaf: ChartState): MarkKind | undefined => {
+  if (!leaf.breaks.length || leaf.works) return undefined;
+  return leaf.breaks.some((b) => b.always) ? "breaks" : "mayBreak";
+};
+
+/**
+ * A state's id is a placeholder naming its region and path. `resolveIds` turns the placeholders into
+ * s0, s1, ... in the order they first appear in the drawing, which is the order they were drawn in.
+ * esc and code drop NUL, so a placeholder never collides with chart text.
+ */
+const ID_MARK = /\0[^\0]*\0/g;
+const idIn = (region: number) => (path: string[]) => `\0${region},${tupleKey(path)}\0`;
+
+const resolveIds = (lines: string[]) => {
+  const marks = new Set(lines.flatMap((line) => line.match(ID_MARK) ?? []));
+  const ids = new Map([...marks].map((mark, n) => [mark, `s${n}`]));
+  return lines.map((line) => line.replace(ID_MARK, (mark) => ids.get(mark) ?? mark));
+};
+
+type Drawing = { chart: Chart; drawn: Edge[]; id: (path: string[]) => string };
+
+const edgeLine = ({ id }: Drawing, e: Edge, indent: string) => {
+  const from = e.start ? "[*]" : id(e.from);
+  const label = e.label === undefined ? "" : `: ${esc(e.label)}`;
+  return `${indent}${from} --> ${id(e.to)}${label}`;
+};
+
+const leafPiece = (d: Drawing, leaf: ChartState, head: string, indent: string): Piece => {
+  const sid = d.id(leaf.path);
+  const mark = markOf(leaf);
+  const color = leaf.group === undefined ? undefined : d.chart.colors[String(leaf.group)];
+  const classes = [color, mark, leaf.lead && "bugPath", leaf.repeats && "repeats"].filter(
+    (cls): cls is string => !!cls,
+  );
+  return {
+    lines: [`${indent}${sid}: ${esc(head)}`],
+    classes: classes.map((cls) => ({ sid, cls })),
+    broken: mark ? [{ kind: mark, names: leaf.breaks.map((b) => b.rule.name) }] : [],
   };
-  let body: string[];
-  if (chart.regions.length > 1) {
-    body = [`  state "At the same time" as all {`];
-    for (const [i, r] of chart.regions.entries()) {
-      if (i) body.push("    --");
-      body.push(`    state "${esc(r.name, true)}" as r${i} {`);
-      for (const line of region(r)) body.push(`    ${line}`);
-      body.push("    }");
-    }
-    body.push("  }");
-  } else body = region(chart.regions[0]);
-  const legend: string[][] = [];
-  for (const entry of [
+};
+
+const treePiece = (d: Drawing, prefix: string[], indent: string, below: ChartState[]): Piece =>
+  joinPieces(
+    [...Map.groupBy(below, (s) => s.path[prefix.length])].map(([head, under]) =>
+      headPiece(d, [...prefix, head], indent, under),
+    ),
+  );
+
+const headPiece = (d: Drawing, path: string[], indent: string, under: ChartState[]): Piece => {
+  const head = path[path.length - 1];
+  const inner = under.filter((s) => s.path.length > path.length);
+  if (!inner.length) {
+    const leaf = under.findLast((s) => s.path.length <= path.length);
+    return leaf ? leafPiece(d, leaf, head, indent) : NO_PIECE;
+  }
+  const open = `${indent}state "${esc(head, true)}" as ${d.id(path)} {`;
+  const children = treePiece(d, path, `${indent}  `, inner);
+  const key = tupleKey(path);
+  const starts = d.drawn
+    .filter((e) => e.start && tupleKey(e.from) === key)
+    .map((e) => edgeLine(d, e, `${indent}  `));
+  return { ...children, lines: [open, ...children.lines, ...starts, `${indent}}`] };
+};
+
+const regionPiece = (chart: Chart, r: Region, index: number): Piece => {
+  const d = { chart, drawn: drawnEdges(r), id: idIn(index) };
+  const tree = treePiece(d, [], "  ", r.states);
+  const arrows = d.drawn.filter((e) => !e.start || !e.from.length).map((e) => edgeLine(d, e, "  "));
+  return { ...tree, lines: [...tree.lines, ...arrows] };
+};
+
+const indented = (p: Piece, pad: string): Piece => ({ ...p, lines: p.lines.map((l) => pad + l) });
+
+const bodyPiece = (chart: Chart): Piece => {
+  if (chart.regions.length <= 1) return regionPiece(chart, chart.regions[0], 0);
+  const regions = chart.regions.map((r, i) => {
+    const inner = indented(regionPiece(chart, r, i), "    ");
+    return {
+      ...inner,
+      lines: [
+        ...(i ? ["    --"] : []),
+        `    state "${esc(r.name, true)}" as r${i} {`,
+        ...inner.lines,
+        "    }",
+      ],
+    };
+  });
+  const all = joinPieces(regions);
+  return { ...all, lines: [`  state "At the same time" as all {`, ...all.lines, "  }"] };
+};
+
+const legendEntries = (chart: Chart, rules: Record<MarkKind, Set<string>>, used: Set<string>) =>
+  [
     ...Object.entries(chart.colors),
     [`Breaks ${or(rules.breaks)}`, "breaks"],
     [`Breaks ${or(rules.mayBreak)} in some cases`, "mayBreak"],
     [`Path to the ${or(chart.paths)} bug`, "bugPath"],
     [`Repeats forever, so ${or(chart.loops)} breaks`, "repeats"],
-  ])
-    if (used.has(entry[1])) legend.push(entry);
-  const lines: string[] = [];
+  ].filter((entry) => used.has(entry[1]));
+
+const legendLines = (legend: string[][]) =>
+  legend.length
+    ? [
+        `  state "Legend" as legend {`,
+        ...legend.map(([text], i) => `    lg${i}: ${esc(text)}`),
+        "  }",
+        ...legend.map(([, cls], i) => `  class lg${i} ${cls}`),
+      ]
+    : [];
+
+const titleLines = (chart: Chart) => {
   const title = chart.title && code(chart.title, (n) => `ﬂ°°${n}¶ß`).replaceAll("<", "ﬂ°°60¶ß");
-  if (title) lines.push("---", `title: ${JSON.stringify(title)}`, "---");
-  lines.push("stateDiagram-v2");
-  if (chart.regions.length > 1) lines.push("  direction LR");
-  if (legend.length) {
-    lines.push(`  state "Legend" as legend {`);
-    for (const [i, [text]] of legend.entries()) lines.push(`    lg${i}: ${esc(text)}`);
-    lines.push("  }");
-    for (const [i, [, cls]] of legend.entries()) lines.push(`  class lg${i} ${cls}`);
-  }
-  for (const line of body) lines.push(line);
-  for (const [cls, style] of Object.entries(MARK_STYLES))
-    if (used.has(cls)) lines.push(`  classDef ${cls} ${style}`);
-  for (const line of marks) lines.push(line);
-  return lines;
+  return title ? ["---", `title: ${JSON.stringify(title)}`, "---"] : [];
+};
+
+const rulesOf = (broken: Piece["broken"]): Record<MarkKind, Set<string>> => ({
+  breaks: new Set(broken.filter((b) => b.kind === "breaks").flatMap((b) => b.names)),
+  mayBreak: new Set(broken.filter((b) => b.kind === "mayBreak").flatMap((b) => b.names)),
+});
+
+export function mermaidLines(chart: Chart) {
+  const body = bodyPiece(chart);
+  const used = new Set(body.classes.map((m) => m.cls));
+  const legend = legendEntries(chart, rulesOf(body.broken), used);
+  return resolveIds([
+    ...titleLines(chart),
+    "stateDiagram-v2",
+    ...(chart.regions.length > 1 ? ["  direction LR"] : []),
+    ...legendLines(legend),
+    ...body.lines,
+    ...Object.entries(MARK_STYLES)
+      .filter(([cls]) => used.has(cls))
+      .map(([cls, style]) => `  classDef ${cls} ${style}`),
+    ...body.classes.map(({ sid, cls }) => `  class ${sid} ${cls}`),
+  ]);
 }
 
 export const mermaid = (chart: Chart) => mermaidLines(chart).join("\n");

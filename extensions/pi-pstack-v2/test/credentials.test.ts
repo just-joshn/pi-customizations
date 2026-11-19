@@ -4,11 +4,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { z } from 'zod';
 import { commandProviders, makeJobAgentDir, syncTokens, withLocks } from '../src/credentials.ts';
 
 let real: string;
 let job: string;
-const read = (dir: string) => JSON.parse(readFileSync(join(dir, 'auth.json'), 'utf8')) as Record<string, Record<string, unknown>>;
+const authSchema = z.record(z.string(), z.record(z.string(), z.unknown()));
+const read = (dir: string) => authSchema.parse(JSON.parse(readFileSync(join(dir, 'auth.json'), 'utf8')));
+const settingsSchema = z.record(z.string(), z.unknown());
+const targetSchema = z.object({ oauth: z.object({ refresh: z.string() }) });
 const write = (dir: string, data: unknown) => writeFileSync(join(dir, 'auth.json'), JSON.stringify(data));
 
 beforeEach(() => {
@@ -33,8 +37,8 @@ describe('a job agent directory', () => {
     writeFileSync(join(real, 'keybindings.json'), '{}');
     makeJobAgentDir(real, job);
     expect(lstatSync(join(job, 'keybindings.json')).isSymbolicLink()).toBe(true);
-    expect(Object.keys(read(job)).sort()).toEqual(['literal', 'oauth']);
-    expect(commandProviders(real).sort()).toEqual(['command', 'other']);
+    expect(Object.keys(read(job)).toSorted()).toEqual(['literal', 'oauth']);
+    expect(commandProviders(real).toSorted()).toEqual(['command', 'other']);
   });
 
   test('copies the model catalog without sharing mutations or locks', () => {
@@ -59,7 +63,9 @@ describe('a job agent directory', () => {
     const script = `import { FileModelsStore } from ${JSON.stringify(storeModule)}; console.log(JSON.stringify(await new FileModelsStore(${JSON.stringify(join(job, 'models-store.json'))}).read('spacex-cursor', { signal: AbortSignal.timeout(1000) })));`;
     expect(execFileSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 3000 }).trim()).toBe(JSON.stringify(entry));
   });
+});
 
+describe('a job agent directory, resolved settings and commands', () => {
   test('does not create a model catalog when the parent has none', () => {
     makeJobAgentDir(real, job);
     expect(existsSync(join(job, 'models-store.json'))).toBe(false);
@@ -73,7 +79,7 @@ describe('a job agent directory', () => {
   test('keeps local packages in settings resolving to the same place', () => {
     writeFileSync(join(real, 'settings.json'), JSON.stringify({ packages: ['../pkg-a', 'npm:@x/y', { source: './pkg-b', skills: [] }], extensions: ['ext/one.ts'], theme: 'dark' }));
     makeJobAgentDir(real, job);
-    const settings = JSON.parse(readFileSync(join(job, 'settings.json'), 'utf8'));
+    const settings = settingsSchema.parse(JSON.parse(readFileSync(join(job, 'settings.json'), 'utf8')));
     expect(lstatSync(join(job, 'settings.json')).isSymbolicLink()).toBe(false);
     expect(settings).toEqual({ packages: [join(real, '../pkg-a'), 'npm:@x/y', { source: join(real, 'pkg-b'), skills: [] }], extensions: [join(real, 'ext/one.ts')], theme: 'dark' });
   });
@@ -116,6 +122,10 @@ describe('token sync', () => {
     expect(syncTokens(real, job)).toBe(false);
     expect(read(real)['oauth']?.['refresh']).toBe('r1');
   });
+});
+
+describe('token sync, rejected and locked cases', () => {
+  beforeEach(() => makeJobAgentDir(real, job));
 
   test.for([
     ['a non-string access', '{"type":"oauth","access":1,"refresh":"r","expires":900}'],
@@ -138,7 +148,7 @@ describe('token sync', () => {
     expect(syncTokens(real, job)).toBe(false);
     rmSync(`${target}.lock`, { recursive: true });
     expect(syncTokens(real, job)).toBe(true);
-    expect([lstatSync(join(real, 'auth.json')).isSymbolicLink(), JSON.parse(readFileSync(target, 'utf8')).oauth.refresh]).toEqual([true, 'r6']);
+    expect([lstatSync(join(real, 'auth.json')).isSymbolicLink(), targetSchema.parse(JSON.parse(readFileSync(target, 'utf8'))).oauth.refresh]).toEqual([true, 'r6']);
     rmSync(join(target, '..'), { recursive: true, force: true });
   });
 

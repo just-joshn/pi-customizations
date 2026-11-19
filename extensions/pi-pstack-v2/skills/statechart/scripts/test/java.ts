@@ -2,10 +2,12 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import { plainText } from "../backends/plain-text.ts";
 import { readMessages } from "../frontends/messages.ts";
+import { hostEnv } from "./host-env.ts";
 
-const args = process.argv.slice(2);
+const [, , ...args] = z.array(z.string()).parse(process.argv);
 const config = args.includes("-config") ? args[args.indexOf("-config") + 1] : undefined;
 const name = config ? path.basename(config, ".cfg") : "sany";
 const dump = args.includes("-dump") ? `${args[args.indexOf("-dump") + 2]}.dot` : undefined;
@@ -14,13 +16,16 @@ const {
   STATECHART_REPLAY: replay,
   STATECHART_LOG: log,
   STATECHART_PLAIN: plain,
-} = process.env;
+} = hostEnv();
 if (log && config) fs.appendFileSync(log, `## ${name}\n${fs.readFileSync(config, "utf8")}\n`);
 
 const TAG = /"chart-[0-9a-f]{32}"/g;
 
+const metadirSuffix = (a: string, i: number, all: string[]) =>
+  all[i - 1] === "-metadir" || all[i - 2] === "-dump" ? `${a}-plain` : a;
+
 const java = (folder: string, args: string[]) => {
-  const r = spawnSync(process.env.STATECHART_JAVA ?? "java", args, {
+  const r = spawnSync(hostEnv().STATECHART_JAVA ?? "java", args, {
     encoding: "utf8",
     maxBuffer: 1 << 30,
   });
@@ -40,9 +45,7 @@ if (record) {
       plain,
       tool
         .filter((a) => a !== "-tool")
-        .map((a, i, all) =>
-          all[i - 1] === "-metadir" || all[i - 2] === "-dump" ? `${a}-plain` : a,
-        ),
+        .map(metadirSuffix),
     );
   const shown = (text: string) =>
     wantsPlainText ? [...plainText(readMessages(text))].join("") : text;

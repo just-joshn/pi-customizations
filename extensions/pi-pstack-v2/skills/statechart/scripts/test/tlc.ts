@@ -5,29 +5,39 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PINNED_FLAGS } from "../run.ts";
+import { commandExit } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const jar = process.env.TLA2TOOLS;
+const jar = hostEnv().TLA2TOOLS;
 export const skip = !jar && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 
 const RULES = /^(INVARIANTS?|PROPERTY|PROPERTIES|CHECK_DEADLOCK)$/;
 
-const exitClass = (status: number | null) =>
-  status === 0 ? 0 : status === 11 || status === 12 || status === 13 ? 1 : 2;
+const exitClass = (status: number | null) => (status === null ? 2 : commandExit(status));
 
 const stepsIn = (text: string) =>
   Math.max((text.match(/^State \d+: (?!Stuttering$)/gm)?.length ?? 0) - 1, 0) +
   (text.match(/^Back to state \d+: </gm)?.length ?? 0);
 
+const withSections = (cfg: string) =>
+  cfg.split("\n").reduce<{ line: string; section: string }[]>(
+    (acc, line) => [
+      ...acc,
+      { line, section: line.match(/^[A-Z_]+/)?.[0] ?? acc.at(-1)?.section ?? "" },
+    ],
+    [],
+  );
+
 function properties(cfg: string) {
-  const names: string[] = [];
-  let section = "";
-  for (const line of cfg.split("\n")) {
-    section = line.match(/^[A-Z_]+/)?.[0] ?? section;
-    if (/^PROPERT(Y|IES)$/.test(section))
-      for (const word of line.trim().split(/\s+/)) if (word && word !== section) names.push(word);
-  }
-  return names;
+  return withSections(cfg)
+    .filter(({ section }) => /^PROPERT(Y|IES)$/.test(section))
+    .flatMap(({ line, section }) =>
+      line
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word && word !== section),
+    );
 }
 
 function tlc(dir: string, module: string, cfg: string) {
@@ -37,7 +47,7 @@ function tlc(dir: string, module: string, cfg: string) {
   const tmp = path.join(dir, `${run}-tmp`);
   fs.mkdirSync(tmp);
   const r = spawnSync(
-    process.env.JAVA ?? "java",
+    hostEnv().JAVA ?? "java",
     [
       `-Djava.io.tmpdir=${tmp}`,
       "-cp",
@@ -64,18 +74,12 @@ function tlc(dir: string, module: string, cfg: string) {
 }
 
 function alone(cfg: string, rule: string) {
-  const lines: string[] = [];
-  let section = "";
-  for (const line of cfg.split("\n")) {
-    section = line.match(/^[A-Z_]+/)?.[0] ?? section;
-    if (!RULES.test(section)) lines.push(line);
-  }
-  if (rule !== "NoDeadlock")
-    lines.push(
-      `${properties(cfg).includes(rule) ? "PROPERTY" : "INVARIANT"} ${rule}`,
-      "CHECK_DEADLOCK FALSE",
-    );
-  return `${lines.join("\n")}\n`;
+  const kept = withSections(cfg)
+    .filter(({ section }) => !RULES.test(section))
+    .map(({ line }) => line);
+  const kind = properties(cfg).includes(rule) ? "PROPERTY" : "INVARIANT";
+  const added = rule === "NoDeadlock" ? [] : [`${kind} ${rule}`, "CHECK_DEADLOCK FALSE"];
+  return `${[...kept, ...added].join("\n")}\n`;
 }
 
 export type Verdict = {
@@ -86,6 +90,61 @@ export type Verdict = {
   chart: string;
   report: string;
 };
+
+type Plain = ReturnType<typeof tlc>;
+
+function assertCli(cli: { status: number | null; stderr: string }, plain: Plain, report: string) {
+  const shown = `${cli.stderr}${report}`;
+  assert.equal(
+    cli.status,
+    exitClass(plain.status),
+    `TLC says:\n${plain.out}\nThe command says:\n${shown}`,
+  );
+  assert.doesNotMatch(shown, /Chart\w*Mark/);
+  if (cli.status !== 2) assert.equal(cli.stderr, "");
+  if (!report) assert.match(cli.stderr, /TLC could not check/);
+  if (cli.status === 2) {
+    const error = plain.out.match(/^Error: .*$/m)?.[0];
+    assert.ok(
+      error && shown.includes(error),
+      `TLC says:\n${plain.out}\nThe command says:\n${shown}`,
+    );
+  }
+}
+
+function readBreak(out: string, [, rule, body]: RegExpMatchArray) {
+  const said = body.match(/has (\d+) steps?:/)?.[1];
+  const file = body.match(/ is in (tlc-\S+\.out)\./)?.[1];
+  if (!file) return { rule, steps: Number(said), bounded: false };
+  const text = fs.readFileSync(path.join(out, file), "utf8");
+  if (said) assert.equal(Number(said), stepsIn(text), rule);
+  const bounded = /^Semantic processing of module ChartBound$/m.test(text);
+  return { rule, steps: stepsIn(text), bounded };
+}
+
+const listOf = (report: string, title: string) =>
+  report
+    .match(new RegExp(`^## ${title}\\n(.*)$`, "m"))?.[1]
+    .split(", ")
+    .toSorted() ?? [];
+
+function recheck(
+  dir: string,
+  module: string,
+  cfg: string,
+  holds: string[],
+  found: { rule: string; steps: number; bounded: boolean }[],
+) {
+  for (const rule of holds) {
+    const r = tlc(dir, module, alone(cfg, rule));
+    assert.equal(r.status, 0, `${rule} holds in the report, but TLC says:\n${r.out}`);
+  }
+  for (const { rule, steps, bounded } of found) {
+    const r = tlc(dir, module, alone(cfg, rule));
+    assert.equal(r.broke, rule, `${rule} breaks in the report, but TLC says:\n${r.out}`);
+    if (!bounded) assert.equal(steps, r.steps, rule);
+  }
+}
 
 export function agrees(module: string, files: { [name: string]: string[] }, cfg: string): Verdict {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-plain-"));
@@ -102,55 +161,16 @@ export function agrees(module: string, files: { [name: string]: string[] }, cfg:
     const plain = tlc(dir, module, cfg);
     const report = fs.existsSync(out) ? fs.readFileSync(path.join(out, "report.md"), "utf8") : "";
     const shown = `${cli.stderr}${report}`;
-    assert.equal(
-      cli.status,
-      exitClass(plain.status),
-      `TLC says:\n${plain.out}\nThe command says:\n${shown}`,
-    );
-    assert.doesNotMatch(shown, /Chart\w*Mark/);
-    if (cli.status !== 2) assert.equal(cli.stderr, "");
-    if (!report) assert.match(cli.stderr, /TLC could not check/);
-    if (cli.status === 2) {
-      const error = plain.out.match(/^Error: .*$/m)?.[0];
-      assert.ok(
-        error && shown.includes(error),
-        `TLC says:\n${plain.out}\nThe command says:\n${shown}`,
-      );
-    }
+    assertCli(cli, plain, report);
 
-    const breaks = new Map<string, number>();
-    const bounded = new Set<string>();
-    for (const [, rule, body] of report.matchAll(/^## (\S+) breaks\n(.*)$/gm)) {
-      const said = body.match(/has (\d+) steps?:/)?.[1];
-      const file = body.match(/ is in (tlc-\S+\.out)\./)?.[1];
-      if (!file) {
-        breaks.set(rule, Number(said));
-        continue;
-      }
-      const text = fs.readFileSync(path.join(out, file), "utf8");
-      if (said) assert.equal(Number(said), stepsIn(text), rule);
-      if (/^Semantic processing of module ChartBound$/m.test(text)) bounded.add(rule);
-      breaks.set(rule, stepsIn(text));
-    }
-    const list = (title: string) =>
-      report
-        .match(new RegExp(`^## ${title}\\n(.*)$`, "m"))?.[1]
-        .split(", ")
-        .sort() ?? [];
-    const holds = list("Rules that hold");
-    const unchecked = list("Rules not checked");
+    const found = [...report.matchAll(/^## (\S+) breaks\n(.*)$/gm)].map((m) => readBreak(out, m));
+    const breaks = new Map(found.map(({ rule, steps }) => [rule, steps]));
+    const holds = listOf(report, "Rules that hold");
+    const unchecked = listOf(report, "Rules not checked");
     const chartFile = path.join(out, "chart.mmd");
     const chart = fs.existsSync(chartFile) ? fs.readFileSync(chartFile, "utf8") : "";
     if (plain.broke) assert.equal(breaks.get(plain.broke), plain.steps, shown);
-    for (const rule of holds) {
-      const r = tlc(dir, module, alone(cfg, rule));
-      assert.equal(r.status, 0, `${rule} holds in the report, but TLC says:\n${r.out}`);
-    }
-    for (const [rule, steps] of breaks) {
-      const r = tlc(dir, module, alone(cfg, rule));
-      assert.equal(r.broke, rule, `${rule} breaks in the report, but TLC says:\n${r.out}`);
-      if (!bounded.has(rule)) assert.equal(steps, r.steps, rule);
-    }
+    recheck(dir, module, cfg, holds, found);
     return { status: cli.status, breaks, holds, unchecked, chart, report };
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { z } from "zod";
 import {
   ChecksUnavailable,
   WatcherQueryError,
@@ -24,10 +25,27 @@ import {
 } from "./fakes.test-helper.ts";
 import { parsePrNumber } from "./types.ts";
 
+const GITHUB_MODULE_PATH = `${import.meta.dir}/github.ts`;
+const BASE_PR_NUMBER = 41;
+const STACK_PR_NUMBER = 42;
+const UPSTACK_PR_NUMBER = 43;
+const BUGBOT_REVIEW_PASSES = 3;
+const SUBPROCESS_TIMEOUT_MS = 2000;
+const EXECUTABLE_MODE = 0o755;
+const numberedRows = z.array(z.object({ number: z.number() }));
+const forkedRows = z.array(
+  z.object({
+    number: z.number(),
+    headRefName: z.string(),
+    baseRefName: z.string(),
+    isCrossRepository: z.boolean(),
+  })
+);
+
 const context = {
   owner: "owner",
   repo: "repo",
-  number: parsePrNumber(42),
+  number: parsePrNumber(STACK_PR_NUMBER),
 };
 
 describe("checks fallback chain", () => {
@@ -96,18 +114,15 @@ describe("rollup node mapping", () => {
       ["COMPLETED", "TIMED_OUT", "failed", "FAILURE"],
       ["COMPLETED", "FUTURE_VALUE", "failed", "FAILURE"],
     ] as const;
-    for (const [status, conclusion, kind, reportedState] of cases) {
-      expect(
-        mapRollupNode({
-          __typename: "CheckRun",
-          name: "ci",
-          status,
-          conclusion,
-        })
-      ).toMatchObject({ kind, reportedState });
-    }
+    cases.forEach(([status, conclusion, kind, reportedState]) => {
+      const node = { __typename: "CheckRun", name: "ci", status, conclusion };
+      expect(mapRollupNode(node)).toMatchObject({ kind, reportedState });
+    });
   });
 
+});
+
+describe("rollup node mapping", () => {
   it("classifies an in-progress Code Review Gate from the rollup as the gate", () => {
     expect(
       mapRollupNode({
@@ -141,6 +156,9 @@ describe("rollup node mapping", () => {
     });
   });
 
+});
+
+describe("rollup node mapping", () => {
   it("classifies a fast-path Code Review Gate waiting on an owner approval as the gate", () => {
     expect(
       parseFastCheck({
@@ -176,19 +194,19 @@ describe("rollup node mapping", () => {
   });
 });
 
-describe("closed enum parsing", () => {
-  const rawPullRequest = {
-    mergeable: "MERGEABLE",
-    mergeStateStatus: "CLEAN",
-    reviewDecision: "APPROVED",
-    headRefOid: "head",
-    headRefName: "feature",
-    baseRefName: "main",
-    state: "OPEN",
-    mergedAt: null,
-    isDraft: false,
-  };
+const rawPullRequest = {
+  mergeable: "MERGEABLE",
+  mergeStateStatus: "CLEAN",
+  reviewDecision: "APPROVED",
+  headRefOid: "head",
+  headRefName: "feature",
+  baseRefName: "main",
+  state: "OPEN",
+  mergedAt: null,
+  isDraft: false,
+};
 
+describe("closed enum parsing", () => {
   it("accepts mergeStateStatus CONFLICTING", () => {
     expect(
       parsePullRequest(
@@ -205,6 +223,9 @@ describe("closed enum parsing", () => {
     ).toBeNull();
   });
 
+});
+
+describe("closed enum parsing", () => {
   it("still rejects an unknown reviewDecision", () => {
     expect(() =>
       parsePullRequest({ ...rawPullRequest, reviewDecision: "MAYBE" }, context)
@@ -220,7 +241,10 @@ describe("closed enum parsing", () => {
       throw new Error("expected parser to throw");
     } catch (error) {
       expect(error).toBeInstanceOf(WatcherQueryError);
-      if (!(error instanceof WatcherQueryError)) throw error;
+      if (!(error instanceof WatcherQueryError)) {
+        console.error(error);
+        throw error;
+      }
       expect(error.failure).toMatchObject({
         kind: "missing-key",
         retryable: true,
@@ -230,69 +254,45 @@ describe("closed enum parsing", () => {
   });
 });
 
+const botComment = (
+  body: string,
+  login: string,
+  location: { path: string | null; line: number | null }
+) => ({ body, createdAt: "now", ...location, author: { login } });
+const threadNode = (
+  id: string,
+  isResolved: boolean,
+  comment: ReturnType<typeof botComment>
+) => ({ id, isResolved, comments: { nodes: [comment] } });
+const NO_LOCATION = { path: null, line: null };
+const bugbotThreadNodes = [
+  threadNode(
+    "one",
+    false,
+    botComment("RUN_ID: run-1", "bugbot", { path: "a.ts", line: 1 })
+  ),
+  threadNode(
+    "two",
+    false,
+    botComment("CURSOR_AUTOMATION_ID: run-2 severity high", "cursor", NO_LOCATION)
+  ),
+  threadNode(
+    "resolved",
+    true,
+    botComment("RUN_ID: run-3", "bugbot", NO_LOCATION)
+  ),
+];
+
 it("annotates Bugbot threads with distinct review-pass counts", () => {
+  const pageInfo = { hasNextPage: false, endCursor: null };
+  const reviewThreads = { pageInfo, nodes: bugbotThreadNodes };
   const response = {
-    data: {
-      repository: {
-        pullRequest: {
-          reviewThreads: {
-            pageInfo: { hasNextPage: false, endCursor: null },
-            nodes: [
-              {
-                id: "one",
-                isResolved: false,
-                comments: {
-                  nodes: [
-                    {
-                      body: "RUN_ID: run-1",
-                      createdAt: "now",
-                      path: "a.ts",
-                      line: 1,
-                      author: { login: "bugbot" },
-                    },
-                  ],
-                },
-              },
-              {
-                id: "two",
-                isResolved: false,
-                comments: {
-                  nodes: [
-                    {
-                      body: "CURSOR_AUTOMATION_ID: run-2 severity high",
-                      createdAt: "now",
-                      path: null,
-                      line: null,
-                      author: { login: "cursor" },
-                    },
-                  ],
-                },
-              },
-              {
-                id: "resolved",
-                isResolved: true,
-                comments: {
-                  nodes: [
-                    {
-                      body: "RUN_ID: run-3",
-                      createdAt: "now",
-                      path: null,
-                      line: null,
-                      author: { login: "bugbot" },
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        },
-      },
-    },
+    data: { repository: { pullRequest: { reviewThreads } } },
   };
   const threads = buildReviewThreads(parseReviewThreadPage(response).threads);
   expect(threads).toHaveLength(2);
   expect(threads.map((thread) => thread.isBugbot)).toEqual([true, true]);
-  expect(threads.map((thread) => thread.bugbotReviewPasses)).toEqual([3, 3]);
+  expect(threads.map((thread) => thread.bugbotReviewPasses)).toEqual([BUGBOT_REVIEW_PASSES, BUGBOT_REVIEW_PASSES]);
 });
 
 describe("review thread pagination", () => {
@@ -344,6 +344,21 @@ describe("review thread pagination", () => {
     expect(reader.calls).toEqual(["reviewThreadPage:null"]);
   });
 
+});
+
+describe("review thread pagination", () => {
+  const thread = (id: string, resolved = false) => ({
+    id,
+    firstComment: {
+      authorLogin: "someone",
+      body: "please fix",
+      path: "a.ts",
+      line: 1,
+      createdAt: "now",
+    },
+    resolved,
+  });
+
   it("counts Bugbot review passes across every page", async () => {
     const bugbot = (id: string, runId: string) => ({
       id,
@@ -379,13 +394,8 @@ describe("review thread pagination", () => {
   });
 
   it("rejects a page that omits pageInfo instead of assuming one page", async () => {
-    const response = {
-      data: {
-        repository: {
-          pullRequest: { reviewThreads: { nodes: [] } },
-        },
-      },
-    };
+    const pullRequest = { reviewThreads: { nodes: [] } };
+    const response = { data: { repository: { pullRequest } } };
     expect(() => parseReviewThreadPage(response)).toThrow(WatcherQueryError);
   });
 });
@@ -417,10 +427,13 @@ describe("context and stack discovery", () => {
     expect(reader.calls).toEqual(["originRepo"]);
   });
 
+});
+
+describe("context and stack discovery", () => {
   it("orders the connected stack bottom-to-top", () => {
     const ordered = orderStack(context, [
       {
-        number: parsePrNumber(41),
+        number: parsePrNumber(BASE_PR_NUMBER),
         headRefName: "base-feature",
         isCrossRepository: false,
         baseRefName: "main",
@@ -432,41 +445,48 @@ describe("context and stack discovery", () => {
         baseRefName: "base-feature",
       },
       {
-        number: parsePrNumber(43),
+        number: parsePrNumber(UPSTACK_PR_NUMBER),
         headRefName: "upstack",
         isCrossRepository: false,
         baseRefName: "feature",
       },
     ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([41, 42, 43]);
+    expect(ordered.map((item) => Number(item.number))).toEqual([
+      BASE_PR_NUMBER,
+      STACK_PR_NUMBER,
+      UPSTACK_PR_NUMBER,
+    ]);
   });
   it("does not use a fork's same-named head as a stack parent", () => {
     const ordered = orderStack(context, [
-      { number: parsePrNumber(41), headRefName: "base-feature", baseRefName: "main", isCrossRepository: true },
+      { number: parsePrNumber(BASE_PR_NUMBER), headRefName: "base-feature", baseRefName: "main", isCrossRepository: true },
       { number: context.number, headRefName: "feature", baseRefName: "base-feature", isCrossRepository: false },
     ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([42]);
+    expect(ordered.map((item) => Number(item.number))).toEqual([STACK_PR_NUMBER]);
   });
 
   it("does not attach upstream branch children to a fork head", () => {
     const ordered = orderStack(context, [
       { number: context.number, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
-      { number: parsePrNumber(43), headRefName: "upstack", baseRefName: "feature", isCrossRepository: false },
+      { number: parsePrNumber(UPSTACK_PR_NUMBER), headRefName: "upstack", baseRefName: "feature", isCrossRepository: false },
     ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([42]);
+    expect(ordered.map((item) => Number(item.number))).toEqual([STACK_PR_NUMBER]);
   });
 
+});
+
+describe("context and stack discovery", () => {
   it("terminates when an unrelated fork opens main against main", () => {
     // Bound the subprocess so this regression reports a failure instead of hanging the suite.
-    const program = `import { orderStack } from ${JSON.stringify(import.meta.dir + "/github.ts")};
+    const program = `import { orderStack } from ${JSON.stringify(GITHUB_MODULE_PATH)};
       console.log(JSON.stringify(orderStack(${JSON.stringify(context)}, [
         { number: 41, headRefName: "main", baseRefName: "main", isCrossRepository: true },
         { number: 42, headRefName: "feature", baseRefName: "main", isCrossRepository: false }
       ])));`;
-    const child = spawnSync(process.execPath, ["-e", program], { encoding: "utf8", timeout: 2000 });
+    const child = spawnSync(process.execPath, ["-e", program], { encoding: "utf8", timeout: SUBPROCESS_TIMEOUT_MS });
     expect(child.error).toBeUndefined();
     expect(child.status).toBe(0);
-    expect(JSON.parse(child.stdout).map((item: { number: number }) => item.number)).toEqual([42]);
+    expect(numberedRows.parse(JSON.parse(child.stdout)).map((item) => item.number)).toEqual([STACK_PR_NUMBER]);
   });
 
   it("requests and parses fork identity from gh before stack discovery", () => {
@@ -478,17 +498,18 @@ case "$*" in
   *) exit 2 ;;
 esac
 printf '%s\\n' '[{"number":42,"headRefName":"feature","baseRefName":"main","isCrossRepository":true}]'
-`, { mode: 0o755 });
-      const program = `import { GhGitHubReader } from ${JSON.stringify(import.meta.dir + "/github.ts")};
+`, { mode: EXECUTABLE_MODE });
+      const program = `import { GhGitHubReader } from ${JSON.stringify(GITHUB_MODULE_PATH)};
         console.log(JSON.stringify(await new GhGitHubReader().openPullRequests({ owner: "owner", repo: "repo" })));`;
+      const parentEnv = z.record(z.string(), z.string().optional()).parse(process.env);
       const child = spawnSync(process.execPath, ["-e", program], {
-        encoding: "utf8", timeout: 2000,
-        env: { ...process.env, PATH: directory + ":" + process.env.PATH },
+        encoding: "utf8", timeout: SUBPROCESS_TIMEOUT_MS,
+        env: { ...parentEnv, PATH: `${directory}:${parentEnv.PATH}` },
       });
       expect(child.error).toBeUndefined();
       expect(child.status).toBe(0);
-      expect(JSON.parse(child.stdout)).toEqual([
-        { number: 42, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
+      expect(forkedRows.parse(JSON.parse(child.stdout))).toEqual([
+        { number: STACK_PR_NUMBER, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
       ]);
     } finally {
       rmSync(directory, { recursive: true, force: true });

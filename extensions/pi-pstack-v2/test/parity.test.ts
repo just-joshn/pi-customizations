@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import { homedir, tmpdir } from 'node:os';
@@ -16,7 +16,7 @@ const supported = process.platform === 'darwin' || process.platform === 'linux';
 const owner = `parity${process.pid}`;
 const socketPath = join(homedir(), `.pstack-probe-${process.pid}.sock`);
 const abstractName = `pstack-probe-${process.pid}`;
-const servers: Server[] = [];
+let servers: readonly Server[] = [];
 let agentDir: string;
 let repo: string;
 let tools: Record<string, Tool>;
@@ -84,7 +84,7 @@ beforeAll(async () => {
   const listen = (address: string) =>
     new Promise<void>((resolve) => {
       const server = createServer((socket) => socket.end());
-      servers.push(server);
+      servers = [...servers, server];
       server.listen(address, () => resolve());
     });
   await listen(socketPath);
@@ -112,12 +112,12 @@ beforeEach(() => {
   tools = {};
   handlers = {};
   const api = {
-    registerCommand: () => {},
+    registerCommand: () => undefined,
     on: (event: string, handler: Handler) => {
-      handlers[event] = handler;
+      handlers = { ...handlers, [event]: handler };
     },
     registerTool: (tool: Tool & { name: string }) => {
-      tools[tool.name] = tool;
+      tools = { ...tools, [tool.name]: tool };
     },
     sendMessage: vi.fn(),
   };
@@ -136,11 +136,7 @@ beforeEach(() => {
 afterEach(async () => {
   await handlers['session_shutdown']?.({}, ctx);
   vi.unstubAllEnvs();
-  try {
-    execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
-  } catch {
-    // No server was started.
-  }
+  spawnSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
   rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   rmSync(`${repo}-other`, { recursive: true, force: true });

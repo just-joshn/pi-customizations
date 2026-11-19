@@ -263,6 +263,13 @@ interface EventBase<K extends string, M extends WatchMode = WatchMode> {
   readonly mode: M;
   readonly kind: K;
 }
+export const EXIT_OK = 0;
+export const EXIT_MERGE_CONFLICTS = 2;
+export const EXIT_REVIEW_THREADS = 3;
+export const EXIT_FAILING_CHECKS = 4;
+export const EXIT_TIMEOUT = 5;
+export const EXIT_MERGE_GATE = 6;
+export const EXIT_STATUS_QUERY = 7;
 interface Progress<K extends string, M extends WatchMode = WatchMode>
   extends EventBase<K, M> {
   readonly terminal: false;
@@ -275,6 +282,12 @@ interface Terminal<
   readonly terminal: true;
   readonly exitCode: C;
 }
+export type WaitReason =
+  | {
+      readonly kind: "pending-checks";
+      readonly pending: NonEmpty<PendingCheck>;
+    }
+  | { readonly kind: "merge-queue"; readonly unmergedCount: number };
 export type ProgressVerdict =
   | (Progress<"QUEUE", "queued-stack"> & {
       readonly queue: NonEmpty<PrContext>;
@@ -285,12 +298,7 @@ export type ProgressVerdict =
     })
   | (Progress<"WAITING"> & {
       readonly frontier: PrContext;
-      readonly reason:
-        | {
-            readonly kind: "pending-checks";
-            readonly pending: NonEmpty<PendingCheck>;
-          }
-        | { readonly kind: "merge-queue"; readonly unmergedCount: number };
+      readonly reason: WaitReason;
     })
   | (Progress<"ADVANCE", "queued-stack"> & {
       readonly merged: PrContext;
@@ -303,35 +311,35 @@ export type ProgressVerdict =
       readonly retryInSeconds: number;
     });
 export type BlockerVerdict =
-  | (Terminal<"BLOCKER", 2> & {
+  | (Terminal<"BLOCKER", typeof EXIT_MERGE_CONFLICTS> & {
       readonly blocker: Extract<
         MergeBlocker,
         { readonly kind: "merge-conflicts" }
       >;
     })
-  | (Terminal<"BLOCKER", 3> & {
+  | (Terminal<"BLOCKER", typeof EXIT_REVIEW_THREADS> & {
       readonly blocker: Extract<
         MergeBlocker,
         { readonly kind: "review-threads" }
       >;
     })
-  | (Terminal<"BLOCKER", 4> & {
+  | (Terminal<"BLOCKER", typeof EXIT_FAILING_CHECKS> & {
       readonly blocker: Extract<
         MergeBlocker,
         { readonly kind: "failing-checks" }
       >;
     })
-  | (Terminal<"BLOCKER", 6> & {
+  | (Terminal<"BLOCKER", typeof EXIT_MERGE_GATE> & {
       readonly blocker: Extract<MergeBlocker, { readonly kind: "merge-gate" }>;
     })
-  | (Terminal<"BLOCKER", 7> & {
+  | (Terminal<"BLOCKER", typeof EXIT_STATUS_QUERY> & {
       readonly blocker: {
         readonly kind: "status-query";
         readonly failures: number;
         readonly failure: QueryFailure;
       };
     });
-export type TimeoutVerdict = Terminal<"TIMEOUT", 5> & {
+export type TimeoutVerdict = Terminal<"TIMEOUT", typeof EXIT_TIMEOUT> & {
   readonly reason:
     | {
         readonly kind: "pending-checks";
@@ -344,20 +352,18 @@ export type TimeoutVerdict = Terminal<"TIMEOUT", 5> & {
         readonly unmergedCount: number;
       };
 };
+export type ReadyScope =
+  | { readonly kind: "single"; readonly pr: ReadyPr | MergedPr }
+  | { readonly kind: "stack"; readonly prs: NonEmpty<ReadyPr | MergedPr> };
 export type TerminalVerdict =
-  | (Terminal<"STATUS", 0> & {
+  | (Terminal<"STATUS", typeof EXIT_OK> & {
       readonly reason: "status-only";
       readonly rows: NonEmpty<PrSnapshot>;
     })
-  | (Terminal<"READY", 0, "single" | "stack"> & {
-      readonly scope:
-        | { readonly kind: "single"; readonly pr: ReadyPr | MergedPr }
-        | {
-            readonly kind: "stack";
-            readonly prs: NonEmpty<ReadyPr | MergedPr>;
-          };
+  | (Terminal<"READY", typeof EXIT_OK, "single" | "stack"> & {
+      readonly scope: ReadyScope;
     })
-  | (Terminal<"COMPLETE", 0, "queued-stack"> & {
+  | (Terminal<"COMPLETE", typeof EXIT_OK, "queued-stack"> & {
       readonly queue: NonEmpty<PrContext>;
       readonly merged: NonEmpty<MergedPr>;
     })

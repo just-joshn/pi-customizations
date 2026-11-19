@@ -28,6 +28,7 @@ import type {
   PullRequestFacts,
   RollupState,
 } from "./types.ts";
+import { createRecorder, type Recorder } from "./recorder.test-helper.ts";
 import { parsePrNumber } from "./types.ts";
 
 const context = (number: number): PrContext => ({
@@ -35,6 +36,25 @@ const context = (number: number): PrContext => ({
   repo: "repo",
   number: parsePrNumber(number),
 });
+const PR = {
+  settled: 3,
+  failed: 4,
+  merged: 5,
+  draft: 12,
+  upstackConflict: 11,
+  readyBottom: 20,
+  pendingUpstack: 21,
+} as const;
+const QUEUE_PRS = { first: 20, second: 21, third: 22 } as const;
+const SWEEP_PRS = { first: 30, second: 31 } as const;
+const ADVANCE_PRS = { merging: 40, next: 41 } as const;
+const DEDUP_PR = 50;
+const SECOND_SNAPSHOT_AT = 5;
+const ADVANCE_WINDOW = 5;
+const BACKOFF_SECOND_FAILURE_SECONDS = 120;
+const FOURTH_FAILURE = 4;
+const RETRY_CAP_SECONDS = 300;
+const DEADLINE_SECONDS = 5;
 const options = {
   interval: 10,
   sweepInterval: 300,
@@ -116,7 +136,7 @@ describe("snapshot query planning", () => {
     const settled = fakeReader();
     await readSnapshot({
       reader: settled,
-      context: context(3),
+      context: context(PR.settled),
       pendingHistory: "omit",
       allowDraft: false,
     });
@@ -127,7 +147,7 @@ describe("snapshot query planning", () => {
     });
     await readSnapshot({
       reader: failed,
-      context: context(4),
+      context: context(PR.failed),
       pendingHistory: "omit",
       allowDraft: false,
     });
@@ -138,16 +158,13 @@ describe("snapshot query planning", () => {
     const reader = fakeReader({
       facts: { state: "MERGED", mergedAt: "2026-07-26T00:00:00Z" },
     });
-    expect(
-      (
-        await readSnapshot({
-          reader,
-          context: context(5),
-          pendingHistory: "include",
-          allowDraft: false,
-        })
-      ).kind
-    ).toBe("merged");
+    const snapshot = await readSnapshot({
+      reader,
+      context: context(PR.merged),
+      pendingHistory: "include",
+      allowDraft: false,
+    });
+    expect(snapshot.kind).toBe("merged");
     expect(reader.calls).toEqual(["pullRequest"]);
   });
 });
@@ -164,7 +181,7 @@ it("scans stacks tier-major so an upstack conflict outranks frontier CI", async 
   });
   const upstack = await readSnapshot({
     reader: fakeReader({ facts: { mergeable: "CONFLICTING" } }),
-    context: context(11),
+    context: context(PR.upstackConflict),
     pendingHistory: "omit",
     allowDraft: false,
   });
@@ -178,7 +195,7 @@ it("scans stacks tier-major so an upstack conflict outranks frontier CI", async 
 it("attributes a stack wait to the PR whose checks are pending, not the bottom", async () => {
   const readyBottom = await readSnapshot({
     reader: fakeReader(),
-    context: context(20),
+    context: context(PR.readyBottom),
     pendingHistory: "omit",
     allowDraft: false,
   });
@@ -186,7 +203,7 @@ it("attributes a stack wait to the PR whose checks are pending, not the bottom",
     reader: fakeReader({
       fastPath: { kind: "checks", checks: [pendingCheck("upstack-build")] },
     }),
-    context: context(21),
+    context: context(PR.pendingUpstack),
     pendingHistory: "omit",
     allowDraft: false,
   });
@@ -204,7 +221,7 @@ it("waits on a draft while checks are pending, then reports the draft gate", asy
       facts: { isDraft: true },
       fastPath: { kind: "checks", checks: [pendingCheck()] },
     }),
-    context: context(12),
+    context: context(PR.draft),
     pendingHistory: "omit",
     allowDraft: false,
   });
@@ -212,7 +229,7 @@ it("waits on a draft while checks are pending, then reports the draft gate", asy
 
   const settled = await readSnapshot({
     reader: fakeReader({ facts: { isDraft: true } }),
-    context: context(12),
+    context: context(PR.draft),
     pendingHistory: "omit",
     allowDraft: false,
   });
@@ -222,21 +239,102 @@ it("waits on a draft while checks are pending, then reports the draft gate", asy
   });
 });
 
-describe("queued-stack cadence", () => {
-  async function openSnapshot(pr: PrContext) {
-    return readSnapshot({
-      reader: fakeReader(),
-      context: pr,
-      pendingHistory: "omit",
-      allowDraft: false,
-    });
-  }
+const rateLimited = () =>
+  new WatcherQueryError({
+    kind: "command-exit",
+    retryable: true,
+    detail: "rate limited",
+    code: 1,
+  });
+const OBSERVED_AT = "2026-07-26T00:00:00.000Z";
+const MERGED_FACTS = {
+  state: "MERGED",
+  mergedAt: "2026-07-26T00:00:00Z",
+} as const;
+const STOP_AFTER_SLEEPS = 2;
+function stoppingClock(timeline: Recorder<string>, message: string) {
+  let now = 0;
+  let sleeps = 0;
+  return {
+    now: () => now,
+    observedAt: () => OBSERVED_AT,
+    async sleep(seconds: number): Promise<void> {
+      timeline.record("sleep");
+      now += seconds;
+      sleeps += 1;
+      if (sleeps === STOP_AFTER_SLEEPS) throw new Error(message);
+    },
+  };
+}
+function failingOnceReader(failing: PrContext, timeline: Recorder<string>) {
+  const base = fakeReader();
+  let failNext = true;
+  return {
+    ...base,
+    async pullRequest(pr: PrContext) {
+      if (pr.number === failing.number && failNext) {
+        failNext = false;
+        timeline.record(`fail:${pr.number}`);
+        throw rateLimited();
+      }
+      timeline.record(`read:${pr.number}`);
+      return base.pullRequest(pr);
+    },
+  } satisfies GitHubReader;
+}
+function mergingOnSecondReadReader(
+  target: PrContext,
+  timeline: Recorder<string>
+) {
+  const base = fakeReader();
+  let targetReads = 0;
+  return {
+    ...base,
+    async pullRequest(pr: PrContext) {
+      timeline.record(`read:${pr.number}`);
+      const facts = await base.pullRequest(pr);
+      if (pr.number !== target.number) return facts;
+      targetReads += 1;
+      return targetReads > 1 ? { ...facts, ...MERGED_FACTS } : facts;
+    },
+  } satisfies GitHubReader;
+}
+const tracingEmit =
+  (timeline: Recorder<string>, emitted?: Recorder<ProgressVerdict>) =>
+  (verdict: ProgressVerdict): void => {
+    emitted?.record(verdict);
+    timeline.record(`emit:${verdict.kind}`);
+  };
+function recordingClock(sleeps: Recorder<number>) {
+  let now = 0;
+  return {
+    now: () => now,
+    get elapsed() {
+      return now;
+    },
+    observedAt: () => OBSERVED_AT,
+    async sleep(seconds: number): Promise<void> {
+      sleeps.record(seconds);
+      now += seconds;
+    },
+  };
+}
 
+async function openSnapshot(pr: PrContext) {
+  return readSnapshot({
+    reader: fakeReader(),
+    context: pr,
+    pendingHistory: "omit",
+    allowDraft: false,
+  });
+}
+
+describe("queued-stack cadence", () => {
   it("drops a sweep head only after its snapshot succeeds", async () => {
     const queue = [
-      context(20),
-      context(21),
-      context(22),
+      context(QUEUE_PRS.first),
+      context(QUEUE_PRS.second),
+      context(QUEUE_PRS.third),
     ] satisfies NonEmpty<PrContext>;
     let state = createQueueState(queue, 0);
     const first = await openSnapshot(queue[0]);
@@ -254,51 +352,20 @@ describe("queued-stack cadence", () => {
   });
 
   it("resumes the sweep at the PR whose read failed", async () => {
-    const middle = context(21);
-    const base = fakeReader();
-    let failNext = true;
-    const timeline: string[] = [];
-    const reader = {
-      ...base,
-      async pullRequest(pr: PrContext) {
-        if (pr.number === middle.number && failNext) {
-          failNext = false;
-          timeline.push(`fail:${pr.number}`);
-          throw new WatcherQueryError({
-            kind: "command-exit",
-            retryable: true,
-            detail: "rate limited",
-            code: 1,
-          });
-        }
-        timeline.push(`read:${pr.number}`);
-        return base.pullRequest(pr);
-      },
-    } satisfies GitHubReader;
-    let now = 0;
-    let sleeps = 0;
+    const middle = context(QUEUE_PRS.second);
+    const timeline = createRecorder<string>();
+    const reader = failingOnceReader(middle, timeline);
     const running = runQueued({
       dependencies: {
         reader,
-        clock: {
-          now: () => now,
-          observedAt: () => "2026-07-26T00:00:00.000Z",
-          async sleep(seconds) {
-            timeline.push("sleep");
-            now += seconds;
-            sleeps += 1;
-            if (sleeps === 2) throw new Error("stop after resume proof");
-          },
-        },
-        emit(verdict) {
-          timeline.push(`emit:${verdict.kind}`);
-        },
+        clock: stoppingClock(timeline, "stop after resume proof"),
+        emit: tracingEmit(timeline),
       },
-      contexts: [context(20), middle, context(22)],
+      contexts: [context(QUEUE_PRS.first), middle, context(QUEUE_PRS.third)],
       options,
     });
     await expect(running).rejects.toThrow("stop after resume proof");
-    expect(timeline).toEqual([
+    expect(timeline.items).toEqual([
       "emit:QUEUE",
       "read:20",
       "fail:21",
@@ -312,8 +379,11 @@ describe("queued-stack cadence", () => {
     ]);
   });
 
+});
+
+describe("queued-stack cadence", () => {
   it("emits a completed sweep only after its final successful snapshot", async () => {
-    const queue = [context(30), context(31)] satisfies NonEmpty<PrContext>;
+    const queue = [context(SWEEP_PRS.first), context(SWEEP_PRS.second)] satisfies NonEmpty<PrContext>;
     let state = createQueueState(queue, 0);
     const first = applyQueueSnapshot(
       state,
@@ -326,65 +396,37 @@ describe("queued-stack cadence", () => {
     const second = applyQueueSnapshot(
       state,
       await openSnapshot(queue[1]),
-      5,
+      SECOND_SNAPSHOT_AT,
       options
     );
     expect(
       second.completedSweepRows?.map((row) => Number(row.context.number))
-    ).toEqual([30, 31]);
-    expect(second.state.nextSweepAt).toBe(305);
+    ).toEqual([SWEEP_PRS.first, SWEEP_PRS.second]);
+    expect(second.state.nextSweepAt).toBe(SECOND_SNAPSHOT_AT + options.sweepInterval);
   });
 
+});
+
+describe("queued-stack cadence", () => {
   it("ADVANCE continues directly to the new frontier without sleeping", async () => {
-    const one = context(40);
-    const two = context(41);
-    const base = fakeReader();
-    const reads = new Map<number, number>();
-    const timeline: string[] = [];
-    const reader = {
-      ...base,
-      async pullRequest(pr: PrContext) {
-        timeline.push(`read:${pr.number}`);
-        const facts = await base.pullRequest(pr);
-        const count = (reads.get(pr.number) ?? 0) + 1;
-        reads.set(pr.number, count);
-        return pr.number === one.number && count > 1
-          ? {
-              ...facts,
-              state: "MERGED" as const,
-              mergedAt: "2026-07-26T00:00:00Z",
-            }
-          : facts;
-      },
-    } satisfies GitHubReader;
-    let now = 0;
-    let sleeps = 0;
-    const emitted: ProgressVerdict[] = [];
+    const one = context(ADVANCE_PRS.merging);
+    const two = context(ADVANCE_PRS.next);
+    const timeline = createRecorder<string>();
+    const reader = mergingOnSecondReadReader(one, timeline);
+    const emitted = createRecorder<ProgressVerdict>();
     const running = runQueued({
       dependencies: {
         reader,
-        clock: {
-          now: () => now,
-          observedAt: () => "2026-07-26T00:00:00.000Z",
-          async sleep(seconds) {
-            timeline.push("sleep");
-            now += seconds;
-            sleeps += 1;
-            if (sleeps === 2) throw new Error("stop after advance proof");
-          },
-        },
-        emit(verdict) {
-          emitted.push(verdict);
-          timeline.push(`emit:${verdict.kind}`);
-        },
+        clock: stoppingClock(timeline, "stop after advance proof"),
+        emit: tracingEmit(timeline, emitted),
       },
       contexts: [one, two],
       options,
     });
     await expect(running).rejects.toThrow("stop after advance proof");
-    expect(emitted.some((event) => event.kind === "ADVANCE")).toBe(true);
-    const firstSleep = timeline.indexOf("sleep");
-    expect(timeline.slice(firstSleep, firstSleep + 5)).toEqual([
+    expect(emitted.items.some((event) => event.kind === "ADVANCE")).toBe(true);
+    const firstSleep = timeline.items.indexOf("sleep");
+    expect(timeline.items.slice(firstSleep, firstSleep + ADVANCE_WINDOW)).toEqual([
       "sleep",
       "read:40",
       "emit:ADVANCE",
@@ -394,7 +436,7 @@ describe("queued-stack cadence", () => {
   });
 
   it("deduplicates identical waits and schedules the next due sweep", async () => {
-    const queue = [context(50)] satisfies NonEmpty<PrContext>;
+    const queue = [context(DEDUP_PR)] satisfies NonEmpty<PrContext>;
     let state = createQueueState(queue, 0);
     state = applyQueueSnapshot(
       state,
@@ -410,73 +452,80 @@ describe("queued-stack cadence", () => {
     expect(second.kind).toBe("waiting");
     if (second.kind !== "waiting") throw new Error("expected waiting");
     expect(second.emit).toBe(false);
-    expect(planQueue(second.state, 300).work?.kind).toBe("whole-stack-sweep");
+    expect(planQueue(second.state, options.sweepInterval).work?.kind).toBe("whole-stack-sweep");
   });
 });
 
 it("uses the specified retry floor and cap", () => {
   expect(queryBackoffSeconds(1, 1)).toBe(60);
-  expect(queryBackoffSeconds(1, 2)).toBe(120);
-  expect(queryBackoffSeconds(60, 4)).toBe(300);
+  expect(queryBackoffSeconds(1, 2)).toBe(BACKOFF_SECOND_FAILURE_SECONDS);
+  expect(queryBackoffSeconds(60, FOURTH_FAILURE)).toBe(RETRY_CAP_SECONDS);
 });
 
+
+const failingPullRequest = async (): Promise<PullRequestFacts> => {
+  throw new WatcherQueryError({
+    kind: "command-exit",
+    retryable: true,
+    code: 1,
+    detail: "temporary failure",
+  });
+};
+const SIMPLE = { mode: "single", statusOnly: false } as const;
+const readerFor = (
+  mode: "single" | "queued-stack" | "query-retry",
+  pending: GitHubReader
+): GitHubReader =>
+  mode === "query-retry"
+    ? { ...pending, pullRequest: failingPullRequest }
+    : pending;
+const pendingFastPath = {
+  kind: "checks",
+  checks: [pendingCheck()],
+} as const;
 
 describe("polling deadline sleeps", () => {
   for (const mode of ["single", "queued-stack", "query-retry"] as const) {
     it(`caps ${mode} sleeps at the configured deadline`, async () => {
-      let now = 0;
-      const sleeps: number[] = [];
-      const pending = fakeReader({ fastPath: { kind: "checks", checks: [pendingCheck()] } });
-      const reader = mode === "query-retry"
-        ? { ...pending, async pullRequest(): Promise<PullRequestFacts> {
-          throw new WatcherQueryError({ kind: "command-exit", retryable: true, code: 1, detail: "temporary failure" });
-        } }
-        : pending;
-      const dependencies = {
-        reader,
-        clock: {
-          now: () => now,
-          observedAt: () => "2026-07-26T00:00:00.000Z",
-          async sleep(seconds: number) { sleeps.push(seconds); now += seconds; },
-        },
-        emit() {},
-      };
-      const polling = { ...options, interval: 60, timeout: 5 };
-      const result = mode === "queued-stack"
-        ? await runQueued({ dependencies, contexts: [context(1)], options: polling })
-        : await runSimple({ dependencies, contexts: [context(1)], mode: "single", statusOnly: false, options: polling });
+      const sleeps = createRecorder<number>();
+      const clock = recordingClock(sleeps);
+      const pending = fakeReader({ fastPath: pendingFastPath });
+      const reader = readerFor(mode, pending);
+      const dependencies = { reader, clock, emit: () => undefined };
+      const polling = { ...options, interval: 60, timeout: DEADLINE_SECONDS };
+      const contexts = [context(1)] satisfies NonEmpty<PrContext>;
+      const queued = () => runQueued({ dependencies, contexts, options: polling });
+      const simple = () =>
+        runSimple({ dependencies, contexts, ...SIMPLE, options: polling });
+      const result = await (mode === "queued-stack" ? queued : simple)();
       expect(result.kind).toBe("TIMEOUT");
-      expect(sleeps).toEqual([5]);
-      expect(now).toBe(5);
+      expect(sleeps.items).toEqual([DEADLINE_SECONDS]);
+      expect(clock.elapsed).toBe(DEADLINE_SECONDS);
     });
   }
   it("preserves the polling interval when the deadline is disabled", async () => {
-    let now = 0;
     let reads = 0;
-    const sleeps: number[] = [];
-    const pending = fakeReader({ fastPath: { kind: "checks", checks: [pendingCheck()] } });
-    const passed = fakeReader({ fastPath: { kind: "checks", checks: [passingCheck()] } });
-    const result = await runSimple({
-      dependencies: {
-        reader: {
-          ...pending,
-          async checksFastPath(pr) {
-            reads += 1;
-            return reads === 1 ? pending.checksFastPath(pr) : passed.checksFastPath(pr);
-          },
-        },
-        clock: {
-          now: () => now,
-          observedAt: () => "2026-07-26T00:00:00.000Z",
-          async sleep(seconds) { sleeps.push(seconds); now += seconds; },
-        },
-        emit() {},
+    const sleeps = createRecorder<number>();
+    const pending = fakeReader({ fastPath: pendingFastPath });
+    const passed = fakeReader({
+      fastPath: { kind: "checks", checks: [passingCheck()] },
+    });
+    const reader = {
+      ...pending,
+      checksFastPath(pr: PrContext) {
+        reads += 1;
+        const source = reads === 1 ? pending : passed;
+        return source.checksFastPath(pr);
       },
-      contexts: [context(1)], mode: "single", statusOnly: false,
+    };
+    const result = await runSimple({
+      dependencies: { reader, clock: recordingClock(sleeps), emit: () => undefined },
+      contexts: [context(1)],
+      mode: "single",
+      statusOnly: false,
       options: { ...options, interval: 60, timeout: 0 },
     });
     expect(result.kind).toBe("READY");
-    expect(sleeps).toEqual([60]);
+    expect(sleeps.items).toEqual([60]);
   });
-
 });

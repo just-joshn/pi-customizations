@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.6
+
+### Changed
+
+- Delegated Pi workers run through the packaged upstream `subagent` tool, which starts each `pi` in its own tmux session, in place of `pi_spawn`. Its agents live under `src/subagent/agents`.
+- The `tmux_run`, `tmux_jobs`, and `subagent` tools and `/pstack-mode` check their input with zod before they act. Every key Pi passes in still reaches the tool.
+- The extension, the watch-pr CLI, and the statechart CLI are reorganized into smaller modules that build new values instead of changing existing ones. Their output, exit codes, and error messages are unchanged.
+- `node scripts/style-audit.mjs` checks the package's code style with Biome and GritQL rules. Spots where a rule would change behavior are listed with their reasons in `scripts/style/behavior-exceptions/`.
+
 ## 0.1.5
 
 ### Changed

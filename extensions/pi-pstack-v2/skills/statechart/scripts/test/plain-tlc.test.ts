@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { agrees, skip } from "./tlc.ts";
 
+const earlyBreakSteps = 3;
+
 const late = [
   "---- MODULE Late ----",
   "EXTENDS Naturals, TLC",
@@ -105,6 +107,19 @@ test("a rule that no verdict run checks stays not checked under a SYMMETRY", { s
   assert.deepEqual(v.unchecked, ["Bad", "Boom", "NoDeadlock"]);
 });
 
+const shapeModule = (next: string) => [
+  "---- MODULE Shape ----",
+  "EXTENDS Naturals",
+  "VARIABLES x, t",
+  "vars == <<x, t>>",
+  "Init == x = 0 /\\ t = 0",
+  "Step(i) == x < 2 /\\ x' = x + i /\\ UNCHANGED t",
+  "Next == Step(1)",
+  "Tick == t < 1 /\\ t' = 1 /\\ UNCHANGED x",
+  `Spec == Init /\\ ${next}`,
+  "====",
+];
+
 test("a deadlock breaks whatever shape the SPECIFICATION has", { skip }, () => {
   const live = agrees(
     "Live",
@@ -126,24 +141,7 @@ test("a deadlock breaks whatever shape the SPECIFICATION has", { skip }, () => {
   assert.deepEqual(live.breaks, new Map([["NoDeadlock", 2]]));
   assert.deepEqual(live.holds, ["TypeOK"]);
   for (const next of ["[][Next \\/ Tick]_vars", "[][\\E i \\in 1..2 : Step(i)]_vars"]) {
-    const v = agrees(
-      "Shape",
-      {
-        Shape: [
-          "---- MODULE Shape ----",
-          "EXTENDS Naturals",
-          "VARIABLES x, t",
-          "vars == <<x, t>>",
-          "Init == x = 0 /\\ t = 0",
-          "Step(i) == x < 2 /\\ x' = x + i /\\ UNCHANGED t",
-          "Next == Step(1)",
-          "Tick == t < 1 /\\ t' = 1 /\\ UNCHANGED x",
-          `Spec == Init /\\ ${next}`,
-          "====",
-        ],
-      },
-      "SPECIFICATION Spec\n",
-    );
+    const v = agrees("Shape", { Shape: shapeModule(next) }, "SPECIFICATION Spec\n");
     assert.equal(v.status, 1);
     assert.ok(v.breaks.has("NoDeadlock"));
   }
@@ -195,6 +193,16 @@ test("a state at a CONSTRAINT bound is no deadlock", { skip }, () => {
   assert.doesNotMatch(v.chart, /^ {2}class s\d+ breaks$/m);
 });
 
+const noInitModule = [
+  "---- MODULE NoInit ----",
+  "EXTENDS Naturals",
+  "VARIABLE x",
+  "Init == x = 0 /\\ x > 0",
+  "Next == x' = x + 1",
+  "Small == x < 3",
+  "====",
+];
+
 test(
   "a model with no initial state passes as it does in TLC, and the report says why",
   { skip },
@@ -202,15 +210,7 @@ test(
     const v = agrees(
       "NoInit",
       {
-        NoInit: [
-          "---- MODULE NoInit ----",
-          "EXTENDS Naturals",
-          "VARIABLE x",
-          "Init == x = 0 /\\ x > 0",
-          "Next == x' = x + 1",
-          "Small == x < 3",
-          "====",
-        ],
+        NoInit: noInitModule,
       },
       "INIT Init\nNEXT Next\nINVARIANT Small\n",
     );
@@ -223,6 +223,17 @@ test(
   },
 );
 
+const cycleModule = [
+  "---- MODULE Cycle ----",
+  "EXTENDS Naturals",
+  "VARIABLE x",
+  "Next == x' = (x + 1) % 100005",
+  "Spec == x = 0 /\\ [][Next]_x /\\ WF_x(Next)",
+  "Early == x # 3",
+  "Back == []<>(x = 0)",
+  "====",
+];
+
 test(
   "a run after a break stops at the state bound and leaves its rules not checked",
   { skip },
@@ -230,21 +241,12 @@ test(
     const v = agrees(
       "Cycle",
       {
-        Cycle: [
-          "---- MODULE Cycle ----",
-          "EXTENDS Naturals",
-          "VARIABLE x",
-          "Next == x' = (x + 1) % 100005",
-          "Spec == x = 0 /\\ [][Next]_x /\\ WF_x(Next)",
-          "Early == x # 3",
-          "Back == []<>(x = 0)",
-          "====",
-        ],
+        Cycle: cycleModule,
       },
       "SPECIFICATION Spec\nINVARIANT Early\nPROPERTY Back\n",
     );
     assert.equal(v.status, 1);
-    assert.deepEqual(v.breaks, new Map([["Early", 3]]));
+    assert.deepEqual(v.breaks, new Map([["Early", earlyBreakSteps]]));
     assert.deepEqual(v.holds, []);
     assert.deepEqual(v.unchecked, ["Back", "NoDeadlock"]);
     assert.match(

@@ -1,6 +1,8 @@
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
+import { z } from 'zod';
+
 /**
  * Jobs never write your real `auth.json`. Pi runs a credential whose key starts with `!` as a shell command, so a job able
  * to write that file could plant a command for your next unsandboxed Pi to run. Instead each top-level job, and every job
@@ -9,6 +11,8 @@ import { isAbsolute, join, resolve } from 'node:path';
  */
 
 type Credentials = Record<string, Record<string, unknown>>;
+/** Any JSON object is accepted, as Pi's own reader does. Entries are checked where they are used. */
+const CredentialsSchema = z.record(z.string(), z.any());
 
 export const jobAgentDir = (top: string): string => join(top, 'agent');
 
@@ -21,20 +25,28 @@ function anchored(realAgentDir: string, entry: string): string {
   return `${prefix}${resolve(realAgentDir, path)}`;
 }
 
-function anchoredSettings(realAgentDir: string, settings: Record<string, unknown>): Record<string, unknown> {
-  const copy = { ...settings };
-  for (const key of ['extensions', 'skills', 'prompts', 'themes']) {
-    const list = copy[key];
-    if (Array.isArray(list)) copy[key] = list.map((entry) => (typeof entry === 'string' ? anchored(realAgentDir, entry) : entry));
+/** Anchors one packages entry, a path string or an object with a source path, to the real agent directory. */
+function anchoredPackage(realAgentDir: string, entry: unknown): unknown {
+  if (typeof entry === 'string') return anchored(realAgentDir, entry);
+  if (entry && typeof entry === 'object' && typeof (entry as { source?: unknown }).source === 'string') {
+    return { ...entry, source: anchored(realAgentDir, (entry as { source: string }).source) };
   }
+  return entry;
+}
+
+function anchoredSettings(realAgentDir: string, settings: Record<string, unknown>): Record<string, unknown> {
+  const listed = Object.fromEntries(
+    ['extensions', 'skills', 'prompts', 'themes'].flatMap((key) => {
+      const list = settings[key];
+      return Array.isArray(list) ? [[key, list.map((entry) => (typeof entry === 'string' ? anchored(realAgentDir, entry) : entry))]] : [];
+    }),
+  );
+  const copy = { ...settings, ...listed };
   if (Array.isArray(copy['packages'])) {
-    copy['packages'] = copy['packages'].map((entry: unknown) => {
-      if (typeof entry === 'string') return anchored(realAgentDir, entry);
-      if (entry && typeof entry === 'object' && typeof (entry as { source?: unknown }).source === 'string') {
-        return { ...entry, source: anchored(realAgentDir, (entry as { source: string }).source) };
-      }
-      return entry;
-    });
+    return {
+      ...copy,
+      packages: copy['packages'].map((entry: unknown) => anchoredPackage(realAgentDir, entry)),
+    };
   }
   return copy;
 }
@@ -42,8 +54,8 @@ function anchoredSettings(realAgentDir: string, settings: Record<string, unknown
 function parse(text: string | undefined): Credentials | undefined {
   if (text === undefined) return undefined;
   try {
-    const data: unknown = JSON.parse(text.replace(/^﻿/, ''));
-    return data !== null && typeof data === 'object' && !Array.isArray(data) ? (data as Credentials) : undefined;
+    const parsed = CredentialsSchema.safeParse(JSON.parse(text.replace(/^﻿/, '')));
+    return parsed.success ? parsed.data : undefined;
   } catch {
     return undefined;
   }
@@ -77,11 +89,12 @@ export function makeJobAgentDir(realAgentDir: string, dir: string, resolved: Rec
   const settings = join(realAgentDir, 'settings.json');
   const parsed = existsSync(settings) ? parse(readFileSync(settings, 'utf8')) : undefined;
   if (parsed) writeFileSync(join(dir, 'settings.json'), `${JSON.stringify(anchoredSettings(realAgentDir, parsed), null, 2)}\n`);
-  const copy: Credentials = {};
-  for (const [provider, entry] of Object.entries(readCredentials(realAgentDir) ?? {})) {
-    if (!isCommand(entry)) copy[provider] = entry;
-    else if (resolved[provider] !== undefined) copy[provider] = { ...entry, key: resolved[provider] };
-  }
+  const copy: Credentials = Object.fromEntries(
+    Object.entries(readCredentials(realAgentDir) ?? {}).flatMap(([provider, entry]) => {
+      if (!isCommand(entry)) return [[provider, entry]];
+      return resolved[provider] !== undefined ? [[provider, { ...entry, key: resolved[provider] }]] : [];
+    }),
+  );
   writeFileSync(join(dir, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
 }
 
@@ -99,12 +112,12 @@ function isLink(path: string): boolean {
 const resolved = (file: string): string => (existsSync(file) ? realpathSync(file) : file);
 
 export function withLocks(files: string[], fn: () => void): boolean {
-  const held: string[] = [];
+  let held: readonly string[] = [];
   try {
     for (const file of files) {
       const lock = `${resolved(file)}.lock`;
       mkdirSync(lock);
-      held.push(lock);
+      held = [...held, lock];
     }
     fn();
     return true;
@@ -131,26 +144,28 @@ export function syncTokens(realAgentDir: string, jobDir: string): boolean {
     const real = readCredentials(realAgentDir);
     const copy = readCredentials(jobDir);
     if (!real || !copy) return;
-    let realChanged = false;
-    let copyChanged = false;
-    for (const provider of new Set([...Object.keys(real), ...Object.keys(copy)])) {
+    const providers = [...new Set([...Object.keys(real), ...Object.keys(copy)])];
+    const realUpdates = providers.flatMap((provider) => {
       const [mine, theirs] = [real[provider], copy[provider]];
       // A provider you logged out of, or switched to a key, is never brought back from a job's copy.
-      if (expiry(theirs) > expiry(mine) && mine?.['type'] === 'oauth') {
-        real[provider] = theirs as Record<string, unknown>;
-        realChanged = true;
-      } else if (expiry(mine) > expiry(theirs) && (theirs === undefined || theirs['type'] === 'oauth')) {
-        copy[provider] = mine as Record<string, unknown>;
-        copyChanged = true;
-      }
-    }
+      return expiry(theirs) > expiry(mine) && mine?.['type'] === 'oauth' ? [[provider, theirs as Record<string, unknown>] as const] : [];
+    });
+    const copyUpdates = providers.flatMap((provider) => {
+      const [mine, theirs] = [real[provider], copy[provider]];
+      const toReal = expiry(theirs) > expiry(mine) && mine?.['type'] === 'oauth';
+      return !toReal && expiry(mine) > expiry(theirs) && (theirs === undefined || theirs['type'] === 'oauth') ? [[provider, mine as Record<string, unknown>] as const] : [];
+    });
+    const realChanged = realUpdates.length > 0;
+    const copyChanged = copyUpdates.length > 0;
+    const newReal = { ...real, ...Object.fromEntries(realUpdates) };
+    const newCopy = { ...copy, ...Object.fromEntries(copyUpdates) };
     if (realChanged) {
       // Renamed into place so Pi never reads a half-written file. The job's copy is written in place instead, since the
       // job may have that file bound to its own view, and a new file would leave it holding the old one.
       const path = resolved(join(realAgentDir, 'auth.json'));
-      writeFileSync(`${path}.pstack-tmp`, `${JSON.stringify(real, null, 2)}\n`, { mode: 0o600 });
+      writeFileSync(`${path}.pstack-tmp`, `${JSON.stringify(newReal, null, 2)}\n`, { mode: 0o600 });
       renameSync(`${path}.pstack-tmp`, path);
     }
-    if (copyChanged) writeFileSync(join(jobDir, 'auth.json'), `${JSON.stringify(copy, null, 2)}\n`, { mode: 0o600 });
+    if (copyChanged) writeFileSync(join(jobDir, 'auth.json'), `${JSON.stringify(newCopy, null, 2)}\n`, { mode: 0o600 });
   });
 }

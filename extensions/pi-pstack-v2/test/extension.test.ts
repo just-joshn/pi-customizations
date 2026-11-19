@@ -1,14 +1,15 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import pstack, { modelsFile, serveRequests } from '../src/index.ts';
-import { read, request, resultsDir, tmuxSocket } from '../src/jobs.ts';
+import { z } from 'zod';
+import pstack, { modelsFile } from '../src/index.ts';
+import { tmuxSocket } from '../src/jobs.ts';
 import { externalTempCases } from './fixtures/temp-mutations.ts';
 
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
@@ -18,6 +19,24 @@ type Tool = {
   execute: (id: string, params: Record<string, unknown>, signal: undefined, update: undefined, ctx: unknown) => Promise<{ content: { text: string }[] }>;
 };
 
+const ROOT_DIR = '/';
+const SHARED_TMP_DIR = '/tmp';
+const SKILL_PATH_PLACEHOLDER = '/<name>/SKILL.md';
+const SESSION_FILE = '/sessions/run.jsonl';
+const MODE_OFF_COMMAND = '/pstack-mode off';
+const MODE_KEEPS_SKILL_TITLE = '/pstack-mode keeps a skill in the system prompt every turn until it is turned off';
+const MODE_REFUSES_NAME_TITLE = '/pstack-mode refuses a name that is not a pstack skill and keeps the current mode';
+const authSchema = z.record(z.string(), z.record(z.string(), z.unknown()));
+const WAIT_SHORT_SECONDS = 10;
+const WAIT_LONG_SECONDS = 15;
+const WAIT_BUDGET_MS = 10_000;
+const WAIT_DEFAULT_ELAPSED_MS = 301_000;
+const MACOS_TOOL_POLL_TIMEOUT_MS = 45_000;
+const MACOS_SANDBOX_TIMEOUT_MS = 60_000;
+const INTERROGATE_TIMEOUT_MS = 30_000;
+const RANDOM_SUFFIX_BYTES = 3;
+const PNPM_MIN_MAJOR = 11;
+const askedSchema = z.object({ brokered: z.boolean(), argv: z.array(z.unknown()) });
 const owner = `ext${process.pid}`;
 let agentDir: string;
 let repo: string;
@@ -27,13 +46,11 @@ let commands: Record<string, { handler: (args: string, ctx: unknown) => Promise<
 let sendMessage: ReturnType<typeof vi.fn>;
 let branch: { type: string; customType?: string; data?: unknown }[];
 let ctx: Record<string, unknown>;
-const savedArgv = process.argv[1] ?? '';
 
 const jobs = () => {
   const root = join(agentDir, 'pstack-v2', 'jobs');
   return existsSync(root) ? readdirSync(root) : [];
 };
-const spec = (id: string) => JSON.parse(readFileSync(join(agentDir, 'pstack-v2', 'jobs', id, 'job.json'), 'utf8')) as { argv: string[]; command: string[] };
 const wrapperEnv = (dir: string) => {
   const wrapper = readFileSync(join(dir, 'wrapper.sh'), 'utf8');
   const pick = (name: string) => new RegExp(`${name}='([^']*)'`).exec(wrapper)?.[1];
@@ -50,9 +67,6 @@ beforeEach(() => {
   execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
   vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
   vi.stubEnv('PSTACK_V2_SANDBOXED', '');
-  const fakePi = join(agentDir, 'fake-pi.mjs');
-  writeFileSync(fakePi, "process.stdout.write('fake worker report\\n');\n");
-  process.argv[1] = fakePi;
   handlers = {};
   tools = {};
   sendMessage = vi.fn();
@@ -60,16 +74,16 @@ beforeEach(() => {
   branch = [];
   const api = {
     appendEntry: (customType: string, data?: unknown) => {
-      branch.push({ type: 'custom', customType, data });
+      branch = [...branch, { type: 'custom', customType, data }];
     },
     registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => {
-      commands[name] = command;
+      commands = { ...commands, [name]: command };
     },
     on: (event: string, handler: Handler) => {
-      handlers[event] = handler;
+      handlers = { ...handlers, [event]: handler };
     },
     registerTool: (tool: Tool & { name: string }) => {
-      tools[tool.name] = tool;
+      tools = { ...tools, [tool.name]: tool };
     },
     sendMessage,
   };
@@ -93,151 +107,21 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  await handlers['session_shutdown']?.({}, ctx);
-  process.argv[1] = savedArgv;
+  await handlers?.['session_shutdown']?.({}, ctx);
   vi.unstubAllEnvs();
-  try {
-    execFileSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
-  } catch {
-    // No server was started.
-  }
-  rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-  rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-});
-
-describe('pi_spawn', { timeout: 20_000 }, () => {
-  test('the agent parameter tells the model what each role is for', () => {
-    const description = tools['pi_spawn']?.parameters?.properties['agent']?.description ?? '';
-    expect(description).toContain('ci-watcher: Watch PR CI for the current branch');
-    expect(description).toContain('comment-sicko: A deranged comment-hater');
-  });
-
-  test('the base parameter says it defaults to the session HEAD', () => {
-    expect(tools['pi_spawn']?.parameters?.properties['base']?.description).toMatch(/current HEAD.*default branch/s);
-  });
-
-  test('an unknown model is rejected before any job is created', async () => {
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Unavailable model "nope\/none"/);
-    // The error lists the valid models, so a skill's fallback can pick from it.
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'nope/none' })).rejects.toThrow(/Valid models: prov\/model\./);
-    expect(jobs()).toEqual([]);
-  });
-
-  test('a model Pi knows but holds no credentials for is rejected like an unknown one', async () => {
-    // Only a usable model passes, and any other fails at the call, which a skill's fallback relies on.
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', model: 'prov/no-credentials', worktree: 'seat-1' })).rejects.toThrow(/Valid models: prov\/model\./);
-    expect(jobs()).toEqual([]);
-    expect(execFileSync('git', ['-C', repo, 'branch', '--list', 'seat-1'], { encoding: 'utf8' })).toBe('');
-  });
-
-  test('a worker can read its model catalog while the parent catalog is locked', async () => {
-    const entry = { models: [{ id: 'grok-4.7-fast' }] };
-    writeFileSync(join(agentDir, 'models-store.json'), JSON.stringify({ 'spacex-cursor': entry }));
-    mkdirSync(join(agentDir, 'models-store.json.lock'));
-    const storeModule = new URL('./core/models-store.js', import.meta.resolve('@earendil-works/pi-coding-agent')).href;
-    writeFileSync(process.argv[1] ?? '', `import { FileModelsStore } from ${JSON.stringify(storeModule)};\nconsole.log(JSON.stringify(await new FileModelsStore().read('spacex-cursor', { signal: AbortSignal.timeout(2000) })));\n`);
-    await call('pi_spawn', { name: 'catalog', brief: 'hi' });
-    const [id = ''] = jobs();
-    const report = (await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 10 }))?.content[0]?.text ?? '';
-    expect(report).toContain(JSON.stringify(entry));
-    expect(readFileSync(join(agentDir, 'models-store.json'), 'utf8')).toBe(JSON.stringify({ 'spacex-cursor': entry }));
-  });
-
-  test('a bad worktree base leaves no job directory or worktree', async () => {
-    await expect(call('pi_spawn', { name: 'x', brief: 'hi', worktree: 'probe', base: 'no-such-ref' })).rejects.toThrow(/invalid reference|not a valid object name/);
-    expect(jobs()).toEqual([]);
-    expect(execFileSync('git', ['-C', repo, 'worktree', 'list'], { encoding: 'utf8' }).trim().split('\n')).toHaveLength(1);
-  });
-
-  test('a readonly worker loses the edit and write tools and cannot write the checkout', async () => {
-    await call('pi_spawn', { name: 'ro', brief: 'hi', readonly: true, model: 'prov/model', thinking: 'high' });
-    const [id] = jobs();
-    const argv = spec(id ?? '').argv;
-    expect(argv).toEqual(expect.arrayContaining(['--exclude-tools', 'edit,write', '--model', 'prov/model', '--thinking', 'high', '--approve']));
-    if (argv[0] === 'sandbox-exec') expect(argv[2]).not.toContain(`(subpath "${repo}")`);
-  });
-
-  test('a worktree worker runs in a new branch checkout it may write', async () => {
-    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'feature-x' });
-    const [id] = jobs();
-    const worktree = join(agentDir, 'pstack-v2', 'jobs', id ?? '', 'worktree');
-    expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('feature-x');
-    if (spec(id ?? '').argv[0] === 'sandbox-exec') expect(spec(id ?? '').argv[2]).toContain(`(subpath "${worktree}")`);
-  });
-
-  test('a print-mode run waits for its workers and continues with their reports', async () => {
-    ctx = { ...ctx, mode: 'print', hasUI: false };
-    await call('pi_spawn', { name: 'w', brief: 'hi' });
-    const result = (await handlers['agent_before_settle']?.({ entries: [] }, ctx)) as { entries: { content: string }[]; continue: boolean };
-    expect(result.continue).toBe(true);
-    expect(result.entries.map((entry) => entry.content).join('\n')).toContain('fake worker report');
-  });
-});
-
-describe('pi_spawn resume and reports', { timeout: 20_000 }, () => {
-  const finished = async (id: string) => {
-    await expect.poll(() => read(jobsRoot(), id, owner)?.status.state, { timeout: 10_000 }).toBe('exited');
-  };
-
-  test('a resumed worker keeps its model, thinking, role, and readonly unless the call overrides them', async () => {
-    await call('pi_spawn', { name: 'first', brief: 'one', agent: 'ci-watcher', readonly: true, model: 'prov/model', thinking: 'high' });
-    const [first = ''] = jobs();
-    await finished(first);
-    await call('pi_spawn', { name: 'second', brief: 'two', resume: first });
-    const second = jobs().find((id) => id !== first) ?? '';
-    const resumed = spec(second);
-    expect(resumed.command).toEqual(expect.arrayContaining(['--continue', '--model', 'prov/model', '--thinking', 'high', '--exclude-tools', 'edit,write', '--append-system-prompt', join(jobsRoot(), second, 'agent.md')]));
-    expect(readFileSync(join(jobsRoot(), second, 'agent.md'), 'utf8')).toBe(readFileSync(join(jobsRoot(), first, 'agent.md'), 'utf8'));
-    await finished(second);
-    await call('pi_spawn', { name: 'third', brief: 'three', resume: second, thinking: 'low', readonly: false });
-    const third = spec(jobs().find((id) => id !== first && id !== second) ?? '');
-    expect(third.command).toEqual(expect.arrayContaining(['--thinking', 'low', '--model', 'prov/model']));
-    expect(third.command).not.toContain('--exclude-tools');
-    expect(third.command).toEqual(expect.arrayContaining(['--session-dir', join(jobsRoot(), first, 'session')]));
-  });
-
-  test('a long report keeps the verdict at its head and the end of the output, without splitting a character', async () => {
-    writeFileSync(process.argv[1] ?? '', "process.stdout.write('PASS verdict\\n' + '€'.repeat(20000) + 'END');\n");
-    await call('pi_spawn', { name: 'long', brief: 'hi' });
-    const [id = ''] = jobs();
-    const report = (await call('tmux_jobs', { action: 'wait', ids: [id], timeout_seconds: 10 }))?.content[0]?.text ?? '';
-    const body = /<output>\n([\s\S]*)\n<\/output>/.exec(report)?.[1] ?? '';
-    expect(body.startsWith('PASS verdict')).toBe(true);
-    expect(body.endsWith('END')).toBe(true);
-    expect(body).toMatch(/\[\.\.\. \d+ bytes omitted, full output at .*output\.log \.\.\.\]/);
-    expect(body).not.toContain('\uFFFD');
-  });
+  spawnSync('tmux', ['-S', tmuxSocket(owner), 'kill-server'], { stdio: 'ignore' });
+  if (agentDir) rmSync(agentDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  if (repo) rmSync(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
 describe('launch paths and the nesting limit', { timeout: 20_000 }, () => {
-  test('a root pi_spawn and tmux_run each run as their own top-level job', async () => {
-    await call('pi_spawn', { name: 'w', brief: 'hi' });
+  test('a root tmux_run runs as its own top-level job', async () => {
     await call('tmux_run', { name: 'c', command: 'true' });
-    expect(jobs()).toHaveLength(2);
+    expect(jobs()).toHaveLength(1);
     for (const id of jobs()) {
       const { job, top } = wrapperEnv(join(jobsRoot(), id));
       expect([job, top]).toEqual([join(jobsRoot(), id), join(jobsRoot(), id)]);
     }
-  });
-});
-
-describe('who may start workers', () => {
-  const registered = (jobDir: string, topDir: string) => {
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
-    vi.stubEnv('PSTACK_V2_JOB_DIR', jobDir);
-    vi.stubEnv('PSTACK_V2_TOP_DIR', topDir);
-    const names: string[] = [];
-    pstack({ registerCommand: () => {}, on: () => {}, registerTool: (tool: { name: string }) => names.push(tool.name), sendMessage } as unknown as ExtensionAPI);
-    return names;
-  };
-
-  test('a worker the root started can start workers', () => {
-    expect(registered(join(agentDir, 'top'), join(agentDir, 'top'))).toContain('pi_spawn');
-  });
-
-  test('a worker started by another worker cannot, but can still run commands', () => {
-    expect(registered(join(agentDir, 'top', 'nested', 'child'), join(agentDir, 'top'))).toEqual(expect.arrayContaining(['tmux_run', 'tmux_jobs']));
-    expect(registered(join(agentDir, 'top', 'nested', 'child'), join(agentDir, 'top'))).not.toContain('pi_spawn');
   });
 });
 
@@ -253,8 +137,7 @@ describe('tmux_run', { timeout: 20_000 }, () => {
   });
 
   test('a directory outside the project is refused', async () => {
-    await expect(call('tmux_run', { name: 'out', command: 'true', cwd: '/' })).rejects.toThrow(/inside this project/);
-    await expect(call('pi_spawn', { name: 'out', brief: 'hi', cwd: '..' })).rejects.toThrow(/inside this project.*pass worktree/s);
+    await expect(call('tmux_run', { name: 'out', command: 'true', cwd: ROOT_DIR })).rejects.toThrow(/inside this project/);
     expect(jobs()).toEqual([]);
   });
 
@@ -266,7 +149,6 @@ describe('tmux_run', { timeout: 20_000 }, () => {
       const planted = join(repo, 'scratch', 'other-checkout');
       execFileSync('git', ['-C', other, 'worktree', 'add', '-q', '-b', 'side', planted]);
       await expect(call('tmux_run', { name: 'foreign', command: 'true', cwd: planted })).rejects.toThrow(/another repository/);
-      await expect(call('pi_spawn', { name: 'foreign', brief: 'hi', cwd: planted })).rejects.toThrow(/another repository/);
       expect(jobs()).toEqual([]);
     } finally {
       rmSync(other, { recursive: true, force: true });
@@ -303,13 +185,13 @@ describe('system prompt', () => {
     return event.systemPromptOptions.sections['pstack-mode'];
   };
 
-  test('/pstack-mode keeps a skill in the system prompt every turn until it is turned off', async () => {
+  test(MODE_KEEPS_SKILL_TITLE, async () => {
     expect(await prompt()).toBeUndefined();
     await commands['pstack-mode']?.handler('poteto-mode', ctx);
     const section = await prompt();
     expect(section).toContain('<skill name="poteto-mode"');
     expect(section).toContain('# Poteto mode');
-    expect(section).toContain('/pstack-mode off');
+    expect(section).toContain(MODE_OFF_COMMAND);
     expect(await prompt()).toBe(section);
     expect((ctx['ui'] as { setStatus: ReturnType<typeof vi.fn> }).setStatus).toHaveBeenLastCalledWith('pstack-mode', 'mode: poteto-mode');
     await commands['pstack-mode']?.handler('off', ctx);
@@ -318,21 +200,23 @@ describe('system prompt', () => {
   });
 
   test('the mode comes back from the session branch when the session starts or the branch changes', async () => {
-    branch.push({ type: 'custom', customType: 'pstack-mode', data: { skill: 'how' } });
+    branch = [...branch, { type: 'custom', customType: 'pstack-mode', data: { skill: 'how' } }];
     await handlers['session_start']?.({}, ctx);
     expect(await prompt()).toContain('<skill name="how"');
-    branch.length = 0;
+    branch = [];
     await handlers['session_tree']?.({}, ctx);
     expect(await prompt()).toBeUndefined();
   });
 
-  test('/pstack-mode refuses a name that is not a pstack skill and keeps the current mode', async () => {
+  test(MODE_REFUSES_NAME_TITLE, async () => {
     await commands['pstack-mode']?.handler('poteto-mode', ctx);
     await commands['pstack-mode']?.handler('../../etc', ctx);
     expect(await prompt()).toContain('<skill name="poteto-mode"');
     expect((ctx['ui'] as { notify: ReturnType<typeof vi.fn> }).notify).toHaveBeenLastCalledWith(expect.stringContaining('not a pstack skill'), 'error');
   });
+});
 
+describe('system prompt, roles and session', () => {
   test('carries the model roles when configured, and no team-kit rule, since pstack uses none', async () => {
     writeFileSync(modelsFile(agentDir), 'swarm workers: prov/model high\n');
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
@@ -345,7 +229,7 @@ describe('system prompt', () => {
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(event, ctx);
     await handlers['before_agent_start']?.(event, ctx);
-    const skills = event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes('/<name>/SKILL.md'));
+    const skills = event.systemPromptOptions.promptGuidelines.filter((rule) => rule.includes(SKILL_PATH_PLACEHOLDER));
     expect(skills).toHaveLength(1);
     expect(skills[0]).toContain(join(dirname(dirname(fileURLToPath(import.meta.url))), 'skills'));
     expect(skills[0]).toMatch(/read that file and follow it/);
@@ -353,8 +237,8 @@ describe('system prompt', () => {
 
   test("names this session's transcript, since a worker's agent directory is its job's and holds no parent session", async () => {
     const event = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
-    await handlers['before_agent_start']?.(event, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => '/sessions/run.jsonl' } });
-    expect(event.systemPromptOptions.sections['pstack-session']).toContain('/sessions/run.jsonl');
+    await handlers['before_agent_start']?.(event, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => SESSION_FILE } });
+    expect(event.systemPromptOptions.sections['pstack-session']).toContain(SESSION_FILE);
     const ephemeral = { systemPromptOptions: { promptGuidelines: [] as string[], sections: {} as Record<string, string> } };
     await handlers['before_agent_start']?.(ephemeral, { ...ctx, sessionManager: { getSessionId: () => owner, getSessionFile: () => undefined } });
     expect(ephemeral.systemPromptOptions.sections['pstack-session']).toBeUndefined();
@@ -396,19 +280,15 @@ describe('sandbox guidance', () => {
     expect(note).toMatch(/Unix sockets.*ssh-agent.*HTTPS remote/s);
     expect(note).toMatch(/\.git\/hooks.*\.vscode.*\.claude.*quarantine/s);
   });
-
-  test('pi_spawn tells the model a worker cannot write the shared /tmp, so a brief names $TMPDIR', () => {
-    expect(tools['pi_spawn']?.description).toMatch(/\/tmp.*read-only.*\$TMPDIR/s);
-  });
 });
 
-describe('tmux_jobs', { timeout: 20_000 }, () => {
-  const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
+const text = async (params: Record<string, unknown>) => (await call('tmux_jobs', params))?.content[0]?.text ?? '';
 
+describe('tmux_jobs', { timeout: 20_000 }, () => {
   test('wait returns the report of a finished job and suppresses its wake', async () => {
     await handlers['session_start']?.({}, ctx);
     await call('tmux_run', { name: 'quick', command: 'echo waited-output', wake: 'Next.' });
-    const report = await text({ action: 'wait', timeout_seconds: 10 });
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_SHORT_SECONDS });
     expect(report).toContain('exited with code 0');
     expect(report).toContain('waited-output');
     expect(sendMessage).not.toHaveBeenCalled();
@@ -428,18 +308,20 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     await call('tmux_run', { name: 'server', command: 'sleep 30' });
     await call('tmux_run', { name: 'build', command: 'echo built-output', wake: 'Built.' });
     const started = Date.now();
-    const report = await text({ action: 'wait', timeout_seconds: 15 });
-    expect(Date.now() - started).toBeLessThan(10_000);
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_LONG_SECONDS });
+    expect(Date.now() - started).toBeLessThan(WAIT_BUDGET_MS);
     expect(report).toContain('built-output');
     expect(report).not.toContain('still running');
   });
+});
 
+describe('tmux_jobs, waiting and output', { timeout: 20_000 }, () => {
   test('wait hands the turn back as soon as the user sends a message', async () => {
     await call('tmux_run', { name: 'slow', command: 'sleep 30', wake: 'Slow.' });
     ctx = { ...ctx, hasPendingMessages: () => true };
     const started = Date.now();
-    const report = await text({ action: 'wait', timeout_seconds: 15 });
-    expect(Date.now() - started).toBeLessThan(10_000);
+    const report = await text({ action: 'wait', timeout_seconds: WAIT_LONG_SECONDS });
+    expect(Date.now() - started).toBeLessThan(WAIT_BUDGET_MS);
     expect(report).toContain('still running');
   });
 
@@ -448,7 +330,7 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
     try {
       const waiting = text({ action: 'wait' });
-      await vi.advanceTimersByTimeAsync(301_000);
+      await vi.advanceTimersByTimeAsync(WAIT_DEFAULT_ELAPSED_MS);
       expect(await Promise.race([waiting, Promise.resolve('STILL WAITING')])).toContain('still running');
     } finally {
       vi.useRealTimers();
@@ -462,7 +344,9 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
     await call('tmux_jobs', { action: 'stop', ids: [jobs()[0] ?? ''] });
     expect(sendMessage).not.toHaveBeenCalled();
   });
+});
 
+describe('tmux_jobs, live sessions', { timeout: 20_000 }, () => {
   test("a job's output shows live in its tmux session, and list says how to attach to it", async () => {
     await call('tmux_run', { name: 'live', command: 'echo live-in-pane; sleep 30' });
     const [id] = jobs();
@@ -488,111 +372,6 @@ describe('tmux_jobs', { timeout: 20_000 }, () => {
 });
 
 describe('nested jobs', { timeout: 20_000 }, () => {
-  const topJob = async () => {
-    const slowPi = join(agentDir, 'slow-pi.mjs');
-    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
-    process.argv[1] = slowPi;
-    ctx = { ...ctx, mode: 'print', hasUI: false };
-    await handlers['session_start']?.({}, ctx);
-    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
-    const [id] = jobs();
-    const dir = join(agentDir, 'pstack-v2', 'jobs', id ?? '');
-    return { dir, granted: spec(id ?? '') as unknown as { policy: { writable: string[] } } };
-  };
-  const nestedRequest = (topDir: string, name: string, writable: string[], command: string, kind: 'pi' | 'command' = 'command', nested = join(topDir, 'nested')) => {
-    const id = `${name}-000001`;
-    vi.stubEnv('PSTACK_V2_TOP_DIR', topDir);
-    request(nested, {
-      id,
-      name,
-      kind,
-      cwd: repo,
-      argv: [],
-      command: ['bash', '-c', command],
-      policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(nested, id) },
-      brokered: true,
-      owner: 'top-worker',
-      wake: 'done',
-      repeat: false,
-      series: id,
-      socket: '',
-      sweep: { roots: [], protect: [] },
-      out: '',
-      createdAt: new Date().toISOString(),
-    });
-    return resultsDir(topDir, join(nested, id));
-  };
-  const exitOf = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
-
-  test('the root launches a sandboxed worker request inside what it granted', async () => {
-    const top = await topJob();
-    const dir = nestedRequest(top.dir, 'inner', [repo], `touch ${repo}/brokered.txt`);
-    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('0');
-    expect(existsSync(join(repo, 'brokered.txt'))).toBe(true);
-    const requestDir = join(top.dir, 'nested', 'inner-000001');
-    expect(wrapperEnv(dir)).toEqual({ job: requestDir, top: top.dir });
-  });
-
-  test('the root refuses a request that writes outside what it granted', async () => {
-    const top = await topJob();
-    const outside = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-outside-')));
-    const dir = nestedRequest(top.dir, 'greedy', [outside], `touch ${outside}/escaped.txt`);
-    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('126');
-    expect(readFileSync(join(dir, 'output.log'), 'utf8')).toContain('refused');
-    expect(existsSync(join(outside, 'escaped.txt'))).toBe(false);
-    rmSync(outside, { recursive: true, force: true });
-  });
-
-  test('a request is launched under its own narrower sandbox', async () => {
-    const top = await topJob();
-    expect(top.granted.policy.writable).toEqual(expect.arrayContaining([repo]));
-    const dir = nestedRequest(top.dir, 'narrow', [join(top.dir, 'nested')], `touch ${repo}/narrow.txt`);
-    await expect.poll(() => exitOf(dir), { timeout: 10_000 }).toBe('1');
-    expect(existsSync(join(repo, 'narrow.txt'))).toBe(false);
-  });
-
-  test('the root never writes through links a worker plants in its request', async () => {
-    const top = await topJob();
-    const victim = join(repo, 'victim.txt');
-    writeFileSync(victim, 'original\n');
-    const out = nestedRequest(top.dir, 'linky', [join(top.dir, 'nested')], 'echo attacker-bytes');
-    const requestDir = join(top.dir, 'nested', 'linky-000001');
-    for (const name of ['output.log', 'exit', 'launched', 'stderr.log']) symlinkSync(victim, join(requestDir, name));
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
-    expect(readFileSync(victim, 'utf8')).toBe('original\n');
-  });
-
-  test('a worker started by another worker cannot get a Pi worker launched, but can get a command launched', async () => {
-    const top = await topJob();
-    nestedRequest(top.dir, 'child', [join(top.dir, 'nested')], 'sleep 20');
-    const grandchildNested = join(top.dir, 'nested', 'child-000001', 'nested');
-    await expect.poll(() => existsSync(join(resultsDir(top.dir, join(top.dir, 'nested', 'child-000001')), 'launched')), { timeout: 10_000 }).toBe(true);
-    const pi = nestedRequest(top.dir, 'grandchild', [grandchildNested], 'true', 'pi', grandchildNested);
-    const command = nestedRequest(top.dir, 'tick', [grandchildNested], 'true', 'command', grandchildNested);
-    await expect.poll(() => exitOf(pi), { timeout: 10_000 }).toBe('126');
-    expect(readFileSync(join(pi, 'output.log'), 'utf8')).toContain('cannot start workers of its own');
-    await expect.poll(() => exitOf(command), { timeout: 10_000 }).toBe('0');
-  });
-
-  test('the root ignores a temp directory a worker names outside what it may write', async () => {
-    const top = await topJob();
-    const outside = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-outside-')));
-    const out = nestedRequest(top.dir, 'tmpgrab', [join(top.dir, 'nested')], 'echo x > "$TMPDIR/own"');
-    const job = join(top.dir, 'nested', 'tmpgrab-000001', 'job.json');
-    writeFileSync(job, JSON.stringify({ ...JSON.parse(readFileSync(job, 'utf8')), tmp: outside }));
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
-    expect(readdirSync(outside)).toEqual([]);
-    rmSync(outside, { recursive: true, force: true });
-  });
-
-  test('a malformed request does not stop the next one', async () => {
-    const top = await topJob();
-    mkdirSync(join(top.dir, 'nested', 'aaa-broken'), { recursive: true });
-    writeFileSync(join(top.dir, 'nested', 'aaa-broken', 'job.json'), JSON.stringify({ brokered: true, kind: 'command', cwd: repo, command: ['true'], policy: { writable: [1] } }));
-    const out = nestedRequest(top.dir, 'zzz-good', [join(top.dir, 'nested')], 'true');
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
-  });
-
   test('a sandboxed worker writes a request instead of launching', async () => {
     vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
     vi.stubEnv('PSTACK_V2_JOB_DIR', join(agentDir, 'fake-worker'));
@@ -600,118 +379,10 @@ describe('nested jobs', { timeout: 20_000 }, () => {
     await call('tmux_run', { name: 'asked', command: 'true' });
     const nested = join(agentDir, 'fake-worker', 'nested');
     const [id] = readdirSync(nested);
-    const asked = JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8')) as { brokered: boolean; argv: string[] };
+    const asked = askedSchema.parse(JSON.parse(readFileSync(join(nested, id ?? '', 'job.json'), 'utf8')));
     expect([asked.brokered, asked.argv]).toEqual([true, []]);
     expect(existsSync(join(nested, id ?? '', 'launched'))).toBe(false);
   });
-
-  const workerWorktreeSpawn = async (params: Record<string, unknown>, edit: (job: Record<string, unknown>, requestDir: string) => void = () => {}) => {
-    const top = await topJob();
-    const child = join(agentDir, 'committer-pi.mjs');
-    writeFileSync(
-      child,
-      `import { execFileSync } from 'node:child_process';
-      import fs from 'node:fs';
-      fs.writeFileSync('from-child.txt', 'x');
-      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'add', 'from-child.txt']);
-      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'child']);\n`,
-    );
-    process.argv[1] = child;
-    const metadata = join(repo, '.git', 'worktrees');
-    mkdirSync(metadata, { recursive: true });
-    chmodSync(metadata, 0o555);
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
-    vi.stubEnv('PSTACK_V2_JOB_DIR', top.dir);
-    vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
-    try {
-      const result = await call('pi_spawn', { name: 'adversary', brief: 'hi', worktree: 'interrogate-slug-1', base: 'HEAD', ...params });
-      const [id] = readdirSync(join(top.dir, 'nested'));
-      const requestDir = join(top.dir, 'nested', id ?? '');
-      const job = JSON.parse(readFileSync(join(requestDir, 'job.json'), 'utf8')) as Record<string, unknown>;
-      edit(job, requestDir);
-      writeFileSync(join(requestDir, 'job.json'), JSON.stringify(job));
-      return { out: resultsDir(top.dir, requestDir), text: result?.content[0]?.text ?? '' };
-    } finally {
-      vi.stubEnv('PSTACK_V2_SANDBOXED', '');
-      chmodSync(metadata, 0o755);
-    }
-  };
-  const branches = (cwd: string) => execFileSync('git', ['-C', cwd, 'branch', '--format=%(refname:short)'], { encoding: 'utf8' }).trim().split('\n');
-  const worktrees = (cwd: string) => execFileSync('git', ['-C', cwd, 'worktree', 'list'], { encoding: 'utf8' }).trim().split('\n');
-
-  test("a worker's pi_spawn with a worktree gets a checkout on that branch its job may write", async () => {
-    const { out, text } = await workerWorktreeSpawn({});
-    const worktree = join(out, 'worktree');
-    expect(text).toContain(`cwd: ${worktree}`);
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('0');
-    expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('interrogate-slug-1');
-    expect(execFileSync('git', ['-C', repo, 'log', '-1', '--format=%s', 'interrogate-slug-1'], { encoding: 'utf8' }).trim()).toBe('child');
-  });
-
-  test("a readonly worker's worktree is created but its job cannot write it", async () => {
-    const { out } = await workerWorktreeSpawn({ readonly: true });
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('1');
-    expect(execFileSync('git', ['-C', join(out, 'worktree'), 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('interrogate-slug-1');
-    expect(existsSync(join(out, 'worktree', 'from-child.txt'))).toBe(false);
-  });
-
-  test('a worktree request naming its own request directory, where the worker could swap in a link, is refused and leaves no worktree or branch', async () => {
-    const { out } = await workerWorktreeSpawn({}, (job, requestDir) => {
-      job['cwd'] = join(requestDir, 'worktree');
-    });
-    await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('126');
-    expect(readFileSync(join(out, 'output.log'), 'utf8')).toContain('refused');
-    expect([branches(repo).includes('interrogate-slug-1'), worktrees(repo).length]).toEqual([false, 1]);
-  });
-
-  test('a worktree request naming another repository is refused and leaves no worktree or branch in either', async () => {
-    const other = realpathSync(mkdtempSync(join(homedir(), '.pstack-other-')));
-    execFileSync('git', ['init', '-q', other]);
-    execFileSync('git', ['-C', other, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
-    try {
-      const { out } = await workerWorktreeSpawn({}, (job) => {
-        job['cwd'] = other;
-        job['policy'] = { ...(job['policy'] as object), writable: [other, join(other, '.git')] };
-      });
-      await expect.poll(() => exitOf(out), { timeout: 10_000 }).toBe('126');
-      expect(readFileSync(join(out, 'output.log'), 'utf8')).toContain('refused');
-      for (const checkout of [repo, other]) expect([branches(checkout).includes('interrogate-slug-1'), worktrees(checkout).length]).toEqual([false, 1]);
-    } finally {
-      rmSync(other, { recursive: true, force: true });
-    }
-  });
-});
-
-test('a request from a worker that has finished is never launched', { timeout: 20_000 }, async () => {
-  ctx = { ...ctx, mode: 'print', hasUI: false };
-  await call('pi_spawn', { name: 'done', brief: 'hi', wake: false });
-  const [id] = jobs();
-  const root = join(agentDir, 'pstack-v2', 'jobs');
-  await expect.poll(() => read(root, id ?? '', owner)?.status.state, { timeout: 10_000 }).toBe('exited');
-  const top = read(root, id ?? '', owner);
-  if (!top) throw new Error('top job missing');
-  const reqId = 'late-000001';
-  vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
-  request(join(top.dir, 'nested'), {
-    id: reqId,
-    name: 'late',
-    kind: 'command',
-    cwd: repo,
-    argv: [],
-    command: ['bash', '-c', `touch ${repo}/late.txt`],
-    policy: { writable: [repo], protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(top.dir, 'nested', reqId) },
-    brokered: true,
-    owner: 'w',
-    wake: null,
-    repeat: false,
-    series: reqId,
-    socket: '',
-    sweep: { roots: [], protect: [] },
-    out: '',
-    createdAt: '',
-  });
-  serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), true);
-  expect(existsSync(join(resultsDir(top.dir, join(top.dir, 'nested', reqId)), 'launched'))).toBe(false);
 });
 
 describe('git cannot be repointed at planted hooks', { timeout: 20_000 }, () => {
@@ -791,17 +462,12 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
     const sleeper = Number(readFileSync(join(repo, 'sleeper.pid'), 'utf8'));
     await call('tmux_jobs', { action: 'stop', ids: [id] });
     await expect.poll(() => existsSync(join(repo, '.pi', 'extensions')), { timeout: 10_000 }).toBe(false);
-    const alive = (): boolean => {
-      try {
-        process.kill(sleeper, 0);
-        return true;
-      } catch {
-        return false;
-      }
-    };
+    const alive = (): boolean => spawnSync('kill', ['-0', String(sleeper)]).status === 0;
     await expect.poll(alive, { timeout: 5_000 }).toBe(false);
   });
+});
 
+describe('cleanup a job cannot dodge, stop and heartbeat', { timeout: 20_000 }, () => {
   test('stop does not touch a tmux server a job points its socket at', async () => {
     const victim = join(tmpdir(), `pstack-victim-${process.pid}.sock`);
     execFileSync('tmux', ['-S', victim, 'new-session', '-d', '-s', 'victim', 'sleep 30']);
@@ -818,7 +484,7 @@ describe('cleanup a job cannot dodge', { timeout: 20_000 }, () => {
   test('a heartbeat keeps running after tmux_jobs wait returns its tick', async () => {
     await call('tmux_run', { name: 'tick', command: 'sleep 0.5', wake: 'Tick.', repeat: true });
     const [first] = jobs();
-    await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: 10 });
+    await call('tmux_jobs', { action: 'wait', ids: [first], timeout_seconds: WAIT_SHORT_SECONDS });
     expect(jobs()).toHaveLength(2);
     await call('tmux_jobs', { action: 'stop', ids: [first] });
   });
@@ -829,7 +495,7 @@ describe('round five', { timeout: 20_000 }, () => {
   const output = () => readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8');
 
   test('a job cannot write shared temp directories, where unsandboxed programs cache code, but has its own', async () => {
-    const shared = process.platform === 'darwin' ? realpathSync(tmpdir()) : '/tmp';
+    const shared = process.platform === 'darwin' ? realpathSync(tmpdir()) : SHARED_TMP_DIR;
     await call('tmux_run', { name: 'tmp', command: `touch ${shared}/pstack-shared-${process.pid} 2>/dev/null && echo SHARED-WRITTEN; touch "$TMPDIR/own" && echo OWN-WRITTEN` });
     await exited();
     // On Linux the write lands in the job's private /tmp, so what matters is that the shared one is untouched.
@@ -847,27 +513,11 @@ describe('round five', { timeout: 20_000 }, () => {
   });
 });
 
-test('a worker that fails at startup reports its stderr', { timeout: 20_000 }, async () => {
-  const failing = join(agentDir, 'failing-pi.mjs');
-  writeFileSync(failing, "process.stderr.write('No API key for provider\\n'); process.exit(1);\n");
-  process.argv[1] = failing;
-  ctx = { ...ctx, mode: 'print', hasUI: false };
-  await call('pi_spawn', { name: 'broken', brief: 'hi' });
-  const result = (await handlers['agent_before_settle']?.({ entries: [] }, ctx)) as { entries: { content: string }[] };
-  expect(result.entries[0]?.content).toContain('No API key for provider');
-});
+const alive = (pid: number): boolean => spawnSync('kill', ['-0', String(pid)]).status === 0;
 
 describe('round four', { timeout: 20_000 }, () => {
   const jobDir = () => join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '');
   const exited = async () => expect.poll(() => existsSync(join(jobDir(), 'exit')), { timeout: 10_000 }).toBe(true);
-  const alive = (pid: number): boolean => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   test('a job may not write a directory that holds Pi itself', async () => {
     ctx = { ...ctx, cwd: dirname(agentDir) };
@@ -951,21 +601,6 @@ describe('renames, pointers, sockets, and loops', { timeout: 20_000 }, () => {
     expect(readFileSync(join(agentDir, 'pstack-v2', 'jobs', jobs()[0] ?? '', 'output.log'), 'utf8').trim()).toBe('refused');
     server.close();
   });
-
-  test('a worker cannot freeze the root with a loop of nested links', async () => {
-    const root = join(agentDir, 'pstack-v2', 'jobs');
-    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
-    const top = read(root, jobs()[0] ?? '', owner);
-    if (!top) throw new Error('top job missing');
-    for (const name of ['a', 'b', 'c']) {
-      mkdirSync(join(top.dir, 'nested', name), { recursive: true });
-      writeFileSync(join(top.dir, 'nested', name, 'job.json'), JSON.stringify({ brokered: true, kind: 'command', cwd: repo, command: ['true'], policy: { writable: [], protect: [], lock: [], gitDirs: [] } }));
-      symlinkSync(join(top.dir, 'nested'), join(top.dir, 'nested', name, 'nested'));
-    }
-    const started = Date.now();
-    serveRequests(top, tmuxSocket(owner), join(top.dir, 'nested'), true);
-    expect(Date.now() - started).toBeLessThan(2_000);
-  });
 });
 
 describe('a sweep a job cannot switch off', { timeout: 20_000 }, () => {
@@ -983,79 +618,21 @@ describe('a sweep a job cannot switch off', { timeout: 20_000 }, () => {
   });
 });
 
-describe('interrogate round', { timeout: 30_000 }, () => {
-  const jobsRoot = () => join(agentDir, 'pstack-v2', 'jobs');
-  const exitIn = (out: string) => (existsSync(join(out, 'exit')) ? readFileSync(join(out, 'exit'), 'utf8').trim() : undefined);
-
-  test('a readonly worker cannot hand its own nested job more than it was granted', async () => {
-    const slowPi = join(agentDir, 'slow-pi.mjs');
-    writeFileSync(slowPi, 'setTimeout(() => {}, 60_000);\n');
-    process.argv[1] = slowPi;
-    ctx = { ...ctx, mode: 'print', hasUI: false };
-    await handlers['session_start']?.({}, ctx);
-    await call('pi_spawn', { name: 'writer', brief: 'hi', wake: false });
-    const top = read(jobsRoot(), jobs()[0] ?? '', owner);
-    if (!top) throw new Error('top job missing');
-    const brokered = (dir: string, id: string, writable: string[], command: string) => {
-      vi.stubEnv('PSTACK_V2_TOP_DIR', top.dir);
-      request(dir, {
-        id,
-        name: id,
-        kind: 'command',
-        cwd: repo,
-        argv: [],
-        command: ['bash', '-c', command],
-        policy: { writable, protect: [], lock: [], gitDirs: [], checkouts: [], credentials: '', agentDir, jobDir: join(dir, id) },
-        brokered: true,
-        owner: 'w',
-        wake: null,
-        repeat: false,
-        series: id,
-        socket: '',
-        sweep: { roots: [], protect: [] },
-        out: '',
-        createdAt: '',
-      });
-      return join(dir, id);
-    };
-    const readonlyWorker = brokered(join(top.dir, 'nested'), 'readonly-000001', [join(top.dir, 'nested', 'readonly-000001', 'nested')], 'sleep 60');
-    await expect.poll(() => existsSync(join(resultsDir(top.dir, readonlyWorker), 'launched')), { timeout: 10_000 }).toBe(true);
-    const forged = brokered(join(readonlyWorker, 'nested'), 'forged-000001', [repo], `touch ${repo}/PWNED`);
-    await expect.poll(() => exitIn(resultsDir(top.dir, forged)), { timeout: 10_000 }).toBeDefined();
-    expect(existsSync(join(repo, 'PWNED'))).toBe(false);
-  });
+describe('interrogate round', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
+  const jobsRootLocal = () => join(agentDir, 'pstack-v2', 'jobs');
 
   test('a job cannot write your credentials at all', async () => {
     const auth = join(agentDir, 'auth.json');
     writeFileSync(auth, JSON.stringify({ plain: { type: 'api_key', key: 'sk-x' } }));
     await call('tmux_run', { name: 'plant', command: `printf '{"evil":{"type":"api_key","key":"!touch /tmp/pwned"}}' > ${auth}; echo rc=$?` });
-    await expect.poll(() => existsSync(join(jobsRoot(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
-    expect(JSON.parse(readFileSync(auth, 'utf8'))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
-  });
-
-  test('Pi code a worker plants in its worktree is swept', async () => {
-    const planter = join(agentDir, 'planter-pi.mjs');
-    writeFileSync(
-      planter,
-      `
-        import fs from 'node:fs';
-        fs.mkdirSync('sub/.pix/extensions', { recursive: true });
-        fs.writeFileSync('sub/.pix/extensions/evil.ts', 'x');
-        fs.renameSync('sub/.pix', 'sub/.pi');
-        console.log('planted');
-      `,
-    );
-    process.argv[1] = planter;
-    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'plant-branch' });
-    const dir = join(jobsRoot(), jobs()[0] ?? '');
-    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 10_000 }).toBe(true);
-    expect(existsSync(join(dir, 'worktree', 'sub', '.pi', 'extensions', 'evil.ts'))).toBe(false);
+    await expect.poll(() => existsSync(join(jobsRootLocal(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+    expect(authSchema.parse(JSON.parse(readFileSync(auth, 'utf8')))).toEqual({ plain: { type: 'api_key', key: 'sk-x' } });
   });
 
   test('Pi code planted very deep is swept', async () => {
     const deep = 'a/b/c/d/e/f/g/h/i/j/k/l/m/n/o';
     await call('tmux_run', { name: 'deep', command: `mkdir -p ${deep}/.pix/extensions && echo x > ${deep}/.pix/extensions/evil.ts && mv ${deep}/.pix ${deep}/.pi` });
-    await expect.poll(() => existsSync(join(jobsRoot(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
+    await expect.poll(() => existsSync(join(jobsRootLocal(), jobs()[0] ?? '', 'exit')), { timeout: 10_000 }).toBe(true);
     expect(existsSync(join(repo, deep, '.pi', 'extensions', 'evil.ts'))).toBe(false);
   });
 });
@@ -1078,7 +655,7 @@ describe('a job agent directory', { timeout: 20_000 }, () => {
   });
 });
 
-describe('workers and the jobs they start', { timeout: 30_000 }, () => {
+describe('workers and the jobs they start', { timeout: INTERROGATE_TIMEOUT_MS }, () => {
   const exitOf = (dir: string) => (existsSync(join(dir, 'exit')) ? readFileSync(join(dir, 'exit'), 'utf8').trim() : undefined);
 
   test('a print-mode worker hears about a finished job while it works', async () => {
@@ -1090,27 +667,6 @@ describe('workers and the jobs they start', { timeout: 30_000 }, () => {
     expect(await handlers['agent_before_settle']?.({ entries: [] }, ctx)).toBeUndefined();
   });
 
-  test("a worker's tmux_run sees the worker's own $TMPDIR, so paths the worker hands it exist", async () => {
-    const slowPi = join(agentDir, 'slow-pi.mjs');
-    writeFileSync(slowPi, 'setTimeout(() => {}, 30_000);\n');
-    process.argv[1] = slowPi;
-    ctx = { ...ctx, mode: 'print', hasUI: false };
-    await handlers['session_start']?.({}, ctx);
-    await call('pi_spawn', { name: 'top', brief: 'hi', wake: false });
-    const top = join(jobsRoot(), jobs()[0] ?? '');
-    const workerTmp = join(top, 'tmp');
-    const rootTmp = process.env['TMPDIR'];
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '1');
-    vi.stubEnv('PSTACK_V2_JOB_DIR', top);
-    vi.stubEnv('PSTACK_V2_TOP_DIR', top);
-    vi.stubEnv('TMPDIR', workerTmp);
-    await call('tmux_run', { name: 'child', command: 'printf "%s" "$MAC_CHROMIUM_TMPDIR" > "$TMPDIR/handoff"' });
-    vi.stubEnv('PSTACK_V2_SANDBOXED', '');
-    vi.stubEnv('TMPDIR', rootTmp);
-    await expect.poll(() => existsSync(join(workerTmp, 'handoff')), { timeout: 10_000 }).toBe(true);
-    expect(readFileSync(join(workerTmp, 'handoff'), 'utf8')).toBe(workerTmp);
-  });
-
   test('tmux_run may run in a linked worktree of this repository, such as a worker checkout', async () => {
     const worktree = join(jobsRoot(), 'manual-000001', 'worktree');
     mkdirSync(dirname(worktree), { recursive: true });
@@ -1119,21 +675,6 @@ describe('workers and the jobs they start', { timeout: 30_000 }, () => {
     const id = jobs().find((name) => name.startsWith('in-worktree')) ?? '';
     await expect.poll(() => exitOf(join(jobsRoot(), id)), { timeout: 10_000 }).toBe('0');
     expect(existsSync(join(worktree, 'from-job'))).toBe(true);
-  });
-
-  test('a worktree base that exists only on the remote starts from the remote branch', async () => {
-    const remote = join(agentDir, 'remote.git');
-    const git = (...args: string[]) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();
-    execFileSync('git', ['clone', '-q', '--bare', repo, remote]);
-    git('remote', 'add', 'origin', remote);
-    git('checkout', '-q', '-b', 'remote-only');
-    git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'remote work');
-    git('push', '-q', 'origin', 'remote-only');
-    git('checkout', '-q', '-');
-    git('branch', '-q', '-D', 'remote-only');
-    await call('pi_spawn', { name: 'wt', brief: 'hi', worktree: 'from-remote', base: 'remote-only' });
-    const worktree = join(jobsRoot(), jobs()[0] ?? '', 'worktree');
-    expect(execFileSync('git', ['-C', worktree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).toBe(git('rev-parse', 'origin/remote-only'));
   });
 });
 
@@ -1145,21 +686,18 @@ const firefox = (() => {
   return binary && existsSync(binary) ? binary : undefined;
 })();
 const pnpmVersion = (() => {
-  try {
-    return execFileSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() }).trim();
-  } catch {
-    return undefined;
-  }
+  const result = spawnSync('pnpm', ['--version'], { encoding: 'utf8', cwd: tmpdir() });
+  return result.status === 0 ? result.stdout.trim() : undefined;
 })();
 
-describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => {
-  const run = async (command: string) => {
-    await call('tmux_run', { name: 'tool', command });
-    const dir = join(jobsRoot(), jobs()[0] ?? '');
-    await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: 45_000 }).toBe(true);
-    return readFileSync(join(dir, 'output.log'), 'utf8').trim();
-  };
+const run = async (command: string) => {
+  await call('tmux_run', { name: 'tool', command });
+  const dir = join(jobsRoot(), jobs()[0] ?? '');
+  await expect.poll(() => existsSync(join(dir, 'exit')), { timeout: MACOS_TOOL_POLL_TIMEOUT_MS }).toBe(true);
+  return readFileSync(join(dir, 'output.log'), 'utf8').trim();
+};
 
+describe('the macOS sandbox and the tools jobs run', { timeout: MACOS_SANDBOX_TIMEOUT_MS }, () => {
   test.skipIf(process.platform !== 'darwin')('a job cannot start an app it wrote outside the sandbox through LaunchServices', async () => {
     const marker = join(agentDir, 'escaped');
     const plist = `<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleExecutable</key><string>Probe</string><key>CFBundleIdentifier</key><string>dev.pstack.probe${Date.now()}</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>`;
@@ -1175,7 +713,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
 
   test.skipIf(process.platform !== 'darwin').each(['.com.google.Chrome.', '.com.google.Chrome.pstack-long-', 'pstack-other-'])('a job cannot create %s names in the per-user temp directory', async (prefix) => {
     const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
-    const fixture = join(shared, prefix + randomBytes(3).toString('hex'));
+    const fixture = join(shared, prefix + randomBytes(RANDOM_SUFFIX_BYTES).toString('hex'));
     expect(existsSync(fixture)).toBe(false);
     try {
       expect(await run(`printf x > '${fixture}' && echo TEMP-CREATED`)).not.toContain('TEMP-CREATED');
@@ -1185,7 +723,9 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
       rmSync(fixture, { force: true });
     }
   });
+});
 
+describe('the macOS sandbox, temp directories and shells', { timeout: MACOS_SANDBOX_TIMEOUT_MS }, () => {
   test('top-level commands point Chromium at their private temp directory', async () => {
     const output = await run('printf "%s|%s" "$TMPDIR" "$MAC_CHROMIUM_TMPDIR"');
     const tmp = join(jobsRoot(), jobs()[0] ?? '', 'tmp');
@@ -1206,15 +746,13 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
 
   test.skipIf(process.platform !== 'darwin').each(externalTempCases)('a job cannot $operation an external $browser temp file', async ({ browser, statement }) => {
     const shared = execFileSync('getconf', ['DARWIN_USER_TEMP_DIR'], { encoding: 'utf8' }).trim();
-    const fixture = join(shared, `.${browser}.${randomBytes(3).toString('hex')}`);
+    const fixture = join(shared, `.${browser}.${randomBytes(RANDOM_SUFFIX_BYTES).toString('hex')}`);
     const original = Buffer.from('outside-original\n');
     writeFileSync(fixture, original, { flag: 'wx' });
     try {
-      expect(
-        await run(
-          `'${process.execPath}' -e 'const fs = require("node:fs"); const file = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}'`,
-        ),
-      ).toContain('MUTATION-ATTEMPTED');
+      const script = `const fs = require("node:fs"); const file = ${JSON.stringify(fixture)}; const destination = ${JSON.stringify(join(repo, 'renamed-external-temp'))}; console.log("MUTATION-ATTEMPTED"); ${statement}`;
+      const output = await run(`'${process.execPath}' -e '${script}'`);
+      expect(output).toContain('MUTATION-ATTEMPTED');
       const dir = join(jobsRoot(), jobs()[0] ?? '');
       expect(readFileSync(join(dir, 'exit'), 'utf8').trim()).not.toBe('0');
       expect(readFileSync(fixture)).toEqual(original);
@@ -1224,7 +762,7 @@ describe('the macOS sandbox and the tools jobs run', { timeout: 60_000 }, () => 
     }
   });
 
-  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < 11)('pnpm runs a script in a project that pins another pnpm version', async () => {
+  test.skipIf(!pnpmVersion || Number(pnpmVersion.split('.')[0]) < PNPM_MIN_MAJOR)('pnpm runs a script in a project that pins another pnpm version', async () => {
     const pinned = pnpmVersion === '10.0.0' ? '10.0.1' : '10.0.0';
     writeFileSync(join(repo, 'package.json'), JSON.stringify({ name: 'probe', packageManager: `pnpm@${pinned}`, scripts: { hi: 'echo hi-ran' } }));
     expect(await run('pnpm run hi 2>&1')).toContain('hi-ran');

@@ -3,13 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspect } from "node:util";
+import { z } from "zod";
 import { checkView } from "./frontends/view.ts";
 import { compile } from "./pipeline.ts";
 import { check, messageOf } from "./run.ts";
 
-const [stage, specFile, configFile, viewFile] = process.argv.slice(2);
+const WORKER_ARGS = z.tuple([z.string(), z.string(), z.string(), z.string().optional()]);
 
 try {
+  const [stage, specFile, configFile, viewFile] = WORKER_ARGS.parse(process.argv.slice(2));
   const view = checkView(
     viewFile ? await import(pathToFileURL(path.resolve(viewFile)).href) : {},
     inspect,

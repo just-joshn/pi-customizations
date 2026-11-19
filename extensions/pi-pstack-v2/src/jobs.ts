@@ -1,10 +1,13 @@
-import { execFileSync } from 'node:child_process';
+import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { jobAgentDir } from './credentials.ts';
+import { hostEnv } from './host-env.ts';
+import { passthroughObject } from './object-schema.ts';
 import { JOB_DIR_ENV, SANDBOX_ENV, type SandboxPolicy, TOP_DIR_ENV } from './sandbox.ts';
 import { type Inventory, inventory, inventoryFile } from './sweep.ts';
 
@@ -50,6 +53,9 @@ export interface JobSpec {
   createdAt: string;
 }
 
+/** A job.json is read as written: older and newer versions of it, and requests from workers, differ in which keys they hold. */
+const JobSpecSchema = passthroughObject<JobSpec>();
+
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 
 export interface Job {
@@ -59,9 +65,32 @@ export interface Job {
 }
 
 export const STOPPED_EXIT_CODE = 143;
+const LAUNCH_FAILED_EXIT_CODE = 127;
+const HASH_LENGTH = 16;
+const JOB_ID_SUFFIX_BYTES = 3;
+const STOP_GRACE_MS = 6000;
+const PID_FILE_BYTES = 32;
+const STOP_POLL_MS = 50;
+const TAIL_WINDOW_KIBIBYTES = 256;
+const BYTES_PER_KIBIBYTE = 1024;
+const TAIL_WINDOW_BYTES = TAIL_WINDOW_KIBIBYTES * BYTES_PER_KIBIBYTE;
+const UTF8_CONTINUATION_MASK = 0xc0;
+const UTF8_CONTINUATION_TAG = 0x80;
+const UTF8_LEAD_4 = 0xf0;
+const UTF8_LEAD_3 = 0xe0;
+const UTF8_LEAD_2 = 0xc0;
+const FOUR_BYTES = 4;
+const THREE_BYTES = 3;
+const TWO_BYTES = 2;
+// A UTF-8 lead byte at or above each threshold starts a sequence of that many bytes.
+const UTF8_LEAD_WIDTHS: readonly (readonly [number, number])[] = [
+  [UTF8_LEAD_4, FOUR_BYTES],
+  [UTF8_LEAD_3, THREE_BYTES],
+  [UTF8_LEAD_2, TWO_BYTES],
+];
 
 const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
-const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, 16);
+const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, HASH_LENGTH);
 
 export const jobDir = (root: string, id: string): string => join(root, id);
 export const outputPath = (out: string): string => join(out, 'output.log');
@@ -77,7 +106,7 @@ export function newJobId(name: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 24);
-  return `${slug || 'job'}-${randomBytes(3).toString('hex')}`;
+  return `${slug || 'job'}-${randomBytes(JOB_ID_SUFFIX_BYTES).toString('hex')}`;
 }
 
 /**
@@ -96,16 +125,19 @@ export function tmuxSocket(owner: string): string {
 
 // tmux reaches the socket through a relative path from its directory, so a deeply nested socket stays under the
 // 104 to 108 byte limit on Unix socket paths.
+function tmuxRun(socket: string, args: string[]): SpawnSyncReturns<Buffer> {
+  const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
+  return spawnSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
+}
+
+/** Whether tmux ran and exited zero. A missing tmux or session reads as false. */
+const tmuxOk = (socket: string, args: string[]): boolean => tmuxRun(socket, args).status === 0;
+
 function tmux(socket: string, args: string[]): void {
-  const env = { ...process.env };
-  delete env['TMUX'];
-  delete env['TMUX_PANE'];
-  try {
-    execFileSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
-    throw error;
-  }
+  const result = tmuxRun(socket, args);
+  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`Command failed: tmux -S ${basename(socket)} ${args.join(' ')}`);
 }
 
 function write(dir: string, spec: JobSpec, files: Record<string, string>): void {
@@ -181,16 +213,19 @@ interface Run {
   tmp: string | undefined;
 }
 
-/**
- * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
- * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
- * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
- * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
- * gets KILL after a short grace period.
- */
-function run(job: Run): void {
+const requireFromHere = createRequire(import.meta.url);
+
+/** The copied sweep script imports zod, which resolves from a node_modules beside it, so one is linked there. */
+function linkZod(out: string): void {
+  const modules = join(out, 'node_modules');
+  mkdirSync(modules, { recursive: true });
+  symlinkSync(dirname(requireFromHere.resolve('zod/package.json')), join(modules, 'zod'), 'dir');
+}
+
+/** The assignments that put a job in its own Pi agent directory, sandbox markers, and private temp directories. */
+function jobEnv(job: Run): string {
   // Pi's own variable points every job at its top-level job's agent directory, so no job's Pi writes your real credentials.
-  const env = Object.entries({
+  return Object.entries({
     [SANDBOX_ENV]: '1',
     [JOB_DIR_ENV]: job.dir,
     [TOP_DIR_ENV]: job.top,
@@ -201,25 +236,16 @@ function run(job: Run): void {
   })
     .map(([name, value]) => `${name}=${shellQuote(value)}`)
     .join(' ');
-  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
-  const bin = join(job.out, 'bin');
-  if (process.platform === 'darwin') {
-    mkdirSync(bin, { recursive: true });
-    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
-  }
-  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
-  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+}
+
+/** The shell script that runs the job in its own process group, mirrors its output, and cleans up on every exit path. */
+function wrapperScript(job: Run, body: string, sweepCopy: string): string {
   const out = shellQuote(outputPath(job.out));
   const exit = shellQuote(exitPath(job.out));
-  // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
-  const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
-  // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
-  // job's results directory, which the job cannot write.
-  const sweepCopy = join(job.out, 'sweep.ts');
   const caches = Object.values(CACHES)
     .map((dir) => shellQuote(join(job.dir, 'tmp', dir)))
     .join(' ');
-  const script = [
+  return [
     'set -m',
     `echo $$ > ${shellQuote(join(job.out, 'wrapper.pid'))}`,
     'finished=0',
@@ -243,18 +269,45 @@ function run(job: Run): void {
     'wait $pid',
     'finish "$?"',
   ].join('\n');
+}
+
+/**
+ * Starts the wrapper that runs argv, captures its output, quarantines what it should not have created, and records its
+ * exit code. The job runs in its own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the
+ * session up, the trap fires at once. Bash would defer a trap until a foreground command finished. On every exit path the
+ * whole group is killed before cleanup, so no child the job left behind can act after it, and a job that ignores TERM
+ * gets KILL after a short grace period.
+ */
+function run(job: Run): void {
+  const env = jobEnv(job);
+  // The job cannot write its results directory, so it cannot replace what it finds there on PATH.
+  const bin = join(job.out, 'bin');
+  if (process.platform === 'darwin') {
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, 'mktemp'), MKTEMP, { mode: 0o755 });
+  }
+  const path = process.platform === 'darwin' ? `PATH=${shellQuote(bin)}:"$PATH" ` : '';
+  const command = `${path}${env} ${job.argv.map(shellQuote).join(' ')} < /dev/null`;
+  const out = shellQuote(outputPath(job.out));
+  // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
+  const body = job.kind === 'pi' ? `${command} > ${out} 2> ${shellQuote(join(job.out, 'stderr.log'))}` : `${command} > ${out} 2>&1`;
+  // Node refuses to strip types from a file under node_modules, where an npm install keeps this one. The copy sits in the
+  // job's results directory, which the job cannot write.
+  const sweepCopy = join(job.out, 'sweep.ts');
+  const script = wrapperScript(job, body, sweepCopy);
   // The script lives beside the job's results, where only the process that launched it can write, and runs from there,
   // since a long list of protected paths would not fit on a tmux command line.
   const file = join(job.out, 'wrapper.sh');
   writeFileSync(inventoryFile(job.out), JSON.stringify(job.inventory));
   copyFileSync(sweepSource, sweepCopy);
+  linkZod(job.out);
   writeFileSync(file, `${script}\n`);
   tmux(job.socket, ['new-session', '-d', '-s', job.session, '-c', job.cwd, 'bash', file]);
 }
 
 const takeInventory = (spec: JobSpec, out: string): Inventory => inventory(spec.sweep.roots, spec.sweep.protect, join(out, 'quarantine'), outputPath(out));
 
-const inheritedTop = (dir: string): string => (process.env[SANDBOX_ENV] === '1' ? (process.env[TOP_DIR_ENV] ?? dir) : dir);
+const inheritedTop = (dir: string): string => (hostEnv()[SANDBOX_ENV] === '1' ? (hostEnv()[TOP_DIR_ENV] ?? dir) : dir);
 
 /** Creates the job directory, writes its spec, and starts it in a detached tmux session. */
 export function launch(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
@@ -268,7 +321,7 @@ export function launch(root: string, spec: JobSpec, files: Record<string, string
 /** Writes a job for the root Pi to launch, from inside a macOS sandbox that cannot start a narrower one itself. */
 export function request(root: string, spec: JobSpec, files: Record<string, string> = {}): Job {
   const dir = jobDir(root, spec.id);
-  const top = process.env[TOP_DIR_ENV];
+  const top = hostEnv()[TOP_DIR_ENV];
   if (!top) throw new Error('A sandboxed worker needs its top-level job directory to request a job.');
   const full = { ...spec, argv: [], socket: '', brokered: true, out: resultsDir(top, dir) };
   write(dir, full, files);
@@ -292,7 +345,7 @@ export function launchBrokered(top: string, dir: string, spec: JobSpec, sweepWha
     writeFileSync(join(out, 'launched'), '');
     return true;
   } catch (error) {
-    settleBrokered(out, 127, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
+    settleBrokered(out, LAUNCH_FAILED_EXIT_CODE, `pstack could not launch this job: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 }
@@ -303,18 +356,14 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   const before = exited();
   if (before) return before;
   if (spec.brokered) return existsSync(join(dir, 'stop')) ? { state: 'exited', code: STOPPED_EXIT_CODE } : { state: 'running' };
-  try {
-    tmux(spec.socket, ['has-session', '-t', `=${spec.id}`]);
-    return { state: 'running' };
-  } catch {
-    // The job may have written its exit code and closed its session between the two checks.
-    return exited() ?? { state: 'lost' };
-  }
+  if (tmuxOk(spec.socket, ['has-session', '-t', `=${spec.id}`])) return { state: 'running' };
+  // The job may have written its exit code and closed its session between the two checks.
+  return exited() ?? { state: 'lost' };
 }
 
 export function readSpec(dir: string): JobSpec | undefined {
   try {
-    return JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')) as JobSpec;
+    return JobSpecSchema.parse(JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')));
   } catch {
     return undefined;
   }
@@ -332,7 +381,7 @@ export function list(root: string, owner: string): Job[] {
   return readdirSync(root)
     .map((id) => read(root, id, owner))
     .filter((job): job is Job => job !== undefined)
-    .sort((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
+    .toSorted((a, b) => a.spec.createdAt.localeCompare(b.spec.createdAt));
 }
 
 /**
@@ -345,16 +394,13 @@ export async function stop(job: Job): Promise<void> {
   if (job.spec.brokered) {
     writeFileSync(join(job.dir, 'stop'), '');
   } else {
-    try {
-      tmux(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
-    } catch {
-      // Already gone.
-    }
+    // A session that is already gone makes this fail, which is expected.
+    tmuxOk(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
     // The wrapper records the exit once it has ended the job and cleaned up. Only a wrapper that is already gone, and so
     // can never record it, leaves that to stop.
     const exit = exitPath(job.spec.out);
-    const deadline = Date.now() + 6_000;
-    const wrapper = Number(readEnd(join(job.spec.out, 'wrapper.pid'), 32).trim());
+    const deadline = Date.now() + STOP_GRACE_MS;
+    const wrapper = Number(readEnd(join(job.spec.out, 'wrapper.pid'), PID_FILE_BYTES).trim());
     const alive = (): boolean => {
       try {
         process.kill(wrapper, 0);
@@ -364,7 +410,7 @@ export async function stop(job: Job): Promise<void> {
       }
     };
     // The wrapper keeps cleaning up after its session is gone, so waiting ends once it records the exit or is itself gone.
-    while (!existsSync(exit) && Date.now() < deadline && alive()) await new Promise((done) => setTimeout(done, 50));
+    while (!existsSync(exit) && Date.now() < deadline && alive()) await new Promise((done) => setTimeout(done, STOP_POLL_MS));
     if (!existsSync(exit)) {
       writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
       renameSync(`${exit}.tmp`, exit);
@@ -401,7 +447,7 @@ export function readEnd(path: string, bytes: number): string {
   return readRange(path, size - length, length).toString('utf8');
 }
 
-const isContinuation = (byte: number | undefined): boolean => byte !== undefined && (byte & 0xc0) === 0x80;
+const isContinuation = (byte: number | undefined): boolean => byte !== undefined && (byte & UTF8_CONTINUATION_MASK) === UTF8_CONTINUATION_TAG;
 
 /**
  * The start and the end of a file with a note of how many bytes lie between, so a verdict on its first line survives a
@@ -424,7 +470,7 @@ function clipRanges(first: Buffer, last: Buffer, size: number, path: string): st
   let lead = first.length - 1;
   while (lead > 0 && isContinuation(first[lead])) lead--;
   const byte = first[lead] ?? 0;
-  const end = lead + (byte >= 0xf0 ? 4 : byte >= 0xe0 ? 3 : byte >= 0xc0 ? 2 : 1) > first.length ? lead : first.length;
+  const end = lead + (UTF8_LEAD_WIDTHS.find(([threshold]) => byte >= threshold)?.[1] ?? 1) > first.length ? lead : first.length;
   let from = 0;
   while (isContinuation(last[from])) from++;
   const omitted = size - end - (last.length - from);
@@ -432,8 +478,5 @@ function clipRanges(first: Buffer, last: Buffer, size: number, path: string): st
 }
 
 export function tail(path: string, lines: number): string {
-  return readEnd(path, 256 * 1024)
-    .split('\n')
-    .slice(-lines)
-    .join('\n');
+  return readEnd(path, TAIL_WINDOW_BYTES).split('\n').slice(-lines).join('\n');
 }

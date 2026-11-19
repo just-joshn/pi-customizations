@@ -1,0 +1,26 @@
+{
+  "$schema": "../../../../node_modules/@biomejs/biome/configuration_schema.json",
+  "root": true,
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true, "root": "../.." },
+  "formatter": { "enabled": false },
+  "assist": { "enabled": false },
+  "plugins": ["./immutability.grit", "./input-validation.grit", "./hardcoded-values.grit", "./error-handling.grit"],
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "complexity": {
+        "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 47 } },
+        "noUselessCatch": "error"
+      },
+      "style": { "noMagicNumbers": "error", "useThrowOnlyError": "error" },
+      "suspicious": {
+        "noConsole": { "level": "error", "options": { "allow": ["assert", "debug", "dir", "error", "info", "table", "trace", "warn"] } },
+        "noEmptyBlockStatements": "error",
+        "useErrorMessage": "error",
+        "noCatchAssign": "error"
+      },
+      "nursery": { "noFloatingPromises": "error", "noMisusedPromises": "error" }
+    }
+  }
+}

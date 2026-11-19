@@ -3,12 +3,15 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { Readable } from "node:stream";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import fc from "fast-check";
+import { TLC_DEADLOCK_STATUS, TLC_INVARIANT_STATUS, TLC_LIVENESS_STATUS } from "./exit-status.ts";
+import { hostEnv } from "./host-env.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skip = !process.env.TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
+const skip = !hostEnv().TLA2TOOLS && "set TLA2TOOLS to the path of tla2tools.jar to run TLC";
 
 const PROTOTYPE_KEYS = ["constructor", "__proto__", "toString", "valueOf", "hasOwnProperty"];
 const NAMES = [
@@ -69,21 +72,27 @@ const DOMAIN: fc.Arbitrary<Domain> = fc.oneof(
   values(fc.array(INT, { maxLength: 2 }).map(tuple)),
 );
 
-const ATOM = fc.record({ v: fc.nat(2), i: fc.nat(3), not: fc.boolean() });
+const MAX_VAR_INDEX = 2;
+const MAX_VALUE_INDEX = 3;
+const MAX_PROPERTY_FORM = 3;
+const MAX_FAIRNESS_VAR = 5;
+const DEFAULT_RUNS = 20;
+
+const ATOM = fc.record({ v: fc.nat(MAX_VAR_INDEX), i: fc.nat(MAX_VALUE_INDEX), not: fc.boolean() });
 type Atom = { v: number; i: number; not: boolean };
 
 const MODEL = fc.record({
   module: fc.constantFrom("Model", "prototype"),
   names: fc.shuffledSubarray(NAMES, { minLength: NAMES.length }),
   vars: fc.array(
-    fc.record({ domain: DOMAIN, init: fc.array(fc.nat(3), { minLength: 1, maxLength: 2 }) }),
+    fc.record({ domain: DOMAIN, init: fc.array(fc.nat(MAX_VALUE_INDEX), { minLength: 1, maxLength: 2 }) }),
     { minLength: 1, maxLength: 3 },
   ),
   actions: fc.array(
     fc.record({
       guard: fc.array(ATOM, { maxLength: 2 }),
       set: fc.array(
-        fc.record({ v: fc.nat(2), to: fc.array(fc.nat(3), { minLength: 1, maxLength: 2 }) }),
+        fc.record({ v: fc.nat(MAX_VAR_INDEX), to: fc.array(fc.nat(MAX_VALUE_INDEX), { minLength: 1, maxLength: 2 }) }),
         { minLength: 1, maxLength: 2 },
       ),
     }),
@@ -93,14 +102,14 @@ const MODEL = fc.record({
   deadlock: fc.boolean(),
   initNext: fc.boolean(),
   constraint: fc.option(ATOM, { freq: 2 }),
-  actionConstraint: fc.option(fc.record({ v: fc.nat(2), from: fc.nat(3), to: fc.nat(3) }), {
+  actionConstraint: fc.option(fc.record({ v: fc.nat(MAX_VAR_INDEX), from: fc.nat(MAX_VALUE_INDEX), to: fc.nat(MAX_VALUE_INDEX) }), {
     freq: 2,
   }),
   property: fc.option(
     fc.record({
-      form: fc.nat(3),
+      form: fc.nat(MAX_PROPERTY_FORM),
       atoms: fc.tuple(ATOM, ATOM),
-      fairness: fc.option(fc.record({ strong: fc.boolean(), on: fc.option(fc.nat(5)) })),
+      fairness: fc.option(fc.record({ strong: fc.boolean(), on: fc.option(fc.nat(MAX_FAIRNESS_VAR)) })),
     }),
   ),
   view: fc.option(
@@ -128,15 +137,24 @@ type Case = {
   property?: string;
 };
 
-const configOf = (c: Case) => {
-  const cfg = [...c.base];
-  if (c.invariants.length) cfg.push(`INVARIANTS ${c.invariants.join(" ")}`);
-  if (!c.deadlock) cfg.push("CHECK_DEADLOCK FALSE");
-  if (c.property) cfg.push(`PROPERTY ${c.property}`);
-  return `${cfg.join("\n")}\n`;
+const configOf = (c: Case) =>
+  `${[
+    ...c.base,
+    ...(c.invariants.length ? [`INVARIANTS ${c.invariants.join(" ")}`] : []),
+    ...(c.deadlock ? [] : ["CHECK_DEADLOCK FALSE"]),
+    ...(c.property ? [`PROPERTY ${c.property}`] : []),
+  ].join("\n")}\n`;
+
+type Scope = {
+  name: () => string;
+  vars: string[];
+  modelValues: string[];
+  value: (v: number, i: number) => string;
+  atom: (a: Atom) => string;
+  set: (v: number, is: number[]) => string;
 };
 
-function caseOf(m: Model): Case {
+function makeScope(m: Model): Scope {
   let next = 0;
   const name = () => m.names[next++];
   const vars = m.vars.map(name);
@@ -150,56 +168,91 @@ function caseOf(m: Model): Case {
     `${vars[v % vars.length]} ${not ? "#" : "="} ${value(v, i)}`;
   const set = (v: number, is: number[]) =>
     `{${[...new Set(is.map((i) => value(v, i)))].join(", ")}}`;
-  const defs = [`vars == <<${vars.join(", ")}>>`];
-  defs.push(`Init == ${vars.map((x, k) => `${x} \\in ${set(k, m.vars[k].init)}`).join(" /\\ ")}`);
-  const actions = m.actions.map((a) => {
-    const changed = new Map<number, number[]>();
-    for (const s of a.set)
-      if (!changed.has(s.v % vars.length)) changed.set(s.v % vars.length, s.to);
-    const parts = a.guard.map(atom);
-    for (const [k, to] of changed) parts.push(`${vars[k]}' \\in ${set(k, to)}`);
-    const kept = vars.filter((_, k) => !changed.has(k));
-    if (kept.length) parts.push(`UNCHANGED <<${kept.join(", ")}>>`);
-    const action = name();
-    defs.push(`${action} == ${parts.join(" /\\ ")}`);
-    return action;
-  });
-  defs.push(`Next == ${actions.join(" \\/ ")}`);
-  const base = modelValues.length
-    ? [`CONSTANTS ${modelValues.map((c) => `${c} = ${c}`).join(" ")}`]
-    : [];
+  return { name, vars, modelValues, value, atom, set };
+}
+
+type Action = Model["actions"][number];
+
+function actionDef({ vars, atom, set }: Scope, a: Action, action: string) {
+  const changed = a.set.reduce(
+    (acc, s) => (acc.has(s.v % vars.length) ? acc : new Map([...acc, [s.v % vars.length, s.to]])),
+    new Map<number, number[]>(),
+  );
+  const kept = vars.filter((_, k) => !changed.has(k));
+  const parts = [
+    ...a.guard.map(atom),
+    ...[...changed].map(([k, to]) => `${vars[k]}' \\in ${set(k, to)}`),
+    ...(kept.length ? [`UNCHANGED <<${kept.join(", ")}>>`] : []),
+  ];
+  return `${action} == ${parts.join(" /\\ ")}`;
+}
+
+type Extra = { defs: string[]; base: string[] };
+
+function constraintOf(m: Model, { name, atom }: Scope): Extra {
+  if (!m.constraint) return { defs: [], base: [] };
+  const bound = name();
+  return { defs: [`${bound} == ~(${atom(m.constraint)})`], base: [`CONSTRAINT ${bound}`] };
+}
+
+function actionConstraintOf(m: Model, { name, vars, value }: Scope): Extra {
+  if (!m.actionConstraint) return { defs: [], base: [] };
+  const { v, from, to } = m.actionConstraint;
+  const x = vars[v % vars.length];
+  const bound = name();
+  return {
+    defs: [`${bound} == ~(${x} = ${value(v, from)} /\\ ${x}' = ${value(v, to)})`],
+    base: [`ACTION_CONSTRAINT ${bound}`],
+  };
+}
+
+function propertyOf(m: Model, { name, atom }: Scope) {
   const p = m.property;
-  const f = p?.fairness;
+  if (!p) return { property: undefined, defs: [] };
+  const [a, b] = p.atoms.map(atom);
+  const property = name();
+  const forms = [`<>(${a})`, `[]<>(${a})`, `(${a}) ~> (${b})`, `[](${a})`];
+  return { property, defs: [`${property} == ${forms[p.form]}`] };
+}
+
+function specDef(m: Model, actions: string[]) {
+  const f = m.property?.fairness;
   const fair = f
     ? ` /\\ ${f.strong ? "SF" : "WF"}_vars(${f.on === null ? "Next" : actions[f.on % actions.length]})`
     : "";
-  defs.push(`Spec == Init /\\ [][Next]_vars${fair}`);
-  base.push(m.initNext && !p ? "INIT Init\nNEXT Next" : "SPECIFICATION Spec");
-  const invariants = m.invariants.map((atoms) => {
-    const rule = name();
-    defs.push(`${rule} == ~(${atoms.map(atom).join(" /\\ ")})`);
-    return rule;
-  });
-  if (m.constraint) {
-    const bound = name();
-    defs.push(`${bound} == ~(${atom(m.constraint)})`);
-    base.push(`CONSTRAINT ${bound}`);
-  }
-  if (m.actionConstraint) {
-    const { v, from, to } = m.actionConstraint;
-    const x = vars[v % vars.length];
-    const bound = name();
-    defs.push(`${bound} == ~(${x} = ${value(v, from)} /\\ ${x}' = ${value(v, to)})`);
-    base.push(`ACTION_CONSTRAINT ${bound}`);
-  }
-  let property: string | undefined;
-  if (p) {
-    const [a, b] = p.atoms.map(atom);
-    property = name();
-    defs.push(
-      `${property} == ${[`<>(${a})`, `[]<>(${a})`, `(${a}) ~> (${b})`, `[](${a})`][p.form]}`,
-    );
-  }
+  return `Spec == Init /\\ [][Next]_vars${fair}`;
+}
+
+function caseOf(m: Model): Case {
+  const scope = makeScope(m);
+  const { name, vars, modelValues, atom, set } = scope;
+  const init = vars.map((x, k) => `${x} \\in ${set(k, m.vars[k].init)}`).join(" /\\ ");
+  const actions = m.actions.map(() => name());
+  const actionDefs = m.actions.map((a, k) => actionDef(scope, a, actions[k]));
+  const invariants = m.invariants.map(() => name());
+  const invariantDefs = m.invariants.map(
+    (atoms, k) => `${invariants[k]} == ~(${atoms.map(atom).join(" /\\ ")})`,
+  );
+  const constraint = constraintOf(m, scope);
+  const actionConstraint = actionConstraintOf(m, scope);
+  const { property, defs: propertyDefs } = propertyOf(m, scope);
+  const defs = [
+    `vars == <<${vars.join(", ")}>>`,
+    `Init == ${init}`,
+    ...actionDefs,
+    `Next == ${actions.join(" \\/ ")}`,
+    specDef(m, actions),
+    ...invariantDefs,
+    ...constraint.defs,
+    ...actionConstraint.defs,
+    ...propertyDefs,
+  ];
+  const base = [
+    ...(modelValues.length ? [`CONSTANTS ${modelValues.map((c) => `${c} = ${c}`).join(" ")}`] : []),
+    m.initNext && !m.property ? "INIT Init\nNEXT Next" : "SPECIFICATION Spec",
+    ...constraint.base,
+    ...actionConstraint.base,
+  ];
   const tla = [
     `---- MODULE ${m.module} ----`,
     "EXTENDS Integers",
@@ -209,15 +262,8 @@ function caseOf(m: Model): Case {
     "====",
     "",
   ].join("\n");
-  return {
-    module: m.module,
-    tla,
-    view: m.view ? viewOf(m.view, vars, actions) : undefined,
-    base,
-    invariants,
-    deadlock: m.deadlock,
-    property,
-  };
+  const view = m.view ? viewOf(m.view, vars, actions) : undefined;
+  return { module: m.module, tla, view, base, invariants, deadlock: m.deadlock, property };
 }
 
 function viewOf(v: NonNullable<Model["view"]>, vars: string[], actions: string[]) {
@@ -227,6 +273,18 @@ function viewOf(v: NonNullable<Model["view"]>, vars: string[], actions: string[]
     parents: `[pick(v[VARS[0]], 1), pick(VARS.map((n) => v[n]), 2)]`,
     regions: `Object.fromEntries(${json(v.regions)}.map((r, k) => [r, pick(v[VARS[k % VARS.length]], k)]))`,
   }[v.form];
+  const { steps, groups } = v;
+  const labels = steps ? actions.map((a, k) => [a, k < steps.length ? steps[k] : a]) : [];
+  const colors = groups ? groups.map((g, k) => [g, COLORS[k]]) : [];
+  const stepLines = steps
+    ? [`const STEPS = new Map(${json(labels)});`, "export const step = (action) => STEPS.get(action);"]
+    : [];
+  const groupLines = groups
+    ? [
+        `export const colors = Object.fromEntries(${json(colors)});`,
+        `export const group = (v) => pick(v[VARS[0]], 3, ${json(groups)});`,
+      ]
+    : [];
   const lines = [
     `const VARS = ${json(vars)};`,
     `const LABELS = ${json(v.labels)};`,
@@ -236,58 +294,48 @@ function viewOf(v: NonNullable<Model["view"]>, vars: string[], actions: string[]
     "  return from[h % from.length];",
     "};",
     `export const state = (v) => ${state};`,
+    ...stepLines,
+    ...(v.title ? [`export const title = ${json(v.title)};`] : []),
+    ...groupLines,
   ];
-  const { steps } = v;
-  if (steps) {
-    const labels = actions.map((a, k) => [a, k < steps.length ? steps[k] : a]);
-    lines.push(
-      `const STEPS = new Map(${json(labels)});`,
-      "export const step = (action) => STEPS.get(action);",
-    );
-  }
-  if (v.title) lines.push(`export const title = ${json(v.title)};`);
-  if (v.groups) {
-    const colors = v.groups.map((g, k) => [g, COLORS[k]]);
-    lines.push(
-      `export const colors = Object.fromEntries(${json(colors)});`,
-      `export const group = (v) => pick(v[VARS[0]], 3, ${json(v.groups)});`,
-    );
-  }
   return `${lines.join("\n")}\n`;
 }
 
 type Run = { status: number | null; stdout: string; stderr: string };
 
-const run = (command: string, args: string[], cwd: string) =>
-  new Promise<Run>((resolve, reject) => {
-    const child = spawn(command, args, {
-      cwd,
-      stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, LC_ALL: "C.UTF-8" },
-    });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-    child.stdout.on("data", (b: Buffer) => stdout.push(b));
-    child.stderr.on("data", (b: Buffer) => stderr.push(b));
-    child.on("error", reject);
-    child.on("close", (status) =>
-      resolve({
-        status,
-        stdout: Buffer.concat(stdout).toString(),
-        stderr: Buffer.concat(stderr).toString(),
-      }),
-    );
+const drain = async (stream: Readable) => {
+  let all = Buffer.alloc(0);
+  for await (const chunk of stream) all = Buffer.concat([all, chunk]);
+  return all.toString();
+};
+
+async function run(command: string, args: string[], cwd: string): Promise<Run> {
+  const child = spawn(command, args, {
+    cwd,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: { ...hostEnv(), LC_ALL: "C.UTF-8" },
   });
+  const closed = new Promise<number | null>((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", resolve);
+  });
+  const [status, stdout, stderr] = await Promise.all([
+    closed,
+    drain(child.stdout),
+    drain(child.stderr),
+  ]);
+  return { status, stdout, stderr };
+}
 
 const plainTlc = (dir: string, c: Case, name: string, lines: string[]) => {
   fs.writeFileSync(path.join(dir, `${name}.cfg`), `${[...c.base, ...lines].join("\n")}\n`);
   fs.mkdirSync(path.join(dir, `tmp-${name}`));
   return run(
-    process.env.JAVA || "java",
+    hostEnv().JAVA || "java",
     [
       `-Djava.io.tmpdir=${path.join(dir, `tmp-${name}`)}`,
       "-cp",
-      String(process.env.TLA2TOOLS),
+      String(hostEnv().TLA2TOOLS),
       "tlc2.TLC",
       "-tool",
       "-workers",
@@ -314,55 +362,62 @@ const claimOf = (r: Run, breaks: number[], traced: boolean): Claim => {
 };
 
 async function plainAnswers(dir: string, c: Case) {
-  const rules = new Map<string, Promise<Claim>>();
-  for (const name of c.invariants)
-    rules.set(
-      name,
-      plainTlc(dir, c, `inv-${name}`, [`INVARIANT ${name}`, "CHECK_DEADLOCK FALSE"]).then((r) =>
-        claimOf(r, [12], true),
-      ),
-    );
-  if (c.deadlock)
-    rules.set(
-      "NoDeadlock",
-      plainTlc(dir, c, "deadlock", []).then((r) => claimOf(r, [11], true)),
-    );
-  if (c.property)
-    rules.set(
-      c.property,
-      plainTlc(dir, c, "property", [`PROPERTY ${c.property}`, "CHECK_DEADLOCK FALSE"]).then((r) =>
-        claimOf(r, [12, 13], false),
-      ),
-    );
+  const ask = (
+    name: string,
+    file: string,
+    lines: string[],
+    breaks: number[],
+    traced: boolean,
+  ): [string, Promise<Claim>] => [
+    name,
+    plainTlc(dir, c, file, lines).then((r) => claimOf(r, breaks, traced)),
+  ];
+  const noDeadlock = ["CHECK_DEADLOCK FALSE"];
+  const invariants = c.invariants.map((name) =>
+    ask(name, `inv-${name}`, [`INVARIANT ${name}`, ...noDeadlock], [TLC_INVARIANT_STATUS], true),
+  );
+  const deadlock = c.deadlock
+    ? [ask("NoDeadlock", "deadlock", [], [TLC_DEADLOCK_STATUS], true)]
+    : [];
+  const propertyBreaks = [TLC_INVARIANT_STATUS, TLC_LIVENESS_STATUS];
+  const property = c.property
+    ? [ask(c.property, "property", [`PROPERTY ${c.property}`, ...noDeadlock], propertyBreaks, false)]
+    : [];
+  const rules = [...invariants, ...deadlock, ...property];
   const states = plainTlc(dir, c, "states", ["CHECK_DEADLOCK FALSE"]).then((r) => {
     const found = /([\d,]+) distinct states found/.exec(r.stdout);
     if (r.status !== 0 || !found)
       throw new Error(`plain TLC exited ${r.status}:\n${r.stdout}${r.stderr}`);
     return Number(found[1].replaceAll(",", ""));
   });
-  const answers = new Map<string, Claim>();
-  for (const [name, claim] of rules) answers.set(name, await claim);
+  const settled = await rules.reduce(
+    async (chain, [name, claim]): Promise<[string, Claim][]> => [
+      ...(await chain),
+      [name, await claim],
+    ],
+    Promise.resolve<[string, Claim][]>([]),
+  );
+  const answers = new Map<string, Claim>(settled);
   const broke = [...answers.values()].some((a) => a.breaks);
   return { status: broke ? 1 : 0, states: await states, rules: answers };
 }
 
+const claimFor = (rule: string, c: Case, steps: string | undefined): Claim =>
+  rule === c.property ? { breaks: true } : { breaks: true, steps: Number(steps) };
+
 function compilerAnswers(r: Run, c: Case) {
   const lines = r.stdout.split("\n");
-  const rules = new Map<string, Claim>();
-  for (const [i, line] of lines.entries()) {
+  const ruleEntries = (line: string, i: number): [string, Claim][] => {
     const broken = /^## (\S+) breaks$/.exec(line);
-    if (broken) {
-      const shortest = /^The shortest path has (\d+) steps?:$/.exec(lines[i + 1]);
-      rules.set(
-        broken[1],
-        broken[1] === c.property
-          ? { breaks: true }
-          : { breaks: true, steps: Number(shortest?.[1]) },
-      );
-    }
-    if (line === "## Rules that hold")
-      for (const name of lines[i + 1].split(", ")) rules.set(name, { breaks: false });
-  }
+    const shortest = broken && /^The shortest path has (\d+) steps?:$/.exec(lines[i + 1]);
+    return [
+      ...(broken ? [[broken[1], claimFor(broken[1], c, shortest?.[1])] as [string, Claim]] : []),
+      ...(line === "## Rules that hold"
+        ? lines[i + 1].split(", ").map((name): [string, Claim] => [name, { breaks: false }])
+        : []),
+    ];
+  };
+  const rules = new Map<string, Claim>(lines.flatMap(ruleEntries));
   const states = /^TLC reached (\d+) states/m.exec(r.stdout);
   return { status: r.status, states: states ? Number(states[1]) : r.stderr, rules };
 }
@@ -395,6 +450,10 @@ async function answer(c: Case) {
   }
 }
 
+const differentialSeed = hostEnv().STATECHART_DIFFERENTIAL_SEED
+  ? Number(hostEnv().STATECHART_DIFFERENTIAL_SEED)
+  : undefined;
+
 test(
   "the compiler answers each rule as plain TLC does for generated models",
   { skip },
@@ -404,10 +463,8 @@ test(
         await answer(c);
       }),
       {
-        numRuns: Number(process.env.STATECHART_DIFFERENTIAL_RUNS ?? 20),
-        seed: process.env.STATECHART_DIFFERENTIAL_SEED
-          ? Number(process.env.STATECHART_DIFFERENTIAL_SEED)
-          : undefined,
+        numRuns: Number(hostEnv().STATECHART_DIFFERENTIAL_RUNS ?? DEFAULT_RUNS),
+        seed: differentialSeed,
         includeErrorInReport: true,
       },
     );
