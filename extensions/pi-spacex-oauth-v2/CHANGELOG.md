@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Rebuilds `spacex-cursor` on `@cursor/sdk` 1.4.2, following Pi's `custom-provider-anthropic` example and the Cursor TypeScript SDK docs. The private Cursor protocol client, its desktop OAuth flow, and the dashboard usage calls are gone.
+- `/login` mints a Cursor API key through `Cursor.auth.login()`. The key lasts 90 days, then `/login` asks again. `CURSOR_API_KEY` also works.
+- Lists every model from `Cursor.models.list()`. Pi's thinking level picks the model's effort value, and the context window comes from the default variant.
+- Runs Pi's tools inside Cursor's agent as SDK custom tools. A tool call pauses the Cursor run until Pi returns the result, and a follow-up message reuses the same Cursor agent.
+- Cursor turns report no token usage, because the SDK reports usage per run rather than per model call. Pi estimates context instead.
+- `/spacex-usage` shows the signed-in Cursor account instead of plan usage, which the SDK does not expose. The status line shows Grok Build only.
+
 ## 0.1.2
 
 - Fix Cursor context size and windows. Every assistant message carries Cursor's checkpoint `used_tokens` as `totalTokens`, so the footer can show a percent after a tool pause and after compaction. Context windows come from AvailableModels tooltips (non-max mode), with 256k for Grok and Auto and 200k otherwise. A "1M" display name no longer sets a 1M window (#259).
