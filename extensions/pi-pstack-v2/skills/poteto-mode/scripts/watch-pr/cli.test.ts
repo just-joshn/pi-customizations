@@ -12,7 +12,6 @@ const EXIT_CI_BLOCKER = 4;
 const FIRST_STACK_PR = 10;
 const SECOND_STACK_PR = 11;
 const THIRD_STACK_PR = 12;
-const jsonValue = z.unknown();
 
 const silentIo = { stdout: () => undefined, stderr: () => undefined };
 
@@ -161,7 +160,7 @@ describe("rendering", () => {
   it("emits compact valid JSON by default", () => {
     const rendered = renderJson(status);
     expect(rendered.endsWith("\n")).toBe(true);
-    expect(jsonValue.parse(JSON.parse(rendered))).toEqual(status);
+    expect(JSON.parse(rendered)).toEqual(status);
   });
 
   it("renders the Markdown table from the same verdict only", () => {
@@ -201,7 +200,7 @@ describe("main", () => {
     );
     expect(code).toBe(0);
     expect(harness.stdout).toHaveLength(1);
-    const verdict = jsonValue.parse(JSON.parse(harness.stdout[0]));
+    const verdict: unknown = JSON.parse(harness.stdout[0]);
     expect(verdict).toMatchObject({
       kind: "STATUS",
       terminal: true,
@@ -227,7 +226,7 @@ describe("main", () => {
     );
     expect(code).toBe(EXIT_CI_BLOCKER);
     expect(harness.stdout).toHaveLength(1);
-    expect(jsonValue.parse(JSON.parse(harness.stdout[0]))).toMatchObject({
+    expect(JSON.parse(harness.stdout[0])).toMatchObject({
       kind: "BLOCKER",
       exitCode: 4,
       blocker: {

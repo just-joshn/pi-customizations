@@ -31,7 +31,6 @@ const UPSTACK_PR_NUMBER = 43;
 const BUGBOT_REVIEW_PASSES = 3;
 const SUBPROCESS_TIMEOUT_MS = 2000;
 const EXECUTABLE_MODE = 0o755;
-const jsonValue = z.unknown();
 const numberedRows = z.array(z.object({ number: z.number() }));
 
 const context = {
@@ -496,7 +495,7 @@ printf '%s\\n' '[{"number":42,"headRefName":"feature","baseRefName":"main","isCr
       });
       expect(child.error).toBeUndefined();
       expect(child.status).toBe(0);
-      expect(jsonValue.parse(JSON.parse(child.stdout))).toEqual([
+      expect(JSON.parse(child.stdout)).toEqual([
         { number: STACK_PR_NUMBER, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
       ]);
     } finally {
