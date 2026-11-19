@@ -12,24 +12,6 @@
     "reason": "Same host contract as above, for the prompt sections."
   },
   {
-    "file": "src/credentials.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "JSON.parse throws on a malformed credentials file and has no non-throwing form. The catch returns undefined, which callers read as \"no credentials\"; a throw would abort the job start."
-  },
-  {
-    "file": "src/credentials.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "lstatSync throws ENOENT, ENOTDIR and EACCES for a missing or unreachable path. The catch returns false (not a symlink) for all of them; { throwIfNoEntry: false } would still throw for ENOTDIR and EACCES."
-  },
-  {
-    "file": "src/credentials.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "mkdirSync is the atomic lock and throws EEXIST when another holder has it. The catch also covers any error from the locked function and returns false; the finally releases what was taken."
-  },
-  {
     "file": "src/index.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
@@ -40,18 +22,6 @@
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The watcher reports a step failure through ctx.ui.notify and keeps polling. Throwing would kill the watcher loop; console.error would corrupt the TUI."
-  },
-  {
-    "file": "src/index.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "The catch removes the half-created job directory and rethrows the original error unchanged, so the tool error text Pi shows is exact. A console.error would add stderr output in the TUI."
-  },
-  {
-    "file": "src/jobs.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A launch failure is recorded into the job's output with exit code LAUNCH_FAILED_EXIT_CODE and the function returns false; throwing would skip settling the job, and console.error adds stderr."
   },
   {
     "file": "src/jobs.ts",
@@ -70,30 +40,6 @@
     "rule": "plugin",
     "line": "} catch {",
     "reason": "claimWake creates the woken marker with flag wx, which throws EEXIST once the wake was claimed. The catch returns false so each wake is delivered once; no non-throwing exclusive create exists."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A worktree failure returns a { refused } result whose message is sent to the requester; it must not throw, and the message is existing output."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed granted.json. The catch returns [] (no grants); throwing would break requests without grants."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A launch failure is settled into the job output with EXIT_LAUNCH_FAILED and serving continues; throwing would stop the broker, and logging adds stderr."
-  },
-  {
-    "file": "src/requests.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "One failing request must not stop the others (documented); the catch swallows by design."
   },
   {
     "file": "src/subagent/agents.ts",
@@ -124,48 +70,6 @@
     "rule": "plugin",
     "line": "} catch {",
     "reason": "The catch swallows every error from statSync, readRange and the onChunk callback, not only ENOENT, so the poll loop never dies on one bad chunk. Narrowing it would change that."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "lstatSync throws ENOENT, ENOTDIR and EACCES. The catch returns false (absent) for all of them; { throwIfNoEntry: false } would still throw for ENOTDIR and EACCES."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "readdirSync and lstatSync throw EACCES, ENOENT and the like, with no non-throwing form. Without repair the catch returns no value; with repair it falls through to the chmod retry."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "The retry after chmod can still throw; the catch returns { unreadable: [path] } so the sweep reports and quarantines it. Throwing would abort the sweep."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "renameSync has no non-throwing form. The catch copies across devices only for EXDEV and rethrows every other error unchanged; a console.error would add stderr text in the sweep process."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A quarantine failure is appended to the job's output file with a specific message and returns false; throwing would abort the sweep, and the message is existing output."
-  },
-  {
-    "file": "src/sweep.ts",
-    "rule": "plugin",
-    "line": "} catch (error) {",
-    "reason": "A sweep failure is appended to the job's output file as a message; the process must still exit normally, and logging adds stderr."
-  },
-  {
-    "file": "src/transcript.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "lstatSync, readdirSync and readFileSync throw for a missing or unreadable session directory or file, with no non-throwing form. The catch returns undefined (no report); throwing would break job reports."
   },
   {
     "file": "src/subagent/run-in-tmux.ts",

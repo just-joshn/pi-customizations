@@ -48,8 +48,7 @@ jobs:
             packages=$(sed -n 's#^extensions/\([^/]*\)/.*#\1#p' <<< "$changed" | sort -u)
           fi
           packages=$(for p in $packages; do [ -f "extensions/$p/package.json" ] && echo "$p"; done)
-          # pi-pstack-v2 sandboxes shells with Seatbelt on macOS and bubblewrap on Linux, so it runs on both.
-          matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-latest"}, (select(. == "pi-pstack-v2") | {package: ., os: "macos-latest"})]' <<< "$packages")
+          matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-latest"}]' <<< "$packages")
           echo "full=$full" >> "$GITHUB_OUTPUT"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "Packages: ${packages:-none}. Full suites: $full." >> "$GITHUB_STEP_SUMMARY"
@@ -80,14 +79,11 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
-      - if: matrix.package == 'pi-pstack-v2' && runner.os == 'Linux'
-        name: Install tmux and bubblewrap, and allow the unprivileged user namespaces bubblewrap needs
+      - if: matrix.package == 'pi-pstack-v2'
+        name: Install tmux
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq tmux bubblewrap
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - if: matrix.package == 'pi-pstack-v2' && runner.os == 'macOS'
-        run: brew install tmux
+          sudo apt-get install -y -qq tmux
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
