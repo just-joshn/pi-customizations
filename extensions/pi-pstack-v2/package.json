@@ -22,7 +22,8 @@
     "skills",
     "docs",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "!**/node_modules"
   ],
   "pi": {
     "extensions": [
