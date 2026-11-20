@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+### Changed
+
+- Move `style-audit` to the repository root (`bun run style-audit`) and align the remaining test files with `AGENTS.md` with no runtime behavior changes.
+
 ## 0.2.2
 
 ### Fixed

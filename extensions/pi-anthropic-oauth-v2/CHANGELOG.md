@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Refactor source, verification script, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, named constants, small functions, and `zod` input validation) with no behavior changes.
+
 ## 0.2.0
 
 - Replaces the provider with a reworked version of Pi's `custom-provider-anthropic` example. The provider is now `custom-anthropic`. `/claude-usage` and the OAuth-only request check are gone. After upgrading, sign in again with `/login custom-anthropic` and pick a `custom-anthropic/...` model.

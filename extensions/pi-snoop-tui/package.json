@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-snoop-tui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A calm, compact, fast look for Pi's interactive TUI: graphite themes, one-line tool rows, a single-row footer.",
   "type": "module",
   "license": "MIT",

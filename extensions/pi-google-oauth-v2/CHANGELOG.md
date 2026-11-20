@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Refactor provider, pure stream reducer, request builder, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, `zod` input validation, named constants, and small functions) with no behavior changes.
+
 ## 0.1.2
 
 - Retain the full current Pi instructions, including the Pi identity and documentation, in a leading user-content turn. A static system directive delegates priority to that turn. This is not equivalent to transport-level system priority, and non-Gemini models remain unverified.
