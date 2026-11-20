@@ -42,14 +42,14 @@ const tmuxJobsCases: [JsonObject, Outcome][] = [
 const subagentCases: [JsonObject, Outcome][] = [
   [{}, { text: NO_MODE }],
   [{ agent: 'a', task: 't' }, { text: UNKNOWN_AGENT }],
-  [{ tasks: [{ agent: 'a', task: 't', extra: 1 }], agentScope: 'both' }, { text: /^Parallel: 0\/1 succeeded/ }],
-  [{ chain: [{ agent: 'a', task: 't', cwd: 'sub' }], confirmProjectAgents: false }, { text: /^Chain stopped at step 1 \(a\)/ }],
+  [{ tasks: [{ agent: 'a', task: 't', extra: 1 }], agentScope: 'both' }, { text: /Parallel: 0\/1 succeeded/ }],
+  [{ chain: [{ agent: 'a', task: 't', cwd: 'sub' }], confirmProjectAgents: false }, { text: /Chain stopped at step 1 \(a\)/ }],
   [{ agentScope: 'nope' }, REFUSED],
   [{ chain: [{ agent: 'a' }] }, REFUSED],
   [{ agent: null, cwd: null, future: 1 }, { text: NO_MODE }],
   [{ confirmProjectAgents: 'true' }, { text: NO_MODE }],
   [{ agent: 'a', task: 't', model: 'p/m', thinking: 'high' }, { text: UNKNOWN_AGENT }],
-  [{ tasks: [{ agent: 'a', task: 't', model: 'p/m', thinking: 'off' }] }, { text: /^Parallel: 0\/1 succeeded/ }],
+  [{ tasks: [{ agent: 'a', task: 't', model: 'p/m', thinking: 'off' }] }, { text: /Parallel: 0\/1 succeeded/ }],
   [{ chain: [{ agent: 'a', task: 't', thinking: 'loud' }] }, REFUSED],
   [{ agent: 'a', task: 't', model: SOME_NUMBER }, { text: UNKNOWN_AGENT }],
 ];

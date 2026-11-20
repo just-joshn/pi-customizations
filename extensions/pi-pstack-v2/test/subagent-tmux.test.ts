@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, textOf, type ToolResult, useWorkspace } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const FAILED_EXIT = 2;
@@ -41,7 +41,7 @@ describe('the tmux session a subagent runs in', () => {
     await vi.waitFor(() => expect(stoppedChild?.state).toBe('gone'), CHILD_WAIT_MS);
     keptChild?.stdout(`${assistantLine('still here')}\n`);
     keptChild?.exit(0);
-    expect(textOf(await kept)).toBe('still here');
+    expect(answerOf(await kept)).toBe('still here');
     expect(textOf(await stopped)).toContain('aborted');
   });
 
@@ -79,7 +79,7 @@ describe('the tmux session a subagent runs in, cleanup and streaming', () => {
     await vi.waitFor(() => expect(seen).toContain('partway'), CHILD_WAIT_MS);
     expect(child?.state).toBe('running');
     child?.exit(0);
-    expect(textOf(await running)).toBe('partway');
+    expect(answerOf(await running)).toBe('partway');
   });
 
   test('keeps the child stderr in the result when the child stays silent otherwise', async () => {

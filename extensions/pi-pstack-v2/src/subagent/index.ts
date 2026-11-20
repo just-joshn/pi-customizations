@@ -18,6 +18,8 @@ import * as path from 'node:path';
 
 import { CONFIG_DIR_NAME, type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { hostEnv } from '../host-env.ts';
+import { createConcurrencyGate, readConcurrencyLimit } from './admission.ts';
 import { executeSubagent } from './dispatch.ts';
 import { renderSubagentCall } from './render-call.ts';
 import { renderSubagentResult } from './render-result.ts';
@@ -53,6 +55,7 @@ function registerWakeLifecycle(pi: ExtensionAPI, wakeJobs: ReturnType<typeof cre
 
 export default function subagentExtension(pi: ExtensionAPI): void {
   const wakeJobs = createWakeJobs(pi);
+  const gate = createConcurrencyGate(() => readConcurrencyLimit(hostEnv()));
   registerWakeLifecycle(pi, wakeJobs);
 
   // Tool execute results cannot set runtime error state directly, so patch it through the result hook.
@@ -74,8 +77,8 @@ export default function subagentExtension(pi: ExtensionAPI): void {
         const text = wakeJobs.stop(parsed.stop) ? `Stopped subagent job ${parsed.stop}.` : `No running subagent job ${parsed.stop}.`;
         return Promise.resolve(textResult(text, noDetails));
       }
-      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx);
-      const id = wakeJobs.start(parsed.wake, ctx, (jobSignal) => executeSubagent(parsed, jobSignal, undefined, ctx));
+      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx, gate);
+      const id = wakeJobs.start(parsed.wake, ctx, (jobSignal) => executeSubagent(parsed, jobSignal, undefined, ctx, gate));
       const text = `Started subagent job ${id}. It wakes you with its report when every worker finishes. Stop it with stop: "${id}".`;
       return Promise.resolve(textResult(text, noDetails));
     },

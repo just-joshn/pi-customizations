@@ -20,6 +20,14 @@ export interface AgentConfig {
   name: string;
   description: string;
   tools?: string[] | undefined;
+  /** Built-in tools the child must not get, whatever `tools` says. */
+  disallowedTools?: string[] | undefined;
+  /** The child starts without the AGENTS.md and CLAUDE.md files Pi would load from its directory. */
+  omitContextFiles?: boolean | undefined;
+  /** Skills whose bodies are added to the child's system prompt. */
+  skills?: string[] | undefined;
+  /** The child is stopped after this many assistant turns. */
+  maxTurns?: number | undefined;
   model?: string | undefined;
   systemPrompt: string;
   source: AgentSource;
@@ -62,7 +70,29 @@ const AgentFrontmatterSchema = z.looseObject({
   description: z.string(),
   tools: z.unknown().optional(),
   model: z.unknown().optional(),
+  disallowedTools: z.unknown().optional(),
+  omitContextFiles: z.unknown().optional(),
+  omitClaudeMd: z.unknown().optional(),
+  skills: z.unknown().optional(),
+  maxTurns: z.unknown().optional(),
 });
+
+const MAX_PRELOADED_SKILLS = 32;
+const WILDCARD_TOOL = '*';
+
+/** A frontmatter `disallowedTools` list, where `*` names nothing in particular and so is dropped. */
+function parseDisallowedTools(value: unknown): string[] | undefined {
+  const tools = parseToolList(value)?.filter((tool) => tool !== WILDCARD_TOOL);
+  return tools && tools.length > 0 ? tools : undefined;
+}
+
+function parseSkillList(value: unknown): string[] | undefined {
+  const names = parseToolList(value);
+  return names ? [...new Set(names)].slice(0, MAX_PRELOADED_SKILLS) : undefined;
+}
+
+const PositiveInteger = z.number().int().positive();
+const parseMaxTurns = (value: unknown): number | undefined => PositiveInteger.safeParse(value).data;
 
 function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): AgentConfig | undefined {
   if (!entry.name.endsWith('.md')) return undefined;
@@ -79,8 +109,20 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): Agen
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  const { name, description, tools, model } = parsed.data;
-  return { name, description, tools: parseToolList(tools), model: typeof model === 'string' ? model : undefined, systemPrompt: body, source, filePath };
+  const { name, description, tools, model, disallowedTools, omitContextFiles, omitClaudeMd, skills, maxTurns } = parsed.data;
+  return {
+    name,
+    description,
+    tools: parseToolList(tools),
+    disallowedTools: parseDisallowedTools(disallowedTools),
+    omitContextFiles: omitContextFiles === true || omitClaudeMd === true,
+    skills: parseSkillList(skills),
+    maxTurns: parseMaxTurns(maxTurns),
+    model: typeof model === 'string' ? model : undefined,
+    systemPrompt: body,
+    source,
+    filePath,
+  };
 }
 
 function loadAgentsFromDir(dir: string, source: AgentSource): AgentConfig[] {

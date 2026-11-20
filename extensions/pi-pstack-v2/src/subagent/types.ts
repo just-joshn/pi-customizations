@@ -45,6 +45,8 @@ export type OnUpdateCallback = (partial: AgentToolResult<SubagentDetails>) => vo
 export interface DispatchDefaults {
   model?: string | undefined;
   thinkingLevel?: ThinkingLevel | undefined;
+  /** Environment variables the child gets on top of this process's own. */
+  extraEnv?: Readonly<Record<string, string>> | undefined;
 }
 
 export interface DispatchRun {

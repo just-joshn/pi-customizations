@@ -139,6 +139,18 @@ System prompt for the agent goes here.
 
 When `model` is omitted, the subagent inherits the dispatching session's active model and thinking level.
 
+Optional frontmatter:
+- `disallowedTools: bash, write` removes tools from `tools` (or from every built-in tool when `tools` is absent). `*` is ignored. When nothing is left the child starts with `--no-tools`.
+- `omitContextFiles: true` (alias `omitClaudeMd`) starts the child with `--no-context-files`.
+- `skills: a, b` appends each skill's `SKILL.md` body (frontmatter stripped) to the child's system prompt. Searched in `<cwd>/.pi/skills`, `<cwd>/.agents/skills`, the Pi agent dir `skills`, `~/.agents/skills`, then this package's `skills`. At most 32; missing skills are skipped.
+- `maxTurns: 20` stops the child after that many assistant turns. The call still counts as completed, with `stopReason: "max_turns"`.
+
+## Safety limits
+
+Every report (single, parallel, chain, wake) opens with an untrusted-output banner, since it is model output with no user authority, and ends with a `<usage>` block when any turn ran.
+
+Each child gets `PI_SUBAGENT_DEPTH` one higher than its parent's. A call is refused when the depth is at `PI_SUBAGENT_MAX_DEPTH` (default 3). A call is also refused when its workers would take the session past `PI_SUBAGENT_MAX_CONCURRENT` (default 20) running at once, woken jobs included.
+
 **Locations:**
 - `src/subagent/agents/*.md` - Bundled with this package (every scope)
 - `~/.pi/agent/agents/*.md` - User-level (with `agentScope: "user"` or `"both"`)

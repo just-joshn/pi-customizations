@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { frameSubagentReport } from './framing.ts';
 import type { ToolResult } from './results.ts';
 
 export const WAKE_MESSAGE_TYPE = 'pstack-subagent';
@@ -40,7 +41,7 @@ export function createWakeJobs(pi: ExtensionAPI) {
     const done = (async (): Promise<void> => {
       const report = await run(controller.signal).then(reportOf, (error: unknown) => `Failed: ${error instanceof Error ? error.message : String(error)}`);
       running = new Map([...running].filter(([key]) => key !== id));
-      deliver(ctx, `${wake}\n\nsubagent job ${id} finished.\n\n${report}`);
+      deliver(ctx, `${wake}\n\nsubagent job ${id} finished.\n\n${frameSubagentReport(report)}`);
     })();
     running = new Map([...running, [id, { controller, done }]]);
     return id;

@@ -3,6 +3,7 @@ import { getPiInvocation, removePromptTempFile, writePromptToTempFile } from './
 import { createResultStream, finalizeResult } from './result-stream.ts';
 import { createUnstartedResult, emptyUsage, getFinalOutput } from './results.ts';
 import { runPiInTmux } from './run-in-tmux.ts';
+import { withPreloadedSkills } from './skill-preload.ts';
 import type { CallModel, DispatchDefaults, MakeDetails, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
 
 interface AgentRun {
@@ -12,9 +13,26 @@ interface AgentRun {
   signal: AbortSignal | undefined;
   onUpdate: OnUpdateCallback | undefined;
   makeDetails: MakeDetails;
+  maxTurns: number | undefined;
+  extraEnv: Readonly<Record<string, string>> | undefined;
 }
 
 const ABORTED_BEFORE_START = 'Subagent was aborted before starting';
+const BUILTIN_TOOL_NAMES = ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls'] as const;
+
+/**
+ * The tool flags for an agent: its own `tools` (or every built-in tool when only `disallowedTools` is set) less the
+ * disallowed ones. An agent that names no tools and bans none keeps Pi's defaults, so it gets no flag. One whose tools
+ * are all banned gets `--no-tools`.
+ */
+function toolFlags(agent: AgentConfig): string[] {
+  const banned = new Set((agent.disallowedTools ?? []).map((tool) => tool.toLowerCase()));
+  const named = agent.tools ?? [];
+  if (named.length === 0 && banned.size === 0) return [];
+  const start = named.length > 0 ? named : [...BUILTIN_TOOL_NAMES];
+  const allowed = start.filter((tool) => !banned.has(tool.toLowerCase()));
+  return allowed.length > 0 ? ['--tools', allowed.join(',')] : ['--no-tools'];
+}
 
 // A model named by the call or the agent runs at its own default thinking level unless the call names one.
 function buildPiArgs(agent: AgentConfig, defaults: DispatchDefaults, call: CallModel, promptPath: string | undefined, task: string): string[] {
@@ -28,31 +46,50 @@ function buildPiArgs(agent: AgentConfig, defaults: DispatchDefaults, call: CallM
     '--no-session',
     ...(model ? ['--model', model] : []),
     ...(thinking ? ['--thinking', thinking] : []),
-    ...(agent.tools && agent.tools.length > 0 ? ['--tools', agent.tools.join(',')] : []),
+    ...toolFlags(agent),
+    ...(agent.omitContextFiles === true ? ['--no-context-files'] : []),
     ...(promptPath ? ['--append-system-prompt', promptPath] : []),
     `Task: ${task}`,
   ];
 }
 
+/** Aborts `controller` when `signal` does, and returns the call that stops listening. */
+function followSignal(signal: AbortSignal | undefined, controller: AbortController): () => void {
+  const abort = (): void => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  return () => signal?.removeEventListener('abort', abort);
+}
+
 async function streamAgent(run: AgentRun): Promise<SingleResult> {
-  const stream = createResultStream(run.initial, (result) => {
-    run.onUpdate?.({
-      content: [{ type: 'text', text: getFinalOutput(result.messages) || '(running...)' }],
-      details: run.makeDetails([result]),
-    });
-  });
+  const childController = new AbortController();
+  const stopFollowing = followSignal(run.signal, childController);
+  const stream = createResultStream(
+    run.initial,
+    (result) => {
+      run.onUpdate?.({
+        content: [{ type: 'text', text: getFinalOutput(result.messages) || '(running...)' }],
+        details: run.makeDetails([result]),
+      });
+    },
+    { maxTurns: run.maxTurns, onMaxTurns: () => childController.abort() },
+  );
   stream.emit();
   const invocation = getPiInvocation(run.args);
-  const outcome = await runPiInTmux({
-    command: invocation.command,
-    args: invocation.args,
-    cwd: run.cwd,
-    signal: run.signal,
-    onStdoutChunk: stream.onStdoutChunk,
-    onStderrChunk: stream.onStderrChunk,
-  });
-  stream.flush();
-  return finalizeResult(stream.result(), outcome, run.signal?.aborted === true);
+  try {
+    const outcome = await runPiInTmux({
+      command: invocation.command,
+      args: invocation.args,
+      cwd: run.cwd,
+      signal: childController.signal,
+      extraEnv: run.extraEnv,
+      onStdoutChunk: stream.onStdoutChunk,
+      onStderrChunk: stream.onStderrChunk,
+    });
+    stream.flush();
+    return finalizeResult(stream.result(), outcome, run.signal?.aborted === true, stream.hitMaxTurns());
+  } finally {
+    stopFollowing();
+  }
 }
 
 async function runResolvedAgent(
@@ -80,10 +117,11 @@ async function runResolvedAgent(
   };
   let prompt: Awaited<ReturnType<typeof writePromptToTempFile>> | undefined;
   try {
-    prompt = agent.systemPrompt.trim() ? await writePromptToTempFile(agent.name, agent.systemPrompt) : undefined;
+    const systemPrompt = withPreloadedSkills(agent.systemPrompt, agent.skills, cwd);
+    prompt = systemPrompt.trim() ? await writePromptToTempFile(agent.name, systemPrompt) : undefined;
     if (signal?.aborted) return { ...initial, status: 'aborted', errorMessage: ABORTED_BEFORE_START };
     const args = buildPiArgs(agent, defaults, call, prompt?.filePath, task);
-    return await streamAgent({ cwd, initial, args, signal, onUpdate, makeDetails });
+    return await streamAgent({ cwd, initial, args, signal, onUpdate, makeDetails, maxTurns: agent.maxTurns, extraEnv: defaults.extraEnv });
   } finally {
     removePromptTempFile(prompt);
   }

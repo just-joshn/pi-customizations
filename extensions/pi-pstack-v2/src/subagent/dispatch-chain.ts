@@ -1,4 +1,5 @@
-import { getFinalOutput, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
+import { frameSubagentReport } from './framing.ts';
+import { aggregateUsage, getFinalOutput, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
 import type { WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
@@ -23,7 +24,7 @@ async function runStep(run: DispatchRun, steps: WorkItem[], resolved: ResolvedAg
   const results = [...done, result];
   if (isFailedResult(result)) {
     const message = `Chain stopped at step ${index + 1} (${step.agent}): ${getResultOutput(result)}`;
-    return textResult(truncateModelOutput(message), makeDetails('chain')(results));
+    return textResult(frameSubagentReport(truncateModelOutput(message), aggregateUsage(results)), makeDetails('chain')(results));
   }
   return runStep(run, steps, resolved, index + 1, results, getFinalOutput(result.messages));
 }
@@ -31,7 +32,7 @@ async function runStep(run: DispatchRun, steps: WorkItem[], resolved: ResolvedAg
 function finishChain(results: SingleResult[]): ToolResult {
   const last = results.at(-1);
   const output = last ? getFinalOutput(last.messages) : '';
-  return textResult(truncateModelOutput(output || '(no output)'), makeDetails('chain')(results));
+  return textResult(frameSubagentReport(truncateModelOutput(output || '(no output)'), aggregateUsage(results)), makeDetails('chain')(results));
 }
 
 export function runChain(run: DispatchRun, steps: WorkItem[], resolved: ResolvedAgent[]): Promise<ToolResult> {
