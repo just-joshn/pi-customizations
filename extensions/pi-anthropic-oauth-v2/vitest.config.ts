@@ -1,5 +1,7 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
+const BRANCH_COVERAGE_THRESHOLD = 80;
+
 export default defineConfig({
   test: {
     environment: 'node',
@@ -17,7 +19,7 @@ export default defineConfig({
       include: ['src/**/*.ts'],
 
       exclude: ['src/**/*.d.ts', 'src/**/*.{test,spec}.ts', 'src/**/__tests__/**'],
-      thresholds: { branches: 80 },
+      thresholds: { branches: BRANCH_COVERAGE_THRESHOLD },
     },
   },
 });

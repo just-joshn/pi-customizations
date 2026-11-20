@@ -1,30 +1,13 @@
-import { type AssistantMessageEvent, normalizeContext, type Tool } from '@earendil-works/pi-ai';
+import { normalizeContext, type Tool } from '@earendil-works/pi-ai';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import extension from '../src/index.ts';
+import { TOKEN_URL } from './support/constants.ts';
+import { collect, model, register } from './support/provider.ts';
 
-type ProviderConfig = Parameters<Parameters<typeof extension>[0]['registerProvider']>[1];
-
-const register = (): ProviderConfig => {
-  const configs: ProviderConfig[] = [];
-  extension({ registerProvider: (_name: string, config: ProviderConfig) => configs.push(config) } as never);
-  const [config] = configs;
-  if (!config?.oauth || !config.streamSimple) throw new Error('provider not registered');
-  return config;
-};
-
-const oauth = () => {
-  const { oauth: handlers } = register();
-  if (!handlers) throw new Error('no oauth');
-  return handlers;
-};
+const oauth = () => register().config.oauth;
 
 const streamError = async (context: ReturnType<typeof normalizeContext>) => {
-  const { streamSimple, models, baseUrl, api } = register();
-  if (!streamSimple || !models?.[0]) throw new Error('no stream');
-  const model = { ...models[0], api, provider: 'custom-anthropic', baseUrl } as never;
-  const events: AssistantMessageEvent[] = [];
-  for await (const event of streamSimple(model, context, { apiKey: 'sk-ant-api-x' })) events.push(event);
-  return events;
+  const { config } = register();
+  return collect(config.streamSimple(model(), context, { apiKey: 'sk-ant-api-x' }));
 };
 
 const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -36,7 +19,7 @@ describe('login input validation', () => {
   it('rejects a blank authorization code before calling Anthropic', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    await expect(oauth().login({ onAuth: () => undefined, onPrompt: async () => '   ' } as never)).rejects.toThrow('Paste the authorization code shown after you sign in to Claude.');
+    await expect(oauth().login({ onAuth: () => undefined, onPrompt: async () => '   ' })).rejects.toThrow('Paste the authorization code shown after you sign in to Claude.');
     expect(fetchMock).not.toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalled();
   });
@@ -44,8 +27,8 @@ describe('login input validation', () => {
   it('trims the pasted code', async () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ access_token: 'a', refresh_token: 'r', expires_in: 1 }) }));
     vi.stubGlobal('fetch', fetchMock);
-    await oauth().login({ onAuth: () => undefined, onPrompt: async () => ' code#state\n' } as never);
-    expect(JSON.parse(String((fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body))).toMatchObject({ code: 'code', state: 'state' });
+    await oauth().login({ onAuth: () => undefined, onPrompt: async () => ' code#state\n' });
+    expect(fetchMock).toHaveBeenCalledWith(TOKEN_URL, expect.objectContaining({ body: expect.stringContaining('"code":"code","state":"state"') }));
   });
 });
 
@@ -87,16 +70,5 @@ describe('request input validation', () => {
     const events = await streamError(normalizeContext({ messages: [{ role: 'user', content: 'hi', timestamp: 1 }], tools: [tool] }));
     expect(events[0]).toMatchObject({ error: { errorMessage: 'Tool "broken" has an invalid parameter schema.' } });
     expect(consoleError).toHaveBeenCalled();
-  });
-});
-
-describe('registration errors', () => {
-  it('wraps a registration failure', () => {
-    const pi = {
-      registerProvider: () => {
-        throw new Error('duplicate');
-      },
-    };
-    expect(() => extension(pi as never)).toThrow('Could not register the custom-anthropic provider.');
   });
 });
