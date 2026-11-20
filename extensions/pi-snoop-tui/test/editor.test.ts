@@ -1,7 +1,7 @@
 import type { CustomEditor } from '@earendil-works/pi-coding-agent';
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test } from 'vitest';
-import { buildEditor, createSession, driveRow, loadSnoop, loadTheme, output, PROJECT, piNative, plain, plainLines, type Session, setBorderColor, THEME_NAMES } from './harness.ts';
+import { buildEditor, CURSOR, createSession, double, driveRow, loadSnoop, loadTheme, output, PROJECT, piNative, plain, plainLines, type Session, setBorderColor, THEME_NAMES } from './harness.ts';
 
 const WIDE = 100;
 const MEDIUM = 90;
@@ -10,7 +10,6 @@ const MAX_WIDTH = 120;
 const BARE_RULE_WIDTH = 8;
 const SCROLL_LINES = 30;
 const theme = loadTheme('snoop-dark');
-const CURSOR = /\x1b_pi:c\x07/g;
 type Indicator = Parameters<CustomEditor['setWorkingStatusIndicator']>[0];
 
 function started(outputPad = 1, name: 'snoop-dark' | 'snoop-light' = 'snoop-dark') {
@@ -20,7 +19,7 @@ function started(outputPad = 1, name: 'snoop-dark' | 'snoop-light' = 'snoop-dark
   return { session, editor: buildEditor(session) };
 }
 function indicator(kind: 'working' | 'retry', text: string): Indicator {
-  return { kind, renderInBorder: (width: number) => text.slice(0, width) } as unknown as Indicator;
+  return double<Indicator>({ kind, renderInBorder: (width: number) => text.slice(0, width) });
 }
 const view = (lines: readonly string[]) => plainLines(lines);
 

@@ -27,8 +27,11 @@ interface RowState {
   readonly body: Component;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
 function parseArgs(args: unknown): Record<string, unknown> {
-  return args !== null && typeof args === 'object' ? (args as Record<string, unknown>) : {};
+  return isRecord(args) ? args : {};
 }
 function createRowState(spec: ToolSpec, theme: Theme, ctx: ToolRenderContext): RowState {
   const view = cell(Object.freeze<RowView>({ phase: derivePhase(ctx), verb: spec.verb, target: spec.target(parseArgs(ctx.args), ctx.cwd), meta: undefined, body: { kind: 'none' }, pad: ctx.outputPad }));
@@ -48,10 +51,11 @@ function isRowState(value: unknown): value is RowState {
   return typeof value === 'object' && value !== null && ROW_STATE in value;
 }
 function rowState(ctx: ToolRenderContext, spec: ToolSpec, theme: Theme): RowState {
-  const existing = ctx.state.snoop;
+  const bag: unknown = ctx.state;
+  const existing: unknown = isRecord(bag) ? Reflect.get(bag, 'snoop') : undefined;
   if (isRowState(existing)) return existing;
   const created = createRowState(spec, theme, ctx);
-  ctx.state.snoop = created;
+  if (isRecord(bag)) Reflect.set(bag, 'snoop', created);
   return created;
 }
 

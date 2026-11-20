@@ -41,7 +41,7 @@ ${HELP_INDENT}typing, expandedTyping, burst, or a long step name
 ${HELP_INDENT}has this name
   --match MATCH      path fragment that marks extension code`;
 
-const Args = z
+const ArgsSchema = z
   .object({
     values: z.object({
       help: z.boolean().optional(),
@@ -55,7 +55,7 @@ const Args = z
   })
   .transform(({ values, positionals }) => ({ ...values, help: values.help === true, record: values.record || undefined, callers: values.callers || undefined, profileDir: positionals[0] }));
 
-type Args = z.infer<typeof Args>;
+type Args = z.infer<typeof ArgsSchema>;
 type Row = Total<Sample>;
 
 const share = (ms: number, busyMs: number, digits = PERCENT_DIGITS): string => formatPercent(ms / busyMs, digits);
@@ -128,7 +128,7 @@ const idleRepr = (): string =>
     .join(', ')}]`;
 
 function main(): void {
-  const args = Args.parse(
+  const args = ArgsSchema.parse(
     parseArgs({
       args: process.argv.slice(ARGV_USER_START),
       options: {
@@ -150,7 +150,8 @@ function main(): void {
   const window = args.record === undefined ? undefined : windowFor(lastRecord(args.record), args.phase);
   if (args.record !== undefined && window === undefined) {
     console.error(`phase '${args.phase}' not in record`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
   const profiles = loadProfiles(args.profileDir);
   const urls = [...new Set(profiles.flatMap((profile) => profile.nodes.map((node) => node.callFrame.url)))].filter((url) => url.startsWith(FILE_PREFIX));

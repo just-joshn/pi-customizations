@@ -80,7 +80,7 @@ abstract class RuleEditor extends CustomEditor {
   private promptText(theme: Theme): string {
     const cached = this.prompt.read();
     if (cached?.theme === theme) return cached.text;
-    const text = `${' '.repeat(this.config.gutter)}${theme.fg('accent', '›')}${' '.repeat(PROMPT_INSET - 1)}`;
+    const text = `${' '.repeat(this.config.gutter)}${theme.fg('accent', '›')}${' '.repeat(Math.max(0, PROMPT_INSET - 1))}`;
     this.prompt.write({ theme, text });
     return text;
   }

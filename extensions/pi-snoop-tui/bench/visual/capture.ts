@@ -1,12 +1,13 @@
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { z } from 'zod';
 
 /** usage: capture.ts <label> <cols> <rows> [pi args...] */
 const ARGV_USER_START = 2;
-const DEFAULT_TMP = '/tmp';
 const POLL_MS = 250;
 const MAX_POLLS = 80;
 const STABLE_POLLS = 4;
@@ -72,10 +73,10 @@ function writeFixture(here: string, work: string, fixture: string | undefined, c
 function main(): void {
   const [label, cols, rows, ...piArgs] = Args.parse(process.argv.slice(ARGV_USER_START));
   const env = Env.parse(process.env);
-  const here = import.meta.dirname;
+  const here = dirname(fileURLToPath(import.meta.url));
   const out = join(here, 'out');
   mkdirSync(out, { recursive: true });
-  const tmp = env.TMPDIR || DEFAULT_TMP;
+  const tmp = env.TMPDIR || tmpdir();
   const capture: Capture = { sock: join(tmp, SOCKET_NAME), sess: `snoop-${label}-${process.pid}` };
   const work = mkdtempSync(join(tmp, 'snoop-capture.'));
   const session = writeFixture(here, work, env.FIXTURE, env.PWD ?? process.cwd());

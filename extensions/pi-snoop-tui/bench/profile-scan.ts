@@ -28,7 +28,7 @@ const CLASS_START = /\bclass(?:\s+([A-Za-z_$][\p{L}\p{N}_$]*))?(?:\s+extends\s+[
 const CLASS_NAME_BEFORE = /([A-Za-z_$][\p{L}\p{N}_$]*)\s*=\s*$/u;
 const WORD_CHAR = /[\p{L}\p{N}_$]/u;
 const NEWLINES = /\r\n?/g;
-const REGEX_PREFIX = new Set([...'(,=:[!&|?{};+-*%<>~^']);
+const REGEX_PREFIX = new Set(Array.from('(,=:[!&|?{};+-*%<>~^'));
 const REGEX_KEYWORDS = new Set(['return', 'typeof', 'case', 'do', 'else', 'in', 'of', 'new', 'delete', 'void', 'throw', 'yield', 'await', 'instanceof']);
 const SLASH = '/';
 const LINE_COMMENT = '//';

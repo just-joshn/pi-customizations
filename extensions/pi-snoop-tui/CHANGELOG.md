@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3]
+
+- Fix every `bun lint` behavior error. The editor inset can no longer pass a negative count to `repeat()`, and the home directory is read when a path is shown instead of when the module loads.
+
 ## [0.1.2]
 
 - Rewrite every test as a user behavior test. Tests load the extensions the way Pi does and assert the rendered tool rows, footer, header, and editor with the snoop themes. No behavior changes.

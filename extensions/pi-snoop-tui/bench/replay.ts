@@ -42,7 +42,10 @@ interface Run {
 
 export function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(new Error('aborted'));
+    if (signal?.aborted) {
+      reject(new Error('aborted'));
+      return;
+    }
     const timer = setTimeout(resolve, ms);
     signal?.addEventListener(
       'abort',

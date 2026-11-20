@@ -39,8 +39,10 @@ export interface ToolSpec {
 export const RUNNING_TAIL_LINES = 3;
 export const ERROR_PREVIEW_LINES = 5;
 const HomeEnv = z.object({ HOME: z.string().optional(), USERPROFILE: z.string().optional() });
-const homeEnv = HomeEnv.parse(process.env);
-const HOME = homeEnv.HOME ?? homeEnv.USERPROFILE;
+function homeDir(): string | undefined {
+  const env = HomeEnv.parse(process.env);
+  return env.HOME ?? env.USERPROFILE;
+}
 const STATUS_TAIL_CHARS = 200;
 
 function str(value: unknown): string {
@@ -52,7 +54,8 @@ function field(value: unknown, key: string): unknown {
 function relPath(value: unknown, cwd: string): string {
   const path = str(value);
   if (path.startsWith(`${cwd}/`)) return path.slice(cwd.length + 1);
-  if (HOME && (path === HOME || path.startsWith(`${HOME}/`))) return `~${path.slice(HOME.length)}`;
+  const home = homeDir();
+  if (home && (path === home || path.startsWith(`${home}/`))) return `~${path.slice(home.length)}`;
   return path;
 }
 function pathTarget(args: ToolArgs | undefined, cwd: string): TargetText {
