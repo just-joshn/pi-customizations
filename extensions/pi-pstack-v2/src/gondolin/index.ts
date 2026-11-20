@@ -8,13 +8,15 @@
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { createGondolinBashOps } from './bash.ts';
+import { SHARED_BUILD_CACHE_FLAG } from './config.ts';
 import { GUEST_WORKSPACE } from './paths.ts';
+import { GUEST_BUILD_CACHE } from './shared-cache.ts';
 import { registerGuestTools } from './tools.ts';
 import { createGondolinVm, type GondolinVm } from './vm.ts';
 
 export const HOST_BOUNDARY_NOTE = [
   'The VM has no `git`, `gh`, `tmux`, or `bun`.',
-  'Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM, except this package, which is mounted read-only at its host path.',
+  'Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM, except this package and the user and package skill directories, which are mounted read-only at their host paths.',
   "Run what needs them on the host with `tmux_run`, and read its output with `tmux_jobs` `output`, since the job's log file is a host path.",
 ].join(' ');
 
@@ -31,7 +33,8 @@ function registerStatusCommand(pi: ExtensionAPI, guest: GondolinVm, localCwd: st
     description: 'Show Gondolin VM status',
     handler: async (_args, ctx) => {
       const activeVm = await guest.ensure(ctx);
-      const status = [`Gondolin VM: ${activeVm.id}`, `Host workspace: ${localCwd}`, `Guest workspace: ${GUEST_WORKSPACE}`, `Shell: ${guest.shellPath()}`];
+      const cacheDir = guest.sharedBuildCacheDir();
+      const status = [`Gondolin VM: ${activeVm.id}`, `Host workspace: ${localCwd}`, `Guest workspace: ${GUEST_WORKSPACE}`, `Shell: ${guest.shellPath()}`, ...(cacheDir ? [`Shared build cache: ${cacheDir} -> ${GUEST_BUILD_CACHE}`] : [])];
       ctx.ui.notify(status.join('\n'), 'info');
     },
   });
@@ -39,7 +42,12 @@ function registerStatusCommand(pi: ExtensionAPI, guest: GondolinVm, localCwd: st
 
 export default function gondolin(pi: ExtensionAPI): void {
   const localCwd = process.cwd();
-  const guest = createGondolinVm(localCwd);
+  pi.registerFlag(SHARED_BUILD_CACHE_FLAG, {
+    description: 'Share build-tool caches (npm, pip, cargo, go, ...) between Gondolin and unsandboxed tmux_run jobs',
+    type: 'boolean',
+    default: false,
+  });
+  const guest = createGondolinVm(localCwd, () => pi.getFlag(SHARED_BUILD_CACHE_FLAG));
 
   pi.on('session_start', async (_event, ctx) => {
     await guest.ensure(ctx);

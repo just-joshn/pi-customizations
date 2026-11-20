@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, byTask, CHILD_WAIT_MS, dies, says, startedByTask, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const MAX_PARALLEL_TASKS = 8;
@@ -27,7 +27,7 @@ describe('chain mode', () => {
       { agent: 'worker', task: 'use {previous}' },
     ];
     const result = await run({ chain }, onUpdate);
-    expect(textOf(result)).toBe('two');
+    expect(answerOf(result)).toBe('two');
     expect(result.details?.mode).toBe('chain');
     expect(result.details?.results.map((r) => [r.agent, r.step])).toEqual([
       ['scout', 1],
@@ -67,7 +67,7 @@ describe('chain mode', () => {
 describe('chain mode, step output and settings', () => {
   test('says (no output) when the last step is silent', async () => {
     fakePi.onChild(says(''));
-    expect(textOf(await run({ chain: tasksFor('go') }))).toBe('(no output)');
+    expect(answerOf(await run({ chain: tasksFor('go') }))).toBe('(no output)');
   });
 
   test('gives each step its own model, thinking level and directory', async () => {
@@ -187,7 +187,7 @@ describe('parallel mode, task settings and output', () => {
     const [, body = ''] = text.split('### [scout] completed\n\n');
     const [kept = ''] = body.split('\n\n[Output truncated');
     expect(Buffer.byteLength(kept)).toBeLessThanOrEqual(PARALLEL_CAP_BYTES);
-    expect(text).toMatch(/\[Output truncated: \d+ bytes omitted\. Full output preserved in tool details\.\]$/);
+    expect(text).toMatch(/\[Output truncated: \d+ bytes omitted\. Full output preserved in tool details\.\]\n\n<usage>/);
   });
 
   test('lists an error and an identical assistant message once in a failed task', async () => {

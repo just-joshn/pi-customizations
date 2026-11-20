@@ -10,6 +10,9 @@ Delegate tasks to specialized subagents with isolated context windows.
 - **Markdown rendering**: Final output rendered with proper formatting (expanded view)
 - **Usage display**: Shows turns, tokens, cost, and context usage inside each subagent result
 - **Abort support**: Ctrl+C propagates to kill subagent processes
+- **Live background progress**: with a UI, running wake jobs show in Pi's status line and a widget (`pstack-subagent`): `<id> <agents> <turns>t <n> tools <tokens> tok`. Updates are throttled to 500 ms (5 s past 20 jobs), flushed at job start and end, and cleared when the last job ends or is stopped.
+- **Persistent `.output` logs**: each wake job writes JSONL (`start`, one `message` line per worker message, `final`) to `<agent dir>/pstack-v2/subagents/<id>.output` (dir `0700`, file `0600`, capped at 32 MiB). The launch text and the wake report end with `Output file: <path>`.
+- **`report_findings` tool**: records structured review findings (`level`, up to 32 `findings` with `file`, `line`, `summary`, `short_summary` ≤ 60 chars, `failure_scenario`, `category`, `verdict` CONFIRMED/PLAUSIBLE, `outcome` fixed/skipped/no_change_needed). The payload is kept in the result `details`, and the TUI draws the count, level and one line per finding (failure scenarios when expanded).
 
 ## Structure
 
@@ -138,6 +141,24 @@ System prompt for the agent goes here.
 ```
 
 When `model` is omitted, the subagent inherits the dispatching session's active model and thinking level.
+
+Optional frontmatter:
+- `disallowedTools: bash, write` removes tools from `tools` (or from every built-in tool when `tools` is absent). `*` is ignored. When nothing is left the child starts with `--no-tools`.
+- `omitContextFiles: true` starts the child with `--no-context-files`.
+- `skills: a, b` appends each skill's `SKILL.md` body (frontmatter stripped) to the child's system prompt. Searched in `<cwd>/.pi/skills`, `<cwd>/.agents/skills`, the Pi agent dir `skills`, `~/.agents/skills`, then this package's `skills`. At most 32; missing skills are skipped.
+- `maxTurns: 20` stops the child after that many assistant turns. The call still counts as completed, with `stopReason: "max_turns"`.
+- `memory: user | project | local` gives the agent a persistent directory (`<agent dir>/agent-memory/<name>`, `.pi/agent-memory/<name>`, or `.pi/agent-memory-local/<name>`, created `0700`). Its `MEMORY.md` (first 200 lines or 25000 characters; never a symlink) is added to the system prompt. With a restricted `tools` list, `read`, `write` and `edit` are added. The `user` scope also sets `PI_SUBAGENT_MEMORY_DIR` so the child's Gondolin VM mounts that directory writable at its host path.
+- `isolation: worktree` (or `isolation: "worktree"` on a call, task or chain step) runs the child in `.pi/worktrees/subagent-<name>-<hex>` on branch `worktree/<slug>`. A worktree with no changes and no commits is removed on exit. Otherwise it is kept, and the report ends with `Worktree kept: <path> (branch <branch>)`.
+
+## Fork subagents
+
+`agent: "fork"` is built in. The child continues a temp copy of the parent session (`--session`), with the parent's model, thinking level and system prompt, so it reuses the parent's prompt cache. Tool calls the parent left open get synthetic results. A fork cannot fork again (`PI_SUBAGENT_IS_FORK=1`, or the fork boilerplate on the parent branch), and `PI_SUBAGENT_FORK_DISABLED=1` or `true` turns forks off.
+
+## Safety limits
+
+Every report (single, parallel, chain, wake) opens with an untrusted-output banner, since it is model output with no user authority, and ends with a `<usage>` block when any turn ran.
+
+Each child gets `PI_SUBAGENT_DEPTH` one higher than its parent's. A call is refused when the depth is at `PI_SUBAGENT_MAX_DEPTH` (default 3). A call is also refused when its workers would take the session past `PI_SUBAGENT_MAX_CONCURRENT` (default 20) running at once, woken jobs included.
 
 **Locations:**
 - `src/subagent/agents/*.md` - Bundled with this package (every scope)

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { CONFIG_DIR_NAME, getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { type MemoryScope, MemoryScopeSchema } from './memory.ts';
 
 export type AgentScope = 'user' | 'project' | 'both';
 
@@ -20,7 +21,19 @@ export interface AgentConfig {
   name: string;
   description: string;
   tools?: string[] | undefined;
+  /** Built-in tools the child must not get, whatever `tools` says. */
+  disallowedTools?: string[] | undefined;
+  /** The child starts without the project context files Pi would load from its directory. */
+  omitContextFiles?: boolean | undefined;
+  /** Skills whose bodies are added to the child's system prompt. */
+  skills?: string[] | undefined;
+  /** The child is stopped after this many assistant turns. */
+  maxTurns?: number | undefined;
   model?: string | undefined;
+  /** Where the agent keeps a persistent memory directory between runs. */
+  memory?: MemoryScope | undefined;
+  /** The agent runs in its own git worktree. */
+  isolation?: 'worktree' | undefined;
   systemPrompt: string;
   source: AgentSource;
   filePath: string;
@@ -62,7 +75,32 @@ const AgentFrontmatterSchema = z.looseObject({
   description: z.string(),
   tools: z.unknown().optional(),
   model: z.unknown().optional(),
+  disallowedTools: z.unknown().optional(),
+  omitContextFiles: z.unknown().optional(),
+  skills: z.unknown().optional(),
+  maxTurns: z.unknown().optional(),
+  memory: z.unknown().optional(),
+  isolation: z.unknown().optional(),
 });
+
+const MAX_PRELOADED_SKILLS = 32;
+const WILDCARD_TOOL = '*';
+
+/** A frontmatter `disallowedTools` list, where `*` names nothing in particular and so is dropped. */
+function parseDisallowedTools(value: unknown): string[] | undefined {
+  const tools = parseToolList(value)?.filter((tool) => tool !== WILDCARD_TOOL);
+  return tools && tools.length > 0 ? tools : undefined;
+}
+
+function parseSkillList(value: unknown): string[] | undefined {
+  const names = parseToolList(value);
+  return names ? [...new Set(names)].slice(0, MAX_PRELOADED_SKILLS) : undefined;
+}
+
+const PositiveInteger = z.number().int().positive();
+const parseMemory = (value: unknown): MemoryScope | undefined => MemoryScopeSchema.safeParse(value).data;
+const parseIsolation = (value: unknown): 'worktree' | undefined => z.literal('worktree').safeParse(value).data;
+const parseMaxTurns = (value: unknown): number | undefined => PositiveInteger.safeParse(value).data;
 
 function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): AgentConfig | undefined {
   if (!entry.name.endsWith('.md')) return undefined;
@@ -79,8 +117,22 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): Agen
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  const { name, description, tools, model } = parsed.data;
-  return { name, description, tools: parseToolList(tools), model: typeof model === 'string' ? model : undefined, systemPrompt: body, source, filePath };
+  const { name, description, tools, model, disallowedTools, omitContextFiles, skills, maxTurns, memory, isolation } = parsed.data;
+  return {
+    name,
+    description,
+    tools: parseToolList(tools),
+    disallowedTools: parseDisallowedTools(disallowedTools),
+    omitContextFiles: omitContextFiles === true,
+    skills: parseSkillList(skills),
+    maxTurns: parseMaxTurns(maxTurns),
+    memory: parseMemory(memory),
+    isolation: parseIsolation(isolation),
+    model: typeof model === 'string' ? model : undefined,
+    systemPrompt: body,
+    source,
+    filePath,
+  };
 }
 
 function loadAgentsFromDir(dir: string, source: AgentSource): AgentConfig[] {

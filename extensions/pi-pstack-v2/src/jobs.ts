@@ -24,6 +24,8 @@ export interface JobSpec {
   /** Path of the tmux server socket the job runs under. */
   socket: string;
   createdAt: string;
+  /** Variables exported to the command before it runs. */
+  env?: Record<string, string>;
 }
 
 /** A job.json is read as written: older and newer versions of it differ in which keys they hold. */
@@ -46,6 +48,8 @@ const STOP_POLL_MS = 50;
 const TAIL_WINDOW_KIBIBYTES = 256;
 const BYTES_PER_KIBIBYTE = 1024;
 const TAIL_WINDOW_BYTES = TAIL_WINDOW_KIBIBYTES * BYTES_PER_KIBIBYTE;
+
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
 const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, HASH_LENGTH);
@@ -91,12 +95,20 @@ function tmux(socket: string, args: string[]): void {
   if (result.status !== 0) throw new Error(`Command failed: tmux -S ${basename(socket)} ${args.join(' ')}`);
 }
 
+function exportLines(env: Record<string, string>): string[] {
+  return Object.entries(env).map(([name, value]) => {
+    if (!ENV_NAME.test(name)) throw new Error(`${JSON.stringify(name)} is not a valid environment variable name.`);
+    return `export ${name}=${shellQuote(value)}`;
+  });
+}
+
 /** The shell script that runs the job in its own process group, mirrors its output, and records its exit on every exit path. */
-function wrapperScript(dir: string, command: string[]): string {
+function wrapperScript(dir: string, command: string[], env: Record<string, string> = {}): string {
   const out = shellQuote(outputPath(dir));
   const exit = shellQuote(exitPath(dir));
   return [
     'set -m',
+    ...exportLines(env),
     `echo $$ > ${shellQuote(join(dir, 'wrapper.pid'))}`,
     'finished=0',
     'finish() {',
@@ -130,7 +142,7 @@ export function launch(root: string, spec: JobSpec): Job {
   writeFileSync(join(dir, 'job.json'), `${JSON.stringify(spec, null, 2)}\n`);
   // The script runs from a file, since a long command would not fit on a tmux command line.
   const file = join(dir, 'wrapper.sh');
-  writeFileSync(file, `${wrapperScript(dir, spec.command)}\n`);
+  writeFileSync(file, `${wrapperScript(dir, spec.command, spec.env)}\n`);
   tmux(spec.socket, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', file]);
   return { spec, dir, status: { state: 'running' } };
 }

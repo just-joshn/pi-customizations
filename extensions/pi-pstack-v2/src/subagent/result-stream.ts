@@ -3,13 +3,13 @@ import { z } from 'zod';
 import type { ProcessOutcome } from './run-in-tmux.ts';
 import type { SingleResult } from './types.ts';
 
-/** A line of Pi's JSON mode output as it was read: any JSON value, which parseMessageEnd then reads field by field. */
-type JsonLine = { type?: unknown; message: { role?: unknown } };
-const JsonLineSchema = z.custom<JsonLine>();
-const MESSAGE_ROLES: readonly unknown[] = ['user', 'assistant', 'toolResult'];
+/** A `message_end` line of Pi's JSON mode output whose message is of a user, an assistant, or a tool result. Other keys stay as they were read. */
+const JsonLineSchema = z.looseObject({ type: z.literal('message_end'), message: z.looseObject({ role: z.enum(['user', 'assistant', 'toolResult']) }) });
 
-/** A message of a user, an assistant, or a tool result, which is the only kind a message_end line carries that matters here. */
-const isReadableMessage = (message: JsonLine['message']): message is Message => MESSAGE_ROLES.includes(message.role);
+type ReadableMessage = z.infer<typeof JsonLineSchema>['message'];
+
+/** The schema has checked the role, which is all that was ever checked of a message, so the rest is read where it is used. */
+const isMessage = (_message: ReadableMessage): _message is ReadableMessage & Message => true;
 
 function safeParseLine(line: string) {
   try {
@@ -27,9 +27,9 @@ function safeParseLine(line: string) {
 export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
   const event = safeParseLine(line);
-  if (!event.success || event.data.type !== 'message_end') return undefined;
+  if (!event.success) return undefined;
   const { message } = event.data;
-  return isReadableMessage(message) ? message : undefined;
+  return isMessage(message) ? message : undefined;
 }
 
 export function applyMessage(result: SingleResult, message: Message): SingleResult {
@@ -63,7 +63,13 @@ function resolveOutcome(result: SingleResult, outcome: ProcessOutcome, aborted: 
   return { status: 'completed', errorMessage };
 }
 
-export function finalizeResult(result: SingleResult, outcome: ProcessOutcome, aborted: boolean): SingleResult {
+export const MAX_TURNS_STOP_REASON = 'max_turns';
+
+/** A child that was stopped for reaching its turn limit finished its work as far as the limit allows, so it is not a failure. */
+export function finalizeResult(result: SingleResult, outcome: ProcessOutcome, aborted: boolean, hitMaxTurns = false): SingleResult {
+  if (hitMaxTurns && !aborted) {
+    return { ...result, exitCode: outcome.code, terminationSignal: outcome.signal ?? undefined, status: 'completed', stopReason: MAX_TURNS_STOP_REASON, errorMessage: undefined };
+  }
   return {
     ...result,
     exitCode: outcome.code,
@@ -78,18 +84,37 @@ export interface ResultStream {
   onStdoutChunk: (chunk: string) => void;
   onStderrChunk: (chunk: string) => void;
   flush: () => void;
+  /** True once the child has taken `maxTurns` assistant turns and `onMaxTurns` has been called. */
+  hitMaxTurns: () => boolean;
 }
 
+export interface TurnLimit {
+  maxTurns: number | undefined;
+  onMaxTurns: () => void;
+}
+
+/** A turn that ended in a tool call or with no stop reason is followed by another, so the limit cuts the child short there. */
+const CONTINUING_STOP_REASONS: readonly (string | undefined)[] = [undefined, 'toolUse'];
+
 /** Accumulates a child's streamed output into successive immutable results, calling `emit` after every change. */
-export function createResultStream(initial: SingleResult, emit: (result: SingleResult) => void): ResultStream {
+export function createResultStream(initial: SingleResult, emit: (result: SingleResult) => void, limit?: TurnLimit): ResultStream {
   let current = initial;
   let pending = '';
+  let hitMaxTurns = false;
+
+  const enforceLimit = (): void => {
+    if (hitMaxTurns || limit?.maxTurns === undefined) return;
+    if (current.usage.turns < limit.maxTurns || !CONTINUING_STOP_REASONS.includes(current.stopReason)) return;
+    hitMaxTurns = true;
+    limit.onMaxTurns();
+  };
 
   const processLine = (line: string): void => {
     const message = parseMessageEnd(line);
     if (!message) return;
     current = applyMessage(current, message);
     emit(current);
+    enforceLimit();
   };
 
   return {
@@ -104,5 +129,6 @@ export function createResultStream(initial: SingleResult, emit: (result: SingleR
       current = { ...current, stderr: current.stderr + chunk };
     },
     flush: () => processLine(pending),
+    hitMaxTurns: () => hitMaxTurns,
   };
 }

@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { says } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const BUNDLED = ['ci-watcher', 'comment-sicko', 'poteto-agent', 'scout', 'thermo-nuclear-code-quality-review', 'worker'];
@@ -114,7 +114,7 @@ describe('where agents are found', () => {
     const other = path.join(workspace().project, 'other');
     writeAgent(path.join(other, '.pi', 'agents'), 'local');
     const result = await loadSubagent().call({ agent: 'local', task: 'go', cwd: 'other', agentScope: 'project' }, makeCtx(workspace().project));
-    expect(textOf(result)).toBe('done');
+    expect(answerOf(result)).toBe('done');
     expect(fakePi.children()[0]?.cwd).toBe(other);
   });
 });
@@ -178,7 +178,7 @@ describe('approving project agents', () => {
   test('runs the project agent once the user approves', async () => {
     writeAgent(projectAgents(), 'local');
     const confirm = vi.fn(async () => true);
-    expect(textOf(await callLocal({ agentScope: 'project' }, approval({ confirm })))).toBe('done');
+    expect(answerOf(await callLocal({ agentScope: 'project' }, approval({ confirm })))).toBe('done');
     expect(confirm).toHaveBeenCalledTimes(1);
   });
 
@@ -195,7 +195,7 @@ describe('approving project agents, when it does not ask', () => {
   test.for(noAsk)('does not ask when %s', async ([, options, params]) => {
     writeAgent(projectAgents(), 'local');
     const confirm = vi.fn(async () => false);
-    expect(textOf(await callLocal(params, { ...options, confirm }))).toBe('done');
+    expect(answerOf(await callLocal(params, { ...options, confirm }))).toBe('done');
     expect(confirm).not.toHaveBeenCalled();
   });
 
@@ -203,8 +203,8 @@ describe('approving project agents, when it does not ask', () => {
     writeAgent(workspace().userAgents, 'local');
     writeAgent(projectAgents(), 'other');
     const confirm = vi.fn(async () => false);
-    expect(textOf(await callLocal({}, approval({ confirm, trusted: true })))).toBe('done');
-    expect(textOf(await callLocal({ agentScope: 'user' }, approval({ confirm })))).toBe('done');
+    expect(answerOf(await callLocal({}, approval({ confirm, trusted: true })))).toBe('done');
+    expect(answerOf(await callLocal({ agentScope: 'user' }, approval({ confirm })))).toBe('done');
     expect(confirm).not.toHaveBeenCalled();
   });
 

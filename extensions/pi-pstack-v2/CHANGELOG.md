@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0]
+
+### Added
+
+- Gondolin mounts skill roots and subagent `.output` logs read-only at their host paths. The subagent log directory is created up front, so even a new session gets the log mount.
+- Opt-in shared build cache for Gondolin and `tmux_run`, mounted at `/cache` and kept private to the user.
+- Subagents frame child reports as untrusted output, and limit nesting depth and concurrency.
+- Richer agent frontmatter: `disallowedTools`, `omitContextFiles`, `skills`, `maxTurns`, `memory` and `isolation`.
+- `fork` subagents that continue a copy of the parent session and share its prompt cache. Corrupt transcript lines are dropped from the copy.
+- Persistent agent memory.
+- `isolation: 'worktree'` runs a subagent in its own git worktree, kept when the child leaves work behind.
+- Live progress UI and `.output` logs for subagents.
+- The `report_findings` tool for structured findings.
+
 ## [0.2.6]
 
 - Match `find` and `grep` globs with `minimatch` instead of `path.matchesGlob`, which is experimental on Node 22.19 and 23.x to 24.7. The matching rules are unchanged on Linux guests.

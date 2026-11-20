@@ -27,9 +27,9 @@ const SOCKET_NAME = 'tmux.sock';
  * Pi's agent dir, credentials, and PATH. A shared server would hand it the environment that server started with.
  * tmux reaches the socket by a relative path from the run directory, which keeps it under the Unix socket path limit.
  */
-function tmuxArgs(dir: string, args: string[]): [string, string[], { cwd: string; env: NodeJS.ProcessEnv }] {
+function tmuxArgs(dir: string, args: string[], extraEnv: Readonly<Record<string, string>> = {}): [string, string[], { cwd: string; env: NodeJS.ProcessEnv }] {
   const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
-  return ['tmux', ['-S', SOCKET_NAME, ...args], { cwd: dir, env }];
+  return ['tmux', ['-S', SOCKET_NAME, ...args], { cwd: dir, env: { ...env, ...extraEnv } }];
 }
 
 function tmuxOk(dir: string, args: string[]): boolean {
@@ -136,12 +136,20 @@ function readOutcome(exitFile: string, wasAborted: boolean): ProcessOutcome {
  * Run `command args` inside a detached tmux session. Stdout/stderr are mirrored
  * into temp files so the parent can stream JSON events the same way a pipe did.
  */
-export async function runPiInTmux(options: { command: string; args: string[]; cwd: string; signal?: AbortSignal | undefined; onStdoutChunk: (chunk: string) => void; onStderrChunk: (chunk: string) => void }): Promise<ProcessOutcome> {
+export async function runPiInTmux(options: {
+  command: string;
+  args: string[];
+  cwd: string;
+  signal?: AbortSignal | undefined;
+  extraEnv?: Readonly<Record<string, string>> | undefined;
+  onStdoutChunk: (chunk: string) => void;
+  onStderrChunk: (chunk: string) => void;
+}): Promise<ProcessOutcome> {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
   try {
-    const [command, argv, spawnOptions] = tmuxArgs(files.dir, ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper]);
+    const [command, argv, spawnOptions] = tmuxArgs(files.dir, ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper], options.extraEnv);
     execFileSync(command, argv, { ...spawnOptions, stdio: 'ignore' });
   } catch (error) {
     fs.rmSync(files.dir, { recursive: true, force: true });

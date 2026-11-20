@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, dies, says, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const FAILED_EXIT_CODE = 7;
@@ -29,7 +29,7 @@ const onlyChild = () => fakePi.children()[0];
 describe('single mode, how Pi is started', () => {
   test('returns the final assistant text and starts Pi in json mode in the project directory', async () => {
     const result = await callScout();
-    expect(textOf(result)).toBe('done');
+    expect(answerOf(result)).toBe('done');
     expect(result.details?.mode).toBe('single');
     expect(result.details?.isError).toBe(false);
     const child = onlyChild();
@@ -146,7 +146,7 @@ describe('single mode, an agent that does not exist', () => {
 describe('single mode, a child that fails', () => {
   test('says (no output) when the child printed no text', async () => {
     fakePi.onChild(says(''));
-    expect(textOf(await callScout())).toBe('(no output)');
+    expect(answerOf(await callScout())).toBe('(no output)');
   });
 
   test('surfaces a failed child with its exit code and stderr', async () => {
@@ -193,7 +193,7 @@ describe('single mode, what the child printed', () => {
       child.stdout(assistantLine('last'));
       child.exit(0);
     });
-    expect(textOf(await callScout())).toBe('last');
+    expect(answerOf(await callScout())).toBe('last');
   });
 
   test('a streamed assistant message without usage is dropped and never reaches the answer', async () => {
@@ -201,19 +201,19 @@ describe('single mode, what the child printed', () => {
       child.stdout(`${JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'lost' }] } })}\n`);
       child.exit(0);
     });
-    expect(textOf(await callScout())).toBe('(no output)');
+    expect(answerOf(await callScout())).toBe('(no output)');
   });
 
   test('truncates a very long answer and says how much was cut', async () => {
     fakePi.onChild(says(Array.from({ length: LONG_ANSWER_LINES }, (_, i) => `line ${i}`).join('\n')));
     const text = textOf(await callScout());
     expect(text).toContain('line 0');
-    expect(text).toMatch(/\[Output truncated: \d+ bytes omitted\. Full output preserved in tool details\.\]$/);
+    expect(text).toMatch(/\[Output truncated: \d+ bytes omitted\. Full output preserved in tool details\.\]\n\n<usage>/);
   });
 
   test('shows only the notice when a single line is too big to keep', async () => {
     fakePi.onChild(says('x'.repeat(HUGE_LINE_CHARS)));
-    expect(textOf(await callScout())).toMatch(/^\[Output truncated: \d+ bytes omitted/);
+    expect(answerOf(await callScout())).toMatch(/^\[Output truncated: \d+ bytes omitted/);
   });
 });
 

@@ -8,9 +8,9 @@ const stripAtPrefix = (value: string): string => (value.startsWith('@') ? value.
 
 export const toPosix = (value: string): string => value.split(path.sep).join(path.posix.sep);
 
-const isInsideHostPath = (root: string, value: string): boolean => {
+export const isInsideHostPath = (root: string, value: string): boolean => {
   const relativePath = path.relative(root, value);
-  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+  return relativePath === '' || (relativePath !== '..' && !relativePath.startsWith(`..${path.sep}`) && !path.isAbsolute(relativePath));
 };
 
 const hostPathToGuest = (localCwd: string, hostPath: string): string => {

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { assistantLine, printing } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const ctx = () => makeCtx(workspace().project);
@@ -60,9 +60,9 @@ describe('a call with the wrong mode', () => {
   });
 
   test('with parameters of the wrong shape, throws before anything runs', () => {
-    expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow();
-    expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow();
-    expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow();
+    expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow(/agent/);
+    expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow(/task/);
+    expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow(/thinking/);
     expect(fakePi.children()).toHaveLength(0);
   });
 });
@@ -92,7 +92,7 @@ describe('what the tool keeps of the child output', () => {
     const result = await run(JSON.stringify({ type: 'message_end', message: toolResult }), assistantLine('end'));
     const [first] = result.details?.results[0]?.messages ?? [];
     expect(first).toStrictEqual(toolResult);
-    expect(textOf(result)).toBe('end');
+    expect(answerOf(result)).toBe('end');
   });
 
   test.for<[string, string]>([
@@ -105,20 +105,20 @@ describe('what the tool keeps of the child output', () => {
     ['a message with no role', JSON.stringify({ type: 'message_end', message: { content: [] } })],
     ['a message whose role is a list', JSON.stringify({ type: 'message_end', message: { role: ['user'] } })],
   ])('ignores %s and still reads the answer after it', async ([, line]) => {
-    expect(textOf(await run(line, assistantLine('the answer')))).toBe('the answer');
+    expect(answerOf(await run(line, assistantLine('the answer')))).toBe('the answer');
   });
 
   test.for<[string, string]>([
     ['a JSON null', 'null'],
     ['a message end with no message', JSON.stringify({ type: 'message_end' })],
-  ])('loses the output that arrived together with %s', async ([, line]) => {
-    expect(textOf(await run(line, assistantLine('lost')))).toBe('(no output)');
+  ])('skips %s and keeps the answer that follows', async ([, line]) => {
+    expect(answerOf(await run(line, assistantLine('kept answer')))).toBe('kept answer');
   });
 
   test('keeps an assistant message whose usage is incomplete, counting what is there', async () => {
     const partial = { role: 'assistant', content: [{ type: 'text', text: 'kept' }], usage: { input: 1, output: 2, cost: {} } };
     const result = await run(JSON.stringify({ type: 'message_end', message: partial }));
-    expect(textOf(result)).toBe('kept');
+    expect(answerOf(result)).toBe('kept');
     expect(result.details?.results[0]).toMatchObject({ usage: { input: 1, output: 2 } });
   });
 });

@@ -1,12 +1,17 @@
+import * as path from 'node:path';
+
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
 import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, settledFrom, textOf, useWorkspace } from './subagent-host.ts';
+import { loadSubagent, makeCtx, SUBAGENT_BANNER, settledFrom, textOf, useWorkspace } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const REPORT = 'the worker report';
+const REPORT_USAGE = '<usage>turns=1 input=1 output=1 cache_read=0 cache_write=0 cost=1.0000</usage>';
+const framed = (report: string): string => `${SUBAGENT_BANNER}\n\n${report}\n\n${REPORT_USAGE}`;
 const WAKE = { agent: 'scout', task: 'look', wake: 'scout finished' };
 
+const outputOf = (id: string): string => path.join(workspace().root, 'agent', 'pstack-v2', 'subagents', `${id}.output`);
 const jobIdOf = (text: string): string => /subagent job (\S+?)\./.exec(text)?.[1] ?? '';
 const finish = (child: FakeChild | undefined): void => {
   child?.stdout(`${assistantLine(REPORT)}\n`);
@@ -30,7 +35,7 @@ describe('a call with wake in an interactive session', () => {
     await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     const [woken] = subagent.sent();
     expect(woken?.message).toMatchObject({ customType: 'pstack-subagent', display: true });
-    expect(woken?.message.content).toBe(`scout finished\n\nsubagent job ${id} finished.\n\n${REPORT}`);
+    expect(woken?.message.content).toBe(`scout finished\n\nsubagent job ${id} finished.\n\n${framed(REPORT)}\n\nOutput file: ${outputOf(id)}`);
     expect(woken?.options).toEqual({ triggerTurn: true, deliverAs: 'steer' });
   });
 
@@ -59,7 +64,7 @@ describe('a call with wake, when the job ends oddly', () => {
     const subagent = loadSubagent();
     await subagent.call(WAKE, ctx('tui'));
     await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
-    expect(subagent.sent()[0]?.message.content).toMatch(/subagent job \S+ finished\.\n\nFailed: /);
+    expect(subagent.sent()[0]?.message.content).toMatch(/subagent job \S+ finished\.\n\nSubagent report [^\n]*\n\nFailed: /);
   });
 
   test('a job that prints nothing wakes the session with (no output)', async () => {
@@ -91,7 +96,7 @@ describe('a call with wake in a print-mode Pi', () => {
     finish((await startedChildren(1))[0]);
     const settled = await settling;
     expect(settled?.continue).toBe(true);
-    expect(settled?.entries).toEqual([{ type: 'custom_message', customType: 'pstack-subagent', content: `scout finished\n\nsubagent job ${id} finished.\n\n${REPORT}`, display: true }]);
+    expect(settled?.entries).toEqual([{ type: 'custom_message', customType: 'pstack-subagent', content: `scout finished\n\nsubagent job ${id} finished.\n\n${framed(REPORT)}\n\nOutput file: ${outputOf(id)}`, display: true }]);
     expect(subagent.sent()).toEqual([]);
     expect(await settle(subagent)).toBeUndefined();
   });

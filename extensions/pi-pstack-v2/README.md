@@ -57,9 +57,10 @@ The package adds the upstream `subagent` tool (tmux-backed), `tmux_run`, `tmux_j
 - Each Pi process boots one VM when its session starts and closes it when the session ends. A `subagent` worker is its own Pi process, so it gets its own VM.
 - The directory Pi started in is mounted at `/workspace`. Writes there reach the host. Every other guest path is the VM's own filesystem, and changes there stay in the VM.
 - The system prompt names `/workspace` as the working directory, so the model works in guest paths.
-- A host path outside the working directory does not exist in the guest, except this package, which is mounted read-only at its host path so the model can `read` the skill files Pi names. The system prompt says so, and says which commands only the host has.
+- A host path outside the working directory does not exist in the guest, except the skill roots, which are mounted read-only at their host paths so the model can `read` the skill files Pi names. These are this package, `<agentDir>/skills`, `~/.agents/skills`, and every existing directory in the `skills` array of `<agentDir>/settings.json` (a leading `~/` is expanded, and relative paths resolve against the agent directory). Missing paths and paths inside the working directory are skipped. The system prompt says so, and says which commands only the host has.
 - The guest image ships `node` but not `git`, `gh`, `tmux`, or `bun`. Commands that need them run on the host through `tmux_run`.
 - `tmux_run`, `tmux_jobs`, and the `pi` processes `subagent` starts run on the host, outside the VM.
+- `enableSharedBuildCache` (off by default) points the npm, yarn, pnpm, bun, pip, uv, cargo, go and XDG caches at one user-private host directory, `<tmpdir>/pi-gondolin-build-cache-<uid>`. The guest sees it writable at `/cache`, and `tmux_run` jobs get the same variables pointing at the host path, so sandboxed and unsandboxed commands share downloads. Turn it on, in precedence order, with the `--gondolin-shared-build-cache` flag, `PI_GONDOLIN_SHARED_BUILD_CACHE=1` (`0` or `false` turns it off), `{ "enableSharedBuildCache": true }` in `.pi/gondolin.json`, or the same in `<agentDir>/gondolin.json`. A malformed config file is an error. `/gondolin` reports the cache when it is on.
 
 ## Replaces `@justjoshn/pi-pstack`
 

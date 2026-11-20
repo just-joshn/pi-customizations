@@ -18,9 +18,12 @@ import * as path from 'node:path';
 
 import { CONFIG_DIR_NAME, type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { hostEnv } from '../host-env.ts';
+import { createConcurrencyGate, readConcurrencyLimit, readDepthPolicy } from './admission.ts';
 import { executeSubagent } from './dispatch.ts';
 import { renderSubagentCall } from './render-call.ts';
 import { renderSubagentResult } from './render-result.ts';
+import { REPORT_FINDINGS_TOOL, ReportFindingsParams, ReportFindingsParamsSchema, renderReportFindingsCall, renderReportFindingsResult, reportFindings } from './report-findings.ts';
 import { makeDetails, type ToolResult, textResult } from './results.ts';
 import { isParsedSubagentParams, type ParsedSubagentParams, SubagentParams, SubagentParamsSchema } from './schema.ts';
 import { createWakeJobs, WAKE_MESSAGE_TYPE } from './wake-jobs.ts';
@@ -34,10 +37,14 @@ const toolDescription = (): string =>
     'The call blocks until every worker finishes. With wake set, it returns a job id at once and wakes you with that message and the report instead, so you can keep working. stop: "<job id>" aborts such a job.',
   ].join(' ');
 
+const SUBAGENT_TOOL_NAME = 'subagent';
 const interactive = (ctx: { mode?: string }): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 const noDetails = makeDetails('single')([]);
 const ErrorFlag = z.object({ isError: z.boolean() });
 const reportsError = (details: unknown): boolean => ErrorFlag.safeParse(details).data?.isError === true;
+
+const agentNamesOf = (parsed: ParsedSubagentParams): string =>
+  [...new Set([parsed.agent, ...(parsed.tasks ?? []).map((item) => item.agent), ...(parsed.chain ?? []).map((item) => item.agent)].filter((name) => name !== undefined))].join(',');
 
 function registerWakeLifecycle(pi: ExtensionAPI, wakeJobs: ReturnType<typeof createWakeJobs>): void {
   pi.on('session_shutdown', async () => wakeJobs.stopAll());
@@ -51,22 +58,26 @@ function registerWakeLifecycle(pi: ExtensionAPI, wakeJobs: ReturnType<typeof cre
   });
 }
 
-export default function subagentExtension(pi: ExtensionAPI): void {
-  const wakeJobs = createWakeJobs(pi);
-  registerWakeLifecycle(pi, wakeJobs);
-
-  // Tool execute results cannot set runtime error state directly, so patch it through the result hook.
-  pi.on('tool_result', (event) => {
-    if (event.toolName !== 'subagent') return undefined;
-    return reportsError(event.details) ? { isError: true } : undefined;
+/**
+ * At the depth limit the model is not offered `subagent`, which stays registered so a direct call still gets the depth-limit
+ * refusal. Pi 1.5.2 reads hidden tools only from the options object it passes in (runner.js emitBeforeAgentStart).
+ */
+function registerDepthLimitHook(pi: ExtensionAPI): void {
+  pi.on('before_agent_start', async (event) => {
+    if (readDepthPolicy(hostEnv()).canSpawn) return;
+    event.systemPromptOptions.hiddenTools = [...event.systemPromptOptions.hiddenTools, SUBAGENT_TOOL_NAME];
   });
+}
 
+type Gate = ReturnType<typeof createConcurrencyGate>;
+
+function registerSubagentTool(pi: ExtensionAPI, wakeJobs: ReturnType<typeof createWakeJobs>, gate: Gate): void {
   pi.registerTool({
-    name: 'subagent',
+    name: SUBAGENT_TOOL_NAME,
     label: 'Subagent',
     description: toolDescription(),
     parameters: SubagentParams,
-    execute: (_toolCallId, params, signal, onUpdate, ctx): Promise<ToolResult> => {
+    execute: (toolCallId, params, signal, onUpdate, ctx): Promise<ToolResult> => {
       SubagentParamsSchema.parse(params);
       if (!isParsedSubagentParams(params)) throw new Error('The subagent parameters are not valid.');
       const parsed: ParsedSubagentParams = params;
@@ -74,12 +85,43 @@ export default function subagentExtension(pi: ExtensionAPI): void {
         const text = wakeJobs.stop(parsed.stop) ? `Stopped subagent job ${parsed.stop}.` : `No running subagent job ${parsed.stop}.`;
         return Promise.resolve(textResult(text, noDetails));
       }
-      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx);
-      const id = wakeJobs.start(parsed.wake, ctx, (jobSignal) => executeSubagent(parsed, jobSignal, undefined, ctx));
-      const text = `Started subagent job ${id}. It wakes you with its report when every worker finishes. Stop it with stop: "${id}".`;
+      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx, gate, toolCallId);
+      const { id, outputPath } = wakeJobs.start(parsed.wake, ctx, (jobSignal, jobUpdate) => executeSubagent(parsed, jobSignal, jobUpdate, ctx, gate, toolCallId), agentNamesOf(parsed));
+      const text = `Started subagent job ${id}. It wakes you with its report when every worker finishes. Stop it with stop: "${id}".\nOutput file: ${outputPath}`;
       return Promise.resolve(textResult(text, noDetails));
     },
     renderCall: (args, theme) => renderSubagentCall(args, theme),
     renderResult: (result, { expanded }, theme) => renderSubagentResult(result, expanded, theme),
   });
+}
+
+function registerReportFindingsTool(pi: ExtensionAPI): void {
+  pi.registerTool({
+    name: REPORT_FINDINGS_TOOL,
+    label: 'Report Findings',
+    description: 'Report structured review findings (file, line, summary, failure scenario, verdict, outcome). Pass an empty findings array when there are none.',
+    parameters: ReportFindingsParams,
+    execute: async (_toolCallId, params) => {
+      const validated = ReportFindingsParamsSchema.parse(params);
+      return reportFindings(validated);
+    },
+    renderCall: (args, theme) => renderReportFindingsCall(args, theme),
+    renderResult: (result, { expanded }, theme) => renderReportFindingsResult(result, expanded, theme),
+  });
+}
+
+export default function subagentExtension(pi: ExtensionAPI): void {
+  const wakeJobs = createWakeJobs(pi);
+  const gate = createConcurrencyGate(() => readConcurrencyLimit(hostEnv()));
+  registerWakeLifecycle(pi, wakeJobs);
+  registerDepthLimitHook(pi);
+
+  // Tool execute results cannot set runtime error state directly, so patch it through the result hook.
+  pi.on('tool_result', (event) => {
+    if (event.toolName !== 'subagent') return undefined;
+    return reportsError(event.details) ? { isError: true } : undefined;
+  });
+
+  registerSubagentTool(pi, wakeJobs, gate);
+  registerReportFindingsTool(pi);
 }

@@ -84,7 +84,7 @@ const withShellProbe =
   (argv, options) =>
     argv.at(-1) === BASH_PROBE_COMMAND ? finishedProcess(probeAnswer) : exec(argv, options);
 
-export type GondolinOptions = { tree?: Readonly<Record<string, string>>; exec?: Exec; unreadable?: readonly string[]; probeAnswer?: string; closeFails?: boolean; cwd?: string };
+export type GondolinOptions = { tree?: Readonly<Record<string, string>>; exec?: Exec; unreadable?: readonly string[]; probeAnswer?: string; closeFails?: boolean; cwd?: string; flags?: Readonly<Record<string, boolean | string>> };
 
 const isVm = (fake: object): fake is VM => 'id' in fake && 'fs' in fake && hasMethods(fake, ['exec', 'close']);
 
@@ -98,11 +98,12 @@ const vmFrom = (fake: object): VM => {
  * Loads the gondolin extension into a recording fake of Pi. `VM.create` hands out a fake VM over an in-memory guest
  * filesystem, which is the one thing the test replaces: the VM itself.
  */
-export function loadGondolin({ tree = {}, exec = () => finishedProcess(''), unreadable = [], probeAnswer = `${BASH}\n`, closeFails = false, cwd = HOST }: GondolinOptions = {}) {
+export function loadGondolin({ tree = {}, exec = () => finishedProcess(''), unreadable = [], probeAnswer = `${BASH}\n`, closeFails = false, cwd = HOST, flags = {} }: GondolinOptions = {}) {
   vi.spyOn(process, 'cwd').mockReturnValue(cwd);
   let tools: Record<string, Tool> = {};
   let handlers: Record<string, Handler> = {};
   let commands: Record<string, Command> = {};
+  let flagDefaults: Record<string, boolean | string | undefined> = {};
   const fs = fakeFs(tree, unreadable);
   const execMock = vi.fn(withShellProbe(exec, probeAnswer));
   const close = vi.fn(async () => (closeFails ? Promise.reject(new Error('qemu is gone')) : undefined));
@@ -121,6 +122,10 @@ export function loadGondolin({ tree = {}, exec = () => finishedProcess(''), unre
     registerCommand: (name: string, command: Command) => {
       commands = { ...commands, [name]: command };
     },
+    registerFlag: (name: string, options: { default?: boolean | string }) => {
+      flagDefaults = { ...flagDefaults, [name]: options.default };
+    },
+    getFlag: (name: string) => flags[name] ?? flagDefaults[name],
   };
   gondolin(extensionApiFrom(api));
   const call = (name: string, params: Record<string, unknown>, signal?: AbortSignal) => {
