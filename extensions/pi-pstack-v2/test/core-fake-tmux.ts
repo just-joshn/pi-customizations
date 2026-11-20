@@ -1,5 +1,4 @@
-import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 
 import { z } from 'zod';
@@ -73,9 +72,24 @@ export function installFakeTmux(root: string): FakeTmux {
   return { env: { [PATH_ENV]: `${binDir}${delimiter}${path}`, [STATE_ENV]: stateDir }, stateDir };
 }
 
-const HANG_UP_ALL = 'kill -HUP $(cat "$0"/*/*.pid) 2>/dev/null; true';
+const hangUp = (pid: number): void => {
+  // A pid file still being written reads as 0 or NaN, and signalling pid 0 would hit this whole process group.
+  if (!Number.isInteger(pid) || pid <= 0) return;
+  try {
+    process.kill(pid, 'SIGHUP');
+  } catch {
+    // The session's process already exited.
+  }
+};
+
+const pidFilesIn = (dir: string): string[] =>
+  readdirSync(dir)
+    .filter((name) => name.endsWith('.pid'))
+    .map((name) => join(dir, name));
 
 /** Hangs up every session the fake started, as a tmux server dying would, so no job outlives its test. */
 export function hangUpFakeTmux({ stateDir }: FakeTmux): void {
-  spawnSync('sh', ['-c', HANG_UP_ALL, stateDir], { stdio: 'ignore' });
+  for (const serverDir of readdirSync(stateDir).map((name) => join(stateDir, name))) {
+    for (const pidFile of pidFilesIn(serverDir)) hangUp(Number(readFileSync(pidFile, 'utf8').trim()));
+  }
 }

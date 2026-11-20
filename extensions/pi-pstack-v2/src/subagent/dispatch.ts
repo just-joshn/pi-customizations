@@ -34,7 +34,10 @@ async function runSingle(run: DispatchRun, item: WorkItem, resolved: ResolvedAge
 function dispatchMode(mode: SubagentMode, run: DispatchRun, items: WorkItem[], resolved: ResolvedAgent[]): Promise<ToolResult> {
   if (mode === 'chain') return runChain(run, items, resolved);
   if (mode === 'parallel') return runParallel(run, items, resolved);
-  return runSingle(run, items[0] as WorkItem, resolved[0] as ResolvedAgent);
+  const [item] = items;
+  const [agent] = resolved;
+  if (!item || !agent) throw new Error('A single-agent call needs one agent and one task.');
+  return runSingle(run, item, agent);
 }
 
 export async function executeSubagent(params: ParsedSubagentParams, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext): Promise<ToolResult> {

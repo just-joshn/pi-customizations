@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 
 import { describe, expect, test, vi } from 'vitest';
-import { assistantLine, byTask, CHILD_WAIT_MS, dies, printing, type Said, says, startedChildren } from './subagent-child-output.ts';
+import { assistantLine, byTask, CHILD_WAIT_MS, dies, printing, type Said, says, startedChildren, type Usage } from './subagent-child-output.ts';
 import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, type ToolResult, useWorkspace } from './subagent-host.ts';
 
@@ -172,7 +172,7 @@ describe('a chain result', () => {
 /** Ends every child still running, again and again, until the call that started them returns. */
 const drain = async (running: Promise<unknown>): Promise<void> => {
   let settled = false;
-  void running.then(() => {
+  void running.finally(() => {
     settled = true;
   });
   await vi.waitFor(() => {
@@ -239,7 +239,7 @@ describe('a parallel result', () => {
 });
 
 describe('usage in a result', () => {
-  test.for([
+  test.for<[Partial<Usage>, string]>([
     [{ input: 0, output: 999 }, '↓999'],
     [{ input: 1500 }, '↑1.5k'],
     [{ input: 12_500 }, '↑13k'],
@@ -248,8 +248,8 @@ describe('usage in a result', () => {
     [{ cost: { total: 0.12345 } }, '$0.1235'],
     [{ totalTokens: 1500 }, 'ctx:1.5k'],
   ])('shows %j as %s', async ([usage, shown]) => {
-    const out = await showSingle(says('x', { usage: usage as never }), false);
-    expect(out).toContain(shown as string);
+    const out = await showSingle(says('x', { usage }), false);
+    expect(out).toContain(shown);
   });
 
   test('leaves out what is zero, and the whole line when everything is', async () => {

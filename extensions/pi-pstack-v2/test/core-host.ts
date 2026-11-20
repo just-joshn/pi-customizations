@@ -6,6 +6,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { expect, vi } from 'vitest';
 import pstack from '../src/index.ts';
 import { type FakeTmux, hangUpFakeTmux, installFakeTmux } from './core-fake-tmux.ts';
+import { extensionApiFrom } from './fake-guards.ts';
 
 export type BranchEntry = { type: string; customType?: string; data?: unknown };
 type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
@@ -69,7 +70,7 @@ function recordPi() {
     sendMessage,
   };
   return {
-    api: api as unknown as ExtensionAPI,
+    api: extensionApiFrom(api),
     sendMessage,
     tool: (name: string): ToolDefinition => {
       const found = tools[name];
@@ -150,19 +151,18 @@ export async function startJob(host: Host, params: Record<string, unknown>, over
 }
 
 /** Waits until tmux_jobs list shows the job as no longer running, which is when Pi would show its result. */
-export const untilExited = (host: Host, id: string, overrides: Ctx = {}) => expect.poll(() => host.text('tmux_jobs', { action: 'list' }, overrides), { timeout: DRIVE_TIMEOUT_MS }).toMatch(new RegExp(`${id}  exited`));
+export const untilExited = async (host: Host, id: string, overrides: Ctx = {}): Promise<void> => {
+  await expect.poll(() => host.text('tmux_jobs', { action: 'list' }, overrides), { timeout: DRIVE_TIMEOUT_MS }).toMatch(new RegExp(`${id}  exited`));
+};
 
 /** Lets a promise that sleeps on fake timers finish, moving the clock on while real jobs run. */
 export async function driveTimers<T>(promise: Promise<T>): Promise<T> {
   let settled = false;
-  const watched = promise.then(
-    () => {
+  const watched = promise
+    .finally(() => {
       settled = true;
-    },
-    () => {
-      settled = true;
-    },
-  );
+    })
+    .catch(() => undefined);
   await expect
     .poll(
       async () => {

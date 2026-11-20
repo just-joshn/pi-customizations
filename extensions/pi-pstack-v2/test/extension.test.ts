@@ -91,12 +91,12 @@ describe('the pstack-mode command with no argument, no UI, and a restored sessio
     expect(complete?.('zzz')).toBeNull();
   });
 
-  test.for([
+  test.for<[string, string]>([
     ['starts', 'session_start'],
     ['moves to another branch', 'session_tree'],
   ])('the mode comes back from the session branch when the session %s', async ([, event]) => {
     host.setBranch([{ type: 'custom', customType: MODE_KEY, data: { skill: 'arena' } }]);
-    await host.fire(event as string, {});
+    await host.fire(event, {});
     expect(await modeSection()).toContain('<skill name="arena"');
     expect(host.setStatus).toHaveBeenLastCalledWith(MODE_KEY, 'mode: arena');
     host.setBranch([]);

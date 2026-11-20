@@ -42,7 +42,10 @@ const tmuxKillServer = (dir: string): void => {
   tmuxOk(dir, ['kill-server']);
 };
 
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 function readRange(file: string, from: number, to: number): Buffer {
   const fd = fs.openSync(file, 'r');

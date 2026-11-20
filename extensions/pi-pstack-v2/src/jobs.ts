@@ -1,6 +1,7 @@
 import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
 import { hostEnv } from './host-env.ts';
@@ -65,7 +66,7 @@ export function newJobId(name: string): string {
 /** One tmux server per owning session, started with that session's environment so jobs inherit PATH and credentials. */
 export function tmuxSocket(owner: string): string {
   const uid = process.getuid?.() ?? 0;
-  const dir = `/tmp/pstack-v2-${uid}`;
+  const dir = join(tmpdir(), `pstack-v2-${uid}`);
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   // Another local user could create this directory first and serve a socket of their own in it.
   const stat = lstatSync(dir);
@@ -77,7 +78,7 @@ export function tmuxSocket(owner: string): string {
 // 104 to 108 byte limit on Unix socket paths.
 function tmuxRun(socket: string, args: string[]): SpawnSyncReturns<Buffer> {
   const { TMUX: _tmux, TMUX_PANE: _pane, ...env } = hostEnv();
-  return spawnSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket) });
+  return spawnSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket), windowsHide: true });
 }
 
 /** Whether tmux ran and exited zero. A missing tmux or session reads as false. */
@@ -188,7 +189,11 @@ export async function stop(job: Job): Promise<void> {
   const exit = exitPath(job.dir);
   const deadline = Date.now() + STOP_GRACE_MS;
   const wrapper = Number(readEnd(join(job.dir, 'wrapper.pid'), PID_FILE_BYTES).trim());
-  while (!existsSync(exit) && Date.now() < deadline && wrapperAlive(wrapper)) await new Promise((done) => setTimeout(done, STOP_POLL_MS));
+  while (!existsSync(exit) && Date.now() < deadline && wrapperAlive(wrapper)) {
+    await new Promise((done) => {
+      setTimeout(done, STOP_POLL_MS);
+    });
+  }
   if (!existsSync(exit)) {
     writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
     renameSync(`${exit}.tmp`, exit);

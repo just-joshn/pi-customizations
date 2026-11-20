@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, dies, says, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const FAILED_EXIT_CODE = 7;
@@ -224,10 +224,10 @@ describe('single mode, streaming and abort', () => {
       child.stdout(`${assistantLine('second')}\n`);
       child.exit(0);
     });
-    const onUpdate = vi.fn();
+    const onUpdate = vi.fn<(partial: ToolResult) => void>();
     const { call } = loadSubagent();
     await call({ agent: 'scout', task: 'look' }, makeCtx(workspace().project), undefined, onUpdate);
-    const texts = onUpdate.mock.calls.map(([update]) => update.content[0].text);
+    const texts = onUpdate.mock.calls.map(([update]) => update.content[0]?.text);
     expect(texts[0]).toBe('(running...)');
     expect(texts.at(-1)).toBe('second');
     expect(texts.length).toBeGreaterThanOrEqual(MIN_UPDATES);

@@ -9,7 +9,7 @@ import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace } from './
 
 const workspace = useWorkspace();
 const FAILED_EXIT = 2;
-const USER_TMUX = '/tmp/user-tmux,1,0';
+const USER_TMUX = `${os.tmpdir()}/user-tmux,1,0`;
 const PANE = '%1';
 const RUN_DIR_PREFIX = 'pi-subagent-tmux-';
 

@@ -62,12 +62,12 @@ describe('tmux_run starts a command the user can follow', { timeout: JOB_TIMEOUT
     await expect(host.call('tmux_run', { name: 'tick', command: 'sleep 1', repeat: true })).rejects.toThrow(/repeat needs a wake/);
   });
 
-  test.for([
+  test.for<[string, RegExp]>([
     ['Fix: The Bug!', /^fix-the-bug-[0-9a-f]{6}$/],
     ['***', /^job-[0-9a-f]{6}$/],
   ])('a job named %s gets a readable id', async ([name, pattern]) => {
     const id = await startJob(host, { name, command: 'true' });
-    expect(id).toMatch(pattern as RegExp);
+    expect(id).toMatch(pattern);
   });
 
   test('a started job is announced as running, with ways to follow and attach to it', async () => {

@@ -30,15 +30,24 @@ afterEach(() => {
 const list = () => host.text('tmux_jobs', { action: 'list' });
 const jobFile = (id: string, name: string) => join(world.jobsRoot, id, name);
 const fileText = (path: string) => (existsSync(path) ? readFileSync(path, 'utf8').trim() : '');
-const untilFile = (path: string) => expect.poll(() => existsSync(path), { timeout: POLL_TIMEOUT_MS }).toBe(true);
-const isAlive = (pid: number) => spawnSync('kill', ['-0', String(pid)]).status === 0;
+const untilFile = async (path: string): Promise<void> => {
+  await expect.poll(() => existsSync(path), { timeout: POLL_TIMEOUT_MS }).toBe(true);
+};
+/** Signal 0 only checks that the process exists, and it throws when there is none. */
+const isAlive = (pid: number): Promise<boolean> =>
+  Promise.resolve()
+    .then(() => process.kill(pid, 0))
+    .then(
+      () => true,
+      () => false,
+    );
 
 /** Ends the job's wrapper the hard way, so the job is left with no session and no recorded exit. */
 const killWrapper = async (id: string) => {
   await untilFile(jobFile(id, 'wrapper.pid'));
   process.kill(Number(fileText(jobFile(id, 'wrapper.pid'))), 'SIGKILL');
   // Without its wrapper the tail that mirrors the output into the session pane would run on, so the pane is closed too.
-  spawnSync('pkill', ['-f', `tail -n .1 -f ${jobFile(id, 'output.log')}`]);
+  spawnSync('pkill', ['-f', `tail -n .1 -f ${jobFile(id, 'output.log')}`], { windowsHide: true });
   await expect.poll(() => isAlive(Number(fileText(jobFile(id, 'wrapper.pid')))), { timeout: POLL_TIMEOUT_MS }).toBe(false);
 };
 
@@ -59,7 +68,7 @@ describe('tmux_jobs stop', { timeout: JOB_TIMEOUT_MS }, () => {
     const id = await startJob(host, { name: 'stubborn', command: "trap '' TERM; echo $$ > stubborn.pid; while :; do sleep 0.2; done" });
     await untilFile(pidFile);
     await host.text('tmux_jobs', { action: 'stop', ids: [id] });
-    expect(isAlive(Number(fileText(pidFile)))).toBe(false);
+    expect(await isAlive(Number(fileText(pidFile)))).toBe(false);
     expect(await list()).toContain(`${id}  exited ${STOPPED_CODE}`);
   });
 
@@ -108,7 +117,7 @@ describe('a job whose process group outlives the command', { timeout: JOB_TIMEOU
     await untilFile(join(world.cwd, 'ready'));
     const attach = /attach: (tmux -S \S+\.sock) attach/.exec(await list())?.[1] ?? '';
     const [command, ...args] = attach.split(' ');
-    spawnSync(command ?? 'tmux', [...args, 'send-keys', '-t', id, 'C-c']);
+    spawnSync(command ?? 'tmux', [...args, 'send-keys', '-t', id, 'C-c'], { windowsHide: true });
     await untilFile(jobFile(id, 'exit'));
     expect(fileText(jobFile(id, 'exit'))).toBe(String(STOPPED_CODE));
   });
@@ -117,7 +126,7 @@ describe('a job whose process group outlives the command', { timeout: JOB_TIMEOU
     const id = await startJob(host, { name: 'live', command: 'echo live-in-pane; sleep 30' });
     const attach = /attach: (tmux -S \S+\.sock) attach/.exec(await list())?.[1] ?? '';
     const [command, ...args] = attach.split(' ');
-    await expect.poll(() => spawnSync(command ?? 'tmux', [...args, 'capture-pane', '-p', '-t', id], { encoding: 'utf8' }).stdout, { timeout: POLL_TIMEOUT_MS }).toContain('live-in-pane');
+    await expect.poll(() => spawnSync(command ?? 'tmux', [...args, 'capture-pane', '-p', '-t', id], { encoding: 'utf8', windowsHide: true }).stdout, { timeout: POLL_TIMEOUT_MS }).toContain('live-in-pane');
   });
 });
 
@@ -135,7 +144,7 @@ describe('tmux_jobs wait', { timeout: JOB_TIMEOUT_MS }, () => {
   test('wait blocks until a running job exits, telling the user it is waiting', async () => {
     const id = await startJob(host, { name: 'slow', command: 'sleep 0.3; echo finished-late', wake: 'Slow.' });
     vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
-    const onUpdate = vi.fn();
+    const onUpdate = vi.fn<(partial: unknown) => void>();
     const report = await driveTimers(host.call('tmux_jobs', { action: 'wait', ids: [id] }, {}, undefined, onUpdate));
     expect(report.content[0]?.text).toContain('finished-late');
     expect(JSON.stringify(onUpdate.mock.calls)).toContain('Waiting on 1 job(s)...');

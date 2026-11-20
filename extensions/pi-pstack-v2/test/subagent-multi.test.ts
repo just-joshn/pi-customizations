@@ -21,7 +21,7 @@ const runningNow = () => fakePi.children().filter((child) => child.state === 'ru
 describe('chain mode', () => {
   test('threads each step output into the next step through {previous}', async () => {
     fakePi.onChild(byTask({ first: says('one'), 'use one': says('two') }));
-    const onUpdate = vi.fn();
+    const onUpdate = vi.fn<(partial: ToolResult) => void>();
     const chain = [
       { agent: 'scout', task: 'first' },
       { agent: 'worker', task: 'use {previous}' },
@@ -34,8 +34,8 @@ describe('chain mode', () => {
       ['worker', 2],
     ]);
     expect(fakePi.children().map((child) => child.task)).toEqual(['first', 'use one']);
-    const last = onUpdate.mock.calls.at(-1)?.[0] as ToolResult;
-    expect(last.details?.results).toHaveLength(2);
+    const last = onUpdate.mock.calls.at(-1)?.[0];
+    expect(last?.details?.results).toHaveLength(2);
   });
 
   test('replaces every {previous} in a step', async () => {
@@ -99,7 +99,7 @@ describe('chain mode, step output and settings', () => {
 describe('parallel mode', () => {
   test('summarizes successes and failures with their stop reasons', async () => {
     fakePi.onChild(byTask({ ok: says('fine'), bad: says('oops', { stopReason: 'error' }), dead: dies(1) }));
-    const onUpdate = vi.fn();
+    const onUpdate = vi.fn<(partial: ToolResult) => void>();
     const result = await run({ tasks: tasksFor('ok', 'bad', 'dead') }, onUpdate);
     const text = textOf(result);
     expect(text).toContain('Parallel: 1/3 succeeded');
@@ -108,7 +108,7 @@ describe('parallel mode', () => {
     expect(text).toContain('### [scout] failed\n');
     expect(result.details?.mode).toBe('parallel');
     expect(result.details?.isError).toBe(true);
-    const progress = onUpdate.mock.calls.map(([update]) => update.content[0].text as string);
+    const progress = onUpdate.mock.calls.map(([update]) => update.content[0]?.text ?? '');
     expect(progress.at(-1)).toBe('Parallel: 3/3 done, 0 running, 0 pending...');
     expect(progress.some((line) => /Parallel: \d\/3 done, \d running, \d pending\.\.\./.test(line))).toBe(true);
   });
