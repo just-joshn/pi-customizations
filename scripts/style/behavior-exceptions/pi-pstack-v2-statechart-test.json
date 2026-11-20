@@ -1,6 +1,6 @@
 [
   {
-    "file": "skills/statechart/scripts/test/render.test.ts",
+    "file": "extensions/pi-pstack-v2/skills/statechart/scripts/test/render.test.ts",
     "rule": "plugin",
     "line": "Object.assign(globalThis, { window, document: window.document, DOMParser: window.DOMParser });",
     "reason": "The mermaid@11.16.0 ESM build the test imports reads window, document and DOMParser from globalThis while it loads, and the test must keep checking that build with the jsdom window as its DOM. Defining those globals is the only way to give it one. The alternative, running mermaid.min.js in a jsdom vm context, tests a different bundle in another realm and changes what the test checks."

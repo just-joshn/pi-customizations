@@ -38,7 +38,7 @@
   "scripts": {
     "test": "vitest run --coverage && cd skills/poteto-mode/scripts && bun install --frozen-lockfile && bun test watch-pr",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "style-audit": "node scripts/style-audit.mjs"
+    "style-audit": "node ../../scripts/style-audit.mjs extensions/pi-pstack-v2"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

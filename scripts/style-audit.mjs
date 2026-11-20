@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fail-closed style audit for extensions/pi-pstack-v2.
+ * Fail-closed style audit for the repository.
  * Line rules (file size, nesting, suppressions) run here.
  * AST rules (immutability, function size, console.log, magic numbers,
  * empty blocks, input validation) run through Biome with scripts/style/rules.jsonc.
@@ -22,13 +22,17 @@ const SPACES_PER_LEVEL = 2;
 const BIOME_OUTPUT_BYTES = 268_435_456;
 const EXIT_FAILED = 1;
 const EXIT_CLEAN = 0;
+const ARGV_USER_START = 2;
+const POSIX_SEP = '/';
 const CODE_EXTS = new Set(['.ts', '.tsx', '.js', '.mjs', '.cjs']);
-const SKIP_DIRS = new Set(['node_modules', 'coverage', '.vitest', 'dist', '.git']);
+const SKIP_DIRS = new Set(['node_modules', 'coverage', '.vitest', 'dist', '.git', 'worktrees', 'results']);
 const IGNORED_BIOME_CATEGORIES = new Set(['suppressions/unused']);
 const AUDITED_RULES = /^\s*(\/\/|\/\*|\*).*biome-ignore.*(noMagicNumbers|noExcessiveLinesPerFunction|noConsole|noEmptyBlockStatements|noUselessCatch|useErrorMessage|noFloatingPromises|noMisusedPromises|plugin)/;
 
 /** @typedef {{ file: string, rule: string, detail: string, source?: string }} Violation */
 /** @typedef {{ file: string, rule: string, line: string, reason: string }} BehaviorException */
+
+const CliArgv = z.array(z.string());
 
 const BehaviorExceptions = z.array(
   z.object({
@@ -53,7 +57,7 @@ const BiomeReport = z.object({
 });
 
 /** @param {string} filePath */
-const rel = (filePath) => path.relative(ROOT, filePath);
+const rel = (filePath) => path.relative(ROOT, filePath).split(path.sep).join(POSIX_SEP);
 
 /** @param {string} line */
 const indentDepth = (line) => {
@@ -62,14 +66,17 @@ const indentDepth = (line) => {
   return Math.floor((line.match(/^ */) ?? [''])[0].length / SPACES_PER_LEVEL);
 };
 
-/** @param {string} dir @returns {string[]} */
-const walkCode = (dir) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((ent) => {
+/** @param {string} target @returns {string[]} */
+const walkCode = (target) => {
+  const stat = fs.statSync(target);
+  if (stat.isFile()) return CODE_EXTS.has(path.extname(target)) ? [target] : [];
+  return fs.readdirSync(target, { withFileTypes: true }).flatMap((ent) => {
     if (SKIP_DIRS.has(ent.name)) return [];
-    const full = path.join(dir, ent.name);
+    const full = path.join(target, ent.name);
     if (ent.isDirectory()) return walkCode(full);
     return CODE_EXTS.has(path.extname(ent.name)) ? [full] : [];
   });
+};
 
 /** @param {string} file @param {string[]} lines @returns {Violation[]} */
 const fileSizeViolations = (file, lines) => (lines.length < FILE_LINES_LIMIT ? [] : [{ file, rule: 'file-size', detail: `${lines.length} lines, must be under ${FILE_LINES_LIMIT}` }]);
@@ -90,12 +97,13 @@ const lineViolations = (filePath) => {
 /** @param {string} file @param {number} line */
 const sourceLine = (file, line) => (fs.readFileSync(path.join(ROOT, file), 'utf8').split('\n')[line - 1] ?? '').trim();
 
-/** @returns {BehaviorException[]} */
-const readExceptions = () =>
+/** @param {Set<string>} auditedFiles @returns {BehaviorException[]} */
+const readExceptions = (auditedFiles) =>
   fs
     .readdirSync(EXCEPTIONS_DIR)
     .filter((name) => name.endsWith('.json'))
-    .flatMap((name) => readExceptionFile(path.join(EXCEPTIONS_DIR, name)));
+    .flatMap((name) => readExceptionFile(path.join(EXCEPTIONS_DIR, name)))
+    .filter((exception) => auditedFiles.has(exception.file));
 
 /** @param {string} file @returns {BehaviorException[]} */
 const readExceptionFile = (file) => {
@@ -128,6 +136,7 @@ const applyExceptions = (violations, exceptions) => {
 
 /** @param {string[]} files @returns {Violation[]} */
 const biomeViolations = (files) => {
+  if (files.length === 0) return [];
   const biome = createRequire(import.meta.url).resolve('@biomejs/biome/bin/biome');
   const run = spawnSync(process.execPath, [biome, 'lint', `--config-path=${BIOME_CONFIG}`, '--max-diagnostics=none', '--reporter=json', ...files.map(rel)], { cwd: ROOT, encoding: 'utf8', maxBuffer: BIOME_OUTPUT_BYTES });
   if (run.error) throw new Error(`style-audit: could not run Biome: ${run.error.message}`);
@@ -151,9 +160,15 @@ const report = (violations) => {
   return [`style-audit: ${violations.length} violation(s)`, ...counts.toSorted(), ...lines, ...verdict].join('\n');
 };
 
+const resolveTargets = () => {
+  const rawArgs = CliArgv.parse(process.argv).slice(ARGV_USER_START);
+  return rawArgs.length === 0 ? [ROOT] : rawArgs.map((arg) => path.resolve(ROOT, arg));
+};
+
 const main = () => {
-  const files = walkCode(ROOT).toSorted();
-  const violations = applyExceptions([...files.flatMap(lineViolations), ...biomeViolations(files)], readExceptions());
+  const files = [...new Set(resolveTargets().flatMap(walkCode))].toSorted();
+  const auditedSet = new Set(files.map(rel));
+  const violations = applyExceptions([...files.flatMap(lineViolations), ...biomeViolations(files)], readExceptions(auditedSet));
   const code = violations.length === 0 ? EXIT_CLEAN : EXIT_FAILED;
   process.stderr.write(`${report(violations)}\n`, () => process.exit(code));
 };

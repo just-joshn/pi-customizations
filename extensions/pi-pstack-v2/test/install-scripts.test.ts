@@ -35,24 +35,24 @@ function resolveKey(packages: Record<string, unknown>, parentKey: string, name: 
 /** Names of packages with install scripts that installing pi-pstack-v2 pulls in, peers and dev tools excluded. */
 function installScriptPackages(): string[] {
   const { workspaces, packages } = readLock();
-  const seen = new Set<string>();
-  const pending = childNames(workspaces[workspaceKey] ?? {}).map((name) => resolveKey(packages, '', name));
-  const found = new Set<string>();
-  for (let key = pending.pop(); key !== undefined; key = pending.pop()) {
+  const initialPending = childNames(workspaces[workspaceKey] ?? {}).map((name) => resolveKey(packages, '', name));
+  const walk = (pending: readonly string[], seen: ReadonlySet<string>, found: ReadonlySet<string>): ReadonlySet<string> => {
+    const [key, ...rest] = pending;
+    if (key === undefined) return found;
     const entry = packages[key];
-    if (seen.has(key) || !entry) continue;
-    seen.add(key);
+    if (seen.has(key) || !entry) return walk(rest, seen, found);
     const [spec, , rawInfo] = entry;
     const info = meta.parse(rawInfo ?? {});
-    if (info.hasInstallScript) found.add(spec.slice(0, spec.lastIndexOf('@')));
-    pending.push(...childNames(info).map((name) => resolveKey(packages, key, name)));
-  }
-  return [...found].sort();
+    const nextFound = info.hasInstallScript ? new Set([...found, spec.slice(0, spec.lastIndexOf('@'))]) : found;
+    const nextPending = [...rest, ...childNames(info).map((name) => resolveKey(packages, key, name))];
+    return walk(nextPending, new Set([...seen, key]), nextFound);
+  };
+  return [...walk(initialPending, new Set(), new Set())].toSorted();
 }
 
 test('the README deny command covers every dependency install script npm warns about', () => {
   const readme = readFileSync(join(root, 'README.md'), 'utf8');
-  const denied = readme.match(DENY_COMMAND)?.[1]?.trim().split(/\s+/).sort();
+  const denied = readme.match(DENY_COMMAND)?.[1]?.trim().split(/\s+/).toSorted();
   expect(denied).toEqual(installScriptPackages());
 });
 

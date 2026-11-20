@@ -1,12 +1,12 @@
 [
   {
-    "file": "src/gondolin/tools.ts",
+    "file": "extensions/pi-pstack-v2/src/gondolin/tools.ts",
     "rule": "plugin",
     "line": "execute: async (id, params, signal, onUpdate, ctx) => run(await guest.ensure(ctx), id, params, signal, onUpdate),",
     "reason": "The seven routed tools reuse Pi's own built-in read, write, edit, bash, ls, find and grep definitions, schemas included, as the upstream gondolin example does. Pi validates every call against those TypeBox schemas before execute runs, and the built-in execute that receives the params validates them the same way. A zod mirror of seven schemas Pi owns would duplicate that check and could reject a call Pi accepts after a Pi upgrade."
   },
   {
-    "file": "src/gondolin/index.ts",
+    "file": "extensions/pi-pstack-v2/src/gondolin/index.ts",
     "rule": "plugin",
     "line": "handler: async (_args, ctx) => {",
     "reason": "/gondolin takes no arguments and ignores whatever follows it, as the upstream example does. Parsing the ignored text would reject nothing and add a schema with no input to guard."

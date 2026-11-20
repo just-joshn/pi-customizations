@@ -147,7 +147,13 @@ describe('the Pi port of pstack', () => {
   });
 });
 
-describe('the Pi port of pstack, prose rules', () => {
+const extractSubagentKeys = (line: string): string[] =>
+  line
+    .split(/(?=`(?:subagent|tmux_run|tmux_jobs)`)/)
+    .filter((segment) => segment.startsWith('`subagent`'))
+    .flatMap((segment) => [...segment.matchAll(/`(\w+): /g)].map(([, key = '']) => key));
+
+describe('the Pi port of pstack, prose rules: mechanisms', () => {
   test('no prose or ported script names a Cursor or Claude Code mechanism', () => {
     const hits = scanned.flatMap((path) =>
       readFileSync(path, 'utf8')
@@ -183,21 +189,20 @@ describe('the Pi port of pstack, prose rules', () => {
     );
     expect(offenders).toEqual([]);
   });
+});
 
+const unknownSubagentKeys = (accepted: ReadonlySet<string>, filePath: string, line: string, index: number): string[] =>
+  extractSubagentKeys(line)
+    .filter((key) => !accepted.has(key))
+    .map((key) => `${relative(root, filePath)}:${index + 1} ${key}`);
+
+describe('the Pi port of pstack, prose rules: playbooks', () => {
   test('every `key: value` prose passes to subagent is a parameter subagent accepts', () => {
     const accepted = new Set([...Object.keys(SubagentParams.properties), 'agent', 'task', 'cwd']);
-    const offenders = withMechanisms.flatMap((path) =>
-      readFileSync(path, 'utf8')
+    const offenders = withMechanisms.flatMap((filePath) =>
+      readFileSync(filePath, 'utf8')
         .split('\n')
-        .flatMap((line, index) =>
-          // Each key belongs to the nearest tool named before it, since one line can name tmux_run and subagent.
-          line
-            .split(/(?=`(?:subagent|tmux_run|tmux_jobs)`)/)
-            .filter((segment) => segment.startsWith('`subagent`'))
-            .flatMap((segment) => [...segment.matchAll(/`(\w+): /g)].map(([, key = '']) => key))
-            .filter((key) => !accepted.has(key))
-            .map((key) => `${relative(root, path)}:${index + 1} ${key}`),
-        ),
+        .flatMap((line, index) => unknownSubagentKeys(accepted, filePath, line, index)),
     );
     expect(offenders).toEqual([]);
   });
