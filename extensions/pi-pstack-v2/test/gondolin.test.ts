@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ReadonlyProvider, RealFSProvider, VM } from '@earendil-works/gondolin';
+import { ReadonlyProvider, RealFSProvider, ShadowProvider, VM } from '@earendil-works/gondolin';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test, vi } from 'vitest';
 import { createGondolinBashOps } from '../src/gondolin/bash.ts';
@@ -9,6 +9,7 @@ import { createGondolinEditOps, createGondolinLsOps, createGondolinReadOps, crea
 import { executeGondolinGrep } from '../src/gondolin/grep.ts';
 import gondolin, { guestSystemPrompt, HOST_BOUNDARY_NOTE } from '../src/gondolin/index.ts';
 import { GUEST_WORKSPACE, toGuestPath } from '../src/gondolin/paths.ts';
+import { DEFAULT_ALLOWED_HOSTS, PROTECTED_GIT_PATHS } from '../src/gondolin/policy.ts';
 import { createGondolinFindOps, matchesToolGlob } from '../src/gondolin/search.ts';
 
 type ExecOptions = { cwd?: string; env?: Record<string, string>; signal?: AbortSignal; stdout?: string; stderr?: string };
@@ -37,10 +38,16 @@ vi.mock('@earendil-works/gondolin', () => {
   function ReadonlyProviderMock(backend: unknown) {
     return Object.create(ReadonlyProviderMock.prototype, { backend: { value: backend, enumerable: true } });
   }
+  function ShadowProviderMock(backend: unknown, options: unknown) {
+    return Object.create(ShadowProviderMock.prototype, { backend: { value: backend, enumerable: true }, options: { value: options, enumerable: true } });
+  }
   return {
     VM: { create: vi.fn() },
     RealFSProvider: RealFSProviderMock,
     ReadonlyProvider: ReadonlyProviderMock,
+    ShadowProvider: ShadowProviderMock,
+    createShadowPathPredicate: vi.fn((paths: string[]) => ({ shadowedPaths: paths })),
+    createHttpHooks: vi.fn((options: { allowedHosts: string[] }) => ({ httpHooks: { allowedHosts: options.allowedHosts }, env: { HTTP_HOOKS: 'on' } })),
   };
 });
 
@@ -342,6 +349,27 @@ describe('the extension: lifecycle', () => {
     expect(guest.close).toHaveBeenCalledTimes(1);
     expect(ctx.ui.setStatus).toHaveBeenCalledWith('gondolin', 'Gondolin: stopping');
     expect(ctx.ui.setStatus).toHaveBeenLastCalledWith('gondolin', undefined);
+  });
+});
+
+describe('the extension: sandbox policy', () => {
+  test('protects git hooks and config from guest writes in the workspace mount', async () => {
+    const { handlers, ctx } = loadExtension();
+    await handlers['session_start']?.({}, ctx);
+    const mounts: Record<string, unknown> = vi.mocked(VM.create).mock.lastCall?.[0]?.vfs?.mounts ?? {};
+    const workspace = mounts[GUEST_WORKSPACE] as { backend: unknown; options: { shouldShadow: unknown; writeMode: string } };
+    expect(workspace).toBeInstanceOf(ShadowProvider);
+    expect(workspace.backend).toEqual(new RealFSProvider(process.cwd()));
+    expect(workspace.options.writeMode).toBe('deny');
+    expect(workspace.options.shouldShadow).toEqual({ shadowedPaths: [...PROTECTED_GIT_PATHS] });
+  });
+
+  test('restricts network access to the default development allowlist', async () => {
+    const { handlers, ctx } = loadExtension();
+    await handlers['session_start']?.({}, ctx);
+    const options = vi.mocked(VM.create).mock.lastCall?.[0];
+    expect(options?.httpHooks).toEqual({ allowedHosts: [...DEFAULT_ALLOWED_HOSTS] });
+    expect(options?.env).toEqual({ HTTP_HOOKS: 'on' });
   });
 });
 

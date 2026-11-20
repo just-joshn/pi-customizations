@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4
+
+### Changed
+
+- Protect `.git/hooks` and `.git/config` inside the Gondolin `/workspace` mount using Gondolin's `ShadowProvider` with `createShadowPathPredicate` and `writeMode: 'deny'`.
+- Restrict default Gondolin VM outbound HTTP and HTTPS traffic to common development endpoints using `createHttpHooks({ allowedHosts })`.
+
 ## 0.2.3
 
 ### Changed
