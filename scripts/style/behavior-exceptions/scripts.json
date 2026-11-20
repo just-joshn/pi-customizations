@@ -1,0 +1,14 @@
+[
+  {
+    "file": "scripts/style-audit.mjs",
+    "rule": "plugin",
+    "line": "process.exitCode = code;",
+    "reason": "Node's documented way to set the exit status. It lets buffered stderr/stdout drain, which process.exit would cut short, and bun lint's n/no-process-exit forbids process.exit."
+  },
+  {
+    "file": "scripts/behavior-test-audit.mjs",
+    "rule": "plugin",
+    "line": "process.exitCode = main();",
+    "reason": "Node's documented way to set the exit status. It lets buffered stderr/stdout drain, which process.exit would cut short, and bun lint's n/no-process-exit forbids process.exit."
+  }
+]

@@ -111,7 +111,7 @@ const readExceptionFile = (file) => {
     return BehaviorExceptions.parse(JSON.parse(fs.readFileSync(file, 'utf8')));
   } catch (error) {
     console.error('Reading behavior exceptions failed:', error);
-    throw new Error(`style-audit: ${rel(file)} must be a JSON list of { file, rule, line, reason }.`);
+    throw new Error(`style-audit: ${rel(file)} must be a JSON list of { file, rule, line, reason }.`, { cause: error });
   }
 };
 
@@ -138,7 +138,7 @@ const applyExceptions = (violations, exceptions) => {
 const biomeViolations = (files) => {
   if (files.length === 0) return [];
   const biome = createRequire(import.meta.url).resolve('@biomejs/biome/bin/biome');
-  const run = spawnSync(process.execPath, [biome, 'lint', `--config-path=${BIOME_CONFIG}`, '--max-diagnostics=none', '--reporter=json', ...files.map(rel)], { cwd: ROOT, encoding: 'utf8', maxBuffer: BIOME_OUTPUT_BYTES });
+  const run = spawnSync(process.execPath, [biome, 'lint', `--config-path=${BIOME_CONFIG}`, '--max-diagnostics=none', '--reporter=json', ...files.map(rel)], { cwd: ROOT, encoding: 'utf8', windowsHide: true, maxBuffer: BIOME_OUTPUT_BYTES });
   if (run.error) throw new Error(`style-audit: could not run Biome: ${run.error.message}`);
   const parsed = BiomeReport.safeParse(JSON.parse(run.stdout || 'null'));
   if (!parsed.success) throw new Error(`style-audit: Biome gave no JSON report.\n${run.stderr}`);
@@ -170,12 +170,13 @@ const main = () => {
   const auditedSet = new Set(files.map(rel));
   const violations = applyExceptions([...files.flatMap(lineViolations), ...biomeViolations(files)], readExceptions(auditedSet));
   const code = violations.length === 0 ? EXIT_CLEAN : EXIT_FAILED;
-  process.stderr.write(`${report(violations)}\n`, () => process.exit(code));
+  process.exitCode = code;
+  process.stderr.write(`${report(violations)}\n`);
 };
 
 try {
   main();
 } catch (error) {
   console.error('style-audit failed:', error);
-  throw new Error('style-audit could not finish; see the error above.');
+  throw new Error('style-audit could not finish; see the error above.', { cause: error });
 }
