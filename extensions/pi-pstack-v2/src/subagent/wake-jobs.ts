@@ -85,6 +85,7 @@ export function createWakeJobs(pi: ExtensionAPI) {
       running = without(running, id);
       progress.finish(id);
       deliver(ctx, formatWakeMessage(wake, id, report, outputPath));
+      return undefined;
     });
     running = new Map([...running, [id, { controller, done }]]);
     return { id, outputPath };

@@ -81,7 +81,10 @@ export function createBackgroundProgressTracker(clock: () => number = Date.now) 
 
   const throttled = (): void => {
     const wait = flushWait(jobs.size, lastFlush, clock());
-    if (wait <= 0) return flush();
+    if (wait <= 0) {
+      flush();
+      return;
+    }
     if (timer !== undefined) return;
     timer = setTimeout(flush, wait);
     timer.unref();

@@ -88,7 +88,13 @@ describe('what turns the shared build cache on', () => {
   const none = (): void => undefined;
   test.for([
     { label: 'flag', setUp: none, flags: { [FLAG]: true } },
-    { label: 'env', setUp: () => vi.stubEnv(ENV, '1'), flags: {} },
+    {
+      label: 'env',
+      setUp: () => {
+        vi.stubEnv(ENV, '1');
+      },
+      flags: {},
+    },
     { label: 'project', setUp: () => writeProject({ enableSharedBuildCache: true }), flags: {} },
     { label: 'user', setUp: () => writeUser({ enableSharedBuildCache: true }), flags: {} },
   ])('the $label mounts the host cache writable at /cache and points the tools into it', async ({ setUp, flags }) => {

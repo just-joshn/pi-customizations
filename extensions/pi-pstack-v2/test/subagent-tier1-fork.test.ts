@@ -19,7 +19,7 @@ const LAST_TWO = -2;
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
 const PARENT_CWD = '/parent';
 
-const Line = z.looseObject({
+const LineSchema = z.looseObject({
   type: z.string(),
   id: z.string().optional(),
   parentId: z.string().nullable().optional(),
@@ -32,13 +32,13 @@ const Line = z.looseObject({
     })
     .optional(),
 });
-type Line = z.infer<typeof Line>;
+type Line = z.infer<typeof LineSchema>;
 
 const linesOf = (session: string): Line[] =>
   session
     .trim()
     .split('\n')
-    .map((line) => Line.parse(JSON.parse(line)));
+    .map((line) => LineSchema.parse(JSON.parse(line)));
 
 const entry = (id: string, parentId: string | null, message: object): string => JSON.stringify({ type: 'message', id, parentId, timestamp: TIMESTAMP, message });
 const header = JSON.stringify({ type: 'session', version: SESSION_VERSION, id: 'parent', timestamp: TIMESTAMP, cwd: PARENT_CWD });
@@ -132,7 +132,7 @@ describe('a fork continues an unusual parent session', () => {
     const seen = watchChild();
     await fork(parentCtx(writeParentSession(SIBLING_RESULT)));
     const results = linesOf(seen()?.session ?? '').filter((line) => line.message?.role === 'toolResult');
-    expect(toolResultIds(seen()?.session ?? '').toSorted()).toEqual(['call', 'sibling']);
+    expect(toolResultIds(seen()?.session ?? '').toSorted((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual(['call', 'sibling']);
     expect(results.find((line) => line.message?.toolCallId === 'call')?.message).toMatchObject({ isError: false, content: [{ type: 'text', text: STARTED }] });
   });
 

@@ -3,11 +3,9 @@
 import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import * as path from 'node:path';
-import { promisify } from 'node:util';
 
 import { CONFIG_DIR_NAME } from '@earendil-works/pi-coding-agent';
 
-const execFileAsync = promisify(execFile);
 const SLUG_BYTES = 3;
 
 export type WorktreeOutcome = { kept: false } | { kept: true; worktreePath: string; branch: string; changedFiles: string[]; commits: number };
@@ -20,9 +18,13 @@ export interface SubagentWorktree {
   finalize: () => Promise<WorktreeOutcome>;
 }
 
-async function git(cwd: string, args: readonly string[]): Promise<string> {
-  const { stdout } = await execFileAsync('git', [...args], { cwd, encoding: 'utf8' });
-  return stdout;
+function git(cwd: string, args: readonly string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    execFile('git', [...args], { cwd, encoding: 'utf8', windowsHide: true }, (error, stdout) => {
+      if (error) reject(error);
+      else resolve(stdout);
+    });
+  });
 }
 
 const slugFor = (agentName: string): string => `subagent-${agentName.replace(/[^a-zA-Z0-9_-]/g, '-')}-${randomBytes(SLUG_BYTES).toString('hex')}`;

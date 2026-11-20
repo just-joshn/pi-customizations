@@ -10,7 +10,7 @@ import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subag
 const workspace = useWorkspace();
 const IDENTITY = ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false'];
 
-const git = (cwd: string, ...args: string[]): string => execFileSync('git', [...IDENTITY, ...args], { cwd, encoding: 'utf8' }).trim();
+const git = (cwd: string, ...args: string[]): string => execFileSync('git', [...IDENTITY, ...args], { cwd, encoding: 'utf8', windowsHide: true }).trim();
 
 /** Turns the test project into a git repository with one commit. */
 function initRepo(): string {

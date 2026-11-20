@@ -141,7 +141,7 @@ describe('agent memory tools and environment', () => {
 });
 
 const git = (...args: string[]): void => {
-  execFileSync('git', [...GIT_IDENTITY, ...args], { cwd: workspace().project, encoding: 'utf8' });
+  execFileSync('git', [...GIT_IDENTITY, ...args], { cwd: workspace().project, encoding: 'utf8', windowsHide: true });
 };
 
 describe('the memory directory a child is told about', () => {
