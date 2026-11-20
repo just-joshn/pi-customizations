@@ -1,31 +1,64 @@
 # Set up pstack
 
-In this page you install the package, pick which models pstack uses, and run your first task. Setup is one install command plus a short conversation.
+Install the package, choose a model for each role, and run a first task.
 
 ## Install the package
 
-Install pstack as a Pi package from a checkout, by passing its local path:
+Install from npm:
+
+```text
+pi install npm:@justjoshn/pi-pstack-v2
+```
+
+To install from a checkout instead, pass its path:
 
 ```text
 pi install ./extensions/pi-pstack-v2
 ```
 
-The npm package `@justjoshn/pi-pstack-v2` is not published yet. Once it is, `pi install npm:@justjoshn/pi-pstack-v2` works too.
+Add `--local` to write the declaration to the project's `.pi/settings.json` instead of your personal settings. `pi list` shows what is installed.
 
-Add `--local` to write the declaration to the project's `.pi/settings.json` instead of your personal settings. `pi list` shows what is installed. Installing adds the skills and tools but starts no workflow. Nothing changes until you send `/skill:poteto-mode` or turn on `/pstack-mode`. Pi runs each skill as `/skill:<name>`, so every command in this guide takes that prefix.
+The package needs Node `>=22.19.0` and is built and tested against Pi 1.5.2. Do not install another pstack package beside it. Skill names collide, and Pi keeps only the first it finds.
 
-The package adds three tools. `subagent` starts separate Pi workers, each in its own tmux session, and returns their reports when they finish. `tmux_run` runs a shell command in its own tmux session. `tmux_jobs` lists, waits on, and stops those shell jobs. Pi has no sub-agents and no detached shell, so every parallel worker in this guide is a `subagent` worker and every watcher is a `tmux_run` job.
+npm 11.20 and later warn that `ssh2` and `cpu-features` have install scripts that `allowScripts` does not cover. Both come from Gondolin. The scripts only try to compile optional native speedups, and the Gondolin virtual machine boots without them. Deny both once after installing:
 
-**Watch your jobs.** `tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log and `wait` to block until jobs finish. Use `stop` to end one. When a job exits, its report arrives in your session as a steering message after the current tool calls finish, so you can keep working or end your turn and wait.
+```text
+cd ~/.pi/agent/npm && npm install-scripts deny ssh2 cpu-features
+```
 
-## Check tmux and Gondolin
+Installing adds skills, tools, and commands but starts no workflow. Nothing changes until you send `/skill:poteto-mode` or turn on `/pstack-mode`.
 
-pstack needs two things on your machine.
+## What the package adds
 
-- **tmux.** Every job runs in a tmux session, and the wake that brings a finished job's report back to your session depends on it.
-- **QEMU, for Gondolin.** Pi has no permission popups. Pi's built-in tools run inside a Gondolin micro-VM instead, with the directory Pi started in mounted at `/workspace`. Writes there reach your checkout, and every other guest path is the VM's own. Install QEMU (`brew install qemu` on macOS). Gondolin downloads its guest image on first use, and `/gondolin` shows the VM.
+Skills run as `/skill:<name>`. The extensions add two commands of their own:
 
-The VM covers Pi's own tools, not `tmux_run` jobs, which run on your machine. The guest has no `git` or `gh`, so commits, pushes, and PRs go through `tmux_run`. To contain everything, run Pi inside an isolated environment, as Pi's guide to isolated environments describes. Do that before you run anything unattended.
+- `/pstack-mode <skill>` keeps one skill in the system prompt on every turn until `/pstack-mode off`.
+- `/gondolin` shows the session's Gondolin VM, a micro virtual machine.
+
+The extensions add four tools:
+
+- `subagent` starts separate Pi workers, each in its own tmux session. One call runs a single worker, up to eight `tasks` in parallel with four running at a time, or a `chain` of steps. A blocking call returns the reports when the workers finish. With `wake`, the call returns a job id at once and wakes your session with the report. `stop` aborts a wake job by id. `model`, `thinking`, and `isolation: "worktree"` apply per call or per task.
+- `tmux_run` runs a shell command in its own tmux session. The session wakes only when you set `wake`. With `repeat: true`, which requires `wake`, the command restarts after each clean exit.
+- `tmux_jobs` lists, reads the output of, waits on, and stops `tmux_run` jobs.
+- `report_findings` records structured review findings.
+
+Gondolin also routes Pi's seven built-in tools to the VM: `read`, `write`, `edit`, `bash`, `ls`, `find`, and `grep`. The `--gondolin-shared-build-cache` flag shares package-manager caches between the VM and host jobs.
+
+Pi has no sub-agents and never runs shell commands in the background. Every parallel worker in this guide is a `subagent` worker, and every watcher is a `tmux_run` job.
+
+`tmux_jobs` with `action: "list"` shows each job and prints a `tail -f` command that follows its output. Use `output` to read a job's log, `wait` to block until jobs finish, and `stop` to end one. When a job with a `wake` exits, its report arrives as a steering message after the current tool calls finish.
+
+## Check the requirements
+
+- Node `>=22.19.0`.
+- tmux. Every job runs in a tmux session, and the wake that returns a report depends on it.
+- QEMU for the Gondolin VM. Install it with `brew install qemu` on macOS. Gondolin downloads its guest image on first use.
+- `bun` and `gh`, for scripts that some skills run, such as `watch-pr` and `statechart`.
+- `jq` and `rg`, which is ripgrep, for `worktree-audit.sh` and the `pr-review-canvas` skill.
+
+Pi has no permission popups. Pi's built-in tools run inside the Gondolin VM instead. The directory Pi started in is mounted at `/workspace`, and writes there reach your checkout. Every other guest path belongs to the VM.
+
+The VM covers Pi's built-in tools, not `tmux_run` jobs or the `pi` processes that `subagent` starts. Those run on your machine. The guest has no `git`, `gh`, `tmux`, or `bun`, so commits, pushes, and pull requests go through `tmux_run`.
 
 ## Pick your models
 
@@ -35,47 +68,49 @@ Run:
 /skill:setup-pstack
 ```
 
-[`/skill:setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, asks for a reasoning budget, shows you each role (code workers, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.pi/agent/pstack-v2-models.md`, a small file of role lines that the extension puts in front of the model in every session.
+[`/skill:setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you can use and asks for a reasoning budget. It shows each role and asks whether to change it. It writes `~/.pi/agent/pstack-v2-models.md`, a file of role lines that the extension adds to the system prompt in every session.
 
 Each role line names a model as `provider/id`, exactly as `pi --list-models` prints it, and a thinking level.
 
-The defaults are the same as the `large` budget. Code, prose, and judgment run at `xhigh` thinking, and the review panels and swarm workers run at `high`. No role runs above `xhigh`. Outside a review panel, a stronger model than your default runs only when you name it for a task or after two runs of the same brief fail their check. `medium` lowers each role one level and `small` lowers it two, and both spend fewer tokens.
+The defaults match the `large` budget. Code, prose, and judgment roles run at `xhigh` thinking. The review panels and swarm workers run at `high`. No role runs above `xhigh`. `medium` lowers each role one level and `small` lowers it two, so both spend fewer tokens.
 
-You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps any role whose model differs from the default. When a default changes, a file written before the change still pins the old default until you run `/skill:setup-pstack` again. That run replaces the old defaults it recognizes, tells you which, and keeps your other choices. To drop a pin it does not recognize, delete that role's line or the file first.
+`/skill:poteto-mode` then adjusts the thinking level for each job. It raises the level one step for the hardest work and lowers it for judgment or routine work. Panel seats keep their listed level.
 
-You might be wondering what happens if you want a role to follow whatever model you're using. Set it to `inherit-parent` or `auto` and pstack omits the model on that role's `subagent` call, so the worker runs on your session model. Both values mean the same thing, and neither is a model. For a panel role the value is a list, and one spawned Pi runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
+A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps every role whose model differs from the default. A file written before a default changed still pins the old default. Rerunning `/skill:setup-pstack` replaces the old defaults it recognizes and tells you which. To drop a pin it does not recognize, delete that role's line or the file first.
 
-## Accept the verification offers, or don't
+To make a role follow your session model, set it to `inherit-parent` or `auto`. pstack then omits the model on that role's `subagent` call. Neither value is a model. A panel role takes a list, and one subagent worker runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
 
-At the end of setup, `/skill:setup-pstack` looks for a way to prove app behavior in your project, either a `verify-*` skill or an existing harness. If it finds neither, it offers once to generate one with [`/skill:create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
+The extension rereads the file every turn, so role lines apply from your next message.
 
-Say yes and it writes `.pi/skills/verify-<app>/`, a project-local skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. Say no and setup moves on. You can run `/skill:create-verification-skill` yourself any time. Either yes starts a separate generation task. Setup itself installs no browser driver, dependency, or app environment. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) covers it in depth.
+## Accept or decline the verification offers
 
-If you're new to pstack, say yes. An agent that can check its own work keeps going until the check passes. An agent that can't hands every result back to you to check by hand. Of everything in this guide, the verification skill pays off the most.
+At the end of setup, `/skill:setup-pstack` looks for a way to prove app behavior, either a `verify-*` skill or an existing test script. If it finds neither, it offers once to generate a verification skill with [`/skill:create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
 
-Then setup offers once to generate a formal verification skill with [`/skill:create-formal-verification-skill`](../../skills/create-formal-verification-skill/SKILL.md), unless the project already has one. Tests check the cases someone thought to write. A formal verification skill checks one key property of your code, such as "a job never runs twice at once", in every case within a stated scope. Say yes when your code has concurrency, retries, a state machine, or a parser, where a bug is costly and tests rarely reach the case that breaks. Otherwise say no, and run it later if that changes. [Verify and ship](./06-verify-and-ship.md#prove-a-property-with-a-formal-verification-skill) covers it.
+If you accept, it writes `.pi/skills/verify-<app>/`, a project skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. If you decline, setup moves on, and you can run the skill later. Setup itself installs no browser driver, dependency, or app environment. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) has the details.
 
-The extension rereads the model file every turn, so the role lines apply from your next message. A new session picks them up too.
+An agent that can check its own work keeps going until the check passes. An agent that cannot check hands every result back to you. Accept this offer if you are new to pstack.
 
-## Keep the cost in check
+Setup then offers once to generate a formal verification skill with [`/skill:create-formal-verification-skill`](../../skills/create-formal-verification-skill/SKILL.md), unless the project already has one. Tests check the cases someone wrote. A formal verification skill checks one key property, such as "a job never runs twice at once", in every case within a stated scope. Accept when your code has concurrency, retries, a state machine, or a parser. [Verify and ship](./06-verify-and-ship.md#prove-a-property-with-a-formal-verification-skill) has the details.
 
-pstack spends extra tokens on spawned Pis and review panels. That's the price of the rigor. To spend fewer:
+## Control the cost
 
-- Rerun `/skill:setup-pstack` and pick a smaller reasoning budget or cheaper models. A strong model in your main session with cheaper models in the code roles is a good split.
-- Set a role to `auto` or `inherit-parent` so it runs on your session's own model.
-- Shorten a panel list. Each entry runs one spawned Pi.
-- Save `/skill:poteto-mode` for work that needs rigor. A small, obvious edit doesn't.
+pstack spends extra tokens on subagent workers and review panels. To spend fewer:
+
+- Rerun `/skill:setup-pstack` and pick a smaller reasoning budget or cheaper models. A strong session model with cheaper models in the code roles is a good split.
+- Set a role to `auto` or `inherit-parent`, so it runs on your session model.
+- Shorten a panel list. Each entry runs one subagent worker.
+- Use `/skill:poteto-mode` only for work that needs rigor. A small, obvious edit does not.
 
 ## Run your first task
 
-Pick something real but small, and describe it the way you'd describe it to a colleague:
+Pick a small, real task:
 
 ```text
 /skill:poteto-mode add a --json flag to this command. text output stays byte-identical. verify both.
 ```
 
-Watch `TODO.md` at the root of your checkout. Its first items are the matched playbook's steps copied in, the Feature playbook for this prompt. `TODO.md` is working state, so don't commit it unless your repository already tracks one.
+`/skill:poteto-mode` writes `TODO.md` at the root of your checkout. Its first items are the matched playbook's steps, the Feature playbook for this prompt. `TODO.md` is working state, so it is never staged. If the repository already tracks a `TODO.md`, the checklist goes to `.pi/TODO.md` instead.
 
-From here you can type normal follow-ups. The skill's text stays in your session's context, so short messages keep the same rigor. After a `/compact` or in a new session, send `/skill:poteto-mode` again. To keep it on for the whole session instead, type `/pstack-mode poteto-mode`. The skill then rides in the system prompt every turn, through `/compact` and resume, until `/pstack-mode off`.
+`/skill:poteto-mode` attaches the skill to one message, and its influence fades as the session moves on. To keep it active, type `/pstack-mode poteto-mode`. The extension then puts the skill in the system prompt on every turn, through `/compact` and session resume, until `/pstack-mode off`.
 
 Next: [Route work through `/skill:poteto-mode`](./02-poteto-mode.md).
