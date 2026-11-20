@@ -1,7 +1,8 @@
 import * as path from 'node:path';
 
-import { createHttpHooks, createShadowPathPredicate, ReadonlyProvider, RealFSProvider, ShadowProvider, type VMOptions } from '@earendil-works/gondolin';
-import { GUEST_WORKSPACE } from './paths.ts';
+import { createHttpHooks, createShadowPathPredicate, ReadonlyProvider, RealFSProvider, ShadowProvider, type VirtualProvider, type VMOptions } from '@earendil-works/gondolin';
+import { GUEST_WORKSPACE, toPosix } from './paths.ts';
+import { buildCacheEnv, GUEST_BUILD_CACHE } from './shared-cache.ts';
 
 const GIT_HOOKS_PATH = '/.git/hooks';
 const GIT_CONFIG_PATH = '/.git/config';
@@ -54,12 +55,23 @@ export function createDefaultNetworkPolicy() {
   return createHttpHooks({ allowedHosts: [...DEFAULT_ALLOWED_HOSTS] });
 }
 
-export function createVmOptions(localCwd: string, packageRoot: string): VMOptions {
+export type VmPolicyOptions = {
+  localCwd: string;
+  /** Host directories mounted read-only at the same path in the guest. */
+  readonlyMounts: readonly string[];
+  /** Host directory mounted writable at /cache, with the build-tool cache variables pointed into it. Unset leaves caches in the guest. */
+  sharedBuildCacheDir?: string | undefined;
+};
+
+export function createVmOptions({ localCwd, readonlyMounts, sharedBuildCacheDir }: VmPolicyOptions): VMOptions {
   const { httpHooks, env } = createDefaultNetworkPolicy();
+  const workspace: [string, VirtualProvider][] = [[GUEST_WORKSPACE, createWorkspaceProvider(localCwd)]];
+  const readonly = readonlyMounts.map((dir): [string, VirtualProvider] => [toPosix(dir), new ReadonlyProvider(new RealFSProvider(dir))]);
+  const cache: [string, VirtualProvider][] = sharedBuildCacheDir === undefined ? [] : [[GUEST_BUILD_CACHE, new RealFSProvider(sharedBuildCacheDir)]];
   return {
     sessionLabel: `pi ${path.basename(localCwd)}`,
     httpHooks,
-    env,
-    vfs: { mounts: { [GUEST_WORKSPACE]: createWorkspaceProvider(localCwd), [packageRoot]: new ReadonlyProvider(new RealFSProvider(packageRoot)) } },
+    env: sharedBuildCacheDir === undefined ? env : { ...env, ...buildCacheEnv(GUEST_BUILD_CACHE, path.posix) },
+    vfs: { mounts: Object.fromEntries([...workspace, ...readonly, ...cache]) },
   };
 }

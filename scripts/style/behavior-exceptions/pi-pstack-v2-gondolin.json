@@ -10,5 +10,11 @@
     "rule": "plugin",
     "line": "handler: async (_args, ctx) => {",
     "reason": "/gondolin takes no arguments and ignores whatever follows it, as the upstream example does. Parsing the ignored text would reject nothing and add a schema with no input to guard."
+  },
+  {
+    "file": "extensions/pi-pstack-v2/src/gondolin/skills.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "settings.json belongs to Pi and may be absent, mid-edit, or hold a skills shape this mount list does not read. readFileSync and JSON.parse throw for those and have no non-throwing form, so the catch lists no extra skill mounts and the VM still starts with the package and default skill roots."
   }
 ]

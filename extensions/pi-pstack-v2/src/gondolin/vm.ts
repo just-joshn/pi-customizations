@@ -1,9 +1,14 @@
+import * as os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { VM } from '@earendil-works/gondolin';
-import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { hostEnv } from '../host-env.ts';
+import { resolveGondolinConfig } from './config.ts';
 import { GUEST_WORKSPACE } from './paths.ts';
-import { createVmOptions } from './policy.ts';
+import { createVmOptions, type VmPolicyOptions } from './policy.ts';
+import { ensureSharedBuildCacheDir, sharedBuildCacheHostDir } from './shared-cache.ts';
+import { discoverReadonlySkillMounts } from './skills.ts';
 
 export const STATUS_KEY = 'gondolin';
 const DEFAULT_SHELL = '/bin/sh';
@@ -17,17 +22,33 @@ export type GondolinVm = {
   ensure: (ctx?: ExtensionContext) => Promise<VM>;
   close: (ctx: ExtensionContext) => Promise<void>;
   shellPath: () => string;
+  /** The host directory shared as /cache, once the VM has started with the shared build cache on. */
+  sharedBuildCacheDir: () => string | undefined;
 };
 
-export function createGondolinVm(localCwd: string): GondolinVm {
+/** What the VM mounts, decided when it starts so the flag, environment and config files are read as they are then. */
+function vmPolicy(localCwd: string, flag: unknown): VmPolicyOptions {
+  const agentDir = getAgentDir();
+  const config = resolveGondolinConfig({ localCwd, agentDir, env: hostEnv(), flag });
+  return {
+    localCwd,
+    readonlyMounts: discoverReadonlySkillMounts({ packageRoot: PACKAGE_ROOT, agentDir, homeDir: os.homedir(), localCwd }),
+    sharedBuildCacheDir: config.enableSharedBuildCache ? ensureSharedBuildCacheDir(sharedBuildCacheHostDir()) : undefined,
+  };
+}
+
+export function createGondolinVm(localCwd: string, getFlag: () => unknown = () => undefined): GondolinVm {
   let vm: VM | undefined;
   let starting: Promise<VM> | undefined;
   // Commands run in bash when the guest image has it, and in the POSIX shell otherwise.
   let shellPath = DEFAULT_SHELL;
+  let sharedBuildCacheDir: string | undefined;
 
   const start = async (ctx?: ExtensionContext): Promise<VM> => {
     ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: starting ${GUEST_WORKSPACE}`));
-    const created = await VM.create(createVmOptions(localCwd, PACKAGE_ROOT));
+    const policy = vmPolicy(localCwd, getFlag());
+    const created = await VM.create(createVmOptions(policy));
+    sharedBuildCacheDir = policy.sharedBuildCacheDir;
     const bashProbe = await created.exec(BASH_PROBE);
     shellPath = bashProbe.stdout.trim() || DEFAULT_SHELL;
     vm = created;
@@ -58,5 +79,5 @@ export function createGondolinVm(localCwd: string): GondolinVm {
     }
   };
 
-  return { ensure, close, shellPath: () => shellPath };
+  return { ensure, close, shellPath: () => shellPath, sharedBuildCacheDir: () => sharedBuildCacheDir };
 }
