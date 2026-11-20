@@ -2,6 +2,7 @@ import { basename } from 'node:path';
 
 import type { ExtensionAPI, ExtensionContext, ReadonlyFooterDataProvider, Theme } from '@earendil-works/pi-coding-agent';
 import { type Component, type TUI, visibleWidth } from '@earendil-works/pi-tui';
+import { cell } from './cell.ts';
 import { fitPlain, gutterAt, gutterOf, sanitizeLine } from './text.ts';
 
 type ThinkingLevel = ReturnType<ExtensionAPI['getThinkingLevel']>;
@@ -11,6 +12,8 @@ export interface FooterSnapshot {
   readonly thinking: ThinkingLevel | undefined;
   readonly ctxPercent: number | null;
 }
+const CTX_ERROR_PERCENT = 90;
+const CTX_WARNING_PERCENT = 70;
 export const SEGMENT_ORDER = [
   { id: 'workspace', side: 'left', priority: 0, minWidth: 6 },
   { id: 'branch', side: 'left', priority: 4 },
@@ -42,15 +45,10 @@ export default function footer(pi: ExtensionAPI): void {
     const gutter = gutterOf(pi);
     ctx.ui.setFooter((tui, theme, data) => {
       mounted = tui;
-      return new SnoopFooter(
-        theme,
-        data,
-        () => snapshot,
-        () => {
-          if (mounted === tui) mounted = undefined;
-        },
-        gutter,
-      );
+      const release = (): void => {
+        if (mounted === tui) mounted = undefined;
+      };
+      return snoopFooter(theme, data, () => snapshot, release, gutter);
     });
   });
   const onChange = (_event: unknown, ctx: ExtensionContext): void => {
@@ -80,78 +78,76 @@ function rowWidth(segments: readonly Segment[]): number {
   const right = joinSide(segments, 'right', (s) => s.text);
   return visibleWidth(left) + visibleWidth(right) + (left && right ? 2 : 0);
 }
+function shrinkOnce(fitted: readonly Segment[], target: number): readonly Segment[] {
+  const lowest = fitted.reduce((a, b) => (a.priority > b.priority || (a.priority === b.priority && a.side === 'right') ? a : b));
+  const size = visibleWidth(lowest.text);
+  const min = lowest.priority === 0 ? 0 : lowest.minWidth;
+  if (min === undefined || size <= min) return fitted.filter((s) => s !== lowest);
+  const text = fitPlain(lowest.text, Math.max(min, size - (rowWidth(fitted) - target)));
+  return fitted.map((s) => (s === lowest ? { ...s, text } : s));
+}
 export function fitSegments(segments: readonly Segment[], width: number): readonly Segment[] {
-  const fitted = segments.filter((s) => s.text).map((s) => ({ ...s, text: sanitizeLine(s.text) }));
-  while (rowWidth(fitted) > Math.max(0, width)) {
-    const lowest = fitted.reduce((a, b) => (a.priority > b.priority || (a.priority === b.priority && a.side === 'right') ? a : b));
-    const size = visibleWidth(lowest.text);
-    const min = lowest.priority === 0 ? 0 : lowest.minWidth;
-    if (min !== undefined && size > min) {
-      lowest.text = fitPlain(lowest.text, Math.max(min, size - (rowWidth(fitted) - Math.max(0, width))));
-    } else {
-      fitted.splice(fitted.indexOf(lowest), 1);
-    }
-  }
+  const target = Math.max(0, width);
+  let fitted: readonly Segment[] = segments.filter((s) => s.text).map((s) => ({ ...s, text: sanitizeLine(s.text) }));
+  while (rowWidth(fitted) > target) fitted = shrinkOnce(fitted, target);
   return fitted;
 }
 export function statusText(statuses: ReadonlyMap<string, string>): string {
   return [...statuses.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
+    .toSorted(([a], [b]) => a.localeCompare(b))
     .map(([, text]) => sanitizeLine(text).trim())
     .filter(Boolean)
     .join(' · ');
 }
-export class SnoopFooter implements Component {
-  private cache: { width: number; snapshot: FooterSnapshot | undefined; branch: string | null; statuses: string; line: string } | undefined;
-  private readonly theme: Theme;
-  private readonly data: ReadonlyFooterDataProvider;
-  private readonly read: () => FooterSnapshot | undefined;
-  private readonly onDispose: () => void;
-  private readonly gutter: number;
-  constructor(theme: Theme, data: ReadonlyFooterDataProvider, read: () => FooterSnapshot | undefined, onDispose: () => void, gutter: number) {
-    this.theme = theme;
-    this.data = data;
-    this.read = read;
-    this.onDispose = onDispose;
-    this.gutter = gutter;
-  }
-  render(width: number): string[] {
-    const snapshot = this.read();
-    const branch = this.data.getGitBranch();
-    const statuses = statusText(this.data.getExtensionStatuses());
-    if (this.cache?.width === width && this.cache.snapshot === snapshot && this.cache.branch === branch && this.cache.statuses === statuses) return [this.cache.line];
-    const texts: Record<SegmentId, string> = {
-      workspace: snapshot?.workspace ?? '',
-      branch: branch ?? '',
-      statuses,
-      model: snapshot?.model ?? '',
-      thinking: snapshot?.thinking ?? '',
-      ctx: snapshot?.ctxPercent == null ? 'ctx ?' : `ctx ${Math.round(snapshot.ctxPercent)}%`,
-    };
-    const g = gutterAt(this.gutter, width);
-    const inner = width - 2 * g;
-    const fitted = fitSegments(
-      SEGMENT_ORDER.map((s) => ({ ...s, text: texts[s.id] })),
-      inner,
-    );
-    const style = (s: Segment): string => {
-      const percent = snapshot?.ctxPercent;
-      const color = s.id === 'workspace' ? 'text' : s.id !== 'ctx' ? 'muted' : percent == null ? 'dim' : percent > 90 ? 'error' : percent > 70 ? 'warning' : 'accent';
-      return this.theme.fg(color, s.text);
-    };
-    const separator = (text: string): string => this.theme.fg('dim', text);
-    const left = joinSide(fitted, 'left', style, separator);
-    const right = joinSide(fitted, 'right', style, separator);
-    const gap = left && right ? Math.max(2, inner - visibleWidth(left) - visibleWidth(right)) : 0;
-    const line = ' '.repeat(g) + left + ' '.repeat(gap) + right;
-    this.cache = { width, snapshot, branch, statuses, line };
-    return [line];
-  }
-  invalidate(): void {
-    this.cache = undefined;
-  }
-  dispose(): void {
-    this.cache = undefined;
-    this.onDispose();
-  }
+function ctxColor(percent: number | null | undefined): 'dim' | 'error' | 'warning' | 'accent' {
+  if (percent == null) return 'dim';
+  if (percent > CTX_ERROR_PERCENT) return 'error';
+  return percent > CTX_WARNING_PERCENT ? 'warning' : 'accent';
+}
+function segmentTexts(snapshot: FooterSnapshot | undefined, branch: string | null, statuses: string): Record<SegmentId, string> {
+  return {
+    workspace: snapshot?.workspace ?? '',
+    branch: branch ?? '',
+    statuses,
+    model: snapshot?.model ?? '',
+    thinking: snapshot?.thinking ?? '',
+    ctx: snapshot?.ctxPercent == null ? 'ctx ?' : `ctx ${Math.round(snapshot.ctxPercent)}%`,
+  };
+}
+function footerLine(theme: Theme, snapshot: FooterSnapshot | undefined, branch: string | null, statuses: string, width: number, gutter: number): string {
+  const texts = segmentTexts(snapshot, branch, statuses);
+  const g = gutterAt(gutter, width);
+  const inner = width - 2 * g;
+  const fitted = fitSegments(
+    SEGMENT_ORDER.map((s) => ({ ...s, text: texts[s.id] })),
+    inner,
+  );
+  const style = (s: Segment): string => theme.fg(s.id === 'workspace' ? 'text' : s.id !== 'ctx' ? 'muted' : ctxColor(snapshot?.ctxPercent), s.text);
+  const separator = (text: string): string => theme.fg('dim', text);
+  const left = joinSide(fitted, 'left', style, separator);
+  const right = joinSide(fitted, 'right', style, separator);
+  const gap = left && right ? Math.max(2, inner - visibleWidth(left) - visibleWidth(right)) : 0;
+  return ' '.repeat(g) + left + ' '.repeat(gap) + right;
+}
+export function snoopFooter(theme: Theme, data: ReadonlyFooterDataProvider, read: () => FooterSnapshot | undefined, onDispose: () => void, gutter: number): Component & { dispose(): void } {
+  const cache = cell<{ width: number; snapshot: FooterSnapshot | undefined; branch: string | null; statuses: string; line: string } | undefined>(undefined);
+  return {
+    render(width: number): string[] {
+      const snapshot = read();
+      const branch = data.getGitBranch();
+      const statuses = statusText(data.getExtensionStatuses());
+      const cached = cache.read();
+      if (cached?.width === width && cached.snapshot === snapshot && cached.branch === branch && cached.statuses === statuses) return [cached.line];
+      const line = footerLine(theme, snapshot, branch, statuses, width, gutter);
+      cache.write({ width, snapshot, branch, statuses, line });
+      return [line];
+    },
+    invalidate(): void {
+      cache.write(undefined);
+    },
+    dispose(): void {
+      cache.write(undefined);
+      onDispose();
+    },
+  };
 }

@@ -31,6 +31,11 @@ const failure = ['FAIL cache.test.ts', '  respects cancellation', '    expected 
 const diff = '-41 async function refreshCache() {\n+41 async function refreshCache(signal) {\n-42   return await fetchSnapshot();\n+42   return await fetchSnapshot({ signal });';
 const red = '\x1b[31m';
 const reset = '\x1b[0m';
+const COLORED_LINES = 12;
+const ERROR_LINES = 6;
+const DIGEST_CHARS = 16;
+const MAX_WIDTH = 120;
+const WIDTHS = Array.from({ length: MAX_WIDTH }, (_, i) => i + 1);
 const CASES: Record<string, { renderers: ToolRenderers; event: RowEvent }> = {
   read: { renderers: compactRenderers(TOOL_SPECS.read, native(createReadToolDefinition(CWD))), event: { args: { path: `${CWD}/src/cache.ts` }, result: output(source) } },
   grep: {
@@ -46,26 +51,24 @@ const CASES: Record<string, { renderers: ToolRenderers; event: RowEvent }> = {
   write: { renderers: compactRenderers(TOOL_SPECS.write, native(createWriteToolDefinition(CWD))), event: { args: { path: `${CWD}/src/new.ts`, content: source }, result: output('Successfully wrote 1200 bytes to src/new.ts') } },
   find: { renderers: compactRenderers(TOOL_SPECS.find, native(createFindToolDefinition(CWD))), event: { args: { pattern: '*.ts' }, result: output('src/cache.ts\nsrc/app.ts\nsrc/session/index.ts') } },
   ls: { renderers: compactRenderers(TOOL_SPECS.ls, native(createLsToolDefinition(CWD))), event: { args: { path: 'src' }, result: output('cache.ts\napp.ts\nsession/') } },
-  generic: { renderers: compactRenderers(genericSpec('codemode'), {}), event: { args: { code: 'return 1;' }, result: output(`${`${red}red${reset} line\n`.repeat(12)}\n`) } },
-  genericFail: { renderers: compactRenderers(genericSpec('tmux_run'), {}), event: { args: { name: 'tests' }, result: output('TypeError: boom\n'.repeat(6), true) } },
+  generic: { renderers: compactRenderers(genericSpec('codemode'), {}), event: { args: { code: 'return 1;' }, result: output(`${`${red}red${reset} line\n`.repeat(COLORED_LINES)}\n`) } },
+  genericFail: { renderers: compactRenderers(genericSpec('tmux_run'), {}), event: { args: { name: 'tests' }, result: output('TypeError: boom\n'.repeat(ERROR_LINES), true) } },
 };
 
 function digest(lines: readonly string[]): string {
-  return createHash('sha256').update(lines.join('\n')).digest('hex').slice(0, 16);
+  return createHash('sha256').update(lines.join('\n')).digest('hex').slice(0, DIGEST_CHARS);
+}
+
+function panelDigests(name: string, renderers: ToolRenderers, event: RowEvent, outputPad: number): Record<number, string> {
+  const row = driveRow(renderers, theme, { cwd: CWD, outputPad });
+  row.apply({ ...event, executionStarted: true, isPartial: false, expanded: true });
+  const widths: Record<number, string> = Object.fromEntries(WIDTHS.map((width) => [width, digest(row.lines(width))]));
+  for (const width of WIDTHS.toReversed()) expect(digest(row.lines(width)), `${name} pad ${outputPad} width ${width} on a cached frame`).toBe(widths[width]);
+  return widths;
 }
 
 test('expanded panels keep their exact output at every width', async () => {
-  const digests: Record<string, Record<number, string>> = {};
-  for (const [name, { renderers, event }] of Object.entries(CASES)) {
-    for (const outputPad of [0, 1]) {
-      const row = driveRow(renderers, theme, { cwd: CWD, outputPad });
-      row.apply({ ...event, executionStarted: true, isPartial: false, expanded: true });
-      const widths: Record<number, string> = {};
-      for (let width = 1; width <= 120; width++) widths[width] = digest(row.lines(width));
-      for (let width = 120; width >= 1; width--) expect(digest(row.lines(width)), `${name} pad ${outputPad} width ${width} on a cached frame`).toBe(widths[width]);
-      digests[`${name} pad ${outputPad}`] = widths;
-    }
-  }
+  const digests = Object.fromEntries(Object.entries(CASES).flatMap(([name, { renderers, event }]) => [0, 1].map((outputPad) => [`${name} pad ${outputPad}`, panelDigests(name, renderers, event, outputPad)] as const)));
   await expect(`${JSON.stringify(digests, null, 2)}\n`).toMatchFileSnapshot('./__snapshots__/panels.json');
 });
 

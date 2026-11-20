@@ -1,6 +1,7 @@
 import type { AgentToolResult, Theme, ToolRenderers } from '@earendil-works/pi-coding-agent';
 import { type Component, Text } from '@earendil-works/pi-tui';
 import { vi } from 'vitest';
+import { cell } from '../src/cell.ts';
 
 type Context = Parameters<NonNullable<ToolRenderers['renderCall']>>[2];
 export function stubTheme(): Theme {
@@ -17,68 +18,89 @@ export interface RowEvent {
   readonly expanded?: boolean;
   readonly invalidate?: boolean;
 }
+const DEFAULT_CWD = '/project';
+interface RowInputs {
+  readonly args: Record<string, unknown>;
+  readonly started: boolean;
+  readonly partial: boolean;
+  readonly expanded: boolean;
+  readonly result: RowEvent['result'];
+}
+function rowContext(inputs: RowInputs, state: object, opts: { cwd?: string; outputPad?: number } | undefined, lastComponent: Component | undefined): Context {
+  return {
+    args: inputs.args,
+    state,
+    toolCallId: 'test',
+    invalidate: () => {
+      throw new Error('recursive invalidation');
+    },
+    lastComponent,
+    cwd: opts?.cwd ?? DEFAULT_CWD,
+    executionStarted: inputs.started,
+    argsComplete: true,
+    isPartial: inputs.partial,
+    expanded: inputs.expanded,
+    showImages: false,
+    isError: inputs.result?.isError ?? false,
+    durationMs: inputs.partial ? undefined : 10,
+    outputPad: opts?.outputPad ?? 1,
+    keyText: () => 'ctrl+o',
+    keyHint: () => 'ctrl+o to expand',
+  };
+}
 export function driveRow(renderers: ToolRenderers, theme: Theme, opts?: { cwd?: string; outputPad?: number }) {
   const state = {};
-  const components: { call: Component | undefined; result: Component | undefined } = { call: undefined, result: undefined };
-  let args: Record<string, unknown> = {};
-  let result: RowEvent['result'];
-  let started = false;
-  let partial = true;
-  let expanded = false;
+  const call = cell<Component | undefined>(undefined);
+  const resultComponent = cell<Component | undefined>(undefined);
+  const inputs = cell<RowInputs>({ args: {}, started: false, partial: true, expanded: false, result: undefined });
   return {
     state,
-    components,
+    components: {
+      get call() {
+        return call.read();
+      },
+      get result() {
+        return resultComponent.read();
+      },
+    },
     apply(event: RowEvent): void {
       if (event.invalidate) {
-        components.call?.invalidate();
-        components.result?.invalidate();
+        call.read()?.invalidate();
+        resultComponent.read()?.invalidate();
       }
-      args = event.args ?? args;
-      started = event.executionStarted ?? started;
-      partial = event.isPartial ?? partial;
-      expanded = event.expanded ?? expanded;
-      result = event.result ?? result;
-      const context = (lastComponent: Component | undefined): Context => ({
-        args,
-        state,
-        toolCallId: 'test',
-        invalidate: () => {
-          throw new Error('recursive invalidation');
-        },
-        lastComponent,
-        cwd: opts?.cwd ?? '/project',
-        executionStarted: started,
-        argsComplete: true,
-        isPartial: partial,
-        expanded,
-        showImages: false,
-        isError: result?.isError ?? false,
-        durationMs: partial ? undefined : 10,
-        outputPad: opts?.outputPad ?? 1,
-        keyText: () => 'ctrl+o',
-        keyHint: () => 'ctrl+o to expand',
-      });
-      components.call = renderers.renderCall?.(args, theme, context(components.call));
-      if (result) components.result = renderers.renderResult?.({ content: result.content, details: result.details }, { expanded, isPartial: partial }, theme, context(components.result));
+      const prev = inputs.read();
+      const next: RowInputs = {
+        args: event.args ?? prev.args,
+        started: event.executionStarted ?? prev.started,
+        partial: event.isPartial ?? prev.partial,
+        expanded: event.expanded ?? prev.expanded,
+        result: event.result ?? prev.result,
+      };
+      inputs.write(next);
+      call.write(renderers.renderCall?.(next.args, theme, rowContext(next, state, opts, call.read())));
+      if (next.result)
+        resultComponent.write(renderers.renderResult?.({ content: next.result.content, details: next.result.details }, { expanded: next.expanded, isPartial: next.partial }, theme, rowContext(next, state, opts, resultComponent.read())));
     },
     lines(width: number): string[] {
-      return [...(components.call?.render(width) ?? []), ...(components.result?.render(width) ?? [])];
+      return [...(call.read()?.render(width) ?? []), ...(resultComponent.read()?.render(width) ?? [])];
     },
   };
 }
 export function recordingNative() {
-  const resultContexts: Context[] = [];
+  const contexts = cell<readonly Context[]>([]);
   const child = new Text('NATIVE 漢字 🙂', 0, 0);
   return {
-    resultContexts,
+    get resultContexts() {
+      return contexts.read();
+    },
     renderCall: vi.fn(() => {
       throw new Error('native renderCall must not run');
     }),
     renderResult: vi.fn((_result, _options, _theme, context: Context) => {
-      resultContexts.push(context);
+      contexts.write([...contexts.read(), context]);
       return child;
     }),
-  } satisfies ToolRenderers & { resultContexts: Context[] };
+  } satisfies ToolRenderers & { readonly resultContexts: readonly Context[] };
 }
 export function output(text: string, isError = false) {
   return { content: [{ type: 'text' as const, text }], isError };
