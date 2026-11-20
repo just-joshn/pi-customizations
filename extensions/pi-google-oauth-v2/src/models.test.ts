@@ -1,11 +1,22 @@
-import { readFileSync } from 'node:fs';
-
 import type { OAuthCredential, RefreshModelsContext } from '@earendil-works/pi-ai';
 import { describe, expect, test, vi } from 'vitest';
+import { loadCatalogFixture } from '../test/catalog-fixture.ts';
+import { parseJsonBody } from '../test/json-body.ts';
 import { ANTIGRAVITY_USER_AGENT, API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 import { BASELINE_MODELS, type Catalog, catalogModels, createFetchModels } from './models.ts';
 
-const fixture: Catalog = JSON.parse(readFileSync(new URL('../test/catalog-fixture.json', import.meta.url), 'utf8'));
+const HYDROGEN_CONTEXT_WINDOW = 1_048_576;
+const HYDROGEN_MAX_OUTPUT = 262_144;
+const SONNET_CONTEXT_WINDOW = 1_000_000;
+const SONNET_MAX_OUTPUT = 128_000;
+const GPT_OSS_CONTEXT_WINDOW = 131_072;
+const GPT_OSS_MAX_OUTPUT = 32_768;
+const PLAIN_MAX_TOKENS = 10;
+const PLAIN_MAX_OUTPUT = 5;
+const CREDENTIAL_TTL_MS = 3_600_000;
+const HTTP_FORBIDDEN = 403;
+
+const fixture: Catalog = loadCatalogFixture();
 const models = catalogModels(fixture);
 const byId = (id: string) => {
   const found = models.find((model) => model.id === id);
@@ -42,14 +53,14 @@ describe('catalogModels', () => {
   });
 
   test('takes input modalities and the largest limits across variants', () => {
-    expect(byId('gemini-4-hydrogen')).toMatchObject({ input: ['text', 'image'], contextWindow: 1048576, maxTokens: 262144 });
-    expect(byId('claude-sonnet-5-5')).toMatchObject({ name: 'Claude Sonnet 5.5', contextWindow: 1000000, maxTokens: 128000 });
-    expect(byId('gpt-oss-120b')).toMatchObject({ input: ['text'], contextWindow: 131072, maxTokens: 32768 });
+    expect(byId('gemini-4-hydrogen')).toMatchObject({ input: ['text', 'image'], contextWindow: HYDROGEN_CONTEXT_WINDOW, maxTokens: HYDROGEN_MAX_OUTPUT });
+    expect(byId('claude-sonnet-5-5')).toMatchObject({ name: 'Claude Sonnet 5.5', contextWindow: SONNET_CONTEXT_WINDOW, maxTokens: SONNET_MAX_OUTPUT });
+    expect(byId('gpt-oss-120b')).toMatchObject({ input: ['text'], contextWindow: GPT_OSS_CONTEXT_WINDOW, maxTokens: GPT_OSS_MAX_OUTPUT });
   });
 
   test('gives a model without thinking support only an off wire id', () => {
     const [model] = catalogModels({
-      models: { 'plain-model': { displayName: 'Plain', supportsThinking: false, maxTokens: 10, maxOutputTokens: 5 } },
+      models: { 'plain-model': { displayName: 'Plain', supportsThinking: false, maxTokens: PLAIN_MAX_TOKENS, maxOutputTokens: PLAIN_MAX_OUTPUT } },
       agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }],
     });
     expect(model).toMatchObject({ reasoning: false, thinkingLevelMap: { off: 'plain-model' } });
@@ -61,7 +72,7 @@ describe('catalogModels', () => {
 });
 
 describe('createFetchModels', () => {
-  const oauth: OAuthCredential = { type: 'oauth', access: 'tok', refresh: 'ref', expires: Date.now() + 3_600_000, projectId: 'proj-1' };
+  const oauth: OAuthCredential = { type: 'oauth', access: 'tok', refresh: 'ref', expires: Date.now() + CREDENTIAL_TTL_MS, projectId: 'proj-1' };
   const context = (overrides: Partial<RefreshModelsContext>): RefreshModelsContext => ({ allowNetwork: true, signal: new AbortController().signal, publish: async () => true, credential: oauth, ...overrides });
 
   test('returns the baseline without touching the network when offline', async () => {
@@ -84,12 +95,12 @@ describe('createFetchModels', () => {
     expect(result.map((model) => model.id)).toContain('claude-sonnet-5-5');
     const [url, init] = fetchImpl.mock.calls[0] ?? [];
     expect(url).toBe(`${CODE_ASSIST_BASE_URL}:fetchAvailableModels`);
-    expect(JSON.parse(String(init?.body))).toEqual({ project: 'proj-1' });
+    expect(parseJsonBody(init?.body)).toEqual({ project: 'proj-1' });
     expect(Object.fromEntries(new Headers(init?.headers))).toMatchObject({ authorization: 'Bearer tok', 'user-agent': ANTIGRAVITY_USER_AGENT });
   });
 
   test('fails with Google message when the request is refused', async () => {
-    const fetchImpl = vi.fn(async () => Response.json({ error: { message: 'nope' } }, { status: 403 }));
+    const fetchImpl = vi.fn(async () => Response.json({ error: { message: 'nope' } }, { status: HTTP_FORBIDDEN }));
     await expect(createFetchModels(fetchImpl)(context({}))).rejects.toThrow('nope');
   });
 

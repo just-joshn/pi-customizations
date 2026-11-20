@@ -1,4 +1,5 @@
 import type { FetchFunction } from '@earendil-works/pi-ai';
+import { z } from 'zod';
 import { ANTIGRAVITY_USER_AGENT, CODE_ASSIST_BASE_URL } from './constants.ts';
 
 export class CodeAssistError extends Error {}
@@ -6,10 +7,12 @@ export class CodeAssistError extends Error {}
 export class IneligibleTierError extends CodeAssistError {}
 
 export class ValidationRequiredError extends CodeAssistError {
-  readonly validationUrl: string;
   constructor(reasonMessage: string, validationUrl: string) {
-    super(`${reasonMessage} Validate at: ${validationUrl}`);
-    this.validationUrl = validationUrl;
+    super(`${reasonMessage} Validate at: ${validationUrl}`, { cause: validationUrl });
+  }
+
+  get validationUrl(): string {
+    return String(this.cause);
   }
 }
 
@@ -62,6 +65,8 @@ const LEGACY_TIER = 'legacy-tier';
 const STANDARD_TIER = 'standard-tier';
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 60;
+const JSON_BODY = z.json();
+const GOOGLE_ERROR_BODY = z.object({ error: z.object({ message: z.string().min(1) }) });
 
 export function readProjectOverride(env: NodeJS.ProcessEnv): string | undefined {
   const value = (env['GOOGLE_CLOUD_PROJECT'] || env['GOOGLE_CLOUD_PROJECT_ID'] || '').trim();
@@ -78,21 +83,27 @@ export function fetchAvailableModels(input: Pick<ResolveProjectInput, 'accessTok
   return callCodeAssist<unknown>(input, 'POST', codeAssistUrl('fetchAvailableModels'), { project: input.project });
 }
 
+function buildMetadata(envProject: string | undefined): Record<string, string> {
+  return { ...METADATA, ...(envProject ? { duetProject: envProject } : {}) };
+}
+
+function assertEligible(load: LoadCodeAssistResponse): void {
+  const unsupported = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'UNSUPPORTED_CLIENT');
+  if (unsupported) throw new IneligibleTierError(unsupported.reasonMessage ?? 'Google rejected this client (UNSUPPORTED_CLIENT).');
+  const validation = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'VALIDATION_REQUIRED' && tier.validationUrl);
+  if (validation?.validationUrl) throw new ValidationRequiredError(validation.reasonMessage ?? 'Account validation required.', validation.validationUrl);
+}
+
 export async function resolveProject(input: ResolveProjectInput): Promise<ResolvedProject> {
   const { envProject } = input;
-  const metadata = { ...METADATA, ...(envProject ? { duetProject: envProject } : {}) };
+  const metadata = buildMetadata(envProject);
 
   const load = await callCodeAssist<LoadCodeAssistResponse>(input, 'POST', codeAssistUrl('loadCodeAssist'), {
     cloudaicompanionProject: envProject,
     metadata,
   });
 
-  if (!load.currentTier) {
-    const unsupported = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'UNSUPPORTED_CLIENT');
-    if (unsupported) throw new IneligibleTierError(unsupported.reasonMessage ?? 'Google rejected this client (UNSUPPORTED_CLIENT).');
-    const validation = load.ineligibleTiers?.find((tier) => tier.reasonCode === 'VALIDATION_REQUIRED' && tier.validationUrl);
-    if (validation?.validationUrl) throw new ValidationRequiredError(validation.reasonMessage ?? 'Account validation required.', validation.validationUrl);
-  }
+  if (!load.currentTier) assertEligible(load);
 
   if (load.currentTier) {
     const projectId = load.cloudaicompanionProject || envProject;
@@ -104,18 +115,30 @@ export async function resolveProject(input: ResolveProjectInput): Promise<Resolv
     };
   }
 
-  const tier = load.allowedTiers?.find((candidate) => candidate.isDefault) ?? { id: LEGACY_TIER, name: '' };
-  const tierId = tier.id ?? STANDARD_TIER;
-  // The free tier uses a managed project. Sending one makes Google answer Precondition Failed.
-  const onboard = tierId === FREE_TIER ? { tierId, metadata: METADATA } : { tierId, cloudaicompanionProject: envProject, metadata };
-  let operation = await callCodeAssist<Operation>(input, 'POST', codeAssistUrl('onboardUser'), onboard);
+  return onboardUser(input, load, metadata);
+}
 
-  const sleep = input.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+const defaultSleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+async function pollOperation(input: ResolveProjectInput, initial: Operation): Promise<Operation> {
+  const sleep = input.sleep ?? defaultSleep;
+  let operation = initial;
   for (let polls = 0; !operation.done && operation.name; polls++) {
     if (polls === MAX_POLLS) throw new CodeAssistError('Google Code Assist onboarding did not finish in time; run /login again');
     await sleep(POLL_INTERVAL_MS);
     operation = await callCodeAssist<Operation>(input, 'GET', `${CODE_ASSIST_BASE_URL}/${operation.name}`);
   }
+  return operation;
+}
+
+async function onboardUser(input: ResolveProjectInput, load: LoadCodeAssistResponse, metadata: Record<string, string>): Promise<ResolvedProject> {
+  const { envProject } = input;
+  const tier = load.allowedTiers?.find((candidate) => candidate.isDefault) ?? { id: LEGACY_TIER, name: '' };
+  const tierId = tier.id ?? STANDARD_TIER;
+  // The free tier uses a managed project. Sending one makes Google answer Precondition Failed.
+  const onboard = tierId === FREE_TIER ? { tierId, metadata: METADATA } : { tierId, cloudaicompanionProject: envProject, metadata };
+  const started = await callCodeAssist<Operation>(input, 'POST', codeAssistUrl('onboardUser'), onboard);
+  const operation = await pollOperation(input, started);
   if (operation.error) throw new CodeAssistError(operation.error.message ?? 'Google Code Assist onboarding failed');
 
   const projectId = operation.response?.cloudaicompanionProject?.id || envProject;
@@ -139,7 +162,7 @@ async function callCodeAssist<T>(input: Pick<ResolveProjectInput, 'accessToken' 
   const text = await response.text();
   if (!response.ok) throw new CodeAssistError(googleErrorMessage(text) ?? `Google Code Assist request failed (HTTP ${response.status})`);
   try {
-    return JSON.parse(text) as T;
+    return JSON_BODY.parse(JSON.parse(text)) as T;
   } catch {
     throw new CodeAssistError('Google Code Assist returned a response that is not JSON');
   }
@@ -147,13 +170,8 @@ async function callCodeAssist<T>(input: Pick<ResolveProjectInput, 'accessToken' 
 
 export function googleErrorMessage(text: string): string | undefined {
   try {
-    const parsed: unknown = JSON.parse(text);
-    if (typeof parsed === 'object' && parsed !== null && 'error' in parsed) {
-      const { error } = parsed;
-      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message) return error.message;
-    }
+    return GOOGLE_ERROR_BODY.safeParse(JSON.parse(text)).data?.error.message;
   } catch {
     return undefined;
   }
-  return undefined;
 }

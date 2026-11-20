@@ -1,4 +1,9 @@
 const CLAUDE_CODE_VERSION = '2.1.322';
+const MAX_TOKENS_DIVISOR = 3;
+const BUDGET_MINIMAL = 1024;
+const BUDGET_LOW = 4096;
+const BUDGET_MEDIUM = 10240;
+const BUDGET_HIGH = 20480;
 
 export const REQUEST_CONFIG = {
   oauthTokenMarker: 'sk-ant-oat',
@@ -10,10 +15,10 @@ export const REQUEST_CONFIG = {
     'x-app': 'cli',
   },
   claudeCodeIdentity: "You are Claude Code, Anthropic's official CLI for Claude.",
-  maxTokensDivisor: 3,
+  maxTokensDivisor: MAX_TOKENS_DIVISOR,
   thinkingDisplay: 'summarized',
-  thinkingBudgets: { minimal: 1024, low: 4096, medium: 10240, high: 20480 } as Readonly<Record<string, number>>,
-  fallbackThinkingBudget: 10240,
+  thinkingBudgets: { minimal: BUDGET_MINIMAL, low: BUDGET_LOW, medium: BUDGET_MEDIUM, high: BUDGET_HIGH } as Readonly<Record<string, number>>,
+  fallbackThinkingBudget: BUDGET_MEDIUM,
   effortByLevel: { minimal: 'low', low: 'low', medium: 'medium', high: 'high' } as Readonly<Record<string, string>>,
   fallbackEffort: 'high',
   imageOnlyPlaceholder: '(see attached image)',

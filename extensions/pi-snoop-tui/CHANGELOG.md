@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1]
+
+- Refactor TUI components, row layout, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, closure state cells, `zod` input validation, named constants, and small functions) with no behavior changes.
+- Port pure data and CLI benchmark scripts (`medium-fixture`, `mixed-fixture`, `mockup-fixture`, `report`, `summary`, `profile-summary`, and `capture`) to TypeScript under `AGENTS.md`.
+
 ## [0.1.0]
 
 - Add paired `snoop-dark` and `snoop-light` themes.

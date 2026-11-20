@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Refactor Cursor/Grok providers, state cells, API response validation (`zod`), and tests to adhere verbatim to `AGENTS.md` with no behavior changes.
+
 ## 0.2.0
 
 - Rebuilds `spacex-cursor` on `@cursor/sdk` 1.4.2, following Pi's `custom-provider-anthropic` example and the Cursor TypeScript SDK docs. The private Cursor protocol client, its desktop OAuth flow, and the dashboard usage calls are gone. Sign in to Cursor again with `/login` after upgrading (#269).

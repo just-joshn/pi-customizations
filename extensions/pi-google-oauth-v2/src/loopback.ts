@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-import { createServer } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
 export interface LoopbackCallback {
@@ -11,9 +11,25 @@ export interface LoopbackCallback {
 /** The listener ended without a verdict from Google or the user, so another sign-in path may still finish. */
 export class LoopbackExpiredError extends Error {}
 
-export const LOOPBACK_TIMEOUT_MS = 5 * 60 * 1000;
+const LOOPBACK_TIMEOUT_MINUTES = 5;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+export const LOOPBACK_TIMEOUT_MS = LOOPBACK_TIMEOUT_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
 
 const CALLBACK_PATH = '/oauth2callback';
+const ROOT_PATH = '/';
+const LOOPBACK_HOST = '127.0.0.1';
+const LOOPBACK_ORIGIN = 'http://127.0.0.1';
+const EPHEMERAL_PORT = 0;
+const HTTP_OK = 200;
+const HTTP_BAD_REQUEST = 400;
+const HTTP_NOT_FOUND = 404;
+const PLAIN_TEXT = { 'Content-Type': 'text/plain' };
+
+interface Outcome {
+  resolve(code: string): void;
+  reject(error: Error): void;
+}
 
 function statesMatch(received: string | null, expected: string): boolean {
   if (received === null) return false;
@@ -22,43 +38,56 @@ function statesMatch(received: string | null, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export async function startLoopbackCallback(input: { state: string; signal: AbortSignal }): Promise<LoopbackCallback> {
+function createOutcome(): Outcome & { promise: Promise<string> } {
   let resolve!: (code: string) => void;
   let reject!: (error: Error) => void;
-  const code = new Promise<string>((onCode, onError) => {
+  const promise = new Promise<string>((onCode, onError) => {
     resolve = onCode;
     reject = onError;
   });
-  code.catch(() => undefined);
+  promise.catch(() => undefined);
+  return { promise, resolve, reject };
+}
 
-  const server = createServer((request, response) => {
-    const url = new URL(request.url ?? '/', 'http://127.0.0.1');
-    if (url.pathname !== CALLBACK_PATH) {
-      response.writeHead(404).end();
-      return;
-    }
-    if (!statesMatch(url.searchParams.get('state'), input.state)) {
-      response.writeHead(400, { 'Content-Type': 'text/plain' }).end('Invalid state');
-      return;
-    }
-    const error = url.searchParams.get('error');
-    const authorizationCode = url.searchParams.get('code');
-    if (!error && authorizationCode) {
-      resolve(authorizationCode);
-      response.writeHead(200, { 'Content-Type': 'text/plain' }).end('Signed in. You can close this tab and return to Pi.', close);
-      return;
-    }
-    const description = url.searchParams.get('error_description');
-    reject(new Error(error ? `Google sign-in failed: ${error}${description ? `. ${description}` : ''}` : 'Google sign-in returned no authorization code'));
-    response.writeHead(400, { 'Content-Type': 'text/plain' }).end('Sign-in failed. Return to Pi.', close);
+function handleRequest(request: IncomingMessage, response: ServerResponse, state: string, outcome: Outcome, close: () => void): void {
+  const url = new URL(request.url ?? ROOT_PATH, LOOPBACK_ORIGIN);
+  if (url.pathname !== CALLBACK_PATH) {
+    response.writeHead(HTTP_NOT_FOUND).end();
+    return;
+  }
+  if (!statesMatch(url.searchParams.get('state'), state)) {
+    response.writeHead(HTTP_BAD_REQUEST, PLAIN_TEXT).end('Invalid state');
+    return;
+  }
+  const error = url.searchParams.get('error');
+  const authorizationCode = url.searchParams.get('code');
+  if (!error && authorizationCode) {
+    outcome.resolve(authorizationCode);
+    response.writeHead(HTTP_OK, PLAIN_TEXT).end('Signed in. You can close this tab and return to Pi.', close);
+    return;
+  }
+  const description = url.searchParams.get('error_description');
+  outcome.reject(new Error(error ? `Google sign-in failed: ${error}${description ? `. ${description}` : ''}` : 'Google sign-in returned no authorization code'));
+  response.writeHead(HTTP_BAD_REQUEST, PLAIN_TEXT).end('Sign-in failed. Return to Pi.', close);
+}
+
+function listen(server: Server): Promise<void> {
+  return new Promise<void>((onListening, onError) => {
+    server.once('error', onError);
+    server.listen(EPHEMERAL_PORT, LOOPBACK_HOST, onListening);
   });
+}
+
+export async function startLoopbackCallback(input: { state: string; signal: AbortSignal }): Promise<LoopbackCallback> {
+  const outcome = createOutcome();
+  const server = createServer((request, response) => handleRequest(request, response, input.state, outcome, close));
 
   const timer = setTimeout(() => {
-    reject(new LoopbackExpiredError('Google sign-in timed out'));
+    outcome.reject(new LoopbackExpiredError('Google sign-in timed out'));
     close();
   }, LOOPBACK_TIMEOUT_MS);
   const onAbort = () => {
-    reject(new Error('Google sign-in was cancelled'));
+    outcome.reject(new Error('Google sign-in was cancelled'));
     close();
   };
   input.signal.addEventListener('abort', onAbort, { once: true });
@@ -69,22 +98,17 @@ export async function startLoopbackCallback(input: { state: string; signal: Abor
     closed = true;
     clearTimeout(timer);
     input.signal.removeEventListener('abort', onAbort);
-    reject(new LoopbackExpiredError('Google sign-in listener closed'));
+    outcome.reject(new LoopbackExpiredError('Google sign-in listener closed'));
     server.closeAllConnections();
     server.close();
   }
 
-  try {
-    await new Promise<void>((onListening, onError) => {
-      server.once('error', onError);
-      server.listen(0, '127.0.0.1', onListening);
-    });
-  } catch (error) {
+  await listen(server).catch((error: unknown) => {
     close();
     throw error;
-  }
+  });
   const { port } = server.address() as AddressInfo;
   if (input.signal.aborted) onAbort();
 
-  return { redirectUri: `http://127.0.0.1:${port}${CALLBACK_PATH}`, code, close };
+  return { redirectUri: `${LOOPBACK_ORIGIN}:${port}${CALLBACK_PATH}`, code: outcome.promise, close };
 }

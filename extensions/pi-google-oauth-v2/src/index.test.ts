@@ -5,27 +5,34 @@ import { fileURLToPath } from 'node:url';
 import { createModels, InMemoryCredentialStore, InMemoryModelsStore, type Provider } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 import extension from './index.ts';
 import type { Catalog } from './models.ts';
 
+const CONTEXT_WINDOW = 1_048_576;
+const LARGE_OUTPUT_TOKENS = 262_144;
+const SMALL_OUTPUT_TOKENS = 65_536;
+const CREDENTIAL_TTL_MS = 3_600_000;
+const MIN_SOURCE_FILES = 5;
+const MANIFEST = z.object({ exports: z.record(z.string(), z.string()) });
+
 const accountCatalog: Catalog = {
   models: {
-    'gemini-4-hydrogen-medium': { displayName: 'Gemini 4 Hydrogen (Medium)', supportsThinking: true, maxTokens: 1048576, maxOutputTokens: 262144 },
-    'gemini-3.8-flash-medium': { displayName: 'Gemini 3.8 Flash (Medium)', supportsThinking: true, maxTokens: 1048576, maxOutputTokens: 65536 },
+    'gemini-4-hydrogen-medium': { displayName: 'Gemini 4 Hydrogen (Medium)', supportsThinking: true, maxTokens: CONTEXT_WINDOW, maxOutputTokens: LARGE_OUTPUT_TOKENS },
+    'gemini-3.8-flash-medium': { displayName: 'Gemini 3.8 Flash (Medium)', supportsThinking: true, maxTokens: CONTEXT_WINDOW, maxOutputTokens: SMALL_OUTPUT_TOKENS },
   },
   agentModelSorts: [{ groups: [{ modelIds: ['gemini-4-hydrogen-medium', 'gemini-3.8-flash-medium'] }] }],
 };
 const accountModelIds = ['gemini-3.8-flash', 'gemini-4-hydrogen'];
-const credential = { type: 'oauth', access: 'synthetic-access', refresh: 'synthetic-refresh', expires: Date.now() + 3_600_000, projectId: 'synthetic-project' } as const;
+const credential = { type: 'oauth', access: 'synthetic-access', refresh: 'synthetic-refresh', expires: Date.now() + CREDENTIAL_TTL_MS, projectId: 'synthetic-project' } as const;
 
 afterEach(() => vi.unstubAllGlobals());
 
 function register(): Provider[] {
-  const registered: Provider[] = [];
-  const pi = { registerProvider: (provider: Provider) => registered.push(provider) } as unknown as ExtensionAPI;
-  extension(pi);
-  return registered;
+  const registerProvider = vi.fn<(provider: Provider) => void>();
+  extension({ registerProvider } as unknown as ExtensionAPI);
+  return registerProvider.mock.calls.map(([provider]) => provider);
 }
 
 async function catalogRuntime(modelsStore = new InMemoryModelsStore()) {
@@ -52,7 +59,7 @@ test('an authenticated catalog replaces baseline families in native model select
     models
       .getModels(PROVIDER_ID)
       .map((model) => model.id)
-      .sort(),
+      .toSorted(),
   ).toEqual(accountModelIds);
   expect(models.getModel(PROVIDER_ID, 'gemini-4-argon')).toBeUndefined();
 });
@@ -73,7 +80,7 @@ test('restores an accepted account catalog offline without baseline families', a
     restored.models
       .getModels(PROVIDER_ID)
       .map((model) => model.id)
-      .sort(),
+      .toSorted(),
   ).toEqual(accountModelIds);
 });
 
@@ -167,17 +174,17 @@ test('starts no listener, timer, or request while loading', () => {
   vi.unstubAllGlobals();
 });
 
-test('production sources import only Pi-supplied modules and node builtins', () => {
+test('production sources import only Pi-supplied modules, zod and node builtins', () => {
   const sourceDirectory = fileURLToPath(new URL('.', import.meta.url));
   const files = readdirSync(sourceDirectory).filter((name) => name.endsWith('.ts') && !name.endsWith('.test.ts'));
-  const allowed = new Set(['@earendil-works/pi-ai', '@earendil-works/pi-ai/providers/all', '@earendil-works/pi-coding-agent']);
+  const allowed = new Set(['@earendil-works/pi-ai', '@earendil-works/pi-ai/providers/all', '@earendil-works/pi-coding-agent', 'zod']);
   const specifiers = files.flatMap((name) => [...readFileSync(new URL(name, import.meta.url), 'utf8').matchAll(/from '([^']+)'/g)].map((match) => match[1] ?? ''));
   const rejected = specifiers.filter((specifier) => !(specifier.startsWith('./') || specifier.startsWith('node:') || builtinModules.includes(specifier) || allowed.has(specifier)));
-  expect(files.length).toBeGreaterThan(5);
+  expect(files.length).toBeGreaterThan(MIN_SOURCE_FILES);
   expect(rejected).toEqual([]);
 });
 
 test('the package exports only its entry point', () => {
-  const manifest: { exports: unknown } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const manifest = MANIFEST.parse(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')));
   expect(manifest.exports).toEqual({ '.': './src/index.ts' });
 });

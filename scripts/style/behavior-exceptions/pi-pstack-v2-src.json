@@ -1,78 +1,78 @@
 [
   {
-    "file": "src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/index.ts",
     "rule": "plugin",
     "line": "if (!options.promptGuidelines.includes(guideline)) options.promptGuidelines.push(guideline);",
     "reason": "Pi 1.5.2 reads before_agent_start prompt additions only from the systemPromptOptions object it passes in (runner.js emitBeforeAgentStart). Returning systemPrompt instead flattens the sectioned prompt and drops other extensions' sections."
   },
   {
-    "file": "src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/index.ts",
     "rule": "plugin",
     "line": "Object.assign(options.sections, sections);",
     "reason": "Same host contract as above, for the prompt sections."
   },
   {
-    "file": "src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/index.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The catch returns the job report with a 'could not be restarted' note as the tool/wake text; it must not throw because the report would be lost."
   },
   {
-    "file": "src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/index.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The watcher reports a step failure through ctx.ui.notify and keeps polling. Throwing would kill the watcher loop; console.error would corrupt the TUI."
   },
   {
-    "file": "src/jobs.ts",
+    "file": "extensions/pi-pstack-v2/src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed job.json, and neither has a non-throwing form. The catch returns undefined so job listing skips it."
   },
   {
-    "file": "src/jobs.ts",
+    "file": "extensions/pi-pstack-v2/src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "process.kill(pid, 0) throws ESRCH or EPERM and is the only liveness probe that needs no child process. The catch returns false (wrapper gone), which the stop logic depends on."
   },
   {
-    "file": "src/jobs.ts",
+    "file": "extensions/pi-pstack-v2/src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "claimWake creates the woken marker with flag wx, which throws EEXIST once the wake was claimed. The catch returns false so each wake is delivered once; no non-throwing exclusive create exists."
   },
   {
-    "file": "src/subagent/agents.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "readFileSync throws EACCES, EISDIR and similar, with no non-throwing form. The catch returns undefined and discovery skips the file."
   },
   {
-    "file": "src/subagent/agents.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "existsSync passed, but readdirSync still throws ENOTDIR or EACCES, with no non-throwing form. The catch returns [] (no agents) instead of failing discovery."
   },
   {
-    "file": "src/subagent/agents.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/agents.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "statSync throws ENOENT, ENOTDIR, EACCES and ELOOP, while { throwIfNoEntry: false } covers only ENOENT. The catch returns false (not a directory) for all of them."
   },
   {
-    "file": "src/subagent/result-stream.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/result-stream.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "JSON.parse throws on a non-JSON stdout line and has no non-throwing form. The catch returns { success: false } and the line is ignored while streaming."
   },
   {
-    "file": "src/subagent/run-in-tmux.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/run-in-tmux.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "The catch swallows every error from statSync, readRange and the onChunk callback, not only ENOENT, so the poll loop never dies on one bad chunk. Narrowing it would change that."
   },
   {
-    "file": "src/subagent/run-in-tmux.ts",
+    "file": "extensions/pi-pstack-v2/src/subagent/run-in-tmux.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "Any failure to start the tmux session, including the synchronous ERR_INVALID_ARG_VALUE Node throws for a NUL byte in the model-supplied cwd, becomes spawnError, which the subagent tool reports as 'Failed to spawn subagent: <message>'. Without the catch that NUL case throws out of the tool instead, and console.error plus a new Error would change the reported message and add output to Pi's terminal."

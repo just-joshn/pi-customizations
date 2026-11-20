@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-spacex-oauth-v2",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Use your X subscription in Pi through Grok Build and Cursor sign-ins.",
   "type": "module",
   "license": "MIT",
@@ -43,6 +43,7 @@
     "@vitest/coverage-v8": "5.1.0"
   },
   "dependencies": {
-    "@cursor/sdk": "1.4.2"
+    "@cursor/sdk": "1.4.2",
+    "zod": "^4"
   }
 }

@@ -1,0 +1,20 @@
+[
+  {
+    "file": "extensions/pi-snoop-tui/src/rows/row.ts",
+    "rule": "plugin",
+    "line": "ctx.state.snoop = created;",
+    "reason": "Pi 1.5.2 hands each tool row one mutable ctx.state bag and offers no other per-row storage. Without this write, every render would rebuild the row state and drop its caches."
+  },
+  {
+    "file": "extensions/pi-snoop-tui/bench/replay.ts",
+    "rule": "plugin",
+    "line": "stream.push(event);",
+    "reason": "AssistantMessageEventStream.push is pi-ai's event-emit API, not a collection write. It is the only way to feed a provider stream, and the bench and demo providers need it."
+  },
+  {
+    "file": "extensions/pi-snoop-tui/test/editor.test.ts",
+    "rule": "plugin",
+    "line": "instance.borderColor = bash;",
+    "reason": "Pi assigns borderColor onto the live editor instance when the theme changes. The test reproduces that host write to prove the rule cache restyles."
+  }
+]

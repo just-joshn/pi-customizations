@@ -1,0 +1,26 @@
+[
+  {
+    "file": ".pi/skills/verify-pi-anthropic-oauth-v2/scripts/network-audit.cjs",
+    "rule": "plugin",
+    "line": "const record = (kind) => appendFileSync(process.env.VERIFY_NETWORK_LOG, `${JSON.stringify({ kind, pid: process.pid, at: new Date().toISOString() })}\\n`);",
+    "reason": "network-audit.cjs is preloaded via NODE_OPTIONS=--require inside an isolated profile directory with no node_modules and explicitly requires no external Node packages. Requiring zod would throw MODULE_NOT_FOUND and break verification runs."
+  },
+  {
+    "file": ".pi/skills/verify-pi-anthropic-oauth-v2/scripts/network-audit.cjs",
+    "rule": "plugin",
+    "line": "globalThis.fetch = function (...args) {",
+    "reason": "A Node --require preload observer can only intercept in-process fetch calls by wrapping globalThis.fetch in place."
+  },
+  {
+    "file": ".pi/skills/verify-pi-anthropic-oauth-v2/scripts/network-audit.cjs",
+    "rule": "plugin",
+    "line": "Socket.prototype.connect = function (...args) {",
+    "reason": "A Node --require preload observer can only intercept raw TCP socket attempts by wrapping Socket.prototype.connect in place."
+  },
+  {
+    "file": ".pi/skills/verify-pi-anthropic-oauth-v2/scripts/network-audit.cjs",
+    "rule": "plugin",
+    "line": "tls.connect = function (...args) {",
+    "reason": "A Node --require preload observer can only intercept TLS connection attempts by wrapping tls.connect in place."
+  }
+]

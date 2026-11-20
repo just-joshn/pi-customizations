@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
+const BRANCH_THRESHOLD = 80;
+
 export default defineConfig({
   test: {
     environment: 'node',
@@ -11,7 +13,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts'],
-      thresholds: { branches: 80 },
+      thresholds: { branches: BRANCH_THRESHOLD },
     },
   },
 });

@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Use the pstack skills and workflow in Pi, with the upstream subagent tool spawning Pi in tmux, shell jobs running in tmux, and Pi's tools running in a Gondolin micro-VM.",
   "type": "module",
   "license": "MIT",
@@ -38,7 +38,7 @@
   "scripts": {
     "test": "vitest run --coverage && cd skills/poteto-mode/scripts && bun install --frozen-lockfile && bun test watch-pr",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "style-audit": "node scripts/style-audit.mjs"
+    "style-audit": "node ../../scripts/style-audit.mjs extensions/pi-pstack-v2"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

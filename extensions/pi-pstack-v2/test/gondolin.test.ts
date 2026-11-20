@@ -30,21 +30,19 @@ const THREE = 3;
 const FOUR = 4;
 const TIMEOUT_SECONDS = 0.01;
 
-vi.mock('@earendil-works/gondolin', () => ({
-  VM: { create: vi.fn() },
-  RealFSProvider: class {
-    readonly root: string;
-    constructor(root: string) {
-      this.root = root;
-    }
-  },
-  ReadonlyProvider: class {
-    readonly backend: unknown;
-    constructor(backend: unknown) {
-      this.backend = backend;
-    }
-  },
-}));
+vi.mock('@earendil-works/gondolin', () => {
+  function RealFSProviderMock(root: string) {
+    return Object.create(RealFSProviderMock.prototype, { root: { value: root, enumerable: true } });
+  }
+  function ReadonlyProviderMock(backend: unknown) {
+    return Object.create(ReadonlyProviderMock.prototype, { backend: { value: backend, enumerable: true } });
+  }
+  return {
+    VM: { create: vi.fn() },
+    RealFSProvider: RealFSProviderMock,
+    ReadonlyProvider: ReadonlyProviderMock,
+  };
+});
 
 const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 
@@ -305,7 +303,7 @@ function loadExtension() {
   return { tools, handlers, commands, ctx, guest, run };
 }
 
-describe('the extension', () => {
+describe('the extension: lifecycle', () => {
   test('overrides the seven built-in tools and registers its command and lifecycle handlers', () => {
     const { tools, commands, handlers } = loadExtension();
     expect(Object.keys(tools).toSorted()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'read', 'write']);
@@ -345,7 +343,9 @@ describe('the extension', () => {
     expect(ctx.ui.setStatus).toHaveBeenCalledWith('gondolin', 'Gondolin: stopping');
     expect(ctx.ui.setStatus).toHaveBeenLastCalledWith('gondolin', undefined);
   });
+});
 
+describe('the extension: guest routing', () => {
   test('tools run against the guest filesystem and shell', async () => {
     const { run, guest } = loadExtension();
     expect(await run('read', { path: 'a.txt' })).toBe('hello\nworld');

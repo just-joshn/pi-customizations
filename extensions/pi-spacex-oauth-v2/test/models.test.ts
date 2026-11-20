@@ -4,6 +4,11 @@ import { describe, expect, test } from 'vitest';
 import { selectModel, toPiModel } from '../src/cursor/models.ts';
 import catalog from './fixtures/cursor-models.json' with { type: 'json' };
 
+const CONTEXT_200K = 200_000;
+const CONTEXT_500K = 500_000;
+const CONTEXT_1M = 1_000_000;
+const MAX_OUTPUT_TOKENS = 64_000;
+
 // test/fixtures/cursor-models.json is a real Cursor.models.list() response from @cursor/sdk 1.4.2.
 const models = catalog as SDKModel[];
 const entry = (id: string) => {
@@ -18,20 +23,20 @@ describe('catalog to Pi models', () => {
   test('every catalog model becomes a Pi model with a context window', () => {
     for (const model of models) {
       const pi = chat(model);
-      expect(pi).toMatchObject({ id: model.id, name: model.displayName, input: ['text', 'image'], maxTokens: 64_000 });
+      expect(pi).toMatchObject({ id: model.id, name: model.displayName, input: ['text', 'image'], maxTokens: MAX_OUTPUT_TOKENS });
       expect(pi.contextWindow).toBeGreaterThan(0);
     }
   });
 
   test.each([
-    ['composer-2.5', ['off'], 200_000],
-    ['default', ['off'], 200_000],
-    ['grok-4.7', ['low', 'medium', 'high', 'xhigh'], 500_000],
-    ['gpt-5.5', ['off', 'low', 'medium', 'high', 'xhigh'], 1_000_000],
-    ['claude-opus-4-8', ['off', 'low', 'medium', 'high', 'xhigh', 'max'], 1_000_000],
-    ['claude-opus-4-5', ['off', 'high'], 200_000],
-    ['muse-wonder-1.0', ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'], 1_000_000],
-    ['claude-sonnet-4-5', ['off', 'high'], 200_000],
+    ['composer-2.5', ['off'], CONTEXT_200K],
+    ['default', ['off'], CONTEXT_200K],
+    ['grok-4.7', ['low', 'medium', 'high', 'xhigh'], CONTEXT_500K],
+    ['gpt-5.5', ['off', 'low', 'medium', 'high', 'xhigh'], CONTEXT_1M],
+    ['claude-opus-4-8', ['off', 'low', 'medium', 'high', 'xhigh', 'max'], CONTEXT_1M],
+    ['claude-opus-4-5', ['off', 'high'], CONTEXT_200K],
+    ['muse-wonder-1.0', ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'], CONTEXT_1M],
+    ['claude-sonnet-4-5', ['off', 'high'], CONTEXT_200K],
   ])('%s offers thinking levels %j and a %i-token context', (id, expected, context) => {
     expect(levels(id)).toStrictEqual(expected);
     expect(chat(entry(id)).contextWindow).toBe(context);

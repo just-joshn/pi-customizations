@@ -1,4 +1,5 @@
 import { formatReadLineRange } from '@earendil-works/pi-coding-agent';
+import { z } from 'zod';
 import { countLines, headLines, type LineSlice, tailLines } from '../text.ts';
 
 export interface Preview extends LineSlice {
@@ -37,7 +38,10 @@ export interface ToolSpec {
 }
 export const RUNNING_TAIL_LINES = 3;
 export const ERROR_PREVIEW_LINES = 5;
-const HOME = process.env['HOME'] ?? process.env['USERPROFILE'];
+const HomeEnv = z.object({ HOME: z.string().optional(), USERPROFILE: z.string().optional() });
+const homeEnv = HomeEnv.parse(process.env);
+const HOME = homeEnv.HOME ?? homeEnv.USERPROFILE;
+const STATUS_TAIL_CHARS = 200;
 
 function str(value: unknown): string {
   return typeof value === 'string' ? value : '';
@@ -75,6 +79,17 @@ function units(count: number, unit: 'line' | 'match' | 'file' | 'entry', limited
   const plurals = { line: 'lines', match: 'matches', file: 'files', entry: 'entries' };
   return `${count}${limited ? '+' : ''} ${count === 1 ? unit : plurals[unit]}`;
 }
+function countPatchLines(patch: string): { added: number; removed: number } {
+  let added = 0;
+  let removed = 0;
+  for (let start = 0; start < patch.length; ) {
+    if (patch[start] === '+' && !patch.startsWith('+++', start)) added++;
+    if (patch[start] === '-' && !patch.startsWith('---', start)) removed++;
+    const end = patch.indexOf('\n', start);
+    start = end === -1 ? patch.length : end + 1;
+  }
+  return { added, removed };
+}
 function listing(input: ResultInput, unit: 'match' | 'file' | 'entry', limit: string, empty: string): ResultSummary {
   return checked(input, () => {
     const total = field(field(input.details, 'truncation'), 'totalLines');
@@ -103,14 +118,7 @@ export const TOOL_SPECS = {
     summarize: (input) =>
       checked(input, () => {
         const patch = str(field(input.details, 'patch'));
-        let added = 0;
-        let removed = 0;
-        for (let start = 0; start < patch.length; ) {
-          if (patch[start] === '+' && !patch.startsWith('+++', start)) added++;
-          if (patch[start] === '-' && !patch.startsWith('---', start)) removed++;
-          const end = patch.indexOf('\n', start);
-          start = end === -1 ? patch.length : end + 1;
-        }
+        const { added, removed } = countPatchLines(patch);
         return patch ? summary(`+${added} −${removed}`) : summary('edited');
       }),
   },
@@ -125,7 +133,7 @@ export const TOOL_SPECS = {
     summarize: (input) => {
       if (input.isPartial) return { meta: undefined, preview: { ...tailLines(input.text, RUNNING_TAIL_LINES), tone: 'output', from: 'tail' } };
       if (!input.isError) return summary('exit 0');
-      const rawTail = input.text.slice(-200);
+      const rawTail = input.text.slice(-STATUS_TAIL_CHARS);
       const tail = rawTail.trimEnd();
       const exit = /Command exited with code (\d+)$/.exec(tail);
       const meta = exit ? `exit ${exit[1]}` : /Command timed out/.test(tail) ? 'timeout' : /Command aborted$/.test(tail) ? 'aborted' : 'failed';
@@ -171,7 +179,7 @@ export function genericSpec(toolName: string): ToolSpec {
     summarize: (input) => {
       if (input.isPartial) return { meta: undefined, preview: undefined };
       if (input.isError) {
-        const exit = /exit(?:ed with)? code (\d+)\s*$/i.exec(input.text.slice(-200));
+        const exit = /exit(?:ed with)? code (\d+)\s*$/i.exec(input.text.slice(-STATUS_TAIL_CHARS));
         return failed(input, exit ? `exit ${exit[1]}` : 'failed');
       }
       return summary(input.images > 0 ? 'image' : units(countLines(input.text), 'line'));

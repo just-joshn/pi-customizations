@@ -1,6 +1,8 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { replaceControlCharacters, stripTerminalSequences, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 
+const PATH_SEPARATOR = '/';
+
 export interface LineSlice {
   readonly lines: readonly string[];
   readonly hidden: number;
@@ -13,26 +15,26 @@ export function countLines(text: string): number {
 }
 
 export function headLines(text: string, max: number): LineSlice {
-  const lines: string[] = [];
+  let lines: readonly string[] = [];
   let start = 0;
   while (start < text.length && lines.length < max) {
     const end = text.indexOf('\n', start);
-    lines.push(text.slice(start, end === -1 ? text.length : end).replace(/\r$/, ''));
+    lines = [...lines, text.slice(start, end === -1 ? text.length : end).replace(/\r$/, '')];
     start = end === -1 ? text.length : end + 1;
   }
   return { lines, hidden: countLines(text) - lines.length };
 }
 
 export function tailLines(text: string, max: number): LineSlice {
-  const lines: string[] = [];
+  let lines: readonly string[] = [];
   let end = text.endsWith('\n') ? text.length - 1 : text.length;
   while (end > 0 && lines.length < max) {
     const start = text.lastIndexOf('\n', end - 1);
-    lines.push(text.slice(start + 1, end).replace(/\r$/, ''));
+    lines = [...lines, text.slice(start + 1, end).replace(/\r$/, '')];
     end = start;
   }
-  if (end === 0 && lines.length < max && text.startsWith('\n')) lines.push('');
-  return { lines: lines.reverse(), hidden: countLines(text) - lines.length };
+  if (end === 0 && lines.length < max && text.startsWith('\n')) lines = [...lines, ''];
+  return { lines: lines.toReversed(), hidden: countLines(text) - lines.length };
 }
 
 export function sanitizeLine(line: string): string {
@@ -54,16 +56,15 @@ export function fitPlain(text: string, width: number): string {
 
 export function fitPath(path: string, width: number): string {
   if (visibleWidth(path) <= width) return path;
-  const parts = path.split('/');
-  const base = parts.pop() ?? '';
-  let fitted = `…/${base}`;
-  if (visibleWidth(fitted) > width) return fitPlain(base, width);
+  const parts = path.split(PATH_SEPARATOR);
+  const base = parts.at(-1) ?? '';
+  const fallback = `…/${base}`;
+  if (visibleWidth(fallback) > width) return fitPlain(base, width);
   let prefix = '';
-  for (const part of parts) {
+  for (const part of parts.slice(0, -1)) {
     const next = `${prefix}${part}/`;
-    if (visibleWidth(next + fitted) > width) break;
+    if (visibleWidth(next + fallback) > width) break;
     prefix = next;
   }
-  fitted = prefix + fitted;
-  return fitted;
+  return prefix + fallback;
 }

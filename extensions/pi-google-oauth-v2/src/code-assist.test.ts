@@ -1,6 +1,15 @@
 import { describe, expect, test, vi } from 'vitest';
+import { parseJsonBody } from '../test/json-body.ts';
 import { CodeAssistError, codeAssistUrl, IneligibleTierError, ProjectRequiredError, readProjectOverride, resolveProject, ValidationRequiredError } from './code-assist.ts';
 import { ANTIGRAVITY_USER_AGENT, CODE_ASSIST_BASE_URL } from './constants.ts';
+
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLLS = 60;
+const CALLS_BEFORE_POLLING = 2;
+const HTTP_FORBIDDEN = 403;
+const HTTP_BAD_GATEWAY = 502;
+const HTTP_INTERNAL_ERROR = 500;
+const VALIDATION_URL = 'https://accounts.google.com/validate';
 
 interface Call {
   url: string;
@@ -9,21 +18,27 @@ interface Call {
   body: Record<string, unknown> | undefined;
 }
 
+const toCall = (input: string | URL | Request, init?: RequestInit): Call => ({
+  url: String(input),
+  method: init?.method ?? 'GET',
+  headers: Object.fromEntries(new Headers(init?.headers)),
+  body: typeof init?.body === 'string' ? parseJsonBody(init.body) : undefined,
+});
+
 function fakeCodeAssist(responses: (Response | object)[]) {
-  const calls: Call[] = [];
-  const queue = [...responses];
-  const fetchImpl = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
-    calls.push({
-      url: String(input),
-      method: init?.method ?? 'GET',
-      headers: Object.fromEntries(new Headers(init?.headers)),
-      body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
-    });
-    const next = queue.shift();
+  let served = 0;
+  const fetchImpl = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => {
+    const next = responses[served];
+    served += 1;
     if (next === undefined) throw new Error('unexpected request');
     return next instanceof Response ? next : Response.json(next);
   });
-  return { calls, fetchImpl };
+  return {
+    fetchImpl,
+    get calls(): Call[] {
+      return fetchImpl.mock.calls.map(([input, init]) => toCall(input, init));
+    },
+  };
 }
 
 const sleep = vi.fn(async () => undefined);
@@ -79,7 +94,9 @@ describe('resolveProject for an onboarded account', () => {
     const fake = fakeCodeAssist([{ currentTier: { id: 'standard-tier' } }]);
     await expect(resolve(fake)).rejects.toBeInstanceOf(ProjectRequiredError);
   });
+});
 
+describe('resolveProject request shape', () => {
   test('sends the bearer token, JSON body, and client metadata', async () => {
     const fake = fakeCodeAssist([{ currentTier: { id: 'standard-tier' }, cloudaicompanionProject: 'p' }]);
     await resolve(fake, 'proj-env');
@@ -126,25 +143,21 @@ describe('resolveProject unsupported client', () => {
 
 describe('resolveProject validation', () => {
   test('throws ValidationRequiredError with Google text and link, and never onboards', async () => {
-    const fake = fakeCodeAssist([{ ineligibleTiers: [{ reasonCode: 'VALIDATION_REQUIRED', reasonMessage: 'Verify your account.', validationUrl: 'https://accounts.google.com/validate' }] }]);
+    const fake = fakeCodeAssist([{ ineligibleTiers: [{ reasonCode: 'VALIDATION_REQUIRED', reasonMessage: 'Verify your account.', validationUrl: VALIDATION_URL }] }]);
     const failure = await resolve(fake).catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(ValidationRequiredError);
-    expect(failure).toHaveProperty('message', 'Verify your account. Validate at: https://accounts.google.com/validate');
+    expect(failure).toHaveProperty('message', `Verify your account. Validate at: ${VALIDATION_URL}`);
     expect(fake.calls).toHaveLength(1);
   });
 });
 
 describe('resolveProject onboarding', () => {
   test('onboards into the default allowed tier and reads the project from the operation', async () => {
-    const fake = fakeCodeAssist([
-      {
-        allowedTiers: [
-          { id: 'free-tier', name: 'Free' },
-          { id: 'standard-tier', name: 'Standard', isDefault: true },
-        ],
-      },
-      { done: true, response: { cloudaicompanionProject: { id: 'proj-new' } } },
-    ]);
+    const allowedTiers = [
+      { id: 'free-tier', name: 'Free' },
+      { id: 'standard-tier', name: 'Standard', isDefault: true },
+    ];
+    const fake = fakeCodeAssist([{ allowedTiers }, { done: true, response: { cloudaicompanionProject: { id: 'proj-new' } } }]);
     await expect(resolve(fake, 'proj-env')).resolves.toEqual({ projectId: 'proj-new', tierId: 'standard-tier', tierName: 'Standard' });
     expect(fake.calls[1]).toMatchObject({ url: `${CODE_ASSIST_BASE_URL}:onboardUser`, body: { tierId: 'standard-tier', cloudaicompanionProject: 'proj-env' } });
   });
@@ -154,7 +167,9 @@ describe('resolveProject onboarding', () => {
     await resolve(fake, 'proj-env');
     expect(fake.calls[1]?.body).toEqual({ tierId: 'free-tier', metadata: { ideType: 'ANTIGRAVITY' } });
   });
+});
 
+describe('resolveProject onboarding polling', () => {
   test('falls back to legacy-tier when no allowed tier is the default', async () => {
     const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'standard-tier' }] }, { done: true, response: { cloudaicompanionProject: { id: 'p' } } }]);
     await expect(resolve(fake)).resolves.toMatchObject({ tierId: 'legacy-tier' });
@@ -170,19 +185,19 @@ describe('resolveProject onboarding', () => {
       { done: true, response: { cloudaicompanionProject: { id: 'proj-lro' } } },
     ]);
     await expect(resolve(fake)).resolves.toMatchObject({ projectId: 'proj-lro' });
-    expect(fake.calls.slice(2).map((call) => [call.method, call.url])).toEqual([
+    expect(fake.calls.slice(CALLS_BEFORE_POLLING).map((call) => [call.method, call.url])).toEqual([
       ['GET', `${CODE_ASSIST_BASE_URL}/operations/op-1`],
       ['GET', `${CODE_ASSIST_BASE_URL}/operations/op-1`],
     ]);
-    expect(sleep.mock.calls).toEqual([[5000], [5000]]);
+    expect(sleep.mock.calls).toEqual([[POLL_INTERVAL_MS], [POLL_INTERVAL_MS]]);
   });
 
   test('gives up after 60 polls', async () => {
     sleep.mockClear();
     const pending = { name: 'operations/op-1', done: false };
-    const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'standard-tier', isDefault: true }] }, pending, ...Array.from({ length: 60 }, () => pending)]);
+    const fake = fakeCodeAssist([{ allowedTiers: [{ id: 'standard-tier', isDefault: true }] }, pending, ...Array.from({ length: MAX_POLLS }, () => pending)]);
     await expect(resolve(fake)).rejects.toThrow('did not finish in time');
-    expect(sleep).toHaveBeenCalledTimes(60);
+    expect(sleep).toHaveBeenCalledTimes(MAX_POLLS);
   });
 
   test('throws the message of a failed operation', async () => {
@@ -198,7 +213,7 @@ describe('resolveProject onboarding', () => {
 
 describe('resolveProject failures', () => {
   test('throws Google error.message for a non-2xx response without retrying', async () => {
-    const fake = fakeCodeAssist([Response.json({ error: { message: 'Permission denied on project' } }, { status: 403 })]);
+    const fake = fakeCodeAssist([Response.json({ error: { message: 'Permission denied on project' } }, { status: HTTP_FORBIDDEN })]);
     const failure = await resolve(fake).catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(CodeAssistError);
     expect(failure).toHaveProperty('message', 'Permission denied on project');
@@ -206,12 +221,12 @@ describe('resolveProject failures', () => {
   });
 
   test('names the status when the error body has no message', async () => {
-    const fake = fakeCodeAssist([new Response('<html>oops</html>', { status: 502 })]);
+    const fake = fakeCodeAssist([new Response('<html>oops</html>', { status: HTTP_BAD_GATEWAY })]);
     await expect(resolve(fake)).rejects.toThrow('HTTP 502');
   });
 
   test('does not put the access token in an error message', async () => {
-    const fake = fakeCodeAssist([new Response('boom', { status: 500 })]);
+    const fake = fakeCodeAssist([new Response('boom', { status: HTTP_INTERNAL_ERROR })]);
     const failure = await resolve(fake).catch((error: unknown) => error);
     expect(String(failure)).not.toContain('tok-123');
   });

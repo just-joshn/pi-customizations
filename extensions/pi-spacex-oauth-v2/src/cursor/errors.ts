@@ -6,10 +6,12 @@ const SIGN_IN_HINT = 'Run /login and choose Cursor (X subscription), or set CURS
 export function describeCursorError(error: unknown): string {
   if (!(error instanceof CursorSdkError)) return error instanceof Error ? error.message : String(error);
   const details = [error.code && `code ${error.code}`, error.status && `HTTP ${error.status}`, error.requestId && `request ${error.requestId}`].filter(Boolean);
-  const parts = [`Cursor ${error.name}: ${error.message}`];
-  if (details.length > 0) parts.push(`(${details.join(', ')})`);
-  if (error instanceof IntegrationNotConnectedError) parts.push(error.helpUrl);
-  if (error instanceof AuthenticationError) parts.push(SIGN_IN_HINT);
+  const parts = [
+    `Cursor ${error.name}: ${error.message}`,
+    ...(details.length > 0 ? [`(${details.join(', ')})`] : []),
+    ...(error instanceof IntegrationNotConnectedError ? [error.helpUrl] : []),
+    ...(error instanceof AuthenticationError ? [SIGN_IN_HINT] : []),
+  ];
   return parts.join(' ');
 }
 

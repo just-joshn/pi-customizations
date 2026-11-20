@@ -1,7 +1,8 @@
 // A scripted stand-in for @cursor/sdk's Agent, Run, and Cursor namespace. The real error classes stay real.
 
 import type { AgentOptions, RunResult, RunStatus, SDKCustomTool, SDKMessage, SDKModel, SDKUserMessage, SendOptions } from '@cursor/sdk';
-import { vi } from 'vitest';
+import { type Mock, vi } from 'vitest';
+import { type Cell, createCell, patchCell } from '../src/cell.ts';
 import catalog from './fixtures/cursor-models.json' with { type: 'json' };
 
 export interface RunIO {
@@ -14,95 +15,138 @@ export interface RunIO {
 
 export type Script = (io: RunIO) => Promise<Pick<RunResult, 'status'> & Partial<RunResult>>;
 
-export class FakeRun {
-  status: RunStatus = 'running';
-  readonly id = 'run-1';
-  readonly agentId = 'agent-1';
-  readonly cancel = vi.fn(async () => {
-    if (this.status !== 'running') return;
-    this.onCancel();
-    this.settle({ status: 'cancelled' });
-  });
-  private events: SDKMessage[] = [];
-  private wakeUp: (() => void) | undefined;
-  private result: RunResult | undefined;
-  private failure: unknown;
-  private onCancel: () => void = () => {};
+type PartialResult = Pick<RunResult, 'status'> & Partial<RunResult>;
 
-  constructor(script: Script, message: string | SDKUserMessage, options: SendOptions | undefined) {
-    const cancelled = new Promise<void>((resolve) => {
-      this.onCancel = resolve;
-    });
-    const io: RunIO = { message, tools: options?.local?.customTools ?? {}, emit: (event) => this.push(event), cancelled };
-    script(io).then(
-      (result) => this.settle(result),
-      (error: unknown) => {
-        this.failure = error;
-        this.settle({ status: 'error' });
-      },
-    );
-  }
+const RUN_ID = 'run-1';
+const AGENT_ID = 'agent-1';
+const THINKING_DURATION_MS = 5;
 
-  async *stream(): AsyncGenerator<SDKMessage, void> {
-    for (;;) {
-      const event = this.events.shift();
-      if (event) yield event;
-      else if (this.failure) throw this.failure;
-      else if (this.result) return;
-      else await new Promise<void>((resolve) => (this.wakeUp = resolve));
-    }
-  }
+interface RunState {
+  status: RunStatus;
+  events: SDKMessage[];
+  wakeUp: (() => void) | undefined;
+  result: RunResult | undefined;
+  failure: unknown;
+}
 
-  async wait(): Promise<RunResult> {
-    return this.result ?? { id: this.id, status: 'error' };
-  }
+function settleRun(state: Cell<RunState>, result: PartialResult): void {
+  if (state.read().result) return;
+  patchCell(state, { status: result.status, result: { id: RUN_ID, ...result } });
+  state.read().wakeUp?.();
+}
 
-  private push(event: SDKMessage): void {
-    this.events.push(event);
-    this.wakeUp?.();
-  }
+function pushEvent(state: Cell<RunState>, event: SDKMessage): void {
+  patchCell(state, { events: [...state.read().events, event] });
+  state.read().wakeUp?.();
+}
 
-  private settle(result: Pick<RunResult, 'status'> & Partial<RunResult>): void {
-    if (this.result) return;
-    this.status = result.status;
-    this.result = { id: this.id, ...result };
-    this.wakeUp?.();
+async function* streamEvents(state: Cell<RunState>): AsyncGenerator<SDKMessage, void> {
+  for (;;) {
+    const { events, failure, result } = state.read();
+    const [event, ...rest] = events;
+    if (event) {
+      patchCell(state, { events: rest });
+      yield event;
+    } else if (failure) throw failure;
+    else if (result) return;
+    else await new Promise<void>((resolve) => patchCell(state, { wakeUp: resolve }));
   }
 }
 
-export class FakeAgent {
+export interface FakeRun {
+  readonly id: string;
   readonly agentId: string;
-  readonly runs: FakeRun[] = [];
-  readonly sends: { message: string | SDKUserMessage; options: SendOptions | undefined }[] = [];
-  readonly close = vi.fn();
+  readonly status: RunStatus;
+  readonly cancel: Mock<() => Promise<void>>;
+  stream(): AsyncGenerator<SDKMessage, void>;
+  wait(): Promise<RunResult>;
+}
+
+export interface FakeAgent {
+  readonly agentId: string;
   readonly options: AgentOptions;
+  readonly close: Mock<() => void>;
+  readonly runs: FakeRun[];
+  readonly sends: { message: string | SDKUserMessage; options: SendOptions | undefined }[];
+  send(message: string | SDKUserMessage, options?: SendOptions): Promise<FakeRun>;
+}
 
-  constructor(options: AgentOptions, index: number) {
-    this.options = options;
-    this.agentId = `agent-${index}`;
-  }
+export function createFakeRun(script: Script, message: string | SDKUserMessage, options: SendOptions | undefined): FakeRun {
+  const state = createCell<RunState>({ status: 'running', events: [], wakeUp: undefined, result: undefined, failure: undefined });
+  let onCancel: () => void = () => undefined;
+  const cancelled = new Promise<void>((resolve) => {
+    onCancel = resolve;
+  });
+  const io: RunIO = { message, tools: options?.local?.customTools ?? {}, emit: (event) => pushEvent(state, event), cancelled };
+  script(io).then(
+    (result) => settleRun(state, result),
+    (error: unknown) => {
+      patchCell(state, { failure: error });
+      settleRun(state, { status: 'error' });
+    },
+  );
+  return {
+    id: RUN_ID,
+    agentId: AGENT_ID,
+    get status() {
+      return state.read().status;
+    },
+    cancel: vi.fn(async () => {
+      if (state.read().status !== 'running') return;
+      onCancel();
+      settleRun(state, { status: 'cancelled' });
+    }),
+    stream: () => streamEvents(state),
+    wait: async (): Promise<RunResult> => state.read().result ?? { id: RUN_ID, status: 'error' },
+  };
+}
 
-  async send(message: string | SDKUserMessage, options?: SendOptions): Promise<FakeRun> {
-    this.sends.push({ message, options });
-    const script = sdk.scripts.shift();
-    if (sdk.sendError) throw sdk.sendError;
-    if (!script) throw new Error('No scripted run left');
-    const run = new FakeRun(script, message, options);
-    this.runs.push(run);
-    return run;
-  }
+interface SdkState {
+  agents: FakeAgent[];
+  scripts: Script[];
+  sendError: unknown;
+  createError: unknown;
+}
+
+const initialSdkState = (): SdkState => ({ agents: [], scripts: [], sendError: undefined, createError: undefined });
+const sdkState = createCell<SdkState>(initialSdkState());
+
+export function createFakeAgent(options: AgentOptions, index: number): FakeAgent {
+  const record = createCell<Pick<FakeAgent, 'runs' | 'sends'>>({ runs: [], sends: [] });
+  return {
+    agentId: `agent-${index}`,
+    options,
+    close: vi.fn<() => void>(),
+    get runs() {
+      return record.read().runs;
+    },
+    get sends() {
+      return record.read().sends;
+    },
+    async send(message: string | SDKUserMessage, sendOptions?: SendOptions): Promise<FakeRun> {
+      patchCell(record, { sends: [...record.read().sends, { message, options: sendOptions }] });
+      const [script, ...remaining] = sdkState.read().scripts;
+      patchCell(sdkState, { scripts: remaining });
+      const { sendError } = sdkState.read();
+      if (sendError) throw sendError;
+      if (!script) throw new Error('No scripted run left');
+      const run = createFakeRun(script, message, sendOptions);
+      patchCell(record, { runs: [...record.read().runs, run] });
+      return run;
+    },
+  };
 }
 
 export const sdk = {
-  agents: [] as FakeAgent[],
-  scripts: [] as Script[],
-  sendError: undefined as unknown,
-  createError: undefined as unknown,
-  reset() {
-    this.agents = [];
-    this.scripts = [];
-    this.sendError = undefined;
-    this.createError = undefined;
+  get agents() {
+    return sdkState.read().agents;
+  },
+  /** Queues the scripts that the next runs will play, in order. */
+  script: (...scripts: Script[]): void => patchCell(sdkState, { scripts: [...sdkState.read().scripts, ...scripts] }),
+  failSend: (error: unknown): void => patchCell(sdkState, { sendError: error }),
+  failCreate: (error: unknown): void => patchCell(sdkState, { createError: error }),
+  reset: (): void => {
+    sdkState.write(initialSdkState());
     fakeSdk.Cursor.models.list.mockReset().mockResolvedValue(catalog as SDKModel[]);
     fakeSdk.Cursor.me.mockReset();
     fakeSdk.Cursor.auth.login.mockReset();
@@ -113,9 +157,10 @@ export const sdk = {
 export const fakeSdk = {
   Agent: {
     create: vi.fn(async (options: AgentOptions) => {
-      if (sdk.createError) throw sdk.createError;
-      const agent = new FakeAgent(options, sdk.agents.length + 1);
-      sdk.agents.push(agent);
+      const { createError, agents } = sdkState.read();
+      if (createError) throw createError;
+      const agent = createFakeAgent(options, agents.length + 1);
+      patchCell(sdkState, { agents: [...agents, agent] });
       return agent;
     }),
   },
@@ -126,7 +171,7 @@ export const fakeSdk = {
   },
 };
 
-const base = { agent_id: 'agent-1', run_id: 'run-1' };
+const base = { agent_id: AGENT_ID, run_id: RUN_ID };
 export const sdkText = (text: string): SDKMessage => ({ type: 'assistant', ...base, message: { role: 'assistant', content: [{ type: 'text', text }] } });
-export const sdkThinking = (text: string, done = false): SDKMessage => ({ type: 'thinking', ...base, text, ...(done ? { thinking_duration_ms: 5 } : {}) });
+export const sdkThinking = (text: string, done = false): SDKMessage => ({ type: 'thinking', ...base, text, ...(done ? { thinking_duration_ms: THINKING_DURATION_MS } : {}) });
 export const sdkStatus = (): SDKMessage => ({ type: 'status', ...base, status: 'RUNNING' });

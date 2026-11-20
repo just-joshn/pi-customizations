@@ -40,24 +40,23 @@ function splitWireId(wireId: string): { base: string; effort: Effort } {
 
 function thinkingLevelMap(variants: Variant[], reasoning: boolean): ThinkingLevelMap {
   if (!reasoning) return { off: (variants.find((variant) => variant.effort === 'medium') ?? variants[0])?.wireId ?? null };
-  const map: ThinkingLevelMap = {};
-  for (const level of LEVELS_WITHOUT_WIRE_ID) map[level] = null;
-  for (const variant of variants) map[variant.effort] = variant.wireId;
-  return map;
+  const unmapped = Object.fromEntries(LEVELS_WITHOUT_WIRE_ID.map((level) => [level, null]));
+  const mapped = Object.fromEntries(variants.map((variant) => [variant.effort, variant.wireId]));
+  return { ...unmapped, ...mapped } as ThinkingLevelMap;
 }
 
 /** One Pi model per base family. Its thinking levels map to Google's per-effort wire ids. */
 export function catalogModels(catalog: Catalog): CodeAssistModel[] {
-  const families = new Map<string, Variant[]>();
   const shown = new Set((catalog.agentModelSorts ?? []).flatMap((sort) => (sort.groups ?? []).flatMap((group) => group.modelIds ?? [])));
-  for (const wireId of shown) {
+  const entries = [...shown].flatMap((wireId): { base: string; variant: Variant }[] => {
     const info = catalog.models?.[wireId];
-    if (!info || wireId.endsWith('-disabled')) continue;
+    if (!info || wireId.endsWith('-disabled')) return [];
     const { base, effort } = splitWireId(wireId);
-    families.set(base, [...(families.get(base) ?? []), { wireId, effort, info }]);
-  }
+    return [{ base, variant: { wireId, effort, info } }];
+  });
+  const families = [...new Set(entries.map((entry) => entry.base))].map((id) => ({ id, variants: entries.filter((entry) => entry.base === id).map((entry) => entry.variant) }));
 
-  return [...families].map(([id, variants]) => {
+  return families.map(({ id, variants }) => {
     const reasoning = variants.some((variant) => variant.info.supportsThinking);
     const first = variants[0]?.info;
     return {
@@ -76,6 +75,8 @@ export function catalogModels(catalog: Catalog): CodeAssistModel[] {
   });
 }
 
+const BASELINE_CONTEXT_WINDOW = 1_048_576;
+const BASELINE_MAX_OUTPUT_TOKENS = 65_536;
 const BASELINE_FAMILIES = [
   ['gemini-4-argon', 'Gemini 4 Argon'],
   ['gemini-3.8-flash', 'Gemini 3.8 Flash'],
@@ -89,7 +90,9 @@ const baselineWireIds = BASELINE_FAMILIES.flatMap(([id]) => BASELINE_EFFORTS.map
 
 export const BASELINE_MODELS: CodeAssistModel[] = catalogModels({
   models: Object.fromEntries(
-    BASELINE_FAMILIES.flatMap(([id, name]) => BASELINE_EFFORTS.map(([effort, label]) => [`${id}-${effort}`, { displayName: `${name} (${label})`, supportsImages: true, supportsThinking: true, maxTokens: 1048576, maxOutputTokens: 65536 }])),
+    BASELINE_FAMILIES.flatMap(([id, name]) =>
+      BASELINE_EFFORTS.map(([effort, label]) => [`${id}-${effort}`, { displayName: `${name} (${label})`, supportsImages: true, supportsThinking: true, maxTokens: BASELINE_CONTEXT_WINDOW, maxOutputTokens: BASELINE_MAX_OUTPUT_TOKENS }]),
+    ),
   ),
   agentModelSorts: [{ groups: [{ modelIds: baselineWireIds }] }],
 });
