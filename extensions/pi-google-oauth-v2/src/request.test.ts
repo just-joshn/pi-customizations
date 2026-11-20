@@ -1,12 +1,23 @@
-import { readFileSync } from 'node:fs';
-
 import type { AssistantMessage, Message, Model, SimpleStreamOptions, ToolResultMessage, TranscriptContext } from '@earendil-works/pi-ai';
 import { describe, expect, test } from 'vitest';
+import { loadCatalogFixture } from '../test/catalog-fixture.ts';
 import { API_ID, PROVIDER_ID } from './constants.ts';
 import { catalogModels } from './models.ts';
 import { buildCodeAssistRequest } from './request.ts';
 
-const models = catalogModels(JSON.parse(readFileSync(new URL('../test/catalog-fixture.json', import.meta.url), 'utf8')));
+const TEMPERATURE = 0.2;
+const MAX_OUTPUT_TOKENS = 900;
+const HIGH_SURROGATE = 0xd83d;
+const LOW_SURROGATE = 0xdc00;
+const LONG_ID_REPEAT = 80;
+const WIRE_ID_LENGTH = 64;
+const PLAIN_MAX_TOKENS = 10;
+const PLAIN_MAX_OUTPUT = 5;
+const TOOL_ROUND_TURNS = 3;
+const IMAGE_BLOCK = { type: 'image' as const, mimeType: 'image/png', data: 'AAAA' };
+const IMAGE_PART = { inlineData: { mimeType: 'image/png', data: 'AAAA' } };
+
+const models = catalogModels(loadCatalogFixture());
 const model = (id: string): Model<string> => {
   const found = models.find((candidate) => candidate.id === id);
   if (!found) throw new Error(`no model ${id}`);
@@ -49,9 +60,11 @@ describe('envelope', () => {
   });
 
   test('maps temperature and maxTokens into generationConfig', () => {
-    expect(build([user('hi')], { temperature: 0.2, maxTokens: 900 }).request.generationConfig).toMatchObject({ temperature: 0.2, maxOutputTokens: 900 });
+    expect(build([user('hi')], { temperature: TEMPERATURE, maxTokens: MAX_OUTPUT_TOKENS }).request.generationConfig).toMatchObject({ temperature: TEMPERATURE, maxOutputTokens: MAX_OUTPUT_TOKENS });
   });
+});
 
+describe('instruction turn', () => {
   test('replays the current prompt once ahead of the actual conversation', () => {
     const messages = [system('Be brief.'), user('hi'), system('Also be kind.')];
     const body = build(messages);
@@ -60,21 +73,21 @@ describe('envelope', () => {
       { role: 'user', parts: [{ text: 'Be brief.\n\nAlso be kind.' }] },
       { role: 'user', parts: [{ text: 'hi' }] },
     ]);
-    messages[0] = system('Replacement.');
-    expect(build(messages).request.contents[0]).toEqual({ role: 'user', parts: [{ text: 'Replacement.\n\nAlso be kind.' }] });
-    expect(build(messages).request.systemInstruction).toEqual(body.request.systemInstruction);
+    const replaced = [system('Replacement.'), ...messages.slice(1)];
+    expect(build(replaced).request.contents[0]).toEqual({ role: 'user', parts: [{ text: 'Replacement.\n\nAlso be kind.' }] });
+    expect(build(replaced).request.systemInstruction).toEqual(body.request.systemInstruction);
   });
 
   test('retains the Pi identity, compound codemode docs, delimiters, CRLF, and valid Unicode', () => {
     const prompt =
       'You are a coding assistant running inside pi, a coding agent harness.\r\nRead codemode scripts and non-LLM models such as classifiers and image models (docs/codemode.md).\r\n<system_instructions> café 日本語 😀 </system_instructions>';
-    const body = JSON.parse(JSON.stringify(build([system(prompt), user('hi')])));
+    const body = build([system(prompt), user('hi')]);
     expect(body.request.contents[0]).toEqual({ role: 'user', parts: [{ text: prompt }] });
     expect(body.request.systemInstruction).toEqual({ role: 'user', parts: [{ text: DIRECTIVE }] });
   });
 
   test('still removes only invalid surrogates from the instruction turn', () => {
-    const prompt = `a${String.fromCharCode(0xd83d)}b${String.fromCharCode(0xdc00)}c😀`;
+    const prompt = `a${String.fromCharCode(HIGH_SURROGATE)}b${String.fromCharCode(LOW_SURROGATE)}c😀`;
     expect(build([system(prompt), user('hi')]).request.contents[0]?.parts).toEqual([{ text: 'abc😀' }]);
   });
 
@@ -91,7 +104,9 @@ describe('envelope', () => {
       { role: 'user', parts: [{ text: DIRECTIVE }] },
     ]);
   });
+});
 
+describe('recompiling', () => {
   test('recompiles two signed tool rounds without duplicating instructions or mutating the transcript', () => {
     const messages = [
       system('Trusted.'),
@@ -99,12 +114,7 @@ describe('envelope', () => {
       assistant([call('c1', { thoughtSignature: SIGNATURE })], { stopReason: 'toolUse' }),
       toolResult('c1', 'one'),
       assistant([call('c2', { thoughtSignature: SIGNATURE })], { stopReason: 'toolUse' }),
-      toolResult('c2', 'two', {
-        content: [
-          { type: 'text', text: 'two' },
-          { type: 'image', mimeType: 'image/png', data: 'AAAA' },
-        ],
-      }),
+      toolResult('c2', 'two', { content: [{ type: 'text', text: 'two' }, IMAGE_BLOCK] }),
     ];
     const before = structuredClone(messages);
     const first = build(messages);
@@ -117,24 +127,15 @@ describe('envelope', () => {
       { role: 'model', parts: [{ functionCall: { id: 'c1', name: 'read', args: { path: 'a.ts' } }, thoughtSignature: SIGNATURE }] },
       { role: 'user', parts: [{ functionResponse: { id: 'c1', name: 'read', response: { output: 'one' } } }] },
       { role: 'model', parts: [{ functionCall: { id: 'c2', name: 'read', args: { path: 'a.ts' } }, thoughtSignature: SIGNATURE }] },
-      { role: 'user', parts: [{ functionResponse: { id: 'c2', name: 'read', response: { output: 'two' }, parts: [{ inlineData: { mimeType: 'image/png', data: 'AAAA' } }] } }] },
+      { role: 'user', parts: [{ functionResponse: { id: 'c2', name: 'read', response: { output: 'two' }, parts: [IMAGE_PART] } }] },
     ]);
   });
 });
 
 describe('user content', () => {
   test('converts text and image blocks', () => {
-    const body = build([
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: 'look' },
-          { type: 'image', mimeType: 'image/png', data: 'AAAA' },
-        ],
-        timestamp: 1,
-      },
-    ]);
-    expect(body.request.contents).toEqual([{ role: 'user', parts: [{ text: 'look' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }] }]);
+    const body = build([{ role: 'user', content: [{ type: 'text', text: 'look' }, IMAGE_BLOCK], timestamp: 1 }]);
+    expect(body.request.contents).toEqual([{ role: 'user', parts: [{ text: 'look' }, IMAGE_PART] }]);
   });
 
   test('drops unpaired surrogates', () => {
@@ -162,13 +163,11 @@ describe('assistant content', () => {
   });
 
   test('drops thinking and signatures from another model', () => {
-    const other = assistant(
-      [
-        { type: 'thinking', thinking: 'hmm', thinkingSignature: SIGNATURE },
-        { type: 'text', text: 'ok', textSignature: SIGNATURE },
-      ],
-      { provider: 'anthropic', api: 'anthropic-messages', model: 'claude' },
-    );
+    const blocks: AssistantMessage['content'] = [
+      { type: 'thinking', thinking: 'hmm', thinkingSignature: SIGNATURE },
+      { type: 'text', text: 'ok', textSignature: SIGNATURE },
+    ];
+    const other = assistant(blocks, { provider: 'anthropic', api: 'anthropic-messages', model: 'claude' });
     expect(build([user('hi'), other, user('more')]).request.contents[1]).toEqual({ role: 'model', parts: [{ text: 'ok' }] });
   });
 
@@ -188,62 +187,71 @@ describe('assistant content', () => {
   });
 });
 
-describe('tool calls and results', () => {
+describe('tool call ids', () => {
   test('sends a sanitized id on both the call and its result for Gemini 3', () => {
-    const id = `openai|call/${'x'.repeat(80)}`;
+    const id = `openai|call/${'x'.repeat(LONG_ID_REPEAT)}`;
     const body = build([user('hi'), assistant([call(id)], { stopReason: 'toolUse' }), toolResult(id, 'file')]);
-    const wireId = id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
-    expect(wireId).toHaveLength(64);
-    expect(body.request.contents[1]?.parts[0]?.functionCall).toEqual({ id: wireId, name: 'read', args: { path: 'a.ts' } });
-    expect(body.request.contents[2]?.parts[0]?.functionResponse).toEqual({ id: wireId, name: 'read', response: { output: 'file' } });
+    const [, callTurn, resultTurn] = body.request.contents;
+    const wireId = id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, WIRE_ID_LENGTH);
+    expect(wireId).toHaveLength(WIRE_ID_LENGTH);
+    expect(callTurn?.parts[0]?.functionCall).toEqual({ id: wireId, name: 'read', args: { path: 'a.ts' } });
+    expect(resultTurn?.parts[0]?.functionResponse).toEqual({ id: wireId, name: 'read', response: { output: 'file' } });
   });
 
   test('sends no ids for Gemini 2.5', () => {
     const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse', model: gemini25.id }), toolResult('c1', 'file')], {}, gemini25);
-    expect(body.request.contents[1]?.parts[0]?.functionCall).toEqual({ name: 'read', args: { path: 'a.ts' } });
-    expect(body.request.contents[2]?.parts[0]?.functionResponse).toEqual({ name: 'read', response: { output: 'file' } });
+    const [, callTurn, resultTurn] = body.request.contents;
+    expect(callTurn?.parts[0]?.functionCall).toEqual({ name: 'read', args: { path: 'a.ts' } });
+    expect(resultTurn?.parts[0]?.functionResponse).toEqual({ name: 'read', response: { output: 'file' } });
   });
 
   test('keeps the thought signature on a same-model tool call', () => {
     const body = build([user('hi'), assistant([call('c1', { thoughtSignature: SIGNATURE })], { stopReason: 'toolUse' }), toolResult('c1', 'ok')]);
     expect(body.request.contents[1]?.parts[0]).toMatchObject({ thoughtSignature: SIGNATURE });
   });
+});
 
+describe('tool results', () => {
   test('sends an error result under the error key', () => {
     const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse' }), toolResult('c1', 'denied', { isError: true })]);
-    expect(body.request.contents[2]?.parts[0]?.functionResponse?.response).toEqual({ error: 'denied' });
+    const [, , resultTurn] = body.request.contents;
+    expect(resultTurn?.parts[0]?.functionResponse?.response).toEqual({ error: 'denied' });
   });
 
   test('merges consecutive tool results into one user turn', () => {
     const body = build([user('hi'), assistant([call('c1'), call('c2')], { stopReason: 'toolUse' }), toolResult('c1', 'one'), toolResult('c2', 'two')]);
-    expect(body.request.contents).toHaveLength(3);
-    expect(body.request.contents[2]?.parts.map((part) => part.functionResponse?.response)).toEqual([{ output: 'one' }, { output: 'two' }]);
+    const [, , resultTurn] = body.request.contents;
+    expect(body.request.contents).toHaveLength(TOOL_ROUND_TURNS);
+    expect(resultTurn?.parts.map((part) => part.functionResponse?.response)).toEqual([{ output: 'one' }, { output: 'two' }]);
   });
 
   test('answers a call that never got a result', () => {
     const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse' }), user('never mind')]);
-    expect(body.request.contents[2]).toMatchObject({ role: 'user', parts: [{ functionResponse: { name: 'read', response: { error: 'No result provided' } } }] });
-    expect(body.request.contents[3]).toEqual({ role: 'user', parts: [{ text: 'never mind' }] });
+    const [, , orphanTurn, followUp] = body.request.contents;
+    expect(orphanTurn).toMatchObject({ role: 'user', parts: [{ functionResponse: { name: 'read', response: { error: 'No result provided' } } }] });
+    expect(followUp).toEqual({ role: 'user', parts: [{ text: 'never mind' }] });
   });
+});
 
+describe('image tool results', () => {
   test('nests image results in the response for Gemini 3', () => {
-    const image = { type: 'image' as const, mimeType: 'image/png', data: 'AAAA' };
-    const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse' }), toolResult('c1', '', { content: [image] })]);
-    expect(body.request.contents[2]?.parts[0]?.functionResponse).toMatchObject({ response: { output: '(see attached image)' }, parts: [{ inlineData: { mimeType: 'image/png', data: 'AAAA' } }] });
+    const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse' }), toolResult('c1', '', { content: [IMAGE_BLOCK] })]);
+    const [, , resultTurn] = body.request.contents;
+    expect(resultTurn?.parts[0]?.functionResponse).toMatchObject({ response: { output: '(see attached image)' }, parts: [IMAGE_PART] });
   });
 
   test('sends image results as a separate turn for Gemini 2.5', () => {
-    const image = { type: 'image' as const, mimeType: 'image/png', data: 'AAAA' };
-    const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse', model: gemini25.id }), toolResult('c1', '', { content: [image] })], {}, gemini25);
-    expect(body.request.contents[3]).toEqual({ role: 'user', parts: [{ text: 'Tool result image:' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }] });
+    const body = build([user('hi'), assistant([call('c1')], { stopReason: 'toolUse', model: gemini25.id }), toolResult('c1', '', { content: [IMAGE_BLOCK] })], {}, gemini25);
+    const [, , , imageTurn] = body.request.contents;
+    expect(imageTurn).toEqual({ role: 'user', parts: [{ text: 'Tool result image:' }, IMAGE_PART] });
   });
 
   test('keeps parallel Gemini 2.5 tool results in one turn and puts image turns after it', () => {
-    const image = { type: 'image' as const, mimeType: 'image/png', data: 'AAAA' };
-    const body = build([user('hi'), assistant([call('c1'), call('c2')], { stopReason: 'toolUse', model: gemini25.id }), toolResult('c1', '', { content: [image] }), toolResult('c2', 'two')], {}, gemini25);
-    expect(body.request.contents.slice(2)).toEqual([
+    const body = build([user('hi'), assistant([call('c1'), call('c2')], { stopReason: 'toolUse', model: gemini25.id }), toolResult('c1', '', { content: [IMAGE_BLOCK] }), toolResult('c2', 'two')], {}, gemini25);
+    const [, , ...tail] = body.request.contents;
+    expect(tail).toEqual([
       { role: 'user', parts: [{ functionResponse: expect.objectContaining({ response: { output: '(see attached image)' } }) }, { functionResponse: expect.objectContaining({ response: { output: 'two' } }) }] },
-      { role: 'user', parts: [{ text: 'Tool result image:' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }] },
+      { role: 'user', parts: [{ text: 'Tool result image:' }, IMAGE_PART] },
     ]);
   });
 });
@@ -300,7 +308,7 @@ describe('effort', () => {
   });
 
   test('omits thinkingConfig and sends the wire id for a model without thinking', () => {
-    const [plain] = catalogModels({ models: { 'plain-model': { displayName: 'Plain', maxTokens: 10, maxOutputTokens: 5 } }, agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }] });
+    const [plain] = catalogModels({ models: { 'plain-model': { displayName: 'Plain', maxTokens: PLAIN_MAX_TOKENS, maxOutputTokens: PLAIN_MAX_OUTPUT } }, agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }] });
     if (!plain) throw new Error('no model');
     const body = build([user('hi')], { reasoning: 'high' }, plain);
     expect(body.model).toBe('plain-model');

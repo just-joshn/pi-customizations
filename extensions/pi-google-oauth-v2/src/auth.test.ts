@@ -2,13 +2,25 @@ import { createHash } from 'node:crypto';
 
 import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { parseJsonBody } from '../test/json-body.ts';
 import { buildAuthUrl, createGoogleOAuth, parseStoredCredential } from './auth.ts';
 import { IneligibleTierError } from './code-assist.ts';
 import { PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { LOOPBACK_TIMEOUT_MS } from './loopback.ts';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const stored: OAuthCredential = { type: 'oauth', access: 'access-1', refresh: 'refresh-1', expires: 1_000, projectId: 'proj-1' };
+const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+const SCOPE_BASE = 'https://www.googleapis.com/auth';
+const LOOPBACK_REDIRECT = 'http://127.0.0.1:1/oauth2callback';
+const MANUAL_REDIRECT = 'https://antigravity.google/oauth-callback';
+const STORED_EXPIRES = 1_000;
+const EXPIRES_IN_SECONDS = 3600;
+const SHORT_EXPIRES_IN_SECONDS = 100;
+const MS_PER_SECOND = 1000;
+const HTTP_BAD_REQUEST = 400;
+const HTTP_FORBIDDEN = 403;
+const NOT_A_STRING = 5;
+const stored: OAuthCredential = { type: 'oauth', access: 'access-1', refresh: 'refresh-1', expires: STORED_EXPIRES, projectId: 'proj-1' };
 
 interface Exchange {
   url: string;
@@ -16,35 +28,42 @@ interface Exchange {
   json: Record<string, unknown> | undefined;
 }
 
+const toExchange = (input: string | URL | Request, init?: RequestInit): Exchange => ({
+  url: String(input),
+  form: init?.body instanceof URLSearchParams ? init.body : undefined,
+  json: typeof init?.body === 'string' ? parseJsonBody(init.body) : undefined,
+});
+
 function googleBackend(handlers: { token?: () => Response; load?: () => Response } = {}) {
-  const exchanges: Exchange[] = [];
-  const fetchImpl = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+  const fetchImpl = vi.fn(async (input: string | URL | Request, _init?: RequestInit) => {
     const url = String(input);
-    exchanges.push({
-      url,
-      form: init?.body instanceof URLSearchParams ? init.body : undefined,
-      json: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
-    });
-    if (url === TOKEN_URL) return handlers.token?.() ?? Response.json({ access_token: 'access-new', expires_in: 3600, refresh_token: 'refresh-new' });
+    if (url === TOKEN_URL) return handlers.token?.() ?? Response.json({ access_token: 'access-new', expires_in: EXPIRES_IN_SECONDS, refresh_token: 'refresh-new' });
     if (url.endsWith(':loadCodeAssist')) return handlers.load?.() ?? Response.json({ currentTier: { id: 'g1-pro-tier', name: 'Google AI Pro' }, cloudaicompanionProject: 'proj-server' });
     throw new Error(`unexpected url ${url}`);
   });
-  return { exchanges, fetchImpl };
+  return {
+    fetchImpl,
+    get exchanges(): Exchange[] {
+      return fetchImpl.mock.calls.map(([input, init]) => toExchange(input, init));
+    },
+  };
 }
 
 function interaction(promptImpl: (prompt: AuthPrompt) => Promise<string>) {
-  const events: AuthEvent[] = [];
-  const prompts: AuthPrompt[] = [];
+  const notify = vi.fn<(event: AuthEvent) => void>();
+  const prompt = vi.fn(promptImpl);
   const controller = new AbortController();
-  const value: ProviderAuthInteraction = {
-    signal: controller.signal,
-    prompt: (prompt) => {
-      prompts.push(prompt);
-      return promptImpl(prompt);
+  const value: ProviderAuthInteraction = { signal: controller.signal, prompt, notify };
+  return {
+    value,
+    controller,
+    get events(): AuthEvent[] {
+      return notify.mock.calls.map(([event]) => event);
     },
-    notify: (event) => events.push(event),
+    get prompts(): AuthPrompt[] {
+      return prompt.mock.calls.map(([request]) => request);
+    },
   };
-  return { value, events, prompts, controller };
 }
 
 const waitsForAbort = (prompt: AuthPrompt) =>
@@ -63,26 +82,30 @@ async function startLogin(promptImpl: (prompt: AuthPrompt) => Promise<string>, b
   const result = oauth.login(session.value);
   result.catch(() => undefined);
   await vi.waitFor(() => expect(authUrl(session.events)).toBeInstanceOf(URL));
-  return { ...session, backend, result };
+  return {
+    controller: session.controller,
+    backend,
+    result,
+    get events(): AuthEvent[] {
+      return session.events;
+    },
+    get prompts(): AuthPrompt[] {
+      return session.prompts;
+    },
+  };
 }
+
+const SCOPES = [`${SCOPE_BASE}/cloud-platform`, `${SCOPE_BASE}/userinfo.email`, `${SCOPE_BASE}/userinfo.profile`, `${SCOPE_BASE}/cclog`, `${SCOPE_BASE}/experimentsandconfigs`, `${SCOPE_BASE}/aicode`, 'openid'];
 
 describe('buildAuthUrl', () => {
   test('requests offline PKCE consent with the Antigravity scopes', () => {
-    const url = new URL(buildAuthUrl({ redirectUri: 'http://127.0.0.1:1/oauth2callback', state: 's', codeChallenge: 'c' }));
-    expect(`${url.origin}${url.pathname}`).toBe('https://accounts.google.com/o/oauth2/v2/auth');
+    const url = new URL(buildAuthUrl({ redirectUri: LOOPBACK_REDIRECT, state: 's', codeChallenge: 'c' }));
+    expect(`${url.origin}${url.pathname}`).toBe(AUTH_ENDPOINT);
     expect(Object.fromEntries(url.searchParams)).toEqual({
       client_id: '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com',
-      redirect_uri: 'http://127.0.0.1:1/oauth2callback',
+      redirect_uri: LOOPBACK_REDIRECT,
       response_type: 'code',
-      scope: [
-        'https://www.googleapis.com/auth/cloud-platform',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/cclog',
-        'https://www.googleapis.com/auth/experimentsandconfigs',
-        'https://www.googleapis.com/auth/aicode',
-        'openid',
-      ].join(' '),
+      scope: SCOPES.join(' '),
       access_type: 'offline',
       prompt: 'consent',
       state: 's',
@@ -100,8 +123,8 @@ describe('login through the loopback callback', () => {
     await fetch(`${url?.searchParams.get('redirect_uri')}?state=${url?.searchParams.get('state')}&code=auth-code`);
     const credential = await login.result;
     expect(credential).toMatchObject({ type: 'oauth', access: 'access-new', refresh: 'refresh-new', projectId: 'proj-server' });
-    expect(credential.expires).toBeGreaterThanOrEqual(before + 3600 * 1000);
-    expect(credential.expires).toBeLessThanOrEqual(Date.now() + 3600 * 1000);
+    expect(credential.expires).toBeGreaterThanOrEqual(before + EXPIRES_IN_SECONDS * MS_PER_SECOND);
+    expect(credential.expires).toBeLessThanOrEqual(Date.now() + EXPIRES_IN_SECONDS * MS_PER_SECOND);
   });
 
   test('exchanges the code with the PKCE verifier and the loopback redirect', async () => {
@@ -122,7 +145,9 @@ describe('login through the loopback callback', () => {
         .digest('base64url'),
     ).toBe(url?.searchParams.get('code_challenge'));
   });
+});
 
+describe('login prompts and project', () => {
   test('aborts the manual code prompt without failing the login', async () => {
     const login = await startLogin(waitsForAbort);
     const url = authUrl(login.events);
@@ -140,7 +165,7 @@ describe('login through the loopback callback', () => {
     const info = login.events.filter((event) => event.type === 'info');
     const codePage = info[0]?.type === 'info' ? info[0].links?.[0] : undefined;
     expect(codePage?.label).toBe('Code page');
-    expect(new URL(codePage?.url ?? '').searchParams.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
+    expect(new URL(codePage?.url ?? '').searchParams.get('redirect_uri')).toBe(MANUAL_REDIRECT);
     expect(info.at(-1)).toMatchObject({ message: 'Google AI plan: Google AI Pro. Code Assist project: proj-server.' });
   });
 
@@ -168,7 +193,7 @@ describe('login through a pasted code', () => {
     await expect(login.result).resolves.toMatchObject({ access: 'access-new' });
     const form = login.backend.exchanges.find((exchange) => exchange.url === TOKEN_URL)?.form;
     expect(form?.get('code')).toBe('pasted-code');
-    expect(form?.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
+    expect(form?.get('redirect_uri')).toBe(MANUAL_REDIRECT);
   });
 
   test('closes the loopback listener when the pasted code wins', async () => {
@@ -196,7 +221,7 @@ describe('login through a pasted code', () => {
   });
 });
 
-describe('login failures', () => {
+describe('login callback failures', () => {
   test('a Google error on the callback fails the login while a paste is pending', async () => {
     const login = await startLogin(waitsForAbort);
     const url = authUrl(login.events);
@@ -213,18 +238,20 @@ describe('login failures', () => {
   });
 
   test('requires a refresh token and stores nothing', async () => {
-    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-new', expires_in: 3600 }) });
+    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-new', expires_in: EXPIRES_IN_SECONDS }) });
     const login = await startLogin(async () => 'pasted-code', backend);
     await expect(login.result).rejects.toThrow('Google returned no refresh token; run /login again');
   });
 
   test('reports Google token errors by code and description only', async () => {
-    const backend = googleBackend({ token: () => Response.json({ error: 'invalid_grant', error_description: 'Bad Request' }, { status: 400 }) });
+    const backend = googleBackend({ token: () => Response.json({ error: 'invalid_grant', error_description: 'Bad Request' }, { status: HTTP_BAD_REQUEST }) });
     const login = await startLogin(async () => 'secret-pasted-code', backend);
     const failure = await login.result.catch((error: unknown) => error);
     expect(failure).toHaveProperty('message', 'Google token request failed: invalid_grant. Bad Request');
   });
+});
 
+describe('login backend failures', () => {
   test('passes Google ineligibility text through unchanged', async () => {
     const backend = googleBackend({ load: () => Response.json({ currentTier: { id: 'free-tier' }, ineligibleTiers: [{ reasonMessage: 'Google AI Plus is not supported.' }] }) });
     const login = await startLogin(async () => 'pasted-code', backend);
@@ -234,7 +261,7 @@ describe('login failures', () => {
   });
 
   test('keeps tokens and codes out of every failure message', async () => {
-    const backend = googleBackend({ load: () => Response.json({ error: { message: 'Permission denied' } }, { status: 403 }) });
+    const backend = googleBackend({ load: () => Response.json({ error: { message: 'Permission denied' } }, { status: HTTP_FORBIDDEN }) });
     const login = await startLogin(async () => 'secret-pasted-code', backend);
     const failure = String(await login.result.catch((error: unknown) => error));
     for (const secret of ['access-new', 'refresh-new', 'secret-pasted-code', 'GOCSPX']) expect(failure).not.toContain(secret);
@@ -258,18 +285,18 @@ describe('refresh', () => {
   const refresh = (backend = googleBackend(), credential: OAuthCredential = stored) => createGoogleOAuth({ fetch: backend.fetchImpl }).refresh(credential, new AbortController().signal);
 
   test('replaces access and expiry and keeps projectId', async () => {
-    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-2', expires_in: 100 }) });
+    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-2', expires_in: SHORT_EXPIRES_IN_SECONDS }) });
     const before = Date.now();
     const refreshed = await refresh(backend);
     expect(refreshed).toMatchObject({ type: 'oauth', access: 'access-2', projectId: 'proj-1' });
-    expect(refreshed.expires).toBeGreaterThanOrEqual(before + 100_000);
+    expect(refreshed.expires).toBeGreaterThanOrEqual(before + SHORT_EXPIRES_IN_SECONDS * MS_PER_SECOND);
     const form = backend.exchanges[0]?.form;
     expect(form?.get('grant_type')).toBe('refresh_token');
     expect(form?.get('refresh_token')).toBe('refresh-1');
   });
 
   test('keeps the old refresh token when Google sends none', async () => {
-    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-2', expires_in: 100 }) });
+    const backend = googleBackend({ token: () => Response.json({ access_token: 'access-2', expires_in: SHORT_EXPIRES_IN_SECONDS }) });
     await expect(refresh(backend)).resolves.toMatchObject({ refresh: 'refresh-1' });
   });
 
@@ -278,7 +305,7 @@ describe('refresh', () => {
   });
 
   test('turns invalid_grant into a re-login message without token text', async () => {
-    const backend = googleBackend({ token: () => Response.json({ error: 'invalid_grant', error_description: 'Token has been expired or revoked.' }, { status: 400 }) });
+    const backend = googleBackend({ token: () => Response.json({ error: 'invalid_grant', error_description: 'Token has been expired or revoked.' }, { status: HTTP_BAD_REQUEST }) });
     const failure = await refresh(backend).catch((error: unknown) => error);
     expect(failure).toHaveProperty('message', 'Google refused the refresh token; run /login again');
   });
@@ -315,7 +342,7 @@ describe('parseStoredCredential', () => {
   test.for([
     ['projectId missing', { ...stored, projectId: undefined }],
     ['projectId empty', { ...stored, projectId: '' }],
-    ['access not a string', { ...stored, access: 5 }],
+    ['access not a string', { ...stored, access: NOT_A_STRING }],
     ['refresh not a string', { ...stored, refresh: undefined }],
     ['expires missing', { ...stored, expires: undefined }],
     ['expires not finite', { ...stored, expires: Number.NaN }],
