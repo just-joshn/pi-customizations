@@ -10,6 +10,9 @@ Delegate tasks to specialized subagents with isolated context windows.
 - **Markdown rendering**: Final output rendered with proper formatting (expanded view)
 - **Usage display**: Shows turns, tokens, cost, and context usage inside each subagent result
 - **Abort support**: Ctrl+C propagates to kill subagent processes
+- **Live background progress**: with a UI, running wake jobs show in Pi's status line and a widget (`pstack-subagent`): `<id> <agents> <turns>t <n> tools <tokens> tok`. Updates are throttled to 500 ms (5 s past 20 jobs), flushed at job start and end, and cleared when the last job ends or is stopped.
+- **Persistent `.output` logs**: each wake job writes JSONL (`start`, one `message` line per worker message, `final`) to `<agent dir>/pstack-v2/subagents/<id>.output` (dir `0700`, file `0600`, capped at 32 MiB). The launch text and the wake report end with `Output file: <path>`.
+- **`report_findings` tool**: records structured review findings (`level`, up to 32 `findings` with `file`, `line`, `summary`, `short_summary` ≤ 60 chars, `failure_scenario`, `category`, `verdict` CONFIRMED/PLAUSIBLE, `outcome` fixed/skipped/no_change_needed). The payload is kept in the result `details`, and the TUI draws the count, level and one line per finding (failure scenarios when expanded).
 
 ## Structure
 

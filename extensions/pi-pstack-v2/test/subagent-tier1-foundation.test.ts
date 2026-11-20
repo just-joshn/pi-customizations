@@ -72,7 +72,7 @@ describe('wake reports are framed once as untrusted model output', () => {
     const content = subagent.sent()[0]?.message.content ?? '';
     expect(countOf(content, SUBAGENT_BANNER)).toBe(1);
     expect(content).toContain(`finished.\n\n${SUBAGENT_BANNER}\n\ndone\n\n`);
-    expect(content.endsWith(ONE_TURN_USAGE)).toBe(true);
+    expect(content).toMatch(new RegExp(`${ONE_TURN_USAGE}\\n\\nOutput file: \\S+\\.output$`));
   });
 
   test('a wake job that crashed is framed too', async () => {
