@@ -19,5 +19,5 @@ const CATALOG = z.object({
 /** Reads the recorded `fetchAvailableModels` answer that the catalog tests share. */
 export function loadCatalogFixture(): Catalog {
   const text = readFileSync(new URL('./catalog-fixture.json', import.meta.url), 'utf8');
-  return CATALOG.parse(JSON.parse(text)) as Catalog;
+  return CATALOG.parse(JSON.parse(text));
 }

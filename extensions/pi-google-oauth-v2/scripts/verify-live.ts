@@ -70,26 +70,41 @@ async function selectModel(pi: ExtensionAPI, ctx: ExtensionContext): Promise<voi
   report({ selected: model.id });
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function field(value: unknown, key: string): unknown {
+  return isRecord(value) ? value[key] : undefined;
+}
+
+function listOf(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
 function describeRequest(event: BeforeProviderRequestEvent, ctx: ExtensionContext): void {
-  const body = event.payload as { model?: string; request?: { systemInstruction?: { parts?: { text?: string }[] }; contents?: { parts?: { text?: string; functionResponse?: { response?: { output?: string } } }[] }[] } };
-  const instructions = body.request?.contents?.[0]?.parts?.[0]?.text ?? '';
-  const replayed = (body.request?.contents ?? []).flatMap((turn) => turn.parts ?? []).filter((part) => part.functionResponse).length;
+  const request = field(event.payload, 'request');
+  const turns = listOf(field(request, 'contents'));
+  const text = field(listOf(field(turns[0], 'parts'))[0], 'text');
+  const instructions = typeof text === 'string' ? text : '';
+  const replayed = turns.flatMap((turn) => listOf(field(turn, 'parts'))).filter((part) => field(part, 'functionResponse')).length;
+  const wire = field(event.payload, 'model');
   report({
-    wire: body.model,
+    wire: typeof wire === 'string' ? wire : undefined,
     selected: ctx.model?.id,
     docs: instructions.includes('docs/codemode.md'),
     identity: instructions.includes('running inside pi'),
     marker: instructions.includes(probeSettings.marker),
-    delegation: body.request?.systemInstruction?.parts?.[0]?.text === probeSettings.delegationText,
+    delegation: field(listOf(field(field(request, 'systemInstruction'), 'parts'))[0], 'text') === probeSettings.delegationText,
     replayed,
   });
 }
 
 function nativeProbe(pi: ExtensionAPI): void {
   pi.on('session_start', async (_event, ctx) => {
-    await selectModel(pi, ctx).catch(() => {
+    await selectModel(pi, ctx).catch((error: unknown) => {
       report({ selectionFailed: true });
-      process.exit(1);
+      throw error;
     });
   });
   pi.on('before_provider_request', (event, ctx) => describeRequest(event, ctx));
@@ -98,7 +113,8 @@ function nativeProbe(pi: ExtensionAPI): void {
   });
 }
 
-const probeModule = (settings: ProbeSettings): string => `const probeSettings = ${JSON.stringify(settings)};\n${[report, selectModel, describeRequest].map((fn) => fn.toString()).join('\n')}\nexport default ${nativeProbe.toString()};\n`;
+const probeModule = (settings: ProbeSettings): string =>
+  `const probeSettings = ${JSON.stringify(settings)};\n${[report, selectModel, isRecord, field, listOf, describeRequest].map((fn) => fn.toString()).join('\n')}\nexport default ${nativeProbe.toString()};\n`;
 
 const randomMarker = (prefix: string): string => `${prefix}_${randomUUID().replaceAll('-', '')}`;
 
@@ -143,6 +159,7 @@ function runPi(input: ChildInput): SpawnSyncReturns<string> {
     encoding: 'utf8',
     timeout: CHILD_TIMEOUT_MS,
     maxBuffer: CHILD_MAX_BUFFER,
+    windowsHide: true,
   });
 }
 
@@ -169,7 +186,14 @@ function assertRequests(model: string, scenario: Scenario, observations: Observa
   return requests;
 }
 
-const toEvent = (value: unknown): JsonAgentSessionEvent => value as JsonAgentSessionEvent;
+function isSessionEvent(value: unknown): value is JsonAgentSessionEvent {
+  return EVENT_SCHEMA.safeParse(value).success && typeof field(value, 'type') === 'string';
+}
+
+function toEvent(value: unknown): JsonAgentSessionEvent {
+  if (!isSessionEvent(value)) throw new Error('Pi emitted an event without a type');
+  return value;
+}
 
 const assistantMessages = (events: JsonAgentSessionEvent[]) => events.flatMap((event) => (event.type === 'message_end' && event.message.role === 'assistant' ? [event.message] : []));
 

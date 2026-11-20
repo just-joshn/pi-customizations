@@ -1,3 +1,5 @@
+import { ReadableStream } from 'node:stream/web';
+
 import type { AssistantMessage, AssistantMessageEvent } from '@earendil-works/pi-ai';
 import { HTTP_OK } from './constants.ts';
 

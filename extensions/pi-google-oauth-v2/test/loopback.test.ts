@@ -12,7 +12,7 @@ async function hasSettled(promise: Promise<unknown>): Promise<boolean> {
   const markDone = () => {
     done = true;
   };
-  promise.then(markDone, markDone);
+  promise.then(markDone).catch(markDone);
   await setImmediate();
   return done;
 }

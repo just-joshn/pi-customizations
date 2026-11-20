@@ -1,4 +1,4 @@
-import type { OAuthCredential, TranscriptContext } from '@earendil-works/pi-ai';
+import { normalizeContext, type OAuthCredential, type TranscriptContext } from '@earendil-works/pi-ai';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { HTTP_BAD_REQUEST, MS_PER_SECOND, NEAR_EXPIRY_MS, PRIVATE_PROJECT_HEADER, PROVIDER_ID, PROVIDER_NAME, ROUTE_STREAM, ROUTE_TOKEN, TOKEN_URL } from './constants.ts';
 import { installGoogle, json, type Routes } from './google.ts';
@@ -13,7 +13,7 @@ const INCOMPLETE = 'Google AI login is incomplete; run /login again';
 const stored: OAuthCredential = { type: 'oauth', access: 'access-1', refresh: 'refresh-1', expires: STORED_EXPIRES, projectId: 'proj-1' };
 const rotating: Routes = { [ROUTE_TOKEN]: () => json({ access_token: 'access-2', expires_in: SHORT_EXPIRES_IN_SECONDS, refresh_token: 'refresh-2' }) };
 const keepingRefresh: Routes = { [ROUTE_TOKEN]: () => json({ access_token: 'access-2', expires_in: SHORT_EXPIRES_IN_SECONDS }) };
-const context = { messages: [{ role: 'user' as const, content: 'hi', timestamp: 1 }] };
+const context: TranscriptContext = normalizeContext({ messages: [{ role: 'user', content: 'hi', timestamp: 1 }] });
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -80,14 +80,14 @@ describe('turning a stored login into request auth', () => {
   });
 
   test.for([
-    ['project missing', { ...stored, projectId: undefined }],
-    ['project empty', { ...stored, projectId: '' }],
-    ['access not a string', { ...stored, access: NOT_A_STRING }],
-    ['refresh not a string', { ...stored, refresh: undefined }],
-    ['expiry missing', { ...stored, expires: undefined }],
-    ['expiry not finite', { ...stored, expires: Number.NaN }],
-  ])('rejects a stored login with %s', async ([, credential]) => {
-    await expect(oauth().toAuth(credential as OAuthCredential)).rejects.toThrow(INCOMPLETE);
+    ['project missing', { projectId: undefined }],
+    ['project empty', { projectId: '' }],
+    ['access not a string', { access: NOT_A_STRING }],
+    ['refresh not a string', { refresh: undefined }],
+    ['expiry missing', { expires: undefined }],
+    ['expiry not finite', { expires: Number.NaN }],
+  ])('rejects a stored login with %s', async ([, damage]) => {
+    await expect(oauth().toAuth(Object.assign({}, stored, damage))).rejects.toThrow(INCOMPLETE);
   });
 });
 
@@ -97,7 +97,7 @@ describe('a stored login that is about to expire', () => {
   test('is refreshed before the request and the new login is saved with its project', async () => {
     const session = await startSession({ credential: liveCredential({ access: 'access-old', expires: Date.now() + NEAR_EXPIRY_MS }), routes: { ...keepingRefresh, [ROUTE_STREAM]: () => reply } });
 
-    const message = await session.models.streamSimple(session.model('gemini-3.8-flash'), context as TranscriptContext, {}).result();
+    const message = await session.models.streamSimple(session.model('gemini-3.8-flash'), context, {}).result();
 
     expect(session.google.requestsTo(ROUTE_TOKEN)).toHaveLength(1);
     expect(session.google.requestsTo(ROUTE_TOKEN)[0]?.form?.get('refresh_token')).toBe('refresh-live');
@@ -111,7 +111,7 @@ describe('a stored login that is about to expire', () => {
     const failing = { [ROUTE_TOKEN]: () => json({ error: 'invalid_grant' }, HTTP_BAD_REQUEST), [ROUTE_STREAM]: () => reply };
     const session = await startSession({ credential: liveCredential({ access: 'access-old', expires: Date.now() + NEAR_EXPIRY_MS }), routes: failing });
 
-    const message = await session.models.streamSimple(session.model('gemini-3.8-flash'), context as TranscriptContext, {}).result();
+    const message = await session.models.streamSimple(session.model('gemini-3.8-flash'), context, {}).result();
 
     expect(message.stopReason).toBe('error');
     expect(session.google.requestsTo(ROUTE_STREAM)).toHaveLength(0);

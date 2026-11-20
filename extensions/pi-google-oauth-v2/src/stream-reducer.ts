@@ -1,23 +1,44 @@
 import { type Api, type AssistantMessage, type AssistantMessageEvent, calculateCost, type Model, type ToolCall, uuidv7 } from '@earendil-works/pi-ai';
+import { z } from 'zod';
 import { CodeAssistError } from './code-assist.ts';
 
-export interface ResponsePart {
-  text?: string;
-  thought?: boolean;
-  thoughtSignature?: string;
-  functionCall?: { id?: string; name?: string; args?: ToolCall['arguments'] };
-}
+const RESPONSE_PART = z.looseObject({
+  text: z.string().optional(),
+  thought: z.boolean().optional(),
+  thoughtSignature: z.string().optional(),
+  functionCall: z.looseObject({ id: z.string().optional(), name: z.string().optional(), args: z.record(z.string(), z.json()).optional() }).optional(),
+});
 
-export interface CodeAssistChunk {
-  response?: {
-    candidates?: { content?: { parts?: ResponsePart[] }; finishReason?: string; finishMessage?: string }[];
-    usageMetadata?: { promptTokenCount?: number; cachedContentTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; totalTokenCount?: number };
-    modelVersion?: string;
-    promptFeedback?: { blockReason?: string; blockReasonMessage?: string };
-  };
-  traceId?: string;
-  error?: { message?: string };
-}
+const CANDIDATE = z.looseObject({
+  content: z.looseObject({ parts: z.array(RESPONSE_PART).optional() }).optional(),
+  finishReason: z.string().optional(),
+  finishMessage: z.string().optional(),
+});
+
+const USAGE_METADATA = z.looseObject({
+  promptTokenCount: z.number().optional(),
+  cachedContentTokenCount: z.number().optional(),
+  candidatesTokenCount: z.number().optional(),
+  thoughtsTokenCount: z.number().optional(),
+  totalTokenCount: z.number().optional(),
+});
+
+const RESPONSE = z.looseObject({
+  candidates: z.array(CANDIDATE).optional(),
+  usageMetadata: USAGE_METADATA.optional(),
+  modelVersion: z.string().optional(),
+  promptFeedback: z.looseObject({ blockReason: z.string().optional(), blockReasonMessage: z.string().optional() }).optional(),
+});
+
+// Loose objects: stream hooks receive each chunk exactly as Google sent it.
+export const CODE_ASSIST_CHUNK = z.looseObject({
+  response: RESPONSE.optional(),
+  traceId: z.string().optional(),
+  error: z.looseObject({ message: z.string().optional() }).optional(),
+});
+
+export type CodeAssistChunk = z.infer<typeof CODE_ASSIST_CHUNK>;
+type ResponsePart = z.infer<typeof RESPONSE_PART>;
 
 /** Everything the stream has learned so far. Each step returns a new state and never edits the old one. */
 export interface ReducerState {

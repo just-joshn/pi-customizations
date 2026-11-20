@@ -22,15 +22,19 @@ describe('the sign-in page', () => {
     const login = await startLogin(waitsForAbort);
     const url = authUrl(login.events);
     expect(`${url?.origin}${url?.pathname}`).toBe(AUTH_ENDPOINT);
-    expect(Object.fromEntries(url?.searchParams ?? [])).toEqual({
+    const params = Object.fromEntries(url?.searchParams ?? []);
+    expect(params['redirect_uri']).toMatch(LOOPBACK_REDIRECT);
+    expect(params['state']).toBeTypeOf('string');
+    expect(params['code_challenge']).toBeTypeOf('string');
+    expect(params).toEqual({
       client_id: ANTIGRAVITY_CLIENT_ID,
-      redirect_uri: expect.stringMatching(LOOPBACK_REDIRECT),
+      redirect_uri: params['redirect_uri'],
       response_type: 'code',
       scope: SCOPES.join(' '),
       access_type: 'offline',
       prompt: 'consent',
-      state: expect.any(String),
-      code_challenge: expect.any(String),
+      state: params['state'],
+      code_challenge: params['code_challenge'],
       code_challenge_method: 'S256',
     });
     login.controller.abort();

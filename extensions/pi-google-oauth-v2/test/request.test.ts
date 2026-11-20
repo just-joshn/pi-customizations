@@ -202,7 +202,7 @@ describe('tool call ids', () => {
     const id = `openai|call/${'x'.repeat(LONG_ID_REPEAT)}`;
     const body = await send([user('hi'), toolUse([call(id)]), toolResult(id, 'file')]);
     const [, callTurn, resultTurn] = body.request.contents;
-    const wireId = `openai_call_${'x'.repeat(WIRE_ID_LENGTH - 'openai_call_'.length)}`;
+    const wireId = `openai_call_${'x'.repeat(Math.max(0, WIRE_ID_LENGTH - 'openai_call_'.length))}`;
     expect(wireId).toHaveLength(WIRE_ID_LENGTH);
     expect(callTurn?.parts[0]?.['functionCall']).toEqual({ id: wireId, name: 'read', args: { path: 'a.ts' } });
     expect(resultTurn?.parts[0]?.['functionResponse']).toEqual({ id: wireId, name: 'read', response: { output: 'file' } });
@@ -250,8 +250,8 @@ describe('image tool results', () => {
   test('keeps parallel Gemini 2.5 tool results in one turn and puts image turns after it', async () => {
     const messages = [user('hi'), toolUse([call('c1'), call('c2')], GEMINI_25), toolResult('c1', '', { content: [IMAGE_BLOCK] }), toolResult('c2', 'two')];
     const [, , ...tail] = (await send(messages, {}, GEMINI_25.model)).request.contents;
-    expect(tail).toEqual([
-      { role: 'user', parts: [{ functionResponse: expect.objectContaining({ response: { output: '(see attached image)' } }) }, { functionResponse: expect.objectContaining({ response: { output: 'two' } }) }] },
+    expect(tail).toMatchObject([
+      { role: 'user', parts: [{ functionResponse: { response: { output: '(see attached image)' } } }, { functionResponse: { response: { output: 'two' } } }] },
       { role: 'user', parts: [{ text: 'Tool result image:' }, IMAGE_PART] },
     ]);
   });

@@ -20,6 +20,7 @@ const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const MANUAL_REDIRECT_URI = 'https://antigravity.google/oauth-callback';
 const RANDOM_BYTES = 32;
+const TOKEN_FIELDS = z.record(z.string(), z.unknown());
 const MS_PER_SECOND = 1000;
 const ENV_SCHEMA = z.record(z.string(), z.string().optional());
 
@@ -90,7 +91,7 @@ async function postToken(body: Record<string, string>, fetchImpl: FetchFunction,
     signal,
   });
   const payload: unknown = await response.json().catch(() => undefined);
-  const fields = typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {};
+  const fields = TOKEN_FIELDS.safeParse(payload).data ?? {};
   if (!response.ok) {
     const description = fields['error_description'];
     throw new TokenRequestError(typeof fields['error'] === 'string' ? fields['error'] : `HTTP ${response.status}`, typeof description === 'string' ? description : undefined);
@@ -103,6 +104,13 @@ async function postToken(body: Record<string, string>, fetchImpl: FetchFunction,
 interface AuthorizationResult {
   code: string;
   redirectUri: string;
+}
+
+/** Once the loopback window expires, only the pasted code can finish the login, so this side never settles. */
+function unsettled(): Promise<never> {
+  return new Promise<never>(() => {
+    // Intentionally never resolves or rejects.
+  });
 }
 
 async function awaitAuthorizationCode(interaction: ProviderAuthInteraction, loopback: LoopbackCallback, pkce: { state: string; codeChallenge: string }, cancelPrompt: AbortSignal): Promise<AuthorizationResult> {
@@ -121,7 +129,10 @@ async function awaitAuthorizationCode(interaction: ProviderAuthInteraction, loop
   pasted.catch(() => undefined);
   const callback = loopback.code.then(
     (code): AuthorizationResult => ({ code, redirectUri: loopback.redirectUri }),
-    (error: unknown) => (error instanceof LoopbackExpiredError ? new Promise<never>(() => undefined) : Promise.reject(error)),
+    (error: unknown): Promise<never> => {
+      if (error instanceof LoopbackExpiredError) return unsettled();
+      throw error instanceof Error ? error : new Error(String(error));
+    },
   );
   callback.catch(() => undefined);
   const won = await Promise.race([callback, pasted]);
