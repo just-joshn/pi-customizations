@@ -92,7 +92,8 @@ function prepareRunFiles(command: string, args: string[]): RunFiles {
   fs.writeFileSync(files.outFile, '');
   fs.writeFileSync(files.errFile, '');
   const argv = [command, ...args].map(shellQuote).join(' ');
-  const script = ['#!/bin/bash', `${argv} > ${shellQuote(files.outFile)} 2> ${shellQuote(files.errFile)}`, `echo $? > ${shellQuote(files.exitFile)}`];
+  const exitTmp = `${files.exitFile}.tmp`;
+  const script = ['#!/bin/bash', `${argv} > ${shellQuote(files.outFile)} 2> ${shellQuote(files.errFile)}`, `echo $? > ${shellQuote(exitTmp)} && mv ${shellQuote(exitTmp)} ${shellQuote(files.exitFile)}`];
   fs.writeFileSync(files.wrapper, `${script.join('\n')}\n`, { mode: WRAPPER_MODE });
   return files;
 }
