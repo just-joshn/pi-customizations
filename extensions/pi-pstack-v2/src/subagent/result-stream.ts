@@ -53,7 +53,6 @@ function resolveOutcome(result: SingleResult, outcome: ProcessOutcome, aborted: 
   const { errorMessage } = result;
   if (aborted || outcome.signal === 'SIGTERM') return { status: 'aborted', errorMessage: errorMessage || 'Subagent was aborted' };
   if (outcome.spawnError) return { status: 'failed', errorMessage: `Failed to spawn subagent: ${outcome.spawnError.message}` };
-  if (outcome.signal) return { status: 'failed', errorMessage: errorMessage || `Subagent terminated by signal ${outcome.signal}` };
   if (outcome.code !== 0) return { status: 'failed', errorMessage: errorMessage || `Subagent exited with code ${outcome.code}` };
   if (result.stopReason === 'aborted') return { status: 'aborted', errorMessage };
   if (result.stopReason === 'error') return { status: 'failed', errorMessage };

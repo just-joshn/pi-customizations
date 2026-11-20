@@ -132,16 +132,7 @@ function readOutcome(exitFile: string, wasAborted: boolean): ProcessOutcome {
  * Run `command args` inside a detached tmux session. Stdout/stderr are mirrored
  * into temp files so the parent can stream JSON events the same way a pipe did.
  */
-export async function runPiInTmux(options: {
-  command: string;
-  args: string[];
-  cwd: string;
-  signal?: AbortSignal | undefined;
-  onStdoutChunk: (chunk: string) => void;
-  onStderrChunk: (chunk: string) => void;
-  /** Test hook: called after the tmux session exists and before waiting for exit, with the session and its server's socket. */
-  onSessionStarted?: ((session: string, socket: string) => void) | undefined;
-}): Promise<ProcessOutcome> {
+export async function runPiInTmux(options: { command: string; args: string[]; cwd: string; signal?: AbortSignal | undefined; onStdoutChunk: (chunk: string) => void; onStderrChunk: (chunk: string) => void }): Promise<ProcessOutcome> {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 
@@ -153,16 +144,12 @@ export async function runPiInTmux(options: {
     return { code: null, signal: null, spawnError: error instanceof Error ? error : new Error(String(error)) };
   }
 
-  options.onSessionStarted?.(session, path.join(files.dir, SOCKET_NAME));
-
   let wasAborted = false;
   const abort = () => {
-    if (wasAborted) return;
     wasAborted = true;
     tmuxKillServer(files.dir);
   };
-  if (options.signal?.aborted) abort();
-  else options.signal?.addEventListener('abort', abort, { once: true });
+  options.signal?.addEventListener('abort', abort, { once: true });
 
   const pumpOut = createPump(files.outFile, options.onStdoutChunk);
   const pumpErr = createPump(files.errFile, options.onStderrChunk);

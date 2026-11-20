@@ -1,95 +1,126 @@
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { beforeEach, expect, test, vi } from 'vitest';
-import { runChain } from '../src/subagent/dispatch-chain.ts';
-import { runParallel } from '../src/subagent/dispatch-parallel.ts';
-import subagentExtension from '../src/subagent/index.ts';
-import { createUnstartedResult, makeDetails } from '../src/subagent/results.ts';
-import { runPiInTmux } from '../src/subagent/run-in-tmux.ts';
-import { runSingleAgent } from '../src/subagent/run-single.ts';
+import { describe, expect, test, vi } from 'vitest';
+import { assistantLine, printing } from './subagent-child-output.ts';
+import { fakeTmux } from './subagent-fake-tmux.ts';
+import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
-vi.mock('../src/subagent/run-in-tmux.ts', () => ({ runPiInTmux: vi.fn() }));
-vi.mock('../src/subagent/run-single.ts', () => ({ runSingleAgent: vi.fn() }));
+vi.mock('node:child_process', () => import('./subagent-fake-tmux.ts'));
 
-type Tool = {
-  name: string;
-  description: string;
-  execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<{ content: { type: string; text: string }[] }>;
-  renderCall: (args: unknown, theme: unknown) => unknown;
-  renderResult: (result: unknown, options: { expanded: boolean }, theme: unknown) => unknown;
-};
-type ResultHook = (event: { toolName: string; details?: unknown }) => unknown;
+const workspace = useWorkspace();
+const ctx = () => makeCtx(workspace().project);
+const ALL_AGENTS = 'ci-watcher (package), comment-sicko (package), poteto-agent (package), scout (package), thermo-nuclear-code-quality-review (package), worker (package)';
 
-const theme = { fg: (_color: string, text: string) => text, bold: (text: string) => text };
-
-let tool: Tool | undefined;
-let hook: ResultHook | undefined;
-
-beforeEach(() => {
-  vi.mocked(runPiInTmux).mockReset();
-  const api = {
-    on: (event: string, handler: ResultHook) => {
-      hook = event === 'tool_result' ? handler : hook;
-    },
-    registerTool: (registered: Tool) => {
-      tool = registered;
-    },
-  };
-  subagentExtension(api as unknown as ExtensionAPI);
-});
-
-test('registers a subagent tool that describes its modes', () => {
-  expect(tool?.name).toBe('subagent');
-  expect(tool?.description).toContain('single (agent + task), parallel (tasks array), chain');
-  expect(tool?.description).toContain('agentScope: "both"');
-});
-
-test('tool_result hook marks subagent error details as errors', () => {
-  expect(hook?.({ toolName: 'subagent', details: { isError: true } })).toEqual({ isError: true });
-});
-
-test('tool_result hook leaves other results alone', () => {
-  expect(hook?.({ toolName: 'bash', details: { isError: true } })).toBeUndefined();
-  expect(hook?.({ toolName: 'subagent', details: { isError: false } })).toBeUndefined();
-  expect(hook?.({ toolName: 'subagent' })).toBeUndefined();
-});
-
-test('execute validates params and dispatches without touching tmux for invalid calls', async () => {
-  const ctx = { cwd: process.cwd(), hasUI: false };
-  const result = await tool?.execute('id', {}, undefined, undefined, ctx);
-  expect(result?.content[0]?.text).toContain('Invalid parameters');
-  expect(runPiInTmux).not.toHaveBeenCalled();
-});
-
-test('execute rejects params of the wrong shape', () => {
-  expect(() => tool?.execute('id', { agent: 5 }, undefined, undefined, { cwd: process.cwd() })).toThrow();
-});
-
-test('renderCall and renderResult delegate to the subagent renderers', () => {
-  const call = tool?.renderCall({ agent: 'scout', task: 'look around' }, theme);
-  expect(call).toBeDefined();
-  const result = { content: [{ type: 'text', text: 'hi' }], details: { mode: 'single', results: [], isError: false } };
-  expect(tool?.renderResult(result, { expanded: false }, theme)).toBeDefined();
-});
-
-const resolvedAgent = { agent: undefined, available: [], cwd: process.cwd() };
-const emptyDetails = makeDetails('single')([]);
-const silentRun = { defaults: {}, signal: undefined, onUpdate: undefined };
-
-test('runChain with no steps reports no output', async () => {
-  const result = await runChain(silentRun, [], []);
-  expect(result.content).toEqual([{ type: 'text', text: '(no output)' }]);
-});
-
-test('chain and parallel ignore child updates that carry no result', async () => {
-  const onUpdate = vi.fn();
-  const finished = createUnstartedResult('a', 't', undefined, 'failed', 'x');
-  vi.mocked(runSingleAgent).mockImplementation(async (_d, _r, _n, _t, _s, _sig, update) => {
-    update?.({ content: [], details: emptyDetails });
-    return finished;
+describe('registering the subagent tool', () => {
+  test('registers one tool that describes its modes, agent scopes and wake', () => {
+    const { tool } = loadSubagent();
+    expect(tool.name).toBe('subagent');
+    expect(tool.description).toContain('single (agent + task), parallel (tasks array), chain');
+    expect(tool.description).toContain(`from ${workspace().root}/agent/agents`);
+    expect(tool.description).toContain('agentScope: "both"');
+    expect(tool.description).toContain('With wake set, it returns a job id at once');
   });
-  const run = { ...silentRun, onUpdate };
-  await runChain(run, [{ agent: 'a', task: 't' }], [resolvedAgent]);
-  await runParallel(run, [{ agent: 'a', task: 't' }], [resolvedAgent]);
-  const progress = onUpdate.mock.calls.map(([update]) => update.content[0]?.text);
-  expect(progress).toEqual(['Parallel: 1/1 done, 0 running, 0 pending...']);
+});
+
+describe('marking a subagent result as an error', () => {
+  const hook = (event: unknown) => loadSubagent().fire('tool_result', event, ctx());
+
+  test('marks a subagent result whose details say error', () => {
+    expect(hook({ toolName: 'subagent', details: { isError: true } })).toEqual({ isError: true });
+  });
+
+  test('leaves other tools, clean results and results without details alone', () => {
+    expect(hook({ toolName: 'bash', details: { isError: true } })).toBeUndefined();
+    expect(hook({ toolName: 'subagent', details: { isError: false } })).toBeUndefined();
+    expect(hook({ toolName: 'subagent' })).toBeUndefined();
+  });
+
+  test('a failing child makes the tool result an error, which Pi then reports', async () => {
+    const subagent = loadSubagent();
+    fakeTmux.onChild((child) => child.exit(1));
+    const result = await subagent.call({ agent: 'scout', task: 'x' }, ctx());
+    expect(subagent.fire('tool_result', { toolName: 'subagent', details: result.details }, ctx())).toEqual({ isError: true });
+  });
+});
+
+describe('a call with the wrong mode', () => {
+  test('with no mode, says to provide exactly one and lists the agents', async () => {
+    const result = await loadSubagent().call({}, ctx());
+    expect(textOf(result)).toBe(`Invalid parameters. Provide exactly one mode.\nAvailable agents: ${ALL_AGENTS}`);
+    expect(result.details).toMatchObject({ mode: 'single', isError: true });
+    expect(fakeTmux.children()).toHaveLength(0);
+  });
+
+  test('with two modes, says the same and lists user agents too', async () => {
+    writeAgent(workspace().userAgents, 'mine');
+    const result = await loadSubagent().call({ agent: 'scout', task: 'x', tasks: [{ agent: 'scout', task: 'y' }] }, ctx());
+    expect(textOf(result)).toContain('Invalid parameters. Provide exactly one mode.');
+    expect(textOf(result)).toContain('mine (user)');
+    expect(fakeTmux.children()).toHaveLength(0);
+  });
+
+  test('with an agent but no task, is not a single call', async () => {
+    expect(textOf(await loadSubagent().call({ agent: 'scout' }, ctx()))).toContain('Invalid parameters');
+  });
+
+  test('with parameters of the wrong shape, throws before anything runs', () => {
+    expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow();
+    expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow();
+    expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow();
+    expect(fakeTmux.children()).toHaveLength(0);
+  });
+});
+
+describe('what the tool keeps of the child output', () => {
+  const run = async (...lines: string[]) => {
+    fakeTmux.onChild(printing(...lines));
+    return loadSubagent().call({ agent: 'scout', task: 'x' }, ctx());
+  };
+
+  test('keeps the child message whole, with every field it came with', async () => {
+    const message = {
+      role: 'assistant',
+      content: [{ type: 'text', text: 'hi' }],
+      api: 'a',
+      model: 'm',
+      usage: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, totalTokens: 5, cost: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, total: 0.25 } },
+      stopReason: 'stop',
+      timestamp: 1,
+    };
+    const result = await run(JSON.stringify({ type: 'message_end', message }));
+    expect(result.details?.results[0]).toMatchObject({ messages: [message], usage: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, cost: 0.25, contextTokens: 5, turns: 1 }, model: 'm' });
+  });
+
+  test('keeps user and tool result messages with their extra fields', async () => {
+    const toolResult = { zeta: 1, role: 'toolResult', alpha: { deep: [1] } };
+    const result = await run(JSON.stringify({ type: 'message_end', message: toolResult }), assistantLine('end'));
+    const [first] = result.details?.results[0]?.messages ?? [];
+    expect(first).toStrictEqual(toolResult);
+    expect(textOf(result)).toBe('end');
+  });
+
+  test.for([
+    ['a JSON number', '5'],
+    ['a JSON string', '"text"'],
+    ['a JSON list', '[]'],
+    ['an empty object', '{}'],
+    ['an event that is not a message end', JSON.stringify({ type: 'agent_start' })],
+    ['a message with an unknown role', JSON.stringify({ type: 'message_end', message: { role: 'custom', content: [] } })],
+    ['a message with no role', JSON.stringify({ type: 'message_end', message: { content: [] } })],
+    ['a message whose role is a list', JSON.stringify({ type: 'message_end', message: { role: ['user'] } })],
+  ])('ignores %s and still reads the answer after it', async ([, line]) => {
+    expect(textOf(await run(line as string, assistantLine('the answer')))).toBe('the answer');
+  });
+
+  test.for([
+    ['a JSON null', 'null'],
+    ['a message end with no message', JSON.stringify({ type: 'message_end' })],
+  ])('loses the output that arrived together with %s', async ([, line]) => {
+    expect(textOf(await run(line as string, assistantLine('lost')))).toBe('(no output)');
+  });
+
+  test('keeps an assistant message whose usage is incomplete, counting what is there', async () => {
+    const partial = { role: 'assistant', content: [{ type: 'text', text: 'kept' }], usage: { input: 1, output: 2, cost: {} } };
+    const result = await run(JSON.stringify({ type: 'message_end', message: partial }));
+    expect(textOf(result)).toBe('kept');
+    expect(result.details?.results[0]).toMatchObject({ usage: { input: 1, output: 2 } });
+  });
 });
