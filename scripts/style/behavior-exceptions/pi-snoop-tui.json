@@ -12,9 +12,9 @@
     "reason": "AssistantMessageEventStream.push is pi-ai's event-emit API, not a collection write. It is the only way to feed a provider stream, and the bench and demo providers need it."
   },
   {
-    "file": "extensions/pi-snoop-tui/test/editor.test.ts",
+    "file": "extensions/pi-snoop-tui/test/harness.ts",
     "rule": "plugin",
-    "line": "instance.borderColor = bash;",
-    "reason": "Pi assigns borderColor onto the live editor instance when the theme changes. The test reproduces that host write to prove the rule cache restyles."
+    "line": "Reflect.set(editor, 'borderColor', color);",
+    "reason": "Pi assigns borderColor onto the live editor instance when the theme changes. The harness reproduces that host write so tests can prove the rules restyle."
   }
 ]
