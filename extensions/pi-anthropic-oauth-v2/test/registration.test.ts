@@ -54,6 +54,6 @@ describe('registration errors', () => {
         throw new Error('duplicate');
       },
     };
-    expect(() => extension(pi as never)).toThrow('Could not register the custom-anthropic provider.');
+    expect(() => extension(pi)).toThrow('Could not register the custom-anthropic provider.');
   });
 });

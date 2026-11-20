@@ -3,8 +3,8 @@ import { BLOCK_TEXT, BLOCK_TOOL, BLOCK_UNKNOWN, CACHE_READ_TOKENS, CACHE_WRITE_T
 
 const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 
-export const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } as never };
-export const customTool: Tool = { name: 'my_tool', description: 'Custom', parameters: { type: 'object' } as never };
+export const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } };
+export const customTool: Tool = { name: 'my_tool', description: 'Custom', parameters: { type: 'object' } };
 
 export const transcript = (): Message[] => [
   { role: 'user', content: 'hello', timestamp: 1 },

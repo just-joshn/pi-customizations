@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOKEN_URL } from './support/constants.ts';
 import { collect, model, register } from './support/provider.ts';
 
+const containing = (text: string): unknown => expect.stringContaining(text);
 const oauth = () => register().config.oauth;
 
 const streamError = async (context: ReturnType<typeof normalizeContext>) => {
@@ -28,7 +29,7 @@ describe('login input validation', () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ access_token: 'a', refresh_token: 'r', expires_in: 1 }) }));
     vi.stubGlobal('fetch', fetchMock);
     await oauth().login({ onAuth: () => undefined, onPrompt: async () => ' code#state\n' });
-    expect(fetchMock).toHaveBeenCalledWith(TOKEN_URL, expect.objectContaining({ body: expect.stringContaining('"code":"code","state":"state"') }));
+    expect(fetchMock).toHaveBeenCalledWith(TOKEN_URL, expect.objectContaining({ body: containing('"code":"code","state":"state"') }));
   });
 });
 
@@ -44,8 +45,8 @@ describe('token request errors', () => {
       .refreshToken({ refresh: 'r', access: 'a', expires: 0 }, new AbortController().signal)
       .catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(Error);
-    expect((error as Error).message).toBe('Token refresh failed: could not reach Anthropic. Check your connection and try again.');
-    expect((error as Error).cause).toBeInstanceOf(TypeError);
+    expect(error).toMatchObject({ message: 'Token refresh failed: could not reach Anthropic. Check your connection and try again.' });
+    expect(error instanceof Error && error.cause).toBeInstanceOf(TypeError);
   });
 
   it('rejects a token response without the expected fields', async () => {
@@ -66,7 +67,7 @@ describe('request input validation', () => {
   });
 
   it('reports a tool with an invalid parameter schema', async () => {
-    const tool: Tool = { name: 'broken', description: 'Broken', parameters: { type: 'object', properties: 'nope' } as never };
+    const tool: Tool = { name: 'broken', description: 'Broken', parameters: { type: 'object', properties: 'nope' } };
     const events = await streamError(normalizeContext({ messages: [{ role: 'user', content: 'hi', timestamp: 1 }], tools: [tool] }));
     expect(events[0]).toMatchObject({ error: { errorMessage: 'Tool "broken" has an invalid parameter schema.' } });
     expect(consoleError).toHaveBeenCalled();

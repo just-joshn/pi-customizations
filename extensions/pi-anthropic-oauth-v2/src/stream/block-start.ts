@@ -9,18 +9,13 @@ type StartedBlock = {
 };
 
 function toStartedBlock(start: Anthropic.Beta.BetaRawContentBlockStartEvent['content_block'], context: StreamContext): StartedBlock | undefined {
-  switch (start.type) {
-    case 'text':
-      return { block: { type: 'text', text: '' }, eventType: 'text_start' };
-    case 'thinking':
-      return { block: { type: 'thinking', thinking: '', thinkingSignature: '' }, eventType: 'thinking_start' };
-    case 'tool_use': {
-      const name = context.isOAuth ? fromClaudeCodeName(start.name, context.tools) : start.name;
-      return { block: { type: 'toolCall', id: start.id, name, arguments: {} }, eventType: 'toolcall_start' };
-    }
-    default:
-      return undefined;
+  if (start.type === 'text') return { block: { type: 'text', text: '' }, eventType: 'text_start' };
+  if (start.type === 'thinking') return { block: { type: 'thinking', thinking: '', thinkingSignature: '' }, eventType: 'thinking_start' };
+  if (start.type === 'tool_use') {
+    const name = context.isOAuth ? fromClaudeCodeName(start.name, context.tools) : start.name;
+    return { block: { type: 'toolCall', id: start.id, name, arguments: {} }, eventType: 'toolcall_start' };
   }
+  return undefined;
 }
 
 export function startBlock(state: StreamState, event: Anthropic.Beta.BetaRawContentBlockStartEvent, context: StreamContext): StreamStep {
