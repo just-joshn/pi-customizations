@@ -1,16 +1,16 @@
 # pi-customizations
 
-Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. Each one is a separate npm package listed on [pi.dev/packages](https://pi.dev/packages).
+Packages for [Pi](https://pi.dev), the coding agent by Earendil Works. Each one is a separate npm package listed on [pi.dev/packages](https://pi.dev/packages).
 
 | Package | What it adds |
 | --- | --- |
-| [`@justjoshn/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2) | Claude models through a custom Anthropic provider, with Claude Pro/Max sign-in or an API key. |
-| [`@justjoshn/pi-google-oauth-v2`](extensions/pi-google-oauth-v2) | The Gemini and partner models your Google AI plan serves. |
-| [`@justjoshn/pi-spacex-oauth-v2`](extensions/pi-spacex-oauth-v2) | Grok and Cursor models through your X subscription, plus `/spacex-usage`. |
-| [`@justjoshn/pi-pstack-v2`](extensions/pi-pstack-v2) | The pstack workflows and skills, such as `/poteto-mode`, built on Pi's own tools. |
+| [`@justjoshn/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2) | Claude models through a custom Anthropic provider built on `@anthropic-ai/sdk`, with Claude Pro/Max sign-in or an API key. |
+| [`@justjoshn/pi-google-oauth-v2`](extensions/pi-google-oauth-v2) | Gemini models through your Google AI plan, with Google account sign-in and no API key. |
+| [`@justjoshn/pi-spacex-oauth-v2`](extensions/pi-spacex-oauth-v2) | Your X subscription through Grok Build and Cursor sign-ins, plus `/spacex-usage`. |
+| [`@justjoshn/pi-pstack-v2`](extensions/pi-pstack-v2) | The pstack workflows and skills, started with `/pstack-mode poteto-mode`. It also adds the `tmux_run` and `tmux_jobs` tools, the `subagent` and `report_findings` tools, and a Gondolin VM that runs Pi's file and shell tools. |
 | [`@justjoshn/pi-snoop-tui`](extensions/pi-snoop-tui) | Paired themes, compact tool rows, a single-line footer, and a static working indicator. |
 
-Install one with `pi install npm:<package>`.
+Install a package with `pi install npm:<package>`.
 
 ## Deprecated packages
 
@@ -36,18 +36,22 @@ The source of the deprecated packages stays in git history.
 
 ## Develop
 
+You need Node `>=22.19.0` and Bun. The `pi-pstack-v2` tests also need `tmux`.
+
 ```sh
 bun install
-bun run ci          # Biome format check, bun lint, style and behavior-test audits
-bun run typecheck   # every package
-bun run test        # every package
+bun run ci                   # Biome format and assist check, bun lint, style audit, behavior-test audit
+bun run style-audit          # style audit alone
+bun run behavior-test-audit  # behavior-test audit alone
+bun run typecheck            # every package
+bun run test                 # every package
 ```
 
-`bun lint` is only in Bun canary builds. Run `bun upgrade --canary` to get one, or let CI run it.
+`bun lint` exists only in Bun canary builds. Run `bun upgrade --canary` to get one. The CI lint job installs Bun canary (`bun-version: canary`). The CI test jobs and the release workflow use Bun 1.4.5.
 
 To load a package from this checkout, run `pi -e extensions/<package>`.
 
-Bump `version` in a package's `package.json` and merge to `main` to publish it. See [`docs/releases.md`](docs/releases.md).
+To publish a package, bump `version` in its `package.json` and merge to `main`. See [`docs/releases.md`](docs/releases.md).
 
 ## License
 
