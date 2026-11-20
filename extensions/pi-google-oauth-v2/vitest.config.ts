@@ -8,6 +8,7 @@ export default defineConfig({
     globals: false,
     pool: 'forks',
     isolate: true,
+    unstubEnvs: true,
     include: ['test/**/*.test.ts'],
     coverage: {
       provider: 'v8',

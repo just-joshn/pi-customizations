@@ -14,12 +14,9 @@ export const healthyGoogle: Routes = {
   [ROUTE_LOAD]: () => json({ currentTier: { id: 'g1-pro-tier', name: 'Google AI Pro' }, cloudaicompanionProject: 'proj-server' }),
 };
 
-/**
- * Gives the extension the project env vars the user's shell would carry, and nothing else.
- * Node's own `process.env` is not a plain object, which the extension's zod check rejects, so the test hands it a plain one.
- */
+/** Sets the project env vars the user's shell would carry on the real `process.env`, clearing the ones not given. */
 export function stubProjectEnv(env: Partial<Record<(typeof ENV_PROJECT_KEYS)[number], string>> = {}): void {
-  vi.spyOn(process, 'env', 'get').mockReturnValue({ ...env });
+  for (const key of ENV_PROJECT_KEYS) vi.stubEnv(key, env[key]);
 }
 
 export const waitsForAbort = (prompt: AuthPrompt) =>

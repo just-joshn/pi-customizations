@@ -52,7 +52,7 @@ export function createGoogleOAuth(deps: GoogleOAuthDeps = {}): OAuthAuth {
     name: 'Google AI subscription',
     isSubscription: true,
     loginLabel: 'Sign in with your Google AI plan',
-    login: (interaction) => login(interaction, fetchImpl, deps.env ?? ENV_SCHEMA.parse(process.env)),
+    login: (interaction) => login(interaction, fetchImpl, deps.env ?? ENV_SCHEMA.parse({ ...process.env })),
     refresh: (credential, signal) => refresh(credential, signal, fetchImpl),
     toAuth,
   };
