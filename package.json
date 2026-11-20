@@ -14,7 +14,7 @@
     "test": "bun run --sequential --filter \"*\" test",
     "typecheck": "bun run --sequential --filter \"*\" typecheck",
     "check": "biome check . --error-on-warnings",
-    "ci": "biome ci . --error-on-warnings --max-diagnostics=none",
+    "ci": "biome ci . --error-on-warnings --max-diagnostics=none && bun scripts/style-audit.mjs",
     "style-audit": "node scripts/style-audit.mjs"
   },
   "devDependencies": {
