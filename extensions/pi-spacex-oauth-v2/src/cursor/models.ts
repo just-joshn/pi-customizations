@@ -23,7 +23,9 @@ const EFFORT_VALUES: Record<PiLevel, readonly string[]> = {
 
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 const MAX_OUTPUT_TOKENS = 64_000;
-const CONTEXT_UNITS: Record<string, number> = { k: 1_000, m: 1_000_000 };
+const TOKENS_PER_THOUSAND = 1_000;
+const TOKENS_PER_MILLION = 1_000_000;
+const CONTEXT_UNITS: Record<string, number> = { k: TOKENS_PER_THOUSAND, m: TOKENS_PER_MILLION };
 
 const effortParam = (model: SDKModel) => model.parameters?.find((p) => EFFORT_PARAMS.has(p.id));
 const thinkingParam = (model: SDKModel) => model.parameters?.find((p) => p.id === THINKING_PARAM);

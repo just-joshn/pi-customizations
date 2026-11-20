@@ -4,29 +4,28 @@ import { join } from 'node:path';
 
 import { Agent, type SDKAgent } from '@cursor/sdk';
 import { type Api, type AssistantMessageEventStream, collapseSystemMessages, getCurrentSystemPrompt, getCurrentTools, type Model, type SimpleStreamOptions, type ToolResultMessage, type TranscriptContext } from '@earendil-works/pi-ai';
+import { createCell, withEntry, withoutKeys } from '../cell.ts';
 import { findCursorModel } from './catalog.ts';
 import { CURSOR_CONFIG } from './config.ts';
 import { describeCursorError } from './errors.ts';
 import { selectModel } from './models.ts';
-import { CursorRun, findParkedRun } from './run.ts';
+import { createCursorRun, findParkedRun } from './run.ts';
 import { conversationKey, conversationOf, followUpMessage, openingMessage } from './transcript.ts';
-import { PiTurn } from './turn.ts';
+import { createPiTurn, type PiTurn } from './turn.ts';
 
 /** Agents between runs, keyed by the conversation Cursor holds for them. Map order is recency. */
-const idleAgents = new Map<string, SDKAgent>();
+const idleAgents = createCell(new Map<string, SDKAgent>());
 
 function keepIdle(key: string, agent: SDKAgent): void {
-  idleAgents.set(key, agent);
-  for (const [oldKey, old] of idleAgents) {
-    if (idleAgents.size <= CURSOR_CONFIG.maxIdleAgents) break;
-    idleAgents.delete(oldKey);
-    old.close();
-  }
+  const entries = [...withEntry(idleAgents.read(), key, agent)];
+  const excess = Math.max(0, entries.length - CURSOR_CONFIG.maxIdleAgents);
+  idleAgents.write(new Map(entries.slice(excess)));
+  for (const [, evicted] of entries.slice(0, excess)) evicted.close();
 }
 
 function takeIdle(key: string): SDKAgent | undefined {
-  const agent = idleAgents.get(key);
-  idleAgents.delete(key);
+  const agent = idleAgents.read().get(key);
+  idleAgents.write(withoutKeys(idleAgents.read(), [key]));
   return agent;
 }
 
@@ -41,9 +40,9 @@ function workspace(): string {
 }
 
 function trailingToolResults(messages: TranscriptContext['messages']): ToolResultMessage[] {
-  const results: ToolResultMessage[] = [];
-  for (let i = messages.length - 1; i >= 0 && messages[i]?.role === 'toolResult'; i--) results.unshift(messages[i] as ToolResultMessage);
-  return results;
+  const trailing = messages.toReversed().findIndex((m) => m.role !== 'toolResult');
+  const count = trailing === -1 ? messages.length : trailing;
+  return messages.slice(messages.length - count).filter((m): m is ToolResultMessage => m.role === 'toolResult');
 }
 
 async function startRun(model: Model<Api>, transcript: TranscriptContext, options: SimpleStreamOptions | undefined, turn: PiTurn): Promise<void> {
@@ -60,22 +59,23 @@ async function startRun(model: Model<Api>, transcript: TranscriptContext, option
   const agent = idle ?? (await Agent.create({ ...(apiKey ? { apiKey } : {}), model: selection, tools: ['mcp'], local: { cwd: workspace() } }));
   const message = idle && latest ? followUpMessage(latest) : openingMessage(systemPrompt, history, latest);
 
-  const bridge = new CursorRun(turn, transcript.messages, {
+  const bridge = createCursorRun(turn, transcript.messages, {
     finished: (final, messages) => keepIdle(conversationKey(systemPrompt, tools, [...conversationOf(messages), final.message]), agent),
     failed: () => agent.close(),
   });
 
-  try {
-    const run = await agent.send(message, { model: selection, local: { customTools: bridge.customTools(tools) } });
-    bridge.start(run, options?.signal);
-  } catch (error) {
-    agent.close();
-    throw error;
-  }
+  const send = async () => agent.send(message, { model: selection, local: { customTools: bridge.customTools(tools) } });
+  await send().then(
+    (run) => bridge.start(run, options?.signal),
+    (error: unknown) => {
+      agent.close();
+      throw error;
+    },
+  );
 }
 
 export function streamCursor(model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions): AssistantMessageEventStream {
-  const turn = new PiTurn(model);
+  const turn = createPiTurn(model);
   const transcript = collapseSystemMessages(context);
   const results = trailingToolResults(transcript.messages);
   const parked = results.length > 0 ? findParkedRun(results.map((r) => r.toolCallId)) : undefined;

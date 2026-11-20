@@ -1,8 +1,10 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { z } from 'zod';
 import { CURSOR_PROVIDER_ID, cursorProvider } from './cursor/provider.ts';
 import { GROK_PROVIDER_ID, grokProvider } from './grok.ts';
 import { fetchCursorAccount, fetchGrokBilling, formatGrokBilling, formatRateLimit, parseRateLimit, type RateLimit } from './usage.ts';
 
+const CommandArgs = z.string().optional();
 const STATUS_KEY = 'spacex-usage';
 
 export default function piSpacexOauth(pi: ExtensionAPI) {
@@ -16,8 +18,8 @@ export default function piSpacexOauth(pi: ExtensionAPI) {
   async function usageLines(ctx: ExtensionContext): Promise<string[]> {
     const [cursorToken, grokToken] = await Promise.all([token(ctx, CURSOR_PROVIDER_ID), token(ctx, GROK_PROVIDER_ID)]);
     const lines = await Promise.all([cursorToken ? fetchCursorAccount(cursorToken) : undefined, grokToken ? fetchGrokBilling(grokToken).then(formatGrokBilling) : undefined]);
-    if (grokRateLimit) lines.push(formatRateLimit(grokRateLimit));
-    return lines.filter((l): l is string => !!l);
+    const all = grokRateLimit ? [...lines, formatRateLimit(grokRateLimit)] : lines;
+    return all.filter((l): l is string => !!l);
   }
 
   /** Grok Build's remaining requests while a Grok Build model is selected. */
@@ -36,7 +38,8 @@ export default function piSpacexOauth(pi: ExtensionAPI) {
 
   pi.registerCommand('spacex-usage', {
     description: 'Show X subscription usage for Grok Build and the signed-in Cursor account',
-    handler: async (_args, ctx) => {
+    handler: async (args, ctx) => {
+      CommandArgs.parse(args);
       const lines = await usageLines(ctx).catch((err: unknown) => [`Usage lookup failed: ${err instanceof Error ? err.message : String(err)}`]);
       ctx.ui.notify(lines.length > 0 ? lines.join('\n') : 'Sign in with /login (Grok Build or Cursor) to see usage.', 'info');
     },

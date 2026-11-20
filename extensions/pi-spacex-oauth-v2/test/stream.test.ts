@@ -6,17 +6,32 @@ import { sdk, sdkStatus, sdkText, sdkThinking } from './fake-sdk.ts';
 
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
+const HTTP_UNAUTHORIZED = 401;
+const USER_TIMESTAMP = 1;
+const TOOL_RESULT_TIMESTAMP = 2;
+const IMAGE_RESULT_TIMESTAMP = 3;
+const BATCH_WAIT_MS = 30;
+const MS_PER_MINUTE = 60_000;
+const TOOL_WAIT_MINUTES = 30;
+const SETTLE_MS = 5;
+const AGENTS_AFTER_EDIT = 2;
+
 const model = { id: 'composer-2.5', api: 'cursor-sdk', provider: 'spacex-cursor' } as unknown as Model<Api>;
 const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object', properties: { path: { type: 'string' } } } };
 const lsTool: Tool = { name: 'ls', description: 'List a directory', parameters: { type: 'object', properties: {} } };
 
 const system = (prompt: string, tools: Tool[] = [readTool, lsTool]): Message => ({ role: 'system', content: prompt, toolsAdded: tools, timestamp: 0 });
-const user = (content: Extract<Message, { role: 'user' }>['content']): Message => ({ role: 'user', content, timestamp: 1 });
-const toolResult = (toolCallId: string, text: string, isError = false): ToolResultMessage => ({ role: 'toolResult', toolCallId, toolName: 'read', content: [{ type: 'text', text }], isError, timestamp: 2 });
+const user = (content: Extract<Message, { role: 'user' }>['content']): Message => ({ role: 'user', content, timestamp: USER_TIMESTAMP });
+const toolResult = (toolCallId: string, text: string, isError = false): ToolResultMessage => ({ role: 'toolResult', toolCallId, toolName: 'read', content: [{ type: 'text', text }], isError, timestamp: TOOL_RESULT_TIMESTAMP });
+
+async function collect(stream: AsyncIterable<AssistantMessageEvent>): Promise<AssistantMessageEvent[]> {
+  let events: AssistantMessageEvent[] = [];
+  for await (const event of stream) events = [...events, event];
+  return events;
+}
 
 async function ask(messages: Message[], options: SimpleStreamOptions = { apiKey: 'key' }) {
-  const events: AssistantMessageEvent[] = [];
-  for await (const event of streamCursor(model, normalizeContext({ messages }), options)) events.push(event);
+  const events = await collect(streamCursor(model, normalizeContext({ messages }), options));
   const last = events.at(-1);
   const message = (last?.type === 'done' ? last.message : last?.type === 'error' ? last.error : undefined) as AssistantMessage;
   return { events, message, types: events.map((e) => e.type) };
@@ -36,7 +51,7 @@ afterEach(() => vi.useRealTimers());
 
 describe('a plain reply', () => {
   test('streams thinking and text, then stops with zero usage so Pi estimates context', async () => {
-    sdk.scripts.push(async ({ emit }) => {
+    sdk.script(async ({ emit }) => {
       emit(sdkStatus());
       emit(sdkThinking('Let me '));
       emit(sdkThinking('think.'));
@@ -57,7 +72,7 @@ describe('a plain reply', () => {
   });
 
   test("creates a local agent with only the MCP tool group, Pi's prompt in the message, and the catalog's default variant", async () => {
-    sdk.scripts.push(async () => ({ status: 'finished' }));
+    sdk.script(async () => ({ status: 'finished' }));
     await ask([system('You are Pi.'), user('hi')]);
     const [agent] = sdk.agents;
     expect(agent?.options).toMatchObject({ apiKey: 'key', model: { id: 'composer-2.5', params: [{ id: 'fast', value: 'true' }] }, tools: ['mcp'] });
@@ -67,28 +82,23 @@ describe('a plain reply', () => {
   });
 
   test('sends user images alongside the text', async () => {
-    sdk.scripts.push(async () => ({ status: 'finished' }));
-    await ask(
-      [
-        user([
-          { type: 'text', text: 'what is this' },
-          { type: 'image', data: 'AAAA', mimeType: 'image/png' },
-        ]),
-      ],
-      {},
-    );
+    sdk.script(async () => ({ status: 'finished' }));
+    const withImage = user([
+      { type: 'text', text: 'what is this' },
+      { type: 'image', data: 'AAAA', mimeType: 'image/png' },
+    ]);
+    await ask([withImage], {});
     expect(sdk.agents[0]?.options.apiKey).toBeUndefined();
     expect(sdk.agents[0]?.sends[0]?.message).toStrictEqual({ text: 'what is this\n[image]', images: [{ data: 'AAAA', mimeType: 'image/png' }] });
   });
 });
 
-describe('Pi tool calls', () => {
+describe('Pi tool calls: round trips', () => {
   test('a tool call ends the turn with toolUse, and the results resume the same Cursor run', async () => {
-    const received: unknown[] = [];
-    sdk.scripts.push(async ({ tools, emit }) => {
+    let received: unknown[] = [];
+    sdk.script(async ({ tools, emit }) => {
       emit(sdkText('Checking.'));
-      const results = await Promise.all([call(tools, 'read', { path: 'a.txt' }), call(tools, 'ls', {})]);
-      received.push(...results);
+      received = await Promise.all([call(tools, 'read', { path: 'a.txt' }), call(tools, 'ls', {})]);
       emit(sdkText('Done.'));
       return { status: 'finished' };
     });
@@ -102,7 +112,7 @@ describe('Pi tool calls', () => {
       ['ls', {}],
     ]);
 
-    const image: ToolResultMessage = { role: 'toolResult', toolCallId: calls[1]?.id ?? '', toolName: 'ls', content: [{ type: 'image', data: 'BBBB', mimeType: 'image/png' }], isError: false, timestamp: 3 };
+    const image: ToolResultMessage = { role: 'toolResult', toolCallId: calls[1]?.id ?? '', toolName: 'ls', content: [{ type: 'image', data: 'BBBB', mimeType: 'image/png' }], isError: false, timestamp: IMAGE_RESULT_TIMESTAMP };
     const second = await ask([...history, first.message, toolResult(calls[0]?.id ?? '', 'file text', true), image]);
     expect(second.message.stopReason).toBe('stop');
     expect(second.message.content).toStrictEqual([{ type: 'text', text: 'Done.' }]);
@@ -114,9 +124,9 @@ describe('Pi tool calls', () => {
   });
 
   test('a call Pi did not answer gets an error result, and an empty result gets empty text', async () => {
-    const received: unknown[] = [];
-    sdk.scripts.push(async ({ tools }) => {
-      received.push(...(await Promise.all([call(tools, 'read', {}), call(tools, 'ls', {})])));
+    let received: unknown[] = [];
+    sdk.script(async ({ tools }) => {
+      received = await Promise.all([call(tools, 'read', {}), call(tools, 'ls', {})]);
       return { status: 'finished' };
     });
     const history = [system('partial'), user('go')];
@@ -129,10 +139,12 @@ describe('Pi tool calls', () => {
       { content: [{ type: 'text', text: 'Pi returned no result for this tool call.' }], isError: true },
     ]);
   });
+});
 
+describe('Pi tool calls: backlog, timeout, and replay', () => {
   test('events that arrive while Pi runs the tool are replayed into the next turn', async () => {
-    let afterPark: () => void = () => {};
-    sdk.scripts.push(async ({ tools, emit }) => {
+    let afterPark: () => void = () => undefined;
+    sdk.script(async ({ tools, emit }) => {
       const pending = call(tools, 'read', {});
       await new Promise<void>((resolve) => (afterPark = resolve));
       emit(sdkText('late'));
@@ -142,7 +154,7 @@ describe('Pi tool calls', () => {
     const history = [system('backlog'), user('go')];
     const first = await ask(history);
     afterPark();
-    await new Promise((resolve) => setTimeout(resolve, 5));
+    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
     const second = await ask([...history, first.message, toolResult(toolCalls(first.message)[0]?.id ?? '', 'ok')]);
     expect(second.message.content).toStrictEqual([{ type: 'text', text: 'late' }]);
   });
@@ -150,22 +162,22 @@ describe('Pi tool calls', () => {
   test('a parked run is cancelled after the tool wait, releasing its calls', async () => {
     vi.useFakeTimers();
     let released: unknown;
-    sdk.scripts.push(async ({ tools, cancelled }) => {
+    sdk.script(async ({ tools, cancelled }) => {
       void call(tools, 'read').then((r) => (released = r));
       await cancelled;
       return { status: 'cancelled' };
     });
     const pending = ask([system('timeout'), user('go')]);
-    await vi.advanceTimersByTimeAsync(30);
+    await vi.advanceTimersByTimeAsync(BATCH_WAIT_MS);
     expect((await pending).message.stopReason).toBe('toolUse');
-    await vi.advanceTimersByTimeAsync(30 * 60_000);
+    await vi.advanceTimersByTimeAsync(TOOL_WAIT_MINUTES * MS_PER_MINUTE);
     expect(sdk.agents[0]?.runs[0]?.cancel).toHaveBeenCalled();
     expect(released).toStrictEqual({ content: [{ type: 'text', text: 'The run ended before Pi answered this tool call.' }], isError: true });
     expect(sdk.agents[0]?.close).toHaveBeenCalled();
   });
 
   test('tool results with no waiting run start a fresh agent that replays the history', async () => {
-    sdk.scripts.push(async () => ({ status: 'finished' }));
+    sdk.script(async () => ({ status: 'finished' }));
     const assistant = {
       role: 'assistant',
       content: [
@@ -182,7 +194,7 @@ describe('Pi tool calls', () => {
 
 describe('follow-up turns', () => {
   test('a follow-up reuses the idle agent and sends only the new message', async () => {
-    sdk.scripts.push(
+    sdk.script(
       async ({ emit }) => {
         emit(sdkText('First answer.'));
         return { status: 'finished' };
@@ -197,7 +209,7 @@ describe('follow-up turns', () => {
   });
 
   test('an edited history starts a fresh agent with the history as text', async () => {
-    sdk.scripts.push(
+    sdk.script(
       async ({ emit }) => {
         emit(sdkText('Answer A.'));
         return { status: 'finished' };
@@ -208,14 +220,14 @@ describe('follow-up turns', () => {
     const first = await ask(history);
     const edited = { ...first.message, content: [{ type: 'text' as const, text: 'Answer B.' }] };
     await ask([...history, edited, user('two')]);
-    expect(sdk.agents).toHaveLength(2);
+    expect(sdk.agents).toHaveLength(AGENTS_AFTER_EDIT);
     expect(sdk.agents[1]?.sends[0]?.message).toStrictEqual({ text: '<system_prompt>\nbranch\n</system_prompt>\n\n<conversation_so_far>\nUser: one\nAssistant: Answer B.\n</conversation_so_far>\n\ntwo' });
   });
 });
 
-describe('failures', () => {
+describe('failures: errors', () => {
   test('a failed run reports Cursor’s error with its code and request ID, and drops the agent', async () => {
-    sdk.scripts.push(async () => ({ status: 'error', error: { message: 'Model not in plan', code: 'forbidden' }, requestId: 'req-1' }));
+    sdk.script(async () => ({ status: 'error', error: { message: 'Model not in plan', code: 'forbidden' }, requestId: 'req-1' }));
     const { message } = await ask([system('fail'), user('hi')]);
     expect(message.stopReason).toBe('error');
     expect(message.errorMessage).toBe('Cursor run failed: Model not in plan (code forbidden, request req-1)');
@@ -223,29 +235,31 @@ describe('failures', () => {
   });
 
   test('a run that fails without details still reports', async () => {
-    sdk.scripts.push(async () => ({ status: 'error' }));
+    sdk.script(async () => ({ status: 'error' }));
     expect((await ask([system('bare fail'), user('hi')])).message.errorMessage).toBe('Cursor run failed: unknown error');
   });
 
   test('a rejected API key asks the user to sign in again', async () => {
-    sdk.sendError = new AuthenticationError('Invalid User API Key', { status: 401, requestId: 'req-2' });
+    sdk.failSend(new AuthenticationError('Invalid User API Key', { status: HTTP_UNAUTHORIZED, requestId: 'req-2' }));
     const { message } = await ask([system('auth'), user('hi')]);
     expect(message.errorMessage).toBe('Cursor AuthenticationError: Invalid User API Key (HTTP 401, request req-2) Run /login and choose Cursor (X subscription), or set CURSOR_API_KEY.');
     expect(sdk.agents[0]?.close).toHaveBeenCalled();
   });
 
   test('a stream that throws ends the turn with the error', async () => {
-    sdk.scripts.push(async ({ emit }) => {
+    sdk.script(async ({ emit }) => {
       emit(sdkText('partial'));
       throw new Error('socket closed');
     });
     const { message } = await ask([system('throw'), user('hi')]);
     expect(message).toMatchObject({ stopReason: 'error', errorMessage: 'socket closed', content: [{ type: 'text', text: 'partial' }] });
   });
+});
 
+describe('failures: aborts and create errors', () => {
   test('aborting the request cancels the Cursor run', async () => {
     const controller = new AbortController();
-    sdk.scripts.push(async ({ emit, cancelled }) => {
+    sdk.script(async ({ emit, cancelled }) => {
       emit(sdkText('working'));
       setTimeout(() => controller.abort(), 1);
       await cancelled;
@@ -258,7 +272,7 @@ describe('failures', () => {
 
   test('aborting a request that already ended leaves the run alone', async () => {
     const controller = new AbortController();
-    sdk.scripts.push(async ({ tools }) => {
+    sdk.script(async ({ tools }) => {
       await call(tools, 'read', {});
       return { status: 'finished' };
     });
@@ -271,7 +285,7 @@ describe('failures', () => {
   });
 
   test('an unknown model fails at agent creation with a readable error', async () => {
-    sdk.createError = new Error('Cannot use this model: nope');
+    sdk.failCreate(new Error('Cannot use this model: nope'));
     const aborted = new AbortController();
     aborted.abort();
     const { message } = await ask([system('create'), user('hi')], { signal: aborted.signal });

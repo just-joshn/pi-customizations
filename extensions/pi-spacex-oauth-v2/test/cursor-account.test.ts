@@ -6,6 +6,12 @@ import { FALLBACK_MODELS, findCursorModel, listCursorModels, refreshCursorModels
 import { describeCursorError } from '../src/cursor/errors.ts';
 import { fakeSdk, sdk } from './fake-sdk.ts';
 
+const LOGIN_URL = 'https://cursor.com/login';
+const CURSOR_API_URL = 'https://api.cursor.com';
+const INTEGRATIONS_URL = 'https://cursor.com/dashboard/integrations';
+const KEY_EXPIRES_AT_MS = 1_900_000_000_000;
+const MIN_LIVE_MODELS = 40;
+
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
 beforeEach(() => sdk.reset());
@@ -14,14 +20,14 @@ afterEach(() => vi.unstubAllEnvs());
 describe('sign-in', () => {
   test('mints a key through Cursor.auth.login, shows its URL in Pi, and keeps it out of ~/.cursor', async () => {
     fakeSdk.Cursor.auth.login.mockImplementation(async (options: { onLoginUrl: (url: string) => void }) => {
-      options.onLoginUrl('https://cursor.com/login');
-      return { apiKey: 'crsr_key', apiKeyExpiresAtMs: 1_900_000_000_000 };
+      options.onLoginUrl(LOGIN_URL);
+      return { apiKey: 'crsr_key', apiKeyExpiresAtMs: KEY_EXPIRES_AT_MS };
     });
     const onAuth = vi.fn();
     const signal = new AbortController().signal;
     const credentials = await loginCursor({ onAuth, signal } as unknown as OAuthLoginCallbacks);
-    expect(credentials).toStrictEqual({ access: 'crsr_key', refresh: '', expires: 1_900_000_000_000 });
-    expect(onAuth).toHaveBeenCalledWith({ url: 'https://cursor.com/login', instructions: 'Sign in to Cursor in the browser, then return here.' });
+    expect(credentials).toStrictEqual({ access: 'crsr_key', refresh: '', expires: KEY_EXPIRES_AT_MS });
+    expect(onAuth).toHaveBeenCalledWith({ url: LOGIN_URL, instructions: 'Sign in to Cursor in the browser, then return here.' });
     expect(fakeSdk.Cursor.auth.login).toHaveBeenCalledWith(expect.objectContaining({ store: null, openBrowser: false, apiKeyName: 'Pi (pi-spacex-oauth-v2)', signal }));
   });
 
@@ -45,10 +51,10 @@ describe('model catalog', () => {
   test('a signed-in refresh lists live models and persists them for offline starts', async () => {
     const ctx = context({ credential: { type: 'oauth', access: 'refresh-key', refresh: '', expires: 0 } });
     const models = await refreshCursorModels(ctx);
-    expect(models.length).toBeGreaterThan(40);
+    expect(models.length).toBeGreaterThan(MIN_LIVE_MODELS);
     expect(fakeSdk.Cursor.models.list).toHaveBeenCalledWith({ apiKey: 'refresh-key' });
     const persisted = ctx.publish.mock.calls[0]?.[0].persist.models;
-    expect(persisted[0]).toMatchObject({ provider: 'spacex-cursor', api: 'cursor-sdk', baseUrl: 'https://api.cursor.com', id: 'default' });
+    expect(persisted[0]).toMatchObject({ provider: 'spacex-cursor', api: 'cursor-sdk', baseUrl: CURSOR_API_URL, id: 'default' });
   });
 
   test('an API key from auth.json or CURSOR_API_KEY also refreshes', async () => {
@@ -60,7 +66,7 @@ describe('model catalog', () => {
 
   test('lists once per key, retries after a failure, and finds models by id or alias', async () => {
     fakeSdk.Cursor.models.list.mockRejectedValueOnce(new Error('offline'));
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(await findCursorModel('cache-key', 'composer-2.5')).toBeUndefined();
     expect(error).toHaveBeenCalled();
     expect((await findCursorModel('cache-key', 'auto'))?.id).toBe('default');
@@ -72,8 +78,8 @@ describe('model catalog', () => {
 
 describe('error messages', () => {
   test('surface the help link for a disconnected integration', () => {
-    const error = new IntegrationNotConnectedError('github integration is not connected', { provider: 'github', helpUrl: 'https://cursor.com/dashboard/integrations', code: 'not_connected' });
-    expect(describeCursorError(error)).toBe('Cursor IntegrationNotConnectedError: github integration is not connected (code not_connected) https://cursor.com/dashboard/integrations');
+    const error = new IntegrationNotConnectedError('github integration is not connected', { provider: 'github', helpUrl: INTEGRATIONS_URL, code: 'not_connected' });
+    expect(describeCursorError(error)).toBe(`Cursor IntegrationNotConnectedError: github integration is not connected (code not_connected) ${INTEGRATIONS_URL}`);
   });
 
   test('pass through plain errors and stringify the rest', () => {
