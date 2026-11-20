@@ -1,9 +1,9 @@
-import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ReadonlyProvider, RealFSProvider, VM } from '@earendil-works/gondolin';
+import { VM } from '@earendil-works/gondolin';
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { GUEST_WORKSPACE } from './paths.ts';
+import { createVmOptions } from './policy.ts';
 
 export const STATUS_KEY = 'gondolin';
 const DEFAULT_SHELL = '/bin/sh';
@@ -27,10 +27,7 @@ export function createGondolinVm(localCwd: string): GondolinVm {
 
   const start = async (ctx?: ExtensionContext): Promise<VM> => {
     ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: starting ${GUEST_WORKSPACE}`));
-    const created = await VM.create({
-      sessionLabel: `pi ${path.basename(localCwd)}`,
-      vfs: { mounts: { [GUEST_WORKSPACE]: new RealFSProvider(localCwd), [PACKAGE_ROOT]: new ReadonlyProvider(new RealFSProvider(PACKAGE_ROOT)) } },
-    });
+    const created = await VM.create(createVmOptions(localCwd, PACKAGE_ROOT));
     const bashProbe = await created.exec(BASH_PROBE);
     shellPath = bashProbe.stdout.trim() || DEFAULT_SHELL;
     vm = created;
