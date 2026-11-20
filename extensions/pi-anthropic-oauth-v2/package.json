@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth-v2",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Use Claude models in Pi through a custom Anthropic provider built on @anthropic-ai/sdk, with Claude Pro/Max sign-in or an API key.",
   "type": "module",
   "license": "MIT",

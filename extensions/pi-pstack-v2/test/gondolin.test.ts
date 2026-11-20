@@ -1,399 +1,243 @@
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ReadonlyProvider, RealFSProvider, ShadowProvider, VM } from '@earendil-works/gondolin';
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { describe, expect, test, vi } from 'vitest';
-import { createGondolinBashOps } from '../src/gondolin/bash.ts';
-import { createGondolinEditOps, createGondolinLsOps, createGondolinReadOps, createGondolinWriteOps } from '../src/gondolin/fs-operations.ts';
-import { executeGondolinGrep } from '../src/gondolin/grep.ts';
-import gondolin, { guestSystemPrompt, HOST_BOUNDARY_NOTE } from '../src/gondolin/index.ts';
-import { GUEST_WORKSPACE, toGuestPath } from '../src/gondolin/paths.ts';
-import { DEFAULT_ALLOWED_HOSTS, PROTECTED_GIT_PATHS } from '../src/gondolin/policy.ts';
-import { createGondolinFindOps, matchesToolGlob } from '../src/gondolin/search.ts';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { BASH, BASH_PROBE_COMMAND, finishedProcess, type GondolinHost, GUEST, HOST, hangingProcess, loadGondolin, VM_ID } from './core-gondolin-host.ts';
 
-type ExecOptions = { cwd?: string; env?: Record<string, string>; signal?: AbortSignal; stdout?: string; stderr?: string };
-type Exec = (argv: string[], options?: ExecOptions) => unknown;
-type ToolResult = { content: { type: string; text?: string }[]; details?: unknown };
-type Tool = { name: string; execute: (id: string, params: Record<string, unknown>, signal: AbortSignal | undefined, update: undefined, ctx: unknown) => Promise<ToolResult> };
-type Handler = (event: unknown, ctx: unknown) => Promise<unknown>;
-type Command = { description: string; handler: (args: string, ctx: unknown) => Promise<void> };
+vi.mock('@earendil-works/gondolin', async (importOriginal) => ({ ...(await importOriginal<typeof import('@earendil-works/gondolin')>()), VM: { create: vi.fn() } }));
 
-const SEP = '/';
-const HOST = '/host/project';
-const OUTSIDE_HOST = '/etc/hosts';
-const BASH = '/bin/bash';
-const VM_ID = 'aaaabbbbccccdddd';
+const POSIX_SHELL = '/bin/sh';
 const SHORT_ID = 'aaaabbbb';
-const LONG_LINE_LENGTH = 1000;
-const TWO = 2;
-const THREE = 3;
-const FOUR = 4;
-const TIMEOUT_SECONDS = 0.01;
-
-vi.mock('@earendil-works/gondolin', () => {
-  function RealFSProviderMock(root: string) {
-    return Object.create(RealFSProviderMock.prototype, { root: { value: root, enumerable: true } });
-  }
-  function ReadonlyProviderMock(backend: unknown) {
-    return Object.create(ReadonlyProviderMock.prototype, { backend: { value: backend, enumerable: true } });
-  }
-  function ShadowProviderMock(backend: unknown, options: unknown) {
-    return Object.create(ShadowProviderMock.prototype, { backend: { value: backend, enumerable: true }, options: { value: options, enumerable: true } });
-  }
-  return {
-    VM: { create: vi.fn() },
-    RealFSProvider: RealFSProviderMock,
-    ReadonlyProvider: ReadonlyProviderMock,
-    ShadowProvider: ShadowProviderMock,
-    createShadowPathPredicate: vi.fn((paths: string[]) => ({ shadowedPaths: paths })),
-    createHttpHooks: vi.fn((options: { allowedHosts: string[] }) => ({ httpHooks: { allowedHosts: options.allowedHosts }, env: { HTTP_HOOKS: 'on' } })),
-  };
-});
-
 const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
+const OUTSIDE_HOST = '/etc/hosts';
+const EXIT_CODE = 3;
+const TIMEOUT_SECONDS = 0.01;
+const NOTE_SNIPPETS = [
+  'The VM has no `git`, `gh`, `tmux`, or `bun`',
+  'Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM',
+  'Run what needs them on the host with `tmux_run`',
+  'read its output with `tmux_jobs` `output`',
+];
 
-const notFound = (guestPath: string) => Promise.reject(new Error(`ENOENT: ${guestPath}`));
-
-/** An in-memory guest filesystem holding `tree` under the workspace mount; directories exist where files do. */
-function fakeFs(tree: Readonly<Record<string, string>>, unreadable: readonly string[] = []) {
-  const files = new Map(Object.entries(tree).map(([relative, content]) => [path.posix.join(GUEST_WORKSPACE, relative), content]));
-  const isDirectory = (guestPath: string) => !files.has(guestPath) && (guestPath === GUEST_WORKSPACE || [...files.keys()].some((file) => file.startsWith(`${guestPath}${SEP}`)));
-  const exists = (guestPath: string) => files.has(guestPath) || isDirectory(guestPath);
-  return {
-    stat: async (guestPath: string) => (exists(guestPath) ? { isDirectory: () => isDirectory(guestPath) } : notFound(guestPath)),
-    listDir: async (guestPath: string) => [...new Set([...files.keys()].filter((file) => file.startsWith(`${guestPath}${SEP}`)).map((file) => file.slice(guestPath.length + 1).split(SEP)[0] ?? ''))],
-    readFile: async (guestPath: string, options?: { encoding?: string }) => {
-      const content = files.get(guestPath);
-      if (content === undefined || unreadable.includes(guestPath)) return notFound(guestPath);
-      return options?.encoding ? content : Buffer.from(content);
-    },
-    access: async (guestPath: string) => (exists(guestPath) ? undefined : notFound(guestPath)),
-    writeFile: vi.fn(async () => undefined),
-    mkdir: vi.fn(async () => undefined),
-  };
-}
-
-/** Gondolin's ExecProcess is iterated for output and awaited for its result, so the fake is a thenable as well. */
-const fakeProcess = (result: Promise<{ stdout: string; exitCode: number }>, output: () => AsyncGenerator<{ data: Buffer }>) => ({
-  output,
-  // biome-ignore lint/suspicious/noThenProperty: the code under test awaits Gondolin's thenable ExecProcess, so the fake must be thenable.
-  then: (resolve: (value: unknown) => unknown, reject: (error: unknown) => unknown) => result.then(resolve, reject),
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
-/** A guest process that streams `stdout` and exits with `exitCode`. */
-const finishedProcess = (stdout: string, exitCode = 0) =>
-  fakeProcess(Promise.resolve({ stdout, exitCode }), async function* () {
-    yield { data: Buffer.from(stdout) };
+const guestLine = `Current working directory: ${GUEST} (Gondolin VM; host workspace mounted from ${HOST})`;
+const prompt = async (host: GondolinHost, systemPrompt: string) => ((await host.fire('before_agent_start', { systemPrompt })) as { systemPrompt: string }).systemPrompt;
+
+describe('the Gondolin VM across a session', () => {
+  test('overrides the seven built-in tools and adds /gondolin', () => {
+    const host = loadGondolin();
+    expect(host.tools()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'read', 'write']);
+    expect(Object.keys(host.commands())).toEqual(['gondolin']);
+    expect(host.commands()['gondolin']?.description).toBe('Show Gondolin VM status');
   });
 
-/** A guest process that runs until its signal aborts, then fails the way an aborted exec does. */
-const hangingProcess = (signal: AbortSignal | undefined) => {
-  const done = new Promise<never>((_, reject) => signal?.addEventListener('abort', () => reject(new Error('exec aborted')), { once: true }));
-  return fakeProcess(done, async function* () {
-    yield { data: Buffer.from('started\n') };
-    await done;
-  });
-};
-
-const fakeVm = (tree: Readonly<Record<string, string>>, exec: Exec = () => finishedProcess(''), unreadable: readonly string[] = []) => {
-  const fs = fakeFs(tree, unreadable);
-  const execMock = vi.fn(exec);
-  const close = vi.fn(async () => undefined);
-  return { vm: { id: VM_ID, fs, exec: execMock, close } as unknown as VM, fs, exec: execMock, close };
-};
-
-const grepText = async (vm: VM, params: Record<string, unknown>, signal?: AbortSignal) => {
-  const result = await executeGondolinGrep(vm, HOST, { pattern: '', ...params }, signal);
-  return { text: result.content[0]?.text, details: result.details };
-};
-
-describe('guest path mapping', () => {
-  test('relative paths resolve under the workspace mount', () => {
-    expect(toGuestPath(HOST, 'src/a.ts')).toBe(`${GUEST_WORKSPACE}/src/a.ts`);
-    expect(toGuestPath(HOST, './src/../b.ts')).toBe(`${GUEST_WORKSPACE}/b.ts`);
+  test('boots one VM at session start however many calls race, and shows its status', async () => {
+    const host = loadGondolin({ tree: { 'a.txt': 'hello' } });
+    await Promise.all([host.fire('session_start'), host.fire('session_start'), host.text('read', { path: 'a.txt' })]);
+    expect(host.exec.mock.calls.filter(([argv]) => argv.at(-1) === BASH_PROBE_COMMAND)).toHaveLength(1);
+    expect(host.setStatus).toHaveBeenNthCalledWith(1, 'gondolin', `Gondolin: starting ${GUEST}`);
+    expect(host.setStatus).toHaveBeenLastCalledWith('gondolin', `Gondolin: ${SHORT_ID} (${GUEST})`);
+    expect(host.notify).toHaveBeenCalledWith(`Gondolin VM ready. ${HOST} is mounted at ${GUEST}.`, 'info');
   });
 
-  test('absolute host paths inside the cwd map into the workspace, and the cwd itself is the workspace', () => {
-    expect(toGuestPath(HOST, `${HOST}/src/a.ts`)).toBe(`${GUEST_WORKSPACE}/src/a.ts`);
-    expect(toGuestPath(HOST, HOST)).toBe(GUEST_WORKSPACE);
+  test('the gondolin command reports the VM, both workspaces, and the shell commands run in', async () => {
+    const host = loadGondolin();
+    await host.commands()['gondolin']?.handler('', host.ctx);
+    expect(host.notify).toHaveBeenLastCalledWith(`Gondolin VM: ${VM_ID}\nHost workspace: ${HOST}\nGuest workspace: ${GUEST}\nShell: ${BASH}`, 'info');
   });
 
-  test('absolute paths outside the cwd name the same guest path', () => {
-    expect(toGuestPath(HOST, OUTSIDE_HOST)).toBe(OUTSIDE_HOST);
-    expect(toGuestPath(HOST, `${HOST}-other/x`)).toBe(`${HOST}-other/x`);
+  test('a guest image without bash runs commands in the POSIX shell', async () => {
+    const host = loadGondolin({ probeAnswer: '\n', exec: () => finishedProcess('ok\n') });
+    await host.text('bash', { command: 'echo ok' });
+    expect(host.exec).toHaveBeenLastCalledWith([POSIX_SHELL, '-lc', 'echo ok'], expect.anything());
   });
 
-  test('an @ prefix is dropped and an empty path is the workspace', () => {
-    expect(toGuestPath(HOST, '@src/a.ts')).toBe(`${GUEST_WORKSPACE}/src/a.ts`);
-    expect(toGuestPath(HOST, `@${HOST}/a.ts`)).toBe(`${GUEST_WORKSPACE}/a.ts`);
-    expect(toGuestPath(HOST, '')).toBe(GUEST_WORKSPACE);
-    expect(toGuestPath(HOST, '  @ ')).toBe(GUEST_WORKSPACE);
-    expect(toGuestPath(HOST, '   ')).toBe(GUEST_WORKSPACE);
+  test('the first tool call boots the VM when the session start was missed', async () => {
+    const host = loadGondolin({ tree: { 'a.txt': 'hello' } });
+    expect(await host.text('read', { path: 'a.txt' })).toBe('hello');
+    expect(host.notify).toHaveBeenCalledTimes(1);
   });
 });
 
-describe('tool globs', () => {
-  test('a pattern without / matches the file name at any depth', () => {
-    expect(matchesToolGlob('src/deep/a.ts', '*.ts')).toBe(true);
-    expect(matchesToolGlob('src/deep/a.js', '*.ts')).toBe(false);
+describe('the Gondolin VM at shutdown', () => {
+  test('shutdown closes the VM and clears its status, and does nothing when none ran', async () => {
+    const host = loadGondolin();
+    await host.fire('session_shutdown');
+    expect(host.setStatus).not.toHaveBeenCalled();
+    await host.fire('session_start');
+    await host.fire('session_shutdown');
+    expect(host.close).toHaveBeenCalledTimes(1);
+    expect(host.setStatus).toHaveBeenCalledWith('gondolin', 'Gondolin: stopping');
+    expect(host.setStatus).toHaveBeenLastCalledWith('gondolin', undefined);
   });
 
-  test('a pattern with / matches from the search root, ignoring a leading ./', () => {
-    expect(matchesToolGlob('src/a.ts', 'src/*.ts')).toBe(true);
-    expect(matchesToolGlob('src/deep/a.ts', 'src/*.ts')).toBe(false);
-    expect(matchesToolGlob('src/deep/a.ts', './src/**/*.ts')).toBe(true);
+  test('a VM that fails to close still clears its status, and the failure reaches Pi', async () => {
+    const host = loadGondolin({ closeFails: true });
+    await host.fire('session_start');
+    await expect(host.fire('session_shutdown')).rejects.toThrow('qemu is gone');
+    expect(host.setStatus).toHaveBeenLastCalledWith('gondolin', undefined);
+  });
+
+  test('a call after shutdown boots a fresh VM', async () => {
+    const host = loadGondolin({ tree: { 'a.txt': 'hello' } });
+    await host.fire('session_start');
+    await host.fire('session_shutdown');
+    await host.text('read', { path: 'a.txt' });
+    expect(host.notify).toHaveBeenCalledTimes(2);
   });
 });
 
-describe('grep over the guest filesystem', () => {
-  test('prints each match with its context lines, marking the match with : and context with -', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'one\ntwo\r\nthree\rfour\nfive' });
-    expect(await grepText(vm, { pattern: 'three', context: 1 })).toEqual({ text: 'a.txt-2- two\na.txt:3: three\na.txt-4- four', details: undefined });
-    expect((await grepText(vm, { pattern: 'one', context: TWO })).text).toBe('a.txt:1: one\na.txt-2- two\na.txt-3- three');
-    expect((await grepText(vm, { pattern: 'five', context: 1 })).text).toBe('a.txt-4- four\na.txt:5: five');
+describe('the system prompt in the guest', () => {
+  test('points the model at the guest workspace instead of the host directory', async () => {
+    const host = loadGondolin();
+    const rewritten = await prompt(host, `Intro\nCurrent working directory: ${HOST}\nEnd`);
+    expect(rewritten.startsWith(`Intro\n${guestLine}\nEnd\n\n`)).toBe(true);
   });
 
-  test('stops at the match limit and says so', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'hit 1\nhit 2', 'b.txt': 'hit 3' });
-    expect(await grepText(vm, { pattern: 'hit', limit: TWO })).toEqual({ text: 'a.txt:1: hit 1\na.txt:2: hit 2\n\n[2 matches limit reached]', details: { matchLimitReached: TWO } });
-    expect((await grepText(vm, { pattern: 'hit', limit: 0 })).text).toBe('a.txt:1: hit 1\n\n[1 matches limit reached]');
-    // Like upstream, reaching the limit exactly counts as reaching it.
-    expect((await grepText(vm, { pattern: 'hit', limit: THREE })).details).toEqual({ matchLimitReached: THREE });
-    expect((await grepText(vm, { pattern: 'hit', limit: FOUR })).details).toBeUndefined();
+  test('adds the workspace line when Pi sent none', async () => {
+    const host = loadGondolin();
+    expect((await prompt(host, 'Intro')).startsWith(`Intro\n\n${guestLine}\n\n`)).toBe(true);
   });
 
-  test('literal patterns match text, not regex, and ignoreCase folds case', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'a.b\naxb\nHello' });
-    expect((await grepText(vm, { pattern: 'a.b', literal: true })).text).toBe('a.txt:1: a.b');
-    expect((await grepText(vm, { pattern: 'a.b' })).text).toBe('a.txt:1: a.b\na.txt:2: axb');
-    expect((await grepText(vm, { pattern: 'HELLO', literal: true, ignoreCase: true })).text).toBe('a.txt:3: Hello');
-    expect((await grepText(vm, { pattern: '^hel', ignoreCase: true })).text).toBe('a.txt:3: Hello');
-    expect((await grepText(vm, { pattern: 'HELLO', literal: true })).text).toBe('No matches found');
+  test('says which commands and paths exist only on the host, and how to reach them', async () => {
+    const rewritten = await prompt(loadGondolin(), 'Intro');
+    for (const snippet of NOTE_SNIPPETS) expect(rewritten).toContain(snippet);
   });
 
-  test('reports no matches without details', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'nothing here' });
-    expect(await grepText(vm, { pattern: 'absent' })).toEqual({ text: 'No matches found', details: undefined });
+  test('boots the VM before the first turn', async () => {
+    const host = loadGondolin();
+    await prompt(host, 'Intro');
+    expect(host.notify).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('file tools act on the guest filesystem', () => {
+  const tree = { 'a.txt': 'hello\nworld', 'src/b.ts': 'hello', 'shot.PNG': 'not-really-a-png', 'photo.jpeg': 'not-really-a-jpeg', 'notes.png.txt': 'plain' };
+
+  test.for([
+    ['a workspace-relative path', 'a.txt'],
+    ['a host path inside the project', `${HOST}/a.txt`],
+    ['an @-prefixed path', '@a.txt'],
+    ['an @-prefixed host path', `@${HOST}/a.txt`],
+    ['a path with dot segments', './src/../a.txt'],
+  ])('read finds a file by %s', async ([, requested]) => {
+    expect(await loadGondolin({ tree }).text('read', { path: requested })).toBe('hello\nworld');
   });
 
-  test('skips .git, node_modules, unreadable files, and files outside the glob', async () => {
-    const { vm } = fakeVm({ '.git/HEAD': 'hit', 'node_modules/x/i.js': 'hit', 'src/a.ts': 'hit', 'src/b.js': 'hit', 'bin.dat': 'hit' }, undefined, [`${GUEST_WORKSPACE}/bin.dat`]);
-    expect((await grepText(vm, { pattern: 'hit' })).text).toBe('src/a.ts:1: hit\nsrc/b.js:1: hit');
-    expect((await grepText(vm, { pattern: 'hit', glob: '*.ts' })).text).toBe('src/a.ts:1: hit');
+  test('read reaches a guest path outside the project by the same absolute path', async () => {
+    const host = loadGondolin({ tree: { [OUTSIDE_HOST]: 'localhost' } });
+    expect(await host.text('read', { path: OUTSIDE_HOST })).toBe('localhost');
+    expect(await loadGondolin({ tree: { [`${HOST}-other/x`]: 'sibling' } }).text('read', { path: `${HOST}-other/x` })).toBe('sibling');
   });
 
-  test('a file root prints the file name, and a path argument narrows the search', async () => {
-    const { vm } = fakeVm({ 'src/a.ts': 'hit', 'b.ts': 'hit' });
-    expect((await grepText(vm, { pattern: 'hit', path: 'src/a.ts' })).text).toBe('a.ts:1: hit');
-    expect((await grepText(vm, { pattern: 'hit', path: 'src' })).text).toBe('a.ts:1: hit');
+  test('read opens a skill file by the host path Pi names, because the package is mounted at that path', async () => {
+    const skill = path.join(PACKAGE_ROOT, 'skills', 'poteto-mode', 'SKILL.md');
+    const host = loadGondolin({ tree: { [skill]: '# Poteto mode' } });
+    expect(await host.text('read', { path: skill })).toBe('# Poteto mode');
   });
 
-  test('cuts long lines and says so', async () => {
-    const { vm } = fakeVm({ 'a.txt': `hit ${'x'.repeat(LONG_LINE_LENGTH)}` });
-    const { text, details } = await grepText(vm, { pattern: 'hit' });
-    expect(text).toMatch(/\n\n\[long lines truncated\]$/);
-    expect(details).toEqual({ linesTruncated: true });
+  test('read of a missing file fails with the guest path', async () => {
+    await expect(loadGondolin({ tree }).call('read', { path: 'missing.txt' })).rejects.toThrow('ENOENT: /workspace/missing.txt');
   });
 
-  test('an aborted signal stops the search', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'hit' });
+  test.for([
+    ['shot.PNG', 'image/png'],
+    ['photo.jpeg', 'image/jpeg'],
+  ])('read treats %s as an %s image', async ([file, mime]) => {
+    expect(await loadGondolin({ tree }).text('read', { path: file })).toContain(`Read image file [${mime}]`);
+  });
+
+  test('read treats a file that only has an image extension in its name as text', async () => {
+    expect(await loadGondolin({ tree }).text('read', { path: 'notes.png.txt' })).toBe('plain');
+  });
+});
+
+describe('write, edit, and ls act on the guest filesystem', () => {
+  const tree = { 'a.txt': 'hello\nworld', 'src/b.ts': 'hello' };
+
+  test('write creates the folder and writes the file in the guest', async () => {
+    const host = loadGondolin({ tree });
+    expect(await host.text('write', { path: 'out/new.txt', content: 'x' })).toBe('Successfully wrote to out/new.txt');
+    expect(await host.text('read', { path: 'out/new.txt' })).toBe('x');
+    expect(await host.text('ls', { path: 'out' })).toBe('new.txt');
+  });
+
+  test('edit rewrites the matched text in the guest file', async () => {
+    const host = loadGondolin({ tree });
+    expect(await host.text('edit', { path: 'a.txt', edits: [{ oldText: 'world', newText: 'there' }] })).toBe('Successfully replaced 1 block(s) in a.txt.');
+    expect(await host.text('read', { path: 'a.txt' })).toBe('hello\nthere');
+  });
+
+  test('ls lists a guest directory, and says when it is missing', async () => {
+    const host = loadGondolin({ tree });
+    expect(await host.text('ls', { path: 'src' })).toBe('b.ts');
+    expect(await host.text('ls', {})).toContain('src');
+    await expect(host.call('ls', { path: 'nope' })).rejects.toThrow('Path not found: /workspace/nope');
+  });
+});
+
+describe('the bash tool runs commands in the guest', () => {
+  test('through the probed shell, in the guest cwd, with the tool environment', async () => {
+    const host = loadGondolin({ exec: () => finishedProcess('ran\n') });
+    expect(await host.text('bash', { command: 'echo ran' })).toBe('ran\n');
+    expect(host.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'echo ran'], expect.objectContaining({ cwd: GUEST, stdout: 'pipe', stderr: 'pipe' }));
+  });
+
+  test('only string environment values reach the guest', async () => {
+    const host = loadGondolin({ exec: () => finishedProcess('') });
+    vi.stubEnv('PSTACK_GONDOLIN_PROBE', 'present');
+    await host.text('bash', { command: 'env' });
+    const options = host.exec.mock.lastCall?.[1];
+    expect(options?.env).toMatchObject({ PSTACK_GONDOLIN_PROBE: 'present' });
+    expect(Object.values(options?.env ?? {}).every((value) => typeof value === 'string')).toBe(true);
+  });
+
+  test('a failing command reports its exit code and output as an error result', async () => {
+    const host = loadGondolin({ exec: () => finishedProcess('partial\n', EXIT_CODE) });
+    const result = await host.call('bash', { command: 'false' });
+    expect(result).toMatchObject({ isError: true });
+    expect(result.content[0]?.text).toBe(`partial\n\n\nCommand exited with code ${EXIT_CODE}`);
+  });
+});
+
+describe('the bash tool ends commands in the guest', () => {
+  test('a command that outlives its timeout is reported as timed out', async () => {
+    const host = loadGondolin({ exec: (_argv, options) => hangingProcess(options?.signal) });
+    await expect(host.call('bash', { command: 'sleep 9', timeout: TIMEOUT_SECONDS })).rejects.toThrow(`started\n\n\nCommand timed out after ${TIMEOUT_SECONDS} seconds`);
+  });
+
+  test('aborting a running command reports it as aborted', async () => {
+    const host = loadGondolin({ exec: (_argv, options) => hangingProcess(options?.signal) });
     const controller = new AbortController();
+    const running = host.call('bash', { command: 'sleep 9' }, controller.signal);
+    await vi.waitFor(() => expect(host.exec.mock.calls.length).toBeGreaterThan(1));
     controller.abort();
-    await expect(grepText(vm, { pattern: 'hit' }, controller.signal)).rejects.toThrow('Operation aborted');
-  });
-});
-
-describe('find and filesystem operations', () => {
-  test('find globs return guest paths up to the limit and report existence', async () => {
-    const { vm } = fakeVm({ 'a.ts': '', 'src/b.ts': '', 'src/c.js': '' });
-    const find = createGondolinFindOps(vm, HOST);
-    expect(await find.glob('*.ts', HOST, { ignore: [], limit: 1 })).toEqual([`${GUEST_WORKSPACE}/a.ts`]);
-    expect(await find.glob('*.ts', 'src', { ignore: [], limit: TWO })).toEqual([`${GUEST_WORKSPACE}/src/b.ts`]);
-    expect(await find.glob('*.ts', '', { ignore: [], limit: 0 })).toEqual([]);
-    expect(await find.exists('src')).toBe(true);
-    expect(await find.exists('missing')).toBe(false);
-  });
-
-  test('read detects image types by extension and reads through the guest path', async () => {
-    const { vm } = fakeVm({ 'a.txt': 'text' });
-    const read = createGondolinReadOps(vm, HOST);
-    expect(await read.detectImageMimeType?.('shot.PNG')).toBe('image/png');
-    expect(await read.detectImageMimeType?.('a.jpeg')).toBe('image/jpeg');
-    expect(await read.detectImageMimeType?.('a.txt')).toBeNull();
-    expect(String(await read.readFile(`${HOST}/a.txt`))).toBe('text');
-    await expect(read.access('missing')).rejects.toThrow('ENOENT');
-  });
-
-  test('write, edit, and ls address guest paths', async () => {
-    const { vm, fs } = fakeVm({ 'src/a.txt': 'text' });
-    await createGondolinWriteOps(vm, HOST).mkdir('out');
-    await createGondolinEditOps(vm, HOST).writeFile('src/a.txt', 'new');
-    expect(fs.mkdir).toHaveBeenCalledWith(`${GUEST_WORKSPACE}/out`, { recursive: true });
-    expect(fs.writeFile).toHaveBeenCalledWith(`${GUEST_WORKSPACE}/src/a.txt`, 'new', { encoding: 'utf8' });
-    const ls = createGondolinLsOps(vm, HOST);
-    expect(await ls.readdir('src')).toEqual(['a.txt']);
-    expect((await ls.stat('src')).isDirectory()).toBe(true);
-    expect(await ls.exists('nope')).toBe(false);
-  });
-});
-
-describe('bash operations', () => {
-  test('runs the command through the probed shell in the guest cwd with string env values only', async () => {
-    const { vm, exec } = fakeVm({}, () => finishedProcess('out\n', THREE));
-    const onData = vi.fn();
-    const result = await createGondolinBashOps(vm, HOST, BASH).exec('echo hi', `${HOST}/src`, { onData, env: { KEEP: 'yes', DROP: undefined } });
-    expect(result).toEqual({ exitCode: THREE });
-    expect(onData).toHaveBeenCalledWith(Buffer.from('out\n'));
-    expect(exec.mock.calls[0]?.[0]).toEqual([BASH, '-lc', 'echo hi']);
-    expect(exec.mock.calls[0]?.[1]).toMatchObject({ cwd: `${GUEST_WORKSPACE}/src`, env: { KEEP: 'yes' }, stdout: 'pipe', stderr: 'pipe' });
-  });
-
-  test('reports a timeout, an abort, and passes other failures through', async () => {
-    const { vm } = fakeVm({}, (_argv, options) => hangingProcess(options?.signal));
-    const ops = createGondolinBashOps(vm, HOST, BASH);
-    await expect(ops.exec('sleep', HOST, { onData: vi.fn(), timeout: TIMEOUT_SECONDS })).rejects.toThrow(`timeout:${TIMEOUT_SECONDS}`);
-    const controller = new AbortController();
-    const running = ops.exec('sleep', HOST, { onData: () => controller.abort(), signal: controller.signal });
     await expect(running).rejects.toThrow('aborted');
-    await expect(ops.exec('sleep', HOST, { onData: vi.fn(), signal: controller.signal })).rejects.toThrow('aborted');
-    const failing = createGondolinBashOps(
-      fakeVm({}, () => {
+  });
+
+  test('a command is not started when the call was already aborted', async () => {
+    const host = loadGondolin({ exec: () => finishedProcess('never\n') });
+    await expect(host.call('bash', { command: 'echo never' }, AbortSignal.abort())).rejects.toThrow('aborted');
+  });
+
+  test('a failure of the VM itself reaches the user unchanged', async () => {
+    const host = loadGondolin({
+      exec: () => {
         throw new Error('boom');
-      }).vm,
-      HOST,
-      BASH,
-    );
-    await expect(failing.exec('x', HOST, { onData: vi.fn() })).rejects.toThrow('boom');
-  });
-});
-
-describe('system prompt', () => {
-  test('replaces the host cwd line, or appends the guest line when it is missing', () => {
-    const guestLine = `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${HOST})`;
-    expect(guestSystemPrompt(`Intro\nCurrent working directory: ${HOST}\nEnd`, HOST)).toBe(`Intro\n${guestLine}\nEnd\n\n${HOST_BOUNDARY_NOTE}`);
-    expect(guestSystemPrompt('Intro', HOST)).toBe(`Intro\n\n${guestLine}\n\n${HOST_BOUNDARY_NOTE}`);
+      },
+    });
+    await expect(host.call('bash', { command: 'x' })).rejects.toThrow('boom');
   });
 
-  test('says which commands and paths exist only on the host, and how to reach them', () => {
-    const prompt = guestSystemPrompt('Intro', HOST);
-    expect(prompt).toContain('The VM has no `git`, `gh`, `tmux`, or `bun`');
-    expect(prompt).toContain('Host paths outside the working directory, such as the Pi agent directory, do not exist in the VM');
-    expect(prompt).toContain('Run what needs them on the host with `tmux_run`');
-    expect(prompt).toContain('read its output with `tmux_jobs` `output`');
-  });
-});
-
-type FakeCtx = { ui: { setStatus: ReturnType<typeof vi.fn>; notify: ReturnType<typeof vi.fn>; theme: { fg: (color: string, text: string) => string } } };
-
-/** Loads the extension against a recording fake of Pi, with VM.create returning a fake VM over a small workspace. */
-function loadExtension() {
-  let tools: Record<string, Tool> = {};
-  let handlers: Record<string, Handler> = {};
-  let commands: Record<string, Command> = {};
-  const guest = fakeVm({ 'a.txt': 'hello\nworld', 'src/b.ts': 'hello' }, (argv) => finishedProcess(argv.at(-1) === 'command -v bash || true' ? `${BASH}\n` : 'ran\n'));
-  vi.mocked(VM.create).mockResolvedValue(guest.vm);
-  const ctx: FakeCtx = { ui: { setStatus: vi.fn(), notify: vi.fn(), theme: { fg: (_color, text) => text } } };
-  const api = {
-    on: (event: string, handler: Handler) => {
-      handlers = { ...handlers, [event]: handler };
-    },
-    registerTool: (tool: Tool) => {
-      tools = { ...tools, [tool.name]: tool };
-    },
-    registerCommand: (name: string, command: Command) => {
-      commands = { ...commands, [name]: command };
-    },
-  };
-  gondolin(api as unknown as ExtensionAPI);
-  const run = async (name: string, params: Record<string, unknown>) => (await tools[name]?.execute('id', params, undefined, undefined, ctx))?.content[0]?.text;
-  return { tools, handlers, commands, ctx, guest, run };
-}
-
-describe('the extension: lifecycle', () => {
-  test('overrides the seven built-in tools and registers its command and lifecycle handlers', () => {
-    const { tools, commands, handlers } = loadExtension();
-    expect(Object.keys(tools).toSorted()).toEqual(['bash', 'edit', 'find', 'grep', 'ls', 'read', 'write']);
-    expect(Object.keys(commands)).toEqual(['gondolin']);
-    expect(commands['gondolin']?.description).toBe('Show Gondolin VM status');
-    expect(Object.keys(handlers).toSorted()).toEqual(['before_agent_start', 'session_shutdown', 'session_start', 'user_bash']);
-  });
-
-  test('boots the VM at session start once and reports its status', async () => {
-    const { handlers, commands, ctx, guest } = loadExtension();
-    await Promise.all([handlers['session_start']?.({}, ctx), handlers['session_start']?.({}, ctx)]);
-    expect(ctx.ui.setStatus).toHaveBeenNthCalledWith(1, 'gondolin', `Gondolin: starting ${GUEST_WORKSPACE}`);
-    expect(ctx.ui.setStatus).toHaveBeenLastCalledWith('gondolin', `Gondolin: ${SHORT_ID} (${GUEST_WORKSPACE})`);
-    expect(ctx.ui.notify).toHaveBeenCalledWith(`Gondolin VM ready. ${process.cwd()} is mounted at ${GUEST_WORKSPACE}.`, 'info');
-    expect(guest.exec).toHaveBeenCalledTimes(1);
-    await commands['gondolin']?.handler('', ctx);
-    expect(ctx.ui.notify).toHaveBeenLastCalledWith(`Gondolin VM: ${VM_ID}\nHost workspace: ${process.cwd()}\nGuest workspace: ${GUEST_WORKSPACE}\nShell: ${BASH}`, 'info');
-  });
-
-  test('mounts this package read-only at its host path, so the skill paths Pi names resolve in the guest', async () => {
-    const { handlers, ctx } = loadExtension();
-    await handlers['session_start']?.({}, ctx);
-    const mounts: Record<string, unknown> = vi.mocked(VM.create).mock.lastCall?.[0]?.vfs?.mounts ?? {};
-    expect(Object.keys(mounts).toSorted()).toEqual([GUEST_WORKSPACE, PACKAGE_ROOT].toSorted());
-    expect(mounts[PACKAGE_ROOT]).toBeInstanceOf(ReadonlyProvider);
-    expect((mounts[PACKAGE_ROOT] as { backend: { root: string } }).backend).toEqual(new RealFSProvider(PACKAGE_ROOT));
-    expect(toGuestPath(HOST, path.join(PACKAGE_ROOT, 'skills', 'poteto-mode', 'SKILL.md'))).toBe(`${PACKAGE_ROOT}/skills/poteto-mode/SKILL.md`);
-  });
-
-  test('closes the VM at shutdown and clears its status', async () => {
-    const { handlers, ctx, guest } = loadExtension();
-    await handlers['session_shutdown']?.({}, ctx);
-    expect(ctx.ui.setStatus).not.toHaveBeenCalled();
-    await handlers['session_start']?.({}, ctx);
-    await handlers['session_shutdown']?.({}, ctx);
-    expect(guest.close).toHaveBeenCalledTimes(1);
-    expect(ctx.ui.setStatus).toHaveBeenCalledWith('gondolin', 'Gondolin: stopping');
-    expect(ctx.ui.setStatus).toHaveBeenLastCalledWith('gondolin', undefined);
-  });
-});
-
-describe('the extension: sandbox policy', () => {
-  test('protects git hooks and config from guest writes in the workspace mount', async () => {
-    const { handlers, ctx } = loadExtension();
-    await handlers['session_start']?.({}, ctx);
-    const mounts: Record<string, unknown> = vi.mocked(VM.create).mock.lastCall?.[0]?.vfs?.mounts ?? {};
-    const workspace = mounts[GUEST_WORKSPACE] as { backend: unknown; options: { shouldShadow: unknown; writeMode: string } };
-    expect(workspace).toBeInstanceOf(ShadowProvider);
-    expect(workspace.backend).toEqual(new RealFSProvider(process.cwd()));
-    expect(workspace.options.writeMode).toBe('deny');
-    expect(workspace.options.shouldShadow).toEqual({ shadowedPaths: [...PROTECTED_GIT_PATHS] });
-  });
-
-  test('restricts network access to the default development allowlist', async () => {
-    const { handlers, ctx } = loadExtension();
-    await handlers['session_start']?.({}, ctx);
-    const options = vi.mocked(VM.create).mock.lastCall?.[0];
-    expect(options?.httpHooks).toEqual({ allowedHosts: [...DEFAULT_ALLOWED_HOSTS] });
-    expect(options?.env).toEqual({ HTTP_HOOKS: 'on' });
-  });
-});
-
-describe('the extension: guest routing', () => {
-  test('tools run against the guest filesystem and shell', async () => {
-    const { run, guest } = loadExtension();
-    expect(await run('read', { path: 'a.txt' })).toBe('hello\nworld');
-    expect(await run('grep', { pattern: 'hello' })).toBe('a.txt:1: hello\nsrc/b.ts:1: hello');
-    expect(await run('ls', { path: 'src' })).toBe('b.ts');
-    expect(await run('find', { pattern: '*.ts' })).toBe('src/b.ts');
-    expect(await run('bash', { command: 'echo ran' })).toBe('ran\n');
-    expect(guest.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'echo ran'], expect.objectContaining({ cwd: GUEST_WORKSPACE }));
-    await run('write', { path: 'new.txt', content: 'x' });
-    expect(guest.fs.writeFile).toHaveBeenCalledWith(`${GUEST_WORKSPACE}/new.txt`, 'x', { encoding: 'utf8' });
-    await run('edit', { path: 'a.txt', edits: [{ oldText: 'world', newText: 'there' }] });
-    expect(guest.fs.writeFile).toHaveBeenLastCalledWith(`${GUEST_WORKSPACE}/a.txt`, 'hello\nthere', { encoding: 'utf8' });
-  });
-
-  test('user bash and the prompt hook use the guest', async () => {
-    const { handlers, ctx, guest } = loadExtension();
-    const userBash = (await handlers['user_bash']?.({}, ctx)) as { operations: { exec: (command: string, cwd: string, options: { onData: () => void }) => Promise<unknown> } };
-    expect(await userBash.operations.exec('ls', process.cwd(), { onData: vi.fn() })).toEqual({ exitCode: 0 });
-    expect(guest.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'ls'], expect.objectContaining({ cwd: GUEST_WORKSPACE }));
-    const prompt = await handlers['before_agent_start']?.({ systemPrompt: `Current working directory: ${process.cwd()}` }, ctx);
-    expect(prompt).toEqual({ systemPrompt: `Current working directory: ${GUEST_WORKSPACE} (Gondolin VM; host workspace mounted from ${process.cwd()})\n\n${HOST_BOUNDARY_NOTE}` });
+  test('the user bash command (!) runs in the guest too', async () => {
+    const host = loadGondolin({ exec: () => finishedProcess('listing\n') });
+    const result = (await host.fire('user_bash')) as { operations: { exec: (command: string, cwd: string, options: { onData: (data: Buffer) => void }) => Promise<unknown> } };
+    const onData = vi.fn();
+    expect(await result.operations.exec('ls', `${HOST}/src`, { onData })).toEqual({ exitCode: 0 });
+    expect(onData).toHaveBeenCalledWith(Buffer.from('listing\n'));
+    expect(host.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'ls'], expect.objectContaining({ cwd: `${GUEST}/src` }));
   });
 });

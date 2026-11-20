@@ -8,11 +8,11 @@ export default defineConfig({
     globals: false,
     pool: 'forks',
     isolate: true,
-    include: ['src/**/*.test.ts'],
+    unstubEnvs: true,
+    include: ['test/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts'],
       thresholds: { branches: BRANCH_THRESHOLD },
     },
   },

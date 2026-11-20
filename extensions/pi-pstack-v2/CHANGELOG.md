@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.5
+
+### Fixed
+
+- Write the subagent tmux exit code to a temp file and move it into place, so the parent cannot read an empty `exit` file mid-write and report `code null` for a child that exited cleanly.
+
+### Changed
+
+- Rewrite every test, including the `watch-pr` CLI tests, as a user behavior test. Tests load each extension the way Pi does and drive `tmux_run`, `tmux_jobs`, `subagent`, and the Gondolin tools with tmux, child Pi processes, and the VM faked at their boundaries.
+- Remove code that only tests reached: the `runPiInTmux` session hook, `formatAgentList`, and guards that no tool call can reach. No behavior changes.
+
 ## 0.2.4
 
 ### Changed

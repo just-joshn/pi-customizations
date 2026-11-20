@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { loadSkills } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
 import { z } from 'zod';
-import { SubagentParams } from '../src/subagent/schema.ts';
+import subagentExtension from '../src/subagent/index.ts';
+import { createWorld, loadPstack } from './core-host.ts';
 
 const PATH_SEPARATOR = '/';
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -198,7 +199,10 @@ const unknownSubagentKeys = (accepted: ReadonlySet<string>, filePath: string, li
 
 describe('the Pi port of pstack, prose rules: playbooks', () => {
   test('every `key: value` prose passes to subagent is a parameter subagent accepts', () => {
-    const accepted = new Set([...Object.keys(SubagentParams.properties), 'agent', 'task', 'cwd']);
+    const world = createWorld();
+    const parameters = Object.keys(loadPstack(world, {}, subagentExtension).tool('subagent').parameters.properties);
+    world.dispose();
+    const accepted = new Set([...parameters, 'agent', 'task', 'cwd']);
     const offenders = withMechanisms.flatMap((filePath) =>
       readFileSync(filePath, 'utf8')
         .split('\n')

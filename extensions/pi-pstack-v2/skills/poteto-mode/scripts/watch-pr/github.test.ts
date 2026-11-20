@@ -1,519 +1,130 @@
-import { describe, expect, it } from "bun:test";
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { z } from "zod";
+import { describe, expect, test } from "bun:test";
 import {
-  ChecksUnavailable,
-  WatcherQueryError,
-  buildReviewThreads,
-  mapRollupNode,
-  orderStack,
-  parseFastCheck,
-  parsePullRequest,
-  parseReviewThreadPage,
-  resolveChecks,
-  resolveContext,
-  resolveReviewThreads,
-} from "./github.ts";
-import {
-  fakeReader,
-  failedCheck,
-  passingCheck,
-  pendingCheck,
-} from "./fakes.test-helper.ts";
-import { parsePrNumber } from "./types.ts";
+  GH_TARGET,
+  NO_RETRIES,
+  commitsPage,
+  exit,
+  json,
+  rawPr,
+  useGhCli,
+} from "./gh.test-helper.ts";
+import { get } from "./output.test-helper.ts";
 
-const GITHUB_MODULE_PATH = `${import.meta.dir}/github.ts`;
-const BASE_PR_NUMBER = 41;
-const STACK_PR_NUMBER = 42;
-const UPSTACK_PR_NUMBER = 43;
-const BUGBOT_REVIEW_PASSES = 3;
-const SUBPROCESS_TIMEOUT_MS = 2000;
-const EXECUTABLE_MODE = 0o755;
-const numberedRows = z.array(z.object({ number: z.number() }));
-const forkedRows = z.array(
-  z.object({
-    number: z.number(),
-    headRefName: z.string(),
-    baseRefName: z.string(),
-    isCrossRepository: z.boolean(),
-  })
-);
+const cli = useGhCli();
+const EXIT_CONFLICTS = 2;
+const EXIT_FAILING_CHECKS = 4;
+const EXIT_STATUS_QUERY = 7;
+const NOT_A_STRING = 5;
+const PR_VIEW_COMMAND =
+  "gh pr view 42 --repo owner/repo --json mergeable,mergeStateStatus,reviewDecision,headRefOid,headRefName,baseRefName,state,mergedAt,isDraft";
+const oneQueryFailure = [...GH_TARGET, ...NO_RETRIES];
+const viewing = (overrides: Record<string, unknown>) => ({ pullRequest: () => json(rawPr(overrides)) });
+const blockedBy = (state: string | null, ...others: readonly string[]) => ({
+  pullRequest: () => json(rawPr({ mergeStateStatus: "BLOCKED" })),
+  commits: () => json(commitsPage([...others.map((oid) => [oid, "SUCCESS"] as const), ["head", state]])),
+});
 
-const context = {
-  owner: "owner",
-  repo: "repo",
-  number: parsePrNumber(STACK_PR_NUMBER),
-};
-
-describe("checks fallback chain", () => {
-  it("uses a non-empty fast-path result without a rollup query", async () => {
-    const reader = fakeReader({
-      fastPath: { kind: "checks", checks: [passingCheck("fast")] },
-    });
-    const read = await resolveChecks(reader, context);
-    expect(read.source).toBe("gh-pr-checks");
-    expect(read.checks.map((check) => check.name)).toEqual(["fast"]);
-    expect(reader.calls).toEqual(["checksFastPath"]);
+describe("pull request facts", () => {
+  test("asks gh for exactly the fields the watcher decides on", async () => {
+    const run = await cli.run(GH_TARGET);
+    expect(run.commands[0]).toBe(PR_VIEW_COMMAND);
   });
 
-  it("paginates GraphQL when the fast path is unusable", async () => {
-    const reader = fakeReader({
-      fastPath: { kind: "unusable", exitCode: 8, stderr: "" },
-      rollupPages: [
-        { checks: [passingCheck("first")], endCursor: "next" },
-        { checks: [failedCheck("second")], endCursor: null },
-      ],
-    });
-    const read = await resolveChecks(reader, context);
-    expect(read.source).toBe("graphql-rollup");
-    expect(read.checks.map((check) => check.name)).toEqual(["first", "second"]);
-    expect(reader.calls).toEqual([
-      "checksFastPath",
-      "checkRollupPage:null",
-      "checkRollupPage:next",
-    ]);
+  test("blocks on mergeStateStatus CONFLICTING", async () => {
+    const run = await cli.run(GH_TARGET, viewing({ mergeStateStatus: "CONFLICTING" }));
+    expect(run.code).toBe(EXIT_CONFLICTS);
+    expect(get(run.lines[0], "blocker.kind")).toBe("merge-conflicts");
   });
 
-  it("falls back when valid fast-path JSON represented an empty list", async () => {
-    const reader = fakeReader({
-      fastPath: { kind: "checks", checks: [] },
-      rollupPages: [{ checks: [pendingCheck("fallback")], endCursor: null }],
-    });
-    expect((await resolveChecks(reader, context)).checks[0].name).toBe(
-      "fallback"
-    );
-    expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
+  test("reads gh's empty reviewDecision as no decision, not a parse failure", async () => {
+    const run = await cli.run(GH_TARGET, viewing({ reviewDecision: "" }));
+    expect(run.code).toBe(0);
+    expect(get(run.lines[0], "scope.pr.proof.gate.reviewDecision")).toBeNull();
   });
 
-  it("fails closed when both paths are empty", async () => {
-    const reader = fakeReader({
-      fastPath: {
-        kind: "unusable",
-        exitCode: 8,
-        stderr: "credential cannot read checks",
-      },
-    });
-    await expect(resolveChecks(reader, context)).rejects.toBeInstanceOf(
-      ChecksUnavailable
-    );
-    expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
+  test("accepts a null head commit and a null review decision", async () => {
+    const run = await cli.run(GH_TARGET, viewing({ headRefOid: null, reviewDecision: null }));
+    expect(run.code).toBe(0);
   });
 });
 
-describe("rollup node mapping", () => {
-  it("maps terminal and non-terminal CheckRun states fail closed", () => {
-    const cases = [
-      ["IN_PROGRESS", null, "pending", "PENDING"],
-      ["COMPLETED", "SUCCESS", "passed", "SUCCESS"],
-      ["COMPLETED", "NEUTRAL", "skipped", "NEUTRAL"],
-      ["COMPLETED", "SKIPPED", "skipped", "SKIPPED"],
-      ["COMPLETED", "ACTION_REQUIRED", "failed", "ACTION_REQUIRED"],
-      ["COMPLETED", "TIMED_OUT", "failed", "FAILURE"],
-      ["COMPLETED", "FUTURE_VALUE", "failed", "FAILURE"],
-    ] as const;
-    cases.forEach(([status, conclusion, kind, reportedState]) => {
-      const node = { __typename: "CheckRun", name: "ci", status, conclusion };
-      expect(mapRollupNode(node)).toMatchObject({ kind, reportedState });
-    });
-  });
-
-});
-
-describe("rollup node mapping", () => {
-  it("classifies an in-progress Code Review Gate from the rollup as the gate", () => {
-    expect(
-      mapRollupNode({
-        __typename: "CheckRun",
-        name: "Code Review Gate",
-        status: "IN_PROGRESS",
-        conclusion: null,
-      })
-    ).toMatchObject({ kind: "code-review-gate" });
-    expect(
-      mapRollupNode({
-        __typename: "StatusContext",
-        context: "Code Review Gate",
-        state: "PENDING",
-      })
-    ).toMatchObject({ kind: "code-review-gate" });
-  });
-
-  it("classifies a Code Review Gate waiting on an owner approval as the gate", () => {
-    expect(
-      mapRollupNode({
-        __typename: "CheckRun",
-        name: "Code Review Gate",
-        status: "COMPLETED",
-        conclusion: "ACTION_REQUIRED",
-        description: "1 of 2 policies",
-      })
-    ).toMatchObject({
-      kind: "code-review-gate",
-      reportedState: "ACTION_REQUIRED",
-    });
-  });
-
-});
-
-describe("rollup node mapping", () => {
-  it("classifies a fast-path Code Review Gate waiting on an owner approval as the gate", () => {
-    expect(
-      parseFastCheck({
-        name: "Code Review Gate",
-        state: "ACTION_REQUIRED",
-        bucket: "fail",
-      })
-    ).toMatchObject({
-      kind: "code-review-gate",
-      reportedState: "ACTION_REQUIRED",
-    });
-    expect(
-      parseFastCheck({ name: "ci", state: "ACTION_REQUIRED", bucket: "fail" })
-    ).toMatchObject({ kind: "failed", reportedState: "ACTION_REQUIRED" });
-  });
-
-  it("maps StatusContext states and drops unknown typenames", () => {
-    expect(
-      mapRollupNode({
-        __typename: "StatusContext",
-        context: "ci",
-        state: "EXPECTED",
-      })
-    ).toMatchObject({ kind: "pending", reportedState: "PENDING" });
-    expect(
-      mapRollupNode({
-        __typename: "StatusContext",
-        context: "ci",
-        state: "FUTURE_VALUE",
-      })
-    ).toMatchObject({ kind: "failed", reportedState: "FUTURE_VALUE" });
-    expect(mapRollupNode({ __typename: "FutureNode" })).toBeNull();
-  });
-});
-
-const rawPullRequest = {
-  mergeable: "MERGEABLE",
-  mergeStateStatus: "CLEAN",
-  reviewDecision: "APPROVED",
-  headRefOid: "head",
-  headRefName: "feature",
-  baseRefName: "main",
-  state: "OPEN",
-  mergedAt: null,
-  isDraft: false,
-};
-
-describe("closed enum parsing", () => {
-  it("accepts mergeStateStatus CONFLICTING", () => {
-    expect(
-      parsePullRequest(
-        { ...rawPullRequest, mergeStateStatus: "CONFLICTING" },
-        context
-      ).mergeStateStatus
-    ).toBe("CONFLICTING");
-  });
-
-  it("reads gh's empty reviewDecision as no decision rather than a parse failure", () => {
-    expect(
-      parsePullRequest({ ...rawPullRequest, reviewDecision: "" }, context)
-        .reviewDecision
-    ).toBeNull();
-  });
-
-});
-
-describe("closed enum parsing", () => {
-  it("still rejects an unknown reviewDecision", () => {
-    expect(() =>
-      parsePullRequest({ ...rawPullRequest, reviewDecision: "MAYBE" }, context)
-    ).toThrow(WatcherQueryError);
-  });
-
-  it("rejects unknown enum values as retryable errors carrying the raw value", () => {
-    try {
-      parsePullRequest(
-        { ...rawPullRequest, mergeStateStatus: "FUTURE_STATE" },
-        context
-      );
-      throw new Error("expected parser to throw");
-    } catch (error) {
-      expect(error).toBeInstanceOf(WatcherQueryError);
-      if (!(error instanceof WatcherQueryError)) {
-        console.error(error);
-        throw error;
-      }
-      expect(error.failure).toMatchObject({
-        kind: "missing-key",
-        retryable: true,
-        rawValue: '"FUTURE_STATE"',
-      });
-    }
-  });
-});
-
-const botComment = (
-  body: string,
-  login: string,
-  location: { path: string | null; line: number | null }
-) => ({ body, createdAt: "now", ...location, author: { login } });
-const threadNode = (
-  id: string,
-  isResolved: boolean,
-  comment: ReturnType<typeof botComment>
-) => ({ id, isResolved, comments: { nodes: [comment] } });
-const NO_LOCATION = { path: null, line: null };
-const bugbotThreadNodes = [
-  threadNode(
-    "one",
-    false,
-    botComment("RUN_ID: run-1", "bugbot", { path: "a.ts", line: 1 })
-  ),
-  threadNode(
-    "two",
-    false,
-    botComment("CURSOR_AUTOMATION_ID: run-2 severity high", "cursor", NO_LOCATION)
-  ),
-  threadNode(
-    "resolved",
-    true,
-    botComment("RUN_ID: run-3", "bugbot", NO_LOCATION)
-  ),
+const UNKNOWN_VALUES: readonly (readonly [string, Record<string, unknown>, string])[] = [
+  ["an unknown reviewDecision", { reviewDecision: "MAYBE" }, '"MAYBE"'],
+  ["an unknown mergeStateStatus", { mergeStateStatus: "FUTURE_STATE" }, '"FUTURE_STATE"'],
+  ["an unknown mergeable value", { mergeable: "SOMETIMES" }, '"SOMETIMES"'],
+  ["an unknown state", { state: "ARCHIVED" }, '"ARCHIVED"'],
+];
+const BAD_FIELDS: readonly (readonly [string, Record<string, unknown>, string])[] = [
+  ["a non-boolean isDraft", { isDraft: "no" }, "pull request.isDraft"],
+  ["a missing headRefName", { headRefName: undefined }, "pull request.headRefName"],
+  ["a non-string mergedAt", { mergedAt: NOT_A_STRING }, "pull request.mergedAt"],
 ];
 
-it("annotates Bugbot threads with distinct review-pass counts", () => {
-  const pageInfo = { hasNextPage: false, endCursor: null };
-  const reviewThreads = { pageInfo, nodes: bugbotThreadNodes };
-  const response = {
-    data: { repository: { pullRequest: { reviewThreads } } },
-  };
-  const threads = buildReviewThreads(parseReviewThreadPage(response).threads);
-  expect(threads).toHaveLength(2);
-  expect(threads.map((thread) => thread.isBugbot)).toEqual([true, true]);
-  expect(threads.map((thread) => thread.bugbotReviewPasses)).toEqual([BUGBOT_REVIEW_PASSES, BUGBOT_REVIEW_PASSES]);
-});
-
-describe("review thread pagination", () => {
-  const thread = (id: string, resolved = false) => ({
-    id,
-    firstComment: {
-      authorLogin: "someone",
-      body: "please fix",
-      path: "a.ts",
-      line: 1,
-      createdAt: "now",
-    },
-    resolved,
+describe("malformed pull request facts", () => {
+  test.each(UNKNOWN_VALUES)("%s is a retryable error carrying the raw value", async (_name, overrides, rawValue) => {
+    const run = await cli.run(oneQueryFailure, viewing(overrides));
+    expect(run.code).toBe(EXIT_STATUS_QUERY);
+    expect(get(run.lines[0], "blocker.kind")).toBe("status-query");
+    expect(get(run.lines[0], "blocker.failure.kind")).toBe("missing-key");
+    expect(get(run.lines[0], "blocker.failure.retryable")).toBe(true);
+    expect(get(run.lines[0], "blocker.failure.rawValue")).toBe(rawValue);
   });
 
-  it("keeps walking pages until the cursor is exhausted", async () => {
-    const reader = fakeReader({
-      threadPages: [
-        { threads: [thread("one")], endCursor: "next" },
-        { threads: [thread("two")], endCursor: "last" },
-        { threads: [thread("three")], endCursor: null },
-      ],
-    });
-    const threads = await resolveReviewThreads(reader, context);
-    expect(threads.map((item) => item.id)).toEqual(["one", "two", "three"]);
-    expect(reader.calls).toEqual([
-      "reviewThreadPage:null",
-      "reviewThreadPage:next",
-      "reviewThreadPage:last",
-    ]);
+  test.each(BAD_FIELDS)("%s is rejected naming the field", async (_name, overrides, field) => {
+    const run = await cli.run(oneQueryFailure, viewing(overrides));
+    expect(get(run.lines[0], "blocker.failure.detail")).toContain(field);
   });
 
-  it("sees an unresolved thread that sits past the first page", async () => {
-    const reader = fakeReader({
-      threadPages: [
-        { threads: [thread("early", true)], endCursor: "next" },
-        { threads: [thread("late")], endCursor: null },
-      ],
-    });
-    const threads = await resolveReviewThreads(reader, context);
-    expect(threads.map((item) => item.id)).toEqual(["late"]);
-  });
-
-  it("stops after a single page when the cursor is exhausted", async () => {
-    const reader = fakeReader({
-      threadPages: [{ threads: [thread("only")], endCursor: null }],
-    });
-    expect((await resolveReviewThreads(reader, context)).length).toBe(1);
-    expect(reader.calls).toEqual(["reviewThreadPage:null"]);
-  });
-
-});
-
-describe("review thread pagination", () => {
-  const thread = (id: string, resolved = false) => ({
-    id,
-    firstComment: {
-      authorLogin: "someone",
-      body: "please fix",
-      path: "a.ts",
-      line: 1,
-      createdAt: "now",
-    },
-    resolved,
-  });
-
-  it("counts Bugbot review passes across every page", async () => {
-    const bugbot = (id: string, runId: string) => ({
-      id,
-      firstComment: {
-        authorLogin: "bugbot",
-        body: `RUN_ID: ${runId}`,
-        path: "a.ts",
-        line: 1,
-        createdAt: "now",
-      },
-      resolved: false,
-    });
-    const reader = fakeReader({
-      threadPages: [
-        { threads: [bugbot("one", "run-1")], endCursor: "next" },
-        { threads: [bugbot("two", "run-2")], endCursor: null },
-      ],
-    });
-    const threads = await resolveReviewThreads(reader, context);
-    expect(threads.map((item) => item.bugbotReviewPasses)).toEqual([2, 2]);
-  });
-
-  it("drops resolved threads from later pages too", async () => {
-    const reader = fakeReader({
-      threadPages: [
-        { threads: [thread("one")], endCursor: "next" },
-        { threads: [thread("two", true)], endCursor: null },
-      ],
-    });
-    expect(
-      (await resolveReviewThreads(reader, context)).map((item) => item.id)
-    ).toEqual(["one"]);
-  });
-
-  it("rejects a page that omits pageInfo instead of assuming one page", async () => {
-    const pullRequest = { reviewThreads: { nodes: [] } };
-    const response = { data: { repository: { pullRequest } } };
-    expect(() => parseReviewThreadPage(response)).toThrow(WatcherQueryError);
+  test("a response that is not a JSON object is rejected", async () => {
+    const run = await cli.run(oneQueryFailure, { pullRequest: () => json([]) });
+    expect(get(run.lines[0], "blocker.failure.kind")).toBe("missing-key");
+    expect(get(run.lines[0], "blocker.failure.detail")).toContain("pull request");
   });
 });
 
-describe("context and stack discovery", () => {
-  it("returns a fully explicit context without any reader call", async () => {
-    const reader = fakeReader();
-    expect(
-      await resolveContext({
-        reader,
-        owner: "explicit",
-        repo: "repo",
-        pr: context.number,
-      })
-    ).toEqual({ owner: "explicit", repo: "repo", number: context.number });
-    expect(reader.calls).toEqual([]);
+describe("gh failures", () => {
+  test("invalid JSON is a json-parse failure", async () => {
+    const run = await cli.run(oneQueryFailure, { pullRequest: () => ({ stdout: "<html>" }) });
+    expect(get(run.lines[0], "blocker.failure.kind")).toBe("json-parse");
+    expect(get(run.lines[0], "blocker.failure.retryable")).toBe(true);
   });
 
-  it("uses the local origin before currentPr for an explicit number", async () => {
-    const reader = fakeReader({ origin: { owner: "local", repo: "checkout" } });
-    expect(
-      await resolveContext({
-        reader,
-        owner: null,
-        repo: null,
-        pr: context.number,
-      })
-    ).toEqual({ owner: "local", repo: "checkout", number: context.number });
-    expect(reader.calls).toEqual(["originRepo"]);
+  test("a non-zero exit carries the first line of gh's stderr", async () => {
+    const run = await cli.run(oneQueryFailure, { pullRequest: () => exit(1, "HTTP 502: bad gateway\nrequest id abc") });
+    expect(run.code).toBe(EXIT_STATUS_QUERY);
+    expect(get(run.lines[0], "blocker.failures")).toBe(1);
+    expect(get(run.lines[0], "blocker.failure.kind")).toBe("command-exit");
+    expect(get(run.lines[0], "blocker.failure.code")).toBe(1);
+    expect(get(run.lines[0], "blocker.failure.detail")).toBe("HTTP 502: bad gateway");
   });
 
+  test("a non-zero exit with no stderr names the command", async () => {
+    const run = await cli.run(oneQueryFailure, { pullRequest: () => exit(1) });
+    expect(get(run.lines[0], "blocker.failure.detail")).toBe(`${PR_VIEW_COMMAND} exited 1`);
+  });
+
+  test("a gh binary that cannot be started crashes the watcher", async () => {
+    const missing = new Error("spawn gh ENOENT");
+    const attempt = cli.run(GH_TARGET, { pullRequest: () => ({ error: missing }) });
+    await expect(attempt).rejects.toThrow("spawn gh ENOENT");
+  });
 });
 
-describe("context and stack discovery", () => {
-  it("orders the connected stack bottom-to-top", () => {
-    const ordered = orderStack(context, [
-      {
-        number: parsePrNumber(BASE_PR_NUMBER),
-        headRefName: "base-feature",
-        isCrossRepository: false,
-        baseRefName: "main",
-      },
-      {
-        number: context.number,
-        headRefName: "feature",
-        isCrossRepository: false,
-        baseRefName: "base-feature",
-      },
-      {
-        number: parsePrNumber(UPSTACK_PR_NUMBER),
-        headRefName: "upstack",
-        isCrossRepository: false,
-        baseRefName: "feature",
-      },
-    ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([
-      BASE_PR_NUMBER,
-      STACK_PR_NUMBER,
-      UPSTACK_PR_NUMBER,
-    ]);
-  });
-  it("does not use a fork's same-named head as a stack parent", () => {
-    const ordered = orderStack(context, [
-      { number: parsePrNumber(BASE_PR_NUMBER), headRefName: "base-feature", baseRefName: "main", isCrossRepository: true },
-      { number: context.number, headRefName: "feature", baseRefName: "base-feature", isCrossRepository: false },
-    ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([STACK_PR_NUMBER]);
+describe("commit rollups", () => {
+  test("a clean check list with a failing head rollup is a CI blocker", async () => {
+    const run = await cli.run(GH_TARGET, blockedBy("FAILURE", "old"));
+    expect(run.code).toBe(EXIT_FAILING_CHECKS);
+    expect(get(run.lines[0], "blocker.ci.kind")).toBe("ci-github-rejected");
+    expect(get(run.lines[0], "blocker.ci.hadPreviousPassingCi")).toBe(true);
   });
 
-  it("does not attach upstream branch children to a fork head", () => {
-    const ordered = orderStack(context, [
-      { number: context.number, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
-      { number: parsePrNumber(UPSTACK_PR_NUMBER), headRefName: "upstack", baseRefName: "feature", isCrossRepository: false },
-    ]);
-    expect(ordered.map((item) => Number(item.number))).toEqual([STACK_PR_NUMBER]);
+  test("a head commit without a status rollup is not a refusal", async () => {
+    const run = await cli.run(GH_TARGET, blockedBy(null));
+    expect(run.code).toBe(0);
   });
 
-});
-
-describe("context and stack discovery", () => {
-  it("terminates when an unrelated fork opens main against main", () => {
-    // Bound the subprocess so this regression reports a failure instead of hanging the suite.
-    const program = `import { orderStack } from ${JSON.stringify(GITHUB_MODULE_PATH)};
-      console.log(JSON.stringify(orderStack(${JSON.stringify(context)}, [
-        { number: 41, headRefName: "main", baseRefName: "main", isCrossRepository: true },
-        { number: 42, headRefName: "feature", baseRefName: "main", isCrossRepository: false }
-      ])));`;
-    const child = spawnSync(process.execPath, ["-e", program], { encoding: "utf8", timeout: SUBPROCESS_TIMEOUT_MS });
-    expect(child.error).toBeUndefined();
-    expect(child.status).toBe(0);
-    expect(numberedRows.parse(JSON.parse(child.stdout)).map((item) => item.number)).toEqual([STACK_PR_NUMBER]);
+  test("an unknown rollup state is rejected with its raw value", async () => {
+    const run = await cli.run(oneQueryFailure, { commits: () => json(commitsPage([["head", "FUTURE"]])) });
+    expect(get(run.lines[0], "blocker.failure.rawValue")).toBe('"FUTURE"');
   });
-
-  it("requests and parses fork identity from gh before stack discovery", () => {
-    const directory = mkdtempSync(join(tmpdir(), "watch-pr-fork-"));
-    try {
-      writeFileSync(join(directory, "gh"), `#!/bin/sh
-case "$*" in
-  *number,headRefName,baseRefName,isCrossRepository*) ;;
-  *) exit 2 ;;
-esac
-printf '%s\\n' '[{"number":42,"headRefName":"feature","baseRefName":"main","isCrossRepository":true}]'
-`, { mode: EXECUTABLE_MODE });
-      const program = `import { GhGitHubReader } from ${JSON.stringify(GITHUB_MODULE_PATH)};
-        console.log(JSON.stringify(await new GhGitHubReader().openPullRequests({ owner: "owner", repo: "repo" })));`;
-      const parentEnv = z.record(z.string(), z.string().optional()).parse(process.env);
-      const child = spawnSync(process.execPath, ["-e", program], {
-        encoding: "utf8", timeout: SUBPROCESS_TIMEOUT_MS,
-        env: { ...parentEnv, PATH: `${directory}:${parentEnv.PATH}` },
-      });
-      expect(child.error).toBeUndefined();
-      expect(child.status).toBe(0);
-      expect(forkedRows.parse(JSON.parse(child.stdout))).toEqual([
-        { number: STACK_PR_NUMBER, headRefName: "feature", baseRefName: "main", isCrossRepository: true },
-      ]);
-    } finally {
-      rmSync(directory, { recursive: true, force: true });
-    }
-  });
-
 });

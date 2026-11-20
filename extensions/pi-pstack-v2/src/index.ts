@@ -363,7 +363,6 @@ function registerTmuxJobs(pi: ExtensionAPI, state: PstackState): void {
       }
       if (input.action === 'output') return text(jobOutputs(named(), input.lines ?? DEFAULT_OUTPUT_LINES));
       if (input.action === 'wait') return text(await waitFor(state, root, owner, input.ids, input.timeout_seconds, { signal, update, ctx }));
-      if (input.action !== 'stop') throw new Error(`Unknown action ${String(input.action)}`);
       const series = new Set(named().map((job) => job.spec.series));
       // Recorded before stopping, so a run that finishes meanwhile is not restarted into a run this stop misses.
       state.stopSeries(series);

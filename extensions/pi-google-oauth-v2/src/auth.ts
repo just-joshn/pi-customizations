@@ -52,7 +52,7 @@ export function createGoogleOAuth(deps: GoogleOAuthDeps = {}): OAuthAuth {
     name: 'Google AI subscription',
     isSubscription: true,
     loginLabel: 'Sign in with your Google AI plan',
-    login: (interaction) => login(interaction, fetchImpl, deps.env ?? ENV_SCHEMA.parse(process.env)),
+    login: (interaction) => login(interaction, fetchImpl, deps.env ?? ENV_SCHEMA.parse({ ...process.env })),
     refresh: (credential, signal) => refresh(credential, signal, fetchImpl),
     toAuth,
   };
@@ -66,7 +66,7 @@ export function parseStoredCredential(credential: OAuthCredential): GoogleCreden
   return { ...credential, projectId };
 }
 
-export function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
+function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
   const params = new URLSearchParams({
     client_id: ANTIGRAVITY_CLIENT_ID,
     redirect_uri: input.redirectUri,

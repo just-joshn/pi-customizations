@@ -1,531 +1,212 @@
-import { describe, expect, it } from "bun:test";
-import { WatcherQueryError } from "./github.ts";
+import { describe, expect, test } from "bun:test";
 import {
-  applyQueueSnapshot,
-  assessGitHubMerge,
-  classifyPr,
-  createQueueState,
-  evaluateQueue,
-  planQueue,
-  queryBackoffSeconds,
-  readSnapshot,
-  runQueued,
-  runSimple,
-  selectTierMajorStackDecision,
-} from "./policy.ts";
-import {
-  fakeReader,
   failedCheck,
+  fakeReader,
   passingCheck,
   pendingCheck,
+  reviewThread,
+  type FakeReaderOptions,
 } from "./fakes.test-helper.ts";
-import type {
-  GitHubReader,
-  NonEmpty,
-  PollingOptions,
-  PrContext,
-  ProgressVerdict,
-  PullRequestFacts,
-  RollupState,
-} from "./types.ts";
-import { createRecorder, type Recorder } from "./recorder.test-helper.ts";
-import { parsePrNumber } from "./types.ts";
+import { runCli, TARGET } from "./harness.test-helper.ts";
+import { get, kindsOf } from "./output.test-helper.ts";
+import type { PullRequestFacts, RollupState } from "./types.ts";
 
-const context = (number: number): PrContext => ({
-  owner: "owner",
-  repo: "repo",
-  number: parsePrNumber(number),
+const EXIT_CONFLICTS = 2;
+const EXIT_THREADS = 3;
+const EXIT_CHECKS = 4;
+const EXIT_GATE = 6;
+const DEFAULT_INTERVAL_SECONDS = 60;
+const MERGED = { state: "MERGED", mergedAt: "2026-07-26T00:00:00Z" } as const;
+const LINT_URL = "https://ci.example/lint";
+const READY_TEXT = "READY: no merge conflicts, no unresolved review threads, no failing or pending checks";
+
+const watch = (options: FakeReaderOptions, ...extra: readonly string[]) =>
+  runCli([...TARGET, ...extra], fakeReader(options));
+const pendingThenSettled = (settled: FakeReaderOptions): FakeReaderOptions => ({
+  ...settled,
+  fastPath: (_pr, reads) => ({ kind: "checks", checks: [reads === 0 ? pendingCheck() : passingCheck()] }),
 });
-const PR = {
-  settled: 3,
-  failed: 4,
-  merged: 5,
-  draft: 12,
-  upstackConflict: 11,
-  readyBottom: 20,
-  pendingUpstack: 21,
-} as const;
-const QUEUE_PRS = { first: 20, second: 21, third: 22 } as const;
-const SWEEP_PRS = { first: 30, second: 31 } as const;
-const ADVANCE_PRS = { merging: 40, next: 41 } as const;
-const DEDUP_PR = 50;
-const SECOND_SNAPSHOT_AT = 5;
-const ADVANCE_WINDOW = 5;
-const BACKOFF_SECOND_FAILURE_SECONDS = 120;
-const FOURTH_FAILURE = 4;
-const RETRY_CAP_SECONDS = 300;
-const DEADLINE_SECONDS = 5;
-const options = {
-  interval: 10,
-  sweepInterval: 300,
-  timeout: 0,
-  maxQueryErrors: 5,
-  allowDraft: false,
-} satisfies PollingOptions;
 
-describe("readiness truth table", () => {
-  it("covers every specified row and every UNKNOWN rollup value", () => {
-    const cases: readonly [
-      PullRequestFacts["mergeStateStatus"],
-      RollupState,
-      "allowed" | "refused",
-    ][] = [
-      ["BLOCKED", "FAILURE", "refused"],
-      ["BLOCKED", "ERROR", "refused"],
-      ["BLOCKED", "PENDING", "allowed"],
-      ["UNSTABLE", "FAILURE", "allowed"],
-      ["UNKNOWN", "ERROR", "allowed"],
-      ["UNKNOWN", "EXPECTED", "allowed"],
-      ["UNKNOWN", "FAILURE", "allowed"],
-      ["UNKNOWN", "PENDING", "allowed"],
-      ["UNKNOWN", "SUCCESS", "allowed"],
-      ["UNKNOWN", null, "allowed"],
-      ["CLEAN", "SUCCESS", "allowed"],
-    ];
-    for (const [mergeStateStatus, headRollupState, expected] of cases) {
-      expect(
-        assessGitHubMerge({ mergeStateStatus, headRollupState }).kind
-      ).toBe(expected);
-    }
+describe("a clean PR", () => {
+  test("is READY with proof of mergeability, threads, CI and gate", async () => {
+    const run = await watch({});
+    expect(run.code).toBe(0);
+    expect(get(run.lines[0], "kind")).toBe("READY");
+    expect(get(run.lines[0], "scope.kind")).toBe("single");
+    expect(get(run.lines[0], "scope.pr.kind")).toBe("ready-pr");
+    expect(get(run.lines[0], "scope.pr.proof.mergeability")).toBe("clear");
+    expect(get(run.lines[0], "scope.pr.proof.gate")).toEqual({ state: "OPEN", reviewDecision: "APPROVED", draft: "not-draft" });
   });
 
-  it("turns a clean visible list plus GitHub refusal into an explicit CI blocker", async () => {
-    const reader = fakeReader({
-      facts: { mergeStateStatus: "BLOCKED" },
-      fastPath: { kind: "checks", checks: [passingCheck()] },
-      commitRollups: [{ oid: "head", state: "FAILURE" }],
-    });
-    const snapshot = await readSnapshot({
-      reader,
-      context: context(1),
-      pendingHistory: "include",
-      allowDraft: false,
-    });
-    expect(snapshot.kind).toBe("open");
-    if (snapshot.kind !== "open") throw new Error("expected open snapshot");
-    expect(snapshot.ci.kind).toBe("ci-github-rejected");
-    expect(classifyPr(snapshot)).toMatchObject({
-      kind: "blocker",
-      blocker: { kind: "failing-checks" },
-    });
+  test("prints the merge facts with --pretty", async () => {
+    const run = await watch({}, "--pretty");
+    expect(run.stdout).toBe(`${READY_TEXT}\nmergeStateStatus=CLEAN\nreviewDecision=APPROVED\nisDraft=false\n`);
+  });
+
+  test("is READY even while a review is still required", async () => {
+    const run = await watch({ facts: { reviewDecision: "REVIEW_REQUIRED" } });
+    expect(get(run.lines[0], "scope.pr.proof.gate.reviewDecision")).toBe("REVIEW_REQUIRED");
   });
 });
 
-describe("snapshot query planning", () => {
-  it("does not query commit rollups while queued checks are pending", async () => {
-    const reader = fakeReader({
-      fastPath: { kind: "checks", checks: [pendingCheck()] },
-    });
-    const snapshot = await readSnapshot({
-      reader,
-      context: context(2),
-      pendingHistory: "omit",
-      allowDraft: false,
-    });
-    expect(snapshot.kind).toBe("open");
-    if (snapshot.kind !== "open") throw new Error("expected open snapshot");
-    expect(snapshot.ci.kind).toBe("ci-pending");
-    expect(reader.calls).toEqual([
-      "pullRequest",
-      "reviewThreadPage:null",
-      "checksFastPath",
-    ]);
-  });
-
-  it("queries rollups for settled and failed lists", async () => {
-    const settled = fakeReader();
-    await readSnapshot({
-      reader: settled,
-      context: context(PR.settled),
-      pendingHistory: "omit",
-      allowDraft: false,
-    });
-    expect(settled.calls).toContain("commitRollups");
-
-    const failed = fakeReader({
-      fastPath: { kind: "checks", checks: [failedCheck()] },
-    });
-    await readSnapshot({
-      reader: failed,
-      context: context(PR.failed),
-      pendingHistory: "omit",
-      allowDraft: false,
-    });
-    expect(failed.calls).toContain("commitRollups");
-  });
-
-  it("short-circuits merged rows before threads and checks", async () => {
-    const reader = fakeReader({
-      facts: { state: "MERGED", mergedAt: "2026-07-26T00:00:00Z" },
-    });
-    const snapshot = await readSnapshot({
-      reader,
-      context: context(PR.merged),
-      pendingHistory: "include",
-      allowDraft: false,
-    });
-    expect(snapshot.kind).toBe("merged");
+describe("a PR that is already merged or closed", () => {
+  test("a merged PR is READY as merged, without reading threads or checks", async () => {
+    const reader = fakeReader({ facts: MERGED });
+    const run = await runCli(TARGET, reader);
+    expect(run.code).toBe(0);
+    expect(get(run.lines[0], "scope.pr.kind")).toBe("merged-pr");
+    expect(get(run.lines[0], "scope.pr.mergedAt")).toBe(MERGED.mergedAt);
     expect(reader.calls).toEqual(["pullRequest"]);
   });
-});
 
-it("scans stacks tier-major so an upstack conflict outranks frontier CI", async () => {
-  const frontier = await readSnapshot({
-    reader: fakeReader({
-      fastPath: { kind: "checks", checks: [failedCheck()] },
-      commitRollups: [{ oid: "head", state: "FAILURE" }],
-    }),
-    context: context(10),
-    pendingHistory: "omit",
-    allowDraft: false,
+  test("an open PR with a merge timestamp counts as merged", async () => {
+    const run = await watch({ facts: { mergedAt: MERGED.mergedAt } }, "--pretty");
+    expect(run.stdout).toBe(`${READY_TEXT}\n`);
   });
-  const upstack = await readSnapshot({
-    reader: fakeReader({ facts: { mergeable: "CONFLICTING" } }),
-    context: context(PR.upstackConflict),
-    pendingHistory: "omit",
-    allowDraft: false,
+
+  test("a closed PR is a merge-gate blocker with exit 6", async () => {
+    const reader = fakeReader({ facts: { state: "CLOSED" } });
+    const run = await runCli(TARGET, reader);
+    expect(run.code).toBe(EXIT_GATE);
+    expect(get(run.lines[0], "blocker.reason")).toBe("closed-without-merge");
+    expect(reader.calls).toEqual(["pullRequest"]);
   });
-  const decision = selectTierMajorStackDecision([frontier, upstack]);
-  expect(decision).toMatchObject({
-    kind: "blocker",
-    blocker: { kind: "merge-conflicts", pr: { number: 11 } },
+
+  test("tells the agent what to do about a closed PR with --pretty", async () => {
+    const run = await watch({ facts: { state: "CLOSED" } }, "--pretty");
+    expect(run.stdout).toBe(
+      "BLOCKER: closed-without-merge\npr=1\naction=restore or remove the closed PR from the queued stack\n"
+    );
   });
 });
 
-it("attributes a stack wait to the PR whose checks are pending, not the bottom", async () => {
-  const readyBottom = await readSnapshot({
-    reader: fakeReader(),
-    context: context(PR.readyBottom),
-    pendingHistory: "omit",
-    allowDraft: false,
+describe("drafts and review decisions", () => {
+  test("a draft with pending checks waits, then reports the draft gate", async () => {
+    const run = await watch(pendingThenSettled({ facts: { isDraft: true } }));
+    expect(kindsOf(run.lines)).toEqual(["WAITING", "BLOCKER"]);
+    expect(run.code).toBe(EXIT_GATE);
+    expect(get(run.lines[1], "blocker.reason")).toBe("draft-pr");
+    expect(run.clock.sleeps).toEqual([DEFAULT_INTERVAL_SECONDS]);
   });
-  const pendingUpstack = await readSnapshot({
-    reader: fakeReader({
-      fastPath: { kind: "checks", checks: [pendingCheck("upstack-build")] },
-    }),
-    context: context(PR.pendingUpstack),
-    pendingHistory: "omit",
-    allowDraft: false,
+
+  test("--allow-draft lets a draft be READY and says to leave it a draft", async () => {
+    const run = await watch({ facts: { isDraft: true } }, "--allow-draft", "--pretty");
+    expect(run.code).toBe(0);
+    expect(run.stdout).toBe(
+      `${READY_TEXT}\nmergeStateStatus=CLEAN\nreviewDecision=APPROVED\nisDraft=true\nnote=draft allowed (--allow-draft); leave draft — do not mark ready\n`
+    );
   });
-  const decision = selectTierMajorStackDecision([readyBottom, pendingUpstack]);
-  expect(decision).toMatchObject({
-    kind: "waiting",
-    frontier: { number: 21 },
-    pending: [{ name: "upstack-build" }],
+
+  test("--allow-draft is recorded in the READY proof", async () => {
+    const run = await watch({ facts: { isDraft: true } }, "--allow-draft");
+    expect(get(run.lines[0], "scope.pr.proof.gate.draft")).toBe("draft-allowed");
+  });
+
+  test("changes requested is a merge-gate blocker with exit 6", async () => {
+    const run = await watch({ facts: { reviewDecision: "CHANGES_REQUESTED" } }, "--pretty");
+    expect(run.code).toBe(EXIT_GATE);
+    expect(run.stdout).toContain("BLOCKER: changes-requested");
+    expect(run.stdout).toContain("action=resolve the changes-requested review before waiting for the merge queue");
   });
 });
 
-it("waits on a draft while checks are pending, then reports the draft gate", async () => {
-  const pending = await readSnapshot({
-    reader: fakeReader({
-      facts: { isDraft: true },
-      fastPath: { kind: "checks", checks: [pendingCheck()] },
-    }),
-    context: context(PR.draft),
-    pendingHistory: "omit",
-    allowDraft: false,
-  });
-  expect(classifyPr(pending).kind).toBe("waiting");
+type ConflictCase = readonly [name: string, facts: NonNullable<FakeReaderOptions["facts"]>];
+const CONFLICT_CASES: readonly ConflictCase[] = [
+  ["mergeable CONFLICTING", { mergeable: "CONFLICTING" }],
+  ["mergeStateStatus DIRTY", { mergeStateStatus: "DIRTY" }],
+  ["mergeStateStatus CONFLICTING", { mergeStateStatus: "CONFLICTING" }],
+];
 
-  const settled = await readSnapshot({
-    reader: fakeReader({ facts: { isDraft: true } }),
-    context: context(PR.draft),
-    pendingHistory: "omit",
-    allowDraft: false,
-  });
-  expect(classifyPr(settled)).toMatchObject({
-    kind: "blocker",
-    blocker: { kind: "merge-gate", reason: "draft-pr" },
-  });
-});
-
-const rateLimited = () =>
-  new WatcherQueryError({
-    kind: "command-exit",
-    retryable: true,
-    detail: "rate limited",
-    code: 1,
-  });
-const OBSERVED_AT = "2026-07-26T00:00:00.000Z";
-const MERGED_FACTS = {
-  state: "MERGED",
-  mergedAt: "2026-07-26T00:00:00Z",
-} as const;
-const STOP_AFTER_SLEEPS = 2;
-function stoppingClock(timeline: Recorder<string>, message: string) {
-  let now = 0;
-  let sleeps = 0;
-  return {
-    now: () => now,
-    observedAt: () => OBSERVED_AT,
-    async sleep(seconds: number): Promise<void> {
-      timeline.record("sleep");
-      now += seconds;
-      sleeps += 1;
-      if (sleeps === STOP_AFTER_SLEEPS) throw new Error(message);
-    },
-  };
-}
-function failingOnceReader(failing: PrContext, timeline: Recorder<string>) {
-  const base = fakeReader();
-  let failNext = true;
-  return {
-    ...base,
-    async pullRequest(pr: PrContext) {
-      if (pr.number === failing.number && failNext) {
-        failNext = false;
-        timeline.record(`fail:${pr.number}`);
-        throw rateLimited();
-      }
-      timeline.record(`read:${pr.number}`);
-      return base.pullRequest(pr);
-    },
-  } satisfies GitHubReader;
-}
-function mergingOnSecondReadReader(
-  target: PrContext,
-  timeline: Recorder<string>
-) {
-  const base = fakeReader();
-  let targetReads = 0;
-  return {
-    ...base,
-    async pullRequest(pr: PrContext) {
-      timeline.record(`read:${pr.number}`);
-      const facts = await base.pullRequest(pr);
-      if (pr.number !== target.number) return facts;
-      targetReads += 1;
-      return targetReads > 1 ? { ...facts, ...MERGED_FACTS } : facts;
-    },
-  } satisfies GitHubReader;
-}
-const tracingEmit =
-  (timeline: Recorder<string>, emitted?: Recorder<ProgressVerdict>) =>
-  (verdict: ProgressVerdict): void => {
-    emitted?.record(verdict);
-    timeline.record(`emit:${verdict.kind}`);
-  };
-function recordingClock(sleeps: Recorder<number>) {
-  let now = 0;
-  return {
-    now: () => now,
-    get elapsed() {
-      return now;
-    },
-    observedAt: () => OBSERVED_AT,
-    async sleep(seconds: number): Promise<void> {
-      sleeps.record(seconds);
-      now += seconds;
-    },
-  };
-}
-
-async function openSnapshot(pr: PrContext) {
-  return readSnapshot({
-    reader: fakeReader(),
-    context: pr,
-    pendingHistory: "omit",
-    allowDraft: false,
-  });
-}
-
-describe("queued-stack cadence", () => {
-  it("drops a sweep head only after its snapshot succeeds", async () => {
-    const queue = [
-      context(QUEUE_PRS.first),
-      context(QUEUE_PRS.second),
-      context(QUEUE_PRS.third),
-    ] satisfies NonEmpty<PrContext>;
-    let state = createQueueState(queue, 0);
-    const first = await openSnapshot(queue[0]);
-    state = applyQueueSnapshot(state, first, 0, options).state;
-    expect(state.work).toMatchObject({
-      kind: "whole-stack-sweep",
-      remaining: [{ number: 21 }, { number: 22 }],
-    });
-    const second = await openSnapshot(queue[1]);
-    state = applyQueueSnapshot(state, second, 60, options).state;
-    expect(state.work).toMatchObject({
-      kind: "whole-stack-sweep",
-      remaining: [{ number: 22 }],
-    });
+describe("merge conflicts", () => {
+  test.each(CONFLICT_CASES)("%s blocks with exit 2", async (_name, facts) => {
+    const run = await watch({ facts });
+    expect(run.code).toBe(EXIT_CONFLICTS);
+    expect(get(run.lines[0], "blocker.kind")).toBe("merge-conflicts");
   });
 
-  it("resumes the sweep at the PR whose read failed", async () => {
-    const middle = context(QUEUE_PRS.second);
-    const timeline = createRecorder<string>();
-    const reader = failingOnceReader(middle, timeline);
-    const running = runQueued({
-      dependencies: {
-        reader,
-        clock: stoppingClock(timeline, "stop after resume proof"),
-        emit: tracingEmit(timeline),
-      },
-      contexts: [context(QUEUE_PRS.first), middle, context(QUEUE_PRS.third)],
-      options,
-    });
-    await expect(running).rejects.toThrow("stop after resume proof");
-    expect(timeline.items).toEqual([
-      "emit:QUEUE",
-      "read:20",
-      "fail:21",
-      "emit:RETRY",
-      "sleep",
-      "read:21",
-      "read:22",
-      "emit:STATUS",
-      "emit:WAITING",
-      "sleep",
+  test("tell the agent to resolve them with --pretty", async () => {
+    const run = await watch({ facts: { mergeStateStatus: "DIRTY" } }, "--pretty");
+    expect(run.stdout.split("\n")).toEqual([
+      "BLOCKER: merge-conflicts",
+      "pr=1",
+      "mergeable=MERGEABLE",
+      "mergeStateStatus=DIRTY",
+      "action=resolve merge conflicts before waiting for CI",
+      "",
     ]);
   });
-
 });
 
-describe("queued-stack cadence", () => {
-  it("emits a completed sweep only after its final successful snapshot", async () => {
-    const queue = [context(SWEEP_PRS.first), context(SWEEP_PRS.second)] satisfies NonEmpty<PrContext>;
-    let state = createQueueState(queue, 0);
-    const first = applyQueueSnapshot(
-      state,
-      await openSnapshot(queue[0]),
-      0,
-      options
-    );
-    expect(first.completedSweepRows).toBeNull();
-    state = first.state;
-    const second = applyQueueSnapshot(
-      state,
-      await openSnapshot(queue[1]),
-      SECOND_SNAPSHOT_AT,
-      options
-    );
-    expect(
-      second.completedSweepRows?.map((row) => Number(row.context.number))
-    ).toEqual([SWEEP_PRS.first, SWEEP_PRS.second]);
-    expect(second.state.nextSweepAt).toBe(SECOND_SNAPSHOT_AT + options.sweepInterval);
+describe("failing checks and review threads", () => {
+  test("a failing check blocks with exit 4 and its details", async () => {
+    const lint = failedCheck("lint", { description: "2 errors", link: LINT_URL });
+    const run = await watch({ fastPath: { kind: "checks", checks: [passingCheck(), lint] } }, "--pretty");
+    expect(run.code).toBe(EXIT_CHECKS);
+    expect(run.stdout).toBe(`BLOCKER: failing-checks\npr=1\nfailed=1\nlint FAILURE 2 errors ${LINT_URL}\n`);
   });
 
-});
-
-describe("queued-stack cadence", () => {
-  it("ADVANCE continues directly to the new frontier without sleeping", async () => {
-    const one = context(ADVANCE_PRS.merging);
-    const two = context(ADVANCE_PRS.next);
-    const timeline = createRecorder<string>();
-    const reader = mergingOnSecondReadReader(one, timeline);
-    const emitted = createRecorder<ProgressVerdict>();
-    const running = runQueued({
-      dependencies: {
-        reader,
-        clock: stoppingClock(timeline, "stop after advance proof"),
-        emit: tracingEmit(timeline, emitted),
-      },
-      contexts: [one, two],
-      options,
-    });
-    await expect(running).rejects.toThrow("stop after advance proof");
-    expect(emitted.items.some((event) => event.kind === "ADVANCE")).toBe(true);
-    const firstSleep = timeline.items.indexOf("sleep");
-    expect(timeline.items.slice(firstSleep, firstSleep + ADVANCE_WINDOW)).toEqual([
-      "sleep",
-      "read:40",
-      "emit:ADVANCE",
-      "read:41",
-      "emit:WAITING",
-    ]);
+  test("a failure blocks even while other checks are pending", async () => {
+    const checks = [failedCheck("lint"), pendingCheck("build")];
+    const run = await watch({ fastPath: { kind: "checks", checks } });
+    expect(run.code).toBe(EXIT_CHECKS);
+    expect(run.clock.sleeps).toEqual([]);
+    expect(get(run.lines[0], "blocker.ci.pending.0.name")).toBe("build");
   });
 
-  it("deduplicates identical waits and schedules the next due sweep", async () => {
-    const queue = [context(DEDUP_PR)] satisfies NonEmpty<PrContext>;
-    let state = createQueueState(queue, 0);
-    state = applyQueueSnapshot(
-      state,
-      await openSnapshot(queue[0]),
-      0,
-      options
-    ).state;
-    const first = evaluateQueue(state, 0, options);
-    expect(first.kind).toBe("waiting");
-    if (first.kind !== "waiting") throw new Error("expected waiting");
-    expect(first.emit).toBe(true);
-    const second = evaluateQueue(first.state, 10, options);
-    expect(second.kind).toBe("waiting");
-    if (second.kind !== "waiting") throw new Error("expected waiting");
-    expect(second.emit).toBe(false);
-    expect(planQueue(second.state, options.sweepInterval).work?.kind).toBe("whole-stack-sweep");
+  test("an unresolved review thread blocks with exit 3", async () => {
+    const run = await watch({ threads: [reviewThread("t1")] });
+    expect(run.code).toBe(EXIT_THREADS);
+    expect(get(run.lines[0], "blocker.threads.0.id")).toBe("t1");
   });
 });
 
-it("uses the specified retry floor and cap", () => {
-  expect(queryBackoffSeconds(1, 1)).toBe(60);
-  expect(queryBackoffSeconds(1, 2)).toBe(BACKOFF_SECOND_FAILURE_SECONDS);
-  expect(queryBackoffSeconds(60, FOURTH_FAILURE)).toBe(RETRY_CAP_SECONDS);
-});
-
-
-const failingPullRequest = async (): Promise<PullRequestFacts> => {
-  throw new WatcherQueryError({
-    kind: "command-exit",
-    retryable: true,
-    code: 1,
-    detail: "temporary failure",
-  });
+type PriorityStep = readonly [name: string, options: FakeReaderOptions, exitCode: number];
+const everything: FakeReaderOptions = {
+  facts: { mergeable: "CONFLICTING", reviewDecision: "CHANGES_REQUESTED" },
+  threads: [reviewThread("t1")],
+  fastPath: { kind: "checks", checks: [failedCheck()] },
 };
-const SIMPLE = { mode: "single", statusOnly: false } as const;
-const readerFor = (
-  mode: "single" | "queued-stack" | "query-retry",
-  pending: GitHubReader
-): GitHubReader =>
-  mode === "query-retry"
-    ? { ...pending, pullRequest: failingPullRequest }
-    : pending;
-const pendingFastPath = {
-  kind: "checks",
-  checks: [pendingCheck()],
-} as const;
+const PRIORITY: readonly PriorityStep[] = [
+  ["conflicts", everything, EXIT_CONFLICTS],
+  ["review threads", { ...everything, facts: { reviewDecision: "CHANGES_REQUESTED" } }, EXIT_THREADS],
+  ["failing checks", { ...everything, facts: { reviewDecision: "CHANGES_REQUESTED" }, threads: [] }, EXIT_CHECKS],
+  ["the merge gate", { facts: { reviewDecision: "CHANGES_REQUESTED" } }, EXIT_GATE],
+];
 
-describe("polling deadline sleeps", () => {
-  for (const mode of ["single", "queued-stack", "query-retry"] as const) {
-    it(`caps ${mode} sleeps at the configured deadline`, async () => {
-      const sleeps = createRecorder<number>();
-      const clock = recordingClock(sleeps);
-      const pending = fakeReader({ fastPath: pendingFastPath });
-      const reader = readerFor(mode, pending);
-      const dependencies = { reader, clock, emit: () => undefined };
-      const polling = { ...options, interval: 60, timeout: DEADLINE_SECONDS };
-      const contexts = [context(1)] satisfies NonEmpty<PrContext>;
-      const queued = () => runQueued({ dependencies, contexts, options: polling });
-      const simple = () =>
-        runSimple({ dependencies, contexts, ...SIMPLE, options: polling });
-      const result = await (mode === "queued-stack" ? queued : simple)();
-      expect(result.kind).toBe("TIMEOUT");
-      expect(sleeps.items).toEqual([DEADLINE_SECONDS]);
-      expect(clock.elapsed).toBe(DEADLINE_SECONDS);
-    });
-  }
-  it("preserves the polling interval when the deadline is disabled", async () => {
-    let reads = 0;
-    const sleeps = createRecorder<number>();
-    const pending = fakeReader({ fastPath: pendingFastPath });
-    const passed = fakeReader({
-      fastPath: { kind: "checks", checks: [passingCheck()] },
-    });
-    const reader = {
-      ...pending,
-      checksFastPath(pr: PrContext) {
-        reads += 1;
-        const source = reads === 1 ? pending : passed;
-        return source.checksFastPath(pr);
-      },
-    };
-    const result = await runSimple({
-      dependencies: { reader, clock: recordingClock(sleeps), emit: () => undefined },
-      contexts: [context(1)],
-      mode: "single",
-      statusOnly: false,
-      options: { ...options, interval: 60, timeout: 0 },
-    });
-    expect(result.kind).toBe("READY");
-    expect(sleeps.items).toEqual([60]);
+describe("blocker priority", () => {
+  test.each(PRIORITY)("reports %s first when several blockers apply", async (_name, options, exitCode) => {
+    const run = await watch(options);
+    expect(run.code).toBe(exitCode);
+  });
+});
+
+type Readiness = readonly [mergeState: PullRequestFacts["mergeStateStatus"], headRollup: RollupState, exitCode: number];
+const READINESS: readonly Readiness[] = [
+  ["BLOCKED", "FAILURE", EXIT_CHECKS],
+  ["BLOCKED", "ERROR", EXIT_CHECKS],
+  ["BLOCKED", "PENDING", 0],
+  ["BLOCKED", "SUCCESS", 0],
+  ["BLOCKED", null, 0],
+  ["UNSTABLE", "FAILURE", 0],
+  ["UNKNOWN", "ERROR", 0],
+  ["UNKNOWN", "EXPECTED", 0],
+  ["UNKNOWN", "FAILURE", 0],
+  ["UNKNOWN", "PENDING", 0],
+  ["UNKNOWN", "SUCCESS", 0],
+  ["UNKNOWN", null, 0],
+  ["CLEAN", "SUCCESS", 0],
+];
+
+describe("GitHub's own verdict on a clean check list", () => {
+  test.each(READINESS)("%s with head rollup %s exits %d", async (mergeStateStatus, state, exitCode) => {
+    const commitRollups = state === null ? [] : [{ oid: "head", state }];
+    const run = await watch({ facts: { mergeStateStatus }, commitRollups });
+    expect(run.code).toBe(exitCode);
+  });
+
+  test("only the head commit's rollup counts", async () => {
+    const commitRollups = [{ oid: "older", state: "FAILURE" as const }];
+    const run = await watch({ facts: { mergeStateStatus: "BLOCKED" }, commitRollups });
+    expect(run.code).toBe(0);
   });
 });

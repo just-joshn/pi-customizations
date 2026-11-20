@@ -1,251 +1,180 @@
-import { z } from "zod";
-import { describe, expect, it } from "bun:test";
-import { type CliRuntime, main, parseArgs } from "./cli.ts";
-import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
-import { createRecorder } from "./recorder.test-helper.ts";
-import { renderJson, renderPretty } from "./render.ts";
-import type { GitHubReader, WatcherVerdict } from "./types.ts";
-import { parsePrNumber } from "./types.ts";
+import { describe, expect, test } from "bun:test";
+import { fakeReader, openPr, passingCheck, pendingCheck, prContext } from "./fakes.test-helper.ts";
+import { fakeClock, runCli, TARGET } from "./harness.test-helper.ts";
+import { get, kindsOf, pluck } from "./output.test-helper.ts";
 
 const EX_USAGE = 64;
-const EXIT_CI_BLOCKER = 4;
-const FIRST_STACK_PR = 10;
-const SECOND_STACK_PR = 11;
-const THIRD_STACK_PR = 12;
+const DEFAULT_INTERVAL_SECONDS = 60;
+const CUSTOM_INTERVAL_SECONDS = 2.5;
+const OWNER_REPO = ["--owner", "o", "--repo", "r"] as const;
+const MERGED = { state: "MERGED", mergedAt: "2026-07-26T00:00:00Z" } as const;
+const INFERRED_PR = 9;
+const HASH_PR = 7;
+const QUEUE_BOTTOM = 10;
+const QUEUE_TOP = 12;
+const MERGED_LINE_COUNT = 3;
 
-const verdictOutput = z.looseObject({
-  kind: z.string(),
-  exitCode: z.number(),
-});
+type UsageCase = readonly [name: string, argv: readonly string[], message: string];
+const USAGE_CASES: readonly UsageCase[] = [
+  ["an unknown option", ["--unknown"], "unknown option '--unknown'"],
+  ["a zero interval", ["--interval", "0"], "must be greater than zero"],
+  ["a negative sweep interval", ["--sweep-interval", "-1"], "must be greater than zero"],
+  ["a negative timeout", ["--timeout", "-1"], "must be zero or greater"],
+  ["a fractional error budget", ["--max-query-errors", "1.5"], "must be a positive integer"],
+  ["a non-numeric PR", ["--pr", "abc"], "must be a positive integer"],
+  ["stack and queued-stack together", ["--stack", "--queued-stack"], "cannot be used with"],
+  ["stack PRs outside queued mode", ["--stack-prs", "1,2"], "--stack-prs requires --queued-stack"],
+  ["a duplicated stack PR", ["--queued-stack", "--stack-prs", "1,1"], "contains a duplicate PR"],
+  ["an empty stack PR entry", ["--queued-stack", "--stack-prs", "1,,2"], "must be a positive integer"],
+];
 
-const silentIo = { stdout: () => undefined, stderr: () => undefined };
-
-const neverSleepClock = {
-  now: () => 0,
-  observedAt: () => "2026-07-26T00:00:00.000Z",
-  async sleep(): Promise<void> {
-    throw new Error("test unexpectedly slept");
-  },
-};
-
-function testRuntime(reader: GitHubReader): {
-  readonly runtime: CliRuntime;
-  readonly stdout: readonly string[];
-  readonly stderr: readonly string[];
-} {
-  const stdout = createRecorder<string>();
-  const stderr = createRecorder<string>();
-  return {
-    get stdout() {
-      return stdout.items;
-    },
-    get stderr() {
-      return stderr.items;
-    },
-    runtime: {
-      reader,
-      clock: neverSleepClock,
-      stdout: (value) => stdout.record(value),
-      stderr: (value) => stderr.record(value),
-    },
-  };
-}
-
-describe("parseArgs", () => {
-  it("uses the specified defaults", () => {
-    expect(parseArgs([], silentIo)).toMatchObject({
-      owner: null,
-      repo: null,
-      pr: null,
-      mode: "single",
-      stackPrs: [],
-      statusOnly: false,
-      pretty: false,
-      polling: {
-        interval: 60,
-        sweepInterval: 300,
-        timeout: 0,
-        maxQueryErrors: 5,
-        allowDraft: false,
-      },
-    });
+describe("usage errors", () => {
+  test.each(USAGE_CASES)("rejects %s with exit 64 on stderr only", async (_name, argv, message) => {
+    const run = await runCli(argv);
+    expect(run.code).toBe(EX_USAGE);
+    expect(run.stdout).toBe("");
+    expect(run.stderr).toContain("error:");
+    expect(run.stderr).toContain(message);
+    expect(run.reader.calls).toEqual([]);
   });
 
+  test("names the offending option and value", async () => {
+    const run = await runCli(["--interval", "0"]);
+    expect(run.stderr).toContain("option '--interval <seconds>' argument '0' is invalid");
+  });
+
+  test("prints usage on stdout and exits 0 for --help without reading GitHub", async () => {
+    const run = await runCli(["--help"]);
+    expect(run.code).toBe(0);
+    expect(run.stdout).toContain("JSON (NDJSON while polling)");
+    expect(run.stdout).toContain("--queued-stack");
+    expect(run.reader.calls).toEqual([]);
+  });
 });
 
-describe("parseArgs", () => {
-  it("parses a frozen queued stack bottom-to-top", () => {
-    const parsed = parseArgs(
-      [
-        "--queued-stack",
-        "--stack-prs",
-        "#10, 11,#12",
-        "--interval",
-        "2.5",
-        "--sweep-interval",
-        "30",
-        "--timeout",
-        "0",
-        "--max-query-errors",
-        "3",
-        "--allow-draft",
-        "--pretty",
-      ],
-      silentIo
-    );
-    expect(parsed.mode).toBe("queued-stack");
-    expect(parsed.stackPrs.map(Number)).toEqual([
-      FIRST_STACK_PR,
-      SECOND_STACK_PR,
-      THIRD_STACK_PR,
+const pendingThenPassing = () =>
+  fakeReader({
+    fastPath: (_pr, reads) => ({
+      kind: "checks",
+      checks: [reads === 0 ? pendingCheck() : passingCheck()],
+    }),
+  });
+
+describe("polling cadence flags", () => {
+  test("polls every 60 seconds by default", async () => {
+    const run = await runCli(TARGET, pendingThenPassing());
+    expect(run.code).toBe(0);
+    expect(run.clock.sleeps).toEqual([DEFAULT_INTERVAL_SECONDS]);
+  });
+
+  test("honors --interval", async () => {
+    const args = [...TARGET, "--interval", String(CUSTOM_INTERVAL_SECONDS)];
+    const run = await runCli(args, pendingThenPassing());
+    expect(run.clock.sleeps).toEqual([CUSTOM_INTERVAL_SECONDS]);
+  });
+});
+
+describe("explicit target flags", () => {
+  test("accepts a #-prefixed PR number", async () => {
+    const run = await runCli([...OWNER_REPO, "--pr", `#${HASH_PR}`]);
+    expect(get(run.lines[0], "scope.pr.context")).toEqual({ owner: "o", repo: "r", number: HASH_PR });
+  });
+
+  test("uses every explicit flag without asking git or gh", async () => {
+    const run = await runCli(TARGET);
+    expect(run.reader.calls).not.toContain("originRepo");
+    expect(run.reader.calls).not.toContain("currentPr");
+  });
+
+  test("fills the repository from the local origin for an explicit PR", async () => {
+    const reader = fakeReader({ origin: { owner: "local", repo: "checkout" } });
+    const run = await runCli(["--pr", "5"], reader);
+    expect(get(run.lines[0], "scope.pr.context.owner")).toBe("local");
+    expect(get(run.lines[0], "scope.pr.context.repo")).toBe("checkout");
+    expect(run.reader.calls).not.toContain("currentPr");
+  });
+
+  test("lets --owner override the owner taken from the origin", async () => {
+    const reader = fakeReader({ origin: { owner: "local", repo: "checkout" } });
+    const run = await runCli(["--owner", "fork-owner", "--pr", "5"], reader);
+    expect(get(run.lines[0], "scope.pr.context.owner")).toBe("fork-owner");
+    expect(get(run.lines[0], "scope.pr.context.repo")).toBe("checkout");
+  });
+});
+
+describe("inferred target", () => {
+  const current = { ...prContext(INFERRED_PR), owner: "inferred", repo: "branch" };
+
+  test("uses the current branch's PR when no PR is given", async () => {
+    const run = await runCli([], fakeReader({ current }));
+    expect(get(run.lines[0], "scope.pr.context")).toEqual(current);
+  });
+
+  test("asks gh for the current PR when git has no usable origin", async () => {
+    const run = await runCli(["--pr", "5"], fakeReader({ origin: null }));
+    expect(run.reader.calls.slice(0, 2)).toEqual(["originRepo", "currentPr"]);
+    expect(run.code).toBe(0);
+  });
+});
+
+describe("queued stack target", () => {
+  test("is seeded from --stack-prs, bottom to top", async () => {
+    const reader = fakeReader({ facts: MERGED });
+    const args = ["--queued-stack", "--stack-prs", "#10, 11,#12", ...OWNER_REPO];
+    const run = await runCli(args, reader);
+    expect(kindsOf(run.lines)).toEqual(["QUEUE", "STATUS", "COMPLETE"]);
+    expect(pluck(run.lines[0], "queue", "number")).toEqual([QUEUE_BOTTOM, QUEUE_BOTTOM + 1, QUEUE_TOP]);
+    expect(run.reader.calls).not.toContain("openPullRequests");
+    expect(get(run.lines.at(-1), "merged")).toHaveLength(MERGED_LINE_COUNT);
+  });
+
+  test("is discovered from the connected stack without --stack-prs", async () => {
+    const open = [openPr(2, "top", "bottom"), openPr(1, "bottom", "main")];
+    const reader = fakeReader({ facts: MERGED, openPullRequests: open });
+    const run = await runCli(["--queued-stack", ...OWNER_REPO, "--pr", "1"], reader);
+    expect(pluck(run.lines[0], "queue", "number")).toEqual([1, 2]);
+  });
+});
+
+describe("output modes", () => {
+  const statusOnly = [...TARGET, "--status-only"];
+
+  test("prints one compact JSON verdict per line by default", async () => {
+    const run = await runCli(statusOnly);
+    expect(run.code).toBe(0);
+    expect(run.stdout.endsWith("\n")).toBe(true);
+    expect(run.stdout.trimEnd()).not.toContain("\n");
+    expect(run.lines[0]).toMatchObject({ schemaVersion: 1, sequence: 1, mode: "single" });
+    expect(run.lines[0]).toMatchObject({ kind: "STATUS", terminal: true, exitCode: 0 });
+    expect(run.lines[0]?.observedAt).toBe("2026-07-26T00:00:00.000Z");
+  });
+
+  test("renders the same status as a Markdown table with --pretty", async () => {
+    const run = await runCli([...statusOnly, "--pretty"]);
+    expect(run.code).toBe(0);
+    expect(run.stdout.split("\n")).toEqual([
+      "| PR | CI | Review | Merge |",
+      "| --- | --- | --- | --- |",
+      "| [#1](https://github.com/owner/repo/pull/1) | ✅ | ✅ | ✅ |",
+      "",
     ]);
-    expect(parsed.polling).toEqual({
-      interval: 2.5,
-      sweepInterval: 30,
-      timeout: 0,
-      maxQueryErrors: 3,
-      allowDraft: true,
-    });
-    expect(parsed.pretty).toBe(true);
   });
 
-});
-
-describe("parseArgs", () => {
-  it("rejects every invalid mode and numeric shape as usage", async () => {
-    const invalid = [
-      ["--unknown"],
-      ["--interval", "0"],
-      ["--sweep-interval", "-1"],
-      ["--timeout", "-1"],
-      ["--max-query-errors", "1.5"],
-      ["--stack", "--queued-stack"],
-      ["--stack-prs", "1,2"],
-      ["--queued-stack", "--stack-prs", "1,1"],
-    ];
-    for (const argv of invalid) {
-      const harness = testRuntime(fakeReader());
-      expect(await main(argv, harness.runtime)).toBe(EX_USAGE);
-      expect(harness.stdout).toEqual([]);
-      expect(harness.stderr.join("")).toContain("error:");
-    }
+  test("bypasses the queue machine for queued-stack --status-only", async () => {
+    const args = [...OWNER_REPO, "--queued-stack", "--stack-prs", "1", "--status-only"];
+    const run = await runCli(args);
+    expect(run.code).toBe(0);
+    expect(kindsOf(run.lines)).toEqual(["STATUS"]);
+    expect(run.lines[0]).toMatchObject({ mode: "queued-stack", terminal: true, exitCode: 0 });
   });
 });
 
-describe("rendering", () => {
-  const context = {
-    owner: "owner",
-    repo: "repo",
-    number: parsePrNumber(1),
+test("an unexpected reader failure crashes the watcher instead of being retried", async () => {
+  const reader = {
+    ...fakeReader(),
+    async pullRequest(): Promise<never> {
+      throw new Error("reader exploded");
+    },
   };
-  const mergedFacts = {
-    context,
-    mergeable: "MERGEABLE",
-    mergeStateStatus: "CLEAN",
-    reviewDecision: "APPROVED",
-    headRefOid: "head",
-    headRefName: "feature",
-    baseRefName: "main",
-    state: "MERGED",
-    mergedAt: "now",
-    isDraft: false,
-  } as const;
-  const status = {
-    schemaVersion: 1,
-    sequence: 1,
-    observedAt: "2026-07-26T00:00:00.000Z",
-    mode: "single",
-    kind: "STATUS",
-    terminal: true,
-    exitCode: 0,
-    reason: "status-only",
-    rows: [{ kind: "merged", context, facts: mergedFacts }],
-  } satisfies WatcherVerdict;
-
-  it("emits compact valid JSON by default", () => {
-    const rendered = renderJson(status);
-    expect(rendered.endsWith("\n")).toBe(true);
-    expect(verdictOutput.parse(JSON.parse(rendered))).toEqual(status);
-  });
-
-  it("renders the Markdown table from the same verdict only", () => {
-    const rendered = renderPretty(status);
-    expect(rendered).toContain("| PR | CI | Review | Merge |");
-    expect(rendered).toContain(
-      "| [#1](https://github.com/owner/repo/pull/1) | \u2014 | \u2014 | ✅ merged |"
-    );
-  });
-});
-
-describe("main", () => {
-  it("returns EX_USAGE 64 and writes usage errors only to stderr", async () => {
-    const harness = testRuntime(fakeReader());
-    expect(await main(["--interval", "0"], harness.runtime)).toBe(EX_USAGE);
-    expect(harness.stdout).toEqual([]);
-    expect(harness.stderr.join("")).toContain(
-      "option '--interval <seconds>' argument '0' is invalid"
-    );
-  });
-
-  it("bypasses the queue machine for queued-stack status-only", async () => {
-    const reader = fakeReader();
-    const harness = testRuntime(reader);
-    const code = await main(
-      [
-        "--owner",
-        "owner",
-        "--repo",
-        "repo",
-        "--queued-stack",
-        "--stack-prs",
-        "1",
-        "--status-only",
-      ],
-      harness.runtime
-    );
-    expect(code).toBe(0);
-    expect(harness.stdout).toHaveLength(1);
-    const verdict = verdictOutput.parse(JSON.parse(harness.stdout[0]));
-    expect(verdict).toMatchObject({
-      kind: "STATUS",
-      terminal: true,
-      exitCode: 0,
-      mode: "queued-stack",
-    });
-    expect(harness.stdout[0]).not.toContain('"kind":"QUEUE"');
-  });
-
-});
-
-describe("main", () => {
-  it("returns exit 4 for a hidden GitHub-side CI refusal", async () => {
-    const reader = fakeReader({
-      facts: { mergeStateStatus: "BLOCKED" },
-      fastPath: { kind: "checks", checks: [passingCheck()] },
-      commitRollups: [{ oid: "head", state: "FAILURE" }],
-    });
-    const harness = testRuntime(reader);
-    const code = await main(
-      ["--owner", "owner", "--repo", "repo", "--pr", "1"],
-      harness.runtime
-    );
-    expect(code).toBe(EXIT_CI_BLOCKER);
-    expect(harness.stdout).toHaveLength(1);
-    expect(verdictOutput.parse(JSON.parse(harness.stdout[0]))).toMatchObject({
-      kind: "BLOCKER",
-      exitCode: 4,
-      blocker: {
-        kind: "failing-checks",
-        ci: { kind: "ci-github-rejected" },
-      },
-    });
-  });
-
-  it("shows help without touching the reader", async () => {
-    const reader = fakeReader();
-    const harness = testRuntime(reader);
-    expect(await main(["--help"], harness.runtime)).toBe(0);
-    expect(harness.stdout.join("")).toContain("JSON (NDJSON while polling)");
-    expect(reader.calls).toEqual([]);
-  });
+  await expect(runCli(TARGET, reader, fakeClock())).rejects.toThrow("reader exploded");
 });

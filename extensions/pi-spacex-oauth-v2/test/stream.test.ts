@@ -1,50 +1,20 @@
-import { AuthenticationError, type SDKCustomTool, type SDKCustomToolResult, type SDKJsonValue } from '@cursor/sdk';
-import { type Api, type AssistantMessage, type AssistantMessageEvent, type Message, type Model, normalizeContext, type SimpleStreamOptions, type Tool, type ToolResultMessage } from '@earendil-works/pi-ai';
+import { readdirSync, statSync } from 'node:fs';
+
+import { AuthenticationError, CursorSdkError, IntegrationNotConnectedError } from '@cursor/sdk';
+import type { Message, ToolResultMessage } from '@earendil-works/pi-ai';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { streamCursor } from '../src/cursor/stream.ts';
-import { sdk, sdkStatus, sdkText, sdkThinking } from './fake-sdk.ts';
+import { fakeSdk, sdk, sdkStatus, sdkText, sdkThinking } from './fake-sdk.ts';
+import { ask, call, freshPrompt, system, toolCalls, toolResult, user } from './stream-helpers.ts';
 
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
 const HTTP_UNAUTHORIZED = 401;
-const USER_TIMESTAMP = 1;
-const TOOL_RESULT_TIMESTAMP = 2;
 const IMAGE_RESULT_TIMESTAMP = 3;
 const BATCH_WAIT_MS = 30;
 const MS_PER_MINUTE = 60_000;
 const TOOL_WAIT_MINUTES = 30;
-const SETTLE_MS = 5;
 const AGENTS_AFTER_EDIT = 2;
-
-const model = { id: 'composer-2.5', api: 'cursor-sdk', provider: 'spacex-cursor' } as unknown as Model<Api>;
-const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object', properties: { path: { type: 'string' } } } };
-const lsTool: Tool = { name: 'ls', description: 'List a directory', parameters: { type: 'object', properties: {} } };
-
-const system = (prompt: string, tools: Tool[] = [readTool, lsTool]): Message => ({ role: 'system', content: prompt, toolsAdded: tools, timestamp: 0 });
-const user = (content: Extract<Message, { role: 'user' }>['content']): Message => ({ role: 'user', content, timestamp: USER_TIMESTAMP });
-const toolResult = (toolCallId: string, text: string, isError = false): ToolResultMessage => ({ role: 'toolResult', toolCallId, toolName: 'read', content: [{ type: 'text', text }], isError, timestamp: TOOL_RESULT_TIMESTAMP });
-
-async function collect(stream: AsyncIterable<AssistantMessageEvent>): Promise<AssistantMessageEvent[]> {
-  let events: AssistantMessageEvent[] = [];
-  for await (const event of stream) events = [...events, event];
-  return events;
-}
-
-async function ask(messages: Message[], options: SimpleStreamOptions = { apiKey: 'key' }) {
-  const events = await collect(streamCursor(model, normalizeContext({ messages }), options));
-  const last = events.at(-1);
-  const message = (last?.type === 'done' ? last.message : last?.type === 'error' ? last.error : undefined) as AssistantMessage;
-  return { events, message, types: events.map((e) => e.type) };
-}
-
-/** Calls a Pi tool the way Cursor's agent does, through the custom tool's execute(). */
-const call = (tools: Record<string, SDKCustomTool>, name: string, args: Record<string, SDKJsonValue> = {}) => {
-  const tool = tools[name];
-  if (!tool) throw new Error(`no tool ${name}`);
-  return Promise.resolve(tool.execute(args, {})) as Promise<SDKCustomToolResult>;
-};
-
-const toolCalls = (message: AssistantMessage) => message.content.filter((c) => c.type === 'toolCall');
+const INTEGRATIONS_URL = 'https://cursor.com/dashboard/integrations';
 
 beforeEach(() => sdk.reset());
 afterEach(() => vi.useRealTimers());
@@ -76,7 +46,10 @@ describe('a plain reply', () => {
     await ask([system('You are Pi.'), user('hi')]);
     const [agent] = sdk.agents;
     expect(agent?.options).toMatchObject({ apiKey: 'key', model: { id: 'composer-2.5', params: [{ id: 'fast', value: 'true' }] }, tools: ['mcp'] });
-    expect(agent?.options.local?.cwd).toContain('pi-spacex-cursor');
+    const cwd = agent?.options.local?.cwd ?? '';
+    expect(cwd).not.toBe(process.cwd());
+    expect(statSync(cwd).isDirectory()).toBe(true);
+    expect(readdirSync(cwd)).toStrictEqual([]);
     expect(agent?.sends[0]?.message).toStrictEqual({ text: '<system_prompt>\nYou are Pi.\n</system_prompt>\n\nhi' });
     expect(Object.keys(agent?.sends[0]?.options?.local?.customTools ?? {})).toStrictEqual(['read', 'ls']);
   });
@@ -144,17 +117,20 @@ describe('Pi tool calls: round trips', () => {
 describe('Pi tool calls: backlog, timeout, and replay', () => {
   test('events that arrive while Pi runs the tool are replayed into the next turn', async () => {
     let afterPark: () => void = () => undefined;
+    let lateEmitted: () => void = () => undefined;
+    const lateEvent = new Promise<void>((resolve) => (lateEmitted = resolve));
     sdk.script(async ({ tools, emit }) => {
       const pending = call(tools, 'read', {});
       await new Promise<void>((resolve) => (afterPark = resolve));
       emit(sdkText('late'));
+      lateEmitted();
       await pending;
       return { status: 'finished' };
     });
     const history = [system('backlog'), user('go')];
     const first = await ask(history);
     afterPark();
-    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    await lateEvent;
     const second = await ask([...history, first.message, toolResult(toolCalls(first.message)[0]?.id ?? '', 'ok')]);
     expect(second.message.content).toStrictEqual([{ type: 'text', text: 'late' }]);
   });
@@ -258,6 +234,7 @@ describe('failures: errors', () => {
 
 describe('failures: aborts and create errors', () => {
   test('aborting the request cancels the Cursor run', async () => {
+    vi.useFakeTimers();
     const controller = new AbortController();
     sdk.script(async ({ emit, cancelled }) => {
       emit(sdkText('working'));
@@ -265,7 +242,9 @@ describe('failures: aborts and create errors', () => {
       await cancelled;
       return { status: 'cancelled' };
     });
-    const { message } = await ask([system('abort'), user('hi')], { apiKey: 'key', signal: controller.signal });
+    const answer = ask([system('abort'), user('hi')], { apiKey: 'key', signal: controller.signal });
+    await vi.advanceTimersByTimeAsync(1);
+    const { message } = await answer;
     expect(message).toMatchObject({ stopReason: 'aborted', errorMessage: 'Cursor run was cancelled' });
     expect(sdk.agents[0]?.runs[0]?.cancel).toHaveBeenCalled();
   });
@@ -290,5 +269,60 @@ describe('failures: aborts and create errors', () => {
     aborted.abort();
     const { message } = await ask([system('create'), user('hi')], { signal: aborted.signal });
     expect(message).toMatchObject({ stopReason: 'aborted', errorMessage: 'Cannot use this model: nope' });
+  });
+});
+
+describe('failures: how Cursor SDK errors read', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  const failWith = async (error: unknown) => {
+    sdk.failSend(error);
+    return (await ask([system(freshPrompt()), user('hi')])).message.errorMessage;
+  };
+
+  test('a disconnected integration points to its help link', async () => {
+    const error = new IntegrationNotConnectedError('github integration is not connected', { provider: 'github', helpUrl: INTEGRATIONS_URL, code: 'not_connected' });
+    expect(await failWith(error)).toBe(`Cursor IntegrationNotConnectedError: github integration is not connected (code not_connected) ${INTEGRATIONS_URL}`);
+  });
+
+  test('an SDK error without details shows only its name and message', async () => {
+    expect(await failWith(new CursorSdkError('bare'))).toBe('Cursor CursorSdkError: bare');
+  });
+
+  test('a plain Error shows its message', async () => {
+    expect(await failWith(new Error('plain'))).toBe('plain');
+  });
+
+  test('a thrown string shows as text', async () => {
+    expect(await failWith('text')).toBe('text');
+  });
+});
+
+describe('the Cursor model catalog lookup', () => {
+  const askWithKey = (apiKey: string | undefined, modelId = 'composer-2.5') => {
+    sdk.script(async () => ({ status: 'finished' }));
+    return ask([system(freshPrompt()), user('hi')], apiKey ? { apiKey } : {}, modelId);
+  };
+
+  test('asks Cursor for the catalog once per API key', async () => {
+    await askWithKey('once-key');
+    await askWithKey('once-key');
+    await askWithKey('other-key');
+    expect(fakeSdk.Cursor.models.list.mock.calls).toStrictEqual([[{ apiKey: 'once-key' }], [{ apiKey: 'other-key' }]]);
+  });
+
+  test('retries after a failed catalog read, and meanwhile sends the bare model id', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fakeSdk.Cursor.models.list.mockRejectedValueOnce(new Error('offline'));
+    await askWithKey('retry-key', 'auto');
+    expect(error).toHaveBeenCalledWith('Cursor model catalog lookup failed:', expect.objectContaining({ message: 'offline' }));
+    expect(sdk.agents[0]?.options.model).toStrictEqual({ id: 'auto' });
+    await askWithKey('retry-key', 'auto');
+    expect(fakeSdk.Cursor.models.list).toHaveBeenCalledTimes(2);
+    expect(sdk.agents[1]?.options.model).toMatchObject({ id: 'default' });
+    error.mockRestore();
   });
 });

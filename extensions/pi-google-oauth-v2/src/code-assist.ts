@@ -4,9 +4,9 @@ import { ANTIGRAVITY_USER_AGENT, CODE_ASSIST_BASE_URL } from './constants.ts';
 
 export class CodeAssistError extends Error {}
 
-export class IneligibleTierError extends CodeAssistError {}
+class IneligibleTierError extends CodeAssistError {}
 
-export class ValidationRequiredError extends CodeAssistError {
+class ValidationRequiredError extends CodeAssistError {
   constructor(reasonMessage: string, validationUrl: string) {
     super(`${reasonMessage} Validate at: ${validationUrl}`, { cause: validationUrl });
   }
@@ -16,7 +16,7 @@ export class ValidationRequiredError extends CodeAssistError {
   }
 }
 
-export class ProjectRequiredError extends CodeAssistError {}
+class ProjectRequiredError extends CodeAssistError {}
 
 export interface ResolvedProject {
   projectId: string;
@@ -75,7 +75,7 @@ export function readProjectOverride(env: NodeJS.ProcessEnv): string | undefined 
   return value;
 }
 
-export function codeAssistUrl(method: string): string {
+function codeAssistUrl(method: string): string {
   return `${CODE_ASSIST_BASE_URL}:${method}`;
 }
 
