@@ -31,12 +31,7 @@ export interface JobProgress {
 }
 
 const countToolCalls = (result: ToolResult): number =>
-  (result.details?.results ?? []).reduce(
-    (total, worker) =>
-      total +
-      worker.messages.reduce((sum, message) => (message.role === 'assistant' ? sum + message.content.filter((part) => part.type === 'toolCall').length : sum), 0),
-    0,
-  );
+  (result.details?.results ?? []).reduce((total, worker) => total + worker.messages.reduce((sum, message) => (message.role === 'assistant' ? sum + message.content.filter((part) => part.type === 'toolCall').length : sum), 0), 0);
 
 /** Reads the live numbers out of one snapshot of a job's workers. */
 export function statsFrom(job: JobProgress, result: ToolResult): JobProgress {
@@ -54,6 +49,18 @@ export function statsFrom(job: JobProgress, result: ToolResult): JobProgress {
 
 export const progressLine = (job: JobProgress): string => `${job.id} ${job.agents} ${job.turns}t ${job.toolCalls} tools ${job.inputTokens + job.outputTokens} tok`;
 
+const newJob = (id: string, startedAt: number, agents: string): JobProgress => ({ id, startedAt, agents, turns: 0, toolCalls: 0, inputTokens: 0, outputTokens: 0 });
+
+/** Milliseconds until the next flush is due: the longer interval applies once many jobs are running. */
+const flushWait = (jobCount: number, lastFlush: number, now: number): number => lastFlush + (jobCount > BUSY_JOB_COUNT ? BUSY_THROTTLE_MS : THROTTLE_MS) - now;
+
+/** Writes the running jobs to the status line and widget, or clears both when none run. */
+function publish(ui: ProgressUi | undefined, jobs: ReadonlyMap<string, JobProgress>): void {
+  const running = jobs.size > 0;
+  ui?.setStatus?.(PROGRESS_KEY, running ? `subagents: ${jobs.size} running` : undefined);
+  ui?.setWidget?.(PROGRESS_KEY, running ? [...jobs.values()].map(progressLine) : undefined);
+}
+
 /** Shows running wake jobs in Pi's status line and widget, throttled, and clears both when the last job ends. */
 export function createBackgroundProgressTracker(clock: () => number = Date.now) {
   let jobs: ReadonlyMap<string, JobProgress> = new Map();
@@ -69,19 +76,11 @@ export function createBackgroundProgressTracker(clock: () => number = Date.now) 
   const flush = (): void => {
     cancelTimer();
     lastFlush = clock();
-    const ui = target?.hasUI ? target.ui : undefined;
-    if (jobs.size === 0) {
-      ui?.setStatus?.(PROGRESS_KEY, undefined);
-      ui?.setWidget?.(PROGRESS_KEY, undefined);
-      return;
-    }
-    ui?.setStatus?.(PROGRESS_KEY, `subagents: ${jobs.size} running`);
-    ui?.setWidget?.(PROGRESS_KEY, [...jobs.values()].map(progressLine));
+    publish(target?.hasUI ? target.ui : undefined, jobs);
   };
 
   const throttled = (): void => {
-    const interval = jobs.size > BUSY_JOB_COUNT ? BUSY_THROTTLE_MS : THROTTLE_MS;
-    const wait = lastFlush + interval - clock();
+    const wait = flushWait(jobs.size, lastFlush, clock());
     if (wait <= 0) return flush();
     if (timer !== undefined) return;
     timer = setTimeout(flush, wait);
@@ -90,7 +89,7 @@ export function createBackgroundProgressTracker(clock: () => number = Date.now) 
 
   const start = (id: string, ctx: ProgressContext, agents = ''): void => {
     target = ctx;
-    jobs = new Map([...jobs, [id, { id, startedAt: clock(), agents, turns: 0, toolCalls: 0, inputTokens: 0, outputTokens: 0 }]]);
+    jobs = new Map([...jobs, [id, newJob(id, clock(), agents)]]);
     flush();
   };
 

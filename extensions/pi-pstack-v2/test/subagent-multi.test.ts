@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, byTask, CHILD_WAIT_MS, dies, says, startedByTask, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { answerOf, loadSubagent, makeCtx, textOf, type ToolResult, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const MAX_PARALLEL_TASKS = 8;

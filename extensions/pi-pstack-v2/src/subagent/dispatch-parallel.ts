@@ -1,6 +1,6 @@
 import { mapWithConcurrencyLimit } from './concurrency.ts';
 import { frameSubagentReport } from './framing.ts';
-import { aggregateUsage, createUnstartedResult, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateParallelOutput } from './results.ts';
+import { aggregateUsage, createUnstartedResult, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateParallelOutput, withWorktreeNote } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
 import type { WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
@@ -18,7 +18,7 @@ function progressText(all: SingleResult[]): string {
 function summarize(result: SingleResult): string {
   const showReason = isFailedResult(result) && result.stopReason && result.stopReason !== 'end';
   const status = showReason ? `${result.status} (${result.stopReason})` : result.status;
-  return `### [${result.agent}] ${status}\n\n${truncateParallelOutput(getResultOutput(result))}`;
+  return `### [${result.agent}] ${status}\n\n${withWorktreeNote(result, truncateParallelOutput(getResultOutput(result)))}`;
 }
 
 function finishParallel(results: SingleResult[]): ToolResult {

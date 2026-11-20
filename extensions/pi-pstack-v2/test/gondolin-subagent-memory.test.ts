@@ -34,7 +34,7 @@ const startVm = async (): Promise<GondolinHost> => {
   return host;
 };
 
-const mountPoints = (host: GondolinHost): string[] => Object.keys(host.vmOptions()?.vfs?.mounts ?? {});
+const mountPoints = (host: GondolinHost): string[] => Object.keys(host.vmOptions()?.vfs?.mounts ?? {}).toSorted();
 
 describe('the subagent memory directory in the guest', () => {
   test('is mounted at its host path and the guest can write notes in it', async () => {
@@ -54,10 +54,10 @@ describe('the subagent memory directory in the guest', () => {
     expect(mountPoints(await startVm()).toSorted()).toEqual([...without, memoryDir].toSorted());
   });
 
-  test('changes nothing when the variable is unset or empty', async () => {
-    const unset = mountPoints(await startVm());
-    vi.stubEnv(MEMORY_ENV, '');
-    expect(mountPoints(await startVm())).toEqual(unset);
+  test.for([undefined, ''])('changes nothing when the variable is %j', async (value) => {
+    const baseline = mountPoints(await startVm());
+    if (value !== undefined) vi.stubEnv(MEMORY_ENV, value);
+    expect(mountPoints(await startVm())).toEqual(baseline);
   });
 
   test('is not mounted when the directory does not exist', async () => {

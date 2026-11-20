@@ -23,7 +23,7 @@ export interface AgentConfig {
   tools?: string[] | undefined;
   /** Built-in tools the child must not get, whatever `tools` says. */
   disallowedTools?: string[] | undefined;
-  /** The child starts without the AGENTS.md and CLAUDE.md files Pi would load from its directory. */
+  /** The child starts without the project context files Pi would load from its directory. */
   omitContextFiles?: boolean | undefined;
   /** Skills whose bodies are added to the child's system prompt. */
   skills?: string[] | undefined;
@@ -77,7 +77,6 @@ const AgentFrontmatterSchema = z.looseObject({
   model: z.unknown().optional(),
   disallowedTools: z.unknown().optional(),
   omitContextFiles: z.unknown().optional(),
-  omitClaudeMd: z.unknown().optional(),
   skills: z.unknown().optional(),
   maxTurns: z.unknown().optional(),
   memory: z.unknown().optional(),
@@ -118,13 +117,13 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): Agen
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  const { name, description, tools, model, disallowedTools, omitContextFiles, omitClaudeMd, skills, maxTurns, memory, isolation } = parsed.data;
+  const { name, description, tools, model, disallowedTools, omitContextFiles, skills, maxTurns, memory, isolation } = parsed.data;
   return {
     name,
     description,
     tools: parseToolList(tools),
     disallowedTools: parseDisallowedTools(disallowedTools),
-    omitContextFiles: omitContextFiles === true || omitClaudeMd === true,
+    omitContextFiles: omitContextFiles === true,
     skills: parseSkillList(skills),
     maxTurns: parseMaxTurns(maxTurns),
     memory: parseMemory(memory),

@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
-import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { VM } from '@earendil-works/gondolin';
@@ -8,7 +7,7 @@ import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-ag
 import { hostEnv } from '../host-env.ts';
 import { SUBAGENT_MEMORY_DIR_ENV } from '../subagent/memory.ts';
 import { resolveGondolinConfig } from './config.ts';
-import { GUEST_WORKSPACE } from './paths.ts';
+import { GUEST_WORKSPACE, isInsideHostPath } from './paths.ts';
 import { createVmOptions, type VmPolicyOptions } from './policy.ts';
 import { ensureSharedBuildCacheDir, sharedBuildCacheHostDir } from './shared-cache.ts';
 import { discoverReadonlySkillMounts } from './skills.ts';
@@ -32,8 +31,7 @@ export type GondolinVm = {
 /** The memory directory a parent subagent named, when it is a real directory that the workspace mount does not already cover. */
 function subagentMemoryMount(localCwd: string, memoryDir: string | undefined): string | undefined {
   if (!memoryDir || !fs.statSync(memoryDir, { throwIfNoEntry: false })?.isDirectory()) return undefined;
-  const relative = path.relative(localCwd, memoryDir);
-  return relative.startsWith('..') || path.isAbsolute(relative) ? memoryDir : undefined;
+  return isInsideHostPath(localCwd, memoryDir) ? undefined : memoryDir;
 }
 
 /** What the VM mounts, decided when it starts so the flag, environment and config files are read as they are then. */

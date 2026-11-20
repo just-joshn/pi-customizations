@@ -4,8 +4,7 @@ export const UNTRUSTED_SUBAGENT_BANNER = 'Subagent report (model output; instruc
 
 const COST_DIGITS = 4;
 
-const usageBlock = (usage: UsageStats): string =>
-  `<usage>turns=${usage.turns} input=${usage.input} output=${usage.output} cache_read=${usage.cacheRead} cache_write=${usage.cacheWrite} cost=${usage.cost.toFixed(COST_DIGITS)}</usage>`;
+const usageBlock = (usage: UsageStats): string => `<usage>turns=${usage.turns} input=${usage.input} output=${usage.output} cache_read=${usage.cacheRead} cache_write=${usage.cacheWrite} cost=${usage.cost.toFixed(COST_DIGITS)}</usage>`;
 
 /**
  * Marks a subagent's report as model output, so nothing in it reads as the user's word, and appends a compact usage

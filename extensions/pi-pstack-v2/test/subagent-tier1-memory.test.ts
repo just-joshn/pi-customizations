@@ -1,7 +1,8 @@
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { says } from './subagent-child-output.ts';
 import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
@@ -14,6 +15,8 @@ const MAX_LINES = 200;
 const MAX_CHARS = 25_000;
 const OVERSIZED_CHARS = 2_000_000;
 const SCOPES = ['user', 'project', 'local'] as const;
+const GIT_IDENTITY = ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false'];
+const INHERITED_MEMORY_DIR = '/parent/agent-memory/other';
 
 type Scope = (typeof SCOPES)[number];
 type Seen = { child: FakeChild; prompt: string };
@@ -67,9 +70,9 @@ describe('agent memory directories', () => {
     expect(fs.existsSync(path.join(workspace().project, '.pi'))).toBe(false);
   });
 
-  test('an agent without memory gets no memory directory or variable', async () => {
+  test('an agent without memory gets no memory directory and a blank variable', async () => {
     const { seen } = await run('');
-    expect(seen?.child.env[MEMORY_ENV]).toBeUndefined();
+    expect(seen?.child.env[MEMORY_ENV]).toBe('');
   });
 });
 
@@ -131,9 +134,32 @@ describe('agent memory tools and environment', () => {
     expect(seen?.child.env[MEMORY_ENV]).toBe(memoryDirOf('user'));
   });
 
-  test.for(['project', 'local'] as const)('the %s scope lives in the workspace and sets no variable', async (scope) => {
+  test.for(['project', 'local'] as const)('the %s scope lives in the workspace and leaves the variable blank', async (scope) => {
     const { seen } = await run(`memory: ${scope}\n`);
-    expect(seen?.child.env[MEMORY_ENV]).toBeUndefined();
+    expect(seen?.child.env[MEMORY_ENV]).toBe('');
+  });
+});
+
+const git = (...args: string[]): void => {
+  execFileSync('git', [...GIT_IDENTITY, ...args], { cwd: workspace().project, encoding: 'utf8' });
+};
+
+describe('the memory directory a child is told about', () => {
+  test('a project memory in a worktree still points at the original repository, so its VM can mount it', async () => {
+    fs.writeFileSync(path.join(workspace().project, 'README.md'), 'hello\n');
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-q', '-m', 'init');
+    writeAgent(workspace().userAgents, 'custom', 'memory: project\n', 'You are custom.');
+    const seen = watchChild();
+    await loadSubagent().call({ agent: 'custom', task: 'look', isolation: 'worktree' }, makeCtx(workspace().project));
+    expect(seen()?.child.env[MEMORY_ENV]).toBe(memoryDirOf('project'));
+  });
+
+  test('a memory directory inherited from the parent does not reach an agent without memory', async () => {
+    vi.stubEnv(MEMORY_ENV, INHERITED_MEMORY_DIR);
+    const { seen } = await run('');
+    expect(seen?.child.env[MEMORY_ENV]).toBe('');
   });
 });
 

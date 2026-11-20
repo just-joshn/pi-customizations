@@ -61,12 +61,27 @@ export const parentSessionOf = (ctx: ForkContext, toolCallId: string | undefined
 /** The task a fork is sent: the notice that stops it forking again, then the task. */
 export const formatForkTask = (task: string): string => `${FORK_BOILERPLATE_TAG}\n${FORK_NOTICE}\n${FORK_BOILERPLATE_CLOSE}\n\nTask: ${task}`;
 
+const TextBlock = z.looseObject({ type: z.string(), text: z.string().optional() });
+const BranchUserMessage = z.looseObject({
+  type: z.literal('message'),
+  message: z.looseObject({ role: z.literal('user'), content: z.union([z.string(), z.array(TextBlock)]) }),
+});
+
+const startsWithBoilerplate = (text: string | undefined): boolean => text?.startsWith(FORK_BOILERPLATE_TAG) === true;
+
+/** True for a user message whose text opens with the fork boilerplate, which is how a fork's task starts. Quotes elsewhere do not count. */
+function isForkTask(entry: unknown): boolean {
+  const content = BranchUserMessage.safeParse(entry).data?.message.content;
+  if (content === undefined) return false;
+  return typeof content === 'string' ? startsWithBoilerplate(content) : content.some((block) => block.type === 'text' && startsWithBoilerplate(block.text));
+}
+
 /** Why a fork must not start, or undefined when it may. */
 export function forkRefusal(env: NodeJS.ProcessEnv, ctx: ForkContext): string | undefined {
   const disabled = env[SUBAGENT_FORK_DISABLED_ENV];
   if (disabled === '1' || disabled === 'true') return `Fork subagents are disabled (${SUBAGENT_FORK_DISABLED_ENV}). Use a named agent instead.`;
-  const branch = JSON.stringify(ctx.sessionManager?.getBranch?.() ?? []);
-  if (env[SUBAGENT_IS_FORK_ENV] === '1' || branch.includes(FORK_BOILERPLATE_TAG)) return 'A forked subagent cannot fork again. Do the work here.';
+  const branch = ctx.sessionManager?.getBranch?.() ?? [];
+  if (env[SUBAGENT_IS_FORK_ENV] === '1' || branch.some(isForkTask)) return 'A forked subagent cannot fork again. Do the work here.';
   return undefined;
 }
 
@@ -74,11 +89,18 @@ const ToolCallBlock = z.looseObject({ type: z.literal('toolCall'), id: z.string(
 const SessionEntry = z.looseObject({
   type: z.string().optional(),
   id: z.string().optional(),
-  message: z.looseObject({ role: z.string().optional(), content: z.unknown().optional() }).optional(),
+  message: z.looseObject({ role: z.string().optional(), content: z.unknown().optional(), toolCallId: z.string().optional() }).optional(),
 });
 type ParsedEntry = z.infer<typeof SessionEntry>;
 
-const parseEntry = (line: string): ParsedEntry | undefined => SessionEntry.safeParse(JSON.parse(line)).data;
+/** A line that is not JSON reads as no entry, so one corrupt line never stops a fork. */
+function parseEntry(line: string): ParsedEntry | undefined {
+  try {
+    return SessionEntry.safeParse(JSON.parse(line)).data;
+  } catch {
+    return undefined;
+  }
+}
 
 const toolCallsOf = (entry: ParsedEntry): z.infer<typeof ToolCallBlock>[] =>
   (z.array(z.unknown()).safeParse(entry.message?.content).data ?? []).flatMap((block) => {
@@ -96,12 +118,20 @@ function toolResultLine(call: z.infer<typeof ToolCallBlock>, parentId: string | 
   });
 }
 
+/** The tool calls of the assistant message that ends the transcript, less those the tool results after it already answer. */
+function openToolCalls(entries: readonly (ParsedEntry | undefined)[]): z.infer<typeof ToolCallBlock>[] {
+  const tail = entries.filter((entry): entry is ParsedEntry => entry?.type === 'message').toReversed();
+  const assistantIndex = tail.findIndex((entry) => entry.message?.role !== 'toolResult');
+  const assistant = tail[assistantIndex];
+  if (assistant?.message?.role !== 'assistant') return [];
+  const answered = new Set(tail.slice(0, assistantIndex).map((entry) => entry.message?.toolCallId));
+  return toolCallsOf(assistant).filter((call) => !answered.has(call.id));
+}
+
 /** The transcript lines, with a synthetic result for every tool call the last assistant message left open. */
 export function closeOpenToolCalls(lines: readonly string[], toolCallId: string | undefined): string[] {
   const entries = lines.map(parseEntry);
-  const last = entries.findLast((entry) => entry?.type === 'message');
-  if (last?.message?.role !== 'assistant') return [...lines];
-  const calls = toolCallsOf(last);
+  const calls = openToolCalls(entries);
   const leafId = entries.findLast((entry) => entry?.id !== undefined)?.id ?? null;
   const results = calls.reduce<{ parentId: string | null; lines: string[] }>(
     (acc, call) => {
@@ -115,7 +145,11 @@ export function closeOpenToolCalls(lines: readonly string[], toolCallId: string 
 }
 
 function readTranscript(parent: ParentSession): string[] {
-  if (parent.file && fs.existsSync(parent.file)) return fs.readFileSync(parent.file, 'utf8').split('\n').filter((line) => line.trim() !== '');
+  if (parent.file && fs.existsSync(parent.file))
+    return fs
+      .readFileSync(parent.file, 'utf8')
+      .split('\n')
+      .filter((line) => line.trim() !== '' && parseEntry(line) !== undefined);
   return [JSON.stringify({ type: 'session', version: SESSION_VERSION, id: randomUUID(), timestamp: new Date().toISOString(), cwd: parent.cwd })];
 }
 

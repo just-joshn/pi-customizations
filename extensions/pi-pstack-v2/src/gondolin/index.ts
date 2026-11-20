@@ -34,13 +34,7 @@ function registerStatusCommand(pi: ExtensionAPI, guest: GondolinVm, localCwd: st
     handler: async (_args, ctx) => {
       const activeVm = await guest.ensure(ctx);
       const cacheDir = guest.sharedBuildCacheDir();
-      const status = [
-        `Gondolin VM: ${activeVm.id}`,
-        `Host workspace: ${localCwd}`,
-        `Guest workspace: ${GUEST_WORKSPACE}`,
-        `Shell: ${guest.shellPath()}`,
-        ...(cacheDir ? [`Shared build cache: ${cacheDir} -> ${GUEST_BUILD_CACHE}`] : []),
-      ];
+      const status = [`Gondolin VM: ${activeVm.id}`, `Host workspace: ${localCwd}`, `Guest workspace: ${GUEST_WORKSPACE}`, `Shell: ${guest.shellPath()}`, ...(cacheDir ? [`Shared build cache: ${cacheDir} -> ${GUEST_BUILD_CACHE}`] : [])];
       ctx.ui.notify(status.join('\n'), 'info');
     },
   });

@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
-import { answerOf, loadSubagent, makeCtx, textOf, type ToolResult, useWorkspace } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const FAILED_EXIT = 2;

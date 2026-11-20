@@ -23,8 +23,28 @@ const reportOf = (result: ToolResult): string =>
     .join('\n')
     .trim() || '(no output)';
 
-const formatWakeMessage = (wake: string, id: string, report: string, outputPath: string): string =>
-  `${wake}\n\nsubagent job ${id} finished.\n\n${frameSubagentReport(report)}\n\nOutput file: ${outputPath}`;
+const formatWakeMessage = (wake: string, id: string, report: string, outputPath: string): string => `${wake}\n\nsubagent job ${id} finished.\n\n${frameSubagentReport(report)}\n\nOutput file: ${outputPath}`;
+
+/** A new job's id and the file its log goes to. */
+const newJobPaths = (): { id: string; outputPath: string } => {
+  const id = `subagent-${randomBytes(ID_BYTES).toString('hex')}`;
+  return { id, outputPath: subagentOutputPath(getAgentDir(), id) };
+};
+
+type Tracker = ReturnType<typeof createBackgroundProgressTracker>;
+
+function recordUpdate(log: ReturnType<typeof createOutputLog>, progress: Tracker, id: string, partial: ToolResult): void {
+  log.record(partial);
+  progress.update(id, partial);
+}
+
+/** Aborts a job and says whether there was one. */
+function abortJob(job: Running | undefined): boolean {
+  job?.controller.abort();
+  return job !== undefined;
+}
+
+const without = <V>(map: ReadonlyMap<string, V>, id: string): ReadonlyMap<string, V> => new Map([...map].filter(([key]) => key !== id));
 
 async function runLogged(run: JobRun, signal: AbortSignal, onUpdate: Update, log: ReturnType<typeof createOutputLog>): Promise<string> {
   const result = await run(signal, onUpdate).then(
@@ -55,18 +75,14 @@ export function createWakeJobs(pi: ExtensionAPI) {
   };
 
   const start = (wake: string, ctx: Mode, run: JobRun, agents = ''): { id: string; outputPath: string } => {
-    const id = `subagent-${randomBytes(ID_BYTES).toString('hex')}`;
-    const outputPath = subagentOutputPath(getAgentDir(), id);
+    const { id, outputPath } = newJobPaths();
     const log = createOutputLog(outputPath, id);
     const controller = new AbortController();
     log.begin();
     progress.start(id, ctx, agents);
-    const onUpdate: Update = (partial) => {
-      log.record(partial);
-      progress.update(id, partial);
-    };
+    const onUpdate: Update = (partial) => recordUpdate(log, progress, id, partial);
     const done = runLogged(run, controller.signal, onUpdate, log).then((report) => {
-      running = new Map([...running].filter(([key]) => key !== id));
+      running = without(running, id);
       progress.finish(id);
       deliver(ctx, formatWakeMessage(wake, id, report, outputPath));
     });
@@ -74,11 +90,7 @@ export function createWakeJobs(pi: ExtensionAPI) {
     return { id, outputPath };
   };
 
-  const stop = (id: string): boolean => {
-    const job = running.get(id);
-    job?.controller.abort();
-    return job !== undefined;
-  };
+  const stop = (id: string): boolean => abortJob(running.get(id));
 
   const stopAll = (): void => {
     for (const job of running.values()) job.controller.abort();

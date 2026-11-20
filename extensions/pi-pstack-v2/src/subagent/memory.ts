@@ -8,6 +8,7 @@ import * as path from 'node:path';
 
 import { CONFIG_DIR_NAME } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { isInsideHostPath } from '../gondolin/paths.ts';
 
 export const SUBAGENT_MEMORY_DIR_ENV = 'PI_SUBAGENT_MEMORY_DIR';
 
@@ -38,11 +39,6 @@ export function resolveAgentMemoryDir(scope: MemoryScope, agentName: string, cwd
   const name = safeAgentName(agentName);
   if (scope === 'user') return path.join(agentDir, 'agent-memory', name);
   return path.join(cwd, CONFIG_DIR_NAME, scope === 'project' ? 'agent-memory' : 'agent-memory-local', name);
-}
-
-function isInside(root: string, target: string): boolean {
-  const relative = path.relative(root, target);
-  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 function ensureRealDirectory(dir: string): void {
@@ -87,7 +83,7 @@ function promptSection(scope: MemoryScope, dir: string, content: string | undefi
 /** Creates the agent's memory directory and loads its `MEMORY.md`. Throws when the directory or file is not safe to use. */
 export function prepareAgentMemory(scope: MemoryScope, agentName: string, cwd: string, agentDir: string): PreparedMemory {
   const dir = resolveAgentMemoryDir(scope, agentName, cwd, agentDir);
-  if (scope !== 'user' && !isInside(cwd, dir)) throw new Error(`Agent memory directory escapes the project: ${dir}`);
+  if (scope !== 'user' && !isInsideHostPath(cwd, dir)) throw new Error(`Agent memory directory escapes the project: ${dir}`);
   ensureRealDirectory(dir);
   return { dir, promptSection: promptSection(scope, dir, readMemoryBytes(path.join(dir, MEMORY_FILE))) };
 }

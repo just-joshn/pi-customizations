@@ -60,9 +60,9 @@ describe('a call with the wrong mode', () => {
   });
 
   test('with parameters of the wrong shape, throws before anything runs', () => {
-    expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow();
-    expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow();
-    expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow();
+    expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow(/agent/);
+    expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow(/task/);
+    expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow(/thinking/);
     expect(fakePi.children()).toHaveLength(0);
   });
 });
@@ -111,8 +111,8 @@ describe('what the tool keeps of the child output', () => {
   test.for<[string, string]>([
     ['a JSON null', 'null'],
     ['a message end with no message', JSON.stringify({ type: 'message_end' })],
-  ])('loses the output that arrived together with %s', async ([, line]) => {
-    expect(answerOf(await run(line, assistantLine('lost')))).toBe('(no output)');
+  ])('skips %s and keeps the answer that follows', async ([, line]) => {
+    expect(answerOf(await run(line, assistantLine('kept answer')))).toBe('kept answer');
   });
 
   test('keeps an assistant message whose usage is incomplete, counting what is there', async () => {

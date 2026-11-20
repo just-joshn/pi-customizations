@@ -3,13 +3,13 @@ import { z } from 'zod';
 import type { ProcessOutcome } from './run-in-tmux.ts';
 import type { SingleResult } from './types.ts';
 
-/** A line of Pi's JSON mode output as it was read: any JSON value, which parseMessageEnd then reads field by field. */
-type JsonLine = { type?: unknown; message: { role?: unknown } };
-const JsonLineSchema = z.custom<JsonLine>();
-const MESSAGE_ROLES: readonly unknown[] = ['user', 'assistant', 'toolResult'];
+/** A `message_end` line of Pi's JSON mode output whose message is of a user, an assistant, or a tool result. Other keys stay as they were read. */
+const JsonLineSchema = z.looseObject({ type: z.literal('message_end'), message: z.looseObject({ role: z.enum(['user', 'assistant', 'toolResult']) }) });
 
-/** A message of a user, an assistant, or a tool result, which is the only kind a message_end line carries that matters here. */
-const isReadableMessage = (message: JsonLine['message']): message is Message => MESSAGE_ROLES.includes(message.role);
+type ReadableMessage = z.infer<typeof JsonLineSchema>['message'];
+
+/** The schema has checked the role, which is all that was ever checked of a message, so the rest is read where it is used. */
+const isMessage = (_message: ReadableMessage): _message is ReadableMessage & Message => true;
 
 function safeParseLine(line: string) {
   try {
@@ -27,9 +27,9 @@ function safeParseLine(line: string) {
 export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
   const event = safeParseLine(line);
-  if (!event.success || event.data.type !== 'message_end') return undefined;
+  if (!event.success) return undefined;
   const { message } = event.data;
-  return isReadableMessage(message) ? message : undefined;
+  return isMessage(message) ? message : undefined;
 }
 
 export function applyMessage(result: SingleResult, message: Message): SingleResult {

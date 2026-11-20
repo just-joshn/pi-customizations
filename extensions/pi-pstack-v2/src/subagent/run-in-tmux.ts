@@ -136,7 +136,15 @@ function readOutcome(exitFile: string, wasAborted: boolean): ProcessOutcome {
  * Run `command args` inside a detached tmux session. Stdout/stderr are mirrored
  * into temp files so the parent can stream JSON events the same way a pipe did.
  */
-export async function runPiInTmux(options: { command: string; args: string[]; cwd: string; signal?: AbortSignal | undefined; extraEnv?: Readonly<Record<string, string>> | undefined; onStdoutChunk: (chunk: string) => void; onStderrChunk: (chunk: string) => void }): Promise<ProcessOutcome> {
+export async function runPiInTmux(options: {
+  command: string;
+  args: string[];
+  cwd: string;
+  signal?: AbortSignal | undefined;
+  extraEnv?: Readonly<Record<string, string>> | undefined;
+  onStdoutChunk: (chunk: string) => void;
+  onStderrChunk: (chunk: string) => void;
+}): Promise<ProcessOutcome> {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
   const files = prepareRunFiles(options.command, options.args);
 

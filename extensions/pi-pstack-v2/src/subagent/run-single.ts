@@ -1,7 +1,7 @@
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import type { AgentConfig } from './agents.ts';
-import { formatForkTask, type ForkSession, isForkAgent, prepareForkSession, SUBAGENT_IS_FORK_ENV } from './fork.ts';
-import { prepareAgentMemory, SUBAGENT_MEMORY_DIR_ENV } from './memory.ts';
+import { type ForkSession, formatForkTask, isForkAgent, prepareForkSession, SUBAGENT_IS_FORK_ENV } from './fork.ts';
+import { type PreparedMemory, prepareAgentMemory, SUBAGENT_MEMORY_DIR_ENV } from './memory.ts';
 import { getPiInvocation, removePromptTempFile, writePromptToTempFile } from './pi-invocation.ts';
 import { createResultStream, finalizeResult } from './result-stream.ts';
 import { createUnstartedResult, emptyUsage, getFinalOutput } from './results.ts';
@@ -95,7 +95,7 @@ function buildPiArgs({ agent, defaults, call, promptPath, task, forkSessionFile 
     ...toolFlags(agent),
     ...(agent.omitContextFiles === true ? ['--no-context-files'] : []),
     ...(promptPath ? ['--append-system-prompt', promptPath] : []),
-    forkSessionFile === undefined ? `Task: ${task}` : formatForkTask(task) ,
+    forkSessionFile === undefined ? `Task: ${task}` : formatForkTask(task),
   ];
 }
 
@@ -146,6 +146,14 @@ function systemPromptFor(agent: AgentConfig, cwd: string, memorySection: string 
   return memorySection ? [withSkills.trim(), memorySection].filter(Boolean).join('\n\n') : withSkills;
 }
 
+/**
+ * The memory directory a child's VM must mount: the user scope's, and any scope's when the child runs in a worktree, where
+ * it lies outside the workspace. An agent without memory gets '' so a directory inherited from the parent never reaches it.
+ */
+function memoryDirFor(memory: PreparedMemory | undefined, agent: AgentConfig, inWorktree: boolean): string {
+  return memory && (agent.memory === 'user' || inWorktree) ? memory.dir : '';
+}
+
 function startForkSession(job: Job, cwd: string): ForkSession | undefined {
   if (!isForkAgent(job.agent)) return undefined;
   return prepareForkSession(job.defaults.parentSession ?? { file: undefined, cwd, toolCallId: undefined });
@@ -158,7 +166,7 @@ async function prepareLaunch(job: Job, cwd: string): Promise<Launch> {
   const prompt = systemPrompt.trim() ? await writePromptToTempFile(agent.name, systemPrompt) : undefined;
   const fork = startForkSession(job, cwd);
   const args = buildPiArgs({ agent, defaults, call, promptPath: prompt?.filePath, task, forkSessionFile: fork?.sessionFile });
-  const memoryEnv = memory && agent.memory === 'user' ? { [SUBAGENT_MEMORY_DIR_ENV]: memory.dir } : {};
+  const memoryEnv = { [SUBAGENT_MEMORY_DIR_ENV]: memoryDirFor(memory, agent, cwd !== job.baseCwd) };
   const forkEnv = fork ? { [SUBAGENT_IS_FORK_ENV]: '1' } : {};
   return {
     args,

@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { loadSubagent, textOf, useWorkspace } from './subagent-host.ts';
+import { loadSubagent, textOf } from './subagent-host.ts';
 
-useWorkspace();
 const TOOL = 'report_findings';
 const MAX_FINDINGS = 32;
 const MAX_SHORT = 60;
@@ -22,7 +21,7 @@ const report = (params: unknown) => loadSubagent().named(TOOL).call(params);
 
 describe('the report_findings tool', () => {
   test('is registered next to the subagent tool', () => {
-    expect(loadSubagent().toolNames()).toEqual(['subagent', TOOL]);
+    expect(loadSubagent().toolNames().toSorted()).toEqual([TOOL, 'subagent']);
   });
 
   test('says so when there are no findings, and keeps the structured payload', async () => {
@@ -44,15 +43,15 @@ describe('the report_findings tool', () => {
 
 describe('what report_findings refuses', () => {
   test.for([
-    ['more than 32 findings', { findings: findings(MAX_FINDINGS + 1) }],
-    ['a short_summary over 60 characters', { findings: [{ ...FINDING, short_summary: 'x'.repeat(MAX_SHORT + 1) }] }],
-    ['an unknown verdict', { findings: [{ ...FINDING, verdict: 'MAYBE' }] }],
-    ['an unknown outcome', { findings: [{ ...FINDING, outcome: 'ignored' }] }],
-    ['an unknown level', { level: 'extreme', findings: [] }],
-    ['an empty summary', { findings: [{ ...FINDING, summary: '' }] }],
-    ['a zero line', { findings: [{ ...FINDING, line: 0 }] }],
-  ] as const)('rejects %s', async ([, params]) => {
-    await expect(report(params)).rejects.toThrow();
+    ['more than 32 findings', { findings: findings(MAX_FINDINGS + 1) }, /findings/],
+    ['a short_summary over 60 characters', { findings: [{ ...FINDING, short_summary: 'x'.repeat(MAX_SHORT + 1) }] }, /short_summary/],
+    ['an unknown verdict', { findings: [{ ...FINDING, verdict: 'MAYBE' }] }, /verdict/],
+    ['an unknown outcome', { findings: [{ ...FINDING, outcome: 'ignored' }] }, /outcome/],
+    ['an unknown level', { level: 'extreme', findings: [] }, /level/],
+    ['an empty summary', { findings: [{ ...FINDING, summary: '' }] }, /summary/],
+    ['a zero line', { findings: [{ ...FINDING, line: 0 }] }, /line/],
+  ] as const)('rejects %s', async ([, params, pattern]) => {
+    await expect(report(params)).rejects.toThrow(pattern);
   });
 });
 

@@ -59,27 +59,39 @@ describe('the persistent .output log of a wake job', () => {
   });
 });
 
+/** Launches a wake job whose child is held, with spies on the UI, and returns what a test needs to drive it. */
+const launchHeldJob = async () => {
+  holdChildren();
+  const { ctx, setStatus, setWidget } = uiSpies();
+  const subagent = loadSubagent();
+  const id = jobIdOf(textOf(await subagent.call(WAKE, ctx)));
+  return { subagent, ctx, id, setStatus, setWidget };
+};
+
 describe('live background progress in the Pi UI', () => {
-  test('shows each running job with its agent, turns, tool calls and tokens, then clears when it ends', async () => {
-    holdChildren();
-    const { ctx, setStatus, setWidget } = uiSpies();
-    const subagent = loadSubagent();
-    const id = jobIdOf(textOf(await subagent.call(WAKE, ctx)));
+  test('shows a job that just launched with its agent and zero counts', async () => {
+    const { id, setStatus, setWidget } = await launchHeldJob();
     expect(setStatus).toHaveBeenLastCalledWith(STATUS_KEY, 'subagents: 1 running');
     expect(setWidget).toHaveBeenLastCalledWith(STATUS_KEY, [`${id} scout 0t 0 tools 0 tok`]);
+  });
+
+  test('updates the turns, tool calls and tokens as the worker streams', async () => {
+    const { id, setWidget } = await launchHeldJob();
     const [child] = await startedChildren(1);
     child?.stdout(`${assistantLine('working', { toolCalls: TOOL_CALLS })}\n`);
     await vi.waitFor(() => expect(setWidget).toHaveBeenLastCalledWith(STATUS_KEY, [`${id} scout 1t 1 tools 2 tok`]), CHILD_WAIT_MS);
+  });
+
+  test('clears both when the job ends', async () => {
+    const { setStatus, setWidget } = await launchHeldJob();
+    const [child] = await startedChildren(1);
     finish(child);
     await vi.waitFor(() => expect(setStatus).toHaveBeenLastCalledWith(STATUS_KEY, undefined), CHILD_WAIT_MS);
     expect(setWidget).toHaveBeenLastCalledWith(STATUS_KEY, undefined);
   });
 
   test('clears both when a running job is stopped', async () => {
-    holdChildren();
-    const { ctx, setStatus, setWidget } = uiSpies();
-    const subagent = loadSubagent();
-    const id = jobIdOf(textOf(await subagent.call(WAKE, ctx)));
+    const { subagent, ctx, id, setStatus, setWidget } = await launchHeldJob();
     await startedChildren(1);
     await subagent.call({ stop: id }, ctx);
     await vi.waitFor(() => expect(setStatus).toHaveBeenLastCalledWith(STATUS_KEY, undefined), CHILD_WAIT_MS);

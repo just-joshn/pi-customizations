@@ -55,8 +55,7 @@ function writeParentSession(...extraLines: string[]): string {
   return file;
 }
 
-const parentCtx = (file: string | undefined, options: CtxOptions = {}) =>
-  makeCtx(workspace().project, { model: PARENT_MODEL, thinkingLevel: 'high', ...options, sessionManager: { getSessionFile: () => file, getBranch: () => [] } });
+const parentCtx = (file: string | undefined, options: CtxOptions = {}) => makeCtx(workspace().project, { model: PARENT_MODEL, thinkingLevel: 'high', ...options, sessionManager: { getSessionFile: () => file, getBranch: () => [] } });
 
 type Seen = { child: FakeChild; sessionFile: string | undefined; session: string };
 
@@ -96,7 +95,7 @@ describe('a fork continues the parent session', () => {
   test('adds nothing when the parent already answered its last tool call', async () => {
     const seen = watchChild();
     const answered = entry('r1', 'a1', { role: 'toolResult', toolCallId: 'call', toolName: 'subagent', content: [], isError: false, timestamp: 1 });
-    const file = writeParentSession(answered);
+    const file = writeParentSession(answered, entry('r2', 'r1', { role: 'toolResult', toolCallId: 'sibling', toolName: 'read', content: [], isError: false, timestamp: 1 }));
     await fork(parentCtx(file));
     expect(seen()?.session).toBe(fs.readFileSync(file, 'utf8'));
   });
@@ -120,6 +119,53 @@ describe('a fork continues the parent session', () => {
   });
 });
 
+const SIBLING_RESULT = entry('r2', 'a1', { role: 'toolResult', toolCallId: 'sibling', toolName: 'read', content: [], isError: false, timestamp: 1 });
+const CORRUPT_LINE = '{this is not json';
+const toolResultIds = (session: string): (string | undefined)[] =>
+  linesOf(session)
+    .filter((line) => line.message?.role === 'toolResult')
+    .map((line) => line.message?.toolCallId);
+const branchOf = (message: object) => makeCtx(workspace().project, { sessionManager: { getSessionFile: () => undefined, getBranch: () => [{ type: 'message', message }] } });
+
+describe('a fork continues an unusual parent session', () => {
+  test('closes the unanswered call even when its sibling already has a result', async () => {
+    const seen = watchChild();
+    await fork(parentCtx(writeParentSession(SIBLING_RESULT)));
+    const results = linesOf(seen()?.session ?? '').filter((line) => line.message?.role === 'toolResult');
+    expect(toolResultIds(seen()?.session ?? '').toSorted()).toEqual(['call', 'sibling']);
+    expect(results.find((line) => line.message?.toolCallId === 'call')?.message).toMatchObject({ isError: false, content: [{ type: 'text', text: STARTED }] });
+  });
+
+  test('skips a corrupt line in the parent session and starts the child', async () => {
+    const seen = watchChild();
+    const result = await fork(parentCtx(writeParentSession(CORRUPT_LINE)));
+    expect(result.details?.isError).toBe(false);
+    expect(seen()?.session).toContain(STARTED);
+    expect(seen()?.session).not.toContain(CORRUPT_LINE);
+  });
+});
+
+describe('a fork refuses what would break it', () => {
+  test('an assistant message quoting the fork boilerplate does not block the fork', async () => {
+    const result = await fork(branchOf({ role: 'assistant', content: [{ type: 'text', text: `Quoting: ${BOILERPLATE}` }] }));
+    expect(result.details?.isError).toBe(false);
+    expect(fakePi.children()).toHaveLength(1);
+  });
+
+  test('a user message starting with the fork boilerplate blocks the fork', async () => {
+    const result = await fork(branchOf({ role: 'user', content: BOILERPLATE }));
+    expect(result.details?.isError).toBe(true);
+    expect(fakePi.children()).toHaveLength(0);
+  });
+
+  test('refuses a fork that asks for a worktree, starting no child', async () => {
+    const result = await fork(parentCtx(writeParentSession()), { isolation: 'worktree' });
+    expect(result.details?.isError).toBe(true);
+    expect(textOf(result)).toMatch(/fork.*worktree|worktree.*fork/i);
+    expect(fakePi.children()).toHaveLength(0);
+  });
+});
+
 describe('a fork shares the parent prompt prefix', () => {
   test('keeps the parent model and thinking level, whatever the call names', async () => {
     const seen = watchChild();
@@ -134,6 +180,7 @@ describe('a fork shares the parent prompt prefix', () => {
     expect(seen()?.child.args).not.toContain('--append-system-prompt');
     expect(seen()?.child.args).not.toContain('--no-context-files');
     expect(seen()?.child.args).not.toContain('--tools');
+    expect(seen()?.child.args).toContain('--session');
   });
 
   test('marks the child as a fork for the nesting guard', async () => {
@@ -165,6 +212,7 @@ describe('a fork cleans up its session copy', () => {
     });
     const result = await fork(parentCtx(writeParentSession()));
     expect(result.details?.isError).toBe(true);
+    expect(sessionFile).toMatch(/\.jsonl$/);
     expect(fs.existsSync(sessionFile ?? '')).toBe(false);
   });
 });
@@ -193,9 +241,11 @@ describe('a fork cannot fork again or run when disabled', () => {
     expect(await refused(parentCtx(writeParentSession()))).toMatch(/disabled/i);
   });
 
-  test('still starts ordinary agents inside a fork child and when forks are disabled', async () => {
-    vi.stubEnv(IS_FORK, '1');
-    vi.stubEnv(FORK_DISABLED, '1');
+  test.for([
+    [IS_FORK, 'inside a fork child'],
+    [FORK_DISABLED, 'when forks are disabled'],
+  ] as const)('still starts ordinary agents %#: %s is set', async ([variable]) => {
+    vi.stubEnv(variable, '1');
     const result = await loadSubagent().call({ agent: 'scout', task: 'look' }, parentCtx(writeParentSession()));
     expect(result.details?.isError).toBe(false);
   });

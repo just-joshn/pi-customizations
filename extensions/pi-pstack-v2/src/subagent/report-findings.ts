@@ -61,8 +61,7 @@ const findingLine = (theme: Theme, finding: Finding): string => {
   return `  ${verdict}${theme.fg('accent', place)} ${finding.short_summary || finding.summary}`;
 };
 
-const headline = (theme: Theme, count: number, level: string | undefined): string =>
-  theme.fg('toolTitle', theme.bold('report_findings ')) + theme.fg('accent', `${count} finding(s)`) + (level ? theme.fg('muted', ` [${level}]`) : '');
+const headline = (theme: Theme, count: number, level: string | undefined): string => theme.fg('toolTitle', theme.bold('report_findings ')) + theme.fg('accent', `${count} finding(s)`) + (level ? theme.fg('muted', ` [${level}]`) : '');
 
 const parseInput = (args: unknown): ReportFindingsDetails => {
   const parsed = ReportFindingsParamsSchema.safeParse(args);

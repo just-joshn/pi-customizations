@@ -7,7 +7,7 @@ import { runChain } from './dispatch-chain.ts';
 import { runParallel } from './dispatch-parallel.ts';
 import { FORK_AGENT_NAME, forkRefusal, parentSessionOf } from './fork.ts';
 import { frameSubagentReport } from './framing.ts';
-import { getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
+import { getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput, withWorktreeNote } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
 import type { ParsedSubagentParams, WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SubagentMode } from './types.ts';
@@ -32,7 +32,7 @@ function workItems(params: ParsedSubagentParams, mode: SubagentMode): WorkItem[]
 async function runSingle(run: DispatchRun, item: WorkItem, resolved: ResolvedAgent): Promise<ToolResult> {
   const result = await runSingleAgent(run.defaults, resolved, item.agent, item.task, undefined, run.signal, run.onUpdate, makeDetails('single'));
   const text = isFailedResult(result) ? `Agent ${result.stopReason || result.status}: ${getResultOutput(result)}` : getResultOutput(result);
-  return textResult(frameSubagentReport(truncateModelOutput(text), result.usage), makeDetails('single')([result]));
+  return textResult(frameSubagentReport(withWorktreeNote(result, truncateModelOutput(text)), result.usage), makeDetails('single')([result]));
 }
 
 function dispatchMode(mode: SubagentMode, run: DispatchRun, items: WorkItem[], resolved: ResolvedAgent[]): Promise<ToolResult> {
@@ -42,6 +42,14 @@ function dispatchMode(mode: SubagentMode, run: DispatchRun, items: WorkItem[], r
   const [agent] = resolved;
   if (!item || !agent) throw new Error('A single-agent call needs one agent and one task.');
   return runSingle(run, item, agent);
+}
+
+/** Why a call's forks must not start. A fork continues the parent's session in the parent's checkout, so it cannot take a worktree. */
+function forkRefusalFor(items: WorkItem[], env: NodeJS.ProcessEnv, ctx: ExtensionContext): string | undefined {
+  const forks = items.filter((item) => item.agent === FORK_AGENT_NAME);
+  if (forks.length === 0) return undefined;
+  if (forks.some((item) => item.isolation === 'worktree')) return 'A fork cannot run in a worktree (isolation: "worktree"): it continues the parent session in the parent checkout. Use a named agent for worktree isolation.';
+  return forkRefusal(env, ctx);
 }
 
 const refusal = (text: string, mode: SubagentMode): ToolResult => textResult(text, makeDetails(mode, true)([]));
@@ -72,7 +80,7 @@ export async function executeSubagent(params: ParsedSubagentParams, signal: Abor
   if (!policy.canSpawn) {
     return refusal(`Subagent nesting depth limit reached (depth ${policy.depth} >= max ${policy.maxDepth}). Do the work here, or raise ${SUBAGENT_MAX_DEPTH_ENV}.`, mode);
   }
-  const forkRefused = workItems(params, mode).some((item) => item.agent === FORK_AGENT_NAME) ? forkRefusal(env, ctx) : undefined;
+  const forkRefused = forkRefusalFor(workItems(params, mode), env, ctx);
   if (forkRefused) return refusal(forkRefused, mode);
   const slots = gate.tryAcquire(workItems(params, mode).length);
   if (!slots) {

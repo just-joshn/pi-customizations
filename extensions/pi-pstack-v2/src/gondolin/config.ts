@@ -18,7 +18,7 @@ const ENV_VALUES: Readonly<Record<string, boolean>> = { '1': true, true: true, '
 
 function envSetting(env: NodeJS.ProcessEnv): boolean | undefined {
   const raw = env[SHARED_BUILD_CACHE_ENV]?.trim().toLowerCase();
-  return raw === undefined ? undefined : ENV_VALUES[raw];
+  return raw !== undefined && Object.hasOwn(ENV_VALUES, raw) ? ENV_VALUES[raw] : undefined;
 }
 
 /** A missing file reads as no setting. A file that exists but is malformed throws, naming the file. */
@@ -27,7 +27,6 @@ function fileSetting(file: string): boolean | undefined {
   try {
     return GondolinConfigFileSchema.parse(JSON.parse(readFileSync(file, 'utf8'))).enableSharedBuildCache;
   } catch (error) {
-    console.error('Reading the Gondolin config failed:', error);
     throw new Error(`Invalid Gondolin config ${file}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
   }
 }
@@ -35,8 +34,6 @@ function fileSetting(file: string): boolean | undefined {
 /** Precedence: CLI flag, environment variable, project config, user config, then off. */
 export function resolveGondolinConfig({ localCwd, agentDir, env = {}, flag }: GondolinConfigOptions): GondolinConfig {
   const fromEnv = envSetting(env);
-  const enableSharedBuildCache =
-    flag === true ||
-    (fromEnv ?? fileSetting(path.join(localCwd, CONFIG_DIR_NAME, GONDOLIN_CONFIG_FILENAME)) ?? fileSetting(path.join(agentDir, GONDOLIN_CONFIG_FILENAME)) ?? false);
+  const enableSharedBuildCache = flag === true || (fromEnv ?? fileSetting(path.join(localCwd, CONFIG_DIR_NAME, GONDOLIN_CONFIG_FILENAME)) ?? fileSetting(path.join(agentDir, GONDOLIN_CONFIG_FILENAME)) ?? false);
   return { enableSharedBuildCache };
 }

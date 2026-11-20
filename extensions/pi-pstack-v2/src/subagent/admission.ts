@@ -19,13 +19,22 @@ export interface DepthPolicy {
 
 /** An environment variable read as a whole number of at least `min`; anything else reads as the fallback. */
 function readInteger(value: string | undefined, min: number, fallback: number): number {
-  const parsed = z.coerce.number().int().min(min).safeParse(value?.trim() ? value : undefined);
+  const parsed = z.coerce
+    .number()
+    .int()
+    .min(min)
+    .safeParse(value?.trim() ? value : undefined);
   return parsed.success ? parsed.data : fallback;
 }
 
+/** An unset or blank depth is the top level. A depth that is set but not a whole number fails closed, as if the limit were reached. */
+function readDepth(value: string | undefined, maxDepth: number): number {
+  return value?.trim() ? readInteger(value, 0, maxDepth) : DEFAULT_DEPTH;
+}
+
 export function readDepthPolicy(env: NodeJS.ProcessEnv): DepthPolicy {
-  const depth = readInteger(env[SUBAGENT_DEPTH_ENV], 0, DEFAULT_DEPTH);
   const maxDepth = readInteger(env[SUBAGENT_MAX_DEPTH_ENV], 0, DEFAULT_MAX_DEPTH);
+  const depth = readDepth(env[SUBAGENT_DEPTH_ENV], maxDepth);
   const nextDepth = depth + 1;
   return { depth, maxDepth, nextDepth, canSpawn: depth < maxDepth, childCanSpawn: nextDepth < maxDepth };
 }

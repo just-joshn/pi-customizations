@@ -56,9 +56,11 @@ export function getFailureSummary(result: SingleResult): string {
 }
 
 export function getResultOutput(result: SingleResult): string {
-  const output = isFailedResult(result) ? getFailureEvidence(result) : getFinalOutput(result.messages) || NO_OUTPUT;
-  return result.worktreeNote ? `${output}\n\n${result.worktreeNote}` : output;
+  return isFailedResult(result) ? getFailureEvidence(result) : getFinalOutput(result.messages) || NO_OUTPUT;
 }
+
+/** Appends where a kept worktree lives. Call it after truncation, so a long report never drops the note. */
+export const withWorktreeNote = (result: SingleResult, text: string): string => (result.worktreeNote ? `${text}\n\n${result.worktreeNote}` : text);
 
 export function truncateParallelOutput(output: string): string {
   const byteLength = Buffer.byteLength(output, 'utf8');

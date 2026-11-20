@@ -22,10 +22,15 @@ function initRepo(): string {
   return project;
 }
 
+const LONG_ANSWER_LINES = 3000;
+const keptNote = (cwd: string): string => `Worktree kept: ${cwd} (branch worktree/${path.basename(cwd)})`;
 const worktreesDir = (): string => path.join(workspace().project, '.pi', 'worktrees');
 const isWorktree = (cwd: string | undefined): boolean => cwd !== undefined && path.dirname(cwd) === worktreesDir() && /^subagent-custom-[0-9a-f]{6}$/.test(path.basename(cwd));
 const branches = (): string[] => git(workspace().project, 'branch', '--list', 'worktree/*', '--format=%(refname:short)').split('\n').filter(Boolean);
-const worktreeCount = (): number => git(workspace().project, 'worktree', 'list', '--porcelain').split('\n').filter((line) => line.startsWith('worktree ')).length;
+const worktreeCount = (): number =>
+  git(workspace().project, 'worktree', 'list', '--porcelain')
+    .split('\n')
+    .filter((line) => line.startsWith('worktree ')).length;
 
 /** Scripts every child to note where it ran, run `work` there, and answer. */
 const ranIn = (work: (child: FakeChild) => void = () => undefined): (() => FakeChild[]) => {
@@ -65,7 +70,11 @@ describe('a worktree the worker leaves clean', () => {
   test('gives parallel workers a worktree each', async () => {
     initRepo();
     const children = ranIn();
-    await loadSubagent().call({ tasks: [{ agent: 'custom', task: 'a', isolation: 'worktree' }, { agent: 'custom', task: 'b', isolation: 'worktree' }] }, makeCtx(workspace().project));
+    const tasks = [
+      { agent: 'custom', task: 'a', isolation: 'worktree' },
+      { agent: 'custom', task: 'b', isolation: 'worktree' },
+    ];
+    await loadSubagent().call({ tasks }, makeCtx(workspace().project));
     const [first, second] = children();
     expect(isWorktree(first?.cwd)).toBe(true);
     expect(isWorktree(second?.cwd)).toBe(true);
@@ -74,8 +83,6 @@ describe('a worktree the worker leaves clean', () => {
 });
 
 describe('a worktree the worker leaves work in', () => {
-  const keptNote = (cwd: string): string => `Worktree kept: ${cwd} (branch worktree/${path.basename(cwd)})`;
-
   test('keeps the worktree and branch when the child changed a file, and says where in its report', async () => {
     initRepo();
     const children = ranIn((child) => fs.writeFileSync(path.join(child.cwd, 'new.txt'), 'work\n'));
@@ -101,9 +108,25 @@ describe('a worktree the worker leaves work in', () => {
 
   test('leaves the main checkout untouched', async () => {
     initRepo();
-    ranIn((child) => fs.writeFileSync(path.join(child.cwd, 'new.txt'), 'work\n'));
+    const children = ranIn((child) => fs.writeFileSync(path.join(child.cwd, 'dirty.txt'), 'work\n'));
     await call({ isolation: 'worktree' });
-    expect(fs.existsSync(path.join(workspace().project, 'new.txt'))).toBe(false);
+    const cwd = children()[0]?.cwd ?? '';
+    expect(fs.existsSync(path.join(cwd, 'dirty.txt'))).toBe(true);
+    expect(fs.existsSync(path.join(workspace().project, 'dirty.txt'))).toBe(false);
+  });
+});
+
+describe('a kept worktree and a long report', () => {
+  test('the report is cut but still says where the worktree is kept', async () => {
+    initRepo();
+    fakePi.onChild((child) => {
+      fs.writeFileSync(path.join(child.cwd, 'new.txt'), 'work\n');
+      says('line\n'.repeat(LONG_ANSWER_LINES))(child);
+    });
+    const result = await call({ isolation: 'worktree' });
+    const cwd = fakePi.children()[0]?.cwd ?? '';
+    expect(textOf(result)).toContain('Output truncated');
+    expect(textOf(result)).toContain(keptNote(cwd));
   });
 });
 
@@ -118,9 +141,17 @@ describe('what triggers isolation', () => {
     expect(isWorktree(children()[0]?.cwd)).toBe(true);
   });
 
-  test('an agent without isolation runs in the project, and so does one with an unknown value', async () => {
+  test.for([
+    ['without isolation', (): void => undefined],
+    [
+      'with an unknown isolation value',
+      (): void => {
+        frontmatter('sandbox');
+      },
+    ],
+  ] as const)('an agent %s runs in the project', async ([, setUp]) => {
     initRepo();
-    frontmatter('sandbox');
+    setUp();
     const children = ranIn();
     await call({});
     expect(children()[0]?.cwd).toBe(workspace().project);
@@ -138,8 +169,9 @@ describe('what triggers isolation', () => {
     expect(isWorktree(children()[0]?.cwd)).toBe(true);
   });
 
-  test('rejects an isolation other than worktree', () => {
-    expect(() => call({ isolation: 'container' })).toThrow();
+  test('rejects an isolation other than worktree', async () => {
+    // The tool validates before it returns a promise, so the async wrapper turns that throw into a rejection.
+    await expect((async () => call({ isolation: 'container' }))()).rejects.toThrow(/isolation/);
   });
 });
 

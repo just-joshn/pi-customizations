@@ -3,11 +3,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { describe, expect, test, vi } from 'vitest';
-import { assistantLine, byTask, CHILD_WAIT_MS, dies, says, startedChildren } from './subagent-child-output.ts';
+import { assistantLine, byTask, CHILD_WAIT_MS, dies, printing, says, startedChildren } from './subagent-child-output.ts';
 import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, SUBAGENT_BANNER, settledFrom, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
+import { answerOf, loadSubagent, makeCtx, SUBAGENT_BANNER, settledFrom, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
 
 const workspace = useWorkspace();
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const ONE_TURN_USAGE = '<usage>turns=1 input=1 output=1 cache_read=0 cache_write=0 cost=1.0000</usage>';
 const TWO_TURN_USAGE = '<usage>turns=2 input=2 output=2 cache_read=0 cache_write=0 cost=2.0000</usage>';
 const TWO_TURNS = 2;
@@ -16,6 +17,8 @@ const DEPTH = 'PI_SUBAGENT_DEPTH';
 const MAX_DEPTH = 'PI_SUBAGENT_MAX_DEPTH';
 const MAX_CONCURRENT = 'PI_SUBAGENT_MAX_CONCURRENT';
 const WAKE = { agent: 'scout', task: 'look', wake: 'scout finished' };
+const NOT_AN_OBJECT_LINE = 'null';
+const NO_MESSAGE_LINE = '{"type":"message_end"}';
 
 const ctx = (mode = 'print') => makeCtx(workspace().project, { mode });
 const single = (params: Record<string, unknown> = {}) => loadSubagent().call({ agent: 'scout', task: 'look', ...params }, ctx());
@@ -35,32 +38,45 @@ describe('subagent reports are framed as untrusted model output', () => {
   test('a failed single call is framed too, with no usage when no turn ran', async () => {
     fakePi.onChild(dies(1, 'boom'));
     const text = textOf(await single());
-    expect(text.startsWith(`${SUBAGENT_BANNER}\n\nAgent failed:`)).toBe(true);
+    expect(text).toMatch(new RegExp(`^${escapeRegExp(SUBAGENT_BANNER)}\\n\\nAgent failed:`));
     expect(text).not.toContain('<usage>');
   });
 
   test('a parallel call is framed once, with the usage of every task added up', async () => {
     const text = textOf(await loadSubagent().call({ tasks: tasksFor('a', 'b') }, ctx()));
-    expect(text.startsWith(`${SUBAGENT_BANNER}\n\nParallel: 2/2 succeeded`)).toBe(true);
+    expect(text).toMatch(new RegExp(`^${escapeRegExp(SUBAGENT_BANNER)}\\n\\nParallel: 2/2 succeeded`));
     expect(countOf(text, SUBAGENT_BANNER)).toBe(1);
     expect(text.endsWith(`\n\n${TWO_TURN_USAGE}`)).toBe(true);
   });
 
   test('a chain is framed once, with the usage of every step added up', async () => {
     fakePi.onChild(byTask({ first: says('one'), 'use one': says('two') }));
-    const text = textOf(await loadSubagent().call({ chain: [{ agent: 'scout', task: 'first' }, { agent: 'scout', task: 'use {previous}' }] }, ctx()));
+    const chain = [
+      { agent: 'scout', task: 'first' },
+      { agent: 'scout', task: 'use {previous}' },
+    ];
+    const text = textOf(await loadSubagent().call({ chain }, ctx()));
     expect(text).toBe(`${SUBAGENT_BANNER}\n\ntwo\n\n${TWO_TURN_USAGE}`);
   });
 
   test('a stopped chain is framed', async () => {
     fakePi.onChild(dies(1, 'bad'));
     const text = textOf(await loadSubagent().call({ chain: tasksFor('first', 'second') }, ctx()));
-    expect(text.startsWith(`${SUBAGENT_BANNER}\n\nChain stopped at step 1`)).toBe(true);
+    expect(text).toMatch(new RegExp(`^${escapeRegExp(SUBAGENT_BANNER)}\\n\\nChain stopped at step 1`));
   });
 
   test('the banner is never cut away by a long answer', async () => {
     fakePi.onChild(says('line\n'.repeat(LONG_ANSWER_LINES)));
-    expect(textOf(await single()).startsWith(`${SUBAGENT_BANNER}\n\n`)).toBe(true);
+    expect(textOf(await single())).toMatch(new RegExp(`^${escapeRegExp(SUBAGENT_BANNER)}\\n\\n`));
+  });
+});
+
+describe('child output that is not a message', () => {
+  test('lines that parse as JSON but are no message are skipped before the real answer', async () => {
+    fakePi.onChild(printing(NOT_AN_OBJECT_LINE, NO_MESSAGE_LINE, assistantLine('real answer')));
+    const result = await single();
+    expect(result.details?.isError).toBe(false);
+    expect(answerOf(result)).toBe('real answer');
   });
 });
 
@@ -106,10 +122,17 @@ describe('subagent nesting depth', () => {
     expect(onlyChild()?.env[DEPTH]).toBe('3');
   });
 
-  test.for(['abc', '-1', '1.5', ''])('reads a depth of %j as the top level', async (value) => {
-    vi.stubEnv(DEPTH, value);
+  test('reads an empty depth as the top level', async () => {
+    vi.stubEnv(DEPTH, '');
     await single();
     expect(onlyChild()?.env[DEPTH]).toBe('1');
+  });
+
+  test.for(['abc', '-1', '1.5'])('refuses to start a child when the depth is the malformed %j', async (value) => {
+    vi.stubEnv(DEPTH, value);
+    const result = await single();
+    expect(result.details?.isError).toBe(true);
+    expect(fakePi.children()).toHaveLength(0);
   });
 
   test('refuses to start a child once the depth reaches the default limit of 3', async () => {
@@ -281,16 +304,18 @@ describe('agent frontmatter, tools', () => {
 });
 
 describe('agent frontmatter, context files', () => {
-  test.for([
-    ['omitContextFiles: true\n', true],
-    ['omitClaudeMd: true\n', true],
-    ['omitContextFiles: false\n', false],
-    ['omitContextFiles: "yes"\n', false],
-    ['', false],
-  ] as const)('with %j the child %s', async ([frontmatter, omits]) => {
+  const argsFor = async (frontmatter: string): Promise<readonly string[]> => {
     writeAgent(workspace().userAgents, 'custom', frontmatter);
     await single({ agent: 'custom' });
-    expect(onlyChild()?.args.includes('--no-context-files')).toBe(omits);
+    return onlyChild()?.args ?? [];
+  };
+
+  test('omitContextFiles: true starts the child without context files', async () => {
+    expect(await argsFor('omitContextFiles: true\n')).toContain('--no-context-files');
+  });
+
+  test.for(['omitContextFiles: false\n', 'omitContextFiles: "yes"\n', ''])('with %j the child keeps context files', async (frontmatter) => {
+    expect(await argsFor(frontmatter)).not.toContain('--no-context-files');
   });
 });
 

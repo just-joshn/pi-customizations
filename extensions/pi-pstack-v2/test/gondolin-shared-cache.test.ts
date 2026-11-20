@@ -85,11 +85,15 @@ describe('the VM without the shared build cache', () => {
 });
 
 describe('what turns the shared build cache on', () => {
-  test.for([['flag'], ['env'], ['project'], ['user']])('the %s mounts the host cache writable at /cache and points the tools into it', async ([source]) => {
-    if (source === 'env') vi.stubEnv(ENV, '1');
-    if (source === 'project') writeProject({ enableSharedBuildCache: true });
-    if (source === 'user') writeUser({ enableSharedBuildCache: true });
-    const { mount, env } = await startSession(source === 'flag' ? { [FLAG]: true } : {});
+  const none = (): void => undefined;
+  test.for([
+    { label: 'flag', setUp: none, flags: { [FLAG]: true } },
+    { label: 'env', setUp: () => vi.stubEnv(ENV, '1'), flags: {} },
+    { label: 'project', setUp: () => writeProject({ enableSharedBuildCache: true }), flags: {} },
+    { label: 'user', setUp: () => writeUser({ enableSharedBuildCache: true }), flags: {} },
+  ])('the $label mounts the host cache writable at /cache and points the tools into it', async ({ setUp, flags }) => {
+    setUp();
+    const { mount, env } = await startSession(flags);
     if (!mount) throw new Error(`The extension mounted nothing at ${GUEST_CACHE}.`);
     expect(env).toMatchObject(expectedEnv(GUEST_CACHE));
     const handle = await mount.open(PROBE_FILE, 'w');
@@ -104,10 +108,22 @@ describe('what turns the shared build cache on', () => {
     expect(await cacheOn({ [FLAG]: true })).toBe(true);
   });
 
-  test.for([['1', true], ['true', true], ['0', false], ['false', false]] as const)('the variable value %s gives %s over config files', async ([value, expected]) => {
+  test.for([
+    ['1', true],
+    ['true', true],
+    ['0', false],
+    ['false', false],
+  ] as const)('the variable value %s gives %s over config files', async ([value, expected]) => {
     vi.stubEnv(ENV, value);
     writeProject({ enableSharedBuildCache: !expected });
     expect(await cacheOn()).toBe(expected);
+  });
+});
+
+describe('a variable naming an object prototype property', () => {
+  test.for(['constructor', '__proto__', 'toString'])('the value %s does not turn the shared build cache on', async (value) => {
+    vi.stubEnv(ENV, value);
+    expect(await cacheOn()).toBe(false);
   });
 });
 
@@ -173,8 +189,11 @@ describe('the gondolin status command', () => {
     return String(host.notify.mock.lastCall?.[0]);
   };
 
-  test('names the shared build cache only when it is on', async () => {
+  test('with the shared build cache off, the status does not name it', async () => {
     expect(await statusOf({})).not.toContain('Shared build cache');
+  });
+
+  test('with the shared build cache on, the status names the host directory and mount', async () => {
     expect(await statusOf({ [FLAG]: true })).toContain(`Shared build cache: ${hostCacheDir()} -> ${GUEST_CACHE}`);
   });
 });

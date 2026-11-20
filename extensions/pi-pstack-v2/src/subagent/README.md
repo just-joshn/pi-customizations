@@ -144,7 +144,7 @@ When `model` is omitted, the subagent inherits the dispatching session's active 
 
 Optional frontmatter:
 - `disallowedTools: bash, write` removes tools from `tools` (or from every built-in tool when `tools` is absent). `*` is ignored. When nothing is left the child starts with `--no-tools`.
-- `omitContextFiles: true` (alias `omitClaudeMd`) starts the child with `--no-context-files`.
+- `omitContextFiles: true` starts the child with `--no-context-files`.
 - `skills: a, b` appends each skill's `SKILL.md` body (frontmatter stripped) to the child's system prompt. Searched in `<cwd>/.pi/skills`, `<cwd>/.agents/skills`, the Pi agent dir `skills`, `~/.agents/skills`, then this package's `skills`. At most 32; missing skills are skipped.
 - `maxTurns: 20` stops the child after that many assistant turns. The call still counts as completed, with `stopReason: "max_turns"`.
 - `memory: user | project | local` gives the agent a persistent directory (`<agent dir>/agent-memory/<name>`, `.pi/agent-memory/<name>`, or `.pi/agent-memory-local/<name>`, created `0700`). Its `MEMORY.md` (first 200 lines or 25000 characters; never a symlink) is added to the system prompt. With a restricted `tools` list, `read`, `write` and `edit` are added. The `user` scope also sets `PI_SUBAGENT_MEMORY_DIR` so the child's Gondolin VM mounts that directory writable at its host path.
