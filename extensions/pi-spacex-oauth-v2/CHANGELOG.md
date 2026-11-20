@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Rewrite every test as a user behavior test. Tests load the extension the way Pi does and drive sign-in, model lists, streaming, and `/spacex-usage` with fetch and `@cursor/sdk` faked. No behavior changes.
+
 ## 0.2.1
 
 - Refactor Cursor/Grok providers, state cells, API response validation (`zod`), and tests to adhere verbatim to `AGENTS.md` with no behavior changes.

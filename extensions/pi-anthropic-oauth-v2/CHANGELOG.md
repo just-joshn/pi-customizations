@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Tests now pass `behavior-test-audit`, which allows them to drive the provider only through the extension Pi loads. No behavior changes.
+
 ## 0.2.1
 
 - Refactor source, verification script, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, named constants, small functions, and `zod` input validation) with no behavior changes.

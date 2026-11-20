@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2]
+
+- Rewrite every test as a user behavior test. Tests load the extensions the way Pi does and assert the rendered tool rows, footer, header, and editor with the snoop themes. No behavior changes.
+
 ## [0.1.1]
 
 - Refactor TUI components, row layout, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, closure state cells, `zod` input validation, named constants, and small functions) with no behavior changes.

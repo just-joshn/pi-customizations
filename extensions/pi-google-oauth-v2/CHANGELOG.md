@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Fix Google sign-in, which threw a `ZodError` on every login since 0.1.3 because `process.env` failed input validation.
+- Rewrite every test as a user behavior test. Tests load the extension the way Pi does and drive login, refresh, model refresh, and streaming against a faked Google. They now live in `test/`.
+
 ## 0.1.3
 
 - Refactor provider, pure stream reducer, request builder, and tests to adhere verbatim to `AGENTS.md` (immutable patterns, `zod` input validation, named constants, and small functions) with no behavior changes.
