@@ -8,7 +8,7 @@ export const PRIVATE_PROJECT_HEADER = 'x-pi-google-oauth-v2-project';
 const OS_TYPES: Record<string, string> = { darwin: 'darwin', linux: 'linux', win32: 'windows' };
 const ARCHITECTURES: Record<string, string> = { arm64: 'arm64', x64: 'amd64' };
 
-export function antigravityUserAgent(platform: string = process.platform, arch: string = process.arch): string {
+function antigravityUserAgent(platform: string = process.platform, arch: string = process.arch): string {
   return `antigravity/cli/1.5.9 (aidev_client; os_type=${OS_TYPES[platform] ?? platform}; arch=${ARCHITECTURES[arch] ?? arch}; cl=1021519450; auth_method=consumer)`;
 }
 

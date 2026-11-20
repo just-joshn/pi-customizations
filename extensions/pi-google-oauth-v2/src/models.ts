@@ -46,7 +46,7 @@ function thinkingLevelMap(variants: Variant[], reasoning: boolean): ThinkingLeve
 }
 
 /** One Pi model per base family. Its thinking levels map to Google's per-effort wire ids. */
-export function catalogModels(catalog: Catalog): CodeAssistModel[] {
+function catalogModels(catalog: Catalog): CodeAssistModel[] {
   const shown = new Set((catalog.agentModelSorts ?? []).flatMap((sort) => (sort.groups ?? []).flatMap((group) => group.modelIds ?? [])));
   const entries = [...shown].flatMap((wireId): { base: string; variant: Variant }[] => {
     const info = catalog.models?.[wireId];

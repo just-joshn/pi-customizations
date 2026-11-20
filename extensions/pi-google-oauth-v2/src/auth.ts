@@ -66,7 +66,7 @@ export function parseStoredCredential(credential: OAuthCredential): GoogleCreden
   return { ...credential, projectId };
 }
 
-export function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
+function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge: string }): string {
   const params = new URLSearchParams({
     client_id: ANTIGRAVITY_CLIENT_ID,
     redirect_uri: input.redirectUri,
