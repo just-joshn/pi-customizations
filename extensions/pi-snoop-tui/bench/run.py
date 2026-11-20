@@ -10,7 +10,6 @@ import shutil
 import signal
 import struct
 import subprocess
-import sys
 import tempfile
 import termios
 import time
@@ -20,9 +19,9 @@ from pathlib import Path
 BENCH = Path(__file__).resolve().parent
 PACKAGE = BENCH.parent
 PROVIDER = BENCH / "bench-provider.ts"
-FIXTURE = BENCH / "visual/mockup-fixture.py"
-MEDIUM_FIXTURE = BENCH / "medium-fixture.py"
-MIXED_FIXTURE = BENCH / "mixed-fixture.py"
+FIXTURE = BENCH / "visual/mockup-fixture.ts"
+MEDIUM_FIXTURE = BENCH / "medium-fixture.ts"
+MIXED_FIXTURE = BENCH / "mixed-fixture.ts"
 ROWS, COLS = 40, 120
 PROMPT = "Run the replay benchmark workload."
 KEY = b"q"
@@ -204,7 +203,7 @@ def run_once(config: str, round_index: int, keep: bool, medium: bool = False) ->
     result: dict = {"config": config, "round": round_index}
     if medium:
         session_file = root / "session.jsonl"
-        subprocess.run([sys.executable, str(MEDIUM_FIXTURE), str(session_file), str(workspace), str(MEDIUM_TURNS)], check=True)
+        subprocess.run(["node", str(MEDIUM_FIXTURE), str(session_file), str(workspace), str(MEDIUM_TURNS)], check=True)
         result.update(workloadName="medium", turns=MEDIUM_TURNS)
         session = spawn(config, workspace, agent_dir, root / "pty.log", [*MEDIUM_ARGS, "--session", str(session_file)])
     else:
@@ -270,7 +269,7 @@ def run_long(config: str, round_index: int, keep: bool, workload: str = "long") 
     agent_dir.mkdir()
     (agent_dir / "settings.json").write_text(json.dumps(SETTINGS))
     session_file = root / "session.jsonl"
-    subprocess.run([sys.executable, str(fixture), str(session_file), str(workspace), str(repeats)], check=True)
+    subprocess.run(["node", str(fixture), str(session_file), str(workspace), str(repeats)], check=True)
     steps: dict = {}
     result: dict = {"workloadName": workload, "config": config, "round": round_index, "repeats": repeats, "steps": steps}
     started = time.monotonic()
