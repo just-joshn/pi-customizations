@@ -2,6 +2,7 @@ import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import grokFixture from './fixtures/grok-models.json' with { type: 'json' };
 import { GROK_ID, jsonResponse, loadExtension, makeLogin, makeRefresh, oauthCredential } from './host.ts';
+import { makeModel } from './support.ts';
 
 const HTTP_OK = 200;
 const HTTP_BAD_REQUEST = 400;
@@ -32,7 +33,16 @@ const NOW = '2026-11-15T12:00:00Z';
 const deviceCode = (extra: Record<string, unknown> = {}) => ({ device_code: 'dev', user_code: 'ABCD-1234', verification_uri: DEVICE_URL, expires_in: CODE_LIFETIME_SECONDS, ...extra });
 const ids = (models: ProviderModelConfig[]) => models.map((m) => m.id);
 
-type FetchCall = [string, RequestInit | undefined];
+const bodyText = (init: RequestInit | undefined): string => {
+  const body = init?.body;
+  return typeof body === 'string' || body instanceof URLSearchParams ? body.toString() : '';
+};
+
+/** Marks a promise handled so a rejection during timer advancement is not reported before its assertion awaits it. */
+const handled = <T>(promise: Promise<T>): Promise<T> => {
+  promise.catch(() => undefined);
+  return promise;
+};
 const stubFetch = (...responses: Response[]) => {
   const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>();
   for (const response of responses) fetch.mockResolvedValueOnce(response);
@@ -73,7 +83,7 @@ describe('Grok Build device sign-in', () => {
     expect(deviceCodes()).toStrictEqual([{ userCode: 'ABCD-1234', verificationUri: DEVICE_URL_COMPLETE, openBrowserOnConfirm: true, intervalSeconds: 1, expiresInSeconds: CODE_LIFETIME_SECONDS }]);
     expect(creds).toStrictEqual({ access: 'acc', refresh: 'ref', expires: Date.now() + TOKEN_LIFETIME_SECONDS * MS_PER_SECOND });
     expect(fetch.mock.calls[0]?.[0]).toBe(DEVICE_CODE_URL);
-    const pollBody = String((fetch.mock.calls[TOKEN_POLL_INDEX] as FetchCall)[1]?.body);
+    const pollBody = bodyText(fetch.mock.calls[TOKEN_POLL_INDEX]?.[1]);
     expect(pollBody).toContain(DEVICE_GRANT);
     expect(pollBody).toContain('device_code=dev');
   });
@@ -102,25 +112,25 @@ describe('Grok Build device sign-in failures', () => {
         url.includes('device/code') ? jsonResponse(HTTP_OK, deviceCode({ expires_in: SHORT_CODE_LIFETIME_SECONDS, interval: POLL_INTERVAL_SECONDS })) : jsonResponse(HTTP_BAD_REQUEST, { error: 'authorization_pending' }),
       ),
     );
-    const assertion = expect(grok().oauth.login(makeLogin().callbacks)).rejects.toThrow('Grok device sign-in expired before it was approved');
+    const login = handled(grok().oauth.login(makeLogin().callbacks));
     await vi.runAllTimersAsync();
-    await assertion;
+    await expect(login).rejects.toThrow('Grok device sign-in expired before it was approved');
   });
 
   test('cancelling while waiting rejects with the abort reason', async () => {
     stubFetch(jsonResponse(HTTP_OK, deviceCode({ interval: POLL_INTERVAL_SECONDS })));
     const controller = new AbortController();
-    const assertion = expect(grok().oauth.login(makeLogin(controller.signal).callbacks)).rejects.toThrow('cancelled');
+    const login = handled(grok().oauth.login(makeLogin(controller.signal).callbacks));
     await vi.advanceTimersByTimeAsync(CANCEL_DELAY_MS);
     controller.abort(new Error('cancelled'));
-    await assertion;
+    await expect(login).rejects.toThrow('cancelled');
   });
 
   test('says no token was returned when the server answers with neither tokens nor an error', async () => {
     stubFetch(jsonResponse(HTTP_OK, deviceCode({ interval: 1 })), jsonResponse(HTTP_OK, {}));
-    const assertion = expect(grok().oauth.login(makeLogin().callbacks)).rejects.toThrow('Grok sign-in failed: no token returned');
+    const login = handled(grok().oauth.login(makeLogin().callbacks));
     await vi.runAllTimersAsync();
-    await assertion;
+    await expect(login).rejects.toThrow('Grok sign-in failed: no token returned');
   });
 });
 
@@ -138,7 +148,7 @@ describe('Grok Build token refresh and API key', () => {
     const creds = await grok().oauth.refreshToken({ access: 'old', refresh: 'keep', expires: 0 }, signal);
     expect(creds.refresh).toBe('rotated');
     expect(fetch.mock.calls[0]?.[0]).toBe(TOKEN_URL);
-    expect(String(fetch.mock.calls[0]?.[1]?.body)).toContain('refresh_token=keep');
+    expect(bodyText(fetch.mock.calls[0]?.[1])).toContain('refresh_token=keep');
   });
 
   test("surfaces the server's error description", async () => {
@@ -161,8 +171,8 @@ describe('Grok Build model list', () => {
 
   test('without a network or sign-in, Pi keeps the stored catalog, else the built-in list', async () => {
     const provider = grok();
-    const stored = [{ id: 'stored-model' }];
-    const offline = makeRefresh({ allowNetwork: false, stored: { models: stored } as never });
+    const stored = [makeModel('stored-model', GROK_ID, 'openai-responses')];
+    const offline = makeRefresh({ allowNetwork: false, stored: { models: stored } });
     expect(await provider.refreshModels(offline.ctx)).toBe(stored);
     const apiKeyOnly = await provider.refreshModels(makeRefresh({ credential: { type: 'api_key' } }).ctx);
     expect(ids(apiKeyOnly)).toStrictEqual(['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5']);

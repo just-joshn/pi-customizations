@@ -1,28 +1,34 @@
 import type { Model, ModelThinkingLevel, RefreshModelsContext, ThinkingLevelMap } from '@earendil-works/pi-ai';
+import { z } from 'zod';
 import { parseStoredCredential } from './auth.ts';
 import { fetchAvailableModels } from './code-assist.ts';
 import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 
 const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
 type Effort = (typeof EFFORTS)[number];
+const isEffort = (value: string | undefined): value is Effort => EFFORTS.some((effort) => effort === value);
 const EFFORT_SUFFIX = new RegExp(`-(${EFFORTS.join('|')})$`);
 const EFFORT_LABEL = / \((Low|Medium|High|XHigh|Max)\)$/;
 // Pi offers a level unless its map entry is null, and Google has no wire id for these.
 const LEVELS_WITHOUT_WIRE_ID: ModelThinkingLevel[] = ['off', 'minimal', 'low', 'medium', 'high'];
 
-interface CatalogModel {
-  displayName?: string;
-  supportsImages?: boolean;
-  supportsThinking?: boolean;
-  maxTokens?: number;
-  maxOutputTokens?: number;
-}
+const CATALOG_MODEL = z.object({
+  displayName: z.string().optional(),
+  supportsImages: z.boolean().optional(),
+  supportsThinking: z.boolean().optional(),
+  maxTokens: z.number().optional(),
+  maxOutputTokens: z.number().optional(),
+});
+
+const CATALOG = z.object({
+  models: z.record(z.string(), CATALOG_MODEL).optional(),
+  agentModelSorts: z.array(z.object({ groups: z.array(z.object({ modelIds: z.array(z.string()).optional() })).optional() })).optional(),
+});
+
+type CatalogModel = z.infer<typeof CATALOG_MODEL>;
 
 /** The slice of Code Assist's `fetchAvailableModels` response that the extension reads. */
-export interface Catalog {
-  models?: Record<string, CatalogModel>;
-  agentModelSorts?: { groups?: { modelIds?: string[] }[] }[];
-}
+export type Catalog = z.infer<typeof CATALOG>;
 
 interface Variant {
   wireId: string;
@@ -34,15 +40,17 @@ type CodeAssistModel = Model<typeof API_ID>;
 
 function splitWireId(wireId: string): { base: string; effort: Effort } {
   const match = EFFORT_SUFFIX.exec(wireId);
-  if (!match) return { base: wireId, effort: 'medium' };
-  return { base: wireId.slice(0, match.index), effort: match[1] as Effort };
+  const effort = match?.[1];
+  if (!match || !isEffort(effort)) return { base: wireId, effort: 'medium' };
+  return { base: wireId.slice(0, match.index), effort };
 }
 
 function thinkingLevelMap(variants: Variant[], reasoning: boolean): ThinkingLevelMap {
   if (!reasoning) return { off: (variants.find((variant) => variant.effort === 'medium') ?? variants[0])?.wireId ?? null };
   const unmapped = Object.fromEntries(LEVELS_WITHOUT_WIRE_ID.map((level) => [level, null]));
   const mapped = Object.fromEntries(variants.map((variant) => [variant.effort, variant.wireId]));
-  return { ...unmapped, ...mapped } as ThinkingLevelMap;
+  const map: ThinkingLevelMap = { ...unmapped, ...mapped };
+  return map;
 }
 
 /** One Pi model per base family. Its thinking levels map to Google's per-effort wire ids. */
@@ -101,7 +109,7 @@ export function createFetchModels(fetchImpl: typeof fetch = globalThis.fetch): (
   return async (context) => {
     if (!context.allowNetwork || context.credential?.type !== 'oauth') return BASELINE_MODELS;
     const { access, projectId } = parseStoredCredential(context.credential);
-    const catalog = (await fetchAvailableModels({ accessToken: access, project: projectId, signal: context.signal, fetchImpl })) as Catalog;
+    const catalog = CATALOG.parse(await fetchAvailableModels({ accessToken: access, project: projectId, signal: context.signal, fetchImpl }));
     const models = catalogModels(catalog);
     if (models.length === 0) throw new Error('Google returned no models for this account');
     return models;

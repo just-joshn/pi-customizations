@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { BASH, BASH_PROBE_COMMAND, finishedProcess, type GondolinHost, GUEST, HOST, hangingProcess, loadGondolin, VM_ID } from './core-gondolin-host.ts';
 
 vi.mock('@earendil-works/gondolin', async (importOriginal) => ({ ...(await importOriginal<typeof import('@earendil-works/gondolin')>()), VM: { create: vi.fn() } }));
@@ -24,7 +25,11 @@ afterEach(() => {
 });
 
 const guestLine = `Current working directory: ${GUEST} (Gondolin VM; host workspace mounted from ${HOST})`;
-const prompt = async (host: GondolinHost, systemPrompt: string) => ((await host.fire('before_agent_start', { systemPrompt })) as { systemPrompt: string }).systemPrompt;
+const PromptResult = z.object({ systemPrompt: z.string() });
+const prompt = async (host: GondolinHost, systemPrompt: string) => PromptResult.parse(await host.fire('before_agent_start', { systemPrompt })).systemPrompt;
+
+type UserBashExec = (command: string, cwd: string, options: { onData: (data: Buffer) => void }) => Promise<unknown>;
+const UserBashResult = z.object({ operations: z.object({ exec: z.custom<UserBashExec>((value) => typeof value === 'function') }) });
 
 describe('the Gondolin VM across a session', () => {
   test('overrides the seven built-in tools and adds /gondolin', () => {
@@ -234,8 +239,8 @@ describe('the bash tool ends commands in the guest', () => {
 
   test('the user bash command (!) runs in the guest too', async () => {
     const host = loadGondolin({ exec: () => finishedProcess('listing\n') });
-    const result = (await host.fire('user_bash')) as { operations: { exec: (command: string, cwd: string, options: { onData: (data: Buffer) => void }) => Promise<unknown> } };
-    const onData = vi.fn();
+    const result = UserBashResult.parse(await host.fire('user_bash'));
+    const onData = vi.fn<(data: Buffer) => void>();
     expect(await result.operations.exec('ls', `${HOST}/src`, { onData })).toEqual({ exitCode: 0 });
     expect(onData).toHaveBeenCalledWith(Buffer.from('listing\n'));
     expect(host.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'ls'], expect.objectContaining({ cwd: `${GUEST}/src` }));

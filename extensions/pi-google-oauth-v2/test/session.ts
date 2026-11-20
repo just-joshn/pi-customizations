@@ -8,13 +8,13 @@ import {
   type Model,
   type ModelAuth,
   type MutableModels,
+  normalizeContext,
   type OAuthAuth,
   type OAuthCredential,
   type Provider,
   type SimpleStreamOptions,
   type TranscriptContext,
 } from '@earendil-works/pi-ai';
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { vi } from 'vitest';
 import extension from '../src/index.ts';
 import type { Catalog } from '../src/models.ts';
@@ -22,12 +22,12 @@ import { CREDENTIAL_TTL_MS, PROVIDER_ID, ROUTE_CATALOG, ROUTE_STREAM } from './c
 import { type GoogleFake, installGoogle, json, type Routes } from './google.ts';
 import { sseResponse, stopChunk } from './sse.ts';
 
-type ExtensionFactory = (pi: ExtensionAPI) => void;
+type ExtensionFactory = typeof extension;
 
 /** Loads an extension the way Pi does and returns every provider it registered. */
 export function loadProviders(factory: ExtensionFactory = extension): Provider[] {
   const registerProvider = vi.fn<(provider: Provider) => void>();
-  factory({ registerProvider } as unknown as ExtensionAPI);
+  factory({ registerProvider });
   return registerProvider.mock.calls.map(([provider]) => provider);
 }
 
@@ -99,8 +99,9 @@ export async function startSession(options: SessionOptions = {}): Promise<Sessio
       return found;
     },
     stream: async (model, messages, streamOptions = {}) => {
+      const transcript: TranscriptContext = normalizeContext({ messages });
       const auth: ModelAuth = credential?.type === 'oauth' ? await oauthOf(provider).toAuth(credential) : {};
-      return provider.streamSimple(model, { messages } as TranscriptContext, { ...auth, ...streamOptions, headers: { ...auth.headers, ...streamOptions.headers } });
+      return provider.streamSimple(model, transcript, { ...auth, ...streamOptions, headers: { ...auth.headers, ...streamOptions.headers } });
     },
   };
 }

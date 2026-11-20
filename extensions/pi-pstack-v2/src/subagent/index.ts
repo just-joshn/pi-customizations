@@ -17,12 +17,12 @@
 import * as path from 'node:path';
 
 import { CONFIG_DIR_NAME, type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { z } from 'zod';
 import { executeSubagent } from './dispatch.ts';
 import { renderSubagentCall } from './render-call.ts';
 import { renderSubagentResult } from './render-result.ts';
 import { makeDetails, type ToolResult, textResult } from './results.ts';
-import { type ParsedSubagentParams, SubagentParams, SubagentParamsSchema } from './schema.ts';
-import type { SubagentDetails } from './types.ts';
+import { isParsedSubagentParams, type ParsedSubagentParams, SubagentParams, SubagentParamsSchema } from './schema.ts';
 import { createWakeJobs, WAKE_MESSAGE_TYPE } from './wake-jobs.ts';
 
 const toolDescription = (): string =>
@@ -36,14 +36,16 @@ const toolDescription = (): string =>
 
 const interactive = (ctx: { mode?: string }): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 const noDetails = makeDetails('single')([]);
+const ErrorFlag = z.object({ isError: z.boolean() });
+const reportsError = (details: unknown): boolean => ErrorFlag.safeParse(details).data?.isError === true;
 
 function registerWakeLifecycle(pi: ExtensionAPI, wakeJobs: ReturnType<typeof createWakeJobs>): void {
   pi.on('session_shutdown', async () => wakeJobs.stopAll());
   // A print-mode Pi would exit while its wake jobs still run, so it waits for them and continues with their reports.
   pi.on('agent_before_settle', async (event, ctx) => {
-    if (interactive(ctx)) return;
+    if (interactive(ctx)) return undefined;
     const reports = await wakeJobs.settle();
-    if (reports.length === 0) return;
+    if (reports.length === 0) return undefined;
     const entries = reports.map((content) => ({ type: 'custom_message' as const, customType: WAKE_MESSAGE_TYPE, content, display: true }));
     return { entries: [...event.entries, ...entries], continue: true };
   });
@@ -55,9 +57,8 @@ export default function subagentExtension(pi: ExtensionAPI): void {
 
   // Tool execute results cannot set runtime error state directly, so patch it through the result hook.
   pi.on('tool_result', (event) => {
-    if (event.toolName !== 'subagent') return;
-    const details = event.details as SubagentDetails | undefined;
-    return details?.isError ? { isError: true } : undefined;
+    if (event.toolName !== 'subagent') return undefined;
+    return reportsError(event.details) ? { isError: true } : undefined;
   });
 
   pi.registerTool({
@@ -67,7 +68,8 @@ export default function subagentExtension(pi: ExtensionAPI): void {
     parameters: SubagentParams,
     execute: (_toolCallId, params, signal, onUpdate, ctx): Promise<ToolResult> => {
       SubagentParamsSchema.parse(params);
-      const parsed = params as ParsedSubagentParams;
+      if (!isParsedSubagentParams(params)) throw new Error('The subagent parameters are not valid.');
+      const parsed: ParsedSubagentParams = params;
       if (parsed.stop !== undefined) {
         const text = wakeJobs.stop(parsed.stop) ? `Stopped subagent job ${parsed.stop}.` : `No running subagent job ${parsed.stop}.`;
         return Promise.resolve(textResult(text, noDetails));

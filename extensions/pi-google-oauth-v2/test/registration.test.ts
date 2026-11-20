@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { Server } from 'node:net';
 
 import { afterEach, expect, test, vi } from 'vitest';
 import { z } from 'zod';
@@ -8,21 +9,27 @@ import { loadProviders } from './session.ts';
 
 const MANIFEST = z.object({ exports: z.record(z.string(), z.string()), pi: z.object({ extensions: z.array(z.string()) }) });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 test('registers exactly one native provider for Google AI plans with the baseline models', () => {
   const [provider, ...rest] = loadProviders();
   expect(rest).toEqual([]);
   expect(provider).toMatchObject({ id: PROVIDER_ID, name: PROVIDER_NAME, baseUrl: CODE_ASSIST_BASE_URL, auth: { oauth: { isSubscription: true } } });
   expect(provider?.getModels().map((model) => model.id)).toEqual(['gemini-4-argon', 'gemini-3.8-flash']);
-  expect(provider?.refreshModels).toBeTypeOf('function');
+  expect(typeof provider?.refreshModels).toBe('function');
 });
 
 test('starts no listener, timer, or request while loading', () => {
   const google = installGoogle({});
-  const before = process.getActiveResourcesInfo();
+  vi.useFakeTimers();
+  const listen = vi.spyOn(Server.prototype, 'listen');
   loadProviders();
-  expect(process.getActiveResourcesInfo()).toEqual(before);
+  expect(listen).not.toHaveBeenCalled();
+  expect(vi.getTimerCount()).toBe(0);
   expect(google.fetchImpl).not.toHaveBeenCalled();
 });
 

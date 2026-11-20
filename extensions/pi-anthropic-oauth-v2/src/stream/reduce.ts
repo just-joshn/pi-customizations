@@ -40,7 +40,8 @@ export function reduceEvent(state: StreamState, event: Anthropic.Beta.BetaRawMes
       return stopBlock(state, event);
     case 'message_delta':
       return unchanged({ ...state, output: applyMessageDelta(state, event, context) });
-    default:
-      return unchanged(state);
+    case 'message_stop':
+      break;
   }
+  return unchanged(state);
 }

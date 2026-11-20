@@ -1,5 +1,4 @@
 import { hasApi, type Model, type Provider, type RefreshModelsContext } from '@earendil-works/pi-ai';
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { createGoogleOAuth } from './auth.ts';
 import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_DISPLAY_NAME, PROVIDER_ID } from './constants.ts';
 import { BASELINE_MODELS, createFetchModels } from './models.ts';
@@ -8,7 +7,10 @@ import { streamCodeAssist } from './stream.ts';
 type CodeAssistModel = Model<typeof API_ID>;
 
 /** Registers the provider only. The factory starts no listener, timer, or request. */
-export default function (pi: ExtensionAPI): void {
+/** The part of Pi's ExtensionAPI this extension uses. */
+type ProviderRegistry = { registerProvider(provider: Provider): void };
+
+export default function (pi: ProviderRegistry): void {
   let current: readonly CodeAssistModel[] | undefined;
   const fetchModels = createFetchModels();
   const adopt =

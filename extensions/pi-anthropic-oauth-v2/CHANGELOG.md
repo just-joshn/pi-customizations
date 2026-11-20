@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.3]
+
+- Fix every `bun lint` behavior error. PKCE reads `webcrypto` from `node:crypto` instead of the experimental global, and the stream reducers handle every Anthropic event and block type explicitly. No behavior changes.
+
 ## 0.2.2
 
 - Tests now pass `behavior-test-audit`, which allows them to drive the provider only through the extension Pi loads. No behavior changes.

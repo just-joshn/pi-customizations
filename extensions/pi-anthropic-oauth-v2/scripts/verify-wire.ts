@@ -10,7 +10,8 @@ import { createServer, type IncomingHttpHeaders, type IncomingMessage, type Serv
 import type { AddressInfo } from 'node:net';
 import { text } from 'node:stream/consumers';
 
-import { type AssistantMessage, normalizeContext } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type Model, normalizeContext } from '@earendil-works/pi-ai';
+import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 import extension from '../src/index.ts';
 
@@ -31,7 +32,7 @@ const REJECTED_MODEL = 'claude-reject';
 
 const bodySchema = z.record(z.string(), z.unknown());
 
-const sse = (events: readonly Record<string, unknown>[]): string => events.map((event) => `event: ${event['type']}\ndata: ${JSON.stringify(event)}\n\n`).join('');
+const sse = (events: readonly Record<string, unknown>[]): string => events.map((event) => `event: ${String(event['type'])}\ndata: ${JSON.stringify(event)}\n\n`).join('');
 
 const SUCCESS = sse([
   { type: 'message_start', message: { id: 'msg_1', type: 'message', role: 'assistant', model: 'claude-sonnet-5-5', content: [], stop_reason: null, usage: { input_tokens: INPUT_TOKENS, output_tokens: 1 } } },
@@ -57,6 +58,8 @@ function reply(response: ServerResponse, body: Record<string, unknown>): void {
   response.end(SUCCESS);
 }
 
+const isAddressInfo = (address: string | AddressInfo | null): address is AddressInfo => typeof address === 'object' && address !== null;
+
 async function startServer(): Promise<WireServer> {
   let log: readonly Captured[] = [];
   const handle = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
@@ -70,29 +73,65 @@ async function startServer(): Promise<WireServer> {
       response.writeHead(STATUS_SERVER_ERROR).end();
     });
   });
-  await new Promise<void>((resolve) => server.listen(EPHEMERAL_PORT, LOOPBACK_HOST, resolve));
-  return { server, baseUrl: `http://${LOOPBACK_HOST}:${(server.address() as AddressInfo).port}`, captured: () => log };
+  await new Promise<void>((resolve) => {
+    server.listen(EPHEMERAL_PORT, LOOPBACK_HOST, () => {
+      resolve();
+    });
+  });
+  const address = server.address();
+  if (!isAddressInfo(address)) throw new Error('Wire server did not bind to a TCP port.');
+  return { server, baseUrl: `http://${LOOPBACK_HOST}:${address.port}`, captured: () => log };
 }
 
 function registered(): ProviderConfig {
-  let config = undefined as ProviderConfig | undefined;
+  let config: ProviderConfig | undefined;
   extension({
     registerProvider: (_id: string, next: ProviderConfig) => {
       config = next;
     },
-  } as never);
+  });
   assert.ok(config?.streamSimple && config.models, 'extension registered no provider');
   return config;
 }
 
+type ChatModelConfig = Exclude<ProviderModelConfig, { type: 'image' | 'classifier' }>;
+
+const isChatModel = (model: ProviderModelConfig): model is ChatModelConfig => model.type === undefined || model.type === 'chat';
+
+/** Copies a chat model config into a Model, keeping optional fields only when they are set. */
+function toModel(entry: ChatModelConfig, api: Api, baseUrl: string): Model<Api> {
+  const { thinkingLevelMap, promptCache, compat, inputLimits, ...rest } = entry;
+  return {
+    ...rest,
+    ...(thinkingLevelMap ? { thinkingLevelMap } : {}),
+    ...(promptCache ? { promptCache } : {}),
+    ...(compat ? { compat } : {}),
+    ...(inputLimits ? { inputLimits } : {}),
+    api,
+    provider: 'custom-anthropic',
+    baseUrl,
+  };
+}
+
 async function send(baseUrl: string, modelId: string, apiKey: string): Promise<AssistantMessage> {
   const config = registered();
-  const entry = config.models?.find((model) => model.id === modelId) ?? { ...config.models?.[0], id: modelId };
-  const model = { ...entry, api: config.api, provider: 'custom-anthropic', baseUrl } as never;
+  const chatModels = (config.models ?? []).filter(isChatModel);
+  const fallback = chatModels[0];
+  assert.ok(fallback, 'extension registered no chat models');
+  const entry = chatModels.find((candidate) => candidate.id === modelId) ?? { ...fallback, id: modelId };
+  const { api } = config;
+  assert.ok(api, 'extension registered no API');
+  const model = toModel(entry, api, baseUrl);
   const context = normalizeContext({ systemPrompt: 'Be brief.', messages: [{ role: 'user', content: 'ping', timestamp: Date.now() }] });
   const stream = config.streamSimple?.(model, context, { apiKey, reasoning: 'high' });
   assert.ok(stream);
   return stream.result();
+}
+
+function captureAt(log: readonly Captured[], index: number): Captured {
+  const entry = log[index];
+  assert.ok(entry, `expected captured request #${index}`);
+  return entry;
 }
 
 function checkOAuth(captured: Captured, message: AssistantMessage): void {
@@ -121,9 +160,9 @@ async function main(): Promise<void> {
   const { server, baseUrl, captured } = await startServer();
   try {
     const oauth = await send(baseUrl, 'claude-sonnet-5-5', 'sk-ant-oat01-wire');
-    checkOAuth(captured()[0] as Captured, oauth);
+    checkOAuth(captureAt(captured(), 0), oauth);
     await send(baseUrl, 'claude-sonnet-4-5', 'sk-ant-api03-wire');
-    checkApiKey(captured()[1] as Captured);
+    checkApiKey(captureAt(captured(), 1));
     const rejected = await send(baseUrl, REJECTED_MODEL, 'sk-ant-api03-wire');
     assert.equal(rejected.stopReason, 'error');
     assert.equal(rejected.errorMessage, 'BadRequestError 400 (request req_wire_400): bad request');

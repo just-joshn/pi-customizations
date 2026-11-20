@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { createWorld, driveTimers, type Host, loadPstack, outputBlock, startJob, untilExited, type World } from './core-host.ts';
 
 const JOB_TIMEOUT_MS = 30_000;
@@ -28,7 +29,10 @@ afterEach(() => {
 
 const tick = () => vi.advanceTimersByTimeAsync(POLL_MS);
 const list = () => host.text('tmux_jobs', { action: 'list' });
-const lastMessage = () => host.sendMessage.mock.lastCall as [{ content: string; customType: string; display: boolean }, unknown];
+const WakeCall = z.tuple([z.object({ content: z.string(), customType: z.string(), display: z.boolean() }), z.unknown()]);
+const lastMessage = () => WakeCall.parse(host.sendMessage.mock.lastCall);
+
+const SettledRun = z.object({ entries: z.array(z.custom<Record<string, unknown>>((entry) => typeof entry === 'object' && entry !== null)), continue: z.boolean() });
 
 describe('an interactive session is woken when a job exits', { timeout: JOB_TIMEOUT_MS }, () => {
   test('once, with the wake message and output, between tool calls rather than after the whole run', async () => {
@@ -196,7 +200,7 @@ describe('a print-mode run is kept alive until its jobs report', { timeout: JOB_
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout'] });
     await host.fire('session_start', {}, BUSY_PRINT_MODE);
     const prior = { type: 'message' };
-    const settled = (await driveTimers(host.fire('agent_before_settle', { entries: [prior] }, BUSY_PRINT_MODE))) as { entries: Record<string, unknown>[]; continue: boolean };
+    const settled = SettledRun.parse(await driveTimers(host.fire('agent_before_settle', { entries: [prior] }, BUSY_PRINT_MODE)));
     expect(settled.continue).toBe(true);
     expect(settled.entries[0]).toBe(prior);
     expect(settled.entries[1]).toMatchObject({ type: 'custom_message', customType: 'pstack-job', display: true });

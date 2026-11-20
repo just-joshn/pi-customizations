@@ -32,32 +32,24 @@ export interface ResolveProjectInput {
   sleep?: (ms: number) => Promise<void>;
 }
 
-interface Tier {
-  id?: string;
-  name?: string;
-  isDefault?: boolean;
-}
+const TIER = z.object({ id: z.string().optional(), name: z.string().optional(), isDefault: z.boolean().optional() });
+const INELIGIBLE_TIER = z.object({ reasonCode: z.string().optional(), reasonMessage: z.string().optional(), validationUrl: z.string().optional() });
+const LOAD_CODE_ASSIST_RESPONSE = z.object({
+  currentTier: TIER.nullish(),
+  allowedTiers: z.array(TIER).nullish(),
+  ineligibleTiers: z.array(INELIGIBLE_TIER).nullish(),
+  cloudaicompanionProject: z.string().nullish(),
+  paidTier: TIER.nullish(),
+});
+const OPERATION = z.object({
+  name: z.string().optional(),
+  done: z.boolean().optional(),
+  response: z.object({ cloudaicompanionProject: z.object({ id: z.string().optional() }).optional() }).optional(),
+  error: z.object({ message: z.string().optional() }).optional(),
+});
 
-interface IneligibleTier {
-  reasonCode?: string;
-  reasonMessage?: string;
-  validationUrl?: string;
-}
-
-interface LoadCodeAssistResponse {
-  currentTier?: Tier | null;
-  allowedTiers?: Tier[] | null;
-  ineligibleTiers?: IneligibleTier[] | null;
-  cloudaicompanionProject?: string | null;
-  paidTier?: Tier | null;
-}
-
-interface Operation {
-  name?: string;
-  done?: boolean;
-  response?: { cloudaicompanionProject?: { id?: string } };
-  error?: { message?: string };
-}
+type LoadCodeAssistResponse = z.infer<typeof LOAD_CODE_ASSIST_RESPONSE>;
+type Operation = z.infer<typeof OPERATION>;
 
 const METADATA = { ideType: 'ANTIGRAVITY' } as const;
 const FREE_TIER = 'free-tier';
@@ -65,7 +57,6 @@ const LEGACY_TIER = 'legacy-tier';
 const STANDARD_TIER = 'standard-tier';
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 60;
-const JSON_BODY = z.json();
 const GOOGLE_ERROR_BODY = z.object({ error: z.object({ message: z.string().min(1) }) });
 
 export function readProjectOverride(env: NodeJS.ProcessEnv): string | undefined {
@@ -80,7 +71,7 @@ function codeAssistUrl(method: string): string {
 }
 
 export function fetchAvailableModels(input: Pick<ResolveProjectInput, 'accessToken' | 'signal' | 'fetchImpl'> & { project: string }): Promise<unknown> {
-  return callCodeAssist<unknown>(input, 'POST', codeAssistUrl('fetchAvailableModels'), { project: input.project });
+  return callCodeAssist(input, z.json(), 'POST', codeAssistUrl('fetchAvailableModels'), { project: input.project });
 }
 
 function buildMetadata(envProject: string | undefined): Record<string, string> {
@@ -98,7 +89,7 @@ export async function resolveProject(input: ResolveProjectInput): Promise<Resolv
   const { envProject } = input;
   const metadata = buildMetadata(envProject);
 
-  const load = await callCodeAssist<LoadCodeAssistResponse>(input, 'POST', codeAssistUrl('loadCodeAssist'), {
+  const load = await callCodeAssist(input, LOAD_CODE_ASSIST_RESPONSE, 'POST', codeAssistUrl('loadCodeAssist'), {
     cloudaicompanionProject: envProject,
     metadata,
   });
@@ -118,7 +109,10 @@ export async function resolveProject(input: ResolveProjectInput): Promise<Resolv
   return onboardUser(input, load, metadata);
 }
 
-const defaultSleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const defaultSleep = (ms: number): Promise<void> =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 async function pollOperation(input: ResolveProjectInput, initial: Operation): Promise<Operation> {
   const sleep = input.sleep ?? defaultSleep;
@@ -126,7 +120,7 @@ async function pollOperation(input: ResolveProjectInput, initial: Operation): Pr
   for (let polls = 0; !operation.done && operation.name; polls++) {
     if (polls === MAX_POLLS) throw new CodeAssistError('Google Code Assist onboarding did not finish in time; run /login again');
     await sleep(POLL_INTERVAL_MS);
-    operation = await callCodeAssist<Operation>(input, 'GET', `${CODE_ASSIST_BASE_URL}/${operation.name}`);
+    operation = await callCodeAssist(input, OPERATION, 'GET', `${CODE_ASSIST_BASE_URL}/${operation.name}`);
   }
   return operation;
 }
@@ -137,7 +131,7 @@ async function onboardUser(input: ResolveProjectInput, load: LoadCodeAssistRespo
   const tierId = tier.id ?? STANDARD_TIER;
   // The free tier uses a managed project. Sending one makes Google answer Precondition Failed.
   const onboard = tierId === FREE_TIER ? { tierId, metadata: METADATA } : { tierId, cloudaicompanionProject: envProject, metadata };
-  const started = await callCodeAssist<Operation>(input, 'POST', codeAssistUrl('onboardUser'), onboard);
+  const started = await callCodeAssist(input, OPERATION, 'POST', codeAssistUrl('onboardUser'), onboard);
   const operation = await pollOperation(input, started);
   if (operation.error) throw new CodeAssistError(operation.error.message ?? 'Google Code Assist onboarding failed');
 
@@ -152,7 +146,7 @@ function missingProject(load: LoadCodeAssistResponse): CodeAssistError {
   return new ProjectRequiredError('This account requires setting the GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_PROJECT_ID environment variable, then running /login again');
 }
 
-async function callCodeAssist<T>(input: Pick<ResolveProjectInput, 'accessToken' | 'signal' | 'fetchImpl'>, method: 'GET' | 'POST', url: string, body?: object): Promise<T> {
+async function callCodeAssist<S extends z.ZodType>(input: Pick<ResolveProjectInput, 'accessToken' | 'signal' | 'fetchImpl'>, schema: S, method: 'GET' | 'POST', url: string, body?: object): Promise<z.output<S>> {
   const response = await input.fetchImpl(url, {
     method,
     headers: { Authorization: `Bearer ${input.accessToken}`, 'Content-Type': 'application/json', 'User-Agent': ANTIGRAVITY_USER_AGENT },
@@ -162,7 +156,7 @@ async function callCodeAssist<T>(input: Pick<ResolveProjectInput, 'accessToken' 
   const text = await response.text();
   if (!response.ok) throw new CodeAssistError(googleErrorMessage(text) ?? `Google Code Assist request failed (HTTP ${response.status})`);
   try {
-    return JSON_BODY.parse(JSON.parse(text)) as T;
+    return schema.parse(JSON.parse(text));
   } catch {
     throw new CodeAssistError('Google Code Assist returned a response that is not JSON');
   }

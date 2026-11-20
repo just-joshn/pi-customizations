@@ -38,7 +38,8 @@ export async function runParallel(run: DispatchRun, tasks: WorkItem[], resolved:
   };
 
   const results = await mapWithConcurrencyLimit(tasks, MAX_CONCURRENCY, async (item, index) => {
-    const agent = resolved[index] as ResolvedAgent;
+    const agent = resolved[index];
+    if (!agent) throw new Error(`No resolved agent for task ${index + 1}.`);
     const onUpdate: OnUpdateCallback = (partial) => {
       const current = partial.details?.results[0];
       if (current) record(index, current);

@@ -34,16 +34,15 @@ function convertUser(message: UserMessage): UserParam[] {
 }
 
 function convertAssistantBlock(block: AssistantMessage['content'][number], isOAuth: boolean): AssistantBlock[] {
-  switch (block.type) {
-    case 'text':
-      return block.text.trim() ? [{ type: 'text', text: sanitizeSurrogates(block.text) }] : [];
-    case 'thinking':
-      if (!block.thinking.trim()) return [];
-      if (!block.thinkingSignature) return [{ type: 'text', text: sanitizeSurrogates(block.thinking) }];
-      return [{ type: 'thinking', thinking: sanitizeSurrogates(block.thinking), signature: block.thinkingSignature }];
-    case 'toolCall':
-      return [{ type: 'tool_use', id: block.id, name: isOAuth ? toClaudeCodeName(block.name) : block.name, input: block.arguments }];
+  if (block.type === 'text') {
+    return block.text.trim() ? [{ type: 'text', text: sanitizeSurrogates(block.text) }] : [];
   }
+  if (block.type === 'thinking') {
+    if (!block.thinking.trim()) return [];
+    if (!block.thinkingSignature) return [{ type: 'text', text: sanitizeSurrogates(block.thinking) }];
+    return [{ type: 'thinking', thinking: sanitizeSurrogates(block.thinking), signature: block.thinkingSignature }];
+  }
+  return [{ type: 'tool_use', id: block.id, name: isOAuth ? toClaudeCodeName(block.name) : block.name, input: block.arguments }];
 }
 
 function convertAssistant(message: AssistantMessage, isOAuth: boolean): AssistantParam[] {

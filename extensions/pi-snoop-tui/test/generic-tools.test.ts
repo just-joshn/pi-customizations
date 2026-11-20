@@ -30,7 +30,7 @@ describe('rows for tools Pi does not render specially', () => {
 
   test('a tool called with no arguments at all still gets a row', () => {
     const row = driveRow(host, 'tmux_run');
-    row.apply({ args: undefined as never });
+    row.apply({ args: undefined });
     expect(row.text(WIDE)).toEqual([' ·  tmux_run  ']);
   });
 

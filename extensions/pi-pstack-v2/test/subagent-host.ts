@@ -9,7 +9,9 @@ import * as path from 'node:path';
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
 import { afterEach, beforeEach, vi } from 'vitest';
+import { z } from 'zod';
 import subagentExtension from '../src/subagent/index.ts';
+import { extensionApiFrom, hasMethods } from './fake-guards.ts';
 import { SUBAGENT_TEST_TIMEOUT_MS, says } from './subagent-child-output.ts';
 import { fakePi } from './subagent-fake-pi.ts';
 
@@ -19,7 +21,7 @@ const WIDTH = 400;
 const ESCAPE_CODE = 27;
 const ANSI = new RegExp(`${String.fromCharCode(ESCAPE_CODE)}\\[[0-9;]*m`, 'g');
 
-type Handler = (event: never, ctx: never) => unknown;
+type Handler = (event: unknown, ctx: unknown) => unknown;
 type Content = { type: string; text?: string };
 export type ToolResult = { content: Content[]; details?: { mode: string; results: { status: string; step?: number; agent: string; messages: unknown[] }[]; isError: boolean } };
 export type Update = (partial: ToolResult) => void;
@@ -33,12 +35,24 @@ type Tool = {
 };
 export type Sent = { message: { customType: string; content: string; display: boolean }; options: unknown };
 export type Settled = { entries: { type: string; customType: string; content: string }[]; continue: boolean } | undefined;
+const SettledSchema = z.object({ entries: z.array(z.looseObject({ type: z.string(), customType: z.string(), content: z.string() })), continue: z.boolean() }).optional();
+
+/** What an agent_before_settle handler answered, or undefined when it did not continue the run. */
+export const settledFrom = (answer: unknown): Settled => SettledSchema.parse(answer);
+
+const isTheme = (fake: object): fake is Theme => hasMethods(fake, ['fg', 'bold']);
+
+/** Gives the renderers a fake theme, after checking it has the two colors-and-weight methods they call. */
+function themeFrom(fake: object): Theme {
+  if (!isTheme(fake)) throw new Error('The fake theme lacks fg or bold.');
+  return fake;
+}
 
 /** Draws text as plain words, which is what a person reads whatever the colors. */
-const plainTheme = { fg: (_color: string, value: string) => value, bold: (value: string) => value } as unknown as Theme;
+const plainTheme = themeFrom({ fg: (_color: string, value: string) => value, bold: (value: string) => value });
 
 /** Shows each colored word as `<role:text>`, so a test can see which roles Pi would color with. */
-const roleTheme = { fg: (color: string, value: string) => `<${color}:${value}>`, bold: (value: string) => value } as unknown as Theme;
+const roleTheme = themeFrom({ fg: (color: string, value: string) => `<${color}:${value}>`, bold: (value: string) => value });
 
 export interface Workspace {
   readonly root: string;
@@ -67,9 +81,12 @@ export function useWorkspace(): () => Workspace {
     await fakePi.stop();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
-    fs.rmSync((current as Workspace).root, { recursive: true, force: true });
+    if (current) fs.rmSync(current.root, { recursive: true, force: true });
   });
-  return () => current as Workspace;
+  return () => {
+    if (!current) throw new Error('The workspace exists only while a test runs.');
+    return current;
+  };
 }
 
 /** Writes `<dir>/<name>.md` as an agent definition and returns its path. `frontmatter` adds lines after name and description. */
@@ -111,29 +128,34 @@ export const draw = (component: Component): string =>
     .replace(ANSI, '');
 
 export function loadSubagent() {
-  let tool: Tool | undefined;
+  let tools: readonly Tool[] = [];
   let handlers: Readonly<Record<string, Handler>> = {};
   let sent: readonly Sent[] = [];
   const api = {
     on: (event: string, handler: Handler) => {
       handlers = { ...handlers, [event]: handler };
     },
-    registerTool: (registered: Tool) => {
-      tool = registered;
+    registerTool: (definition: Tool) => {
+      tools = [...tools, definition];
     },
     sendMessage: (message: Sent['message'], options: unknown) => {
       sent = [...sent, { message, options }];
     },
   };
-  subagentExtension(api as never);
-  const registered = tool as Tool;
+  subagentExtension(extensionApiFrom(api));
+  const [registered] = tools;
+  if (!registered) throw new Error('The subagent extension registered no tool.');
   return {
     tool: registered,
     call: (params: unknown, ctx: unknown, signal?: AbortSignal, onUpdate?: Update) => registered.execute('call', params, signal, onUpdate, ctx),
     renderCall: (args: unknown) => draw(registered.renderCall(args, plainTheme)),
     renderResult: (result: unknown, expanded = false) => draw(registered.renderResult(result, { expanded }, plainTheme)),
     renderResultWithRoles: (result: unknown) => draw(registered.renderResult(result, { expanded: false }, roleTheme)),
-    fire: (event: string, payload: unknown, ctx: unknown): unknown => (handlers[event] as unknown as (e: unknown, c: unknown) => unknown)(payload, ctx),
+    fire: (event: string, payload: unknown, ctx: unknown): unknown => {
+      const handler = handlers[event];
+      if (!handler) throw new Error(`The subagent extension registered no ${event} handler.`);
+      return handler(payload, ctx);
+    },
     sent: (): readonly Sent[] => sent,
   };
 }

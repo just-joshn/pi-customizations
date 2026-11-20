@@ -157,5 +157,4 @@ const main = () => {
   return violations.length === 0 ? EXIT_CLEAN : EXIT_FAILED;
 };
 
-const code = main();
-process.stdout.write('', () => process.exit(code));
+process.exitCode = main();

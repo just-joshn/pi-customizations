@@ -3,8 +3,9 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { ShadowProvider, VirtualProvider } from '@earendil-works/gondolin';
+import { ShadowProvider, type VirtualProvider } from '@earendil-works/gondolin';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { z } from 'zod';
 import { type GondolinHost, GUEST, loadGondolin } from './core-gondolin-host.ts';
 
 vi.mock('@earendil-works/gondolin', async (importOriginal) => ({ ...(await importOriginal<typeof import('@earendil-works/gondolin')>()), VM: { create: vi.fn() } }));
@@ -54,19 +55,29 @@ afterEach(() => {
 /** The workspace as the guest sees it: the provider the extension mounted at /workspace when it created the VM. */
 const workspace = async (): Promise<ShadowProvider> => {
   await host.fire('session_start');
-  return host.vmOptions()?.vfs?.mounts?.[GUEST] as ShadowProvider;
+  const provider = host.vmOptions()?.vfs?.mounts?.[GUEST];
+  if (!(provider instanceof ShadowProvider)) throw new Error(`The extension mounted no shadow provider at ${GUEST}.`);
+  return provider;
 };
+
+const ErrnoSchema = z.looseObject({ errno: z.number().optional() });
 
 const errnoOf = (operation: Promise<unknown>): Promise<number | undefined> =>
   operation.then(
     () => undefined,
-    (error: unknown) => (error as { errno?: number }).errno,
+    (error: unknown) => ErrnoSchema.safeParse(error).data?.errno,
   );
 
 const writeThrough = async (provider: ShadowProvider, guestPath: string, content: string) => {
   const handle = await provider.open(guestPath, 'w');
-  await handle.writeFile(content).finally(() => handle.close());
+  try {
+    await handle.writeFile(content);
+  } finally {
+    await handle.close();
+  }
 };
+
+const mountedProviders = (): Record<string, VirtualProvider> => host.vmOptions()?.vfs?.mounts ?? {};
 
 describe('the workspace the guest can write to', () => {
   test('ordinary workspace files are read and written on the real host file', async () => {
@@ -139,8 +150,8 @@ describe('the VM the extension asks Gondolin for', () => {
 
   test('lets the guest read this package but never write to it', async () => {
     await host.fire('session_start');
-    const mounts = host.vmOptions()?.vfs?.mounts ?? {};
-    const packageMount = mounts[PACKAGE_ROOT] as VirtualProvider;
+    const packageMount = mountedProviders()[PACKAGE_ROOT];
+    if (!packageMount) throw new Error(`The extension mounted nothing at ${PACKAGE_ROOT}.`);
     const manifest = await packageMount.open(PACKAGE_MANIFEST, 'r');
     expect((await manifest.readFile()).toString()).toContain('"name": "@justjoshn/pi-pstack-v2"');
     await manifest.close();
@@ -150,7 +161,7 @@ describe('the VM the extension asks Gondolin for', () => {
 
   test('leaves only the workspace writable, whatever else is mounted', async () => {
     await host.fire('session_start');
-    const mounts = Object.entries(host.vmOptions()?.vfs?.mounts ?? {}).filter(([mountPoint]) => mountPoint !== GUEST);
-    for (const [, provider] of mounts) expect(await errnoOf((provider as VirtualProvider).open(WRITE_PROBE, 'w'))).toBe(EROFS);
+    const mounts = Object.entries(mountedProviders()).filter(([mountPoint]) => mountPoint !== GUEST);
+    for (const [, provider] of mounts) expect(await errnoOf(provider.open(WRITE_PROBE, 'w'))).toBe(EROFS);
   });
 });

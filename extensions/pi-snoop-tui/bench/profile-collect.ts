@@ -32,7 +32,7 @@ const NESTED_PHASES = new Map([
 ]);
 
 const CallFrame = z.object({ functionName: z.string(), url: z.string(), lineNumber: z.number(), columnNumber: z.number() });
-const Profile = z.object({
+const ProfileSchema = z.object({
   nodes: z.array(z.object({ id: z.number(), callFrame: CallFrame, children: z.array(z.number()).optional() })),
   startTime: z.number(),
   samples: z.array(z.number()),
@@ -40,7 +40,7 @@ const Profile = z.object({
 });
 const WindowUs = z.tuple([z.number(), z.number()]).rest(z.number());
 
-export type Profile = z.infer<typeof Profile>;
+export type Profile = z.infer<typeof ProfileSchema>;
 export type Window = readonly [number, number];
 
 /** One non-idle sample inside the window, with everything the report tables group by. */
@@ -59,7 +59,7 @@ export interface Collected {
   readonly samples: readonly Sample[];
 }
 
-export const parseProfile = (text: string): Profile => Profile.parse(JSON.parse(text));
+export const parseProfile = (text: string): Profile => ProfileSchema.parse(JSON.parse(text));
 
 export function fileLabel(url: string): string {
   if (url === '') return NATIVE_LABEL;

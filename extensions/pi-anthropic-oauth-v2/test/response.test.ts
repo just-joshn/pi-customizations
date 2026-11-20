@@ -11,6 +11,8 @@ vi.mock('@anthropic-ai/sdk', async (importOriginal) => {
 
 const EXPECTED_EVENT_TYPES = ['start', 'thinking_start', 'thinking_delta', 'thinking_end', 'text_start', 'text_delta', 'text_delta', 'text_end', 'toolcall_start', 'toolcall_delta', 'toolcall_delta', 'toolcall_end', 'done'];
 
+const near = (value: number): unknown => expect.closeTo(value, COST_PRECISION);
+
 const EXPECTED_USAGE = {
   input: INPUT_TOKENS,
   output: OUTPUT_TOKENS_FINAL,
@@ -18,11 +20,11 @@ const EXPECTED_USAGE = {
   cacheWrite: CACHE_WRITE_TOKENS,
   totalTokens: TOTAL_TOKENS,
   cost: {
-    input: expect.closeTo(COST_INPUT, COST_PRECISION),
-    output: expect.closeTo(COST_OUTPUT, COST_PRECISION),
-    cacheRead: expect.closeTo(COST_CACHE_READ, COST_PRECISION),
-    cacheWrite: expect.closeTo(COST_CACHE_WRITE, COST_PRECISION),
-    total: expect.closeTo(COST_TOTAL, COST_PRECISION),
+    input: near(COST_INPUT),
+    output: near(COST_OUTPUT),
+    cacheRead: near(COST_CACHE_READ),
+    cacheWrite: near(COST_CACHE_WRITE),
+    total: near(COST_TOTAL),
     totalFromProvider: false,
   },
 };

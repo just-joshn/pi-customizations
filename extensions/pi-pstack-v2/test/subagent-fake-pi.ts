@@ -106,14 +106,19 @@ function listen(socketPath: string): Promise<net.Server> {
     let link: Link | undefined;
     createInterface({ input: socket }).on('line', (line) => {
       const message = ChildMessage.parse(JSON.parse(line));
-      if (message.type === 'orphaned') return link?.markGone();
+      if (message.type === 'orphaned') {
+        link?.markGone();
+        return;
+      }
       link = createLink(message, socket);
       started = [...started, link.child];
       script(link.child);
     });
     socket.on('error', () => undefined);
   });
-  return new Promise((resolve) => server.listen(socketPath, () => resolve(server)));
+  return new Promise((resolve) => {
+    server.listen(socketPath, () => resolve(server));
+  });
 }
 
 /** A launcher is the executable a user would have: it runs the fake Pi and tells it which name it was started by. */
@@ -153,7 +158,9 @@ export const fakePi = {
     if (!current) return;
     for (const socket of sockets) socket.destroy();
     hangUpFakeTmux(current.tmux);
-    await new Promise<void>((resolve) => current.server.close(() => resolve()));
+    await new Promise<void>((resolve) => {
+      current.server.close(() => resolve());
+    });
   },
   onChild(next: ChildScript): void {
     script = next;

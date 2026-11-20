@@ -172,15 +172,15 @@ describe('footer lifecycle', () => {
     const session = createSession(theme);
     const { tui, footer } = mountFooter(host, session);
     for (const event of ['model_select', 'thinking_level_select', 'turn_end', 'agent_end', 'session_compact', 'session_tree']) host.fire(event, session.ctx);
-    expect(tui.requestRender).not.toHaveBeenCalled();
+    expect(tui.repaints).not.toHaveBeenCalled();
     session.setUsage(NEXT_USAGE);
     host.fire('turn_end', session.ctx);
-    expect(tui.requestRender).toHaveBeenCalled();
+    expect(tui.repaints).toHaveBeenCalled();
     expect(line(footer)).toContain(`ctx ${NEXT_USAGE}%`);
-    vi.mocked(tui.requestRender).mockClear();
+    vi.clearAllMocks();
     host.setThinking('high');
     host.fire('thinking_level_select', session.ctx);
-    expect(tui.requestRender).toHaveBeenCalled();
+    expect(tui.repaints).toHaveBeenCalled();
     expect(line(footer)).toContain('high');
     session.setModel({ id: 'other-model', reasoning: true });
     host.fire('model_select', session.ctx);
@@ -198,7 +198,7 @@ describe('footer repaint requests', () => {
     const { tui } = mountFooter(host, ui);
     const headless = createSession(theme, { hasUI: false, usagePercent: 99 });
     host.fire('turn_end', headless.ctx);
-    expect(tui.requestRender).not.toHaveBeenCalled();
+    expect(tui.repaints).not.toHaveBeenCalled();
   });
 
   test('stops asking Pi to repaint once the footer is disposed', () => {
@@ -208,7 +208,7 @@ describe('footer repaint requests', () => {
     footer.dispose?.();
     session.setUsage(LATER_USAGE);
     host.fire('agent_end', session.ctx);
-    expect(tui.requestRender).not.toHaveBeenCalled();
+    expect(tui.repaints).not.toHaveBeenCalled();
   });
 
   test('a replaced footer being disposed late does not silence its successor', () => {
@@ -219,7 +219,7 @@ describe('footer repaint requests', () => {
     first.footer.dispose?.();
     session.setUsage(LAST_USAGE);
     host.fire('turn_end', session.ctx);
-    expect(second.tui.requestRender).toHaveBeenCalled();
-    expect(first.tui.requestRender).not.toHaveBeenCalled();
+    expect(second.tui.repaints).toHaveBeenCalled();
+    expect(first.tui.repaints).not.toHaveBeenCalled();
   });
 });

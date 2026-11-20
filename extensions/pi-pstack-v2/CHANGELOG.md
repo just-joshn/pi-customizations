@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.6]
+
+- Match `find` and `grep` globs with `minimatch` instead of `path.matchesGlob`, which is experimental on Node 22.19 and 23.x to 24.7. The matching rules are unchanged on Linux guests.
+- Keep tmux job sockets under `os.tmpdir()` instead of `/tmp`. On macOS the `attach:` hint now points at the per-user temp directory.
+- Hide console windows for spawned processes on Windows, and replace unchecked casts in the subagent tool with guards.
+
 ## 0.2.5
 
 ### Fixed

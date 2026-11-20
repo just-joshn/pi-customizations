@@ -1,9 +1,10 @@
+import type { ReadableStream } from 'node:stream/web';
+
 import { type Api, type AssistantMessage, type AssistantMessageEvent, type AssistantMessageEventStream, createAssistantMessageEventStream, type Model, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
-import { z } from 'zod';
 import { googleErrorMessage } from './code-assist.ts';
 import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
-import { type CodeAssistChunk, closeOpenBlock, createReducerState, finishStream, type ReducerState, type ReducerStep, reduceChunk } from './stream-reducer.ts';
+import { CODE_ASSIST_CHUNK, type CodeAssistChunk, closeOpenBlock, createReducerState, finishStream, type ReducerState, type ReducerStep, reduceChunk } from './stream-reducer.ts';
 
 const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_INTERNAL_ERROR = 500;
@@ -16,7 +17,6 @@ const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
 const BACKOFF_BASE = 2;
 const SSE_DATA_PREFIX = 'data:';
 const SSE_LINE_BREAK = /\r\n|\n|\r/;
-const SSE_EVENT = z.looseObject({});
 
 function retryDelayMs(body: string, headers: Headers): number | undefined {
   const retryAfter = headers.get('retry-after');
@@ -32,7 +32,10 @@ function retryDelayMs(body: string, headers: Headers): number | undefined {
 
 function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(new Error('Request was aborted'));
+    if (signal?.aborted) {
+      reject(new Error('Request was aborted'));
+      return;
+    }
     const timer = setTimeout(resolve, ms);
     signal?.addEventListener(
       'abort',
@@ -98,11 +101,9 @@ async function openResponse(model: Model<Api>, context: TranscriptContext, optio
   return fetchWithRetry(model, options, `${model.baseUrl}:streamGenerateContent?alt=sse`, requestInit(options, headers, body));
 }
 
-const toChunk = (value: unknown): CodeAssistChunk => value as CodeAssistChunk;
-
 function parseEvent(data: string): CodeAssistChunk {
   try {
-    return toChunk(SSE_EVENT.parse(JSON.parse(data)));
+    return CODE_ASSIST_CHUNK.parse(JSON.parse(data));
   } catch {
     throw new Error('Google Code Assist sent a malformed event');
   }

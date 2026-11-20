@@ -95,7 +95,7 @@ describe('what the tool keeps of the child output', () => {
     expect(textOf(result)).toBe('end');
   });
 
-  test.for([
+  test.for<[string, string]>([
     ['a JSON number', '5'],
     ['a JSON string', '"text"'],
     ['a JSON list', '[]'],
@@ -105,14 +105,14 @@ describe('what the tool keeps of the child output', () => {
     ['a message with no role', JSON.stringify({ type: 'message_end', message: { content: [] } })],
     ['a message whose role is a list', JSON.stringify({ type: 'message_end', message: { role: ['user'] } })],
   ])('ignores %s and still reads the answer after it', async ([, line]) => {
-    expect(textOf(await run(line as string, assistantLine('the answer')))).toBe('the answer');
+    expect(textOf(await run(line, assistantLine('the answer')))).toBe('the answer');
   });
 
-  test.for([
+  test.for<[string, string]>([
     ['a JSON null', 'null'],
     ['a message end with no message', JSON.stringify({ type: 'message_end' })],
   ])('loses the output that arrived together with %s', async ([, line]) => {
-    expect(textOf(await run(line as string, assistantLine('lost')))).toBe('(no output)');
+    expect(textOf(await run(line, assistantLine('lost')))).toBe('(no output)');
   });
 
   test('keeps an assistant message whose usage is incomplete, counting what is there', async () => {

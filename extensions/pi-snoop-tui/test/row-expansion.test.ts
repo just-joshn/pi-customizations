@@ -69,7 +69,7 @@ describe('expanded row fallbacks', () => {
     const lines = row.text(NARROW).map((line) => line.trim());
     expect(lines).toContain('{"path":"a.ts"}');
     expect(lines).toContain('plain red text');
-    row.apply({ args: undefined as never, result: output('') });
+    row.apply({ args: undefined, result: output('') });
     expect(row.text(NARROW).join('\n')).not.toContain('plain');
   });
 
@@ -152,6 +152,7 @@ describe('rows within the terminal width', () => {
         row.apply({ expanded });
         expectFitsEveryWidth(row);
       }
+      expect(row.lines(NARROW).length).toBeGreaterThan(0);
     }
   });
 

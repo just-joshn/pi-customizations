@@ -1,7 +1,8 @@
 import type { OAuthCredentials, OAuthLoginCallbacks, ThinkingLevelMap } from '@earendil-works/pi-ai';
-import type { ProviderConfig, ProviderModelConfig } from '@earendil-works/pi-coding-agent';
+import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 import { refreshCatalog } from './catalog.ts';
+import type { ChatModelConfig } from './stored-models.ts';
 
 // Grok Build's own OIDC client and scopes, read from a Grok Build 1.0.77 login.
 const ISSUER = 'https://auth.x.ai';
@@ -78,6 +79,8 @@ function toCredentials(token: TokenResponse, previousRefresh?: string): OAuthCre
   return { access: token.access_token, refresh, expires: Date.now() + (token.expires_in ?? DEFAULT_TOKEN_TTL_SECONDS) * MS_PER_SECOND };
 }
 
+const abortError = (signal: AbortSignal): Error => (signal.reason instanceof Error ? signal.reason : new Error('Grok sign-in aborted', { cause: signal.reason }));
+
 const sleep = (ms: number, signal?: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     const timer = setTimeout(resolve, ms);
@@ -85,7 +88,7 @@ const sleep = (ms: number, signal?: AbortSignal) =>
       'abort',
       () => {
         clearTimeout(timer);
-        reject(signal.reason);
+        reject(abortError(signal));
       },
       { once: true },
     );
@@ -138,7 +141,7 @@ const toThinkingLevelMap = (efforts: Set<string>): ThinkingLevelMap => ({
   max: null,
 });
 
-export function toGrokModel(m: GrokModel): ProviderModelConfig {
+export function toGrokModel(m: GrokModel): ChatModelConfig {
   const efforts = new Set((m.reasoning_efforts ?? []).map((e) => e.value));
   const supported = THINKING_LEVELS.filter((l) => efforts.has(l));
   return {
@@ -153,7 +156,7 @@ export function toGrokModel(m: GrokModel): ProviderModelConfig {
   };
 }
 
-export async function fetchGrokModels(accessToken: string, signal?: AbortSignal): Promise<ProviderModelConfig[]> {
+export async function fetchGrokModels(accessToken: string, signal?: AbortSignal): Promise<ChatModelConfig[]> {
   const res = await fetch(`${GROK_BASE_URL}/models`, { headers: { Authorization: `Bearer ${accessToken}`, ...GROK_HEADERS }, ...(signal ? { signal } : {}) });
   if (!res.ok) throw new Error(`Grok Build model list failed: HTTP ${res.status}`);
   const body = ModelListSchema.parse(await res.json());

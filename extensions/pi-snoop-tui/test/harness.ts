@@ -34,7 +34,19 @@ export const THEME_NAMES: readonly ThemeName[] = ['snoop-dark', 'snoop-light'];
 type Context = Parameters<NonNullable<ToolRenderers['renderCall']>>[2];
 type Listener = (event: unknown, ctx: ExtensionContext) => void;
 type ThinkingLevel = ReturnType<ExtensionAPI['getThinkingLevel']>;
-type EditorFactory = NonNullable<ReturnType<ExtensionContext['ui']['getEditorComponent']>>;
+export type EditorFactory = NonNullable<ReturnType<ExtensionContext['ui']['getEditorComponent']>>;
+
+/**
+ * Test doubles implement only the slice of a Pi interface the code under test touches.
+ * This is the one place that vouches for the rest, so the doubles themselves stay cast-free.
+ */
+function isDouble<T>(_value: unknown): _value is T {
+  return true;
+}
+export function double<T>(value: unknown): T {
+  if (!isDouble<T>(value)) throw new Error('unreachable: a double is always accepted');
+  return value;
+}
 
 /** A single replaceable value, so helpers never reassign their own variables. */
 interface Cell<T> {
@@ -68,7 +80,7 @@ export function loadTheme(name: ThemeName): Theme {
     vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
     initTheme(name, false);
     // Pi keeps the active theme on this global symbol and does not export the instance.
-    const theme = (globalThis as Record<symbol, unknown>)[THEME_GLOBAL] as Theme;
+    const theme = double<Theme>(Reflect.get(globalThis, THEME_GLOBAL));
     if (theme.name !== name) throw new Error(`Pi did not load ${name}`);
     themes.write(new Map([...themes.read(), [name, theme]]));
     return theme;
@@ -77,8 +89,12 @@ export function loadTheme(name: ThemeName): Theme {
   }
 }
 
-const ANSI = /\x1b\[[0-9;]*m/g;
-const CURSOR = /\x1b_pi:c\x07/g;
+const ESC = '\u001b';
+const BEL = '\u0007';
+/** SGR color/style escapes. */
+export const ANSI = new RegExp(`${ESC}\\[[0-9;]*m`, 'g');
+/** Pi's hardware-cursor marker. */
+export const CURSOR = new RegExp(`${ESC}_pi:c${BEL}`, 'g');
 /** What the user reads: colors and Pi's cursor marker removed. */
 export function plain(line: string): string {
   return line.replace(CURSOR, '').replace(ANSI, '');
@@ -103,10 +119,11 @@ export function loadSnoop(settings: { readonly outputPad?: number } = {}) {
       registrations.write([...registrations.read(), options]);
     },
     registerToolRenderer: (resolver: ToolRendererResolver) => resolvers.write([...resolvers.read(), resolver]),
-  } as unknown as ExtensionAPI;
-  toolRows(api);
-  footer(api);
-  chrome(api);
+  };
+  const pi = double<ExtensionAPI>(api);
+  toolRows(pi);
+  footer(pi);
+  chrome(pi);
   return {
     renderersFor: (toolName: string, native: ToolRenderers | undefined) => resolvers.read().reduce<ToolRenderers | undefined>((current, resolve) => resolve(toolName, () => current), native),
     transformers: () => transformers.read(),
@@ -159,9 +176,9 @@ export function createSession(theme: Theme, options: SessionOptions = {}) {
       return percent === undefined ? undefined : { percent };
     },
     ui,
-  } as unknown as ExtensionContext;
+  };
   return {
-    ctx,
+    ctx: double<ExtensionContext>(ctx),
     ui,
     setUsage: (percent: number | undefined) => usage.write(percent),
     setModel: (next: SessionOptions['model']) => model.write(next),
@@ -172,13 +189,14 @@ export function createSession(theme: Theme, options: SessionOptions = {}) {
 export type Session = ReturnType<typeof createSession>;
 
 export function createTui() {
-  return { terminal: { rows: TUI_ROWS }, requestRender: vi.fn() } as unknown as TUI & { requestRender: ReturnType<typeof vi.fn> };
+  const repaints = vi.fn();
+  return double<TUI & { readonly repaints: typeof repaints }>({ terminal: { rows: TUI_ROWS }, requestRender: repaints, repaints });
 }
 
 export function footerData() {
   const branch = cell<string | null>('main');
   const statuses = cell<ReadonlyMap<string, string>>(new Map());
-  const data: ReadonlyFooterDataProvider = { getGitBranch: () => branch.read(), getExtensionStatuses: () => statuses.read(), getAvailableProviderCount: () => 1, onBranchChange: () => vi.fn() };
+  const data: ReadonlyFooterDataProvider = { getGitBranch: () => branch.read(), getExtensionStatuses: () => statuses.read(), getAvailableProviderCount: () => 1, onBranchChange: () => () => undefined };
   return {
     data,
     setBranch: (value: string | null) => branch.write(value),
@@ -190,29 +208,29 @@ export function footerData() {
 function lastCall<T>(mock: { mock: { calls: readonly (readonly unknown[])[] } }): T {
   const call = mock.mock.calls.at(-1);
   if (!call) throw new Error('Pi was never asked to install it');
-  return call[0] as T;
+  return double<T>(call[0]);
 }
 type Disposable = Component & { dispose?(): void };
 
 /** Starts a session and mounts the footer Pi was handed, returning the component Pi renders. */
-export function mountFooter(host: SnoopHost, session: Session, tui: TUI = createTui(), data = footerData()) {
+export function mountFooter(host: SnoopHost, session: Session, tui = createTui(), data = footerData()) {
   host.fire('session_start', session.ctx);
   const factory = lastCall<(tui: TUI, theme: Theme, data: ReadonlyFooterDataProvider) => Disposable>(session.ui.setFooter);
   return { footer: factory(tui, session.ui.theme, data.data), tui, data };
 }
 export function mountHeader(host: SnoopHost, session: Session): Component {
   host.fire('session_start', session.ctx);
-  return lastCall<(tui: TUI, theme: Theme) => Component>(session.ui.setHeader)({} as TUI, session.ui.theme);
+  return lastCall<(tui: TUI, theme: Theme) => Component>(session.ui.setHeader)(double<TUI>({}), session.ui.theme);
 }
 
-const editorTheme = {
+const editorTheme = double<EditorTheme>({
   borderColor: (text: string) => text,
   selectList: { selectedPrefix: (t: string) => t, selectedText: (t: string) => t, description: (t: string) => t, scrollInfo: (t: string) => t, noMatch: (t: string) => t },
-} as unknown as EditorTheme;
+});
 export function buildEditor(session: Session, tui: TUI = createTui()): CustomEditor {
   const factory = session.editorFactory();
   if (!factory) throw new Error('chrome installed no editor');
-  return factory(tui, editorTheme, {} as KeybindingsManager) as CustomEditor;
+  return double<CustomEditor>(factory(tui, editorTheme, double<KeybindingsManager>({})));
 }
 /** Pi assigns the border color onto the editor instance, for example per thinking level. */
 export function setBorderColor(editor: CustomEditor, color: (text: string) => string): void {
@@ -230,11 +248,12 @@ const NATIVE_DEFINITIONS = {
   ls: createLsToolDefinition,
 };
 export function piNative(toolName: keyof typeof NATIVE_DEFINITIONS, cwd: string): ToolRenderers {
-  return NATIVE_DEFINITIONS[toolName](cwd) as unknown as ToolRenderers;
+  return double<ToolRenderers>(NATIVE_DEFINITIONS[toolName](cwd));
 }
 
 export interface RowEvent {
-  readonly args?: Record<string, unknown>;
+  /** Passing `undefined` explicitly models Pi calling a renderer before any arguments exist. */
+  readonly args?: Record<string, unknown> | undefined;
   readonly executionStarted?: boolean;
   readonly result?: { readonly content: AgentToolResult<unknown>['content']; readonly details?: unknown; readonly isError?: boolean };
   readonly isPartial?: boolean;
@@ -242,7 +261,7 @@ export interface RowEvent {
   readonly invalidate?: boolean;
 }
 interface RowInputs {
-  readonly args: Record<string, unknown>;
+  readonly args: Record<string, unknown> | undefined;
   readonly started: boolean;
   readonly partial: boolean;
   readonly expanded: boolean;
@@ -300,7 +319,7 @@ export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {
       }
       const prev = inputs.read();
       const next: RowInputs = {
-        args: event.args ?? prev.args,
+        args: 'args' in event ? event.args : prev.args,
         started: event.executionStarted ?? prev.started,
         partial: event.isPartial ?? prev.partial,
         expanded: event.expanded ?? prev.expanded,

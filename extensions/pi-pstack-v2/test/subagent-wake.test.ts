@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
 import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
-import { loadSubagent, makeCtx, type Settled, textOf, useWorkspace } from './subagent-host.ts';
+import { loadSubagent, makeCtx, settledFrom, textOf, useWorkspace } from './subagent-host.ts';
 
 const workspace = useWorkspace();
 const REPORT = 'the worker report';
@@ -81,7 +81,7 @@ describe('a call with wake, when the job ends oddly', () => {
 });
 
 describe('a call with wake in a print-mode Pi', () => {
-  const settle = (subagent: ReturnType<typeof loadSubagent>) => subagent.fire('agent_before_settle', { entries: [] }, ctx('print')) as Promise<Settled>;
+  const settle = async (subagent: ReturnType<typeof loadSubagent>) => settledFrom(await subagent.fire('agent_before_settle', { entries: [] }, ctx('print')));
 
   test('waits for its jobs before it settles, then continues with their reports', async () => {
     holdChildren();
@@ -100,7 +100,7 @@ describe('a call with wake in a print-mode Pi', () => {
     const subagent = loadSubagent();
     await subagent.call(WAKE, ctx('print'));
     const earlier = { type: 'custom_message', customType: 'other', content: 'x', display: true };
-    const settled = (await subagent.fire('agent_before_settle', { entries: [earlier] }, ctx('print'))) as Settled;
+    const settled = settledFrom(await subagent.fire('agent_before_settle', { entries: [earlier] }, ctx('print')));
     expect(settled?.entries.map((entry) => entry.customType)).toEqual(['other', 'pstack-subagent']);
   });
 

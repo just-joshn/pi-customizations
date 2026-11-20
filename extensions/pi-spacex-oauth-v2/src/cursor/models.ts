@@ -1,6 +1,6 @@
 import type { ModelParameterValue, ModelSelection, SDKModel } from '@cursor/sdk';
 import type { ThinkingLevel, ThinkingLevelMap } from '@earendil-works/pi-ai';
-import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
+import type { ChatModelConfig } from '../stored-models.ts';
 
 type PiLevel = keyof ThinkingLevelMap;
 
@@ -42,8 +42,8 @@ const canTurnOff = (model: SDKModel) => effortValueFor(model, 'off') !== undefin
 
 export function thinkingLevelMap(model: SDKModel): ThinkingLevelMap | undefined {
   if (!effortParam(model)) return thinkingParam(model) ? { minimal: null, low: null, medium: null, off: canTurnOff(model) ? 'false' : null } : undefined;
-  const entries = PI_LEVELS.map((level) => [level, level === 'off' ? (canTurnOff(model) ? 'off' : null) : (effortValueFor(model, level) ?? null)]);
-  return Object.fromEntries(entries) as ThinkingLevelMap;
+  const levelValue = (level: PiLevel) => (level === 'off' ? (canTurnOff(model) ? 'off' : null) : (effortValueFor(model, level) ?? null));
+  return PI_LEVELS.reduce<ThinkingLevelMap>((map, level) => ({ ...map, [level]: levelValue(level) }), {});
 }
 
 function contextWindow(model: SDKModel): number {
@@ -53,7 +53,7 @@ function contextWindow(model: SDKModel): number {
   return amount && scale ? Math.round(Number(amount) * scale) : DEFAULT_CONTEXT_WINDOW;
 }
 
-export function toPiModel(model: SDKModel): ProviderModelConfig {
+export function toPiModel(model: SDKModel): ChatModelConfig {
   const levels = thinkingLevelMap(model);
   return {
     id: model.id,

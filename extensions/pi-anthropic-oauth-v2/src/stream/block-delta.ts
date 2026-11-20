@@ -39,18 +39,11 @@ function appendArguments({ state, index, open, block }: DeltaTarget, partialJson
 }
 
 function applyDelta(target: DeltaTarget, delta: Delta): StreamStep {
-  switch (delta.type) {
-    case 'text_delta':
-      return appendText(target, delta.text);
-    case 'thinking_delta':
-      return appendThinking(target, delta.thinking);
-    case 'signature_delta':
-      return appendSignature(target, delta.signature);
-    case 'input_json_delta':
-      return appendArguments(target, delta.partial_json);
-    default:
-      return unchanged(target.state);
-  }
+  if (delta.type === 'text_delta') return appendText(target, delta.text);
+  if (delta.type === 'thinking_delta') return appendThinking(target, delta.thinking);
+  if (delta.type === 'signature_delta') return appendSignature(target, delta.signature);
+  if (delta.type === 'input_json_delta') return appendArguments(target, delta.partial_json);
+  return unchanged(target.state);
 }
 
 export function updateBlock(state: StreamState, event: DeltaEvent): StreamStep {

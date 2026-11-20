@@ -127,3 +127,81 @@ describe('find over the guest filesystem', () => {
     expect(await host.text('find', { pattern: '*.ts' })).toBe('a.ts\nsrc/b.ts');
   });
 });
+
+const globTree = {
+  'a.ts': '',
+  'b.js': '',
+  'ab.ts': '',
+  'c.md': '',
+  '.hidden.ts': '',
+  '.dot/x.ts': '',
+  'src/a.ts': '',
+  'src/.s.ts': '',
+  'src/lib/d.ts': '',
+  'src/lib/.h/e.ts': '',
+  'src/lib/deep/f.ts': '',
+  '1.txt': '',
+  '2.txt': '',
+  '4.txt': '',
+};
+const findGlob = async (pattern: string): Promise<string[]> => {
+  const text = await loadGondolin({ tree: globTree }).text('find', { pattern, limit: HUGE_LIMIT });
+  if (text === undefined) throw new Error('find returned no text');
+  return text === 'No files found matching pattern' ? [] : text.split('\n');
+};
+
+describe('find glob semantics, wildcards', () => {
+  test('* matches within a file name and never dotfiles', async () => {
+    // Without a /, the file name alone is matched, so files inside dot directories are still found.
+    expect(await findGlob('*.ts')).toEqual(['a.ts', 'ab.ts', '.dot/x.ts', 'src/a.ts', 'src/lib/d.ts', 'src/lib/.h/e.ts', 'src/lib/deep/f.ts']);
+    expect(await findGlob('.*.ts')).toEqual(['.hidden.ts', 'src/.s.ts']);
+  });
+
+  test('? matches exactly one character', async () => {
+    expect(await findGlob('?.ts')).toEqual(['a.ts', '.dot/x.ts', 'src/a.ts', 'src/lib/d.ts', 'src/lib/.h/e.ts', 'src/lib/deep/f.ts']);
+    expect(await findGlob('src/?.ts')).toEqual(['src/a.ts']);
+  });
+
+  test('character classes, negation and ranges', async () => {
+    expect(await findGlob('[ab].*')).toEqual(['a.ts', 'b.js', 'src/a.ts']);
+    expect(await findGlob('[!a]*.*')).toEqual(['b.js', 'c.md', '.dot/x.ts', 'src/lib/d.ts', 'src/lib/.h/e.ts', 'src/lib/deep/f.ts', '1.txt', '2.txt', '4.txt']);
+    expect(await findGlob('[1-2].txt')).toEqual(['1.txt', '2.txt']);
+  });
+});
+
+describe('find glob semantics, expansion and directories', () => {
+  test('braces expand alternatives, nested braces and numeric ranges', async () => {
+    expect(await findGlob('*.{js,md}')).toEqual(['b.js', 'c.md']);
+    expect(await findGlob('{1..2}.txt')).toEqual(['1.txt', '2.txt']);
+    expect(await findGlob('{a,{b,c}}.*')).toEqual(['a.ts', 'b.js', 'c.md', 'src/a.ts']);
+    expect(await findGlob('src/{a,lib/d}.ts')).toEqual(['src/a.ts', 'src/lib/d.ts']);
+  });
+
+  test('** spans directories, including none, but skips dot directories', async () => {
+    expect(await findGlob('src/**/*.ts')).toEqual(['src/a.ts', 'src/lib/d.ts', 'src/lib/deep/f.ts']);
+    expect(await findGlob('**/*.ts')).toEqual(['a.ts', 'ab.ts', 'src/a.ts', 'src/lib/d.ts', 'src/lib/deep/f.ts']);
+    expect(await findGlob('src/**')).toEqual(['src/a.ts', 'src/lib/d.ts', 'src/lib/deep/f.ts']);
+    expect(await findGlob('src/lib/**/f.ts')).toEqual(['src/lib/deep/f.ts']);
+  });
+});
+
+describe('find glob semantics, anchoring', () => {
+  test('a dot segment in the pattern reaches dot directories explicitly', async () => {
+    expect(await findGlob('.dot/*.ts')).toEqual(['.dot/x.ts']);
+    expect(await findGlob('src/lib/.h/*.ts')).toEqual(['src/lib/.h/e.ts']);
+    expect(await findGlob('src/lib/.*/*.ts')).toEqual(['src/lib/.h/e.ts']);
+  });
+
+  test('with a /, the pattern is anchored at the root; without, it matches the file name only', async () => {
+    expect(await findGlob('lib/*.ts')).toEqual([]);
+    expect(await findGlob('d.ts')).toEqual(['src/lib/d.ts']);
+    expect(await findGlob('src/lib/d.ts')).toEqual(['src/lib/d.ts']);
+    expect(await findGlob('./src//a.ts')).toEqual(['src/a.ts']);
+    expect(await findGlob('src/./a.ts')).toEqual(['src/a.ts']);
+  });
+
+  test('a leading ! does not negate, and a trailing / matches nothing', async () => {
+    expect(await findGlob('!a.ts')).toEqual([]);
+    expect(await findGlob('src/')).toEqual([]);
+  });
+});

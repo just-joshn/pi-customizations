@@ -13,8 +13,8 @@
   "scripts": {
     "test": "bun run --sequential --filter \"*\" test",
     "typecheck": "bun run --sequential --filter \"*\" typecheck",
-    "check": "biome check . --error-on-warnings",
-    "ci": "biome ci . --error-on-warnings --max-diagnostics=none && bun scripts/style-audit.mjs && node scripts/behavior-test-audit.mjs",
+    "check": "biome check . --error-on-warnings && bun lint",
+    "ci": "biome ci . --error-on-warnings --max-diagnostics=none && bun lint && bun scripts/style-audit.mjs && node scripts/behavior-test-audit.mjs",
     "style-audit": "node scripts/style-audit.mjs",
     "behavior-test-audit": "node scripts/behavior-test-audit.mjs"
   },

@@ -37,12 +37,11 @@ export function createWakeJobs(pi: ExtensionAPI) {
   const start = (wake: string, ctx: Mode, run: (signal: AbortSignal) => Promise<ToolResult>): string => {
     const id = `subagent-${randomBytes(ID_BYTES).toString('hex')}`;
     const controller = new AbortController();
-    const done = run(controller.signal)
-      .then(reportOf, (error: unknown) => `Failed: ${error instanceof Error ? error.message : String(error)}`)
-      .then((report) => {
-        running = new Map([...running].filter(([key]) => key !== id));
-        deliver(ctx, `${wake}\n\nsubagent job ${id} finished.\n\n${report}`);
-      });
+    const done = (async (): Promise<void> => {
+      const report = await run(controller.signal).then(reportOf, (error: unknown) => `Failed: ${error instanceof Error ? error.message : String(error)}`);
+      running = new Map([...running].filter(([key]) => key !== id));
+      deliver(ctx, `${wake}\n\nsubagent job ${id} finished.\n\n${report}`);
+    })();
     running = new Map([...running, [id, { controller, done }]]);
     return id;
   };

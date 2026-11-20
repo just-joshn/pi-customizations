@@ -67,3 +67,7 @@ export interface ResolvedAgent {
 }
 
 export type DisplayItem = { type: 'text'; text: string } | { type: 'toolCall'; name: string; args: Record<string, unknown> };
+
+/** Pi hands tool details back as unknown, so the details this extension made are told apart by their shape. */
+export const isSubagentDetails = (value: unknown): value is SubagentDetails =>
+  typeof value === 'object' && value !== null && 'mode' in value && 'results' in value && Array.isArray(value.results) && 'isError' in value && typeof value.isError === 'boolean';

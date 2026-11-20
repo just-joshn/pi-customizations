@@ -3,7 +3,7 @@ import type { Theme } from '@earendil-works/pi-coding-agent';
 import type { Component, Text } from '@earendil-works/pi-tui';
 import { COLLAPSED_ITEM_COUNT, containerOf, diagnosticLines, failedOrMuted, type GroupLayout, outputComponents, renderDisplayItems, renderGroupBody, renderGroupExpanded, resultIcon, spacer, text, usageLine } from './render-shared.ts';
 import { aggregateUsage, getDisplayItems, getFinalOutput, isActiveResult, isFailedResult } from './results.ts';
-import type { SingleResult, SubagentDetails } from './types.ts';
+import { isSubagentDetails, type SingleResult } from './types.ts';
 
 const EXPAND_HINT = '(Ctrl+O to expand)';
 
@@ -99,8 +99,8 @@ function renderParallel(theme: Theme, results: SingleResult[], expanded: boolean
 }
 
 export function renderSubagentResult(result: AgentToolResult<unknown>, expanded: boolean, theme: Theme): Component {
-  const details = result.details as SubagentDetails | undefined;
-  if (!details || details.results.length === 0) return fallbackText(result);
+  const { details } = result;
+  if (!isSubagentDetails(details) || details.results.length === 0) return fallbackText(result);
   const [first] = details.results;
   if (details.mode === 'single' && details.results.length === 1 && first) return renderSingle(theme, first, expanded);
   if (details.mode === 'chain') return renderChain(theme, details.results, expanded);

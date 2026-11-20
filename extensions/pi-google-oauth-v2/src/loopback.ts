@@ -1,6 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import type { AddressInfo } from 'node:net';
 
 export interface LoopbackCallback {
   readonly redirectUri: string;
@@ -107,7 +106,12 @@ export async function startLoopbackCallback(input: { state: string; signal: Abor
     close();
     throw error;
   });
-  const { port } = server.address() as AddressInfo;
+  const address = server.address();
+  if (address === null || typeof address === 'string') {
+    close();
+    throw new Error('Google sign-in listener did not bind to a port');
+  }
+  const { port } = address;
   if (input.signal.aborted) onAbort();
 
   return { redirectUri: `${LOOPBACK_ORIGIN}:${port}${CALLBACK_PATH}`, code: outcome.promise, close };

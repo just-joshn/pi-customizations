@@ -82,3 +82,6 @@ export interface WorkItem {
   model?: string | undefined;
   thinking?: ThinkingLevelName | undefined;
 }
+
+/** Tells Pi's own params object, which the dispatcher gets as it came, with every key and its order, from any other value. */
+export const isParsedSubagentParams = (value: unknown): value is ParsedSubagentParams => SubagentParamsSchema.safeParse(value).success;

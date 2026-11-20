@@ -1,6 +1,6 @@
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test } from 'vitest';
-import { buildEditor, createSession, loadSnoop, loadTheme, mountHeader, plainLines, ROOT_PATH, THEME_NAMES } from './harness.ts';
+import { buildEditor, createSession, double, type EditorFactory, loadSnoop, loadTheme, mountHeader, plainLines, ROOT_PATH, THEME_NAMES } from './harness.ts';
 
 const NARROW = 80;
 const SWEEP = 120;
@@ -26,12 +26,16 @@ describe('header', () => {
 
   test('keeps the gutter, shortens wide text and never overflows at any width', () => {
     const header = mountHeader(loadSnoop(), createSession(theme, { cwd: WIDE_CWD }));
-    for (let width = 0; width < SWEEP; width++) {
+    const widths = Array.from({ length: SWEEP }, (_, width) => width);
+    for (const width of widths) {
       const lines = header.render(width);
       expect(lines).toHaveLength(HEADER_LINES);
       for (const line of lines) expect(visibleWidth(line)).toBeLessThanOrEqual(width);
-      if (width >= MIN_GUTTER_WIDTH) expect(plainLines(lines)[1]).toMatch(/^ \S/);
-      if (width >= MIN_GUTTER_WIDTH) expect(visibleWidth(lines[1] ?? '')).toBeLessThanOrEqual(width - 1);
+    }
+    for (const width of widths.filter((w) => w >= MIN_GUTTER_WIDTH)) {
+      const lines = header.render(width);
+      expect(plainLines(lines)[1]).toMatch(/^ \S/);
+      expect(visibleWidth(lines[1] ?? '')).toBeLessThanOrEqual(width - 1);
     }
   });
 
@@ -94,7 +98,7 @@ describe('session start', () => {
   test("leaves another extension's editor in place", () => {
     const host = loadSnoop();
     const session = createSession(theme);
-    const foreign = () => ({}) as never;
+    const foreign: EditorFactory = () => double<ReturnType<EditorFactory>>({});
     session.ui.setEditorComponent(foreign);
     host.fire('session_start', session.ctx);
     expect(session.editorFactory()).toBe(foreign);

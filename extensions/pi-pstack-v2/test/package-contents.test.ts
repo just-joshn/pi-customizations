@@ -10,7 +10,7 @@ const POSIX_SEP = '/';
 const packResult = z.array(z.object({ files: z.array(z.object({ path: z.string(), size: z.number() })) })).length(1);
 
 function packedFiles(): { path: string; size: number }[] {
-  const out = execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' });
+  const out = execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8', windowsHide: true, shell: process.platform === 'win32' });
   const [pack] = packResult.parse(JSON.parse(out));
   return pack?.files ?? [];
 }

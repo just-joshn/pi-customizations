@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5]
+
+- Fix every `bun lint` behavior error. Code Assist responses, catalog answers, token responses, and stream chunks are now parsed with zod at the boundary instead of cast. A malformed response now fails with a clear error instead of passing through unchecked. Stream hooks still receive each chunk exactly as Google sent it.
+
 ## 0.1.4
 
 - Fix Google sign-in, which threw a `ZodError` on every login since 0.1.3 because `process.env` failed input validation.

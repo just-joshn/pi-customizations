@@ -34,7 +34,15 @@ export interface RunResult {
   readonly toolNames: readonly string[];
 }
 type ToolParameters = Parameters<ExtensionAPI['registerTool']>[0]['parameters'];
-const ANY_OBJECT = { type: 'object', properties: {}, additionalProperties: true } as unknown as ToolParameters;
+/** The JSON schema is all Pi reads; the typebox brand on `TSchema` is a compile-time marker only. */
+function isToolParameters(value: unknown): value is ToolParameters {
+  return typeof value === 'object' && value !== null && 'type' in value && value.type === 'object';
+}
+const ANY_OBJECT_SCHEMA: unknown = { type: 'object', properties: {}, additionalProperties: true };
+function anyObject(): ToolParameters {
+  if (!isToolParameters(ANY_OBJECT_SCHEMA)) throw new Error('invalid tool parameter schema');
+  return ANY_OBJECT_SCHEMA;
+}
 const RENDERERLESS_TOOLS = ['codemode', 'pi_spawn', 'tmux_run'];
 
 function streamReplay(model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions) {
@@ -55,7 +63,7 @@ function registerProviders(pi: ExtensionAPI): void {
       name,
       label: name,
       description: `Bench stand-in for ${name}.`,
-      parameters: ANY_OBJECT,
+      parameters: anyObject(),
       execute: async () => ({ content: [{ type: 'text', text: `${name} is a bench stand-in` }], details: undefined }),
     });
   }

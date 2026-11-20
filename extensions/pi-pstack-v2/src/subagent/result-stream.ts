@@ -6,6 +6,10 @@ import type { SingleResult } from './types.ts';
 /** A line of Pi's JSON mode output as it was read: any JSON value, which parseMessageEnd then reads field by field. */
 type JsonLine = { type?: unknown; message: { role?: unknown } };
 const JsonLineSchema = z.custom<JsonLine>();
+const MESSAGE_ROLES: readonly unknown[] = ['user', 'assistant', 'toolResult'];
+
+/** A message of a user, an assistant, or a tool result, which is the only kind a message_end line carries that matters here. */
+const isReadableMessage = (message: JsonLine['message']): message is Message => MESSAGE_ROLES.includes(message.role);
 
 function safeParseLine(line: string) {
   try {
@@ -24,8 +28,8 @@ export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
   const event = safeParseLine(line);
   if (!event.success || event.data.type !== 'message_end') return undefined;
-  const { role } = event.data.message;
-  return role === 'user' || role === 'assistant' || role === 'toolResult' ? (event.data.message as Message) : undefined;
+  const { message } = event.data;
+  return isReadableMessage(message) ? message : undefined;
 }
 
 export function applyMessage(result: SingleResult, message: Message): SingleResult {
@@ -69,11 +73,11 @@ export function finalizeResult(result: SingleResult, outcome: ProcessOutcome, ab
 }
 
 export interface ResultStream {
-  result(): SingleResult;
-  emit(): void;
-  onStdoutChunk(chunk: string): void;
-  onStderrChunk(chunk: string): void;
-  flush(): void;
+  result: () => SingleResult;
+  emit: () => void;
+  onStdoutChunk: (chunk: string) => void;
+  onStderrChunk: (chunk: string) => void;
+  flush: () => void;
 }
 
 /** Accumulates a child's streamed output into successive immutable results, calling `emit` after every change. */

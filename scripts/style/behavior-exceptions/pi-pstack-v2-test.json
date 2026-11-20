@@ -1,0 +1,14 @@
+[
+  {
+    "file": "extensions/pi-pstack-v2/test/fake-pi-child.mjs",
+    "rule": "plugin",
+    "line": "process.exitCode = code;",
+    "reason": "Node's documented way to set the exit status. It lets buffered stderr/stdout drain, which process.exit would cut short, and bun lint's n/no-process-exit forbids process.exit. The fake Pi child must flush its socket and stdout before it exits, as real Pi does."
+  },
+  {
+    "file": "extensions/pi-pstack-v2/test/core-fake-tmux.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "process.kill throws ESRCH when the fake tmux session already exited. That is the expected end state of a hang-up, so the catch swallows it; logging would flood test output and rethrowing would fail cleanup for sessions that finished on their own."
+  }
+]

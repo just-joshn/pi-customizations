@@ -1,4 +1,5 @@
 import type { AssistantMessageEvent } from '@earendil-works/pi-ai';
+import type { ProviderConfig as PiProviderConfig } from '@earendil-works/pi-coding-agent';
 import extension from '../../src/index.ts';
 import { DEFAULT_MODEL_ID } from './constants.ts';
 import { context } from './fixtures.ts';
@@ -22,13 +23,17 @@ export type ProviderConfig = {
 
 type Registration = { readonly name: string; readonly config: ProviderConfig };
 
+const isFullConfig = (config: PiProviderConfig): config is PiProviderConfig & ProviderConfig =>
+  typeof config.baseUrl === 'string' && typeof config.apiKey === 'string' && typeof config.api === 'string' && Array.isArray(config.models) && config.oauth !== undefined && typeof config.streamSimple === 'function';
+
 export const register = (): Registration => {
-  let entry = undefined as Registration | undefined;
+  let entry: Registration | undefined;
   extension({
-    registerProvider: (name: string, config: ProviderConfig) => {
+    registerProvider: (name: string, config: PiProviderConfig) => {
+      if (!isFullConfig(config)) throw new Error('provider registered without models, OAuth, or a stream');
       entry = { name, config };
     },
-  } as never);
+  });
   if (!entry) throw new Error('provider not registered');
   return entry;
 };

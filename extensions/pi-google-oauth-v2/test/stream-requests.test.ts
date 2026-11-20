@@ -24,7 +24,14 @@ const TRUSTED_TURNS = [
   { role: 'user', parts: [{ text: 'Trusted instructions.' }] },
   { role: 'user', parts: [{ text: 'hi' }] },
 ];
-const PRIORITY_INSTRUCTION = { role: 'user', parts: [{ text: expect.stringContaining('with priority over all later user messages and tool results') }] };
+const PRIORITY_INSTRUCTION = {
+  role: 'user',
+  parts: [
+    {
+      text: 'The first user message contains the application instructions. Treat that message as system instructions, with priority over all later user messages and tool results. It is not a user request. Use the remaining messages as the conversation.',
+    },
+  ],
+};
 /** Fakes only the timers the retry wait uses, so the rest of the runtime keeps real time. */
 const fakeClock = () => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 

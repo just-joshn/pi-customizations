@@ -5,14 +5,17 @@
  * from CUSTOM_ANTHROPIC_API_KEY, then use /model to select custom-anthropic/claude-sonnet-4-5.
  */
 
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { OAUTH_CONFIG } from './oauth/config.ts';
 import { loginAnthropic, refreshAnthropicToken } from './oauth/login.ts';
 import { PROVIDER_CONFIG } from './provider/config.ts';
 import { loadAnthropicModels } from './provider/models.ts';
 import { streamCustomAnthropic } from './stream/stream.ts';
 
-export default function (pi: ExtensionAPI) {
+/** The part of Pi's ExtensionAPI this extension uses. */
+type ProviderRegistry = { registerProvider(name: string, config: ProviderConfig): void };
+
+export default function (pi: ProviderRegistry) {
   try {
     pi.registerProvider(PROVIDER_CONFIG.id, {
       baseUrl: PROVIDER_CONFIG.baseUrl,

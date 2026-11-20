@@ -2,6 +2,7 @@ import * as path from 'node:path';
 
 import type { VM } from '@earendil-works/gondolin';
 import type { FindOperations } from '@earendil-works/pi-coding-agent';
+import { minimatch } from 'minimatch';
 import { guestExists } from './fs-operations.ts';
 import { toGuestPath, toPosix } from './paths.ts';
 
@@ -41,12 +42,17 @@ export async function* walkGuestFiles(vm: VM, root: string, signal?: AbortSignal
   else yield { guestPath: root, relativePath: path.posix.basename(root) };
 }
 
+// The options mirror path.posix.matchesGlob (a leading ! or # is literal, backslashes are not escapes), minus its
+// case folding on macOS and Windows: the guest is Linux, so names there are case-sensitive.
+const OPTIMIZATION_LEVEL = 2;
+const GLOB_OPTIONS = { nonegate: true, nocomment: true, windowsPathsNoEscape: true, optimizationLevel: OPTIMIZATION_LEVEL, platform: 'linux' } as const;
+
 // Like the built-in find and grep: a pattern with '/' is relative to the search root, one without '/' matches file
 // names at any depth.
 export function matchesToolGlob(relativePath: string, pattern: string): boolean {
   const normalizedPattern = toPosix(pattern).replace(/^(?:\.\/)+/, '');
-  if (normalizedPattern.includes(POSIX_SEPARATOR)) return path.posix.matchesGlob(relativePath, normalizedPattern);
-  return path.posix.matchesGlob(path.posix.basename(relativePath), normalizedPattern);
+  if (normalizedPattern.includes(POSIX_SEPARATOR)) return minimatch(relativePath, normalizedPattern, GLOB_OPTIONS);
+  return minimatch(path.posix.basename(relativePath), normalizedPattern, GLOB_OPTIONS);
 }
 
 async function firstMatches(files: AsyncIterable<GuestFile>, pattern: string, limit: number): Promise<string[]> {

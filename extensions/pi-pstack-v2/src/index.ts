@@ -10,6 +10,10 @@ import { claimWake, exitPath, type Job, type JobSpec, launch, list, newJobId, ou
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const POLL_MS = 2000;
+const sleep = (ms: number): Promise<void> =>
+  new Promise((done) => {
+    setTimeout(done, ms);
+  });
 const SECONDS_PER_MINUTE = 60;
 const MS_PER_SECOND = 1000;
 const RAW_OUTPUT_TAIL_LINES = 60;
@@ -78,7 +82,9 @@ async function blockWhileRunning(current: () => Job[], deadline: number, { signa
   const running = (): number => current().filter((job) => job.status.state === 'running').length;
   while (running() > 0 && Date.now() < deadline && !signal?.aborted && !ctx.hasPendingMessages()) {
     update?.(text(`Waiting on ${running()} job(s)...`));
-    await new Promise((done) => setTimeout(done, POLL_MS));
+    await new Promise((done) => {
+      setTimeout(done, POLL_MS);
+    });
   }
 }
 
@@ -196,7 +202,7 @@ const tick = (pi: ExtensionAPI, state: PstackState, ctx: ExtensionContext): void
 
 /** Ends the session's tmux server; false when it started no jobs and so had none. */
 function killTmuxServer(socket: string): boolean {
-  return spawnSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore' }).status === 0;
+  return spawnSync('tmux', ['-S', socket, 'kill-server'], { stdio: 'ignore', windowsHide: true }).status === 0;
 }
 
 function registerWatcher(pi: ExtensionAPI, state: PstackState): void {
@@ -216,13 +222,15 @@ function registerWatcher(pi: ExtensionAPI, state: PstackState): void {
 
   // A print-mode run would exit while its jobs still run, so it waits for them and continues with their reports.
   pi.on('agent_before_settle', async (event, ctx) => {
-    if (interactive(ctx)) return;
+    if (interactive(ctx)) return undefined;
     const owner = ctx.sessionManager.getSessionId();
     const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !existsSync(join(job.dir, 'woken')));
-    if (pending().length === 0) return;
+    if (pending().length === 0) return undefined;
     state.setSettling(true);
     try {
-      while (pending().some((job) => job.status.state === 'running')) await new Promise((done) => setTimeout(done, POLL_MS));
+      while (pending().some((job) => job.status.state === 'running')) {
+        await sleep(POLL_MS);
+      }
       const finished = pending().filter(claimWake);
       return {
         entries: [...event.entries, ...finished.map((job) => ({ type: 'custom_message' as const, customType: 'pstack-job', content: finish(state, job), display: true }))],
@@ -238,9 +246,12 @@ const showMode = (state: PstackState, ctx: ExtensionContext): void => {
   if (ctx.hasUI) ctx.ui.setStatus(MODE, state.mode() ? `mode: ${state.mode()}` : undefined);
 };
 
+const modeData = z.object({ skill: z.string().optional() });
+const recordedSkill = (data: unknown): string | undefined => modeData.safeParse(data).data?.skill;
+
 // The mode lives on the session branch, so a resumed session or a /tree jump gets the mode that branch had.
 const restoreMode = (state: PstackState, ctx: ExtensionContext): void => {
-  const recorded = ctx.sessionManager.getBranch().reduce<string | undefined>((current, entry) => (entry.type === 'custom' && entry.customType === MODE ? (entry.data as { skill?: string } | undefined)?.skill : current), undefined);
+  const recorded = ctx.sessionManager.getBranch().reduce<string | undefined>((current, entry) => (entry.type === 'custom' && entry.customType === MODE ? recordedSkill(entry.data) : current), undefined);
   state.setMode(recorded && skillNames.includes(recorded) ? recorded : undefined);
   showMode(state, ctx);
 };
