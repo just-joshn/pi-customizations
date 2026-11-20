@@ -21,7 +21,7 @@ export interface SubagentWorktree {
 function git(cwd: string, args: readonly string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     execFile('git', [...args], { cwd, encoding: 'utf8', windowsHide: true }, (error, stdout) => {
-      if (error) reject(error);
+      if (error) reject(error instanceof Error ? error : new Error(String(error)));
       else resolve(stdout);
     });
   });
