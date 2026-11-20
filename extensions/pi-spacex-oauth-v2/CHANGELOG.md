@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.3]
+
+- Fix every `bun lint` behavior error. Stored model lists with a non-chat entry fall back to the built-in list, Cursor tool schemas are validated as JSON, and an aborted login wait rejects with an `Error`.
+
 ## 0.2.2
 
 - Rewrite every test as a user behavior test. Tests load the extension the way Pi does and drive sign-in, model lists, streaming, and `/spacex-usage` with fetch and `@cursor/sdk` faked. No behavior changes.

@@ -1,9 +1,10 @@
 // A fake Pi host. It records what the extension registers so tests can drive it the way Pi does.
 
-import type { Credential, ModelsStoreEntry, OAuthCredentials, OAuthLoginCallbacks, RefreshModelsContext } from '@earendil-works/pi-ai';
+import type { Credential, ModelsPublication, ModelsStoreEntry, OAuthCredentials, OAuthLoginCallbacks, RefreshModelsContext } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext, ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { vi } from 'vitest';
 import piSpacexOauth from '../src/index.ts';
+import { asHostType, rejection } from './support.ts';
 
 export const GROK_ID = 'spacex-grok';
 export const CURSOR_ID = 'spacex-cursor';
@@ -38,7 +39,7 @@ export function loadExtension(): LoadedExtension {
   let providers = new Map<string, ProviderConfig>();
   let commands = new Map<string, CommandHandler>();
   let handlers = new Map<string, Handler[]>();
-  const pi = {
+  const fakePi = {
     registerProvider: (id: string, config: ProviderConfig) => {
       providers = new Map([...providers, [id, config]]);
     },
@@ -48,15 +49,15 @@ export function loadExtension(): LoadedExtension {
     on: (event: string, handler: Handler) => {
       handlers = new Map([...handlers, [event, [...(handlers.get(event) ?? []), handler]]]);
     },
-  } as unknown as ExtensionAPI;
-  piSpacexOauth(pi);
+  };
+  piSpacexOauth(asHostType<ExtensionAPI>(fakePi, 'ExtensionAPI', ['registerProvider', 'registerCommand', 'on']));
   return {
     provider: (id) => {
       const config = required(providers.get(id), `provider ${id}`);
       return {
         config,
         oauth: required(config.oauth, `OAuth for ${id}`),
-        refreshModels: required(config.refreshModels, `refreshModels for ${id}`).bind(config),
+        refreshModels: async (context) => required(await config.refreshModels?.(context), `refreshModels result for ${id}`),
         streamSimple: (...args) => required(config.streamSimple, `streamSimple for ${id}`)(...args),
       };
     },
@@ -86,12 +87,12 @@ export interface FakeContext {
 export function makeContext(options: FakeContextOptions = {}): FakeContext {
   let notifications: ReturnType<FakeContext['notifications']> = [];
   let statuses: ReturnType<FakeContext['statuses']> = [];
-  const getProviderAuth = async (provider: string) => {
-    if (options.authFailure !== undefined) throw options.authFailure;
+  const getProviderAuth = (provider: string) => {
+    if (options.authFailure !== undefined) return rejection(options.authFailure);
     const apiKey = options.tokens?.[provider];
-    return apiKey ? { auth: { apiKey } } : undefined;
+    return Promise.resolve(apiKey ? { auth: { apiKey } } : undefined);
   };
-  const ctx = {
+  const fakeContext = {
     hasUI: options.hasUI ?? true,
     model: options.provider ? { provider: options.provider } : undefined,
     modelRegistry: { getProviderAuth },
@@ -104,7 +105,8 @@ export function makeContext(options: FakeContextOptions = {}): FakeContext {
       },
       theme: { fg: (_color: string, text: string) => `<${text}>` },
     },
-  } as unknown as ExtensionContext;
+  };
+  const ctx = asHostType<ExtensionContext>(fakeContext, 'ExtensionContext', ['hasUI', 'model', 'modelRegistry', 'ui']);
   return { ctx, notifications: () => notifications, statuses: () => statuses };
 }
 
@@ -118,7 +120,7 @@ export interface FakeLogin {
 export function makeLogin(signal?: AbortSignal): FakeLogin {
   let deviceCodes: ReturnType<FakeLogin['deviceCodes']> = [];
   let authUrls: ReturnType<FakeLogin['authUrls']> = [];
-  const callbacks = {
+  const fakeCallbacks = {
     onAuth: (info: ReturnType<FakeLogin['authUrls']>[number]) => {
       authUrls = [...authUrls, info];
     },
@@ -128,13 +130,14 @@ export function makeLogin(signal?: AbortSignal): FakeLogin {
     onPrompt: vi.fn(),
     onSelect: vi.fn(),
     ...(signal ? { signal } : {}),
-  } as unknown as OAuthLoginCallbacks;
+  };
+  const callbacks = asHostType<OAuthLoginCallbacks>(fakeCallbacks, 'OAuthLoginCallbacks', ['onAuth', 'onDeviceCode', 'onPrompt', 'onSelect']);
   return { callbacks, deviceCodes: () => deviceCodes, authUrls: () => authUrls };
 }
 
 export interface FakeRefresh {
   readonly ctx: RefreshModelsContext;
-  readonly published: () => unknown[];
+  readonly published: () => ModelsPublication[];
 }
 
 export interface RefreshOptions {
@@ -145,17 +148,18 @@ export interface RefreshOptions {
 
 /** The context Pi passes to refreshModels, recording what the provider persists. */
 export function makeRefresh(options: RefreshOptions = {}): FakeRefresh {
-  let published: unknown[] = [];
-  const ctx = {
+  let published: ModelsPublication[] = [];
+  const fakeContext = {
     allowNetwork: options.allowNetwork ?? true,
     signal: new AbortController().signal,
-    publish: async (publication: unknown) => {
+    publish: (publication: ModelsPublication) => {
       published = [...published, publication];
-      return true;
+      return Promise.resolve(true);
     },
     ...(options.credential ? { credential: options.credential } : {}),
     ...(options.stored ? { stored: options.stored } : {}),
-  } as unknown as RefreshModelsContext;
+  };
+  const ctx = asHostType<RefreshModelsContext>(fakeContext, 'RefreshModelsContext', ['allowNetwork', 'signal', 'publish']);
   return { ctx, published: () => published };
 }
 

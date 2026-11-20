@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { fakeSdk, sdk } from './fake-sdk.ts';
 import { CURSOR_ID, loadExtension, makeLogin, makeRefresh, oauthCredential } from './host.ts';
+import { makeModel } from './support.ts';
 
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
@@ -48,8 +49,8 @@ describe('Cursor sign-in', () => {
 describe('Cursor model list refresh', () => {
   test('offline, Pi keeps the stored list', async () => {
     vi.stubEnv('CURSOR_API_KEY', '');
-    const stored = [{ id: 'kept' }];
-    const { ctx } = makeRefresh({ allowNetwork: false, credential: oauthCredential('a'), stored: { models: stored } as never });
+    const stored = [makeModel('kept', CURSOR_ID, 'cursor-sdk')];
+    const { ctx } = makeRefresh({ allowNetwork: false, credential: oauthCredential('a'), stored: { models: stored } });
     expect(await cursor().refreshModels(ctx)).toBe(stored);
     expect(fakeSdk.Cursor.models.list).not.toHaveBeenCalled();
   });
@@ -65,8 +66,8 @@ describe('Cursor model list refresh', () => {
     const models = await cursor().refreshModels(ctx);
     expect(models.length).toBeGreaterThan(MIN_LIVE_MODELS);
     expect(fakeSdk.Cursor.models.list).toHaveBeenCalledWith({ apiKey: 'refresh-key' });
-    const [{ persist }] = published() as [{ persist: { models: unknown[] } }];
-    expect(persist.models[0]).toMatchObject({ provider: CURSOR_ID, api: 'cursor-sdk', baseUrl: CURSOR_API_URL, id: 'default' });
+    const [publication] = published();
+    expect(publication?.persist?.models[0]).toMatchObject({ provider: CURSOR_ID, api: 'cursor-sdk', baseUrl: CURSOR_API_URL, id: 'default' });
   });
 
   test('an API key from auth.json also refreshes', async () => {

@@ -1,11 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
-import type { Run, RunResult, SDKCustomTool, SDKCustomToolResult, SDKJsonValue, SDKMessage } from '@cursor/sdk';
+import type { Run, RunResult, SDKCustomTool, SDKCustomToolResult, SDKMessage } from '@cursor/sdk';
 import type { JsonObject, Message, Tool, ToolResultMessage } from '@earendil-works/pi-ai';
+import { z } from 'zod';
 import { type Cell, createCell, patchCell, withEntry, withoutKeys } from '../cell.ts';
 import { CURSOR_CONFIG } from './config.ts';
 import { describeCursorError, describeRunError } from './errors.ts';
 import type { PiToolCall, PiTurn } from './turn.ts';
+
+const InputSchema = z.record(z.string(), z.json());
 
 interface ParkedCall extends PiToolCall {
   resolve: (result: SDKCustomToolResult) => void;
@@ -85,11 +88,18 @@ function customTools(context: RunContext, tools: Tool[]): Record<string, SDKCust
     tool.name,
     {
       description: tool.description,
-      inputSchema: tool.parameters as Record<string, SDKJsonValue>,
-      execute: (args) => new Promise((resolve) => park(context, { id: `call_${randomUUID()}`, name: tool.name, arguments: args as JsonObject, resolve })),
+      inputSchema: InputSchema.parse(tool.parameters),
+      execute: parkedExecute(context, tool.name),
     },
   ]);
   return Object.fromEntries(entries);
+}
+
+function parkedExecute(context: RunContext, name: string): SDKCustomTool['execute'] {
+  return (args) =>
+    new Promise((resolve) => {
+      park(context, { id: `call_${randomUUID()}`, name, arguments: args as JsonObject, resolve });
+    });
 }
 
 function start(context: RunContext, run: Run, signal: AbortSignal | undefined): void {
@@ -110,7 +120,13 @@ function resume(context: RunContext, turn: PiTurn, messages: Message[], results:
 
 /** Pi aborts one request at a time, so only the turn that request is streaming cancels the run. */
 function watch(context: RunContext, signal: AbortSignal | undefined, turn: PiTurn | undefined): void {
-  signal?.addEventListener('abort', () => context.state.read().turn === turn && void cancel(context), { once: true });
+  signal?.addEventListener(
+    'abort',
+    () => {
+      if (context.state.read().turn === turn) void cancel(context);
+    },
+    { once: true },
+  );
 }
 
 function park(context: RunContext, call: ParkedCall): void {

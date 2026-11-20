@@ -1,9 +1,10 @@
 import { readdirSync, statSync } from 'node:fs';
 
 import { AuthenticationError, CursorSdkError, IntegrationNotConnectedError } from '@cursor/sdk';
-import type { Message, ToolResultMessage } from '@earendil-works/pi-ai';
+import type { AssistantMessage, ToolResultMessage } from '@earendil-works/pi-ai';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { fakeSdk, sdk, sdkStatus, sdkText, sdkThinking } from './fake-sdk.ts';
+import { CURSOR_ID } from './host.ts';
 import { ask, call, freshPrompt, system, toolCalls, toolResult, user } from './stream-helpers.ts';
 
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
@@ -114,23 +115,31 @@ describe('Pi tool calls: round trips', () => {
   });
 });
 
+/** A promise the test resolves by hand. */
+function signal(): { promise: Promise<void>; resolve: () => void } {
+  let resolve: () => void = () => undefined;
+  const promise = new Promise<void>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve: () => resolve() };
+}
+
 describe('Pi tool calls: backlog, timeout, and replay', () => {
   test('events that arrive while Pi runs the tool are replayed into the next turn', async () => {
-    let afterPark: () => void = () => undefined;
-    let lateEmitted: () => void = () => undefined;
-    const lateEvent = new Promise<void>((resolve) => (lateEmitted = resolve));
+    const parked = signal();
+    const lateEvent = signal();
     sdk.script(async ({ tools, emit }) => {
       const pending = call(tools, 'read', {});
-      await new Promise<void>((resolve) => (afterPark = resolve));
+      await parked.promise;
       emit(sdkText('late'));
-      lateEmitted();
+      lateEvent.resolve();
       await pending;
       return { status: 'finished' };
     });
     const history = [system('backlog'), user('go')];
     const first = await ask(history);
-    afterPark();
-    await lateEvent;
+    parked.resolve();
+    await lateEvent.promise;
     const second = await ask([...history, first.message, toolResult(toolCalls(first.message)[0]?.id ?? '', 'ok')]);
     expect(second.message.content).toStrictEqual([{ type: 'text', text: 'late' }]);
   });
@@ -154,13 +163,19 @@ describe('Pi tool calls: backlog, timeout, and replay', () => {
 
   test('tool results with no waiting run start a fresh agent that replays the history', async () => {
     sdk.script(async () => ({ status: 'finished' }));
-    const assistant = {
+    const assistant: AssistantMessage = {
       role: 'assistant',
       content: [
         { type: 'text', text: 'Let me look.' },
         { type: 'toolCall', id: 'gone', name: 'read', arguments: { path: 'x' } },
       ],
-    } as unknown as Message;
+      api: 'cursor-sdk',
+      provider: CURSOR_ID,
+      model: 'composer-2.5',
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+      stopReason: 'toolUse',
+      timestamp: 0,
+    };
     await ask([system('orphan'), user('look'), assistant, toolResult('gone', 'contents', true)]);
     expect(sdk.agents[0]?.sends[0]?.message).toStrictEqual({
       text: '<system_prompt>\norphan\n</system_prompt>\n\n<conversation_so_far>\nUser: look\nAssistant: Let me look.\n[called read {"path":"x"}]\n[read result, error] contents\n</conversation_so_far>\n\nContinue from the conversation above.',

@@ -1,12 +1,12 @@
 import { Cursor, type SDKModel } from '@cursor/sdk';
-import type { AnyModel, RefreshModelsContext } from '@earendil-works/pi-ai';
-import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
+import type { RefreshModelsContext } from '@earendil-works/pi-ai';
 import { createCell, withEntry, withoutKeys } from '../cell.ts';
+import { type ChatModelConfig, readStoredModels, toStoredModels } from '../stored-models.ts';
 import { CURSOR_CONFIG, cursorApiKey } from './config.ts';
 import { toPiModel } from './models.ts';
 
 // Composer until the first live refresh replaces the list with Cursor.models.list().
-export const FALLBACK_MODELS: ProviderModelConfig[] = [toPiModel({ id: 'composer-2.5', displayName: 'Composer 2.5' })];
+export const FALLBACK_MODELS: ChatModelConfig[] = [toPiModel({ id: 'composer-2.5', displayName: 'Composer 2.5' })];
 
 // One catalog request per API key per process, as the SDK docs recommend.
 const catalogs = createCell(new Map<string, Promise<SDKModel[]>>());
@@ -31,13 +31,13 @@ export async function findCursorModel(apiKey: string | undefined, modelId: strin
 }
 
 /** Live models when Pi allows network access, persisted so offline starts list the same models. */
-export async function refreshCursorModels(ctx: RefreshModelsContext): Promise<ProviderModelConfig[]> {
-  const stored = ctx.stored?.models as ProviderModelConfig[] | undefined;
+export async function refreshCursorModels(ctx: RefreshModelsContext): Promise<ChatModelConfig[]> {
+  const stored = readStoredModels(ctx.stored);
   const apiKey = cursorApiKey(ctx.credential);
   if (!ctx.allowNetwork || !apiKey) return stored ?? FALLBACK_MODELS;
   catalogs.write(withoutKeys(catalogs.read(), [apiKey]));
   const models = (await listCursorModels(apiKey)).map(toPiModel);
   const target = { provider: CURSOR_CONFIG.providerId, api: CURSOR_CONFIG.api, baseUrl: CURSOR_CONFIG.baseUrl };
-  await ctx.publish({ persist: { models: models.map((m) => ({ ...target, ...m }) as unknown as AnyModel), checkedAt: Date.now() } });
+  await ctx.publish({ persist: { models: toStoredModels(target, models), checkedAt: Date.now() } });
   return models;
 }

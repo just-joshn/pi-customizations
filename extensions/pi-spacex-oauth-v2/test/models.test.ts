@@ -1,5 +1,5 @@
 import type { SDKModel } from '@cursor/sdk';
-import { getSupportedThinkingLevels, type Model, type ThinkingLevel } from '@earendil-works/pi-ai';
+import { type Api, getSupportedThinkingLevels, isModelType, type Model, type ThinkingLevel } from '@earendil-works/pi-ai';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { fakeSdk, sdk } from './fake-sdk.ts';
 import catalog from './fixtures/cursor-models.json' with { type: 'json' };
@@ -16,12 +16,13 @@ const MAX_OUTPUT_TOKENS = 64_000;
 // test/fixtures/cursor-models.json is a real Cursor.models.list() response from @cursor/sdk 1.4.2.
 const fixture = catalog as SDKModel[];
 
-type PiModel = Model<'cursor-sdk'>;
+type PiModel = Model<Api>;
 
 async function listedModels(): Promise<PiModel[]> {
-  const { ctx } = makeRefresh({ credential: oauthCredential('models-key') });
-  const models = await loadExtension().provider(CURSOR_ID).refreshModels(ctx);
-  return models as unknown as PiModel[];
+  const { ctx, published } = makeRefresh({ credential: oauthCredential('models-key') });
+  await loadExtension().provider(CURSOR_ID).refreshModels(ctx);
+  const persisted = published()[0]?.persist?.models ?? [];
+  return persisted.filter((model): model is PiModel => isModelType(model, 'chat'));
 }
 
 async function listedModel(id: string): Promise<PiModel> {
@@ -60,9 +61,9 @@ describe('Cursor models in Pi', () => {
   test('a thinking switch without the option to turn it off hides off', async () => {
     const alwaysOn: SDKModel = { id: 'always-on', displayName: 'Always On', parameters: [{ id: 'thinking', values: [{ value: 'true' }] }] };
     fakeSdk.Cursor.models.list.mockResolvedValue([alwaysOn]);
-    const [model] = await listedModels();
-    expect(model?.reasoning).toBe(true);
-    expect(getSupportedThinkingLevels(model as PiModel)).toStrictEqual(['high']);
+    const model = await listedModel('always-on');
+    expect(model.reasoning).toBe(true);
+    expect(getSupportedThinkingLevels(model)).toStrictEqual(['high']);
   });
 
   test('a model with no reasoning controls is not offered thinking', async () => {

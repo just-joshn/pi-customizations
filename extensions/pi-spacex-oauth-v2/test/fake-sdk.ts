@@ -3,6 +3,7 @@
 import type { AgentOptions, RunResult, RunStatus, SDKCustomTool, SDKMessage, SDKModel, SDKUserMessage, SendOptions } from '@cursor/sdk';
 import { type Mock, vi } from 'vitest';
 import catalog from './fixtures/cursor-models.json' with { type: 'json' };
+import { rejection } from './support.ts';
 
 /** A reassignable slot, so every change builds a new value. */
 interface Cell<T> {
@@ -64,9 +65,13 @@ async function* streamEvents(state: Cell<RunState>): AsyncGenerator<SDKMessage, 
     if (event) {
       patchCell(state, { events: rest });
       yield event;
-    } else if (failure) throw failure;
+    } else if (failure) await rejection(failure);
     else if (result) return;
-    else await new Promise<void>((resolve) => patchCell(state, { wakeUp: resolve }));
+    else {
+      await new Promise<void>((resolve) => {
+        patchCell(state, { wakeUp: resolve });
+      });
+    }
   }
 }
 
@@ -95,13 +100,12 @@ export function createFakeRun(script: Script, message: string | SDKUserMessage, 
     onCancel = resolve;
   });
   const io: RunIO = { message, tools: options?.local?.customTools ?? {}, emit: (event) => pushEvent(state, event), cancelled };
-  script(io).then(
-    (result) => settleRun(state, result),
-    (error: unknown) => {
+  script(io)
+    .then((result) => settleRun(state, result))
+    .catch((error: unknown) => {
       patchCell(state, { failure: error });
       settleRun(state, { status: 'error' });
-    },
-  );
+    });
   return {
     id: RUN_ID,
     agentId: AGENT_ID,
@@ -145,7 +149,7 @@ export function createFakeAgent(options: AgentOptions, index: number): FakeAgent
       const [script, ...remaining] = sdkState.read().scripts;
       patchCell(sdkState, { scripts: remaining });
       const { sendError } = sdkState.read();
-      if (sendError) throw sendError;
+      if (sendError) return rejection(sendError);
       if (!script) throw new Error('No scripted run left');
       const run = createFakeRun(script, message, sendOptions);
       patchCell(record, { runs: [...record.read().runs, run] });
@@ -175,7 +179,7 @@ export const fakeSdk = {
   Agent: {
     create: vi.fn(async (options: AgentOptions) => {
       const { createError, agents } = sdkState.read();
-      if (createError) throw createError;
+      if (createError) return rejection(createError);
       const agent = createFakeAgent(options, agents.length + 1);
       patchCell(sdkState, { agents: [...agents, agent] });
       return agent;
