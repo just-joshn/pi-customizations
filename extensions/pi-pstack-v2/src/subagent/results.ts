@@ -56,7 +56,8 @@ export function getFailureSummary(result: SingleResult): string {
 }
 
 export function getResultOutput(result: SingleResult): string {
-  return isFailedResult(result) ? getFailureEvidence(result) : getFinalOutput(result.messages) || NO_OUTPUT;
+  const output = isFailedResult(result) ? getFailureEvidence(result) : getFinalOutput(result.messages) || NO_OUTPUT;
+  return result.worktreeNote ? `${output}\n\n${result.worktreeNote}` : output;
 }
 
 export function truncateParallelOutput(output: string): string {

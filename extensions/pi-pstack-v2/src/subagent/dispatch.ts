@@ -5,8 +5,9 @@ import { projectAgentsApproved, resolveAgent } from './agent-resolution.ts';
 import { type AgentConfig, discoverAgents } from './agents.ts';
 import { runChain } from './dispatch-chain.ts';
 import { runParallel } from './dispatch-parallel.ts';
+import { FORK_AGENT_NAME, forkRefusal, parentSessionOf } from './fork.ts';
 import { frameSubagentReport } from './framing.ts';
-import { getFinalOutput, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
+import { getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateModelOutput } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
 import type { ParsedSubagentParams, WorkItem } from './schema.ts';
 import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SubagentMode } from './types.ts';
@@ -25,12 +26,12 @@ function detectModes(params: ParsedSubagentParams): SubagentMode[] {
 function workItems(params: ParsedSubagentParams, mode: SubagentMode): WorkItem[] {
   if (mode === 'chain') return params.chain ?? [];
   if (mode === 'parallel') return params.tasks ?? [];
-  return params.agent && params.task ? [{ agent: params.agent, task: params.task, cwd: params.cwd, model: params.model, thinking: params.thinking }] : [];
+  return params.agent && params.task ? [{ agent: params.agent, task: params.task, cwd: params.cwd, model: params.model, thinking: params.thinking, isolation: params.isolation }] : [];
 }
 
 async function runSingle(run: DispatchRun, item: WorkItem, resolved: ResolvedAgent): Promise<ToolResult> {
   const result = await runSingleAgent(run.defaults, resolved, item.agent, item.task, undefined, run.signal, run.onUpdate, makeDetails('single'));
-  const text = isFailedResult(result) ? `Agent ${result.stopReason || result.status}: ${getResultOutput(result)}` : getFinalOutput(result.messages) || '(no output)';
+  const text = isFailedResult(result) ? `Agent ${result.stopReason || result.status}: ${getResultOutput(result)}` : getResultOutput(result);
   return textResult(frameSubagentReport(truncateModelOutput(text), result.usage), makeDetails('single')([result]));
 }
 
@@ -49,7 +50,7 @@ async function approvedAndDispatched(params: ParsedSubagentParams, mode: Subagen
   const agentScope = params.agentScope ?? 'user';
   const discovery = discoverAgents(ctx.cwd, agentScope);
   const items = workItems(params, mode);
-  const resolved = items.map((item) => ({ ...resolveAgent(ctx.cwd, agentScope, item.agent, item.cwd), call: { model: item.model, thinking: item.thinking } }));
+  const resolved = items.map((item) => ({ ...resolveAgent(ctx.cwd, agentScope, item.agent, item.cwd), call: { model: item.model, thinking: item.thinking, isolation: item.isolation } }));
   const needsApproval = (agentScope === 'project' || agentScope === 'both') && (params.confirmProjectAgents ?? true) && ctx.hasUI;
   if (needsApproval && !(await projectAgentsApproved(ctx, resolved, discovery.projectAgentsDir))) {
     return textResult('Canceled: project-local agents not approved.', makeDetails(mode)([]));
@@ -57,7 +58,7 @@ async function approvedAndDispatched(params: ParsedSubagentParams, mode: Subagen
   return dispatchMode(mode, run, items, resolved);
 }
 
-export async function executeSubagent(params: ParsedSubagentParams, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext, gate: ConcurrencyGate): Promise<ToolResult> {
+export async function executeSubagent(params: ParsedSubagentParams, signal: AbortSignal | undefined, onUpdate: OnUpdateCallback | undefined, ctx: ExtensionContext, gate: ConcurrencyGate, toolCallId?: string): Promise<ToolResult> {
   const agentScope = params.agentScope ?? 'user';
   const modes = detectModes(params);
   const [mode] = modes;
@@ -71,12 +72,14 @@ export async function executeSubagent(params: ParsedSubagentParams, signal: Abor
   if (!policy.canSpawn) {
     return refusal(`Subagent nesting depth limit reached (depth ${policy.depth} >= max ${policy.maxDepth}). Do the work here, or raise ${SUBAGENT_MAX_DEPTH_ENV}.`, mode);
   }
+  const forkRefused = workItems(params, mode).some((item) => item.agent === FORK_AGENT_NAME) ? forkRefusal(env, ctx) : undefined;
+  if (forkRefused) return refusal(forkRefused, mode);
   const slots = gate.tryAcquire(workItems(params, mode).length);
   if (!slots) {
     return refusal(`Subagent concurrency cap reached (max ${readConcurrencyLimit(env)} workers at once). Wait for running workers to finish, or raise ${SUBAGENT_MAX_CONCURRENT_ENV}.`, mode);
   }
 
-  const defaults = { model: ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined, thinkingLevel: ctx.thinkingLevel, extraEnv: { [SUBAGENT_DEPTH_ENV]: String(policy.nextDepth) } };
+  const defaults = { model: ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined, thinkingLevel: ctx.thinkingLevel, extraEnv: { [SUBAGENT_DEPTH_ENV]: String(policy.nextDepth) }, parentSession: parentSessionOf(ctx, toolCallId) };
   try {
     return await approvedAndDispatched(params, mode, { defaults, signal, onUpdate }, ctx);
   } finally {

@@ -144,6 +144,12 @@ Optional frontmatter:
 - `omitContextFiles: true` (alias `omitClaudeMd`) starts the child with `--no-context-files`.
 - `skills: a, b` appends each skill's `SKILL.md` body (frontmatter stripped) to the child's system prompt. Searched in `<cwd>/.pi/skills`, `<cwd>/.agents/skills`, the Pi agent dir `skills`, `~/.agents/skills`, then this package's `skills`. At most 32; missing skills are skipped.
 - `maxTurns: 20` stops the child after that many assistant turns. The call still counts as completed, with `stopReason: "max_turns"`.
+- `memory: user | project | local` gives the agent a persistent directory (`<agent dir>/agent-memory/<name>`, `.pi/agent-memory/<name>`, or `.pi/agent-memory-local/<name>`, created `0700`). Its `MEMORY.md` (first 200 lines or 25000 characters; never a symlink) is added to the system prompt. With a restricted `tools` list, `read`, `write` and `edit` are added. The `user` scope also sets `PI_SUBAGENT_MEMORY_DIR` so the child's Gondolin VM mounts that directory writable at its host path.
+- `isolation: worktree` (or `isolation: "worktree"` on a call, task or chain step) runs the child in `.pi/worktrees/subagent-<name>-<hex>` on branch `worktree/<slug>`. A worktree with no changes and no commits is removed on exit. Otherwise it is kept, and the report ends with `Worktree kept: <path> (branch <branch>)`.
+
+## Fork subagents
+
+`agent: "fork"` is built in. The child continues a temp copy of the parent session (`--session`), with the parent's model, thinking level and system prompt, so it reuses the parent's prompt cache. Tool calls the parent left open get synthetic results. A fork cannot fork again (`PI_SUBAGENT_IS_FORK=1`, or the fork boilerplate on the parent branch), and `PI_SUBAGENT_FORK_DISABLED=1` or `true` turns forks off.
 
 ## Safety limits
 

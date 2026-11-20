@@ -8,12 +8,15 @@ type ThinkingLevelName = (typeof THINKING_LEVELS)[number];
 const ModelParam = Type.Optional(Type.String({ description: 'Model as provider/id. Overrides the agent and session model.' }));
 const ThinkingParam = Type.Optional(StringEnum(THINKING_LEVELS, { description: 'Thinking level. Defaults to the session level unless a model is named.' }));
 
+const IsolationParam = Type.Optional(StringEnum(['worktree'] as const, { description: 'Run the agent in its own git worktree. The worktree is kept, and reported, only if the agent leaves changes or commits.' }));
+
 const TaskItem = Type.Object({
   agent: Type.String({ description: 'Name of the agent to invoke' }),
   task: Type.String({ description: 'Task to delegate to the agent' }),
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process' })),
   model: ModelParam,
   thinking: ThinkingParam,
+  isolation: IsolationParam,
 });
 
 const ChainItem = Type.Object({
@@ -22,6 +25,7 @@ const ChainItem = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process' })),
   model: ModelParam,
   thinking: ThinkingParam,
+  isolation: IsolationParam,
 });
 
 const AgentScopeSchema = StringEnum(['user', 'project', 'both'] as const, {
@@ -39,21 +43,24 @@ export const SubagentParams = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory for the agent process (single mode)' })),
   model: ModelParam,
   thinking: ThinkingParam,
+  isolation: IsolationParam,
   wake: Type.Optional(Type.String({ description: 'Return a job id at once and wake the session with this message and the report when every worker finishes.' })),
   stop: Type.Optional(Type.String({ description: 'Abort the running wake job with this id.' })),
 });
 
 export type SubagentParamsType = Static<typeof SubagentParams>;
 // StringEnum types its fields as unknown, so the parsed shape names them.
-export type ParsedSubagentParams = Omit<SubagentParamsType, 'agentScope' | 'thinking' | 'tasks' | 'chain'> & {
+export type ParsedSubagentParams = Omit<SubagentParamsType, 'agentScope' | 'thinking' | 'isolation' | 'tasks' | 'chain'> & {
   agentScope?: AgentScope | undefined;
   thinking?: ThinkingLevelName | undefined;
+  isolation?: 'worktree' | undefined;
   tasks?: WorkItem[] | undefined;
   chain?: WorkItem[] | undefined;
 };
 
 const ThinkingSchema = z.enum(THINKING_LEVELS).optional();
-const WorkItemSchema = z.looseObject({ agent: z.string(), task: z.string(), cwd: z.string().optional(), model: z.string().optional(), thinking: ThinkingSchema });
+const IsolationSchema = z.literal('worktree').optional();
+const WorkItemSchema = z.looseObject({ agent: z.string(), task: z.string(), cwd: z.string().optional(), model: z.string().optional(), thinking: ThinkingSchema, isolation: IsolationSchema });
 
 /**
  * Mirrors SubagentParams, which Pi checks before the tool runs, so it accepts exactly the calls that reach the tool. The
@@ -69,6 +76,7 @@ export const SubagentParamsSchema = z.looseObject({
   cwd: z.string().optional(),
   model: z.string().optional(),
   thinking: ThinkingSchema,
+  isolation: IsolationSchema,
   wake: z.string().optional(),
   stop: z.string().optional(),
 });
@@ -81,6 +89,7 @@ export interface WorkItem {
   cwd?: string | undefined;
   model?: string | undefined;
   thinking?: ThinkingLevelName | undefined;
+  isolation?: 'worktree' | undefined;
 }
 
 /** Tells Pi's own params object, which the dispatcher gets as it came, with every key and its order, from any other value. */

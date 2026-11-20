@@ -61,17 +61,20 @@ export type VmPolicyOptions = {
   readonlyMounts: readonly string[];
   /** Host directory mounted writable at /cache, with the build-tool cache variables pointed into it. Unset leaves caches in the guest. */
   sharedBuildCacheDir?: string | undefined;
+  /** A subagent's memory directory, mounted writable at its host path so the guest can keep notes in it. */
+  writableMemoryDir?: string | undefined;
 };
 
-export function createVmOptions({ localCwd, readonlyMounts, sharedBuildCacheDir }: VmPolicyOptions): VMOptions {
+export function createVmOptions({ localCwd, readonlyMounts, sharedBuildCacheDir, writableMemoryDir }: VmPolicyOptions): VMOptions {
   const { httpHooks, env } = createDefaultNetworkPolicy();
   const workspace: [string, VirtualProvider][] = [[GUEST_WORKSPACE, createWorkspaceProvider(localCwd)]];
   const readonly = readonlyMounts.map((dir): [string, VirtualProvider] => [toPosix(dir), new ReadonlyProvider(new RealFSProvider(dir))]);
   const cache: [string, VirtualProvider][] = sharedBuildCacheDir === undefined ? [] : [[GUEST_BUILD_CACHE, new RealFSProvider(sharedBuildCacheDir)]];
+  const memory: [string, VirtualProvider][] = writableMemoryDir === undefined ? [] : [[toPosix(writableMemoryDir), new RealFSProvider(writableMemoryDir)]];
   return {
     sessionLabel: `pi ${path.basename(localCwd)}`,
     httpHooks,
     env: sharedBuildCacheDir === undefined ? env : { ...env, ...buildCacheEnv(GUEST_BUILD_CACHE, path.posix) },
-    vfs: { mounts: Object.fromEntries([...workspace, ...readonly, ...cache]) },
+    vfs: { mounts: Object.fromEntries([...workspace, ...readonly, ...cache, ...memory]) },
   };
 }

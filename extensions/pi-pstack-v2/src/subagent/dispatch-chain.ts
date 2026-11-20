@@ -31,7 +31,7 @@ async function runStep(run: DispatchRun, steps: WorkItem[], resolved: ResolvedAg
 
 function finishChain(results: SingleResult[]): ToolResult {
   const last = results.at(-1);
-  const output = last ? getFinalOutput(last.messages) : '';
+  const output = last ? getResultOutput(last) : '';
   return textResult(frameSubagentReport(truncateModelOutput(output || '(no output)'), aggregateUsage(results)), makeDetails('chain')(results));
 }
 

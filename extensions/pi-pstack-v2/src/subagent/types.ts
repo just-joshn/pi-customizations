@@ -1,6 +1,7 @@
 import type { AgentToolResult, ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Message } from '@earendil-works/pi-ai';
 import type { AgentConfig, AgentSource } from './agents.ts';
+import type { ParentSession } from './fork.ts';
 
 export interface UsageStats {
   input: number;
@@ -28,6 +29,8 @@ export interface SingleResult {
   errorMessage?: string | undefined;
   terminationSignal?: NodeJS.Signals | undefined;
   step?: number | undefined;
+  /** Says where the worker's changes live, when it ran in a worktree that was kept. */
+  worktreeNote?: string | undefined;
 }
 
 export type SubagentMode = 'single' | 'parallel' | 'chain';
@@ -47,6 +50,8 @@ export interface DispatchDefaults {
   thinkingLevel?: ThinkingLevel | undefined;
   /** Environment variables the child gets on top of this process's own. */
   extraEnv?: Readonly<Record<string, string>> | undefined;
+  /** The session that made the call, which a fork continues from. */
+  parentSession?: ParentSession | undefined;
 }
 
 export interface DispatchRun {
@@ -55,10 +60,11 @@ export interface DispatchRun {
   onUpdate: OnUpdateCallback | undefined;
 }
 
-/** The model and thinking level one call names for one item, ahead of the agent's and the session's. */
+/** The model, thinking level and isolation one call names for one item, ahead of the agent's and the session's. */
 export interface CallModel {
   model?: string | undefined;
   thinking?: ThinkingLevel | undefined;
+  isolation?: 'worktree' | undefined;
 }
 
 export interface ResolvedAgent {

@@ -103,6 +103,8 @@ export interface CtxOptions {
   readonly trusted?: boolean;
   readonly model?: { provider: string; id: string };
   readonly thinkingLevel?: string;
+  /** The parent session Pi would expose to a tool: where it is stored, and the entries on its current branch. */
+  readonly sessionManager?: { getSessionFile?: () => string | undefined; getBranch?: () => unknown[] };
   readonly confirm?: (title: string, message: string) => Promise<boolean>;
 }
 
@@ -113,6 +115,7 @@ export const makeCtx = (cwd: string, options: CtxOptions = {}): unknown => ({
   hasUI: options.hasUI ?? false,
   model: options.model,
   thinkingLevel: options.thinkingLevel,
+  sessionManager: options.sessionManager,
   isProjectTrusted: () => options.trusted ?? true,
   ui: { confirm: options.confirm ?? (async () => true) },
 });

@@ -69,7 +69,7 @@ export default function subagentExtension(pi: ExtensionAPI): void {
     label: 'Subagent',
     description: toolDescription(),
     parameters: SubagentParams,
-    execute: (_toolCallId, params, signal, onUpdate, ctx): Promise<ToolResult> => {
+    execute: (toolCallId, params, signal, onUpdate, ctx): Promise<ToolResult> => {
       SubagentParamsSchema.parse(params);
       if (!isParsedSubagentParams(params)) throw new Error('The subagent parameters are not valid.');
       const parsed: ParsedSubagentParams = params;
@@ -77,8 +77,8 @@ export default function subagentExtension(pi: ExtensionAPI): void {
         const text = wakeJobs.stop(parsed.stop) ? `Stopped subagent job ${parsed.stop}.` : `No running subagent job ${parsed.stop}.`;
         return Promise.resolve(textResult(text, noDetails));
       }
-      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx, gate);
-      const id = wakeJobs.start(parsed.wake, ctx, (jobSignal) => executeSubagent(parsed, jobSignal, undefined, ctx, gate));
+      if (parsed.wake === undefined) return executeSubagent(parsed, signal, onUpdate, ctx, gate, toolCallId);
+      const id = wakeJobs.start(parsed.wake, ctx, (jobSignal) => executeSubagent(parsed, jobSignal, undefined, ctx, gate, toolCallId));
       const text = `Started subagent job ${id}. It wakes you with its report when every worker finishes. Stop it with stop: "${id}".`;
       return Promise.resolve(textResult(text, noDetails));
     },

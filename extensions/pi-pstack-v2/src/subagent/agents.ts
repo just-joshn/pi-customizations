@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { CONFIG_DIR_NAME, getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { type MemoryScope, MemoryScopeSchema } from './memory.ts';
 
 export type AgentScope = 'user' | 'project' | 'both';
 
@@ -29,6 +30,10 @@ export interface AgentConfig {
   /** The child is stopped after this many assistant turns. */
   maxTurns?: number | undefined;
   model?: string | undefined;
+  /** Where the agent keeps a persistent memory directory between runs. */
+  memory?: MemoryScope | undefined;
+  /** The agent runs in its own git worktree. */
+  isolation?: 'worktree' | undefined;
   systemPrompt: string;
   source: AgentSource;
   filePath: string;
@@ -75,6 +80,8 @@ const AgentFrontmatterSchema = z.looseObject({
   omitClaudeMd: z.unknown().optional(),
   skills: z.unknown().optional(),
   maxTurns: z.unknown().optional(),
+  memory: z.unknown().optional(),
+  isolation: z.unknown().optional(),
 });
 
 const MAX_PRELOADED_SKILLS = 32;
@@ -92,6 +99,8 @@ function parseSkillList(value: unknown): string[] | undefined {
 }
 
 const PositiveInteger = z.number().int().positive();
+const parseMemory = (value: unknown): MemoryScope | undefined => MemoryScopeSchema.safeParse(value).data;
+const parseIsolation = (value: unknown): 'worktree' | undefined => z.literal('worktree').safeParse(value).data;
 const parseMaxTurns = (value: unknown): number | undefined => PositiveInteger.safeParse(value).data;
 
 function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): AgentConfig | undefined {
@@ -109,7 +118,7 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): Agen
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(content);
   const parsed = AgentFrontmatterSchema.safeParse(frontmatter);
   if (!parsed.success) return undefined;
-  const { name, description, tools, model, disallowedTools, omitContextFiles, omitClaudeMd, skills, maxTurns } = parsed.data;
+  const { name, description, tools, model, disallowedTools, omitContextFiles, omitClaudeMd, skills, maxTurns, memory, isolation } = parsed.data;
   return {
     name,
     description,
@@ -118,6 +127,8 @@ function readAgentFile(dir: string, entry: fs.Dirent, source: AgentSource): Agen
     omitContextFiles: omitContextFiles === true || omitClaudeMd === true,
     skills: parseSkillList(skills),
     maxTurns: parseMaxTurns(maxTurns),
+    memory: parseMemory(memory),
+    isolation: parseIsolation(isolation),
     model: typeof model === 'string' ? model : undefined,
     systemPrompt: body,
     source,
