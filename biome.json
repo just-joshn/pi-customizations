@@ -25,41 +25,7 @@
     }
   },
   "linter": {
-    "enabled": true,
-    "domains": {
-      "project": "recommended",
-      "types": "recommended"
-    },
-    "rules": {
-      "preset": "recommended",
-      "correctness": {
-        "noUndeclaredDependencies": "error"
-      },
-      "complexity": {
-        "useLiteralKeys": "off"
-      },
-      "security": {
-        "noBlankTarget": "error",
-        "noDangerouslySetInnerHtml": "error",
-        "noDangerouslySetInnerHtmlWithChildren": "error",
-        "noGlobalEval": "error",
-        "noScriptUrl": "error",
-        "noSecrets": "error"
-      },
-      "style": {
-        "noNonNullAssertion": "error"
-      },
-      "suspicious": {
-        "noExplicitAny": "error",
-        "noImplicitAnyLet": "error",
-        "noTsIgnore": "error",
-        "noDeprecatedImports": "error",
-        "noImportCycles": "error",
-        "noDoubleEquals": "error",
-        "noVar": "error",
-        "noFocusedTests": "error"
-      }
-    }
+    "enabled": false
   },
   "assist": {
     "enabled": true,
@@ -73,17 +39,5 @@
         }
       }
     }
-  },
-  "overrides": [
-    {
-      "includes": ["**/test/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noControlCharactersInRegex": "off"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

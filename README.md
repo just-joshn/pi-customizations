@@ -38,10 +38,12 @@ The source of the deprecated packages stays in git history.
 
 ```sh
 bun install
-bun run ci          # Biome lint and format check
+bun run ci          # Biome format check, bun lint, style and behavior-test audits
 bun run typecheck   # every package
 bun run test        # every package
 ```
+
+`bun lint` is only in Bun canary builds. Run `bun upgrade --canary` to get one, or let CI run it.
 
 To load a package from this checkout, run `pi -e extensions/<package>`.
 
