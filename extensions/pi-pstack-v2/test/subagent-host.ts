@@ -10,8 +10,10 @@ import type { Theme } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
 import { afterEach, beforeEach, vi } from 'vitest';
 import subagentExtension from '../src/subagent/index.ts';
-import { says } from './subagent-child-output.ts';
-import { fakeTmux } from './subagent-fake-tmux.ts';
+import { SUBAGENT_TEST_TIMEOUT_MS, says } from './subagent-child-output.ts';
+import { fakePi } from './subagent-fake-pi.ts';
+
+vi.setConfig({ testTimeout: SUBAGENT_TEST_TIMEOUT_MS });
 
 const WIDTH = 400;
 const ESCAPE_CODE = 27;
@@ -32,8 +34,11 @@ type Tool = {
 export type Sent = { message: { customType: string; content: string; display: boolean }; options: unknown };
 export type Settled = { entries: { type: string; customType: string; content: string }[]; continue: boolean } | undefined;
 
-/** Colors show as `<color:text>` and bold as `*text*`, so a test can see which words Pi would color. */
-export const theme = { fg: (color: string, value: string) => `<${color}:${value}>`, bold: (value: string) => `*${value}*` } as unknown as Theme;
+/** Draws text as plain words, which is what a person reads whatever the colors. */
+const plainTheme = { fg: (_color: string, value: string) => value, bold: (value: string) => value } as unknown as Theme;
+
+/** Shows each colored word as `<role:text>`, so a test can see which roles Pi would color with. */
+const roleTheme = { fg: (color: string, value: string) => `<${color}:${value}>`, bold: (value: string) => value } as unknown as Theme;
 
 export interface Workspace {
   readonly root: string;
@@ -50,15 +55,16 @@ function createWorkspace(): Workspace {
   return { root, project, userAgents: path.join(root, 'agent', 'agents') };
 }
 
-/** Gives every test its own workspace and a fake tmux whose children answer "done" until the test scripts them. */
+/** Gives every test its own workspace and a fake Pi whose children answer "done" until the test scripts them. */
 export function useWorkspace(): () => Workspace {
   let current: Workspace | undefined;
-  beforeEach(() => {
+  beforeEach(async () => {
     current = createWorkspace();
-    fakeTmux.reset();
-    fakeTmux.onChild(says('done'));
+    await fakePi.start(current.root);
+    fakePi.onChild(says('done'));
   });
-  afterEach(() => {
+  afterEach(async () => {
+    await fakePi.stop();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     fs.rmSync((current as Workspace).root, { recursive: true, force: true });
@@ -124,8 +130,9 @@ export function loadSubagent() {
   return {
     tool: registered,
     call: (params: unknown, ctx: unknown, signal?: AbortSignal, onUpdate?: Update) => registered.execute('call', params, signal, onUpdate, ctx),
-    renderCall: (args: unknown) => draw(registered.renderCall(args, theme)),
-    renderResult: (result: unknown, expanded = false) => draw(registered.renderResult(result, { expanded }, theme)),
+    renderCall: (args: unknown) => draw(registered.renderCall(args, plainTheme)),
+    renderResult: (result: unknown, expanded = false) => draw(registered.renderResult(result, { expanded }, plainTheme)),
+    renderResultWithRoles: (result: unknown) => draw(registered.renderResult(result, { expanded: false }, roleTheme)),
     fire: (event: string, payload: unknown, ctx: unknown): unknown => (handlers[event] as unknown as (e: unknown, c: unknown) => unknown)(payload, ctx),
     sent: (): readonly Sent[] => sent,
   };

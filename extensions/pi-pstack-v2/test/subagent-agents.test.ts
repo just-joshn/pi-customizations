@@ -3,10 +3,8 @@ import * as path from 'node:path';
 
 import { describe, expect, test, vi } from 'vitest';
 import { says } from './subagent-child-output.ts';
-import { fakeTmux } from './subagent-fake-tmux.ts';
+import { fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
-
-vi.mock('node:child_process', () => import('./subagent-fake-tmux.ts'));
 
 const workspace = useWorkspace();
 const BUNDLED = ['ci-watcher', 'comment-sicko', 'poteto-agent', 'scout', 'thermo-nuclear-code-quality-review', 'worker'];
@@ -39,19 +37,19 @@ describe('reading an agent definition', () => {
   ])('gives the child the tools it reads from %s', async ([, frontmatter, expected]) => {
     writeAgent(workspace().userAgents, 'custom', frontmatter);
     await runAgent('custom');
-    expect(fakeTmux.children()[0]?.flag('--tools')).toBe(expected);
+    expect(fakePi.children()[0]?.flag('--tools')).toBe(expected);
   });
 
   test('ignores a model that is not a string and keeps the session default', async () => {
     writeAgent(workspace().userAgents, 'custom', 'model: 7\n');
     await loadSubagent().call({ agent: 'custom', task: 'go' }, makeCtx(workspace().project, { model: { provider: 'p', id: 'm' } }));
-    expect(fakeTmux.children()[0]?.flag('--model')).toBe('p/m');
+    expect(fakePi.children()[0]?.flag('--model')).toBe('p/m');
   });
 
   test('sends the markdown body to the child as its system prompt', async () => {
     writeAgent(workspace().userAgents, 'custom', '', 'You are custom.');
     let prompt = '';
-    fakeTmux.onChild((child) => {
+    fakePi.onChild((child) => {
       prompt = fs.readFileSync(child.flag('--append-system-prompt') ?? '', 'utf8');
       says('ok')(child);
     });
@@ -117,7 +115,7 @@ describe('where agents are found', () => {
     writeAgent(path.join(other, '.pi', 'agents'), 'local');
     const result = await loadSubagent().call({ agent: 'local', task: 'go', cwd: 'other', agentScope: 'project' }, makeCtx(workspace().project));
     expect(textOf(result)).toBe('done');
-    expect(fakeTmux.children()[0]?.cwd).toBe(other);
+    expect(fakePi.children()[0]?.cwd).toBe(other);
   });
 });
 
@@ -131,7 +129,7 @@ describe('the agents the package ships', () => {
 
   test('poteto-agent carries the poteto prompt', async () => {
     let prompt = '';
-    fakeTmux.onChild((child) => {
+    fakePi.onChild((child) => {
       prompt = fs.readFileSync(child.flag('--append-system-prompt') ?? '', 'utf8');
       says('ok')(child);
     });
@@ -141,14 +139,14 @@ describe('the agents the package ships', () => {
 
   test('worker has every editing tool and no system prompt, so only its task steers it', async () => {
     await runAgent('worker');
-    const [child] = fakeTmux.children();
+    const [child] = fakePi.children();
     expect(child?.flag('--tools')).toBe(WORKER_TOOLS);
     expect(child?.args).not.toContain('--append-system-prompt');
   });
 
   test('no bundled prompt sends the model to a Cursor path that does not exist under Pi', async () => {
     let prompts: readonly string[] = [];
-    fakeTmux.onChild((child) => {
+    fakePi.onChild((child) => {
       const file = child.flag('--append-system-prompt');
       if (file) prompts = [...prompts, fs.readFileSync(file, 'utf8')];
       says('ok')(child);
@@ -174,7 +172,7 @@ describe('approving project agents', () => {
     const result = await callLocal({}, approval({ confirm }));
     expect(textOf(result)).toBe('Canceled: project-local agents not approved.');
     expect(confirm).toHaveBeenCalledWith('Run project-local agents?', expect.stringContaining(`- local: ${file}`));
-    expect(fakeTmux.children()).toHaveLength(0);
+    expect(fakePi.children()).toHaveLength(0);
   });
 
   test('runs the project agent once the user approves', async () => {

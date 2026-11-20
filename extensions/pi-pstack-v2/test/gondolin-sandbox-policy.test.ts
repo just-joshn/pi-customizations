@@ -1,8 +1,9 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import type { ShadowProvider } from '@earendil-works/gondolin';
+import type { ShadowProvider, VirtualProvider } from '@earendil-works/gondolin';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { type GondolinHost, GUEST, loadGondolin } from './core-gondolin-host.ts';
 
@@ -10,6 +11,10 @@ vi.mock('@earendil-works/gondolin', async (importOriginal) => ({ ...(await impor
 
 const EACCES = os.constants.errno.EACCES;
 const EXDEV = os.constants.errno.EXDEV;
+const EROFS = os.constants.errno.EROFS;
+const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
+const WRITE_PROBE = '/guest-write-probe.txt';
+const PACKAGE_MANIFEST = '/package.json';
 const PUBLIC_IP = '93.184.216.34';
 const HTTPS_PORT = 443;
 const IPV4_FAMILY = 4;
@@ -125,11 +130,27 @@ describe('the network the guest can reach', () => {
 });
 
 describe('the VM the extension asks Gondolin for', () => {
-  test('is labelled with the project folder and carries the network hooks and their environment', async () => {
+  test('is labelled with the project folder and puts no injected secrets in the guest environment', async () => {
     await host.fire('session_start');
     const options = host.vmOptions();
     expect(options?.sessionLabel).toBe(`pi ${path.basename(dir)}`);
-    expect(options?.httpHooks).toBeDefined();
-    expect(options?.env).toBeDefined();
+    expect(options?.env ?? {}).toEqual({});
+  });
+
+  test('lets the guest read this package but never write to it', async () => {
+    await host.fire('session_start');
+    const mounts = host.vmOptions()?.vfs?.mounts ?? {};
+    const packageMount = mounts[PACKAGE_ROOT] as VirtualProvider;
+    const manifest = await packageMount.open(PACKAGE_MANIFEST, 'r');
+    expect((await manifest.readFile()).toString()).toContain('"name": "@justjoshn/pi-pstack-v2"');
+    await manifest.close();
+    expect(await errnoOf(packageMount.open(WRITE_PROBE, 'w'))).toBe(EROFS);
+    expect(fs.existsSync(path.join(PACKAGE_ROOT, WRITE_PROBE))).toBe(false);
+  });
+
+  test('leaves only the workspace writable, whatever else is mounted', async () => {
+    await host.fire('session_start');
+    const mounts = Object.entries(host.vmOptions()?.vfs?.mounts ?? {}).filter(([mountPoint]) => mountPoint !== GUEST);
+    for (const [, provider] of mounts) expect(await errnoOf((provider as VirtualProvider).open(WRITE_PROBE, 'w'))).toBe(EROFS);
   });
 });

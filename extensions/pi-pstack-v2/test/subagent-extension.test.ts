@@ -1,9 +1,7 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { assistantLine, printing } from './subagent-child-output.ts';
-import { fakeTmux } from './subagent-fake-tmux.ts';
+import { fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, textOf, useWorkspace, writeAgent } from './subagent-host.ts';
-
-vi.mock('node:child_process', () => import('./subagent-fake-tmux.ts'));
 
 const workspace = useWorkspace();
 const ctx = () => makeCtx(workspace().project);
@@ -35,7 +33,7 @@ describe('marking a subagent result as an error', () => {
 
   test('a failing child makes the tool result an error, which Pi then reports', async () => {
     const subagent = loadSubagent();
-    fakeTmux.onChild((child) => child.exit(1));
+    fakePi.onChild((child) => child.exit(1));
     const result = await subagent.call({ agent: 'scout', task: 'x' }, ctx());
     expect(subagent.fire('tool_result', { toolName: 'subagent', details: result.details }, ctx())).toEqual({ isError: true });
   });
@@ -46,7 +44,7 @@ describe('a call with the wrong mode', () => {
     const result = await loadSubagent().call({}, ctx());
     expect(textOf(result)).toBe(`Invalid parameters. Provide exactly one mode.\nAvailable agents: ${ALL_AGENTS}`);
     expect(result.details).toMatchObject({ mode: 'single', isError: true });
-    expect(fakeTmux.children()).toHaveLength(0);
+    expect(fakePi.children()).toHaveLength(0);
   });
 
   test('with two modes, says the same and lists user agents too', async () => {
@@ -54,7 +52,7 @@ describe('a call with the wrong mode', () => {
     const result = await loadSubagent().call({ agent: 'scout', task: 'x', tasks: [{ agent: 'scout', task: 'y' }] }, ctx());
     expect(textOf(result)).toContain('Invalid parameters. Provide exactly one mode.');
     expect(textOf(result)).toContain('mine (user)');
-    expect(fakeTmux.children()).toHaveLength(0);
+    expect(fakePi.children()).toHaveLength(0);
   });
 
   test('with an agent but no task, is not a single call', async () => {
@@ -65,13 +63,13 @@ describe('a call with the wrong mode', () => {
     expect(() => loadSubagent().call({ agent: 5 }, ctx())).toThrow();
     expect(() => loadSubagent().call({ tasks: [{ agent: 'a' }] }, ctx())).toThrow();
     expect(() => loadSubagent().call({ thinking: 'extreme' }, ctx())).toThrow();
-    expect(fakeTmux.children()).toHaveLength(0);
+    expect(fakePi.children()).toHaveLength(0);
   });
 });
 
 describe('what the tool keeps of the child output', () => {
   const run = async (...lines: string[]) => {
-    fakeTmux.onChild(printing(...lines));
+    fakePi.onChild(printing(...lines));
     return loadSubagent().call({ agent: 'scout', task: 'x' }, ctx());
   };
 

@@ -17,6 +17,9 @@ const DEFAULT_TOKEN_TTL_SECONDS = 3600;
 const POLL_INTERVAL_SECONDS = 5;
 const MS_PER_SECOND = 1000;
 const CANCEL_DELAY_MS = 10;
+const ONE_SECOND_MS = 1000;
+const DEVICE_REQUESTS = 1;
+const SLOW_DOWN_STEP_MS = 5000;
 const GROK_CONTEXT_WINDOW = 256_000;
 const TOKEN_POLL_INDEX = 3;
 // biome-ignore lint/security/noSecrets: OAuth's device authorization grant uses this standardized URN, not a credential.
@@ -57,7 +60,15 @@ describe('Grok Build device sign-in', () => {
     );
     const { callbacks, deviceCodes } = makeLogin();
     const login = grok().oauth.login(callbacks);
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS - 1);
+    expect(fetch).toHaveBeenCalledTimes(DEVICE_REQUESTS);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetch).toHaveBeenCalledTimes(DEVICE_REQUESTS + 1);
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS);
+    expect(fetch).toHaveBeenCalledTimes(DEVICE_REQUESTS + 2);
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS + SLOW_DOWN_STEP_MS - 1);
+    expect(fetch).toHaveBeenCalledTimes(DEVICE_REQUESTS + 2);
+    await vi.advanceTimersByTimeAsync(1);
     const creds = await login;
     expect(deviceCodes()).toStrictEqual([{ userCode: 'ABCD-1234', verificationUri: DEVICE_URL_COMPLETE, openBrowserOnConfirm: true, intervalSeconds: 1, expiresInSeconds: CODE_LIFETIME_SECONDS }]);
     expect(creds).toStrictEqual({ access: 'acc', refresh: 'ref', expires: Date.now() + TOKEN_LIFETIME_SECONDS * MS_PER_SECOND });

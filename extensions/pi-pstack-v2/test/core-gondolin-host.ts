@@ -21,22 +21,33 @@ type Command = { description: string; handler: (args: string, ctx: unknown) => P
 
 const notFound = (guestPath: string) => Promise.reject(new Error(`ENOENT: ${guestPath}`));
 
-/** An in-memory guest filesystem. Keys of `tree` are workspace-relative, or absolute for files elsewhere in the guest. */
+/**
+ * An in-memory guest filesystem. Keys of `tree` are workspace-relative, or absolute for files elsewhere in the guest.
+ * Like a real filesystem, a file can only be written inside a folder that exists, and a write is visible to later reads.
+ */
 function fakeFs(tree: Readonly<Record<string, string>>, unreadable: readonly string[]) {
-  const files = new Map(Object.entries(tree).map(([name, content]) => [name.startsWith(SEP) ? name : path.posix.join(GUEST, name), content]));
-  const isDirectory = (guestPath: string) => !files.has(guestPath) && (guestPath === GUEST || [...files.keys()].some((file) => file.startsWith(`${guestPath}${SEP}`)));
+  let files = new Map(Object.entries(tree).map(([name, content]) => [name.startsWith(SEP) ? name : path.posix.join(GUEST, name), content]));
+  let folders: ReadonlySet<string> = new Set();
+  const isDirectory = (guestPath: string) => !files.has(guestPath) && (guestPath === GUEST || folders.has(guestPath) || [...files.keys()].some((file) => file.startsWith(`${guestPath}${SEP}`)));
   const exists = (guestPath: string) => files.has(guestPath) || isDirectory(guestPath);
   return {
     stat: async (guestPath: string) => (exists(guestPath) ? { isDirectory: () => isDirectory(guestPath) } : notFound(guestPath)),
-    listDir: async (guestPath: string) => [...new Set([...files.keys()].filter((file) => file.startsWith(`${guestPath}${SEP}`)).map((file) => file.slice(guestPath.length + 1).split(SEP)[0] ?? ''))],
+    listDir: async (guestPath: string) => [...new Set([...files.keys(), ...folders].filter((file) => file.startsWith(`${guestPath}${SEP}`)).map((file) => file.slice(guestPath.length + 1).split(SEP)[0] ?? ''))],
     readFile: async (guestPath: string, options?: { encoding?: string }) => {
       const content = files.get(guestPath);
       if (content === undefined || unreadable.includes(guestPath)) return notFound(guestPath);
       return options?.encoding ? content : Buffer.from(content);
     },
     access: async (guestPath: string) => (exists(guestPath) ? undefined : notFound(guestPath)),
-    writeFile: vi.fn(async (_guestPath: string, _content: string, _options: unknown) => undefined),
-    mkdir: vi.fn(async (_guestPath: string, _options: unknown) => undefined),
+    writeFile: async (guestPath: string, content: string, _options: unknown) => {
+      if (!isDirectory(path.posix.dirname(guestPath))) return notFound(guestPath);
+      files = new Map([...files, [guestPath, content]]);
+      return undefined;
+    },
+    mkdir: async (guestPath: string, _options: unknown) => {
+      folders = new Set([...folders, guestPath]);
+      return undefined;
+    },
   };
 }
 

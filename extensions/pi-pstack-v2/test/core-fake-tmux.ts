@@ -10,13 +10,16 @@ const PATH_ENV = 'PATH';
 
 /**
  * A stand-in for the tmux binary. Each session runs its command as a plain background process, so the job wrapper still
- * runs for real. It keeps one pid file and one pane file per session under $FAKE_TMUX_STATE. Like tmux, kill-session
+ * runs for real. Each tmux server is the socket path it was given, relative to where tmux ran. It keeps one pid file and one pane file per session under $FAKE_TMUX_STATE. Like tmux, kill-session
  * hangs the session up, has-session fails once the session's process is gone, and send-keys C-c interrupts it.
  */
 const SHIM = `#!/bin/sh
 state="\${${STATE_ENV}:?}"
 sock=""
-if [ "$1" = "-S" ]; then sock=$(basename "$2"); shift 2; fi
+if [ "$1" = "-S" ]; then
+  sock="$(cd "$(dirname "$2")" && pwd -P | tr / _)_$(basename "$2")"
+  shift 2
+fi
 dir="$state/$sock"
 mkdir -p "$dir"
 sub="$1"; shift

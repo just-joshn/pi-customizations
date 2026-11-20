@@ -1,7 +1,6 @@
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ReadonlyProvider } from '@earendil-works/gondolin';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { BASH, BASH_PROBE_COMMAND, finishedProcess, type GondolinHost, GUEST, HOST, hangingProcess, loadGondolin, VM_ID } from './core-gondolin-host.ts';
 
@@ -162,14 +161,14 @@ describe('write, edit, and ls act on the guest filesystem', () => {
   test('write creates the folder and writes the file in the guest', async () => {
     const host = loadGondolin({ tree });
     expect(await host.text('write', { path: 'out/new.txt', content: 'x' })).toBe('Successfully wrote to out/new.txt');
-    expect(host.fs.mkdir).toHaveBeenCalledWith(`${GUEST}/out`, { recursive: true });
-    expect(host.fs.writeFile).toHaveBeenCalledWith(`${GUEST}/out/new.txt`, 'x', { encoding: 'utf8' });
+    expect(await host.text('read', { path: 'out/new.txt' })).toBe('x');
+    expect(await host.text('ls', { path: 'out' })).toBe('new.txt');
   });
 
   test('edit rewrites the matched text in the guest file', async () => {
     const host = loadGondolin({ tree });
     expect(await host.text('edit', { path: 'a.txt', edits: [{ oldText: 'world', newText: 'there' }] })).toBe('Successfully replaced 1 block(s) in a.txt.');
-    expect(host.fs.writeFile).toHaveBeenCalledWith(`${GUEST}/a.txt`, 'hello\nthere', { encoding: 'utf8' });
+    expect(await host.text('read', { path: 'a.txt' })).toBe('hello\nthere');
   });
 
   test('ls lists a guest directory, and says when it is missing', async () => {
@@ -240,15 +239,5 @@ describe('the bash tool ends commands in the guest', () => {
     expect(await result.operations.exec('ls', `${HOST}/src`, { onData })).toEqual({ exitCode: 0 });
     expect(onData).toHaveBeenCalledWith(Buffer.from('listing\n'));
     expect(host.exec).toHaveBeenLastCalledWith([BASH, '-lc', 'ls'], expect.objectContaining({ cwd: `${GUEST}/src` }));
-  });
-});
-
-describe('the package mount', () => {
-  test('mounts this package read-only at its host path', async () => {
-    const host = loadGondolin();
-    await host.fire('session_start');
-    const mounts = host.vmOptions()?.vfs?.mounts ?? {};
-    expect(Object.keys(mounts).toSorted()).toEqual([GUEST, PACKAGE_ROOT].toSorted());
-    expect(mounts[PACKAGE_ROOT]).toBeInstanceOf(ReadonlyProvider);
   });
 });

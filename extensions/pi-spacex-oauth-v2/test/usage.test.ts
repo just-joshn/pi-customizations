@@ -11,7 +11,7 @@ const CREDITS_USED = 42;
 const SIGN_IN_PROMPT = 'Sign in with /login (Grok Build or Cursor) to see usage.';
 const rateHeaders = { 'x-ratelimit-limit-tokens': '53000000', 'x-ratelimit-remaining-tokens': '52000000', 'x-ratelimit-limit-requests': '8300', 'x-ratelimit-remaining-requests': '8299' };
 const GROK_BILLING_URL = 'https://cli-chat-proxy.grok.com/v1/billing';
-const CURSOR_ACCOUNT_LINE = /^Cursor: signed in as me@example\.com\. See cursor\.com\/dashboard\/usage for plan usage\.\nGrok Build credits used: 42, period ends/;
+const CURSOR_ACCOUNT_LINE = /^Cursor: signed in as me@example\.com\. See cursor\.com\/dashboard\/usage for plan usage\.\nGrok Build credits used: 42, period ends Sat, Nov 28, 12:00\sAM/;
 const ACCOUNT_BILLING_AND_RATE_LIMIT_LINES = 3;
 const RATE_LIMIT_LINE = 'Grok Build rate limit: 8299/8300 requests, 52.0M/53.0M tokens left';
 
@@ -40,10 +40,14 @@ async function usage(options: Parameters<typeof makeContext>[0], loaded = loadEx
 }
 
 beforeEach(() => {
+  vi.stubEnv('TZ', 'UTC');
   sdk.reset();
   fakeSdk.Cursor.me.mockResolvedValue({ apiKeyName: 'Pi', userEmail: 'me@example.com', createdAt: '2026-11-01' });
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
 describe('the spacex-usage command', () => {
   test('asks the user to sign in when no subscription is connected', async () => {

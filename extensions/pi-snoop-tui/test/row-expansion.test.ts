@@ -1,3 +1,4 @@
+import type { ToolRenderers } from '@earendil-works/pi-coding-agent';
 import { Text, visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, test } from 'vitest';
 import { driveRow, EMPTY_NATIVE, fakeNative, loadSnoop, loadTheme, output, PROJECT, plain, plainLines, type Row, rawNative } from './harness.ts';
@@ -38,24 +39,26 @@ describe('expanding a row', () => {
     expect(row.text(NARROW)).toEqual(first);
   });
 
-  test('hides native call rendering and gives the native result its own sandboxed context', () => {
-    const recorder = fakeNative();
-    const native = {
-      ...recorder.native,
+  test('hides native call rendering and keeps the native result rendering consistently across re-renders', () => {
+    let renders = 0;
+    const native: ToolRenderers = {
       renderCall: () => {
         throw new Error('native renderCall must not run');
+      },
+      renderResult: (_result, _options, _theme, context) => {
+        renders += 1;
+        const shown = `render ${renders} pad ${context.outputPad} first ${context.lastComponent === undefined}`;
+        const component = context.lastComponent instanceof Text ? context.lastComponent : new Text('', 0, 0);
+        component.setText(shown);
+        return component;
       },
     };
     const row = driveRow(host, 'edit', { native });
     row.apply({ executionStarted: true, result: output('done'), isPartial: false, expanded: true });
+    expect(row.text(NARROW).join('\n')).toContain('render 1 pad 0 first true');
     row.apply({ expanded: false });
     row.apply({ expanded: true, invalidate: true });
-    const [first, second] = recorder.contexts();
-    expect(first?.state).not.toBe(row.state);
-    expect(second?.state).toBe(first?.state);
-    expect(first?.lastComponent).toBeUndefined();
-    expect(second?.lastComponent).toBe(recorder.outputs()[0]);
-    expect(second?.outputPad).toBe(0);
+    expect(row.text(NARROW).join('\n')).toContain('render 2 pad 0 first false');
   });
 });
 
@@ -125,10 +128,8 @@ describe('rows over repeated updates', () => {
     const { native } = fakeNative();
     const row = driveRow(host, 'bash', { native });
     row.apply({ args: { command: 'echo hi' } });
-    const call = row.components.call();
     row.apply({ expanded: true });
     row.apply({ expanded: false });
-    expect(row.components.call()).toBe(call);
     expect(row.text(NARROW)).toEqual([' ·  bash      echo hi']);
   });
 

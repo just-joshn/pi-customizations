@@ -106,6 +106,7 @@ export function loadPstack(world: World, session: SessionOptions = {}, extension
     cwd: world.cwd,
     sessionManager: { getSessionId: () => sessionId, getSessionFile: () => session.sessionFile, getBranch: pi.branch },
     isIdle: () => true,
+    isProjectTrusted: () => true,
     hasPendingMessages: () => false,
     ...overrides,
   });

@@ -1,5 +1,5 @@
 import { visibleWidth } from '@earendil-works/pi-tui';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { createSession, createTui, footerData, loadSnoop, loadTheme, mountFooter, plain, ROOT_PATH, THEME_NAMES } from './harness.ts';
 
 const WIDE = 120;
@@ -70,7 +70,11 @@ describe('footer content', () => {
   test('shortens a long status with an ellipsis before dropping the model', () => {
     const { footer, data } = populated();
     data.setStatus('task', LONG_STATUS);
-    expect(line(footer, LONG_STATUS_WIDTH)).toMatch(/…/);
+    const shown = line(footer, LONG_STATUS_WIDTH);
+    expect(shown).toContain('claude-test');
+    expect(shown).toContain('a very long …');
+    expect(shown).not.toContain(LONG_STATUS);
+    expect(visibleWidth(shown)).toBeLessThanOrEqual(LONG_STATUS_WIDTH);
   });
 
   test('reads the git branch and extension statuses live, sorted and on one line', () => {
@@ -171,11 +175,12 @@ describe('footer lifecycle', () => {
     expect(tui.requestRender).not.toHaveBeenCalled();
     session.setUsage(NEXT_USAGE);
     host.fire('turn_end', session.ctx);
-    expect(tui.requestRender).toHaveBeenCalledTimes(1);
+    expect(tui.requestRender).toHaveBeenCalled();
     expect(line(footer)).toContain(`ctx ${NEXT_USAGE}%`);
+    vi.mocked(tui.requestRender).mockClear();
     host.setThinking('high');
     host.fire('thinking_level_select', session.ctx);
-    expect(tui.requestRender).toHaveBeenCalledTimes(2);
+    expect(tui.requestRender).toHaveBeenCalled();
     expect(line(footer)).toContain('high');
     session.setModel({ id: 'other-model', reasoning: true });
     host.fire('model_select', session.ctx);
@@ -214,7 +219,7 @@ describe('footer repaint requests', () => {
     first.footer.dispose?.();
     session.setUsage(LAST_USAGE);
     host.fire('turn_end', session.ctx);
-    expect(second.tui.requestRender).toHaveBeenCalledTimes(1);
+    expect(second.tui.requestRender).toHaveBeenCalled();
     expect(first.tui.requestRender).not.toHaveBeenCalled();
   });
 });

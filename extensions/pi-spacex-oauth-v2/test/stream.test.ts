@@ -1,3 +1,5 @@
+import { readdirSync, statSync } from 'node:fs';
+
 import { AuthenticationError, CursorSdkError, IntegrationNotConnectedError } from '@cursor/sdk';
 import type { Message, ToolResultMessage } from '@earendil-works/pi-ai';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -11,7 +13,6 @@ const IMAGE_RESULT_TIMESTAMP = 3;
 const BATCH_WAIT_MS = 30;
 const MS_PER_MINUTE = 60_000;
 const TOOL_WAIT_MINUTES = 30;
-const SETTLE_MS = 5;
 const AGENTS_AFTER_EDIT = 2;
 const INTEGRATIONS_URL = 'https://cursor.com/dashboard/integrations';
 
@@ -45,7 +46,10 @@ describe('a plain reply', () => {
     await ask([system('You are Pi.'), user('hi')]);
     const [agent] = sdk.agents;
     expect(agent?.options).toMatchObject({ apiKey: 'key', model: { id: 'composer-2.5', params: [{ id: 'fast', value: 'true' }] }, tools: ['mcp'] });
-    expect(agent?.options.local?.cwd).toContain('pi-spacex-cursor');
+    const cwd = agent?.options.local?.cwd ?? '';
+    expect(cwd).not.toBe(process.cwd());
+    expect(statSync(cwd).isDirectory()).toBe(true);
+    expect(readdirSync(cwd)).toStrictEqual([]);
     expect(agent?.sends[0]?.message).toStrictEqual({ text: '<system_prompt>\nYou are Pi.\n</system_prompt>\n\nhi' });
     expect(Object.keys(agent?.sends[0]?.options?.local?.customTools ?? {})).toStrictEqual(['read', 'ls']);
   });
@@ -113,17 +117,20 @@ describe('Pi tool calls: round trips', () => {
 describe('Pi tool calls: backlog, timeout, and replay', () => {
   test('events that arrive while Pi runs the tool are replayed into the next turn', async () => {
     let afterPark: () => void = () => undefined;
+    let lateEmitted: () => void = () => undefined;
+    const lateEvent = new Promise<void>((resolve) => (lateEmitted = resolve));
     sdk.script(async ({ tools, emit }) => {
       const pending = call(tools, 'read', {});
       await new Promise<void>((resolve) => (afterPark = resolve));
       emit(sdkText('late'));
+      lateEmitted();
       await pending;
       return { status: 'finished' };
     });
     const history = [system('backlog'), user('go')];
     const first = await ask(history);
     afterPark();
-    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    await lateEvent;
     const second = await ask([...history, first.message, toolResult(toolCalls(first.message)[0]?.id ?? '', 'ok')]);
     expect(second.message.content).toStrictEqual([{ type: 'text', text: 'late' }]);
   });
@@ -227,6 +234,7 @@ describe('failures: errors', () => {
 
 describe('failures: aborts and create errors', () => {
   test('aborting the request cancels the Cursor run', async () => {
+    vi.useFakeTimers();
     const controller = new AbortController();
     sdk.script(async ({ emit, cancelled }) => {
       emit(sdkText('working'));
@@ -234,7 +242,9 @@ describe('failures: aborts and create errors', () => {
       await cancelled;
       return { status: 'cancelled' };
     });
-    const { message } = await ask([system('abort'), user('hi')], { apiKey: 'key', signal: controller.signal });
+    const answer = ask([system('abort'), user('hi')], { apiKey: 'key', signal: controller.signal });
+    await vi.advanceTimersByTimeAsync(1);
+    const { message } = await answer;
     expect(message).toMatchObject({ stopReason: 'aborted', errorMessage: 'Cursor run was cancelled' });
     expect(sdk.agents[0]?.runs[0]?.cancel).toHaveBeenCalled();
   });

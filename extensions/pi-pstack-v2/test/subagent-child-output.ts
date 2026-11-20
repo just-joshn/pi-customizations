@@ -1,6 +1,6 @@
 /** What a child Pi prints in `--mode json`, and scripts for the fake tmux that print it. */
 import { expect, vi } from 'vitest';
-import { type ChildScript, type FakeChild, fakeTmux } from './subagent-fake-tmux.ts';
+import { type ChildScript, type FakeChild, fakePi } from './subagent-fake-pi.ts';
 
 const CLEAN_EXIT = 0;
 const TOKENS = 1;
@@ -62,8 +62,20 @@ export const byTask =
   (child) =>
     (scripts[child.task] ?? fallback)(child);
 
+/** Real processes start a moment after the tool call, and a loaded machine makes that moment longer than vi.waitFor's default. */
+export const CHILD_WAIT_MS = 10_000;
+
+/** A test that runs several real children needs more than vitest's 5 seconds when the machine is busy. */
+export const SUBAGENT_TEST_TIMEOUT_MS = 30_000;
+
 /** Waits until `count` children have started. A child starts a moment after the tool call, once its prompt file is written. */
 export const startedChildren = async (count: number): Promise<readonly FakeChild[]> => {
-  await vi.waitFor(() => expect(fakeTmux.children()).toHaveLength(count));
-  return fakeTmux.children();
+  await vi.waitFor(() => expect(fakePi.children()).toHaveLength(count), CHILD_WAIT_MS);
+  return fakePi.children();
+};
+
+/** Waits until a child has started for each task, and returns them in the order of the tasks, whichever started first. */
+export const startedByTask = async (...tasks: string[]): Promise<readonly (FakeChild | undefined)[]> => {
+  const children = await startedChildren(tasks.length);
+  return tasks.map((task) => children.find((child) => child.task === task));
 };

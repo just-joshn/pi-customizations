@@ -32,6 +32,7 @@ describe('refreshing a stored login', () => {
     const refreshed = await result;
     expect(refreshed).toMatchObject({ type: 'oauth', access: 'access-2', projectId: 'proj-1' });
     expect(refreshed.expires).toBeGreaterThanOrEqual(before + SHORT_EXPIRES_IN_SECONDS * MS_PER_SECOND);
+    expect(refreshed.expires).toBeLessThanOrEqual(Date.now() + SHORT_EXPIRES_IN_SECONDS * MS_PER_SECOND);
     const request = google.requestsTo(ROUTE_TOKEN)[0];
     expect(request?.url).toBe(TOKEN_URL);
     expect(request?.form?.get('grant_type')).toBe('refresh_token');

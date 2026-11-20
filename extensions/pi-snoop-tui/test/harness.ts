@@ -25,7 +25,6 @@ import {
 } from '@earendil-works/pi-coding-agent';
 import { type Component, type EditorTheme, Text, type TUI } from '@earendil-works/pi-tui';
 import { vi } from 'vitest';
-import { z } from 'zod';
 import chrome from '../src/chrome.ts';
 import footer from '../src/footer.ts';
 import toolRows from '../src/tool-rows.ts';
@@ -251,12 +250,6 @@ interface RowInputs {
 }
 export const PROJECT = '/project';
 export const ROOT_PATH = '/';
-const HomeEnv = z.object({ HOME: z.string().optional(), USERPROFILE: z.string().optional() });
-/** The home directory Pi's tool rows abbreviate with a tilde, if the machine has one. */
-export function homeDirectory(): string | undefined {
-  const env = HomeEnv.parse(process.env);
-  return env.HOME ?? env.USERPROFILE;
-}
 const KEY_TEXT = 'ctrl+o';
 function rowContext(inputs: RowInputs, state: object, opts: RowOptions | undefined, lastComponent: Component | undefined): Context {
   return {
@@ -300,8 +293,6 @@ export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {
   const inputs = cell<RowInputs>({ args: {}, started: false, partial: true, expanded: false, result: undefined });
   return {
     renderers,
-    state,
-    components: { call: () => call.read(), result: () => result.read() },
     apply(event: RowEvent): void {
       if (event.invalidate) {
         call.read()?.invalidate();
@@ -325,19 +316,10 @@ export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {
 }
 export type Row = ReturnType<typeof driveRow>;
 
-/** A native renderer that draws `lines` in the result slot and records the context Pi passes to it. */
+/** A native renderer that draws `lines` in the result slot. */
 export function fakeNative(lines: readonly string[] = ['NATIVE 漢字 🙂']) {
-  const contexts = cell<readonly Context[]>([]);
-  const outputs = cell<readonly Component[]>([]);
-  const native: ToolRenderers = {
-    renderResult: (_result, _options, _theme, context) => {
-      const child = new Text(lines.join('\n'), 0, 0);
-      contexts.write([...contexts.read(), context]);
-      outputs.write([...outputs.read(), child]);
-      return child;
-    },
-  };
-  return { native, contexts: () => contexts.read(), outputs: () => outputs.read() };
+  const native: ToolRenderers = { renderResult: () => new Text(lines.join('\n'), 0, 0) };
+  return { native };
 }
 /** A native result renderer that returns the raw lines it is given, with no trimming of its own. */
 export function rawNative(lines: readonly string[]): ToolRenderers {

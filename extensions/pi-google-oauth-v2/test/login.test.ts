@@ -152,8 +152,11 @@ describe('sign-in failures', () => {
 
   test('requires a refresh token and stores nothing', async () => {
     const routes = { [ROUTE_TOKEN]: () => json({ access_token: 'access-new', expires_in: EXPIRES_IN_SECONDS }) };
-    const login = await signInByPaste({ routes });
-    await expect(login.result).rejects.toThrow('Google returned no refresh token; run /login again');
+    stubProjectEnv();
+    const session = await startSession({ credential: undefined, routes: { ...healthyGoogle, ...routes } });
+    const signIn = session.models.login(PROVIDER_ID, 'oauth', { signal: new AbortController().signal, notify: () => undefined, prompt: async () => 'pasted-code' });
+    await expect(signIn).rejects.toThrow('Google returned no refresh token; run /login again');
+    await expect(session.credentials.read(PROVIDER_ID)).resolves.toBeUndefined();
   });
 
   test('reports Google token errors by code and description only', async () => {

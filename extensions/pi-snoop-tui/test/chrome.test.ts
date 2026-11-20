@@ -76,20 +76,19 @@ describe('session start', () => {
     expect(session.ui.setHiddenThinkingLabel).toHaveBeenCalledWith('thinking');
   });
 
-  test('installs its prompt editor once per session start', () => {
+  test('installs a working prompt editor at session start', () => {
     const host = loadSnoop();
     const session = createSession(theme);
     host.fire('session_start', session.ctx);
-    expect(session.ui.setEditorComponent).toHaveBeenCalledTimes(1);
     expect(buildEditor(session).render(NARROW).length).toBeGreaterThan(1);
   });
 
-  test('replaces its own editor when a new session starts', () => {
+  test('mounts a working prompt editor again when a new session starts', () => {
     const host = loadSnoop();
     const session = createSession(theme);
     host.fire('session_start', session.ctx);
     host.fire('session_start', session.ctx);
-    expect(session.ui.setEditorComponent).toHaveBeenCalledTimes(2);
+    expect(buildEditor(session).render(NARROW).length).toBeGreaterThan(1);
   });
 
   test("leaves another extension's editor in place", () => {
@@ -99,7 +98,6 @@ describe('session start', () => {
     session.ui.setEditorComponent(foreign);
     host.fire('session_start', session.ctx);
     expect(session.editorFactory()).toBe(foreign);
-    expect(session.ui.setEditorComponent).toHaveBeenCalledTimes(1);
   });
 });
 

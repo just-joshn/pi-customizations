@@ -202,7 +202,7 @@ describe('tool call ids', () => {
     const id = `openai|call/${'x'.repeat(LONG_ID_REPEAT)}`;
     const body = await send([user('hi'), toolUse([call(id)]), toolResult(id, 'file')]);
     const [, callTurn, resultTurn] = body.request.contents;
-    const wireId = id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, WIRE_ID_LENGTH);
+    const wireId = `openai_call_${'x'.repeat(WIRE_ID_LENGTH - 'openai_call_'.length)}`;
     expect(wireId).toHaveLength(WIRE_ID_LENGTH);
     expect(callTurn?.parts[0]?.['functionCall']).toEqual({ id: wireId, name: 'read', args: { path: 'a.ts' } });
     expect(resultTurn?.parts[0]?.['functionResponse']).toEqual({ id: wireId, name: 'read', response: { output: 'file' } });

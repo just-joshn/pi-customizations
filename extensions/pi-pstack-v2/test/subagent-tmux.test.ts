@@ -3,39 +3,46 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { describe, expect, test, vi } from 'vitest';
-import { assistantLine, startedChildren } from './subagent-child-output.ts';
-import { fakeTmux } from './subagent-fake-tmux.ts';
+import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
+import { fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, type ToolResult, textOf, useWorkspace } from './subagent-host.ts';
 
-vi.mock('node:child_process', () => import('./subagent-fake-tmux.ts'));
-
 const workspace = useWorkspace();
-const RUN_VALUES = 4;
 const FAILED_EXIT = 2;
-const SOCKET_ARGS = 4;
 const USER_TMUX = '/tmp/user-tmux,1,0';
 const PANE = '%1';
+const RUN_DIR_PREFIX = 'pi-subagent-tmux-';
 
-const callScout = (signal?: AbortSignal, onUpdate?: (partial: ToolResult) => void) => loadSubagent().call({ agent: 'scout', task: 'look' }, makeCtx(workspace().project), signal, onUpdate);
-const newSession = () => fakeTmux.calls().find((call) => call.argv.includes('new-session'));
+type CallOptions = { task?: string; signal?: AbortSignal; onUpdate?: (partial: ToolResult) => void };
+const callScout = ({ task = 'look', signal, onUpdate }: CallOptions = {}) => loadSubagent().call({ agent: 'scout', task }, makeCtx(workspace().project), signal, onUpdate);
+/** The folders tmux runs left in the temp dir, which this test owns. */
+const runDirs = () => fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith(RUN_DIR_PREFIX));
 
 describe('the tmux session a subagent runs in', () => {
-  test('starts a detached session in the task directory, on a socket of its own', async () => {
-    await callScout();
-    const call = newSession();
-    expect(call?.command).toBe('tmux');
-    expect(call?.argv.slice(0, SOCKET_ARGS)).toEqual(['-S', 'tmux.sock', 'new-session', '-d']);
-    expect(call?.argv[call.argv.indexOf('-s') + 1]).toMatch(/^pi-subagent-\d+-/);
-    expect(call?.argv[call.argv.indexOf('-c') + 1]).toBe(workspace().project);
-    expect(path.dirname(call?.cwd ?? '')).toBe(os.tmpdir());
-    expect(path.basename(call?.cwd ?? '')).toMatch(/^pi-subagent-tmux-/);
+  test('runs the child in the task directory, with a run directory that lasts only while it runs', async () => {
+    fakePi.onChild(() => undefined);
+    const running = callScout();
+    const [child] = await startedChildren(1);
+    expect(child?.cwd).toBe(workspace().project);
+    expect(runDirs()).toHaveLength(1);
+    child?.exit(0);
+    await running;
+    expect(runDirs()).toEqual([]);
   });
 
-  test('gives every run its own tmux server and session', async () => {
-    await callScout();
-    await callScout();
-    const sessions = fakeTmux.calls().flatMap((call) => (call.argv.includes('new-session') ? [call.argv[call.argv.indexOf('-s') + 1], call.cwd] : []));
-    expect(new Set(sessions)).toHaveProperty('size', RUN_VALUES);
+  test('gives every run its own tmux server, so stopping one run leaves another running', async () => {
+    fakePi.onChild(() => undefined);
+    const controller = new AbortController();
+    const stopped = callScout({ task: 'stopped', signal: controller.signal });
+    const kept = callScout({ task: 'kept' });
+    const children = await startedChildren(2);
+    const [stoppedChild, keptChild] = ['stopped', 'kept'].map((task) => children.find((child) => child.task === task));
+    controller.abort();
+    await vi.waitFor(() => expect(stoppedChild?.state).toBe('gone'), CHILD_WAIT_MS);
+    keptChild?.stdout(`${assistantLine('still here')}\n`);
+    keptChild?.exit(0);
+    expect(textOf(await kept)).toBe('still here');
+    expect(textOf(await stopped)).toContain('aborted');
   });
 
   test("hands the child the dispatching Pi's environment and hides the user's tmux", async () => {
@@ -43,7 +50,7 @@ describe('the tmux session a subagent runs in', () => {
     vi.stubEnv('TMUX', USER_TMUX);
     vi.stubEnv('TMUX_PANE', PANE);
     await callScout();
-    const env: NodeJS.ProcessEnv = newSession()?.env ?? {};
+    const env: NodeJS.ProcessEnv = fakePi.children()[0]?.env ?? {};
     expect(env['PI_SUBAGENT_TEST_VAR']).toBe('from-parent');
     expect(env['PI_CODING_AGENT_DIR']).toBe(path.join(workspace().root, 'agent'));
     expect(env).not.toHaveProperty('TMUX');
@@ -52,36 +59,31 @@ describe('the tmux session a subagent runs in', () => {
 });
 
 describe('the tmux session a subagent runs in, cleanup and streaming', () => {
-  test('stops the tmux server and removes the run directory when the child finishes', async () => {
-    await callScout();
-    const runDir = newSession()?.cwd ?? '';
-    expect(fakeTmux.calls().some((call) => call.cwd === runDir && call.argv.includes('kill-server'))).toBe(true);
-    expect(fs.existsSync(runDir)).toBe(false);
-  });
-
   test('removes the run directory when tmux cannot start', async () => {
-    fakeTmux.failToStart(new Error('no tmux'));
-    await callScout();
-    expect(fs.existsSync(newSession()?.cwd ?? '')).toBe(false);
+    fakePi.failToStart();
+    expect(textOf(await callScout())).toContain('Failed to spawn subagent');
+    expect(runDirs()).toEqual([]);
   });
 
   test('streams output to the caller while the child is still running', async () => {
-    fakeTmux.onChild(() => undefined);
+    fakePi.onChild(() => undefined);
     let seen: readonly string[] = [];
-    const running = callScout(undefined, (partial) => {
-      seen = [...seen, partial.content[0]?.text ?? ''];
+    const running = callScout({
+      onUpdate: (partial) => {
+        seen = [...seen, partial.content[0]?.text ?? ''];
+      },
     });
     const [child] = await startedChildren(1);
     child?.stdout(`${assistantLine('partway')}\n`);
     child?.stderr('warming up');
-    await vi.waitFor(() => expect(seen).toContain('partway'));
+    await vi.waitFor(() => expect(seen).toContain('partway'), CHILD_WAIT_MS);
     expect(child?.state).toBe('running');
     child?.exit(0);
     expect(textOf(await running)).toBe('partway');
   });
 
   test('keeps the child stderr in the result when the child stays silent otherwise', async () => {
-    fakeTmux.onChild((child) => {
+    fakePi.onChild((child) => {
       child.stderr('first ');
       child.stderr('second');
       child.exit(FAILED_EXIT);

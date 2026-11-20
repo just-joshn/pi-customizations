@@ -1,6 +1,12 @@
-import { describe, expect, test } from 'vitest';
-import { driveRow, homeDirectory, loadSnoop, output, PROJECT, piNative } from './harness.ts';
+import { describe, expect, test, vi } from 'vitest';
+import { driveRow, loadSnoop, output, PROJECT, piNative } from './harness.ts';
 
+// The tool rows read the home directory when Pi loads them, so it is set before the imports run.
+const HOME = vi.hoisted(() => {
+  const home = '/home/tester';
+  vi.stubEnv('HOME', home);
+  return home;
+});
 const host = loadSnoop();
 const WIDE = 100;
 const NARROW = 40;
@@ -64,9 +70,7 @@ describe('one-line rows for built-in tools', () => {
   });
 
   test('a path under the working directory shows relative and one under the home directory shows with a tilde', () => {
-    const home = homeDirectory();
-    if (!home) return;
-    expect(header(finished('read', { path: `${home}/notes.md` }, output('a')))).toMatch(/read {6}~\/notes\.md/);
+    expect(header(finished('read', { path: `${HOME}/notes.md` }, output('a')))).toMatch(/read {6}~\/notes\.md/);
     expect(header(finished('read', { path: `${PROJECT}-other/x.ts` }, output('a')))).toContain(`${PROJECT}-other/x.ts`);
   });
 

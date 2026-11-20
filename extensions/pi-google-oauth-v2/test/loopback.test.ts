@@ -1,11 +1,21 @@
+import { setImmediate } from 'node:timers/promises';
+
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { HTTP_BAD_REQUEST, HTTP_OK } from './constants.ts';
 import { AUTH_CODE, startLogin, waitsForAbort } from './login-driver.ts';
 
 const HTTP_NOT_FOUND = 404;
 const FAVICON_PATH = '/favicon.ico';
-const PENDING = Symbol('pending');
-const settled = (promise: Promise<unknown>) => Promise.race([promise.then(() => 'settled'), Promise.resolve(PENDING)]);
+/** True when the promise resolved or rejected before the event loop next turned over. */
+async function hasSettled(promise: Promise<unknown>): Promise<boolean> {
+  let done = false;
+  const markDone = () => {
+    done = true;
+  };
+  promise.then(markDone, markDone);
+  await setImmediate();
+  return done;
+}
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -26,7 +36,7 @@ describe('the browser callback listener', () => {
     const login = await startLogin(waitsForAbort);
     const stray = await fetch(`${login.redirectUri}?state=other&code=evil`);
     expect(stray.status).toBe(HTTP_BAD_REQUEST);
-    expect(await settled(login.result)).toBe(PENDING);
+    expect(await hasSettled(login.result)).toBe(false);
     await login.browserCallback('code=good');
     await expect(login.result).resolves.toMatchObject({ type: 'oauth' });
     expect(login.google.requests.flatMap((request) => request.form?.get('code') ?? [])).toEqual(['good']);
@@ -36,7 +46,7 @@ describe('the browser callback listener', () => {
     const login = await startLogin(waitsForAbort);
     const favicon = await fetch(new URL(FAVICON_PATH, login.redirectUri));
     expect(favicon.status).toBe(HTTP_NOT_FOUND);
-    expect(await settled(login.result)).toBe(PENDING);
+    expect(await hasSettled(login.result)).toBe(false);
     login.controller.abort();
     await expect(login.result).rejects.toThrow('cancelled');
   });

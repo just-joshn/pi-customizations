@@ -1,9 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
-import { assistantLine, startedChildren } from './subagent-child-output.ts';
-import { type FakeChild, fakeTmux } from './subagent-fake-tmux.ts';
+import { assistantLine, CHILD_WAIT_MS, startedChildren } from './subagent-child-output.ts';
+import { type FakeChild, fakePi } from './subagent-fake-pi.ts';
 import { loadSubagent, makeCtx, type Settled, textOf, useWorkspace } from './subagent-host.ts';
-
-vi.mock('node:child_process', () => import('./subagent-fake-tmux.ts'));
 
 const workspace = useWorkspace();
 const REPORT = 'the worker report';
@@ -14,7 +12,7 @@ const finish = (child: FakeChild | undefined): void => {
   child?.stdout(`${assistantLine(REPORT)}\n`);
   child?.exit(0);
 };
-const holdChildren = (): void => fakeTmux.onChild(() => undefined);
+const holdChildren = (): void => fakePi.onChild(() => undefined);
 const ctx = (mode: string) => makeCtx(workspace().project, { mode });
 
 describe('a call with wake in an interactive session', () => {
@@ -29,7 +27,7 @@ describe('a call with wake in an interactive session', () => {
     expect(subagent.sent()).toEqual([]);
     const [child] = await startedChildren(1);
     finish(child);
-    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1));
+    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     const [woken] = subagent.sent();
     expect(woken?.message).toMatchObject({ customType: 'pstack-subagent', display: true });
     expect(woken?.message.content).toBe(`scout finished\n\nsubagent job ${id} finished.\n\n${REPORT}`);
@@ -42,7 +40,7 @@ describe('a call with wake in an interactive session', () => {
     const id = jobIdOf(textOf(await subagent.call(WAKE, ctx('tui'))));
     await startedChildren(1);
     expect(textOf(await subagent.call({ stop: id }, ctx('tui')))).toBe(`Stopped subagent job ${id}.`);
-    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1));
+    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     expect(subagent.sent()[0]?.message.content).toMatch(/aborted/i);
     expect(textOf(await subagent.call({ stop: id }, ctx('tui')))).toBe(`No running subagent job ${id}.`);
   });
@@ -54,21 +52,21 @@ describe('a call with wake in an interactive session', () => {
 
 describe('a call with wake, when the job ends oddly', () => {
   test('a job whose workers crash wakes the session with the failure', async () => {
-    fakeTmux.onChild((child) => {
+    fakePi.onChild((child) => {
       child.stdout(JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [] } }));
       child.exit(0);
     });
     const subagent = loadSubagent();
     await subagent.call(WAKE, ctx('tui'));
-    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1));
+    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     expect(subagent.sent()[0]?.message.content).toMatch(/subagent job \S+ finished\.\n\nFailed: /);
   });
 
   test('a job that prints nothing wakes the session with (no output)', async () => {
-    fakeTmux.onChild((child) => child.exit(0));
+    fakePi.onChild((child) => child.exit(0));
     const subagent = loadSubagent();
     await subagent.call(WAKE, ctx('tui'));
-    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1));
+    await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     expect(subagent.sent()[0]?.message.content).toContain('(no output)');
   });
 
@@ -78,7 +76,7 @@ describe('a call with wake, when the job ends oddly', () => {
     await subagent.call(WAKE, ctx('tui'));
     const [child] = await startedChildren(1);
     await subagent.fire('session_shutdown', {}, ctx('tui'));
-    await vi.waitFor(() => expect(child?.state).toBe('gone'));
+    await vi.waitFor(() => expect(child?.state).toBe('gone'), CHILD_WAIT_MS);
   });
 });
 
