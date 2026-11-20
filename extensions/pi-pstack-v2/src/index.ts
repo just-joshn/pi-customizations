@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { z } from 'zod';
+import { resolveGondolinConfig, SHARED_BUILD_CACHE_FLAG } from './gondolin/config.ts';
+import { buildCacheEnv, ensureSharedBuildCacheDir, sharedBuildCacheHostDir } from './gondolin/shared-cache.ts';
+import { hostEnv } from './host-env.ts';
 import { claimWake, exitPath, type Job, type JobSpec, launch, list, newJobId, outputPath, read, stop, tail, tmuxSocket } from './jobs.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -306,6 +309,13 @@ function registerPromptHook(pi: ExtensionAPI, state: PstackState): void {
   });
 }
 
+/** Host jobs share the Gondolin build caches when they are on, so sandboxed and unsandboxed commands reuse each other's downloads. */
+function sharedCacheEnv(pi: ExtensionAPI, localCwd: string): Record<string, string> | undefined {
+  const flag = typeof pi.getFlag === 'function' ? pi.getFlag(SHARED_BUILD_CACHE_FLAG) : undefined;
+  const config = resolveGondolinConfig({ localCwd, agentDir: getAgentDir(), env: hostEnv(), flag });
+  return config.enableSharedBuildCache ? { ...buildCacheEnv(ensureSharedBuildCacheDir(sharedBuildCacheHostDir()), { join }) } : undefined;
+}
+
 function registerTmuxRun(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'tmux_run',
@@ -321,6 +331,7 @@ function registerTmuxRun(pi: ExtensionAPI): void {
       if (input.repeat && input.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
       const owner = ctx.sessionManager.getSessionId();
       const id = newJobId(input.name);
+      const env = sharedCacheEnv(pi, ctx.cwd);
       const spec: JobSpec = {
         id,
         name: input.name,
@@ -332,6 +343,7 @@ function registerTmuxRun(pi: ExtensionAPI): void {
         series: id,
         socket: tmuxSocket(owner),
         createdAt: new Date().toISOString(),
+        ...(env ? { env } : {}),
       };
       return text(`Started ${describe(launch(jobsRoot(), spec))}`);
     },
