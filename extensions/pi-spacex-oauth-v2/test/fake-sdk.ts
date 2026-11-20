@@ -2,8 +2,25 @@
 
 import type { AgentOptions, RunResult, RunStatus, SDKCustomTool, SDKMessage, SDKModel, SDKUserMessage, SendOptions } from '@cursor/sdk';
 import { type Mock, vi } from 'vitest';
-import { type Cell, createCell, patchCell } from '../src/cell.ts';
 import catalog from './fixtures/cursor-models.json' with { type: 'json' };
+
+/** A reassignable slot, so every change builds a new value. */
+interface Cell<T> {
+  readonly read: () => T;
+  readonly write: (next: T) => void;
+}
+
+function createCell<T>(initial: T): Cell<T> {
+  let value = initial;
+  return {
+    read: () => value,
+    write: (next) => {
+      value = next;
+    },
+  };
+}
+
+const patchCell = <T extends object>(cell: Cell<T>, changes: Partial<T>): void => cell.write({ ...cell.read(), ...changes });
 
 export interface RunIO {
   message: string | SDKUserMessage;
