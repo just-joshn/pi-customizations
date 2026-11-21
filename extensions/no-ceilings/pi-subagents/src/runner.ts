@@ -179,6 +179,10 @@ function handleSubagentEvent(agentId: string, event: AgentSessionEvent, store: S
   return progress;
 }
 
+function isExtensionProviderConfig(config: unknown): config is ProviderConfig {
+  return typeof config === 'object' && config !== null;
+}
+
 function createInheritedProvidersExtension(modelRegistry: ExtensionContext['modelRegistry']): ExtensionFactory {
   return (pi: ExtensionAPI): void => {
     const providerIds = modelRegistry.getRegisteredProviderIds?.() ?? [];
@@ -189,8 +193,8 @@ function createInheritedProvidersExtension(modelRegistry: ExtensionContext['mode
         continue;
       }
       const config = modelRegistry.getRegisteredProviderConfig?.(providerId);
-      if (config !== undefined) {
-        pi.registerProvider(providerId, config as ProviderConfig);
+      if (isExtensionProviderConfig(config)) {
+        pi.registerProvider(providerId, config);
       }
     }
   };

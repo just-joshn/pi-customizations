@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GoalState } from '../src/types.ts';
-import { createGoalsTestHarness, type GoalsTestHarness } from './harness.ts';
+import { createGoalsTestHarness, double, type GoalsTestHarness } from './harness.ts';
 
 const GOAL_ENTRY_TYPE = 'pi-goals:state';
 const GOAL_CONTINUATION_TYPE = 'pi-goals:continuation';
@@ -24,9 +24,10 @@ let activeHarness: GoalsTestHarness | undefined;
 
 afterEach(async () => {
   vi.useRealTimers();
-  if (activeHarness) {
-    await activeHarness.cleanup();
-    activeHarness = undefined;
+  const current = activeHarness;
+  activeHarness = undefined;
+  if (current) {
+    await current.cleanup();
   }
 });
 
@@ -123,7 +124,7 @@ describe('automatic continuation and auto-pause', () => {
     await h.emit('agent_start', { type: 'agent_start' });
     await h.emit('tool_execution_start', { type: 'tool_execution_start', toolCallId: 't1', toolName: 'bash', args: {} });
 
-    const settleResult = (await h.emit('agent_before_settle', h.buildBeforeSettleEvent())) as { readonly continue?: boolean; readonly entries?: readonly { readonly type: string; readonly customType?: string }[] };
+    const settleResult = double<{ readonly continue?: boolean; readonly entries?: readonly { readonly type: string; readonly customType?: string }[] }>(await h.emit('agent_before_settle', h.buildBeforeSettleEvent()));
     expect(settleResult.continue).toBe(true);
     expect(settleResult.entries?.some((e) => e.type === 'custom_message' && e.customType === GOAL_CONTINUATION_TYPE)).toBe(true);
     expect(h.renderMessage(GOAL_CONTINUATION_TYPE, { content: 'continue' }).join('\n')).toContain('**Continuing goal**');
@@ -135,11 +136,11 @@ describe('automatic continuation and auto-pause', () => {
 
     await h.callTool('create_goal', { objective: 'Keep monitoring' });
     await h.emit('agent_start', { type: 'agent_start' });
-    const first = (await h.emit('agent_before_settle', h.buildBeforeSettleEvent())) as { readonly continue?: boolean };
+    const first = double<{ readonly continue?: boolean }>(await h.emit('agent_before_settle', h.buildBeforeSettleEvent()));
     expect(first.continue).toBe(true);
 
     await h.emit('agent_start', { type: 'agent_start' });
-    const second = (await h.emit('agent_before_settle', h.buildBeforeSettleEvent())) as { readonly continue?: boolean };
+    const second = double<{ readonly continue?: boolean }>(await h.emit('agent_before_settle', h.buildBeforeSettleEvent()));
     expect(second.continue).toBe(false);
     expect(h.getStatuses()[GOAL_STATUS_KEY]).toMatch(/^Goal paused \(/);
   });
@@ -158,7 +159,7 @@ describe('pause-on-interrupt and continuation guards', () => {
     await h.emit('agent_settled', { type: 'agent_settled', aborted: true });
 
     expect(h.getStatuses()[GOAL_STATUS_KEY]).toBe('Goal paused (1m 5s)');
-    const lastPersisted = h.getEntries().at(-ONE)?.data as GoalState;
+    const lastPersisted = double<GoalState>(h.getEntries().at(-ONE)?.data);
     expect(lastPersisted.status).toBe('paused');
     expect(lastPersisted.activeDurationMs).toBe(SIXTY_FIVE_SECONDS_MS);
     expect(lastPersisted.lastAccruedAtMs).toBeUndefined();
@@ -185,7 +186,7 @@ describe('context injection, session persistence, and duration formatting', () =
     activeHarness = h;
 
     await h.callTool('create_goal', { objective: 'Optimize bundle size' });
-    const injected = (await h.emit('before_agent_start', { type: 'before_agent_start', messageType: 'user', prompt: 'hi' })) as { readonly message?: { readonly customType: string; readonly content: string; readonly display: boolean } };
+    const injected = double<{ readonly message?: { readonly customType: string; readonly content: string; readonly display: boolean } }>(await h.emit('before_agent_start', { type: 'before_agent_start', messageType: 'user', prompt: 'hi' }));
     expect(injected.message?.customType).toBe(GOAL_CONTEXT_TYPE);
     expect(injected.message?.display).toBe(false);
     expect(injected.message?.content).toContain('Optimize bundle size');
@@ -194,7 +195,7 @@ describe('context injection, session persistence, and duration formatting', () =
       { role: 'custom', customType: GOAL_CONTEXT_TYPE, content: 'stale', display: false, timestamp: BASE_TIME_MS },
       { role: 'user', content: 'keep me', timestamp: BASE_TIME_MS },
     ];
-    const filtered = (await h.emit('context', { type: 'context', messages })) as { readonly messages: readonly { readonly role: string }[] };
+    const filtered = double<{ readonly messages: readonly { readonly role: string }[] }>(await h.emit('context', { type: 'context', messages }));
     expect(filtered.messages).toHaveLength(ONE);
     expect(filtered.messages[ZERO]?.role).toBe('user');
   });
@@ -235,10 +236,10 @@ describe('interrogate regression tests', () => {
     await h.runCommand('goal', 'pause');
     await h.runCommand('goal', 'resume');
 
-    const sent = h.getSentMessages().at(-ONE)?.message as { readonly content: string; readonly details: { readonly continuationCount: number } };
+    const sent = double<{ readonly content: string; readonly details: { readonly continuationCount: number } }>(h.getSentMessages().at(-ONE)?.message);
     expect(sent.content).toContain('(continuation #1):');
     expect(sent.details.continuationCount).toBe(ONE);
-    expect((h.getEntries().at(-ONE)?.data as GoalState).continuationCount).toBe(ONE);
+    expect(double<GoalState>(h.getEntries().at(-ONE)?.data).continuationCount).toBe(ONE);
   });
 
   it('keeps footer status in sync with live above-editor widget as active time ticks', async () => {

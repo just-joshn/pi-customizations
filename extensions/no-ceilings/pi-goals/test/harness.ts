@@ -55,7 +55,7 @@ function isDouble<T>(_value: unknown): _value is T {
   return true;
 }
 
-function double<T>(value: unknown): T {
+export function double<T>(value: unknown): T {
   if (!isDouble<T>(value)) {
     throw new Error('unreachable: test double is always accepted');
   }
@@ -152,10 +152,10 @@ function renderSlotWidget(slot: WidgetSlot | undefined, theme: Theme, width: num
   if (!slot || slot.content === undefined) {
     return { lines: [], dispose: () => undefined };
   }
-  if (Array.isArray(slot.content)) {
+  if (typeof slot.content !== 'function') {
     return { lines: slot.content, dispose: () => undefined };
   }
-  const comp = (slot.content as WidgetFactory)(double<TUI>({ requestRender: () => undefined }), theme);
+  const comp = slot.content(double<TUI>({ requestRender: () => undefined }), theme);
   return { lines: comp.render(width), dispose: () => comp.dispose?.() };
 }
 
