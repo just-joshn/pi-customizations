@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
-import { createTestHarness, type TestHarness } from './harness.ts';
+import { createTestHarness, double, type TestHarness } from './harness.ts';
 
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
@@ -38,7 +38,7 @@ describe('Debug mode NDJSON ingest server', () => {
     await h.emit('session_start', {});
     await h.runCommand('debug');
 
-    const beforeStart = (await h.emit('before_agent_start', { messageType: 'user', prompt: 'Investigate crash' })) as { message?: { content: string } } | undefined;
+    const beforeStart = double<{ message?: { content: string } } | undefined>(await h.emit('before_agent_start', { messageType: 'user', prompt: 'Investigate crash' }));
     const promptText = beforeStart?.message?.content ?? '';
     expect(promptText).toContain('[DEBUG MODE ACTIVE]');
 

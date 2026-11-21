@@ -1,6 +1,6 @@
 import { Key } from '@earendil-works/pi-tui';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createTestHarness, type TestHarness } from './harness.ts';
+import { createTestHarness, double, type TestHarness } from './harness.ts';
 
 const ONE = 1;
 
@@ -48,11 +48,11 @@ describe('pi-modes cycling and guards', () => {
     await h.emit('session_start', {});
     await h.runCommand('ask');
 
-    const editBlock = (await h.emit('tool_call', { toolName: 'edit', toolCallId: 't1', input: { path: 'a.ts' } })) as { block?: boolean; reason?: string } | undefined;
+    const editBlock = double<{ block?: boolean; reason?: string } | undefined>(await h.emit('tool_call', { toolName: 'edit', toolCallId: 't1', input: { path: 'a.ts' } }));
     expect(editBlock?.block).toBe(true);
     expect(editBlock?.reason).toContain('Ask mode is read-only');
 
-    const rmBlock = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 't2', input: { command: 'rm -rf dist' } })) as { block?: boolean } | undefined;
+    const rmBlock = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 't2', input: { command: 'rm -rf dist' } }));
     expect(rmBlock?.block).toBe(true);
 
     const gitStatusAllow = await h.emit('tool_call', { toolName: 'bash', toolCallId: 't3', input: { command: 'git status' } });
@@ -104,13 +104,12 @@ describe('pi-modes flags, switch_mode tool, and persistence', () => {
     await h.emit('session_start', {});
     expect(h.getStatuses()['pi-modes']).toContain('Ask');
 
-    const filtered = (await h.emit('context', {
-      messages: [
-        { role: 'user', content: 'hello' },
-        { role: 'custom', customType: 'pi-modes-context', content: '[ASK MODE ACTIVE]' },
-        { role: 'user', content: '[PLAN MODE ACTIVE] old' },
-      ],
-    })) as { messages: readonly unknown[] };
+    const contextMessages = [
+      { role: 'user', content: 'hello' },
+      { role: 'custom', customType: 'pi-modes-context', content: '[ASK MODE ACTIVE]' },
+      { role: 'user', content: '[PLAN MODE ACTIVE] old' },
+    ];
+    const filtered = double<{ messages: readonly unknown[] }>(await h.emit('context', { messages: contextMessages }));
     expect(filtered.messages).toHaveLength(ONE);
   });
 });
@@ -121,13 +120,13 @@ describe('pi-modes regression guards', () => {
     await h.emit('session_start', {});
     await h.runCommand('ask');
 
-    const chained = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c1', input: { command: 'echo ok && node -e "process.exit(0)"' } })) as { block?: boolean } | undefined;
+    const chained = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c1', input: { command: 'echo ok && node -e "process.exit(0)"' } }));
     expect(chained?.block).toBe(true);
 
-    const subshell = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c2', input: { command: 'echo $(whoami)' } })) as { block?: boolean } | undefined;
+    const subshell = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c2', input: { command: 'echo $(whoami)' } }));
     expect(subshell?.block).toBe(true);
 
-    const findDelete = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c3', input: { command: 'find . -name "*.tmp" -delete' } })) as { block?: boolean } | undefined;
+    const findDelete = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c3', input: { command: 'find . -name "*.tmp" -delete' } }));
     expect(findDelete?.block).toBe(true);
 
     const safePipe = await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c4', input: { command: 'git status | head -n 5' } });
@@ -152,13 +151,13 @@ describe('pi-modes read-only shell escape guards', () => {
     await h.emit('session_start', {});
     await h.runCommand('ask');
 
-    const envExec = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e1', input: { command: 'env node -e "console.log(1)"' } })) as { block?: boolean } | undefined;
+    const envExec = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e1', input: { command: 'env node -e "console.log(1)"' } }));
     expect(envExec?.block).toBe(true);
 
-    const awkSys = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e2', input: { command: 'awk \'BEGIN { system("id") }\'' } })) as { block?: boolean } | undefined;
+    const awkSys = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e2', input: { command: 'awk \'BEGIN { system("id") }\'' } }));
     expect(awkSys?.block).toBe(true);
 
-    const sedWrite = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e3', input: { command: "sed -n '1w /tmp/out.txt' package.json" } })) as { block?: boolean } | undefined;
+    const sedWrite = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e3', input: { command: "sed -n '1w /tmp/out.txt' package.json" } }));
     expect(sedWrite?.block).toBe(true);
 
     expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e4', input: { command: 'env' } })).toBeUndefined();
@@ -173,16 +172,16 @@ describe('pi-modes read-only output-flag and process-substitution guards', () =>
     await h.emit('session_start', {});
     await h.runCommand('plan');
 
-    const sortOut = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f1', input: { command: 'sort -o /tmp/pwn.txt package.json' } })) as { block?: boolean } | undefined;
+    const sortOut = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f1', input: { command: 'sort -o /tmp/pwn.txt package.json' } }));
     expect(sortOut?.block).toBe(true);
 
-    const findWrite = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f2', input: { command: 'find . -fprint /tmp/pwn.txt' } })) as { block?: boolean } | undefined;
+    const findWrite = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f2', input: { command: 'find . -fprint /tmp/pwn.txt' } }));
     expect(findWrite?.block).toBe(true);
 
-    const gitOut = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f3', input: { command: 'git diff --output=/tmp/pwn.txt' } })) as { block?: boolean } | undefined;
+    const gitOut = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f3', input: { command: 'git diff --output=/tmp/pwn.txt' } }));
     expect(gitOut?.block).toBe(true);
 
-    const procSub = (await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f4', input: { command: 'cat <(node -e "console.log(1)")' } })) as { block?: boolean } | undefined;
+    const procSub = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f4', input: { command: 'cat <(node -e "console.log(1)")' } }));
     expect(procSub?.block).toBe(true);
 
     expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f5', input: { command: 'sort package.json' } })).toBeUndefined();

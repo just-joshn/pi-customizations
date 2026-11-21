@@ -105,11 +105,15 @@ async function askSingleSelectQuestion(ctx: ExtensionContext, promptTitle: strin
   return { questionId, selectedOptionIds: [picked.id], freeformText: '' };
 }
 
+function formatMultiLabels(displayOptions: readonly DisplayOption[], selectedIds: readonly string[]): string[] {
+  return [...displayOptions.map((opt) => `${selectedIds.includes(opt.id) ? '[x]' : '[ ]'} ${opt.label}`), DONE_MULTI_LABEL, SKIP_OPTION_LABEL];
+}
+
 async function askMultiSelectQuestion(ctx: ExtensionContext, promptTitle: string, questionId: string, prompt: string, displayOptions: readonly DisplayOption[]): Promise<QuestionAnswer | 'skipped'> {
   let selectedIds: readonly string[] = [];
   let freeformText = '';
   for (;;) {
-    const multiLabels = [...displayOptions.map((opt) => `${selectedIds.includes(opt.id) ? '[x]' : '[ ]'} ${opt.label}`), DONE_MULTI_LABEL, SKIP_OPTION_LABEL];
+    const multiLabels = formatMultiLabels(displayOptions, selectedIds);
     const choice = await ctx.ui.select(`${promptTitle} (multi-select)`, multiLabels);
     if (!choice || choice === SKIP_OPTION_LABEL) {
       return 'skipped';

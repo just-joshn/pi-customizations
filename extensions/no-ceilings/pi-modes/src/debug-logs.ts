@@ -7,14 +7,12 @@ import { MAX_PREVIEW_LINES, ONE, SIX, ZERO } from './types.ts';
 const PI_DIR_NAME = '.pi';
 const INVALID_SESSION_CHARS = /[^a-zA-Z0-9-]/g;
 
-const DebugLogRecordSchema = z
-  .object({
-    id: z.string().optional(),
-    timestamp: z.number().optional(),
-    message: z.string().optional(),
-    location: z.string().optional(),
-  })
-  .passthrough();
+const DebugLogRecordSchema = z.looseObject({
+  id: z.string().optional(),
+  timestamp: z.number().optional(),
+  message: z.string().optional(),
+  location: z.string().optional(),
+});
 
 export interface DebugLogPreviewLine {
   readonly key: string;

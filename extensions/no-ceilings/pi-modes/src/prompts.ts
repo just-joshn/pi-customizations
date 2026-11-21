@@ -76,14 +76,14 @@ function buildPlanExecutionPrompt(state: ModesRuntimeState): string | undefined 
 }
 
 export function buildModeContextMessage(state: ModesRuntimeState): string | undefined {
-  switch (state.mode) {
-    case 'ask':
-      return buildAskPrompt();
-    case 'plan':
-      return buildPlanPrompt(state.currentPlanUri);
-    case 'debug':
-      return buildDebugPrompt(state.debugConfig);
-    case 'agent':
-      return buildPlanExecutionPrompt(state);
+  if (state.mode === 'ask') {
+    return buildAskPrompt();
   }
+  if (state.mode === 'plan') {
+    return buildPlanPrompt(state.currentPlanUri);
+  }
+  if (state.mode === 'debug') {
+    return buildDebugPrompt(state.debugConfig);
+  }
+  return buildPlanExecutionPrompt(state);
 }

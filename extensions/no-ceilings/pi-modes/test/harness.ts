@@ -61,11 +61,22 @@ function createQueue<T>(initial: readonly T[]): () => T | undefined {
   };
 }
 
+function isDouble<T>(_value: unknown): _value is T {
+  return true;
+}
+
+export function double<T>(value: unknown): T {
+  if (!isDouble<T>(value)) {
+    throw new Error('unreachable: test double is always accepted');
+  }
+  return value;
+}
+
 function createFakeTheme(): ExtensionContext['ui']['theme'] {
-  return {
+  return double<ExtensionContext['ui']['theme']>({
     fg: (_token: string, text: string) => text,
     strikethrough: (text: string) => `~~${text}~~`,
-  } as unknown as ExtensionContext['ui']['theme'];
+  });
 }
 
 interface UiRecorder {
@@ -83,7 +94,7 @@ function createUiRecorder(options: HarnessOptions): UiRecorder {
   const nextInput = createQueue(options.inputResponses ?? []);
   const nextEditor = createQueue(options.editorResponses ?? []);
 
-  const ui = {
+  const ui = double<ExtensionContext['ui']>({
     theme: createFakeTheme(),
     setStatus: (key: string, value: string | undefined) => {
       statuses = { ...statuses, [key]: value };
@@ -97,7 +108,7 @@ function createUiRecorder(options: HarnessOptions): UiRecorder {
     select: async () => nextSelect(),
     input: async () => nextInput(),
     editor: async () => nextEditor(),
-  } as unknown as ExtensionContext['ui'];
+  });
 
   return { ui, getStatuses: () => statuses, getWidgets: () => widgets, getNotifications: () => notifications };
 }
@@ -125,7 +136,7 @@ function createApiRecorder(options: HarnessOptions): ApiRecorder {
   let listeners: Readonly<Record<string, readonly EventHandler[]>> = {};
   const flagValues: Readonly<Record<string, string | boolean>> = options.flags ?? {};
 
-  const pi = {
+  const pi = double<ExtensionAPI>({
     registerFlag: () => undefined,
     getFlag: (name: string) => flagValues[name],
     registerCommand: (name: string, cmd: RegisteredCommand) => {
@@ -153,7 +164,7 @@ function createApiRecorder(options: HarnessOptions): ApiRecorder {
     on: (eventName: string, handler: EventHandler) => {
       listeners = { ...listeners, [eventName]: [...(listeners[eventName] ?? []), handler] };
     },
-  } as unknown as ExtensionAPI;
+  });
 
   return {
     pi,
@@ -181,7 +192,7 @@ export function createTestHarness(options: HarnessOptions = {}): TestHarness {
   const uiRec = createUiRecorder(options);
   const apiRec = createApiRecorder(options);
 
-  const ctx = {
+  const ctx = double<ExtensionContext>({
     cwd,
     hasUI: options.hasUI ?? true,
     sessionManager: {
@@ -189,7 +200,7 @@ export function createTestHarness(options: HarnessOptions = {}): TestHarness {
       getEntries: () => [...(options.initialEntries ?? []), ...apiRec.getEntries().map((e) => ({ type: 'custom', customType: e.customType, data: e.data }))],
     },
     ui: uiRec.ui,
-  } as unknown as ExtensionContext;
+  });
 
   piModesExtension(apiRec.pi);
 

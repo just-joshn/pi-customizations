@@ -56,7 +56,8 @@ describe('Plan mode plan creation and execution', () => {
       plan: '# Auth Refactor\n\n1. Add refresh endpoint\n2. Wire client retry\n',
     });
 
-    const filePath = String(created.details?.['filePath'] ?? '');
+    const rawFilePath = created.details?.['filePath'];
+    const filePath = typeof rawFilePath === 'string' ? rawFilePath : '';
     expect(filePath.startsWith(plansDir)).toBe(true);
     expect(existsSync(filePath)).toBe(true);
     const raw = readFileSync(filePath, 'utf-8');

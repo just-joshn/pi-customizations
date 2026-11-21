@@ -170,13 +170,21 @@ async function startListeningServer(logDir: string, preferredPort: number | unde
   return { server, port: boundPort };
 }
 
+interface ServerSlot {
+  readonly server: Server | undefined;
+  readonly port: number;
+  readonly logDir: string | undefined;
+  readonly rememberedPort: number;
+}
+
 export function createDebugServerController(): DebugServerController {
   const expectedPath = `${INGEST_PREFIX}${randomUUID()}`;
-  let activeServer: Server | undefined;
-  let activePort = ZERO;
-  let activeLogDir: string | undefined;
-  let rememberedPort = ZERO;
+  let slot: ServerSlot = { server: undefined, port: ZERO, logDir: undefined, rememberedPort: ZERO };
   let writeQueue: Promise<void> = Promise.resolve();
+
+  const setSlot = (next: ServerSlot): void => {
+    slot = next;
+  };
 
   const enqueueAppend = (req: IncomingMessage, logPath: string): Promise<void> => {
     const task = writeQueue.then(
@@ -188,10 +196,8 @@ export function createDebugServerController(): DebugServerController {
   };
 
   const stop = async (): Promise<void> => {
-    const server = activeServer;
-    activeServer = undefined;
-    activePort = ZERO;
-    activeLogDir = undefined;
+    const server = slot.server;
+    setSlot({ server: undefined, port: ZERO, logDir: undefined, rememberedPort: slot.rememberedPort });
     if (!server) {
       return;
     }
@@ -202,25 +208,22 @@ export function createDebugServerController(): DebugServerController {
 
   const ensureStarted = async (workspaceDir: string, preferredPort?: number): Promise<void> => {
     const nextLogDir = join(workspaceDir, PI_DIR_NAME);
-    if (activeServer && activeLogDir === nextLogDir) {
+    if (slot.server && slot.logDir === nextLogDir) {
       return;
     }
-    if (activeServer) {
+    if (slot.server) {
       await stop();
     }
-    const targetPort = preferredPort ?? (rememberedPort > ZERO ? rememberedPort : undefined);
+    const targetPort = preferredPort ?? (slot.rememberedPort > ZERO ? slot.rememberedPort : undefined);
     const started = await startListeningServer(nextLogDir, targetPort, expectedPath, enqueueAppend);
-    activeServer = started.server;
-    activeLogDir = nextLogDir;
-    activePort = started.port;
-    rememberedPort = started.port;
+    setSlot({ server: started.server, port: started.port, logDir: nextLogDir, rememberedPort: started.port });
   };
 
   const getConfig = async (workspaceDir: string, conversationId: string, preferredPort?: number): Promise<DebugServerConfig> => {
     await ensureStarted(workspaceDir, preferredPort);
     const sessionId = deriveDebugSessionId(conversationId);
-    const logDir = activeLogDir ?? join(workspaceDir, PI_DIR_NAME);
-    return { serverEndpoint: `http://${LOOPBACK_HOST}:${activePort}${expectedPath}`, logPath: join(logDir, `debug-${sessionId}.log`), sessionId, port: activePort };
+    const logDir = slot.logDir ?? join(workspaceDir, PI_DIR_NAME);
+    return { serverEndpoint: `http://${LOOPBACK_HOST}:${slot.port}${expectedPath}`, logPath: join(logDir, `debug-${sessionId}.log`), sessionId, port: slot.port };
   };
 
   return { getConfig, stop };
