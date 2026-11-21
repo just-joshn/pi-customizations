@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-goals",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pi-native Long-Lived Goals (/goal) with create_goal and update_goal tools, automatic continuation across turns, pause-on-interrupt, live active duration status line, and session persistence.",
   "type": "module",
   "license": "MIT",

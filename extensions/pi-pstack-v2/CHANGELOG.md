@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3
+
+### Changed
+
+- Add `test:coverage` script to `package.json`, remove the retired `style-audit` script and README reference, and update `test/port.test.ts` comments to reference `.pi/rules/coding-style.md`.
+
 ## 0.3.2
 
 ### Changed
