@@ -136,9 +136,11 @@ describe('Grok Build device sign-in failures', () => {
     void login.then(
       () => {
         outcome = 'signed in';
+        return outcome;
       },
       (error: unknown) => {
         outcome = error instanceof Error ? error.message : 'rejected';
+        return outcome;
       },
     );
     await vi.advanceTimersByTimeAsync(POLL_INTERVAL_SECONDS * MS_PER_SECOND - 1);

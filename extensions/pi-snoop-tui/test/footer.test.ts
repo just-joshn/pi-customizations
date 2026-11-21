@@ -103,11 +103,11 @@ describe('footer shrinking', () => {
     const session = createSession(theme, kind === 'model' ? { model: { id: text, reasoning: true } } : {});
     const { footer, data } = mountFooter(loadSnoop(), session);
     if (kind === 'status') data.setStatus('task', text);
-    for (let width = 0; width < WIDE; width++) {
-      const shown = line(footer, width);
+    const fragments = Array.from({ length: WIDE }, (_, width) => line(footer, width)).filter((shown) => {
       const start = shown.indexOf(text.slice(0, HEAD_CHARS));
-      if (start !== -1) expect(shown.slice(start, start + MIN_SHRUNK_COLUMNS)).toBe(text.slice(0, MIN_SHRUNK_COLUMNS));
-    }
+      return start !== -1 && shown.slice(start, start + MIN_SHRUNK_COLUMNS) !== text.slice(0, MIN_SHRUNK_COLUMNS);
+    });
+    expect(fragments).toEqual([]);
   });
 });
 

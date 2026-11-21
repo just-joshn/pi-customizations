@@ -83,7 +83,10 @@ function toCredentials(token: TokenResponse, previousRefresh?: string): OAuthCre
 
 const abortError = (signal: AbortSignal): Error => (signal.reason instanceof Error ? signal.reason : new Error('Grok sign-in aborted', { cause: signal.reason }));
 
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 /** Waits `ms`, or rejects with the abort reason as soon as `signal` aborts, including when it already has. */
 function wait(ms: number, signal: AbortSignal | undefined): Promise<void> {

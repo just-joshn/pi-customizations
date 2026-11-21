@@ -9,9 +9,11 @@ export async function runChain(run: DispatchRun, steps: Work[]): Promise<ToolRes
   let done: SingleResult[] = [];
   let previous = '';
   for (const [index, step] of steps.entries()) {
-    const task = step.item.task.replace(/\{previous\}/g, () => previous);
+    const prev = previous;
+    const completed = done;
+    const task = step.item.task.replace(/\{previous\}/g, () => prev);
     const work: Work = { ...step, item: { ...step.item, task } };
-    const result = await runSingleAgent(run, work, index + 1, (current) => run.onUpdate?.(progressResult('chain', [...done, current], runningText(current))));
+    const result = await runSingleAgent(run, work, index + 1, (current) => run.onUpdate?.(progressResult('chain', [...completed, current], runningText(current))));
     done = [...done, result];
     if (isFailedResult(result)) {
       return reportResult('chain', done, formatResultText(result, `Chain stopped at step ${index + 1} (${step.item.agent}): ${getResultOutput(result)}`));
