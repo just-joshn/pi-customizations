@@ -7,13 +7,13 @@ Create new objects instead of mutating existing ones:
 ```ts
 // WRONG: Mutation
 function updateUser(user: User, name: string): User {
-  user.name = name
-  return user
+  user.name = name;
+  return user;
 }
 
 // CORRECT: Immutability
 function updateUser(user: User, name: string): User {
-  return { ...user, name }
+  return { ...user, name };
 }
 ```
 
@@ -31,9 +31,9 @@ Handle errors at boundaries with context:
 
 ```ts
 try {
-  return await riskyOperation()
+  return await riskyOperation();
 } catch (error) {
-  throw new Error(`Operation failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
+  throw new Error(`Operation failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
 }
 ```
 
@@ -42,14 +42,14 @@ try {
 Validate external input at boundaries with `zod`:
 
 ```ts
-import { z } from 'zod'
+import { z } from 'zod';
 
 const schema = z.object({
   email: z.string().email(),
   age: z.number().int().min(0).max(150),
-})
+});
 
-const validated = schema.parse(input)
+const validated = schema.parse(input);
 ```
 
 ## Code Quality Checklist

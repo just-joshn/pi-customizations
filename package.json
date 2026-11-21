@@ -20,7 +20,6 @@
   "devDependencies": {
     "@types/node": "^22.19.0",
     "typescript": "^7.0.2",
-    "@biomejs/biome": "2.5.14",
-    "zod": "^4"
+    "@biomejs/biome": "2.5.14"
   }
 }

@@ -13,11 +13,11 @@ Before any commit:
 
 ```ts
 // NEVER: Hardcoded secrets
-const apiKey = "sk-proj-xxxxx"
+const apiKey = 'sk-proj-xxxxx';
 
 // ALWAYS: Environment variables or secure secret store
-const apiKey = process.env.API_KEY
-if (!apiKey) throw new Error('API_KEY not configured')
+const apiKey = process.env.API_KEY;
+if (!apiKey) throw new Error('API_KEY not configured');
 ```
 
 ## Security Response Protocol
