@@ -1,7 +1,7 @@
 import type { Model, ModelThinkingLevel, RefreshModelsContext, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import { parseStoredCredential } from './auth.ts';
-import { fetchAvailableModels } from './code-assist.ts';
+import { fetchAvailableModels } from './code-assist-client.ts';
 import { API_ID, CODE_ASSIST_BASE_URL, PROVIDER_ID } from './constants.ts';
 
 const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
@@ -30,10 +30,23 @@ type CatalogModel = z.infer<typeof CATALOG_MODEL>;
 /** The slice of Code Assist's `fetchAvailableModels` response that the extension reads. */
 export type Catalog = z.infer<typeof CATALOG>;
 
-interface Variant {
+interface WireVariant {
   wireId: string;
   effort: Effort;
+}
+
+interface Variant extends WireVariant {
   info: CatalogModel;
+}
+
+interface ModelFields {
+  id: string;
+  name: string;
+  reasoning: boolean;
+  images: boolean;
+  contextWindow: number;
+  maxTokens: number;
+  thinkingLevelMap: ThinkingLevelMap;
 }
 
 type CodeAssistModel = Model<typeof API_ID>;
@@ -45,12 +58,17 @@ function splitWireId(wireId: string): { base: string; effort: Effort } {
   return { base: wireId.slice(0, match.index), effort };
 }
 
-function thinkingLevelMap(variants: Variant[], reasoning: boolean): ThinkingLevelMap {
+function thinkingLevelMap(variants: readonly WireVariant[], reasoning: boolean): ThinkingLevelMap {
   if (!reasoning) return { off: (variants.find((variant) => variant.effort === 'medium') ?? variants[0])?.wireId ?? null };
   const unmapped = Object.fromEntries(LEVELS_WITHOUT_WIRE_ID.map((level) => [level, null]));
   const mapped = Object.fromEntries(variants.map((variant) => [variant.effort, variant.wireId]));
   const map: ThinkingLevelMap = { ...unmapped, ...mapped };
   return map;
+}
+
+function toModel(fields: ModelFields): CodeAssistModel {
+  const { images, ...model } = fields;
+  return { ...model, api: API_ID, provider: PROVIDER_ID, baseUrl: CODE_ASSIST_BASE_URL, input: images ? ['text', 'image'] : ['text'], cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } };
 }
 
 /** One Pi model per base family. Its thinking levels map to Google's per-effort wire ids. */
@@ -66,20 +84,15 @@ function catalogModels(catalog: Catalog): CodeAssistModel[] {
 
   return families.map(({ id, variants }) => {
     const reasoning = variants.some((variant) => variant.info.supportsThinking);
-    const first = variants[0]?.info;
-    return {
+    return toModel({
       id,
-      name: (first?.displayName ?? id).replace(EFFORT_LABEL, ''),
-      api: API_ID,
-      provider: PROVIDER_ID,
-      baseUrl: CODE_ASSIST_BASE_URL,
+      name: (variants[0]?.info.displayName ?? id).replace(EFFORT_LABEL, ''),
       reasoning,
-      input: variants.some((variant) => variant.info.supportsImages) ? ['text', 'image'] : ['text'],
-      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      images: variants.some((variant) => variant.info.supportsImages),
       contextWindow: Math.max(...variants.map((variant) => variant.info.maxTokens ?? 0)),
       maxTokens: Math.max(...variants.map((variant) => variant.info.maxOutputTokens ?? 0)),
       thinkingLevelMap: thinkingLevelMap(variants, reasoning),
-    };
+    });
   });
 }
 
@@ -89,21 +102,22 @@ const BASELINE_FAMILIES = [
   ['gemini-4-argon', 'Gemini 4 Argon'],
   ['gemini-3.8-flash', 'Gemini 3.8 Flash'],
 ] as const;
-const BASELINE_EFFORTS = [
-  ['low', 'Low'],
-  ['medium', 'Medium'],
-  ['high', 'High'],
-] as const;
-const baselineWireIds = BASELINE_FAMILIES.flatMap(([id]) => BASELINE_EFFORTS.map(([effort]) => `${id}-${effort}`));
+const BASELINE_EFFORTS = ['low', 'medium', 'high'] as const;
 
-export const BASELINE_MODELS: CodeAssistModel[] = catalogModels({
-  models: Object.fromEntries(
-    BASELINE_FAMILIES.flatMap(([id, name]) =>
-      BASELINE_EFFORTS.map(([effort, label]) => [`${id}-${effort}`, { displayName: `${name} (${label})`, supportsImages: true, supportsThinking: true, maxTokens: BASELINE_CONTEXT_WINDOW, maxOutputTokens: BASELINE_MAX_OUTPUT_TOKENS }]),
+export const BASELINE_MODELS: CodeAssistModel[] = BASELINE_FAMILIES.map(([id, name]) =>
+  toModel({
+    id,
+    name,
+    reasoning: true,
+    images: true,
+    contextWindow: BASELINE_CONTEXT_WINDOW,
+    maxTokens: BASELINE_MAX_OUTPUT_TOKENS,
+    thinkingLevelMap: thinkingLevelMap(
+      BASELINE_EFFORTS.map((effort) => ({ wireId: `${id}-${effort}`, effort })),
+      true,
     ),
-  ),
-  agentModelSorts: [{ groups: [{ modelIds: baselineWireIds }] }],
-});
+  }),
+);
 
 export function createFetchModels(fetchImpl: typeof fetch = globalThis.fetch): (context: RefreshModelsContext) => Promise<CodeAssistModel[]> {
   return async (context) => {

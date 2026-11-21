@@ -194,6 +194,15 @@ describe('onboarding a new account', () => {
   });
 });
 
+describe('onboarding that returns an operation Google cannot report on', () => {
+  test.for([undefined, { GOOGLE_CLOUD_PROJECT: 'proj-env' }])('names the unfinished operation instead of blaming the project, with env %j', async (env) => {
+    const routes: Routes = { ...loadAnswers(STANDARD_ONBOARDING), [ROUTE_ONBOARD]: () => json({ done: false }) };
+    const login = await signIn(routes, env);
+    await expect(failureOf(login)).resolves.toHaveProperty('message', 'Google Code Assist onboarding returned an incomplete operation; run /login again');
+    expect(login.google.requestsTo(ROUTE_OPERATION)).toEqual([]);
+  });
+});
+
 describe('waiting for onboarding to finish', () => {
   const polling = (answers: object[]): Routes => ({
     ...loadAnswers(STANDARD_ONBOARDING),
@@ -221,6 +230,15 @@ describe('waiting for onboarding to finish', () => {
     await advancePolls(MAX_POLLS);
     await expect(failureOf(login)).resolves.toHaveProperty('message', 'Google Code Assist onboarding did not finish in time; run /login again');
     expect(login.google.requestsTo(ROUTE_OPERATION)).toHaveLength(MAX_POLLS);
+  });
+
+  test('cancelling the login while waiting stops the wait at once', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const login = await signIn(polling([]));
+    await vi.waitFor(() => expect(login.google.requestsTo(ROUTE_ONBOARD)).toHaveLength(1));
+    login.controller.abort();
+    await expect(failureOf(login)).resolves.toHaveProperty('message', 'Request was aborted');
+    expect(login.google.requestsTo(ROUTE_OPERATION)).toEqual([]);
   });
 });
 

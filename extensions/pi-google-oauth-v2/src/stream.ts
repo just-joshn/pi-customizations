@@ -1,10 +1,10 @@
-import type { ReadableStream } from 'node:stream/web';
-
 import { type Api, type AssistantMessage, type AssistantMessageEvent, type AssistantMessageEventStream, createAssistantMessageEventStream, type Model, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
-import { googleErrorMessage } from './code-assist.ts';
+import { googleErrorMessage } from './code-assist-client.ts';
 import { ANTIGRAVITY_USER_AGENT, PRIVATE_PROJECT_HEADER } from './constants.ts';
 import { buildCodeAssistRequest } from './request.ts';
-import { CODE_ASSIST_CHUNK, type CodeAssistChunk, closeOpenBlock, createReducerState, finishStream, type ReducerState, type ReducerStep, reduceChunk } from './stream-reducer.ts';
+import { sleep } from './sleep.ts';
+import { parseSse } from './sse.ts';
+import { closeOpenBlock, createReducerState, finishStream, type ReducerState, type ReducerStep, reduceChunk } from './stream-reducer.ts';
 
 const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_INTERNAL_ERROR = 500;
@@ -15,8 +15,6 @@ const RETRYABLE_STATUS = new Set([HTTP_TOO_MANY_REQUESTS, HTTP_INTERNAL_ERROR, H
 const MS_PER_SECOND = 1000;
 const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
 const BACKOFF_BASE = 2;
-const SSE_DATA_PREFIX = 'data:';
-const SSE_LINE_BREAK = /\r\n|\n|\r/;
 
 function retryDelayMs(body: string, headers: Headers): number | undefined {
   const retryAfter = headers.get('retry-after');
@@ -28,24 +26,6 @@ function retryDelayMs(body: string, headers: Headers): number | undefined {
   }
   const hinted = body.match(/"retryDelay":\s*"([0-9.]+)s"/i) ?? body.match(/retry in ([0-9.]+)\s*s/i);
   return hinted?.[1] ? Number(hinted[1]) * MS_PER_SECOND : undefined;
-}
-
-function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new Error('Request was aborted'));
-      return;
-    }
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(new Error('Request was aborted'));
-      },
-      { once: true },
-    );
-  });
 }
 
 function takePrivateProjectHeader(headers: SimpleStreamOptions['headers']): { project: string | undefined; headers: Record<string, string> } {
@@ -99,65 +79,6 @@ async function openResponse(model: Model<Api>, context: TranscriptContext, optio
   const built: unknown = buildCodeAssistRequest({ model, context, project, options });
   const body = (await options.onPayload?.(built, model)) ?? built;
   return fetchWithRetry(model, options, `${model.baseUrl}:streamGenerateContent?alt=sse`, requestInit(options, headers, body));
-}
-
-function parseEvent(data: string): CodeAssistChunk {
-  try {
-    return CODE_ASSIST_CHUNK.parse(JSON.parse(data));
-  } catch {
-    throw new Error('Google Code Assist sent a malformed event');
-  }
-}
-
-interface SseState {
-  readonly buffered: string;
-  readonly endedWithCR: boolean;
-  readonly dataLines: readonly string[];
-}
-
-interface SseLines {
-  readonly dataLines: readonly string[];
-  readonly events: readonly string[];
-}
-
-const readSseLine = (acc: SseLines, line: string): SseLines => {
-  if (line === '') return acc.dataLines.length > 0 ? { dataLines: [], events: [...acc.events, acc.dataLines.join('\n')] } : acc;
-  if (line.startsWith(SSE_DATA_PREFIX)) return { ...acc, dataLines: [...acc.dataLines, line.slice(SSE_DATA_PREFIX.length).replace(/^ /, '')] };
-  return acc;
-};
-
-/** Splits decoded text into complete SSE lines. The tail stays buffered until its line break arrives. */
-function feedSse(state: SseState, decoded: string, done: boolean): { state: SseState; events: readonly string[] } {
-  const received = decoded.length > 0;
-  const text = received ? state.buffered + (state.endedWithCR && decoded.startsWith('\n') ? decoded.slice(1) : decoded) : state.buffered;
-  const lines = text.split(SSE_LINE_BREAK);
-  const complete = done ? lines : lines.slice(0, -1);
-  const read = complete.reduce<SseLines>(readSseLine, { dataLines: state.dataLines, events: [] });
-  const next: SseState = { buffered: done ? '' : (lines.at(-1) ?? ''), endedWithCR: received ? decoded.endsWith('\r') : state.endedWithCR, dataLines: read.dataLines };
-  return { state: next, events: read.events };
-}
-
-async function* parseSse(body: ReadableStream<Uint8Array> | null, signal: AbortSignal | undefined): AsyncGenerator<CodeAssistChunk> {
-  if (!body) throw new Error('Google Code Assist returned an empty response');
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  const onAbort = () => void reader.cancel().catch(() => undefined);
-  signal?.addEventListener('abort', onAbort, { once: true });
-  let state: SseState = { buffered: '', endedWithCR: false, dataLines: [] };
-
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      const fed = feedSse(state, decoder.decode(value, { stream: !done }), done);
-      state = fed.state;
-      for (const data of fed.events) yield parseEvent(data);
-      if (done) break;
-    }
-    if (state.dataLines.length > 0) yield parseEvent(state.dataLines.join('\n'));
-  } finally {
-    signal?.removeEventListener('abort', onAbort);
-    reader.releaseLock();
-  }
 }
 
 function initialOutput(model: Model<Api>): AssistantMessage {

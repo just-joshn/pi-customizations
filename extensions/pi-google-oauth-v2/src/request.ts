@@ -15,6 +15,7 @@ import {
   toToolDeclaration,
   type UserMessage,
 } from '@earendil-works/pi-ai';
+import { constToEnum } from './schema.ts';
 
 interface WirePart {
   text?: string;
@@ -48,30 +49,10 @@ export interface CodeAssistRequestBody {
 
 const WIRE_ID_MAX_LENGTH = 64;
 const BASE64_BLOCK = 4;
-const MIN_CALL_ID_MAJOR = 3;
+const MIN_CURRENT_GEMINI_MAJOR = 3;
 const DECIMAL_RADIX = 10;
 const THINKING_LEVEL: Record<ModelThinkingLevel, string | undefined> = { off: undefined, minimal: 'LOW', low: 'LOW', medium: 'MEDIUM', high: 'HIGH', xhigh: 'HIGH', max: 'HIGH' };
 const THOUGHT_SIGNATURE = /^[A-Za-z0-9+/]+={0,2}$/;
-const JSON_SCHEMA_NAME_MAPS = new Set(['properties', 'patternProperties', '$defs', 'definitions', 'dependentSchemas', 'dependencies']);
-const JSON_SCHEMA_SUBSCHEMAS = new Set([
-  'additionalProperties',
-  'unevaluatedProperties',
-  'propertyNames',
-  'items',
-  'prefixItems',
-  'additionalItems',
-  'unevaluatedItems',
-  'contains',
-  'allOf',
-  'anyOf',
-  'oneOf',
-  'not',
-  'if',
-  'then',
-  'else',
-  'contentSchema',
-]);
-
 function systemInstruction(): { role: 'user'; parts: WirePart[] } {
   return {
     role: 'user',
@@ -143,11 +124,28 @@ interface ConvertState {
   imageTurns: WireContent[];
 }
 
+/** How a model wants tool calls and tool result images on the wire. */
+interface WireProfile {
+  // Code Assist matches a functionResponse to its functionCall by id, so both sides must sanitize it identically.
+  sendCallIds: boolean;
+  // Gemini 2.x rejects images inside a functionResponse, so they follow in a later user turn.
+  nestedToolImages: boolean;
+}
+
 interface ConvertEnv {
   model: Model<Api>;
-  major: number | undefined;
-  // Code Assist matches a functionResponse to its functionCall by this id on Gemini 3+, so both sides must sanitize identically.
-  wireId: (id: string) => { id?: string };
+  profile: WireProfile;
+}
+
+/** Only Gemini 2.x needs the legacy shape. Gemini 3+ and models that are not a Gemini (Claude, gpt-oss) take the current one. */
+function wireProfile(modelId: string): WireProfile {
+  const major = geminiMajorVersion(modelId);
+  const current = major === undefined || major >= MIN_CURRENT_GEMINI_MAJOR;
+  return { sendCallIds: current, nestedToolImages: current };
+}
+
+function wireId(profile: WireProfile, id: string): { id?: string } {
+  return profile.sendCallIds ? { id: id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, WIRE_ID_MAX_LENGTH) } : {};
 }
 
 function withToolResponse(state: ConvertState, part: NonNullable<WirePart['functionResponse']>, trailingImages: WirePart[] = []): ConvertState {
@@ -163,7 +161,7 @@ function withToolResponse(state: ConvertState, part: NonNullable<WirePart['funct
 // A functionCall without a functionResponse makes Code Assist reject the whole request.
 function answerOrphans(state: ConvertState, env: ConvertEnv): ConvertState {
   const orphans = state.pending.filter((call) => !state.answered.has(call.id));
-  const answered = orphans.reduce((acc, call) => withToolResponse(acc, { ...env.wireId(call.id), name: call.name, response: { error: 'No result provided' } }), state);
+  const answered = orphans.reduce((acc, call) => withToolResponse(acc, { ...wireId(env.profile, call.id), name: call.name, response: { error: 'No result provided' } }), state);
   return { contents: [...answered.contents, ...answered.imageTurns], pending: [], answered: new Set<string>(), imageTurns: [] };
 }
 
@@ -188,7 +186,7 @@ function assistantParts(message: AssistantMessage, env: ConvertEnv): WirePart[] 
       const signature = signed(block.thinkingSignature);
       return block.thinking.trim() || signature.thoughtSignature ? [{ thought: true, text: scrub(block.thinking), ...signature }] : [];
     }
-    return [{ functionCall: { ...env.wireId(block.id), name: block.name, args: block.arguments }, ...signed(block.thoughtSignature) }];
+    return [{ functionCall: { ...wireId(env.profile, block.id), name: block.name, args: block.arguments }, ...signed(block.thoughtSignature) }];
   });
 }
 
@@ -201,21 +199,18 @@ function convertAssistant(state: ConvertState, message: AssistantMessage, env: C
 }
 
 function convertToolResult(state: ConvertState, message: ToolResultMessage, env: ConvertEnv): ConvertState {
-  const { model, major } = env;
+  const { model, profile } = env;
   const text = message.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('\n');
   const images: WirePart[] = message.content.flatMap((block) => (block.type === 'image' && model.input.includes('image') ? [{ inlineData: { mimeType: block.mimeType, data: block.data } }] : []));
   const value = text.trim() ? scrub(text) : images.length > 0 ? '(see attached image)' : '';
-  const nested = major === undefined || major >= MIN_CALL_ID_MAJOR;
   const answered = new Set([...state.answered, message.toolCallId]);
-  const part = { ...env.wireId(message.toolCallId), name: message.toolName, response: message.isError ? { error: value } : { output: value }, ...(images.length > 0 && nested ? { parts: images } : {}) };
-  return withToolResponse({ ...state, answered }, part, nested ? [] : images);
+  const { nestedToolImages } = profile;
+  const part = { ...wireId(profile, message.toolCallId), name: message.toolName, response: message.isError ? { error: value } : { output: value }, ...(images.length > 0 && nestedToolImages ? { parts: images } : {}) };
+  return withToolResponse({ ...state, answered }, part, nestedToolImages ? [] : images);
 }
 
 function convertMessages(model: Model<Api>, context: TranscriptContext): WireContent[] {
-  const major = geminiMajorVersion(model.id);
-  const needsCallIds = major !== undefined && major >= MIN_CALL_ID_MAJOR;
-  const wireId = (id: string): { id?: string } => (needsCallIds ? { id: id.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, WIRE_ID_MAX_LENGTH) } : {});
-  const env: ConvertEnv = { model, major, wireId };
+  const env: ConvertEnv = { model, profile: wireProfile(model.id) };
   const initial: ConvertState = { contents: [], pending: [], answered: new Set<string>(), imageTurns: [] };
   const final = context.messages.reduce<ConvertState>((state, message) => {
     if (message.role === 'user') return convertUser(state, message, env);
@@ -224,23 +219,4 @@ function convertMessages(model: Model<Api>, context: TranscriptContext): WireCon
     return state;
   }, initial);
   return answerOrphans(final, env).contents;
-}
-
-/** Gemini ignores `const` inside parametersJsonSchema but honors a single-value `enum`. */
-function constToEnum(schema: unknown, isNameMap = false): unknown {
-  if (Array.isArray(schema)) return schema.map((item) => constToEnum(item));
-  if (typeof schema !== 'object' || schema === null) return schema;
-  const rewritten: Record<string, unknown> = Object.fromEntries(
-    Object.entries(schema).map(([key, value]) => {
-      if (isNameMap || JSON_SCHEMA_SUBSCHEMAS.has(key)) return [key, constToEnum(value)];
-      if (JSON_SCHEMA_NAME_MAPS.has(key)) return [key, constToEnum(value, true)];
-      return [key, value];
-    }),
-  );
-  const constant = rewritten['const'];
-  if (!isNameMap && rewritten['enum'] === undefined && (typeof constant === 'string' || typeof constant === 'number')) {
-    const { const: _, ...rest } = rewritten;
-    return { ...rest, enum: [constant] };
-  }
-  return rewritten;
 }

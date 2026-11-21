@@ -7,9 +7,6 @@ export interface LoopbackCallback {
   close(): void;
 }
 
-/** The listener ended without a verdict from Google or the user, so another sign-in path may still finish. */
-export class LoopbackExpiredError extends Error {}
-
 const LOOPBACK_TIMEOUT_MINUTES = 5;
 const SECONDS_PER_MINUTE = 60;
 const MS_PER_SECOND = 1000;
@@ -35,17 +32,6 @@ function statesMatch(received: string | null, expected: string): boolean {
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
-}
-
-function createOutcome(): Outcome & { promise: Promise<string> } {
-  let resolve!: (code: string) => void;
-  let reject!: (error: Error) => void;
-  const promise = new Promise<string>((onCode, onError) => {
-    resolve = onCode;
-    reject = onError;
-  });
-  promise.catch(() => undefined);
-  return { promise, resolve, reject };
 }
 
 function handleRequest(request: IncomingMessage, response: ServerResponse, state: string, outcome: Outcome, close: () => void): void {
@@ -78,13 +64,12 @@ function listen(server: Server): Promise<void> {
 }
 
 export async function startLoopbackCallback(input: { state: string; signal: AbortSignal }): Promise<LoopbackCallback> {
-  const outcome = createOutcome();
+  const outcome = Promise.withResolvers<string>();
+  outcome.promise.catch(() => undefined);
   const server = createServer((request, response) => handleRequest(request, response, input.state, outcome, close));
 
-  const timer = setTimeout(() => {
-    outcome.reject(new LoopbackExpiredError('Google sign-in timed out'));
-    close();
-  }, LOOPBACK_TIMEOUT_MS);
+  // On timeout the listener closes and `code` stays pending, so a pasted code can still finish the login.
+  const timer = setTimeout(close, LOOPBACK_TIMEOUT_MS);
   const onAbort = () => {
     outcome.reject(new Error('Google sign-in was cancelled'));
     close();
@@ -97,7 +82,6 @@ export async function startLoopbackCallback(input: { state: string; signal: Abor
     closed = true;
     clearTimeout(timer);
     input.signal.removeEventListener('abort', onAbort);
-    outcome.reject(new LoopbackExpiredError('Google sign-in listener closed'));
     server.closeAllConnections();
     server.close();
   }
