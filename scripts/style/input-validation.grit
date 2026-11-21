@@ -20,6 +20,7 @@ or {
     not $m <: within TsObjectType() ,
     $p <: r"^([A-Za-z_]+).*"($pname),
     not $body <: contains `$schema.parse($a)` where { $a <: $pname },
+    not $body <: contains `$schema.safeParse($a)` where { $a <: $pname },
     register_diagnostic(span=$m, message="input-validation: a tool's execute or a command's handler must parse its input with a zod schema")
   },
   or {
