@@ -259,6 +259,10 @@ export interface RowEvent {
   readonly isPartial?: boolean;
   readonly expanded?: boolean;
   readonly invalidate?: boolean;
+  /** Pi hands the renderers the live theme on every call, so a new one models a theme swap mid-session. */
+  readonly theme?: Theme;
+  /** Pi reads the `outputPad` setting on every call, so a new one models the user changing it mid-session. */
+  readonly outputPad?: number;
 }
 interface RowInputs {
   readonly args: Record<string, unknown> | undefined;
@@ -270,7 +274,7 @@ interface RowInputs {
 export const PROJECT = '/project';
 export const ROOT_PATH = '/';
 const KEY_TEXT = 'ctrl+o';
-function rowContext(inputs: RowInputs, state: object, opts: RowOptions | undefined, lastComponent: Component | undefined): Context {
+function rowContext(inputs: RowInputs, state: object, cwd: string | undefined, outputPad: number | undefined, lastComponent: Component | undefined): Context {
   return {
     args: inputs.args,
     state,
@@ -279,7 +283,7 @@ function rowContext(inputs: RowInputs, state: object, opts: RowOptions | undefin
       throw new Error('recursive invalidation');
     },
     lastComponent,
-    cwd: opts?.cwd ?? PROJECT,
+    cwd: cwd ?? PROJECT,
     executionStarted: inputs.started,
     argsComplete: true,
     isPartial: inputs.partial,
@@ -287,7 +291,7 @@ function rowContext(inputs: RowInputs, state: object, opts: RowOptions | undefin
     showImages: false,
     isError: inputs.result?.isError ?? false,
     durationMs: inputs.partial ? undefined : 10,
-    outputPad: opts?.outputPad ?? 1,
+    outputPad: outputPad ?? 1,
     keyText: () => KEY_TEXT,
     keyHint: () => `${KEY_TEXT} to expand`,
   };
@@ -303,7 +307,8 @@ export const EMPTY_NATIVE: ToolRenderers = {};
 
 /** Plays Pi's tool-call lifecycle against the renderers the tool-rows extension resolves for `toolName`. */
 export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {}) {
-  const theme = opts.theme ?? loadTheme('snoop-dark');
+  const theme = cell(opts.theme ?? loadTheme('snoop-dark'));
+  const outputPad = cell(opts.outputPad);
   const native = 'native' in opts ? opts.native : EMPTY_NATIVE;
   const renderers = host.renderersFor(toolName, native);
   const state = {};
@@ -317,6 +322,8 @@ export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {
         call.read()?.invalidate();
         result.read()?.invalidate();
       }
+      theme.write(event.theme ?? theme.read());
+      outputPad.write(event.outputPad ?? outputPad.read());
       const prev = inputs.read();
       const next: RowInputs = {
         args: 'args' in event ? event.args : prev.args,
@@ -326,8 +333,11 @@ export function driveRow(host: SnoopHost, toolName: string, opts: RowOptions = {
         result: event.result ?? prev.result,
       };
       inputs.write(next);
-      call.write(renderers?.renderCall?.(next.args, theme, rowContext(next, state, opts, call.read())));
-      if (next.result) result.write(renderers?.renderResult?.({ content: next.result.content, details: next.result.details }, { expanded: next.expanded, isPartial: next.partial }, theme, rowContext(next, state, opts, result.read())));
+      const context = (last: Component | undefined): Context => rowContext(next, state, opts.cwd, outputPad.read(), last);
+      call.write(renderers?.renderCall?.(next.args, theme.read(), context(call.read())));
+      if (!next.result) return;
+      const detail = { content: next.result.content, details: next.result.details };
+      result.write(renderers?.renderResult?.(detail, { expanded: next.expanded, isPartial: next.partial }, theme.read(), context(result.read())));
     },
     lines: (width: number): string[] => [...(call.read()?.render(width) ?? []), ...(result.read()?.render(width) ?? [])],
     text: (width: number): string[] => plainLines([...(call.read()?.render(width) ?? []), ...(result.read()?.render(width) ?? [])]),

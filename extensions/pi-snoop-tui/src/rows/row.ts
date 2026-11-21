@@ -1,28 +1,24 @@
 import type { AgentToolResult, Theme, ToolRenderers, ToolRenderResultOptions } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
 import { type Cell, cell } from '../cell.ts';
+import { type Memo, memoLast } from '../memo.ts';
 import { sanitizeLine } from '../text.ts';
 import { createRowBody, createRowHeader } from './components.ts';
-import { createPanel, type Panel } from './panel.ts';
+import { createPanel } from './panel.ts';
 import type { ResultSummary, ToolSpec } from './specs.ts';
-import { type BodyView, derivePhase, type RowView, sameBody, type ToolRenderContext } from './view.ts';
+import { type BodyView, derivePhase, type Panel, type RowView, sameView, type ToolRenderContext } from './view.ts';
 
 const ROW_STATE = Symbol('snoop.rowState');
-interface SummaryMemo {
-  readonly content: AgentToolResult<unknown>['content'];
-  readonly details: unknown;
-  readonly args: unknown;
-  readonly isPartial: boolean;
-  readonly isError: boolean;
-  readonly value: ResultSummary;
-}
+type Content = AgentToolResult<unknown>['content'];
+type SummaryArgs = [content: Content, details: unknown, args: unknown, isPartial: boolean, isError: boolean];
 interface RowState {
   readonly [ROW_STATE]: true;
   readonly view: Cell<RowView>;
-  readonly summary: Cell<SummaryMemo | undefined>;
+  /** The theme of the latest render call, so a theme swap restyles rows that already exist. */
+  readonly theme: Cell<Theme>;
+  readonly summary: Memo<SummaryArgs, ResultSummary>;
   readonly native: Record<string, unknown>;
   readonly nativeResult: Cell<Component | undefined>;
-  readonly panel: Cell<Panel | undefined>;
   readonly header: Component;
   readonly body: Component;
 }
@@ -33,18 +29,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parseArgs(args: unknown): Record<string, unknown> {
   return isRecord(args) ? args : {};
 }
+function textOf(content: Content): string {
+  return content
+    .filter((c) => c.type === 'text')
+    .map((c) => c.text)
+    .join('\n');
+}
 function createRowState(spec: ToolSpec, theme: Theme, ctx: ToolRenderContext): RowState {
   const view = cell(Object.freeze<RowView>({ phase: derivePhase(ctx), verb: spec.verb, target: spec.target(parseArgs(ctx.args), ctx.cwd), meta: undefined, body: { kind: 'none' }, pad: ctx.outputPad }));
-  const panel = cell<Panel | undefined>(undefined);
+  const live = cell(theme);
   return {
     [ROW_STATE]: true,
     view,
-    summary: cell<SummaryMemo | undefined>(undefined),
+    theme: live,
+    summary: memoLast((content, details, args, isPartial, isError) => spec.summarize({ args: parseArgs(args), text: textOf(content), images: content.filter((c) => c.type === 'image').length, details, isError, isPartial })),
     native: {},
     nativeResult: cell<Component | undefined>(undefined),
-    panel,
-    header: createRowHeader(view.read, theme),
-    body: createRowBody(view.read, theme, () => panel.read()?.invalidate()),
+    header: createRowHeader(view.read, live.read),
+    body: createRowBody(view.read, live.read),
   };
 }
 function isRowState(value: unknown): value is RowState {
@@ -53,16 +55,22 @@ function isRowState(value: unknown): value is RowState {
 function rowState(ctx: ToolRenderContext, spec: ToolSpec, theme: Theme): RowState {
   const bag: unknown = ctx.state;
   const existing: unknown = isRecord(bag) ? Reflect.get(bag, 'snoop') : undefined;
-  if (isRowState(existing)) return existing;
+  if (isRowState(existing)) {
+    existing.theme.write(theme);
+    return existing;
+  }
   const created = createRowState(spec, theme, ctx);
   if (isRecord(bag)) Reflect.set(bag, 'snoop', created);
   return created;
 }
 
+function openPanel(state: RowState): Panel {
+  const { body } = state.view.read();
+  return body.kind === 'panel' ? body.panel : createPanel(state.theme.read, () => state.view.read().pad);
+}
 function expandedBody(state: RowState, native: ToolRenderers, result: AgentToolResult<unknown>, options: ToolRenderResultOptions, theme: Theme, ctx: ToolRenderContext): BodyView {
   const tone = ctx.isError ? 'error' : 'ok';
-  const panel = state.panel.read() ?? createPanel(theme, () => state.view.read().pad);
-  state.panel.write(panel);
+  const panel = openPanel(state);
   if (native.renderResult) {
     // Native call renderers start timers and edit previews. Only delegate result detail.
     const nativeResult = native.renderResult(result, options, theme, { ...ctx, state: state.native, lastComponent: state.nativeResult.read(), outputPad: 0 });
@@ -89,7 +97,7 @@ export function compactRenderers(spec: ToolSpec, native: ToolRenderers): ToolRen
     },
     renderResult(result, options, theme, ctx) {
       const state = rowState(ctx, spec, theme);
-      const summary = summarizeOnce(state, spec, result, options, ctx);
+      const summary = state.summary.get(result.content, result.details, ctx.args, options.isPartial, ctx.isError);
       const body = resultBody(state, native, summary, result, options, theme, ctx);
       commit(state, { ...state.view.read(), phase: derivePhase(ctx), meta: summary.meta, body });
       return state.body;
@@ -97,31 +105,10 @@ export function compactRenderers(spec: ToolSpec, native: ToolRenderers): ToolRen
   };
 }
 function plainDetail(theme: Theme, args: unknown, result: AgentToolResult<unknown>): string {
-  const output = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => c.text)
-    .join('\n')
-    .split('\n')
-    .map(sanitizeLine)
-    .join('\n');
+  const output = textOf(result.content).split('\n').map(sanitizeLine).join('\n');
   const json = sanitizeLine(JSON.stringify(args) ?? '');
   return [json && theme.fg('dim', json), output && theme.fg('toolOutput', output)].filter(Boolean).join('\n\n');
 }
 function commit(state: RowState, next: RowView): void {
-  const prev = state.view.read();
-  if (prev.phase === next.phase && prev.verb === next.verb && prev.pad === next.pad && prev.target.text === next.target.text && prev.target.kind === next.target.kind && prev.meta === next.meta && sameBody(prev.body, next.body)) return;
-  if (prev.pad !== next.pad) state.panel.read()?.invalidate();
-  state.view.write(Object.freeze(next));
-}
-function summarizeOnce(state: RowState, spec: ToolSpec, result: AgentToolResult<unknown>, options: ToolRenderResultOptions, ctx: ToolRenderContext): ResultSummary {
-  const memo = state.summary.read();
-  if (memo && memo.content === result.content && memo.details === result.details && memo.args === ctx.args && memo.isPartial === options.isPartial && memo.isError === ctx.isError) return memo.value;
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => c.text)
-    .join('\n');
-  const images = result.content.filter((c) => c.type === 'image').length;
-  const value = spec.summarize({ args: parseArgs(ctx.args), text, images, details: result.details, isError: ctx.isError, isPartial: options.isPartial });
-  state.summary.write({ content: result.content, details: result.details, args: ctx.args, isPartial: options.isPartial, isError: ctx.isError, value });
-  return value;
+  if (!sameView(state.view.read(), next)) state.view.write(Object.freeze(next));
 }
