@@ -110,6 +110,21 @@ describe("inferred target", () => {
     expect(get(run.lines[0], "scope.pr.context")).toEqual(current);
   });
 
+  test("accepts --single explicitly and rejects --single with --stack or --queued-stack", async () => {
+    const usageExit = 64;
+    const ok = await runCli(["--single", ...TARGET, "--status-only"]);
+    expect(ok.code).toBe(0);
+    expect(ok.lines[0]).toMatchObject({ mode: "single", kind: "STATUS" });
+
+    const withStack = await runCli(["--single", "--stack", ...TARGET]);
+    expect(withStack.code).toBe(usageExit);
+    expect(withStack.stdout).toBe("");
+
+    const withQueued = await runCli(["--single", "--queued-stack", ...TARGET]);
+    expect(withQueued.code).toBe(usageExit);
+    expect(withQueued.stdout).toBe("");
+  });
+
   test("asks gh for the current PR when git has no usable origin", async () => {
     const run = await runCli(["--pr", "5"], fakeReader({ origin: null }));
     expect(run.reader.calls.slice(0, 2)).toEqual(["originRepo", "currentPr"]);

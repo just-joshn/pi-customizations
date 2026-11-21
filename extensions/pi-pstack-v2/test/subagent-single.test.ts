@@ -275,3 +275,27 @@ describe('single mode, abort', () => {
     expect(textOf(result)).toContain('Subagent was aborted');
   });
 });
+
+describe('pstack role aliases and poteto-agent kickoff', () => {
+  test.for(['auto', 'inherit-parent', '   '])('model %s inherits the parent session model instead of passing a bogus --model flag', async (alias) => {
+    await callScout({ model: alias }, { model: SESSION_MODEL });
+    expect(onlyChild()?.flag('--model')).toBe('p/default');
+  });
+
+  test('spawning poteto-agent without a worker.md first line automatically prepends worker.md and poteto-mode SKILL.md paths', async () => {
+    const { call } = loadSubagent();
+    await call({ agent: 'poteto-agent', task: 'implement feature X' }, makeCtx(workspace().project));
+    const taskArg = onlyChild()?.args.at(-1) ?? '';
+    expect(taskArg).toMatch(/^Task: Read .*skills\/poteto-mode\/worker\.md before anything else\./);
+    expect(taskArg).toContain('skills/poteto-mode/SKILL.md');
+    expect(taskArg).toContain('implement feature X');
+  });
+
+  test('a user override of poteto-agent does not get the package worker.md injected into its task', async () => {
+    const { project, userAgents } = workspace();
+    writeAgent(userAgents, 'poteto-agent', 'tools: read\n', 'Custom user agent.');
+    const { call } = loadSubagent();
+    await call({ agent: 'poteto-agent', task: 'custom task' }, makeCtx(project));
+    expect(onlyChild()?.args.at(-1)).toBe('Task: custom task');
+  });
+});

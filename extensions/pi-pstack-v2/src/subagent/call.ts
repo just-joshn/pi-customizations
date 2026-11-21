@@ -29,13 +29,17 @@ export interface ModelChoice {
   thinking: ThinkingLevel | undefined;
 }
 
+const INHERIT_MODEL_ALIASES = new Set(['auto', 'inherit-parent']);
+
 /**
  * The model and thinking level one worker runs at. A model named by the call or the agent runs at its own default thinking
- * level unless the call names one. A fork names neither: it keeps the parent's model, thinking level and system prompt so
- * its prompt prefix matches the parent's cache.
+ * level unless the call names one. The aliases `auto` and `inherit-parent` inherit the parent session's model and thinking
+ * level. A fork names neither: it keeps the parent's model, thinking level and system prompt so its prompt prefix matches
+ * the parent's cache.
  */
 export function resolveModelChoice(agent: AgentConfig, call: Pick<WorkItem, 'model' | 'thinking'>, defaults: DispatchDefaults): ModelChoice {
   if (isForkAgent(agent)) return { model: defaults.model, thinking: defaults.thinkingLevel };
-  const named = call.model ?? agent.model;
+  const raw = (call.model ?? agent.model)?.trim();
+  const named = raw && !INHERIT_MODEL_ALIASES.has(raw.toLowerCase()) ? raw : undefined;
   return { model: named ?? defaults.model, thinking: call.thinking ?? (named ? undefined : defaults.thinkingLevel) };
 }

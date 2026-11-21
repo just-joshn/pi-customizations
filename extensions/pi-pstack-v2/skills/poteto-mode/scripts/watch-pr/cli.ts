@@ -93,6 +93,11 @@ const addTargetOptions = (program: Command): Command =>
     .option("--repo <repo>", "GitHub repository name")
     .option("--pr <number>", "pull request number", prNumber)
     .addOption(
+      new Option("--single", "watch one pull request (default)")
+        .default(false)
+        .conflicts(["stack", "queuedStack"])
+    )
+    .addOption(
       new Option("--stack", "watch the connected open stack")
         .default(false)
         .conflicts("queuedStack")

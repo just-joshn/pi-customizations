@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { CONFIG_DIR_NAME, getAgentDir, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 
-const PACKAGE_SKILLS_DIR = fileURLToPath(new URL('../../skills', import.meta.url));
+export const PACKAGE_SKILLS_DIR = fileURLToPath(new URL('../../skills', import.meta.url));
 const AGENTS_DIR_NAME = '.agents';
 const SKILL_FILE = 'SKILL.md';
 

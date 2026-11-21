@@ -13,7 +13,7 @@ import { createResultStream, finalizeResult } from './result-stream.ts';
 import { createUnstartedResult, emptyUsage } from './results.ts';
 import { runPiInTmux } from './run-in-tmux.ts';
 import type { WorkItem } from './schema.ts';
-import { withPreloadedSkills } from './skill-preload.ts';
+import { PACKAGE_SKILLS_DIR, withPreloadedSkills } from './skill-preload.ts';
 import type { DispatchRun, OnProgress, SingleResult, Work } from './types.ts';
 import { prepareSubagentWorktree, worktreeNote } from './worktree.ts';
 
@@ -39,6 +39,13 @@ const RUN_DIR_PREFIX = 'pi-subagent-tmux-';
 const ABORTED_BEFORE_START = 'Subagent was aborted before starting';
 const BUILTIN_TOOL_NAMES = ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls'] as const;
 const MEMORY_TOOL_NAMES = ['read', 'write', 'edit'] as const;
+const POTETO_MODE_DIR = path.join(PACKAGE_SKILLS_DIR, 'poteto-mode');
+const WORKER_KICKOFF_PREFIX = /^Read\s+\S*worker\.md\s+before anything else\./m;
+
+function kickoffTask(agent: AgentConfig, task: string): string {
+  if (agent.source !== 'package' || agent.name !== 'poteto-agent' || WORKER_KICKOFF_PREFIX.test(task)) return task;
+  return `Read ${path.join(POTETO_MODE_DIR, 'worker.md')} before anything else.\nPoteto-mode skill: ${path.join(POTETO_MODE_DIR, 'SKILL.md')}\n\n${task}`;
+}
 
 /** The tools an agent names, plus the ones it needs to keep its memory when it has memory and a restricted tool list. */
 function declaredTools(agent: AgentConfig): string[] {
@@ -81,7 +88,7 @@ function buildPiArgs({ agent, choice, promptPath, task, forkSessionFile }: ArgsI
     ...toolFlags(agent),
     ...(agent.omitContextFiles === true ? ['--no-context-files'] : []),
     ...(promptPath ? ['--append-system-prompt', promptPath] : []),
-    forkSessionFile === undefined ? `Task: ${task}` : formatForkTask(task),
+    forkSessionFile === undefined ? `Task: ${kickoffTask(agent, task)}` : formatForkTask(task),
   ];
 }
 

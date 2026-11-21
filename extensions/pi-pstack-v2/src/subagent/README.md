@@ -47,7 +47,7 @@ When the scope includes project agents, `confirmProjectAgents` is not `false`, a
 | --- | --- | --- |
 | `ci-watcher` | `read`, `bash` | Watches PR CI for the current branch and reports pass or fail with failure links. |
 | `comment-sicko` | `read`, `grep`, `find`, `ls`, `bash`, `edit` | Deletes comments and condemns workaround code. |
-| `poteto-agent` | `read`, `grep`, `find`, `ls`, `bash`, `edit`, `write` | Delegate for code-writing and helper tasks in a `/poteto-mode` run. It reads the `poteto-mode` skill first. |
+| `poteto-agent` | `read`, `grep`, `find`, `ls`, `bash`, `edit`, `write` | Delegate for code-writing and helper tasks in a `/skill:poteto-mode` run. Automatically prepends `worker.md` and `poteto-mode/SKILL.md` kickoff instructions. |
 | `scout` | `read`, `grep`, `find`, `ls`, `bash` | Fast codebase recon that returns compressed context. |
 | `thermo-nuclear-code-quality-review` | `read`, `grep`, `find`, `ls`, `bash` | Code quality audit against the cursor-team-kit rubric. |
 | `worker` | `read`, `grep`, `find`, `ls`, `bash`, `edit`, `write` | A plain worker with no role prompt. Its behavior comes only from its task. |
