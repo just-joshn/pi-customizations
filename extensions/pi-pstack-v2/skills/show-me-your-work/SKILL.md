@@ -80,3 +80,5 @@ Read top to bottom, follow the evidence pointers, spot-check. GitHub renders a c
 ## Composing this skill
 
 Other skills route their audit trail here instead of inventing one. Reference it by name and let it own the format. Don't restate the columns.
+
+Ensure every evidence pointer resolves to a real artifact per `principle-prove-it-works`.

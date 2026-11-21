@@ -33,3 +33,5 @@ Skip arena Phases C, D, and E. Adversaries find different failures, so the verdi
 - **Intent**: the restatement.
 - **Findings**: for each verified finding, the command, its output, how it breaks the intent, and the adversaries that found it. Say "no verified findings" when none survive. That result is not evidence the change has no bugs.
 - **Dropped**: for each adversary, the count of dropped findings and why.
+
+Prove every finding with a real rerun or reproduction per `principle-prove-it-works`.

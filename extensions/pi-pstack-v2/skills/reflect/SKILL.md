@@ -15,3 +15,5 @@ Keep a finding only if it will still hold in six months, would change what a fut
 Present Accepted (problem, proposal, skill), Rejected (reason) and Backlog, and wait for approval before editing any skill.
 
 Never edit a skill inside an installed Pi package. Before approval, show its destination, `.pi/skills/<skill>/` or `<Pi agent directory>/skills/<skill>/`. After approval, copy the skill folder there and edit the copy. Never open a PR or push.
+
+Promote enforceable checks over prose notes per `principle-encode-lessons-in-structure`.

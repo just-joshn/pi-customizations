@@ -39,3 +39,5 @@ The call returns when every worker finishes, with their reports. Read the termin
 ## Phase D: Report
 
 Return one consolidated report in your reply with a result table, issue one-liners, gaps or dropouts, and the race rule when used. Name each kept worktree branch in the report and delete the rest.
+
+Give each writable worker its own worktree or write target per `principle-separate-before-serializing-shared-state`.

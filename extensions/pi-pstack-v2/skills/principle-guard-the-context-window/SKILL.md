@@ -10,3 +10,5 @@ disable-model-invocation: true
 
 **Pattern:**
 - **Size phases and cap scope.** Limit files per phase, set turn budgets, account for mechanism costs.
+
+Route large independent investigative slices to `/skill:swarm`.

@@ -23,3 +23,5 @@
 For sustained improvement against a metric rather than a one-off fix, use the Hillclimb playbook (`playbooks/hillclimb.md`).
 
 **Reply:** baseline number, post-fix number, delta, artifact path.
+
+Explain every measured before/after number per `principle-explain-the-number`.

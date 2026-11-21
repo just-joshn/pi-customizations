@@ -9,3 +9,5 @@
 5. Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only forensics`.
 
 **Reply:** the signal captured, the reduced finding, how you proved the mechanism, the source location, artifact paths. No fix unless asked. Hand back to Bug fix or Perf once the cause is known.
+
+If the operator later asks to fix the diagnosed slowness, hand off to the **Perf issue** playbook (`playbooks/perf-issue.md`).

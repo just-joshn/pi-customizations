@@ -13,3 +13,5 @@ When two or more fixes that share one premise have failed the same gate, suspect
 - If the evidence contradicts the premise, look for what the failures share that it did not predict. If one part always lands on the losing side, change what puts it there instead of adding a mechanism that cleans up after it.
 
 Do not start the next fix before the premise is written down and tested.
+
+When two attempts sharing one premise fail the same gate during optimization, test the premise directly before another **Hillclimb** trial (`../poteto-mode/playbooks/hillclimb.md`).

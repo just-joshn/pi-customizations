@@ -53,10 +53,14 @@ The package adds these tools:
 | `tmux_run` | Runs a shell command on the host in tmux. `cwd` sets the working directory, relative to the session's. `wake` wakes your session when the command exits. `repeat` restarts the command after each clean exit as a heartbeat, and it requires `wake`. |
 | `tmux_jobs` | Lists, tails, waits on, or stops this session's `tmux_run` jobs. |
 
-It also adds the Gondolin tool routing and two slash commands:
+It also adds the Gondolin tool routing, safety guards (blocking `TODO.md` staging and shared-trunk force-push), dormant Benny automation instructions under `automations/benny/`, and these slash commands:
 
 - `/skill:<name>` runs any skill.
-- `/pstack-mode <skill>` keeps that skill in the system prompt every turn, which is pstack's Custom Mode. `/pstack-mode off` ends it.
+- `/pstack-mode <skill> [prompt]` keeps that skill in the system prompt every turn, which is pstack's Custom Mode, and optionally sends the initial prompt immediately. `/pstack-mode off` ends it.
+- `/plan [on|off|status|<goal>]` toggles read-only planning mode and restricts edits to `plans/<slug>.md`, `TODO.md`, or `.pi/TODO.md`.
+- `/loop [interval] <prompt>` (plus `/loop list` and `/loop stop`) schedules fixed-interval or self-paced loops over `tmux_run` + `notify_on_output`.
+- `/create-skill <goal>` and `/create-skill validate <path>` author and validate Pi Agent Skills.
+- `/automate list|status|create|run|stop <name>` manages local fail-closed automations.
 - `/gondolin` shows the session's VM.
 
 It registers one Pi CLI flag, `--gondolin-shared-build-cache`. See the Gondolin section.

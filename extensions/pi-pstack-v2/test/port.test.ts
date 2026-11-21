@@ -43,7 +43,7 @@ const bannedBase: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use subagent parameters' },
   { pattern: /todolist|todo list|TodoWrite/i, why: 'Pi has no built-in to-dos; use TODO.md' },
   { pattern: /AskQuestion|AskUserQuestion/, why: 'Pi has no question popups; ask in plain text' },
-  { pattern: /\bplan mode\b/i, why: 'Pi has no plan mode; write a plan file' },
+  { pattern: /\bplan mode\b/i, why: 'Use Pi-native /plan command', allow: /\/plan|No built-in plan mode|Pi has no built-in/i },
   { pattern: /\b(in|to) the background\b|\bbackground (bash|shell|job|process|agent|task)/i, why: 'Pi has no background bash; use tmux_run', allow: /\bnever\b/i },
   { pattern: /\.cursor\b|\.mdc\b|cursor-plugin|\/add-plugin|~\/\.claude|Claude Code|\.claude-plugin/, why: 'Cursor or Claude Code path or command', allow: /names a Cursor or Claude Code mechanism/ },
   { pattern: /claude-(opus|sonnet|haiku|fable)-\d|grok-\d|composer-\d|\bfast mode\b|(?<!fail)-fast\b/i, why: 'Cursor model slug or fast mode; use provider/id and thinking' },
@@ -121,8 +121,8 @@ const portedUpstreamFiles = new Set([
 
 const skillNames = readdirSync(join(root, 'skills'));
 // Skills this package adds for Pi, which upstream does not ship.
-const piNativeSkills = new Set(['loop']);
-// `/loop` is a Pi command, not a skill invocation, so it never needs the /skill: prefix.
+const piNativeSkills = new Set(['loop', 'create-skill']);
+// `/loop` and `/create-skill` are Pi commands, not skill invocations, so they never need the /skill: prefix.
 const invokedSkillNames = skillNames.filter((name) => !piNativeSkills.has(name));
 const banned = [...bannedBase, { pattern: new RegExp(`(^|[\\s\`("'])/(${invokedSkillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' }];
 
@@ -132,6 +132,14 @@ describe('the Pi port of pstack', () => {
     expect(diagnostics).toEqual([]);
     const upstreamSkills = new Set(upstream.filter((path) => /^skills\/[^/]+\/SKILL\.md$/.test(path)).map((path) => path.split(PATH_SEPARATOR)[1]));
     expect(new Set(skills.map((skill) => skill.name))).toEqual(new Set([...upstreamSkills, ...piNativeSkills]));
+  });
+
+  test('opening-a-pr invokes both deslop and no-comments before review', () => {
+    const deslopSkill = '/skill:deslop';
+    const noCommentsSkill = '/skill:no-comments';
+    const text = readFileSync(join(root, 'skills', 'poteto-mode', 'playbooks', 'opening-a-pr.md'), 'utf8');
+    expect(text).toContain(deslopSkill);
+    expect(text).toContain(noCommentsSkill);
   });
 
   test('every upstream file is still present', () => {

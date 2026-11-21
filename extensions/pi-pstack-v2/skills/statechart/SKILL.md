@@ -80,3 +80,5 @@ Render charts with Pele. When the user asks for an image, or a chart is too larg
 Give each chart and its Mermaid text to the person who must decide. Add one line for each bug: the rule, the reader's sentence for that rule, and the path as the report numbers it. Say what the model leaves out. Give the command that makes the files again, with a new `--out` folder.
 
 When the model describes code, replay each bug path against the real code, as a test or a live repro, one step for each action. If a bug does not occur, think that the model is wrong until you show that it is not.
+
+Replay any model counterexample against the real implementation per `principle-prove-it-works`.

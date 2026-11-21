@@ -10,3 +10,5 @@
 6. **Stop at the ceiling.** Extending the run takes new verdicts, so it is a new pass through step 1.
 
 **Reply:** the verified run and its ceiling, each PR's verdict and who produced it, what landed and how you confirmed it, and what the next gap needs.
+
+Verify each PR independently via `/skill:swarm` and the `principle-prove-it-works` skill (CI alone is never a live-verifier verdict).

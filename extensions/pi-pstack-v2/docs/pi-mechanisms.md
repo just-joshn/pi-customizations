@@ -10,11 +10,11 @@ Pi has no built-in sub-agents, permission popups, plan mode, to-do tool, or back
 | --- | --- |
 | Spawn Pi instances through tmux. | The packaged `subagent` tool starts each delegated `pi` in its own tmux session. It derives from the upstream subagent example, with the process launch switched from `child_process.spawn` to tmux. |
 | No permission popups. Run in a sandbox. | The packaged `gondolin` extension runs `read`, `write`, `edit`, `bash`, `ls`, `find`, `grep`, and `!` shell commands inside a Gondolin micro-VM. The directory Pi started in is mounted at `/workspace`, and writes there reach the host. Every other guest path belongs to the VM. |
-| No plan mode. Write plans to files. | A plan is a Markdown file, such as `plans/<slug>.md`. The human reviews the file. |
+| No built-in plan mode. Ship `/plan` + file plans. | `/plan` toggles Pi-native read-only planning mode (persisted on the session branch, enforced via `tool_call` so writes only land under `plans/<slug>.md`, `TODO.md`, or `.pi/TODO.md`). The human reviews the plan file and turns editing back on with `/plan off`. |
 | No built-in to-dos. Use a TODO.md file. | Each checklist pstack used to keep in a todo tool lives in `TODO.md` at the root of the checkout you work in, as `- [ ]` and `- [x]` lines. It is working state, so never stage it. When the checkout already tracks a `TODO.md`, the checklist is `.pi/TODO.md`. |
 | No background bash. Use tmux. | Watchers, dev servers, long builds, and heartbeat ticks run through `tmux_run`. Nothing uses `&`, `nohup`, `setsid`, or `disown`. Every job is a tmux session. Attach to it with the command that `tmux_jobs` `list` prints. Its output shows there as it is written, and Ctrl-C there stops it. A job reads no input, so run a command that needs a typed answer in the root session. |
 
-The extensions cover only what a skill cannot do. `src/index.ts` starts tmux jobs, wakes the session when they exit, and puts the model-role lines into the system prompt. `src/subagent` starts subagents. `src/gondolin` runs Pi's tools in a VM.
+The extensions cover only what a skill cannot do. `src/index.ts` registers `/pstack-mode` (persistent mode with optional inline prompt), `/plan` (read-only plan mode with `tool_call` write enforcement), `/loop` (fixed and dynamic loops over `tmux_run` + `notify_on_output`), `/create-skill` (authoring + frontmatter/link validation), `/automate` (fail-closed local automations), safety guards (`src/guards.ts` blocking `TODO.md` staging and shared-trunk force-push), tmux jobs, wakeup polling, and system-prompt injection. `src/subagent` starts subagents. `src/gondolin` runs Pi's tools in a VM. Dormant Benny automation instructions ship under `automations/benny/` without being registered as slash skills.
 
 ## Vocabulary
 
@@ -48,15 +48,15 @@ In this table, "subagent" means a Pi instance that the `subagent` tool starts.
 | `/loop <interval>` heartbeat | `/loop <interval> <prompt>`, such as `/loop 5m check deploy` or `/loop run tests every 10 minutes`. The extension runs the prompt once, then arms a `tmux_run` timer job named `loop-<purpose>` that prints a sentinel line each interval, watched with `notify_on_output`. `/loop list` shows the loops, and `/loop stop [id\|name\|all]` or `tmux_jobs` `stop` ends them. |
 | Monitored shell output, `notify_on_output` | `tmux_run` takes `notify_on_output` with a `pattern` (a multiline regular expression, at most 500 characters) and optional `reason`, `debounce_seconds` (at least 5), and `notification_limit` (default 100). The first match wakes the session at once, later matches are batched, and a limit notice ends the notifications. A job that watches its output is left out of a default `tmux_jobs` `wait`. Its read position lives in `notify-state.json` in the job directory. |
 | A shell command run in the background | `tmux_run`. |
-| Plan mode, a plan to approve | A plan file. |
+| Plan mode, a plan to approve | `/plan` (read-only planning mode restricting writes to `plans/<slug>.md`, `TODO.md`, or `.pi/TODO.md`). |
 | `/<skill>` | `/skill:<skill>`. |
 | A skill that says to run another skill by name | Pi hides skills marked `disable-model-invocation` from the skill list. The extension adds one system-prompt line that gives the absolute path of the package's `skills/` directory. The model reads `<dir>/<name>/SKILL.md` and follows it. |
 | `.cursor/skills/`, `~/.cursor/skills/` | `.pi/skills/`, `~/.pi/agent/skills/`, or the Agent Skills paths `.agents/skills/` and `~/.agents/skills/`. |
 | `.cursor/rules/*.mdc`, always-applied rules | `AGENTS.md` in the project, or `~/.pi/agent/AGENTS.md` for the user. |
 | `~/.cursor/plugins/`, `.cursor-plugin/plugin.json`, `/add-plugin` | A Pi package. Install it with `pi install <source>` and list it with `pi list`. |
 | Cursor chat transcripts in `~/.cursor/projects/<slug>/agent-transcripts/` | Pi sessions in `~/.pi/agent/sessions/--<cwd with / as ->--/*.jsonl`. Standard subagents run with no session, so they keep none. The extension names the current session's file in a `pstack-session` system-prompt section. A brief that asks a subagent to read it carries that path, because the subagent cannot find it alone. |
-| `/create-skill` | Write `SKILL.md` to the Agent Skills format that Pi's skills spec describes, and check that it loads with `/skill:<name>`. |
-| Cursor Automations, routines, webhook wakes, `SendToUser` | A tmux job that runs `pi -p` against a session, or Pi's RPC mode. Secrets come from environment variables the user sets, never from chat. Upstream's dormant benny pack runs Slack issue triage, then reproduce-and-fix. It needs that service, so this package does not ship it. |
+| `/create-skill` | `/create-skill <goal>` and `/create-skill validate <path/to/SKILL.md>` (bundled in `src/create-skill.ts` and `skills/create-skill/SKILL.md`). |
+| Cursor Automations, routines, webhook wakes, `SendToUser` | `/automate` (`create`, `status`, `run`, `stop`) over `tmux_run` + `notify_on_output`, or Pi's RPC mode. Secrets come from environment variables the user sets, never from chat. Dormant Benny instructions ship under `automations/benny/` without being registered as slash skills. |
 | Cursor canvas | A self-contained HTML file opened in the browser. |
 | Cursor Bugbot, agentic security review | Unchanged. They are GitHub reviewers whose comments any coding agent reads from the forge. |
 | Cursor's built-in PR tool | `gh`. |

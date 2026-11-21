@@ -23,3 +23,5 @@
 7. **Read every candidate output yourself** end to end. Compare to the judge's verdict. Disagreement means a model is biased or the rubric is ambiguous. Synthesize.
 
 **Reply:** variant under test, rubric, per-candidate notes, judge's verdict, your synthesis, and a recommendation for whether to promote the variant.
+
+Apply `principle-explain-the-number` when interpreting eval scores and `principle-guard-the-context-window` when auditing bulky candidate transcripts.

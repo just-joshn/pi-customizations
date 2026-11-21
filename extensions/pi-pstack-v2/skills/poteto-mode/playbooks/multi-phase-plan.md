@@ -9,3 +9,5 @@
 5. Hand back the plan path and stop. Execution starts on the operator's explicit go.
 
 **Reply:** the plan path, the PR ids with their dependencies and the review-gated set, and what stays unproven.
+
+Use `/skill:architect` when design boundaries or core data shapes need settling before planning phases.

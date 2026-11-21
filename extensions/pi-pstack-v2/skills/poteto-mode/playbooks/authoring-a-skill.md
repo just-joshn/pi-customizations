@@ -2,8 +2,8 @@
 
 **You own the skill's voice.**
 
-1. Write the skill to Pi's skills spec (the Agent Skills format) and check it loads with `/skill:<name>`.
-2. Validate the skill: frontmatter has `name` and `description`, referenced files exist, cross-skill links resolve.
+1. Use `/create-skill` (Pi's Agent Skills format) to scaffold or update the skill and check it loads with `/skill:<name>`.
+2. Validate the skill with `/create-skill validate <path/to/SKILL.md>`: frontmatter has `name` matching its folder and non-empty `description`, referenced files exist, cross-skill links resolve.
 3. Test cases if structural. Skip if subjective.
 4. Run **Opening a PR**.
 

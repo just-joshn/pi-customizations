@@ -51,7 +51,7 @@ Other tools can read the skills, because they use the Agent Skills format. But m
 
 `/skill:poteto-mode` matches the task to a playbook, copies the playbook's steps into `TODO.md`, and runs the other skills as the steps need them. A good prompt states the goal and how to tell it's done. It doesn't list skills, because a hand-written sequence tends to drop or reorder steps the playbook would keep. Read [`references/prompting.md`](references/prompting.md) before you help word one. [Guide page 2](../../docs/guide/02-poteto-mode.md) has examples.
 
-`/skill:poteto-mode` attaches the skill to one message, and it fades as the session moves on. To keep it on for the whole session, type `/pstack-mode poteto-mode` instead. That is pstack's Custom Mode. The skill rides in the system prompt every turn, survives `/compact`, and comes back when you resume the session. `/pstack-mode off` ends it. Any pstack skill works as a mode.
+`/skill:poteto-mode` attaches the skill to one message, and it fades as the session moves on. To keep it on for the whole session, type `/pstack-mode poteto-mode` (or `/pstack-mode poteto-mode <goal>` to activate and start in one shot). That is pstack's Custom Mode. The skill rides in the system prompt every turn, survives `/compact`, and comes back when you resume the session. `/pstack-mode off` ends it. Any pstack skill works as a mode.
 
 Point the user to Pi's skills documentation (`docs/skills.md` in the Pi package, or Pi's docs site) when this comes up. Mid-session, "new task" makes the skill match a fresh playbook. `/skill:poteto-mode` already uses `poteto-agent` for the workers its playbook steps spawn. To get the same style from a worker of your own, start it with `subagent` and `agent: "poteto-agent"`.
 
@@ -106,10 +106,11 @@ Close calls:
 - `/skill:recall` rebuilds context across recent chats. `/skill:ketchup` covers only this chat since the user's last message. Resuming one specific chat or branch is the Session pickup playbook.
 - `/skill:figure-it-out` designs one rigorous run. The Autonomous run playbook drives one task to a finish condition.
 
-Not in pstack:
+Also shipped by `pi-pstack-v2`:
 
 - `/skill:deslop`, `control-cli`, and `control-ui` come from the cursor-team-kit skills this package also bundles.
-- Pi has no loop or create-skill commands. Heartbeats and watchers run through `tmux_run`, and a new skill is a `SKILL.md` written to Pi's skills spec.
+- `/loop` (with `tmux_run` `notify_on_output`), `/plan` (read-only planning mode writing under `plans/<slug>.md`), `/create-skill` (authoring + `validate`), and `/automate` (local fail-closed automations) ship as Pi-native slash commands.
+- Dormant Benny automation instructions live under `automations/benny/` and are intentionally not registered as slash skills.
 - pstack has no `/orchestrate` skill. If the slash menu shows `/orchestrate`, another package provides it.
 
 ## Playbooks and principles

@@ -101,7 +101,7 @@ Write short declarative sentences with no long dash and no colon as a connector.
 
 ## Playbooks
 
-Write `TODO.md` at the root of your checkout with the matched playbook's steps first, copied in as `- [ ]` items, before any task-specific items. Check items off as you finish them. `TODO.md` is working state, so never stage it. If the checkout already tracks a `TODO.md`, write the checklist to `.pi/TODO.md` instead, under the same rules. This holds wherever a skill says to write `TODO.md`. Match the task to a playbook and open its steps at `playbooks/<title>.md`, with the title in kebab case. Large, cross-cutting, or unattended work, or a task no playbook fits, routes to the **figure-it-out** skill.
+Write `TODO.md` at the root of your checkout with the matched playbook's steps first, copied in as `- [ ]` items, before any task-specific items. Check items off as you finish them. `TODO.md` is working state, so never stage it. If the checkout already tracks a `TODO.md`, write the checklist to `.pi/TODO.md` instead, under the same rules. This holds wherever a skill says to write `TODO.md`. Match the task to a playbook and open its steps at `playbooks/<title>.md`, with the title in kebab case. Large, cross-cutting, or unattended work, or a task no playbook fits, routes to the **figure-it-out** skill. If the user asks for standalone read-only planning instead of a playbook, `/plan` toggles plan mode and restricts writes to `plans/<slug>.md`.
 
 Investigation, Bug fix, Perf issue, Hillclimb, Runtime forensics, Trace forensics, Feature, Refactoring, Prototype, Visual parity, Authoring a skill, Eval, Babysit, Shipping, Autonomous run, Autopilot-full, Autopilot-stack, Session pickup, Pause safely, Multi-phase plan, Worktree cleanup, Opening a PR.
 
