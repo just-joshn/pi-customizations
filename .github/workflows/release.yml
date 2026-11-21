@@ -52,8 +52,18 @@ jobs:
             if [ "$status" -eq 0 ]; then
               echo "already published: ${name}@${version}"
             elif printf '%s' "$out" | grep -q 'E404'; then
-              echo "unreleased: ${name}@${version}"
-              unreleased="${unreleased}${dir} "
+              pkg_out=""
+              pkg_status=0
+              pkg_out=$(npm view "${name}" name 2>&1) || pkg_status=$?
+              if [ "$pkg_status" -eq 0 ]; then
+                echo "unreleased: ${name}@${version}"
+                unreleased="${unreleased}${dir} "
+              elif printf '%s' "$pkg_out" | grep -q 'E404'; then
+                echo "::notice::skipping ${name}@${version}: package is not on npm yet; complete initial publish and Trusted Publisher setup per docs/releases.md"
+              else
+                echo "::error::npm view failed for ${name} (exit ${pkg_status}): ${pkg_out}"
+                exit 1
+              fi
             else
               echo "::error::npm view failed for ${name}@${version} (exit ${status}): ${out}"
               exit 1
@@ -73,6 +83,11 @@ jobs:
           # first failed package aborts the whole loop (run 41529762501).
           set +e
           set -uo pipefail
+          run_if_script() {
+            if jq -e --arg s "$1" '.scripts[$s]' package.json >/dev/null; then
+              bun run "$1"
+            fi
+          }
           failed=""
           for dir in ${{ steps.detect.outputs.packages }}; do
             name=$(jq -r .name "$dir/package.json")
@@ -80,21 +95,30 @@ jobs:
             echo "::group::${name}@${version}"
             (
               set -euo pipefail
-              (cd "$dir" && bun run --if-present typecheck)
-              (cd "$dir" && bun run --if-present build)
-              if jq -e '.scripts.test' "$dir/package.json" >/dev/null; then
-                (cd "$dir" && bun run test)
-              fi
-              (cd "$dir" && npm pack --dry-run)
-              (cd "$dir" && npm publish)
-              npm view "${name}@${version}" version
-              npm dist-tag ls "${name}"
+              cd "$dir"
+              run_if_script typecheck
+              run_if_script build
+              run_if_script test
+              npm publish
             )
             rc=$?
             if [ "$rc" -ne 0 ]; then
-              echo "::error::release failed for ${name}@${version} (exit ${rc}); inspect the preceding typecheck, build, test, pack, publish, or verification error"
+              echo "::error::release failed for ${name}@${version} (exit ${rc}); inspect the preceding typecheck, build, test, or publish error"
               failed="${failed}${name} "
             else
+              verified=false
+              for _ in 1 2 3 4 5; do
+                if npm view "${name}@${version}" version >/dev/null 2>&1; then
+                  verified=true
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$verified" = "true" ]; then
+                npm dist-tag ls "${name}" || true
+              else
+                echo "::warning::${name}@${version} published, but npm view did not reflect it within 25s (CDN propagation lag)"
+              fi
               echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name})" >> "$GITHUB_STEP_SUMMARY"
             fi
             echo "::endgroup::"
