@@ -20,6 +20,7 @@
   "files": [
     "src",
     "skills",
+    "automations",
     "docs",
     "README.md",
     "LICENSE",

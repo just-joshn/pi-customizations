@@ -88,5 +88,11 @@
     "rule": "plugin",
     "line": "event.systemPromptOptions.hiddenTools = [...event.systemPromptOptions.hiddenTools, SUBAGENT_TOOL_NAME];",
     "reason": "Pi 1.5.2 reads hidden tools only from the systemPromptOptions object it passes to before_agent_start (runner.js emitBeforeAgentStart), the same host contract as the prompt additions in src/prompt.ts. The new array replaces the old one; the host object is the only place the hide can be written."
+  },
+  {
+    "file": "extensions/pi-pstack-v2/src/automate.ts",
+    "rule": "plugin",
+    "line": "} catch (error) {",
+    "reason": "validateOutputNotificationConfig compiles a RegExp and has no non-throwing form; catching returns the validation message in the /automate status/run checklist instead of crashing the slash command handler."
   }
 ]

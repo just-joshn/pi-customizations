@@ -48,11 +48,14 @@ export function registerMode(pi: ExtensionAPI): () => string | undefined {
     description: 'Keep a pstack skill in context every turn. /pstack-mode off ends it.',
     getArgumentCompletions: completions,
     handler: async (args, ctx) => {
-      const name = z.string().parse(args).trim();
-      if (!name) {
+      const trimmed = z.string().parse(args).trim();
+      if (!trimmed) {
         if (ctx.hasUI) ctx.ui.notify(mode ? `${mode} mode is on. /pstack-mode off ends it.` : 'No pstack mode is on. /pstack-mode <skill> starts one.', 'info');
         return;
       }
+      const space = trimmed.search(/\s/);
+      const name = space === -1 ? trimmed : trimmed.slice(0, space);
+      const prompt = space === -1 ? '' : trimmed.slice(space).trim();
       if (name !== 'off' && !skillNames.includes(name)) {
         if (ctx.hasUI) ctx.ui.notify(`${name} is not a pstack skill. Pick one from /pstack-mode's completions.`, 'error');
         return;
@@ -60,6 +63,7 @@ export function registerMode(pi: ExtensionAPI): () => string | undefined {
       mode = name === 'off' ? undefined : name;
       pi.appendEntry(MODE, { skill: mode });
       showMode(mode, ctx);
+      if (prompt) pi.sendUserMessage(prompt);
     },
   });
   return () => mode;
