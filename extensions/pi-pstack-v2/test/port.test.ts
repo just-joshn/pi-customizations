@@ -43,7 +43,6 @@ const bannedBase: { pattern: RegExp; why: string; allow?: RegExp }[] = [
   { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use subagent parameters' },
   { pattern: /todolist|todo list|TodoWrite/i, why: 'Pi has no built-in to-dos; use TODO.md' },
   { pattern: /AskQuestion|AskUserQuestion/, why: 'Pi has no question popups; ask in plain text' },
-  { pattern: /(^|[\s`(])\/loop\b/, why: 'Cursor /loop; use tmux_run' },
   { pattern: /\bplan mode\b/i, why: 'Pi has no plan mode; write a plan file' },
   { pattern: /\b(in|to) the background\b|\bbackground (bash|shell|job|process|agent|task)/i, why: 'Pi has no background bash; use tmux_run', allow: /\bnever\b/i },
   { pattern: /\.cursor\b|\.mdc\b|cursor-plugin|\/add-plugin|~\/\.claude|Claude Code|\.claude-plugin/, why: 'Cursor or Claude Code path or command', allow: /names a Cursor or Claude Code mechanism/ },
@@ -121,14 +120,18 @@ const portedUpstreamFiles = new Set([
 ]);
 
 const skillNames = readdirSync(join(root, 'skills'));
-const banned = [...bannedBase, { pattern: new RegExp(`(^|[\\s\`("'])/(${skillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' }];
+// Skills this package adds for Pi, which upstream does not ship.
+const piNativeSkills = new Set(['loop']);
+// `/loop` is a Pi command, not a skill invocation, so it never needs the /skill: prefix.
+const invokedSkillNames = skillNames.filter((name) => !piNativeSkills.has(name));
+const banned = [...bannedBase, { pattern: new RegExp(`(^|[\\s\`("'])/(${invokedSkillNames.join('|')})\\b`), why: 'Pi invokes skills as /skill:<name>' }];
 
 describe('the Pi port of pstack', () => {
   test('every skill loads through Pi with no diagnostics', () => {
     const { skills, diagnostics } = loadSkills({ cwd: root, agentDir: join(tmpdir(), 'pstack-v2-empty-agent'), skillPaths: [join(root, 'skills')], includeDefaults: false });
     expect(diagnostics).toEqual([]);
     const upstreamSkills = new Set(upstream.filter((path) => /^skills\/[^/]+\/SKILL\.md$/.test(path)).map((path) => path.split(PATH_SEPARATOR)[1]));
-    expect(new Set(skills.map((skill) => skill.name))).toEqual(upstreamSkills);
+    expect(new Set(skills.map((skill) => skill.name))).toEqual(new Set([...upstreamSkills, ...piNativeSkills]));
   });
 
   test('every upstream file is still present', () => {

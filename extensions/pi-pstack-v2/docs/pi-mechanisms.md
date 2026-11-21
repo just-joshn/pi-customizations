@@ -44,8 +44,9 @@ In this table, "subagent" means a Pi instance that the `subagent` tool starts.
 | Open a todolist, `TodoWrite` | Write `TODO.md`. |
 | Custom Mode, set with Option+Enter on a slash skill | `/pstack-mode <skill>`. The extension puts the skill in a `pstack-mode` system-prompt section every turn and records the choice on the session branch, so it survives `/compact`, resume, and `/tree`. `/pstack-mode off` ends it, and the footer shows the active mode. |
 | `AskQuestion`, a multiple-choice popup | Ask in plain text with numbered options, then end your turn. Pi has no question popups. |
-| `/loop` with an event | `tmux_run` the watcher command with `wake: "<what to do next>"`. |
-| `/loop <interval>` heartbeat | `tmux_run` with `command: "sleep <seconds>"`, `wake: "<tick prompt>"`, and `repeat: true`. Stop it with `tmux_jobs` `stop`. |
+| `/loop` with an event | `/loop <prompt>` (self-paced). The `loop` skill has the agent start a `tmux_run` watcher with `notify_on_output`, whose `pattern` matches the lines that mean "look again", plus a one-shot `tmux_run` fallback heartbeat. For a single event with no loop, `tmux_run` the watcher command with `wake: "<what to do next>"`. |
+| `/loop <interval>` heartbeat | `/loop <interval> <prompt>`, such as `/loop 5m check deploy` or `/loop run tests every 10 minutes`. The extension runs the prompt once, then arms a `tmux_run` timer job named `loop-<purpose>` that prints a sentinel line each interval, watched with `notify_on_output`. `/loop list` shows the loops, and `/loop stop [id\|name\|all]` or `tmux_jobs` `stop` ends them. |
+| Monitored shell output, `notify_on_output` | `tmux_run` takes `notify_on_output` with a `pattern` (a multiline regular expression, at most 500 characters) and optional `reason`, `debounce_seconds` (at least 5), and `notification_limit` (default 100). The first match wakes the session at once, later matches are batched, and a limit notice ends the notifications. A job that watches its output is left out of a default `tmux_jobs` `wait`. Its read position lives in `notify-state.json` in the job directory. |
 | A shell command run in the background | `tmux_run`. |
 | Plan mode, a plan to approve | A plan file. |
 | `/<skill>` | `/skill:<skill>`. |
@@ -119,6 +120,7 @@ Each `tmux_run` job lives in `~/.pi/agent/pstack-v2/jobs/<id>/` and holds these 
 - `wrapper.sh` and `wrapper.pid`.
 - `output.log` and `exit`, both written by the tmux wrapper.
 - `woken`, an empty marker file. A wake is claimed once through this file, so restarting Pi never delivers a report twice.
+- `notify-state.json`, written only for a job started with `notify_on_output`. It holds the byte offset already scanned, so each output match notifies once.
 
 Each spawning session runs its own tmux server on a socket in `pstack-v2-<uid>/` under the system temp directory. The socket name is a hash of the session id. `tmux_jobs` `list` prints a `tail -f` command to follow each job's output and a `tmux attach` command for each running job.
 
