@@ -10,12 +10,13 @@ This file governs agents working at this repository root and in its npm packages
 
 ### 1. Establish release scope
 
-1. Identify the intended package directory, package name, current version, target registry, visibility, and whether the project uses npm workspaces. The repository root may be private even when individual workspace packages are published.
-2. Inspect the relevant `package.json` (`name`, `version`, `private`, `scripts`, `repository`, `files`, `publishConfig`), the lockfile, `.npmrc` without disclosing credentials, and any existing release automation. Respect `publishConfig.registry`, `publishConfig.access`, and `publishConfig.tag` where configured.
+1. Identify the intended package directory, package name, current version, target registry, visibility, and whether the project uses Bun/npm workspaces. The repository root may be private even when individual workspace packages are published.
+2. Inspect the relevant `package.json` (`name`, `version`, `private`, `scripts`, `repository`, `files`, `publishConfig`), `bun.lock`, `.npmrc` without disclosing credentials, and any existing release automation. Respect `publishConfig.registry`, `publishConfig.access`, and `publishConfig.tag` where configured.
 3. Check the working tree and toolchain:
 
    ```sh
    git status --short
+   bun --version
    node --version
    npm --version
    npm config get registry
@@ -26,17 +27,18 @@ This file governs agents working at this repository root and in its npm packages
 
 ### 2. Validate the release candidate
 
-Run these in the **package root**, or use an explicit `--workspace=<workspace-name>` where the command supports it:
+Install dependencies from the **workspace root** using `bun.lock`, then run validation in the **package root**:
 
 ```sh
-npm ci                        # only when a matching package-lock.json exists
-npm run build --if-present
-npm test                      # only if a test script is defined
+bun install --frozen-lockfile   # at workspace root, matching bun.lock
+bun run typecheck               # if a typecheck script is defined
+bun run build --if-present
+bun run test                    # if a test script is defined
 npm pack --dry-run
 npm publish --dry-run
 ```
 
-- For a new package without a lockfile, use `npm install` to establish and commit the lockfile before relying on `npm ci`.
+- For a new package or workspace without a lockfile, use `bun install` to establish and commit `bun.lock` before relying on `bun install --frozen-lockfile`.
 - Inspect lifecycle scripts before running pack, publish dry runs, or version commands; these commands may execute project scripts with side effects.
 - Review the resulting pack list for expected entry points, generated output, license/README, accidental secrets, and unnecessary files. Stop if tests, build, version, registry, or packed contents are wrong. Do not treat a missing test script as a passing test.
 - Check that the proposed version is not already published or staged. For existing versions, inspect the registry with `npm view` and any pending stages with an appropriately authenticated `npm stage list`.
@@ -98,7 +100,7 @@ Report package, version, registry, dist-tag, verification result, CI run or sour
 
 - Favor **trusted publishing** over long-lived npm publishing tokens. Supported providers in npm's documentation are GitHub Actions on GitHub-hosted runners, GitLab.com shared runners, and CircleCI cloud. Self-hosted runners are not supported. Trusted publishing requires npm CLI `>=11.5.1` and Node.js `>=22.14.0`.
 - Configure the package's **Trusted Publisher** in its settings on npmjs.com, matching the provider's project identity and workflow precisely. For GitHub Actions, enter the **filename only** (for example, `publish.yml`, not `.github/workflows/publish.yml`); the workflow itself must exist in `.github/workflows/`. If a GitHub environment is configured, its name must also match. `repository.url` in `package.json` must match the GitHub repository.
-- For GitHub Actions, the documented critical permission is `id-token: write`; also use `contents: read`. In the release workflow use a supported Node/npm toolchain, `actions/setup-node` with `registry-url: https://registry.npmjs.org`, and **disable package-manager caching for release builds** (`package-manager-cache: false`). Install with `npm ci`, build/test, then call the approved `npm stage publish` or `npm publish`. Never add a write token merely to make OIDC publishing work.
+- For GitHub Actions, the documented critical permission is `id-token: write`; also use `contents: read`. In the release workflow use a supported Node/npm and Bun toolchain, `actions/setup-node` with `registry-url: https://registry.npmjs.org`, and **disable package-manager caching for release builds** (`package-manager-cache: false`). Install with `bun install --frozen-lockfile`, run typecheck/build/test with Bun, then call the approved `npm stage publish` or `npm publish`. Never add a write token merely to make OIDC publishing work.
 - For GitLab CI/CD, configure `id_tokens` with npm audience **`npm:registry.npmjs.org`** and use a GitLab.com shared runner. For CircleCI, supply `NPM_ID_TOKEN` from CircleCI's OIDC mechanism; CircleCI provenance is not supported.
 - A newly created trusted publisher must complete its **first successful publish within 2 days** to validate the configuration; if it expires, delete the expired connection and create a new one. These settings are not verified on save.
 - Trusted-publisher permissions are independent: `npm stage publish` is allowed, while direct `npm publish` and `npm dist-tag` require their respective permissions. For dist-tags over OIDC, npm requires CLI `>=12.2.0` or `>=11.21.0` (on those respective major lines). Prefer **stage-only** permission for automation.
@@ -126,7 +128,7 @@ Report package, version, registry, dist-tag, verification result, CI run or sour
    For a new package within an existing npm-workspaces project, the documented `npm init -w packages/<name>` can create the workspace and update the root `workspaces` property; inspect the actual workspace layout first.
 3. Supply a useful `README`, appropriate `LICENSE` or license metadata, correct `name` and `version`, `repository`, entry points (`main`/`exports`/`bin` as applicable), dependencies, test/build scripts, and appropriate `files` selection. Ensure generated files exist **before** packing. Set `publishConfig` deliberately if the access, registry, or tag should be constrained.
 4. Confirm `"private": true` is **not** set on a package meant for publication: npm refuses to publish a package with that field. Preserve it on any root/workspace that must remain unpublished. A **restricted registry package** is different from `"private": true` in `package.json`.
-5. Run `npm install` if establishing dependencies/lockfile, test installation of the local package as applicable (`npm install /path/to/package`), and run `npm pack --dry-run`. Review file selection and secrets before doing anything registry-mutating.
+5. Run `bun install` if establishing dependencies and `bun.lock`, test installation of the local package as applicable, and run `npm pack --dry-run`. Review file selection and secrets before doing anything registry-mutating.
 6. For a **new public scoped** package, explicitly publish with `npm publish --access public` or stage with `npm stage publish --access public`, only when authorized. For a restricted package, verify the registry/account supports that access and specify its policy deliberately. Unscoped packages cannot be restricted.
 7. A package must exist on npm before its trusted-publisher relationship can be configured. Complete the approved initial publish or stage/approval workflow, then configure OIDC for subsequent releases. Do not trigger CI publishing until its trusted-publisher mapping is verified.
 
@@ -151,7 +153,7 @@ Report package, version, registry, dist-tag, verification result, CI run or sour
 | Cannot approve or inspect a staged version from CI | OIDC cannot perform the interactive stage-review/approval commands. Use an authenticated maintainer's CLI or npmjs.com, with 2FA for approval/rejection. |
 | Version already exists or is staged | Check published versions and pending stages; prepare a **new** valid version. Do not republish or force-overwrite an existing `name@version`. |
 | Prerelease has the wrong dist-tag | Check the explicit `--tag` and package `publishConfig.tag`. Staged tags cannot be changed in place; changing a staged version's tag requires authorized rejection and re-staging. Registry dist-tag edits require separate permission and approval. |
-| `npm ci` fails | Check that `package-lock.json` exists, matches `package.json`, and was generated with compatible install flags. Fix and commit a reproducible lockfile intentionally; `npm ci` will not rewrite it. |
+| `bun install --frozen-lockfile` fails | Check that `bun.lock` exists, matches `package.json`, and was updated with `bun install`. Commit the updated `bun.lock` intentionally; `--frozen-lockfile` will not rewrite it. |
 | Wrong files in the release tarball | Re-run `npm pack --dry-run`; inspect `files`, root/nested `.npmignore`, `.gitignore`, build outputs, and lifecycle scripts. Never fix a packlist issue by publishing first. |
 | Private dependency installation fails in CI | OIDC trusted publishing does **not** authenticate installs. Add only authorized, read-only granular access for the dependency-install step. |
 | Provenance is missing | Confirm GitHub Actions or GitLab CI/CD trusted publishing, a **public repository**, a **public package**, and correct `repository` metadata. CircleCI and private-source repositories do not receive automatic provenance. |
@@ -165,7 +167,7 @@ When blocked, report **what was checked, the actual command/output or safe excer
 - [npm stage — CLI v12](https://docs.npmjs.com/cli/v12/commands/npm-stage/)
 - [npm version — CLI v12](https://docs.npmjs.com/cli/v12/commands/npm-version/)
 - [npm pack — CLI v12](https://docs.npmjs.com/cli/v12/commands/npm-pack/)
-- [npm ci — CLI v12](https://docs.npmjs.com/cli/v12/commands/npm-ci/)
+- [bun install](https://bun.com/docs/cli/install)
 - [npm init — CLI v12](https://docs.npmjs.com/cli/v12/commands/npm-init/)
 - [package.json — CLI v12](https://docs.npmjs.com/cli/v12/configuring-npm/package-json/)
 - [Trusted publishing for npm packages](https://docs.npmjs.com/trusted-publishers/)
