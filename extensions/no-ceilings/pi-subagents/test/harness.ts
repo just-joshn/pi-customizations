@@ -33,6 +33,8 @@ export interface HarnessOptions {
   readonly sessionId?: string;
   readonly hasUI?: boolean;
   readonly initialEntries?: readonly Record<string, unknown>[];
+  readonly registeredNativeProviders?: Readonly<Record<string, Record<string, unknown>>>;
+  readonly registeredProviderConfigs?: Readonly<Record<string, Record<string, unknown>>>;
   readonly onCustomOverlay?: (
     factory: (tui: { readonly requestRender: () => void }, theme: Theme, kb: unknown, done: (val: unknown) => void) => { readonly render: (w: number) => string[]; readonly handleInput?: (d: string) => void; readonly dispose?: () => void },
   ) => Promise<void>;
@@ -211,6 +213,9 @@ function createFakeContext(cwd: string, sessionDir: string, sessionId: string, o
         { provider: 'test-provider', id: 'model-haiku-fast' },
       ],
       find: (provider: string, id: string) => (provider === 'test-provider' && id === 'model-haiku-fast' ? { provider, id } : undefined),
+      getRegisteredProviderIds: () => [...Object.keys(options.registeredNativeProviders ?? {}), ...Object.keys(options.registeredProviderConfigs ?? {})],
+      getRegisteredNativeProvider: (id: string) => options.registeredNativeProviders?.[id],
+      getRegisteredProviderConfig: (id: string) => options.registeredProviderConfigs?.[id],
     },
     sessionManager: {
       getSessionId: () => sessionId,

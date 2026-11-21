@@ -441,3 +441,35 @@ describe('Round 4 Finding 1: readonly shell guard blocks yq in-place and address
     expect(result).toEqual({ blockedFailures: [], allowedFailures: [] });
   });
 });
+
+const TEST_PROVIDER_URL = 'https://example.test';
+
+describe('Inherited extension providers in child subagent sessions', () => {
+  it('forwards parent native and config providers into child extensionFactories when noExtensions is true', async () => {
+    const nativeProvider = { id: 'google-oauth-v2', name: 'Google OAuth v2' };
+    const configProvider = { baseUrl: TEST_PROVIDER_URL, apiKey: 'oauth-token' };
+    const h = createTestHarness({
+      registeredNativeProviders: { 'google-oauth-v2': nativeProvider },
+      registeredProviderConfigs: { 'custom-anthropic': configProvider },
+    });
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'Subagent succeeded with OAuth provider.' });
+      await h.callTool('task', { description: 'OAuth child', prompt: 'Hello' });
+
+      let registered: readonly { readonly name?: string; readonly value: unknown }[] = [];
+      const onRegister = (first: unknown, second?: unknown): void => {
+        registered = [...registered, second === undefined ? { value: first } : { name: String(first), value: second }];
+      };
+      const fakeChildPi = double<{ readonly on: () => void; readonly registerProvider: typeof onRegister }>({ on: () => undefined, registerProvider: onRegister });
+      for (const factory of capturedFactories) {
+        void factory(double(fakeChildPi));
+      }
+
+      expect(registered).toContainEqual({ value: nativeProvider });
+      expect(registered).toContainEqual({ name: 'custom-anthropic', value: configProvider });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
