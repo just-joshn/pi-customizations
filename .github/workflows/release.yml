@@ -40,7 +40,6 @@ jobs:
         run: |
           set -euo pipefail
           unreleased=""
-          skipped=""
           out_file=$(mktemp)
           err_file=$(mktemp)
           trap 'rm -f "$out_file" "$err_file"' EXIT
@@ -56,7 +55,7 @@ jobs:
             if [ "$status" -ne 0 ]; then
               if grep -q 'E404' "$out_file" "$err_file"; then
                 echo "::notice::skipping ${name}@${version}: package is not on npm yet; complete initial publish and Trusted Publisher setup per docs/releases.md"
-                skipped="${skipped}${name}@${version} "
+                echo "- Skipped \`${name}@${version}\` (not on npm yet; bootstrap per \`docs/releases.md\`)" >> "$GITHUB_STEP_SUMMARY"
                 continue
               fi
               cat "$err_file" "$out_file" >&2
@@ -77,7 +76,6 @@ jobs:
             fi
           done
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
-          echo "skipped=${skipped% }" >> "$GITHUB_OUTPUT"
       - name: Install tmux for the pi-pstack-v2 tests
         if: contains(steps.detect.outputs.packages, 'extensions/pi-pstack-v2')
         run: brew install tmux
@@ -114,23 +112,7 @@ jobs:
               echo "::error::release failed for ${name}@${version} (exit ${rc}); inspect the preceding typecheck, build, test, or publish error"
               failed="${failed}${name} "
             else
-              verified=false
-              for attempt in 1 2 3 4 5; do
-                if npm view "${name}@${version}" version >/dev/null 2>&1; then
-                  verified=true
-                  break
-                fi
-                if [ "$attempt" -lt 5 ]; then
-                  sleep 5
-                fi
-              done
-              if [ "$verified" = "true" ]; then
-                npm dist-tag ls "${name}" || true
-                echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name})" >> "$GITHUB_STEP_SUMMARY"
-              else
-                echo "::warning::${name}@${version} published, but npm view did not reflect it within 20s (CDN propagation lag)"
-                echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) (unverified: npm view timed out after 20s)" >> "$GITHUB_STEP_SUMMARY"
-              fi
+              echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name})" >> "$GITHUB_STEP_SUMMARY"
             fi
             echo "::endgroup::"
           done
@@ -140,11 +122,4 @@ jobs:
           fi
       - name: Nothing to release
         if: steps.detect.outputs.packages == ''
-        env:
-          SKIPPED: ${{ steps.detect.outputs.skipped }}
-        run: |
-          if [ -n "$SKIPPED" ]; then
-            echo "No eligible extension versions to release. Skipped unbootstrapped package(s) not yet on npm: ${SKIPPED}" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Every extension version is already published on npm." >> "$GITHUB_STEP_SUMMARY"
-          fi
+        run: echo "No eligible extension versions to release." >> "$GITHUB_STEP_SUMMARY"

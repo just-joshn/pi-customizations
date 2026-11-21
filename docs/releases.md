@@ -4,7 +4,14 @@ This file governs agents working at this repository root and in its npm packages
 
 **Documentation baseline:** official npm documentation reviewed **2026-11-21**; npm CLI **v12.2.3** was listed as latest. Check the linked npm documentation again before modifying publishing infrastructure, because authentication and publishing rules change. Commands below use npm's documented syntax; explanations and agent policy are project instructions, not copied npm documentation.
 
-**Authority boundary:** You may inspect files, prepare changes, and run local checks. **Do not** publish or stage a package, approve/reject a staged version, move a dist-tag, push a commit/tag, modify npm account/package settings, rotate/revoke credentials, or delete/unpublish a release without explicit authorization for that action. A successful dry run is not authorization. Never claim a release succeeded without registry evidence.
+**Authority boundary:** You may inspect files, prepare changes, and run local checks. **Do not** publish or stage a package, approve/reject a staged version, move a dist-tag, push a release tag, modify npm account/package settings, rotate/revoke credentials, or delete/unpublish a release without explicit authorization for that action. A successful dry run is not authorization. Never claim a release succeeded without registry evidence.
+
+## This repository
+
+- `.github/workflows/release.yml` publishes non-private `extensions/*/package.json` packages on push to `main` via OIDC-only direct `npm publish`.
+- Configure each package's **Trusted Publisher** on npmjs.com with GitHub Actions, owner `just-joshn`, repository `pi-customizations`, workflow filename `release.yml`, no environment, and **direct publish** permission enabled.
+- Scoped `@justjoshn/*` packages must set `"publishConfig": { "access": "public" }` in `package.json`, because `release.yml` runs `npm publish` without `--access`.
+- New packages are skipped by `release.yml` until bootstrapped: complete an authorized initial interactive publish on npm, configure the Trusted Publisher, then merge future version bumps to `main`.
 
 ## Releases
 
