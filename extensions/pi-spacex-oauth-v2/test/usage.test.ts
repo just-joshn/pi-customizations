@@ -13,6 +13,7 @@ const rateHeaders = { 'x-ratelimit-limit-tokens': '53000000', 'x-ratelimit-remai
 const GROK_BILLING_URL = 'https://cli-chat-proxy.grok.com/v1/billing';
 const CURSOR_ACCOUNT_LINE = /^Cursor: signed in as me@example\.com\. See cursor\.com\/dashboard\/usage for plan usage\.\nGrok Build credits used: 42, period ends Sat, Nov 28, 12:00\sAM/;
 const ACCOUNT_BILLING_AND_RATE_LIMIT_LINES = 3;
+const CURSOR_ACCOUNT_TEXT = 'Cursor: signed in as me@example.com. See cursor.com/dashboard/usage for plan usage.';
 const RATE_LIMIT_LINE = 'Grok Build rate limit: 8299/8300 requests, 52.0M/53.0M tokens left';
 
 interface BillingStub {
@@ -91,6 +92,19 @@ describe('the spacex-usage command when a lookup fails', () => {
     stubGrokBilling({ status: HTTP_SERVER_ERROR });
     const [note] = await usage({ tokens: { [GROK_ID]: 'bad' } });
     expect(note?.message).toBe('Usage lookup failed: Grok billing failed: HTTP 500');
+  });
+
+  test('still shows the Cursor account when Grok billing fails', async () => {
+    stubGrokBilling({ status: HTTP_SERVER_ERROR });
+    const [note] = await usage({ tokens: { [CURSOR_ID]: 'c-tok', [GROK_ID]: 'g-tok' } });
+    expect(note?.message).toBe(`${CURSOR_ACCOUNT_TEXT}\nUsage lookup failed: Grok billing failed: HTTP 500`);
+  });
+
+  test('still shows Grok Build credits when the Cursor lookup fails', async () => {
+    stubGrokBilling();
+    fakeSdk.Cursor.me.mockRejectedValue(new Error('Invalid User API Key'));
+    const [note] = await usage({ tokens: { [CURSOR_ID]: 'bad', [GROK_ID]: 'g-tok' } });
+    expect(note?.message).toMatch(/^Usage lookup failed: Invalid User API Key\nGrok Build credits used: 42,/);
   });
 
   test('reports a non-Error failure by its text', async () => {

@@ -183,6 +183,38 @@ describe('Pi tool calls: backlog, timeout, and replay', () => {
   });
 });
 
+describe('Pi tool calls: a parallel call that arrives late', () => {
+  test('a parallel call that reaches Cursor after the turn paused runs in the next turn instead of being dropped', async () => {
+    const turnPaused = signal();
+    const lateParked = signal();
+    let received: unknown[] = [];
+    sdk.script(async ({ tools, emit }) => {
+      const early = call(tools, 'read', {});
+      await turnPaused.promise;
+      const late = call(tools, 'ls', {});
+      lateParked.resolve();
+      received = await Promise.all([early, late]);
+      emit(sdkText('Done.'));
+      return { status: 'finished' };
+    });
+    const history = [system(freshPrompt()), user('go')];
+    const first = await ask(history);
+    turnPaused.resolve();
+    await lateParked.promise;
+    const earlyResult = toolResult(toolCalls(first.message)[0]?.id ?? '', 'early result');
+    const second = await ask([...history, first.message, earlyResult]);
+    expect(second.message.stopReason).toBe('toolUse');
+    expect(toolCalls(second.message).map((c) => c.name)).toStrictEqual(['ls']);
+    const lateResult = toolResult(toolCalls(second.message)[0]?.id ?? '', 'late result');
+    const third = await ask([...history, first.message, earlyResult, second.message, lateResult]);
+    expect(third.message.content).toStrictEqual([{ type: 'text', text: 'Done.' }]);
+    expect(received).toStrictEqual([
+      { content: [{ type: 'text', text: 'early result' }], isError: false },
+      { content: [{ type: 'text', text: 'late result' }], isError: false },
+    ]);
+  });
+});
+
 describe('follow-up turns', () => {
   test('a follow-up reuses the idle agent and sends only the new message', async () => {
     sdk.script(

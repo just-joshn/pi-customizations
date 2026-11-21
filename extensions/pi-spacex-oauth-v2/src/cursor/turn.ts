@@ -27,7 +27,6 @@ export interface PiTurn {
   readonly stream: AssistantMessageEventStream;
   /** The newest snapshot of the message; every change builds a new one. */
   readonly message: AssistantMessage;
-  readonly isEnded: boolean;
   text(delta: string): void;
   thinking(delta: string): void;
   closeBlock(): void;
@@ -63,11 +62,8 @@ export function createPiTurn(model: Model<Api>): PiTurn {
     get message() {
       return state.read().message;
     },
-    get isEnded() {
-      return state.read().ended;
-    },
-    text: (delta) => appendText(stream, state, delta),
-    thinking: (delta) => appendThinking(stream, state, delta),
+    text: (delta) => append(stream, state, 'text', delta),
+    thinking: (delta) => append(stream, state, 'thinking', delta),
     closeBlock: () => closeBlock(stream, state),
     toolUse: (calls) => toolUse(stream, state, calls),
     finish: (reason) => finish(stream, state, reason),
@@ -75,24 +71,21 @@ export function createPiTurn(model: Model<Api>): PiTurn {
   };
 }
 
-function appendText(stream: AssistantMessageEventStream, state: State, delta: string): void {
-  const index = openBlock(stream, state, 'text');
-  const { message } = state.read();
-  const block = message.content[index];
-  if (block?.type !== 'text') return;
-  const partial = withBlock(message, index, { ...block, text: block.text + delta });
-  setMessage(state, partial);
-  emit(stream, { type: 'text_delta', contentIndex: index, delta, partial });
+/** The block with `delta` added, and the stream event that reports it. */
+function grow(block: Block | undefined, delta: string) {
+  if (block?.type === 'text') return { block: { ...block, text: block.text + delta }, event: 'text_delta' as const };
+  if (block?.type === 'thinking') return { block: { ...block, thinking: block.thinking + delta }, event: 'thinking_delta' as const };
+  return undefined;
 }
 
-function appendThinking(stream: AssistantMessageEventStream, state: State, delta: string): void {
-  const index = openBlock(stream, state, 'thinking');
+function append(stream: AssistantMessageEventStream, state: State, kind: BlockKind, delta: string): void {
+  const contentIndex = openBlock(stream, state, kind);
   const { message } = state.read();
-  const block = message.content[index];
-  if (block?.type !== 'thinking') return;
-  const partial = withBlock(message, index, { ...block, thinking: block.thinking + delta });
+  const grown = grow(message.content[contentIndex], delta);
+  if (!grown) return;
+  const partial = withBlock(message, contentIndex, grown.block);
   setMessage(state, partial);
-  emit(stream, { type: 'thinking_delta', contentIndex: index, delta, partial });
+  emit(stream, { type: grown.event, contentIndex, delta, partial });
 }
 
 function closeBlock(stream: AssistantMessageEventStream, state: State): void {
@@ -134,21 +127,21 @@ function toolUse(stream: AssistantMessageEventStream, state: State, calls: PiToo
   finish(stream, state, 'toolUse');
 }
 
-function finish(stream: AssistantMessageEventStream, state: State, reason: 'stop' | 'toolUse'): void {
+/** Ends the turn once: closes any open block, records how it ended, and sends the closing event. */
+function conclude(stream: AssistantMessageEventStream, state: State, ending: Pick<AssistantMessage, 'stopReason' | 'errorMessage'>, closing: (message: AssistantMessage) => AssistantMessageEvent): void {
   if (state.read().ended) return;
   closeBlock(stream, state);
-  const message: AssistantMessage = { ...state.read().message, stopReason: reason };
+  const message: AssistantMessage = { ...state.read().message, ...ending };
   patchCell(state, { message, ended: true });
-  emit(stream, { type: 'done', reason, message });
+  emit(stream, closing(message));
   stream.end();
 }
 
+function finish(stream: AssistantMessageEventStream, state: State, reason: 'stop' | 'toolUse'): void {
+  conclude(stream, state, { stopReason: reason }, (message) => ({ type: 'done', reason, message }));
+}
+
 function fail(stream: AssistantMessageEventStream, state: State, errorMessage: string, aborted: boolean): void {
-  if (state.read().ended) return;
-  closeBlock(stream, state);
   const reason = aborted ? 'aborted' : 'error';
-  const message: AssistantMessage = { ...state.read().message, stopReason: reason, errorMessage };
-  patchCell(state, { message, ended: true });
-  emit(stream, { type: 'error', reason, error: message });
-  stream.end();
+  conclude(stream, state, { stopReason: reason, errorMessage }, (message) => ({ type: 'error', reason, error: message }));
 }

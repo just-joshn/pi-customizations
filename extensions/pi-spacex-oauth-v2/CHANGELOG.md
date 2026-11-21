@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.4
+
+- Fix a Cursor tool call that arrives after its turn paused. It now runs in the next turn instead of being answered with "Pi returned no result".
+- Fix leaked Cursor agents. A replaced idle agent is closed, `session_shutdown` closes every idle agent, and signing in with a new API key no longer reuses an agent made with the old one.
+- `/spacex-usage` still shows the Cursor account when Grok billing fails, and the reverse.
+- A Grok sign-in whose signal is already aborted rejects at once, and the poll wait no longer leaves an abort listener per poll.
+- A Grok token endpoint reply that is not a token response reports its HTTP status.
+- A failed live model refresh keeps the stored list (or the built-in one) and logs the error, instead of failing the refresh.
+- Refactor: one `levelPlans` table drives both the thinking levels Pi offers and the model selection Cursor receives, one `refreshCatalog` serves both providers, and the Cursor run models its state as `streaming | batching | paused | done`.
+
 ## [0.2.3]
 
 - Fix every `bun lint` behavior error. Stored model lists with a non-chat entry fall back to the built-in list, Cursor tool schemas are validated as JSON, and an aborted login wait rejects with an `Error`.

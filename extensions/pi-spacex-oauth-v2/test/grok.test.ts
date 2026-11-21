@@ -7,6 +7,7 @@ import { makeModel } from './support.ts';
 const HTTP_OK = 200;
 const HTTP_BAD_REQUEST = 400;
 const HTTP_FORBIDDEN = 403;
+const HTTP_BAD_GATEWAY = 502;
 const HTTP_SERVER_ERROR = 500;
 const DEVICE_URL = 'https://accounts.x.ai/oauth2/device';
 const DEVICE_URL_COMPLETE = 'https://accounts.x.ai/oauth2/device?user_code=ABCD-1234';
@@ -126,6 +127,24 @@ describe('Grok Build device sign-in failures', () => {
     await expect(login).rejects.toThrow('cancelled');
   });
 
+  test('a login Pi already cancelled rejects at once instead of waiting out the poll interval', async () => {
+    stubFetch(jsonResponse(HTTP_OK, deviceCode({ interval: POLL_INTERVAL_SECONDS })));
+    const controller = new AbortController();
+    controller.abort(new Error('cancelled'));
+    const login = handled(grok().oauth.login(makeLogin(controller.signal).callbacks));
+    let outcome = 'still waiting';
+    void login.then(
+      () => {
+        outcome = 'signed in';
+      },
+      (error: unknown) => {
+        outcome = error instanceof Error ? error.message : 'rejected';
+      },
+    );
+    await vi.advanceTimersByTimeAsync(POLL_INTERVAL_SECONDS * MS_PER_SECOND - 1);
+    expect(outcome).toBe('cancelled');
+  });
+
   test('says no token was returned when the server answers with neither tokens nor an error', async () => {
     stubFetch(jsonResponse(HTTP_OK, deviceCode({ interval: 1 })), jsonResponse(HTTP_OK, {}));
     const login = handled(grok().oauth.login(makeLogin().callbacks));
@@ -136,6 +155,11 @@ describe('Grok Build device sign-in failures', () => {
 
 describe('Grok Build token refresh and API key', () => {
   const signal = new AbortController().signal;
+
+  test('reports the HTTP status when the token endpoint answers with a page instead of a token response', async () => {
+    stubFetch(new Response('<html>Bad gateway</html>', { status: HTTP_BAD_GATEWAY }));
+    await expect(grok().oauth.refreshToken({ access: 'a', refresh: 'r', expires: 0 }, signal)).rejects.toThrow('Grok token request failed: HTTP 502');
+  });
 
   test('keeps the old refresh token when the server does not rotate it', async () => {
     stubFetch(jsonResponse(HTTP_OK, { access_token: 'new', expires_in: SHORT_TOKEN_LIFETIME_SECONDS }));
@@ -198,8 +222,25 @@ describe('Grok Build model list', () => {
     expect(models.find((m) => m.id === 'grok-4.5')).toMatchObject({ thinkingLevelMap: { low: 'low', medium: 'medium', high: 'high', xhigh: null }, contextWindow: GROK_CONTEXT_WINDOW });
   });
 
-  test('a failed model list surfaces the HTTP status', async () => {
-    stubFetch(new Response('', { status: HTTP_FORBIDDEN }));
-    await expect(grok().refreshModels(makeRefresh({ credential: oauthCredential('tok') }).ctx)).rejects.toThrow('Grok Build model list failed: HTTP 403');
+  describe('when the live list fails', () => {
+    beforeEach(() => {
+      stubFetch(new Response('', { status: HTTP_FORBIDDEN }));
+    });
+    afterEach(() => vi.restoreAllMocks());
+
+    test('Pi keeps the stored catalog, persists nothing, and the log names the HTTP status', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const stored = [makeModel('stored-model', GROK_ID, 'openai-responses')];
+      const { ctx, published } = makeRefresh({ credential: oauthCredential('tok'), stored: { models: stored } });
+      expect(await grok().refreshModels(ctx)).toBe(stored);
+      expect(published()).toStrictEqual([]);
+      expect(error).toHaveBeenCalledWith('Model refresh failed for spacex-grok:', expect.objectContaining({ message: 'Grok Build model list failed: HTTP 403' }));
+    });
+
+    test('Pi lists the built-in models when nothing was stored', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const models = await grok().refreshModels(makeRefresh({ credential: oauthCredential('tok') }).ctx);
+      expect(ids(models)).toStrictEqual(['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5']);
+    });
   });
 });

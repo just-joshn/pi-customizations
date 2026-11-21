@@ -1,8 +1,13 @@
 import type { ModelParameterValue, ModelSelection, SDKModel } from '@cursor/sdk';
 import type { ThinkingLevel, ThinkingLevelMap } from '@earendil-works/pi-ai';
-import type { ChatModelConfig } from '../stored-models.ts';
+import { type ChatModelConfig, chatModel } from '../stored-models.ts';
 
 type PiLevel = keyof ThinkingLevelMap;
+type ModelParameter = NonNullable<SDKModel['parameters']>[number];
+
+/** The parameter values that select one Pi level on one model. */
+type Plan = ModelParameterValue[];
+type Plans = Partial<Record<PiLevel, Plan | null>>;
 
 // Catalog parameter ids that carry reasoning effort. Models name it differently.
 const EFFORT_PARAMS = new Set(['effort', 'reasoning_effort', 'reasoning']);
@@ -22,7 +27,6 @@ const EFFORT_VALUES: Record<PiLevel, readonly string[]> = {
 };
 
 const DEFAULT_CONTEXT_WINDOW = 200_000;
-const MAX_OUTPUT_TOKENS = 64_000;
 const TOKENS_PER_THOUSAND = 1_000;
 const TOKENS_PER_MILLION = 1_000_000;
 const CONTEXT_UNITS: Record<string, number> = { k: TOKENS_PER_THOUSAND, m: TOKENS_PER_MILLION };
@@ -31,19 +35,34 @@ const effortParam = (model: SDKModel) => model.parameters?.find((p) => EFFORT_PA
 const thinkingParam = (model: SDKModel) => model.parameters?.find((p) => p.id === THINKING_PARAM);
 const defaultParams = (model: SDKModel): ModelParameterValue[] => model.variants?.find((v) => v.isDefault)?.params ?? [];
 
-/** The catalog value that selects a Pi level on this model, or undefined when the model lacks it. */
-function effortValueFor(model: SDKModel, level: PiLevel): string | undefined {
-  const values = effortParam(model)?.values.map((v) => v.value) ?? [];
-  return EFFORT_VALUES[level].find((v) => values.includes(v));
+const setting = (id: string, value: string): ModelParameterValue => ({ id, value });
+
+/** The catalog value that selects a Pi level on this effort parameter, or undefined when it lacks it. */
+const effortValueFor = (effort: ModelParameter, level: PiLevel): string | undefined => EFFORT_VALUES[level].find((v) => effort.values.some((offered) => offered.value === v));
+
+/**
+ * What each Pi level means on this model, or undefined when the model has no reasoning controls. A level the
+ * model cannot honor is null. This one table feeds both the levels Pi offers and the selection Cursor receives.
+ */
+function levelPlans(model: SDKModel): Plans | undefined {
+  const effort = effortParam(model);
+  const thinking = thinkingParam(model);
+  if (!effort && !thinking) return undefined;
+  const thinkingOn = thinking ? [setting(thinking.id, 'true')] : [];
+  const thinkingOff = thinking?.values.some((v) => v.value === 'false') ? [setting(thinking.id, 'false')] : null;
+  const planFor = (level: PiLevel): Plan | null => {
+    const effortValue = effort && effortValueFor(effort, level);
+    if (level === 'off') return effort && effortValue ? [setting(effort.id, effortValue)] : thinkingOff;
+    if (effort) return effortValue ? [setting(effort.id, effortValue), ...thinkingOn] : null;
+    return level === 'high' ? thinkingOn : null;
+  };
+  return PI_LEVELS.reduce<Plans>((plans, level) => ({ ...plans, [level]: planFor(level) }), {});
 }
 
-/** Whether Pi's "off" can be honored: an effort of "none", or thinking=false. */
-const canTurnOff = (model: SDKModel) => effortValueFor(model, 'off') !== undefined || thinkingParam(model)?.values.some((v) => v.value === 'false') === true;
+const planValue = (plan: Plan | null | undefined): string | null => plan?.at(0)?.value ?? null;
 
-export function thinkingLevelMap(model: SDKModel): ThinkingLevelMap | undefined {
-  if (!effortParam(model)) return thinkingParam(model) ? { minimal: null, low: null, medium: null, off: canTurnOff(model) ? 'false' : null } : undefined;
-  const levelValue = (level: PiLevel) => (level === 'off' ? (canTurnOff(model) ? 'off' : null) : (effortValueFor(model, level) ?? null));
-  return PI_LEVELS.reduce<ThinkingLevelMap>((map, level) => ({ ...map, [level]: levelValue(level) }), {});
+function thinkingLevelMap(plans: Plans | undefined): ThinkingLevelMap | undefined {
+  return plans && PI_LEVELS.reduce<ThinkingLevelMap>((map, level) => ({ ...map, [level]: planValue(plans[level]) }), {});
 }
 
 function contextWindow(model: SDKModel): number {
@@ -53,21 +72,9 @@ function contextWindow(model: SDKModel): number {
   return amount && scale ? Math.round(Number(amount) * scale) : DEFAULT_CONTEXT_WINDOW;
 }
 
-export function toPiModel(model: SDKModel): ChatModelConfig {
-  const levels = thinkingLevelMap(model);
-  return {
-    id: model.id,
-    name: model.displayName,
-    reasoning: levels !== undefined,
-    ...(levels ? { thinkingLevelMap: levels } : {}),
-    input: ['text', 'image'],
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: contextWindow(model),
-    maxTokens: MAX_OUTPUT_TOKENS,
-  };
-}
+export const toPiModel = (model: SDKModel): ChatModelConfig => chatModel({ id: model.id, name: model.displayName, contextWindow: contextWindow(model), levels: thinkingLevelMap(levelPlans(model)) });
 
-const withParam = (params: ModelParameterValue[], id: string, value: string) => [...params.filter((p) => p.id !== id), { id, value }];
+const withParam = (params: ModelParameterValue[], change: ModelParameterValue) => [...params.filter((p) => p.id !== change.id), change];
 
 /**
  * The model selection for one run. Starts from the catalog's default variant, so every parameter is explicit,
@@ -75,13 +82,7 @@ const withParam = (params: ModelParameterValue[], id: string, value: string) => 
  */
 export function selectModel(model: SDKModel | undefined, modelId: string, level: ThinkingLevel | undefined): ModelSelection {
   if (!model) return { id: modelId };
-  const base = defaultParams(model);
-  const effort = effortParam(model);
-  const thinking = thinkingParam(model);
-  const wanted: PiLevel = level ?? 'off';
-  const effortValue = effort ? effortValueFor(model, wanted) : undefined;
-  let params = effort && effortValue ? withParam(base, effort.id, effortValue) : base;
-  if (thinking && wanted === 'off' && !effortValue) params = withParam(params, thinking.id, 'false');
-  else if (thinking && wanted !== 'off') params = withParam(params, thinking.id, 'true');
+  const plan = levelPlans(model)?.[level ?? 'off'] ?? [];
+  const params = plan.reduce(withParam, defaultParams(model));
   return params.length > 0 ? { id: model.id, params } : { id: model.id };
 }

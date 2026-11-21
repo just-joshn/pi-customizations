@@ -87,9 +87,25 @@ describe('Cursor model list refresh', () => {
     await cursor().refreshModels(ctx);
     expect(fakeSdk.Cursor.models.list).toHaveBeenCalledTimes(2);
   });
+});
 
-  test('a rejected key surfaces the failure', async () => {
+describe('Cursor model list refresh when the live list fails', () => {
+  beforeEach(() => {
     fakeSdk.Cursor.models.list.mockRejectedValue(new Error('Invalid User API Key'));
-    await expect(cursor().refreshModels(makeRefresh({ credential: oauthCredential('bad-key') }).ctx)).rejects.toThrow('Invalid User API Key');
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  test('Pi keeps the stored list, persists nothing, and the log names the failure', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const stored = [makeModel('kept', CURSOR_ID, 'cursor-sdk')];
+    const { ctx, published } = makeRefresh({ credential: oauthCredential('bad-key'), stored: { models: stored } });
+    expect(await cursor().refreshModels(ctx)).toBe(stored);
+    expect(published()).toStrictEqual([]);
+    expect(error).toHaveBeenCalledWith('Model refresh failed for spacex-cursor:', expect.objectContaining({ message: 'Invalid User API Key' }));
+  });
+
+  test('Pi lists Composer when nothing was stored', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(ids(await cursor().refreshModels(makeRefresh({ credential: oauthCredential('bad-key') }).ctx))).toStrictEqual(['composer-2.5']);
   });
 });

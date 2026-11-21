@@ -1,8 +1,30 @@
-import { type AnyModel, type Api, isModelType, type Model, type ModelsStoreEntry } from '@earendil-works/pi-ai';
+import { type AnyModel, type Api, isModelType, type Model, type ModelsStoreEntry, type ThinkingLevelMap } from '@earendil-works/pi-ai';
 import type { ProviderModelConfig } from '@earendil-works/pi-coding-agent';
 
 /** The chat entries of a provider model list, which is all this extension publishes. */
 export type ChatModelConfig = Extract<ProviderModelConfig, { reasoning: boolean }>;
+
+const MAX_OUTPUT_TOKENS = 64_000;
+
+/** What differs between this extension's chat models; `levels` is undefined for a model with no thinking controls. */
+export interface ChatModelSpec {
+  id: string;
+  name: string;
+  contextWindow: number;
+  levels: ThinkingLevelMap | undefined;
+}
+
+/** A subscription chat model: free to call, text and image input, and a thinking map only when it can think. */
+export const chatModel = ({ id, name, contextWindow, levels }: ChatModelSpec): ChatModelConfig => ({
+  id,
+  name,
+  reasoning: levels !== undefined,
+  ...(levels ? { thinkingLevelMap: levels } : {}),
+  input: ['text', 'image'],
+  cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+  contextWindow,
+  maxTokens: MAX_OUTPUT_TOKENS,
+});
 
 /** Where a provider's models are served, merged into each persisted entry. */
 export interface ModelTarget {
