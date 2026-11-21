@@ -44,7 +44,7 @@ npm pack --dry-run
 
 ### 3. Prepare version and release metadata
 
-- Use the repository's existing release tooling if present; otherwise use npm's supported version operations, for example `npm version patch`, `npm version minor`, `npm version major`, or `npm version prerelease --preid=beta`, **only after the release type is authorized**.
+- Use the repository's existing release tooling if present; otherwise pass `--no-workspaces-update` with npm's version commands, for example `npm version patch --no-workspaces-update`, `npm version minor --no-workspaces-update`, `npm version major --no-workspaces-update`, or `npm version prerelease --preid=beta --no-workspaces-update`, **only after the release type is authorized**. (`--no-workspaces-update` avoids npm Arborist crashing on `node_modules/.bun/` symlinks in Bun workspaces.)
 - `npm version` updates the package version; in Git repositories it normally creates a commit and tag and runs any `preversion`, `version`, and `postversion` scripts. Inspect these first: a `postversion` script can push remotely. Do not run a version script that would perform an unauthorized external action.
 - Keep changelogs, documentation, package contents, lockfile, version commit, and release tag consistent with the project's established process.
 - The default distribution tag is `latest`. For a prerelease use an explicit non-`latest` tag, such as `--tag next` or `--tag beta`, and confirm the chosen tag before staging or publishing.
