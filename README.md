@@ -51,7 +51,7 @@ bun run test                 # every package
 
 To load a package from this checkout, run `pi -e extensions/<package>`.
 
-To publish a package, bump `version` in its `package.json` and merge to `main`. See [`docs/releases.md`](docs/releases.md).
+See [`docs/releases.md`](docs/releases.md) for package release and publishing instructions.
 
 ## License
 
