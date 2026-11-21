@@ -115,7 +115,7 @@ function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails 
 
 function extractRecordArgs(args: unknown): Readonly<Record<string, unknown>> {
   if (args && typeof args === 'object' && !Array.isArray(args)) {
-    return args as Readonly<Record<string, unknown>>;
+    return Object.fromEntries(Object.entries(args));
   }
   return {};
 }

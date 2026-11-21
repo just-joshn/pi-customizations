@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { AgentSessionEvent, ExtensionFactory, Theme } from '@earendil-works/pi-coding-agent';
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createGate, createTestHarness, double, extractGuardHandler } from './harness.ts';
+import { createGate, createTestHarness, delay, double, extractGuardHandler } from './harness.ts';
 
 interface MockPlan {
   readonly finalText: string;
@@ -81,21 +81,31 @@ afterEach(() => {
   lastLoaderFactories = [];
 });
 
-async function assertReadonlyBashMatrix(blocked: readonly string[], allowed: readonly string[]): Promise<void> {
+async function evaluateReadonlyBashMatrix(blocked: readonly string[], allowed: readonly string[]): Promise<{ readonly blockedFailures: readonly string[]; readonly allowedFailures: readonly string[] }> {
   const h = createTestHarness();
   try {
     await h.emit('session_start', {});
     enqueuePlan({ finalText: 'done' });
     await h.callTool('task', { description: 'Explore', prompt: 'Check', subagent_type: 'explore' });
     const guard = extractGuardHandler(capturedFactories[ZERO]);
-    expect(guard).toBeDefined();
+    if (!guard) {
+      throw new Error('readonly guard handler missing');
+    }
+    let blockedFailures: readonly string[] = [];
     for (const command of blocked) {
-      const decision = await guard?.({ toolName: 'bash', input: { command } });
-      expect(decision?.block, `expected blocked: ${command}`).toBe(true);
+      const decision = await guard({ toolName: 'bash', input: { command } });
+      if (decision?.block !== true) {
+        blockedFailures = [...blockedFailures, command];
+      }
     }
+    let allowedFailures: readonly string[] = [];
     for (const command of allowed) {
-      expect(await guard?.({ toolName: 'bash', input: { command } }), `expected allowed: ${command}`).toBeUndefined();
+      const decision = await guard({ toolName: 'bash', input: { command } });
+      if (decision !== undefined) {
+        allowedFailures = [...allowedFailures, command];
+      }
     }
+    return { blockedFailures, allowedFailures };
   } finally {
     await h.cleanup();
   }
@@ -143,10 +153,11 @@ describe('Finding 2: plain markdown without frontmatter is ignored', () => {
 
 describe('Finding 3: readonly shell guard blocks bypass vectors', () => {
   it('blocks newline injection, env exec, find -delete/-exec, and awk system()', async () => {
-    await assertReadonlyBashMatrix(
+    const result = await evaluateReadonlyBashMatrix(
       ['ls -la\npython3 -c "import os"', 'env python3 -c "import os"', 'find . -delete', 'find . -exec python3 -c "print(1)" +', 'awk \'BEGIN { system("python3 -c 1") }\''],
       ['find . -maxdepth 2 -name "*.ts"', 'env'],
     );
+    expect(result).toEqual({ blockedFailures: [], allowedFailures: [] });
   });
 });
 
@@ -206,11 +217,11 @@ describe('Finding 6: abortRun waits for settlement or marks session cancelled im
 
       await h.runCommand('tasks', `abort ${agentId}`);
       const awaitPromise = h.callTool('await_subagent', { agent_id: agentId, timeout_ms: LONG_TIMEOUT_MS });
-      await new Promise((resolve) => setTimeout(resolve, SHORT_DELAY_MS));
+      await delay(SHORT_DELAY_MS);
       gate.release();
       const res = await awaitPromise;
       expect(res.details?.status).not.toBe('running');
-      const details = res.details as { readonly outcome?: string; readonly finalMessage?: string; readonly error?: string } | undefined;
+      const details = double<{ readonly outcome?: string; readonly finalMessage?: string; readonly error?: string } | undefined>(res.details);
       expect(details?.outcome).toBe('complete');
       await h.runCommand('tasks', 'list');
       expect(h.getNotifications().at(-ONE)?.message).toContain('[cancelled/bg]');
@@ -236,7 +247,7 @@ describe('Finding 7: pre-aborted AbortSignal cancels immediately', () => {
       const t0 = Date.now();
       const res = await h.callTool('await_subagent', { agent_id: agentId, timeout_ms: LONG_TIMEOUT_MS }, { signal: ac.signal });
       const elapsed = Date.now() - t0;
-      const details = res.details as { readonly outcome?: string } | undefined;
+      const details = double<{ readonly outcome?: string } | undefined>(res.details);
       expect(details?.outcome).toBe('error');
       expect(elapsed).toBeLessThan(FAST_ABORT_BUDGET_MS);
       gate.release();
@@ -284,7 +295,7 @@ describe('Round 2 Finding 1: resumed background run clears prior wakeup suppress
       enqueuePlan({ finalText: 'Run 2 done.', waitForRelease: gate2.promise });
       await h.callTool('task', { description: 'BG run 2', prompt: 'Second pass', resume: agentId, run_in_background: true });
       gate2.release();
-      await new Promise((resolve) => setTimeout(resolve, SHORT_DELAY_MS));
+      await delay(SHORT_DELAY_MS);
 
       expect(h.getSentMessages().length).toBe(ONE);
     } finally {
@@ -295,10 +306,11 @@ describe('Round 2 Finding 1: resumed background run clears prior wakeup suppress
 
 describe('Round 2 Finding 2: readonly shell guard blocks output flags and process substitution', () => {
   it('blocks sort -o, git --output, sed w flag, and <(...) process substitution', async () => {
-    await assertReadonlyBashMatrix(
+    const result = await evaluateReadonlyBashMatrix(
       ['sort -o /tmp/pwned /etc/hosts', 'git diff --output=/tmp/pwned', 'git log --output=/tmp/pwned', 'sed -e "s/a/b/w /tmp/pwned" /etc/hosts', 'diff <(python3 -c "print(1)") <(echo 1)'],
       ['sort /etc/hosts', 'git diff --stat'],
     );
+    expect(result).toEqual({ blockedFailures: [], allowedFailures: [] });
   });
 });
 
@@ -332,7 +344,7 @@ describe('Round 2 Finding 4: resuming an active foreground subagent is rejected 
         runningAgentId = partial.details?.agentId ?? runningAgentId;
       };
       const fgPromise = h.callTool('task', { description: 'Active fg task', prompt: 'Run long work' }, { onUpdate });
-      await new Promise((resolve) => setTimeout(resolve, SHORT_DELAY_MS));
+      await delay(SHORT_DELAY_MS);
       expect(runningAgentId.length).toBeGreaterThan(ZERO);
 
       await expect(h.callTool('task', { description: 'Concurrent resume', prompt: 'Steal session', resume: runningAgentId })).rejects.toThrow('Sub-agent is currently running');
@@ -415,15 +427,17 @@ describe('Round 3 Finding 1: tasks overlay respects visibleWidth <= width', () =
 
 describe('Round 3 Finding 2: readonly shell guard blocks fd/rg/sed/awk exec and write flags', () => {
   it('blocks sed w/e, fd -x/--exec, rg --pre, and awk -i inplace while allowing safe forms', async () => {
-    await assertReadonlyBashMatrix(
+    const result = await evaluateReadonlyBashMatrix(
       ['sed "w pwned.txt" /etc/hosts', 'sed "s/a/b/e" /etc/hosts', 'fd . -x python3 -c "print(1)"', 'fd . --exec python3 -c "print(1)"', 'rg --pre python3 foo .', 'awk -i inplace "{print}" /etc/hosts'],
       ["sed -n '1,5p' /etc/hosts", 'fd -e ts', 'rg foo .', "awk '{print $1}' /etc/hosts"],
     );
+    expect(result).toEqual({ blockedFailures: [], allowedFailures: [] });
   });
 });
 
 describe('Round 4 Finding 1: readonly shell guard blocks yq in-place and addressed sed write', () => {
   it('blocks yq -i/--inplace and addressed sed w while allowing read-only yq', async () => {
-    await assertReadonlyBashMatrix(['yq -i ".a = 1" config.yaml', 'yq --inplace ".a = 1" config.yaml', "sed '1w out.txt' /etc/hosts"], ["yq '.a' config.yaml"]);
+    const result = await evaluateReadonlyBashMatrix(['yq -i ".a = 1" config.yaml', 'yq --inplace ".a = 1" config.yaml', "sed '1w out.txt' /etc/hosts"], ["yq '.a' config.yaml"]);
+    expect(result).toEqual({ blockedFailures: [], allowedFailures: [] });
   });
 });

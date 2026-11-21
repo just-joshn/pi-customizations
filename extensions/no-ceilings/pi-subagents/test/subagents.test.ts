@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { AgentSessionEvent, ExtensionFactory } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createGate, createTestHarness, double, extractGuardHandler } from './harness.ts';
+import { createGate, createTestHarness, delay, double, extractGuardHandler } from './harness.ts';
 
 interface MockSessionPlan {
   readonly delayMs?: number;
@@ -55,7 +55,7 @@ function createMockSession(plan: MockSessionPlan) {
       await plan.waitForRelease;
     }
     if (plan.delayMs && plan.delayMs > ZERO) {
-      await new Promise((resolve) => setTimeout(resolve, plan.delayMs));
+      await delay(plan.delayMs);
     }
     if (aborted) {
       throw new Error('aborted');
@@ -129,7 +129,7 @@ describe('pi-subagents discovery and commands', () => {
     try {
       writeReviewerAgent(h.cwd);
       await h.emit('session_start', {});
-      const ctxRes = (await h.emit('before_agent_start', { messageType: 'user' })) as { readonly message?: { readonly content: string } } | undefined;
+      const ctxRes = double<{ readonly message?: { readonly content: string } } | undefined>(await h.emit('before_agent_start', { messageType: 'user' }));
       expect(ctxRes?.message?.content).toContain('[SUBAGENTS AVAILABLE]');
       expect(ctxRes?.message?.content).toContain('general-purpose');
       expect(ctxRes?.message?.content).toContain('explore');
@@ -236,12 +236,12 @@ describe('pi-subagents background execution and resume', () => {
       await expect(h.callTool('task', { description: 'Follow up', prompt: 'More detail', resume: agentId })).rejects.toThrow('Sub-agent is currently running');
 
       const stillRunning = await h.callTool('await_subagent', { agent_id: agentId, timeout_ms: SHORT_TIMEOUT_MS });
-      expect((stillRunning.details as { readonly outcome?: string } | undefined)?.outcome).toBe('still_running');
+      expect(double<{ readonly outcome?: string } | undefined>(stillRunning.details)?.outcome).toBe('still_running');
 
       gate.release();
-      await new Promise((resolve) => setTimeout(resolve, SHORT_TIMEOUT_MS));
+      await delay(SHORT_TIMEOUT_MS);
 
-      const sent = h.getSentMessages()[ZERO]?.message as { readonly customType: string; readonly details: unknown; readonly content: string };
+      const sent = double<{ readonly customType: string; readonly details: unknown; readonly content: string }>(h.getSentMessages()[ZERO]?.message);
       expect(sent.customType).toBe('pi-subagents-background-completion');
       expect(h.renderMessage(sent.customType, sent).join('\n')).toContain('Run background audit');
 
@@ -270,7 +270,7 @@ describe('pi-subagents await_subagent deduplication', () => {
       const awaitPromise = h.callTool('await_subagent', { agent_id: agentId, timeout_ms: OVERLAY_WIDTH * SHORT_TIMEOUT_MS });
       gate.release();
       const awaited = await awaitPromise;
-      const details = awaited.details as { readonly outcome?: string; readonly finalMessage?: string } | undefined;
+      const details = double<{ readonly outcome?: string; readonly finalMessage?: string } | undefined>(awaited.details);
       expect(details?.outcome).toBe('complete');
       expect(details?.finalMessage).toBe('Awaited result payload.');
       expect(h.getSentMessages().length).toBe(ZERO);
@@ -300,7 +300,7 @@ describe('pi-subagents foreground-to-background and overlay', () => {
       enqueuePlan({ finalText: 'Finished after backgrounding.', waitForRelease: fgGate.promise });
 
       const fgPromise = h.callTool('task', { description: 'Long foreground scan', prompt: 'Scan repo' });
-      await new Promise((resolve) => setTimeout(resolve, SHORT_TIMEOUT_MS));
+      await delay(SHORT_TIMEOUT_MS);
 
       await h.triggerShortcut(Key.ctrlAlt('b'));
       const movedResult = await fgPromise;
@@ -312,7 +312,7 @@ describe('pi-subagents foreground-to-background and overlay', () => {
       expect(renderedTranscript.join('\n')).toContain('Subagent · Long foreground scan');
 
       fgGate.release();
-      await new Promise((resolve) => setTimeout(resolve, SHORT_TIMEOUT_MS));
+      await delay(SHORT_TIMEOUT_MS);
       expect(h.getSentMessages().length).toBe(ONE);
     } finally {
       await h.cleanup();

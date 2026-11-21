@@ -221,6 +221,12 @@ function createFakeContext(cwd: string, sessionDir: string, sessionId: string, o
   });
 }
 
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 export function createGate(): { readonly promise: Promise<void>; readonly release: () => void } {
   let releaseFn: (() => void) | undefined;
   const promise = new Promise<void>((resolve) => {
@@ -231,7 +237,7 @@ export function createGate(): { readonly promise: Promise<void>; readonly releas
 
 export function extractGuardHandler(factory: ExtensionFactory | undefined): ((event: unknown) => Promise<{ readonly block?: boolean; readonly reason?: string } | undefined>) | undefined {
   let handler: ((event: unknown) => Promise<{ readonly block?: boolean; readonly reason?: string } | undefined>) | undefined;
-  factory?.(
+  void factory?.(
     double<ExtensionAPI>({
       on: (_ev: string, fn: (event: unknown) => Promise<{ readonly block?: boolean; readonly reason?: string } | undefined>) => {
         handler = fn;
