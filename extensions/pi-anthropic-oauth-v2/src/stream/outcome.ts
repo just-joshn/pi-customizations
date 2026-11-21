@@ -1,8 +1,17 @@
+import Anthropic from '@anthropic-ai/sdk';
 import type { AssistantMessage, AssistantMessageEvent } from '@earendil-works/pi-ai';
-import { describeError } from './errors.ts';
 
 type DoneEvent = Extract<AssistantMessageEvent, { type: 'done' }>;
 type ErrorEvent = Extract<AssistantMessageEvent, { type: 'error' }>;
+
+function describeError(error: unknown): string {
+  if (error instanceof Anthropic.APIError) {
+    const status = error.status === undefined ? '' : ` ${error.status}`;
+    const request = error.requestID ? ` (request ${error.requestID})` : '';
+    return `${error.name}${status}${request}: ${error.apiMessage ?? error.message}`;
+  }
+  return error instanceof Error ? error.message : JSON.stringify(error);
+}
 
 export function toDoneEvent(output: AssistantMessage, signal: AbortSignal | undefined): DoneEvent {
   if (signal?.aborted) throw new Error('Request was aborted');

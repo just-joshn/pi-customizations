@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CACHE_READ_TOKENS, CACHE_WRITE_TOKENS, COST_CACHE_READ, COST_CACHE_WRITE, COST_INPUT, COST_OUTPUT, COST_PRECISION, COST_TOTAL, INPUT_TOKENS, OUTPUT_TOKENS_FINAL, STATUS_RATE_LIMITED, TOTAL_TOKENS } from './support/constants.ts';
-import { streamEvents } from './support/fixtures.ts';
+import { messageStart, streamEvents } from './support/fixtures.ts';
 import { run, terminal } from './support/provider.ts';
 import { lastCall, resetSdk, setSdkEvents } from './support/sdk-state.ts';
 
@@ -75,6 +75,27 @@ describe('response stream events', () => {
       model: 'claude-sonnet-4-5',
       role: 'assistant',
     });
+  });
+});
+
+const deltaUsage = [
+  ['omits the input and cache counts', { output_tokens: OUTPUT_TOKENS_FINAL }],
+  ['sends null input and cache counts', { input_tokens: null, output_tokens: OUTPUT_TOKENS_FINAL, cache_read_input_tokens: null, cache_creation_input_tokens: null }],
+] as const;
+
+describe('response usage', () => {
+  it.each(deltaUsage)('keeps the message_start token counts when message_delta %s', async (_name, usage) => {
+    setSdkEvents([messageStart, { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage }]);
+    const { events } = await run({ apiKey: 'k' });
+    expect(terminal(events).usage).toMatchObject({ input: INPUT_TOKENS, output: OUTPUT_TOKENS_FINAL, cacheRead: CACHE_READ_TOKENS, cacheWrite: CACHE_WRITE_TOKENS, totalTokens: TOTAL_TOKENS });
+  });
+
+  it('gives each stream its own usage and cost objects', async () => {
+    setSdkEvents([]);
+    const first = terminal((await run({ apiKey: 'k' })).events);
+    const second = terminal((await run({ apiKey: 'k' })).events);
+    expect(first.usage).not.toBe(second.usage);
+    expect(first.usage.cost).not.toBe(second.usage.cost);
   });
 });
 

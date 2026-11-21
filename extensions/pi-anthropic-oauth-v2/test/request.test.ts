@@ -1,6 +1,6 @@
 import { type Message, normalizeContext } from '@earendil-works/pi-ai';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ADAPTIVE_DEFAULT_MAX_TOKENS, ADAPTIVE_MODEL_ID, ANTHROPIC_URL, BUDGET_CUSTOM_LOW, BUDGET_FALLBACK, CLAUDE_CODE_IDENTITY, CUSTOM_MAX_TOKENS, EPHEMERAL } from './support/constants.ts';
+import { ADAPTIVE_DEFAULT_MAX_TOKENS, ADAPTIVE_MODEL_ID, ANTHROPIC_URL, BUDGET_ABOVE_DEFAULT_MAX, BUDGET_CUSTOM_LOW, BUDGET_FALLBACK, BUDGET_HIGH, CLAUDE_CODE_IDENTITY, CUSTOM_MAX_TOKENS, EPHEMERAL } from './support/constants.ts';
 import { EXPECTED_OAUTH_OPTIONS, EXPECTED_OAUTH_PARAMS, OAUTH_API_KEY } from './support/expected-request.ts';
 import { context, streamEvents } from './support/fixtures.ts';
 import { run } from './support/provider.ts';
@@ -27,7 +27,7 @@ describe('request for OAuth tokens', () => {
   it('keeps emoji and other surrogate pairs and replaces only unpaired surrogates', async () => {
     const messages: Message[] = [{ role: 'user', content: 'ship it \u{1F680} \uD800 then \uDC00 end', timestamp: 1 }];
     const { call } = await run({ apiKey: 'k' }, normalizeContext({ systemPrompt: 'Use \u{1F44D}.', messages }));
-    expect(call?.params['messages']).toEqual([{ role: 'user', content: 'ship it \u{1F680} \uFFFD then \uFFFD end' }]);
+    expect(call?.params['messages']).toEqual([{ role: 'user', content: [{ type: 'text', text: 'ship it \u{1F680} \uFFFD then \uFFFD end', cache_control: EPHEMERAL }] }]);
     expect(call?.params['system']).toEqual([{ type: 'text', text: 'Use \u{1F44D}.', cache_control: EPHEMERAL }]);
   });
 
@@ -71,5 +71,25 @@ describe('request thinking effort', () => {
     expect(call?.params['output_config']).toEqual({ effort });
     expect(call?.params['betas']).toBeUndefined();
     expect(call?.params['max_tokens']).toBe(ADAPTIVE_DEFAULT_MAX_TOKENS);
+  });
+});
+
+describe('request thinking budget', () => {
+  it.each([CUSTOM_MAX_TOKENS, BUDGET_HIGH])('raises max_tokens above the thinking budget when maxTokens is %s', async (maxTokens) => {
+    const { call } = await run({ apiKey: 'sk-ant-api-x', maxTokens, reasoning: 'high' });
+    expect(call?.params['thinking']).toEqual({ type: 'enabled', budget_tokens: BUDGET_HIGH, display: 'summarized' });
+    expect(call?.params['max_tokens']).toBeGreaterThan(BUDGET_HIGH);
+  });
+
+  it('keeps maxTokens when it is already above the thinking budget', async () => {
+    const { call } = await run({ apiKey: 'sk-ant-api-x', maxTokens: BUDGET_ABOVE_DEFAULT_MAX, reasoning: 'high' });
+    expect(call?.params['max_tokens']).toBe(BUDGET_ABOVE_DEFAULT_MAX);
+  });
+});
+
+describe('request prompt caching', () => {
+  it('wraps a string last user message in a cached text block', async () => {
+    const { call } = await run({ apiKey: 'sk-ant-api-x' }, normalizeContext({ messages: [{ role: 'user', content: 'hi', timestamp: 1 }] }));
+    expect(call?.params['messages']).toEqual([{ role: 'user', content: [{ type: 'text', text: 'hi', cache_control: EPHEMERAL }] }]);
   });
 });

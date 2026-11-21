@@ -1,10 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { StopReason } from '@earendil-works/pi-ai';
-import { updateBlock } from './block-delta.ts';
-import { startBlock } from './block-start.ts';
-import { stopBlock } from './block-stop.ts';
-import { type StreamContext, type StreamState, type StreamStep, unchanged } from './state.ts';
-import { toUsage } from './usage.ts';
+import { startBlock, stopBlock, updateBlock } from './blocks.ts';
+import { type StreamContext, type StreamState, type StreamStep, toUsage, unchanged } from './state.ts';
 
 const STOP_REASONS: Readonly<Partial<Record<Anthropic.Beta.BetaStopReason, StopReason>>> = {
   end_turn: 'stop',
@@ -19,19 +16,19 @@ const REFUSAL_MESSAGE = 'The model refused to complete the request';
 
 type MessageDelta = Anthropic.Beta.BetaRawMessageDeltaEvent;
 
-export const mapStopReason = (reason: Anthropic.Beta.BetaStopReason): StopReason => STOP_REASONS[reason] ?? 'error';
+const mapStopReason = (reason: Anthropic.Beta.BetaStopReason): StopReason => STOP_REASONS[reason] ?? 'error';
 
 function applyMessageDelta(state: StreamState, event: MessageDelta, context: StreamContext): StreamState['output'] {
   const { stop_reason: reason, stop_details: details } = event.delta;
   const stopReason = reason ? mapStopReason(reason) : state.output.stopReason;
   const refusal = details?.type === 'refusal' ? { errorMessage: details.explanation || REFUSAL_MESSAGE } : {};
-  return { ...state.output, ...refusal, stopReason, usage: toUsage(context.model, event.usage) };
+  return { ...state.output, ...refusal, stopReason, usage: toUsage(context.model, event.usage, state.output.usage) };
 }
 
 export function reduceEvent(state: StreamState, event: Anthropic.Beta.BetaRawMessageStreamEvent, context: StreamContext): StreamStep {
   switch (event.type) {
     case 'message_start':
-      return unchanged({ ...state, output: { ...state.output, usage: toUsage(context.model, event.message.usage) } });
+      return unchanged({ ...state, output: { ...state.output, usage: toUsage(context.model, event.message.usage, state.output.usage) } });
     case 'content_block_start':
       return startBlock(state, event, context);
     case 'content_block_delta':

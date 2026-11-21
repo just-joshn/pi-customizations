@@ -1,27 +1,28 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { Api, Model, SimpleStreamOptions } from '@earendil-works/pi-ai';
+import type { Api, Model, SimpleStreamOptions, ThinkingBudgets } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import { REQUEST_CONFIG } from './config.ts';
 import type { StreamRequest } from './types.ts';
 
 type ThinkingLevel = NonNullable<SimpleStreamOptions['reasoning']>;
-type Effort = NonNullable<Anthropic.Beta.BetaOutputConfig['effort']>;
+type BudgetLevel = keyof ThinkingBudgets;
 type ThinkingParams = Pick<Anthropic.Beta.MessageCreateParamsStreaming, 'thinking' | 'output_config'>;
 
-const effortSchema = z.enum(['low', 'medium', 'high', 'xhigh', 'max']);
-const adaptiveCompatSchema = z.object({ forceAdaptiveThinking: z.literal(true) });
+const effortSchema = z.enum(['low', 'medium', 'high', 'xhigh', 'max']).catch(REQUEST_CONFIG.fallbackEffort);
 
-export const usesAdaptiveThinking = (model: Model<Api>): boolean => adaptiveCompatSchema.safeParse(model.compat).success;
+const defaultBudgets: ThinkingBudgets = REQUEST_CONFIG.thinkingBudgets;
+const effortByLevel: Readonly<Partial<Record<ThinkingLevel, string>>> = REQUEST_CONFIG.effortByLevel;
 
-function toEffort(model: Model<Api>, level: ThinkingLevel): Effort {
-  const mapped = model.thinkingLevelMap?.[level];
-  const effort = effortSchema.safeParse(mapped ?? REQUEST_CONFIG.effortByLevel[level]);
-  return effort.success ? effort.data : REQUEST_CONFIG.fallbackEffort;
-}
+const hasBudget = (level: ThinkingLevel): level is BudgetLevel => level in defaultBudgets;
+
+/** Pi's catalog marks the models that only accept adaptive thinking with `compat.forceAdaptiveThinking`. */
+export const usesAdaptiveThinking = ({ compat }: Model<Api>): boolean => compat !== undefined && 'forceAdaptiveThinking' in compat && compat.forceAdaptiveThinking === true;
+
+const toEffort = (model: Model<Api>, level: ThinkingLevel) => effortSchema.parse(model.thinkingLevelMap?.[level] ?? effortByLevel[level]);
 
 function toBudget(request: StreamRequest, level: ThinkingLevel): number {
-  const budgets: Readonly<Record<string, number | undefined>> = { ...REQUEST_CONFIG.thinkingBudgets, ...request.options?.thinkingBudgets };
-  return budgets[level] ?? REQUEST_CONFIG.fallbackThinkingBudget;
+  const budgets: ThinkingBudgets = { ...defaultBudgets, ...request.options?.thinkingBudgets };
+  return (hasBudget(level) ? budgets[level] : undefined) ?? REQUEST_CONFIG.fallbackThinkingBudget;
 }
 
 export function thinkingParams(request: StreamRequest): ThinkingParams {

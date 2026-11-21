@@ -7,7 +7,7 @@
 
 import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { OAUTH_CONFIG } from './oauth/config.ts';
-import { loginAnthropic, refreshAnthropicToken } from './oauth/login.ts';
+import { loginAnthropic, refreshAnthropicToken } from './oauth/oauth.ts';
 import { PROVIDER_CONFIG } from './provider/config.ts';
 import { loadAnthropicModels } from './provider/models.ts';
 import { streamCustomAnthropic } from './stream/stream.ts';

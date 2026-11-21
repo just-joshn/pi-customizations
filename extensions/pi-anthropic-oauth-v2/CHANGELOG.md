@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4
+
+- Fix token counts dropping to zero when a stream's closing `message_delta` leaves out input or cache counts. They now keep the values from `message_start`.
+- Fix every stream sharing one empty usage object. Each stream now starts with its own.
+- Fix a 400 from Anthropic when the thinking budget reached `max_tokens`. `max_tokens` now rises to the budget plus the requested output limit.
+- Fix prompt caching skipping a conversation whose last user message is plain text. It is now sent as a cached text block.
+- Merge small source files, replace the `isOAuth` flag threaded through message, tool, and stream conversion with one name codec, and share one validation helper. No other behavior changes.
+
 ## [0.2.3]
 
 - Fix every `bun lint` behavior error. PKCE reads `webcrypto` from `node:crypto` instead of the experimental global, and the stream reducers handle every Anthropic event and block type explicitly. No behavior changes.

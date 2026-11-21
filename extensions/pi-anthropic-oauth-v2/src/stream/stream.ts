@@ -1,7 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { type ClientOptions } from '@anthropic-ai/sdk';
 import {
   type Api,
-  type AssistantMessageEvent,
   type AssistantMessageEventStream,
   collapseSystemMessages,
   createAssistantMessageEventStream,
@@ -11,57 +10,57 @@ import {
   type SimpleStreamOptions,
   type TranscriptContext,
 } from '@earendil-works/pi-ai';
-import { buildClientOptions, isOAuthToken } from '../request/client.ts';
+import { REQUEST_CONFIG } from '../request/config.ts';
 import { buildParams } from '../request/params.ts';
 import type { StreamRequest } from '../request/types.ts';
-import { toDoneEvent, toErrorEvent } from './finish.ts';
+import { createNameCodec } from '../tools/names.ts';
+import { toDoneEvent, toErrorEvent } from './outcome.ts';
 import { reduceEvent } from './reduce.ts';
-import { createStreamState, type StreamState } from './state.ts';
+import { createStreamState } from './state.ts';
+
+const isOAuthToken = (apiKey: string): boolean => apiKey.includes(REQUEST_CONFIG.oauthTokenMarker);
+
+function clientOptions({ model, apiKey, isOAuth }: StreamRequest): ClientOptions {
+  if (isOAuth) return { baseURL: model.baseUrl, authToken: apiKey, defaultHeaders: { ...REQUEST_CONFIG.oauthHeaders } };
+  return { baseURL: model.baseUrl, apiKey };
+}
 
 function toStreamRequest(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): StreamRequest {
   // The transcript carries the prompt and tools in its system messages. This provider sends
   // one top-level system prompt, so fold later system messages into the leading one first.
   const { messages } = collapseSystemMessages(context);
+  const tools = getCurrentTools(messages);
   const apiKey = options?.apiKey ?? '';
-  return { model, messages, systemPrompt: getCurrentSystemPrompt(messages), tools: getCurrentTools(messages), options, apiKey, isOAuth: isOAuthToken(apiKey) };
+  const isOAuth = isOAuthToken(apiKey);
+  return { model, messages, systemPrompt: getCurrentSystemPrompt(messages), tools, options, apiKey, isOAuth, names: createNameCodec(isOAuth, tools) };
 }
 
-function openAnthropicStream(request: StreamRequest) {
-  const client = new Anthropic(buildClientOptions(request.model, request.apiKey, request.isOAuth));
-  return client.beta.messages.create(buildParams(request), { signal: request.options?.signal });
-}
-
-async function consumeStream(emit: (event: AssistantMessageEvent) => void, request: StreamRequest, onState: (state: StreamState) => void, state: StreamState): Promise<void> {
-  const events = await openAnthropicStream(request);
-  emit({ type: 'start', partial: state.output });
-  let current = state;
-  for await (const event of events) {
-    const step = reduceEvent(current, event, request);
-    current = step.state;
-    onState(current);
-    for (const streamEvent of step.events) emit(streamEvent);
-  }
-  emit(toDoneEvent(current.output, request.options?.signal));
-}
-
-function runStream(stream: AssistantMessageEventStream, model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): Promise<void> {
+/** Streams one Anthropic reply into `stream`. A failure reaches Pi as the stream's error event and is then rethrown for the caller to absorb. */
+async function runStream(stream: AssistantMessageEventStream, model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined): Promise<void> {
   const emit = stream.push.bind(stream);
   let latest = createStreamState(model);
-  const remember = (next: StreamState): void => {
-    latest = next;
-  };
-  const failed = (error: unknown): void => {
+  try {
+    const request = toStreamRequest(model, context, options);
+    const events = await new Anthropic(clientOptions(request)).beta.messages.create(buildParams(request), { signal: options?.signal });
+    emit({ type: 'start', partial: latest.output });
+    for await (const event of events) {
+      const step = reduceEvent(latest, event, request);
+      latest = step.state;
+      for (const streamEvent of step.events) emit(streamEvent);
+    }
+    emit(toDoneEvent(latest.output, options?.signal));
+  } catch (error) {
     console.error('Anthropic stream failed:', error);
     emit(toErrorEvent(latest.output, error, options?.signal));
-  };
-  return Promise.resolve()
-    .then(() => consumeStream(emit, toStreamRequest(model, context, options), remember, latest))
-    .catch(failed)
-    .finally(() => stream.end());
+    throw new Error('Anthropic stream failed.', { cause: error });
+  } finally {
+    stream.end();
+  }
 }
 
 export function streamCustomAnthropic(model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions): AssistantMessageEventStream {
   const stream = createAssistantMessageEventStream();
-  void runStream(stream, model, context, options);
+  // runStream already logged the failure and delivered it to Pi through the stream.
+  runStream(stream, model, context, options).catch(() => undefined);
   return stream;
 }

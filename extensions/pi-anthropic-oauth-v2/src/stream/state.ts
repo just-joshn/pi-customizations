@@ -1,5 +1,5 @@
-import type { Api, AssistantMessage, AssistantMessageEvent, Model, Tool } from '@earendil-works/pi-ai';
-import { EMPTY_USAGE } from './usage.ts';
+import { type Api, type AssistantMessage, type AssistantMessageEvent, calculateCost, type Model, type Usage } from '@earendil-works/pi-ai';
+import type { NameCodec } from '../tools/names.ts';
 
 export type OpenBlock = {
   readonly contentIndex: number;
@@ -18,11 +18,37 @@ export type StreamStep = {
 
 export type StreamContext = {
   readonly model: Model<Api>;
-  readonly isOAuth: boolean;
-  readonly tools: readonly Tool[];
+  readonly names: NameCodec;
 };
 
 export type ContentBlock = AssistantMessage['content'][number];
+
+type AnthropicUsage = {
+  readonly input_tokens?: number | null;
+  readonly output_tokens?: number | null;
+  readonly cache_read_input_tokens?: number | null;
+  readonly cache_creation_input_tokens?: number | null;
+};
+
+/** A new object each call, because Pi's cost helpers and consumers write into the usage they are given. */
+export const emptyUsage = (): Usage => ({
+  input: 0,
+  output: 0,
+  cacheRead: 0,
+  cacheWrite: 0,
+  totalTokens: 0,
+  cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+});
+
+/** Anthropic reports usage twice, and the second report may leave a count out. A missing count keeps the earlier one. */
+export function toUsage(model: Model<Api>, raw: AnthropicUsage, previous: Usage): Usage {
+  const input = raw.input_tokens ?? previous.input;
+  const output = raw.output_tokens ?? previous.output;
+  const cacheRead = raw.cache_read_input_tokens ?? previous.cacheRead;
+  const cacheWrite = raw.cache_creation_input_tokens ?? previous.cacheWrite;
+  const counts = { input, output, cacheRead, cacheWrite, totalTokens: input + output + cacheRead + cacheWrite };
+  return { ...counts, cost: calculateCost(model, { ...counts, cost: emptyUsage().cost }) };
+}
 
 export function createStreamState(model: Model<Api>): StreamState {
   const output: AssistantMessage = {
@@ -31,7 +57,7 @@ export function createStreamState(model: Model<Api>): StreamState {
     api: model.api,
     provider: model.provider,
     model: model.id,
-    usage: EMPTY_USAGE,
+    usage: emptyUsage(),
     stopReason: 'pending',
     timestamp: Date.now(),
   };
