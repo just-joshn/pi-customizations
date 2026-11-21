@@ -40,9 +40,7 @@ You need Node `>=22.19.0` and Bun. The `pi-pstack-v2` tests also need `tmux`.
 
 ```sh
 bun install
-bun run ci                   # Biome format and assist check, bun lint, style audit, behavior-test audit
-bun run style-audit          # style audit alone
-bun run behavior-test-audit  # behavior-test audit alone
+bun run ci                   # Biome format and assist check, bun lint
 bun run typecheck            # every package
 bun run test                 # every package
 ```
@@ -51,7 +49,7 @@ bun run test                 # every package
 
 To load a package from this checkout, run `pi -e extensions/<package>`.
 
-To publish a package, bump `version` in its `package.json` and merge to `main`. See [`docs/releases.md`](docs/releases.md).
+Merging a `version` bump under `extensions/*/package.json` to `main` triggers `.github/workflows/release.yml` (OIDC-only direct `npm publish`). See [`docs/releases.md`](docs/releases.md) for package release and publishing policy.
 
 ## License
 

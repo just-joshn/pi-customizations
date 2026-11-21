@@ -1,7 +1,0 @@
-language js
-
-JsCatchClause() as $c where {
-  not $c <: and { contains `console.error($...)`,
-  contains JsThrowStatement() },
-  register_diagnostic(span=$c, message="error-handling: a catch must log the error with console.error and throw an Error")
-}

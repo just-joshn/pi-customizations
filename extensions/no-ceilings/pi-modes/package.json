@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-modes",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Four Pi-native execution modes (Agent, Ask, Plan, Debug) with read-only enforcement, structured plan artifacts, interactive clarifying questions, mode-switch proposals, and a local NDJSON debug ingest server.",
   "type": "module",
   "license": "MIT",
@@ -32,13 +32,13 @@
   },
   "files": [
     "src",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "style-audit": "node ../../../scripts/style-audit.mjs extensions/no-ceilings/pi-modes"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

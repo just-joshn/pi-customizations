@@ -62,9 +62,9 @@ const bannedBase: { pattern: RegExp; why: string; allow?: RegExp }[] = [
 const portedUpstreamFiles = new Set([
   'skills/poteto-mode/scripts/worktree-audit.sh', // read Cursor chat transcripts; now reads Pi sessions
   'LICENSE', // adds cursor-team-kit's copyright beside pstack's
-  'skills/pr-review-canvas/renderer.js', // style-audit immutability and no JSON.parse without zod
+  'skills/pr-review-canvas/renderer.js', // repo style rules (.pi/rules/coding-style.md): immutability and no JSON.parse without zod
   'skills/pr-review-canvas/template.html', // assigns window.__PR_DIFFS__ so the injected script needs no JSON.parse
-  // poteto watch-pr / bootstrap reshaped for style-audit (immutability, file size, zod)
+  // poteto watch-pr / bootstrap reshaped for repo style rules (.pi/rules/coding-style.md: immutability, file size, zod)
   'skills/poteto-mode/scripts/bootstrap.ts',
   'skills/poteto-mode/scripts/bun.lock',
   'skills/poteto-mode/scripts/package.json',
@@ -78,7 +78,7 @@ const portedUpstreamFiles = new Set([
   'skills/poteto-mode/scripts/watch-pr/render.ts',
   'skills/poteto-mode/scripts/watch-pr/types.ts',
   'skills/poteto-mode/scripts/watch-pr/types.compile.ts',
-  // statechart scripts/test reshaped for style-audit (split >800, immutability)
+  // statechart scripts/test reshaped for repo style rules (.pi/rules/coding-style.md: split >800, immutability)
   // statechart scripts reshaped for style rules (immutability, input validation, error handling, file and function size)
   'skills/statechart/scripts/backends/cfg.ts',
   'skills/statechart/scripts/backends/mermaid.ts',

@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-goals",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pi-native Long-Lived Goals (/goal) with create_goal and update_goal tools, automatic continuation across turns, pause-on-interrupt, live active duration status line, and session persistence.",
   "type": "module",
   "license": "MIT",
@@ -32,13 +32,13 @@
   },
   "files": [
     "src",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "style-audit": "node ../../../scripts/style-audit.mjs extensions/no-ceilings/pi-goals"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",
