@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+### Added
+
+- Add `notify_on_output` monitored shell output support to `tmux_run` with multiline regex matching, cross-chunk carryover, 5-second debounce batching, configurable match limits, UTF-8/newline boundary framing, and clean wakeup suppression on stop.
+- Add the Pi-native `/loop` slash command (`/loop [interval] <prompt>`, `/loop list`, `/loop stop [id|name|all]`, dynamic self-paced mode, and argument completions) backed by `tmux_run` + `notify_on_output`, along with the bundled `loop` skill.
+
 ## 0.3.2
 
 ### Changed
