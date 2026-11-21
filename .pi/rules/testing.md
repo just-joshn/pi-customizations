@@ -8,7 +8,7 @@ Workflow:
 3. Write the minimal implementation (GREEN)
 4. Run the test and confirm it passes
 5. Refactor (IMPROVE)
-6. Verify coverage (`bun run test`)
+6. Verify coverage (`bun run --filter <pkg> test:coverage`, or `bun run --filter @justjoshn/pi-pstack-v2 test`)
 
 ## Coverage and Test Types
 
