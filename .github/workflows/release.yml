@@ -82,7 +82,9 @@ jobs:
               set -euo pipefail
               (cd "$dir" && bun run --if-present typecheck)
               (cd "$dir" && bun run --if-present build)
-              (cd "$dir" && bun run --if-present test)
+              if jq -e '.scripts.test' "$dir/package.json" >/dev/null; then
+                (cd "$dir" && bun run test)
+              fi
               (cd "$dir" && npm pack --dry-run)
               (cd "$dir" && npm publish)
               npm view "${name}@${version}" version
