@@ -1,24 +1,24 @@
 [
   {
-    "file": "extensions/pi-pstack-v2/src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/prompt.ts",
     "rule": "plugin",
     "line": "if (!options.promptGuidelines.includes(guideline)) options.promptGuidelines.push(guideline);",
     "reason": "Pi 1.5.2 reads before_agent_start prompt additions only from the systemPromptOptions object it passes in (runner.js emitBeforeAgentStart). Returning systemPrompt instead flattens the sectioned prompt and drops other extensions' sections."
   },
   {
-    "file": "extensions/pi-pstack-v2/src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/prompt.ts",
     "rule": "plugin",
     "line": "Object.assign(options.sections, sections);",
     "reason": "Same host contract as above, for the prompt sections."
   },
   {
-    "file": "extensions/pi-pstack-v2/src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/watcher.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The catch returns the job report with a 'could not be restarted' note as the tool/wake text; it must not throw because the report would be lost."
   },
   {
-    "file": "extensions/pi-pstack-v2/src/index.ts",
+    "file": "extensions/pi-pstack-v2/src/watcher.ts",
     "rule": "plugin",
     "line": "} catch (error) {",
     "reason": "The watcher reports a step failure through ctx.ui.notify and keeps polling. Throwing would kill the watcher loop; console.error would corrupt the TUI."
@@ -27,7 +27,7 @@
     "file": "extensions/pi-pstack-v2/src/jobs.ts",
     "rule": "plugin",
     "line": "} catch {",
-    "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed job.json, and neither has a non-throwing form. The catch returns undefined so job listing skips it."
+    "reason": "readFileSync and JSON.parse throw for a missing, unreadable or malformed job.json, and neither has a non-throwing form. The catch returns undefined so job listing skips it, the same as a job.json the schema rejects."
   },
   {
     "file": "extensions/pi-pstack-v2/src/jobs.ts",
@@ -87,6 +87,6 @@
     "file": "extensions/pi-pstack-v2/src/subagent/index.ts",
     "rule": "plugin",
     "line": "event.systemPromptOptions.hiddenTools = [...event.systemPromptOptions.hiddenTools, SUBAGENT_TOOL_NAME];",
-    "reason": "Pi 1.5.2 reads hidden tools only from the systemPromptOptions object it passes to before_agent_start (runner.js emitBeforeAgentStart), the same host contract as the prompt additions in src/index.ts. The new array replaces the old one; the host object is the only place the hide can be written."
+    "reason": "Pi 1.5.2 reads hidden tools only from the systemPromptOptions object it passes to before_agent_start (runner.js emitBeforeAgentStart), the same host contract as the prompt additions in src/prompt.ts. The new array replaces the old one; the host object is the only place the hide can be written."
   }
 ]

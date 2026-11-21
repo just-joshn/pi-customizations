@@ -5,7 +5,6 @@
 
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { z } from 'zod';
@@ -47,11 +46,6 @@ export interface ParentSession {
 export interface ForkContext {
   cwd: string;
   sessionManager?: { getSessionFile?: () => string | undefined; getBranch?: () => unknown[] } | undefined;
-}
-
-export interface ForkSession {
-  sessionFile: string;
-  cleanup: () => void;
 }
 
 export const isForkAgent = (agent: AgentConfig): boolean => agent === FORK_AGENT_CONFIG;
@@ -153,18 +147,9 @@ function readTranscript(parent: ParentSession): string[] {
   return [JSON.stringify({ type: 'session', version: SESSION_VERSION, id: randomUUID(), timestamp: new Date().toISOString(), cwd: parent.cwd })];
 }
 
-/** Copies the parent's session into a temp file the fork continues from, and returns the file with the call that removes it. */
-export function prepareForkSession(parent: ParentSession): ForkSession {
-  const content = `${closeOpenToolCalls(readTranscript(parent), parent.toolCallId).join('\n')}\n`;
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-subagent-fork-'));
-  const cleanup = (): void => fs.rmSync(dir, { recursive: true, force: true });
-  const sessionFile = path.join(dir, SESSION_FILE_NAME);
-  let written = false;
-  try {
-    fs.writeFileSync(sessionFile, content);
-    written = true;
-  } finally {
-    if (!written) cleanup();
-  }
-  return { sessionFile, cleanup };
+/** Copies the parent's session into the worker's run directory, for the fork to continue from, and returns the file. */
+export function writeForkSession(parent: ParentSession, runDir: string): string {
+  const sessionFile = path.join(runDir, SESSION_FILE_NAME);
+  fs.writeFileSync(sessionFile, `${closeOpenToolCalls(readTranscript(parent), parent.toolCallId).join('\n')}\n`);
+  return sessionFile;
 }

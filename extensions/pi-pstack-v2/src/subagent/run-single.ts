@@ -1,45 +1,40 @@
-import { getAgentDir } from '@earendil-works/pi-coding-agent';
-import type { AgentConfig } from './agents.ts';
-import { type ForkSession, formatForkTask, isForkAgent, prepareForkSession, SUBAGENT_IS_FORK_ENV } from './fork.ts';
-import { type PreparedMemory, prepareAgentMemory, SUBAGENT_MEMORY_DIR_ENV } from './memory.ts';
-import { getPiInvocation, removePromptTempFile, writePromptToTempFile } from './pi-invocation.ts';
-import { createResultStream, finalizeResult } from './result-stream.ts';
-import { createUnstartedResult, emptyUsage, getFinalOutput } from './results.ts';
-import { runPiInTmux } from './run-in-tmux.ts';
-import { withPreloadedSkills } from './skill-preload.ts';
-import type { CallModel, DispatchDefaults, MakeDetails, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
-import { prepareSubagentWorktree, worktreeNote } from './worktree.ts';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
-interface AgentRun {
-  cwd: string;
-  initial: SingleResult;
-  args: string[];
-  signal: AbortSignal | undefined;
-  onUpdate: OnUpdateCallback | undefined;
-  makeDetails: MakeDetails;
-  maxTurns: number | undefined;
-  extraEnv: Readonly<Record<string, string>> | undefined;
-}
+import { getAgentDir } from '@earendil-works/pi-coding-agent';
+import { concurrencyCapMessage } from './admission.ts';
+import type { AgentConfig } from './agents.ts';
+import { type ModelChoice, resolveModelChoice } from './call.ts';
+import { formatForkTask, isForkAgent, SUBAGENT_IS_FORK_ENV, writeForkSession } from './fork.ts';
+import { type PreparedMemory, prepareAgentMemory, SUBAGENT_MEMORY_DIR_ENV } from './memory.ts';
+import { getPiInvocation, writePromptFile } from './pi-invocation.ts';
+import { createResultStream, finalizeResult } from './result-stream.ts';
+import { createUnstartedResult, emptyUsage } from './results.ts';
+import { runPiInTmux } from './run-in-tmux.ts';
+import type { WorkItem } from './schema.ts';
+import { withPreloadedSkills } from './skill-preload.ts';
+import type { DispatchRun, OnProgress, SingleResult, Work } from './types.ts';
+import { prepareSubagentWorktree, worktreeNote } from './worktree.ts';
 
 /** Everything one worker needs from the call, before it is started. */
 interface Job {
-  defaults: DispatchDefaults;
+  run: DispatchRun;
   agent: AgentConfig;
-  call: CallModel;
+  item: WorkItem;
   baseCwd: string;
-  task: string;
-  signal: AbortSignal | undefined;
-  onUpdate: OnUpdateCallback | undefined;
-  makeDetails: MakeDetails;
   initial: SingleResult;
+  onProgress: OnProgress | undefined;
 }
 
-/** The command line, environment and cleanup of one worker. */
+/** The command line and environment of one worker. */
 interface Launch {
   args: string[];
   extraEnv: Readonly<Record<string, string>>;
-  cleanup: () => void;
 }
+
+/** Holds what a worker leaves in the temp dir: its prompt, its fork session and the files of its tmux run. */
+const RUN_DIR_PREFIX = 'pi-subagent-tmux-';
 
 const ABORTED_BEFORE_START = 'Subagent was aborted before starting';
 const BUILTIN_TOOL_NAMES = ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls'] as const;
@@ -69,29 +64,20 @@ function toolFlags(agent: AgentConfig): string[] {
 
 interface ArgsInput {
   agent: AgentConfig;
-  defaults: DispatchDefaults;
-  call: CallModel;
+  choice: ModelChoice;
   promptPath: string | undefined;
   task: string;
   forkSessionFile: string | undefined;
 }
 
-/**
- * A model named by the call or the agent runs at its own default thinking level unless the call names one. A fork names
- * neither: it keeps the parent's model, thinking level and system prompt so its prompt prefix matches the parent's cache.
- */
-function buildPiArgs({ agent, defaults, call, promptPath, task, forkSessionFile }: ArgsInput): string[] {
-  const fork = forkSessionFile !== undefined;
-  const namedModel = fork ? undefined : (call.model ?? agent.model);
-  const model = namedModel ?? defaults.model;
-  const thinking = fork ? defaults.thinkingLevel : (call.thinking ?? (namedModel ? undefined : defaults.thinkingLevel));
+function buildPiArgs({ agent, choice, promptPath, task, forkSessionFile }: ArgsInput): string[] {
   return [
     '--mode',
     'json',
     '-p',
     ...(forkSessionFile === undefined ? ['--no-session'] : ['--session', forkSessionFile]),
-    ...(model ? ['--model', model] : []),
-    ...(thinking ? ['--thinking', thinking] : []),
+    ...(choice.model ? ['--model', choice.model] : []),
+    ...(choice.thinking ? ['--thinking', choice.thinking] : []),
     ...toolFlags(agent),
     ...(agent.omitContextFiles === true ? ['--no-context-files'] : []),
     ...(promptPath ? ['--append-system-prompt', promptPath] : []),
@@ -99,46 +85,37 @@ function buildPiArgs({ agent, defaults, call, promptPath, task, forkSessionFile 
   ];
 }
 
-/** Aborts `controller` when `signal` does, and returns the call that stops listening. */
-function followSignal(signal: AbortSignal | undefined, controller: AbortController): () => void {
-  const abort = (): void => controller.abort();
-  signal?.addEventListener('abort', abort, { once: true });
-  return () => signal?.removeEventListener('abort', abort);
-}
-
-async function streamAgent(run: AgentRun): Promise<SingleResult> {
-  const childController = new AbortController();
-  const stopFollowing = followSignal(run.signal, childController);
-  const stream = createResultStream(
-    run.initial,
-    (result) => {
-      run.onUpdate?.({
-        content: [{ type: 'text', text: getFinalOutput(result.messages) || '(running...)' }],
-        details: run.makeDetails([result]),
-      });
-    },
-    { maxTurns: run.maxTurns, onMaxTurns: () => childController.abort() },
-  );
+async function streamAgent(job: Job, cwd: string, runDir: string, launch: Launch): Promise<SingleResult> {
+  const { run, agent, initial } = job;
+  const turnLimit = new AbortController();
+  const signal = run.signal ? AbortSignal.any([run.signal, turnLimit.signal]) : turnLimit.signal;
+  const stream = createResultStream(initial, (result) => job.onProgress?.(result), { maxTurns: agent.maxTurns, onMaxTurns: () => turnLimit.abort() });
   stream.emit();
-  const invocation = getPiInvocation(run.args);
-  try {
-    const outcome = await runPiInTmux({
-      command: invocation.command,
-      args: invocation.args,
-      cwd: run.cwd,
-      signal: childController.signal,
-      extraEnv: run.extraEnv,
-      onStdoutChunk: stream.onStdoutChunk,
-      onStderrChunk: stream.onStderrChunk,
-    });
-    stream.flush();
-    return finalizeResult(stream.result(), outcome, run.signal?.aborted === true, stream.hitMaxTurns());
-  } finally {
-    stopFollowing();
-  }
+  const invocation = getPiInvocation(launch.args);
+  const outcome = await runPiInTmux({
+    command: invocation.command,
+    args: invocation.args,
+    cwd,
+    runDir,
+    signal,
+    extraEnv: launch.extraEnv,
+    onStdoutChunk: stream.onStdoutChunk,
+    onStderrChunk: stream.onStderrChunk,
+  });
+  stream.flush();
+  return finalizeResult(stream.result(), outcome, run.signal?.aborted === true, stream.hitMaxTurns());
 }
 
 const errorText = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
+/** What an awaited step gave, or the error it ended in, so a caller can tell a step that failed from the work after it. */
+type Attempt<T> = { ok: true; value: T } | { ok: false; error: unknown };
+
+const attempt = <T>(step: () => Promise<T>): Promise<Attempt<T>> =>
+  step().then(
+    (value): Attempt<T> => ({ ok: true, value }),
+    (error: unknown): Attempt<T> => ({ ok: false, error }),
+  );
 
 /** Memory, skills and the agent prompt, as the one system prompt the worker is given. */
 function systemPromptFor(agent: AgentConfig, cwd: string, memorySection: string | undefined): string {
@@ -154,58 +131,44 @@ function memoryDirFor(memory: PreparedMemory | undefined, agent: AgentConfig, in
   return memory && (agent.memory === 'user' || inWorktree) ? memory.dir : '';
 }
 
-function startForkSession(job: Job, cwd: string): ForkSession | undefined {
-  if (!isForkAgent(job.agent)) return undefined;
-  return prepareForkSession(job.defaults.parentSession ?? { file: undefined, cwd, toolCallId: undefined });
-}
-
-async function prepareLaunch(job: Job, cwd: string): Promise<Launch> {
-  const { agent, defaults, call, task } = job;
+/** Writes the worker's prompt and fork session into `runDir`, and works out its command line and environment. */
+async function prepareLaunch(job: Job, cwd: string, runDir: string): Promise<Launch> {
+  const { run, agent, item } = job;
   const memory = agent.memory ? prepareAgentMemory(agent.memory, agent.name, job.baseCwd, getAgentDir()) : undefined;
   const systemPrompt = systemPromptFor(agent, cwd, memory?.promptSection);
-  const prompt = systemPrompt.trim() ? await writePromptToTempFile(agent.name, systemPrompt) : undefined;
-  const fork = startForkSession(job, cwd);
-  const args = buildPiArgs({ agent, defaults, call, promptPath: prompt?.filePath, task, forkSessionFile: fork?.sessionFile });
+  const promptPath = systemPrompt.trim() ? await writePromptFile(runDir, agent.name, systemPrompt) : undefined;
+  const forkSessionFile = isForkAgent(agent) ? writeForkSession(run.defaults.parentSession ?? { file: undefined, cwd, toolCallId: undefined }, runDir) : undefined;
+  const choice = resolveModelChoice(agent, item, run.defaults);
+  const args = buildPiArgs({ agent, choice, promptPath, task: item.task, forkSessionFile });
   const memoryEnv = { [SUBAGENT_MEMORY_DIR_ENV]: memoryDirFor(memory, agent, cwd !== job.baseCwd) };
-  const forkEnv = fork ? { [SUBAGENT_IS_FORK_ENV]: '1' } : {};
-  return {
-    args,
-    extraEnv: { ...defaults.extraEnv, ...memoryEnv, ...forkEnv },
-    cleanup: () => {
-      removePromptTempFile(prompt);
-      fork?.cleanup();
-    },
-  };
+  const forkEnv = forkSessionFile ? { [SUBAGENT_IS_FORK_ENV]: '1' } : {};
+  return { args, extraEnv: { ...run.defaults.extraEnv, ...memoryEnv, ...forkEnv } };
 }
 
 const failedBeforeStart = (initial: SingleResult, error: unknown): SingleResult => ({ ...initial, status: 'failed', errorMessage: errorText(error) });
 
+/** Runs the worker in `cwd`, with one run directory that is removed however the run ends. */
 async function runInCwd(job: Job, cwd: string): Promise<SingleResult> {
-  const prepared = await prepareLaunch(job, cwd).then(
-    (launch) => ({ launch }),
-    (error: unknown) => ({ error }),
-  );
-  if ('error' in prepared) return failedBeforeStart(job.initial, prepared.error);
-  const { launch } = prepared;
+  const created = await attempt(() => fs.promises.mkdtemp(path.join(os.tmpdir(), RUN_DIR_PREFIX)));
+  if (!created.ok) return failedBeforeStart(job.initial, created.error);
+  const runDir = created.value;
   try {
-    if (job.signal?.aborted) return { ...job.initial, status: 'aborted', errorMessage: ABORTED_BEFORE_START };
-    const { initial, signal, onUpdate, makeDetails, agent } = job;
-    return await streamAgent({ cwd, initial, args: launch.args, signal, onUpdate, makeDetails, maxTurns: agent.maxTurns, extraEnv: launch.extraEnv });
+    const launch = await attempt(() => prepareLaunch(job, cwd, runDir));
+    if (!launch.ok) return failedBeforeStart(job.initial, launch.error);
+    if (job.run.signal?.aborted) return { ...job.initial, status: 'aborted', errorMessage: ABORTED_BEFORE_START };
+    return await streamAgent(job, cwd, runDir, launch.value);
   } finally {
-    launch.cleanup();
+    await fs.promises.rm(runDir, { recursive: true, force: true });
   }
 }
 
 /** Runs the worker in its own git worktree when the call or the agent asks for one, and says where the worktree is if it was kept. */
 async function runResolvedAgent(job: Job): Promise<SingleResult> {
-  const { agent, call, baseCwd } = job;
-  if (call.isolation !== 'worktree' && agent.isolation !== 'worktree') return runInCwd(job, baseCwd);
-  const prepared = await prepareSubagentWorktree(baseCwd, agent.name).then(
-    (worktree) => ({ worktree }),
-    (error: unknown) => ({ error }),
-  );
-  if ('error' in prepared) return failedBeforeStart(job.initial, prepared.error);
-  const { worktree } = prepared;
+  const { agent, item, baseCwd } = job;
+  if (item.isolation !== 'worktree' && agent.isolation !== 'worktree') return runInCwd(job, baseCwd);
+  const prepared = await attempt(() => prepareSubagentWorktree(baseCwd, agent.name));
+  if (!prepared.ok) return failedBeforeStart(job.initial, prepared.error);
+  const worktree = prepared.value;
   const result = await runInCwd(job, worktree.worktreePath).catch(async (error: unknown) => {
     await worktree.finalize();
     throw error;
@@ -214,23 +177,25 @@ async function runResolvedAgent(job: Job): Promise<SingleResult> {
   return outcome.kept ? { ...result, worktreeNote: worktreeNote(outcome) } : result;
 }
 
-export async function runSingleAgent(
-  defaults: DispatchDefaults,
-  resolved: ResolvedAgent,
-  agentName: string,
-  task: string,
-  step: number | undefined,
-  signal: AbortSignal | undefined,
-  onUpdate: OnUpdateCallback | undefined,
-  makeDetails: MakeDetails,
-): Promise<SingleResult> {
-  if (signal?.aborted) return createUnstartedResult(agentName, task, step, 'aborted', ABORTED_BEFORE_START);
-  const { agent, cwd, call = {} } = resolved;
+/**
+ * Runs one worker and returns its result, calling `onProgress` as the result changes. The worker holds one of the gate's
+ * slots from here to its end, so a chain takes one at a time and a parallel call as many as it runs at once.
+ */
+export async function runSingleAgent(run: DispatchRun, { item, resolved }: Work, step: number | undefined, onProgress?: OnProgress): Promise<SingleResult> {
+  const { agent: agentName, task } = item;
+  if (run.signal?.aborted) return createUnstartedResult(agentName, task, step, 'aborted', ABORTED_BEFORE_START);
+  const { agent, cwd } = resolved;
   if (!agent) {
     const available = resolved.available.map((candidate) => `"${candidate.name}"`).join(', ') || 'none';
     return createUnstartedResult(agentName, task, step, 'failed', `Unknown agent: "${agentName}". Available agents: ${available}.`);
   }
-  const model = isForkAgent(agent) ? defaults.model : (call.model ?? agent.model ?? defaults.model);
-  const initial: SingleResult = { agent: agentName, agentSource: agent.source, task, status: 'running', exitCode: null, messages: [], stderr: '', usage: emptyUsage(), model, step };
-  return runResolvedAgent({ defaults, agent, call, baseCwd: cwd, task, signal, onUpdate, makeDetails, initial });
+  const slot = run.gate.tryAcquire();
+  if (!slot) return createUnstartedResult(agentName, task, step, 'failed', concurrencyCapMessage(run.gate.limit()));
+  try {
+    const { model } = resolveModelChoice(agent, item, run.defaults);
+    const initial: SingleResult = { agent: agentName, agentSource: agent.source, task, status: 'running', exitCode: null, messages: [], stderr: '', usage: emptyUsage(), model, step };
+    return await runResolvedAgent({ run, agent, item, baseCwd: cwd, initial, onProgress });
+  } finally {
+    slot.release();
+  }
 }

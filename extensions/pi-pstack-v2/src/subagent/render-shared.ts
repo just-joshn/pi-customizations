@@ -17,10 +17,21 @@ export const containerOf = (children: Component[]): Container => {
   return container;
 };
 
-export function resultIcon(theme: Theme, child: SingleResult): string {
-  if (isActiveResult(child)) return theme.fg('warning', '⏳');
-  if (isFailedResult(child)) return theme.fg('error', '✗');
-  return theme.fg('success', '✓');
+export type IconKind = 'active' | 'done' | 'partial' | 'failed';
+
+const ICONS: Record<IconKind, { color: 'warning' | 'success' | 'error'; glyph: string }> = {
+  active: { color: 'warning', glyph: '⏳' },
+  done: { color: 'success', glyph: '✓' },
+  partial: { color: 'warning', glyph: '◐' },
+  failed: { color: 'error', glyph: '✗' },
+};
+
+export const statusIcon = (theme: Theme, kind: IconKind): string => theme.fg(ICONS[kind].color, ICONS[kind].glyph);
+
+/** The icon kind of one worker. */
+export function resultKind(result: SingleResult): IconKind {
+  if (isActiveResult(result)) return 'active';
+  return isFailedResult(result) ? 'failed' : 'done';
 }
 
 const toolCallLine = (theme: Theme, item: Extract<DisplayItem, { type: 'toolCall' }>): string => theme.fg('muted', '→ ') + formatToolCall(item.name, item.args, theme.fg.bind(theme));
@@ -69,7 +80,7 @@ export interface GroupLayout {
 export function renderGroupExpanded(theme: Theme, layout: GroupLayout, results: SingleResult[], total: UsageStats): Container {
   const children = results.flatMap((r) => {
     const usage = usageLine(theme, r.usage, r.model);
-    return [spacer(), text(layout.heading(r, resultIcon(theme, r))), text(theme.fg('muted', 'Task: ') + theme.fg('dim', r.task)), ...diagnosticLines(theme, r), ...outputComponents(theme, r), ...(usage ? [text(usage)] : [])];
+    return [spacer(), text(layout.heading(r, statusIcon(theme, resultKind(r)))), text(theme.fg('muted', 'Task: ') + theme.fg('dim', r.task)), ...diagnosticLines(theme, r), ...outputComponents(theme, r), ...(usage ? [text(usage)] : [])];
   });
   const totalText = usageLine(theme, total, undefined, 'Total: ');
   return containerOf([text(layout.header), ...children, ...(totalText ? [spacer(), text(totalText)] : [])]);
@@ -79,7 +90,7 @@ export function renderGroupBody(theme: Theme, layout: GroupLayout, results: Sing
   const rows = results.map((r) => {
     const items = getDisplayItems(r.messages);
     const body = items.length === 0 ? layout.collapsedSummary(r) : renderDisplayItems(theme, expanded, items, COLLAPSED_GROUP_ITEM_COUNT);
-    return `\n\n${layout.heading(r, resultIcon(theme, r))}\n${body}`;
+    return `\n\n${layout.heading(r, statusIcon(theme, resultKind(r)))}\n${body}`;
   });
   return layout.header + rows.join('');
 }

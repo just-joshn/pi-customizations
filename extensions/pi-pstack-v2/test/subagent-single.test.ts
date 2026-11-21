@@ -19,6 +19,7 @@ const MISSING_SCRIPT = '/missing/cli.js';
 const BUN_PATH = '/usr/bin/bun';
 const NODE_PATH = '/usr/bin/node';
 const BUN_EXE_PATH = '/bin/BUN.EXE';
+const NO_USAGE_LINE = JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'no usage' }] } });
 
 const callScout = (params: Record<string, unknown> = {}, ctxOptions: Parameters<typeof makeCtx>[1] = {}) => {
   const { call } = loadSubagent();
@@ -202,6 +203,16 @@ describe('single mode, what the child printed', () => {
       child.exit(0);
     });
     expect(answerOf(await callScout())).toBe('(no output)');
+  });
+
+  test('a streamed assistant message without usage does not hide the valid messages printed after it', async () => {
+    fakePi.onChild((child) => {
+      child.stdout(`${NO_USAGE_LINE}\n${assistantLine('final answer')}\n`);
+      child.exit(0);
+    });
+    const result = await callScout();
+    expect(answerOf(result)).toBe('final answer');
+    expect(result.details?.isError).toBe(false);
   });
 
   test('truncates a very long answer and says how much was cut', async () => {

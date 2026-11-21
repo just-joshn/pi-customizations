@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import type { VM } from '@earendil-works/gondolin';
 import { DEFAULT_MAX_BYTES, formatSize, type GrepToolDetails, type GrepToolInput, truncateHead, truncateLine } from '@earendil-works/pi-coding-agent';
 import { toGuestPath } from './paths.ts';
-import { type GuestFile, matchesToolGlob, signalOption, throwIfAborted, walkGuestFiles } from './search.ts';
+import { type GuestFile, matchesToolGlob, signalOption, takeFirst, throwIfAborted, walkGuestFiles } from './search.ts';
 
 const DEFAULT_GREP_LIMIT = 100;
 const MIN_GREP_LIMIT = 1;
@@ -25,8 +25,8 @@ function createLineMatcher(pattern: string, literal: boolean | undefined, ignore
 const splitLines = (content: string): string[] => content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
 
 function grepBlock(lines: readonly string[], displayPath: string, lineIndex: number, contextLines: number): GrepBlock {
-  const start = contextLines > 0 ? Math.max(0, lineIndex - contextLines) : lineIndex;
-  const end = contextLines > 0 ? Math.min(lines.length - 1, lineIndex + contextLines) : lineIndex;
+  const start = Math.max(0, lineIndex - contextLines);
+  const end = Math.min(lines.length - 1, lineIndex + contextLines);
   const rendered = Array.from({ length: end - start + 1 }, (_, offset) => {
     const index = start + offset;
     const { text, wasTruncated } = truncateLine((lines[index] ?? '').replace(/\r/g, ''));
@@ -55,16 +55,6 @@ async function* grepBlocks(vm: VM, files: AsyncIterable<GuestFile>, search: Grep
   }
 }
 
-/** Collects the first `limit` blocks and then stops the source, so the walk ends at the last match it needs. */
-async function firstBlocks(blocks: AsyncIterable<GrepBlock>, limit: number): Promise<readonly GrepBlock[]> {
-  let taken: readonly GrepBlock[] = [];
-  for await (const block of blocks) {
-    taken = [...taken, block];
-    if (taken.length >= limit) break;
-  }
-  return taken;
-}
-
 function formatGrep(blocks: readonly GrepBlock[], limit: number): TextToolResult<GrepToolDetails> {
   const truncation = truncateHead(blocks.flatMap((block) => block.lines).join('\n'), { maxLines: Number.MAX_SAFE_INTEGER });
   const limitReached = blocks.length >= limit;
@@ -90,7 +80,7 @@ export async function executeGondolinGrep(vm: VM, localCwd: string, params: Grep
     contextLines: params.context && params.context > 0 ? params.context : 0,
   };
   const limit = Math.max(MIN_GREP_LIMIT, params.limit ?? DEFAULT_GREP_LIMIT);
-  const blocks = await firstBlocks(grepBlocks(vm, walkGuestFiles(vm, root, signal), search, signal), limit);
+  const blocks = await takeFirst(grepBlocks(vm, walkGuestFiles(vm, root, signal), search, signal), limit);
   if (blocks.length === 0) return { content: [{ type: 'text', text: 'No matches found' }], details: undefined };
   return formatGrep(blocks, limit);
 }

@@ -5,9 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { VM } from '@earendil-works/gondolin';
 import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { hostEnv } from '../host-env.ts';
+import { isInsideHostPath } from '../paths.ts';
 import { SUBAGENT_MEMORY_DIR_ENV } from '../subagent/memory.ts';
 import { resolveGondolinConfig } from './config.ts';
-import { GUEST_WORKSPACE, isInsideHostPath } from './paths.ts';
+import { GUEST_WORKSPACE } from './paths.ts';
 import { createVmOptions, type VmPolicyOptions } from './policy.ts';
 import { ensureSharedBuildCacheDir, sharedBuildCacheHostDir } from './shared-cache.ts';
 import { discoverReadonlySkillMounts } from './skills.ts';
@@ -19,13 +20,19 @@ const SHORT_ID_LENGTH = 8;
 // Pi names skill files by their host path, so the package is mounted read-only at that same path in the guest.
 const PACKAGE_ROOT = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
 
+/** A running VM with what its start decided. */
+export type Started = {
+  vm: VM;
+  /** Commands run in bash when the guest image has it, and in the POSIX shell otherwise. */
+  shellPath: string;
+  /** The host directory shared as /cache, when the VM started with the shared build cache on. */
+  sharedBuildCacheDir: string | undefined;
+};
+
 /** The session's one VM, started on first use and shared by every tool call until shutdown. */
 export type GondolinVm = {
-  ensure: (ctx?: ExtensionContext) => Promise<VM>;
+  ensure: (ctx?: ExtensionContext) => Promise<Started>;
   close: (ctx: ExtensionContext) => Promise<void>;
-  shellPath: () => string;
-  /** The host directory shared as /cache, once the VM has started with the shared build cache on. */
-  sharedBuildCacheDir: () => string | undefined;
 };
 
 /** The memory directory a parent subagent named, when it is a real directory that the workspace mount does not already cover. */
@@ -46,47 +53,50 @@ function vmPolicy(localCwd: string, flag: unknown): VmPolicyOptions {
   };
 }
 
-export function createGondolinVm(localCwd: string, getFlag: () => unknown = () => undefined): GondolinVm {
-  let vm: VM | undefined;
-  let starting: Promise<VM> | undefined;
-  // Commands run in bash when the guest image has it, and in the POSIX shell otherwise.
-  let shellPath = DEFAULT_SHELL;
-  let sharedBuildCacheDir: string | undefined;
+const probeShell = async (vm: VM): Promise<string> => (await vm.exec(BASH_PROBE)).stdout.trim() || DEFAULT_SHELL;
 
-  const start = async (ctx?: ExtensionContext): Promise<VM> => {
+export function createGondolinVm(localCwd: string, getFlag: () => unknown = () => undefined): GondolinVm {
+  let started: Promise<Started> | undefined;
+
+  const start = async (ctx?: ExtensionContext): Promise<Started> => {
     ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: starting ${GUEST_WORKSPACE}`));
     const policy = vmPolicy(localCwd, getFlag());
-    const created = await VM.create(createVmOptions(policy));
-    sharedBuildCacheDir = policy.sharedBuildCacheDir;
-    const bashProbe = await created.exec(BASH_PROBE);
-    shellPath = bashProbe.stdout.trim() || DEFAULT_SHELL;
-    vm = created;
-    ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: ${created.id.slice(0, SHORT_ID_LENGTH)} (${GUEST_WORKSPACE})`));
+    const vm = await VM.create(createVmOptions(policy));
+    // A VM whose shell probe fails is closed, not leaked.
+    const shellPath = await probeShell(vm).catch(async (error: unknown) => {
+      await vm.close();
+      throw error;
+    });
+    ctx?.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('accent', `Gondolin: ${vm.id.slice(0, SHORT_ID_LENGTH)} (${GUEST_WORKSPACE})`));
     ctx?.ui.notify(`Gondolin VM ready. ${localCwd} is mounted at ${GUEST_WORKSPACE}.`, 'info');
-    return created;
+    return { vm, shellPath, sharedBuildCacheDir: policy.sharedBuildCacheDir };
   };
 
   // Concurrent callers share one start, so a burst of tool calls at session start boots a single VM.
-  const ensure = async (ctx?: ExtensionContext): Promise<VM> => {
-    if (vm) return vm;
-    starting ??= start(ctx).finally(() => {
-      starting = undefined;
+  // A start that fails is forgotten, so the next call tries again.
+  const ensure = async (ctx?: ExtensionContext): Promise<Started> => {
+    if (started) return started;
+    const attempt: Promise<Started> = start(ctx).catch((error: unknown) => {
+      if (started === attempt) started = undefined;
+      throw error;
     });
-    return starting;
+    started = attempt;
+    return attempt;
   };
 
   const close = async (ctx: ExtensionContext): Promise<void> => {
-    const activeVm = vm;
-    vm = undefined;
-    starting = undefined;
-    if (!activeVm) return;
+    const pending = started;
+    started = undefined;
+    // A VM still starting is closed once it is up. A start that failed already closed its VM.
+    const active = await pending?.catch(() => undefined);
+    if (!active) return;
     ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg('muted', 'Gondolin: stopping'));
     try {
-      await activeVm.close();
+      await active.vm.close();
     } finally {
       ctx.ui.setStatus(STATUS_KEY, undefined);
     }
   };
 
-  return { ensure, close, shellPath: () => shellPath, sharedBuildCacheDir: () => sharedBuildCacheDir };
+  return { ensure, close };
 }

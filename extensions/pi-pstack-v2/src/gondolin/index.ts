@@ -32,9 +32,8 @@ function registerStatusCommand(pi: ExtensionAPI, guest: GondolinVm, localCwd: st
   pi.registerCommand('gondolin', {
     description: 'Show Gondolin VM status',
     handler: async (_args, ctx) => {
-      const activeVm = await guest.ensure(ctx);
-      const cacheDir = guest.sharedBuildCacheDir();
-      const status = [`Gondolin VM: ${activeVm.id}`, `Host workspace: ${localCwd}`, `Guest workspace: ${GUEST_WORKSPACE}`, `Shell: ${guest.shellPath()}`, ...(cacheDir ? [`Shared build cache: ${cacheDir} -> ${GUEST_BUILD_CACHE}`] : [])];
+      const { vm, shellPath, sharedBuildCacheDir: cacheDir } = await guest.ensure(ctx);
+      const status = [`Gondolin VM: ${vm.id}`, `Host workspace: ${localCwd}`, `Guest workspace: ${GUEST_WORKSPACE}`, `Shell: ${shellPath}`, ...(cacheDir ? [`Shared build cache: ${cacheDir} -> ${GUEST_BUILD_CACHE}`] : [])];
       ctx.ui.notify(status.join('\n'), 'info');
     },
   });
@@ -56,8 +55,8 @@ export default function gondolin(pi: ExtensionAPI): void {
   registerStatusCommand(pi, guest, localCwd);
   registerGuestTools(pi, guest, localCwd);
   pi.on('user_bash', async (_event, ctx) => {
-    const activeVm = await guest.ensure(ctx);
-    return { operations: createGondolinBashOps(activeVm, localCwd, guest.shellPath()) };
+    const { vm, shellPath } = await guest.ensure(ctx);
+    return { operations: createGondolinBashOps(vm, localCwd, shellPath) };
   });
   pi.on('before_agent_start', async (event, ctx) => {
     await guest.ensure(ctx);

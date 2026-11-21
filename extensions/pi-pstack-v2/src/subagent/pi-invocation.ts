@@ -1,5 +1,4 @@
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { withFileMutationQueue } from '@earendil-works/pi-coding-agent';
@@ -9,19 +8,14 @@ const PROMPT_FILE_MODE = 0o600;
 const BUN_VIRTUAL_POSIX_PREFIX = '/$bunfs/root/';
 const ScriptPathSchema = z.string().optional();
 
-export async function writePromptToTempFile(agentName: string, prompt: string): Promise<{ dir: string; filePath: string }> {
-  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'pi-subagent-'));
+/** Writes an agent's system prompt into the worker's run directory, and returns the file. */
+export async function writePromptFile(runDir: string, agentName: string, prompt: string): Promise<string> {
   const safeName = agentName.replace(/[^\w.-]+/g, '_');
-  const filePath = path.join(tmpDir, `prompt-${safeName}.md`);
+  const filePath = path.join(runDir, `prompt-${safeName}.md`);
   await withFileMutationQueue(filePath, async () => {
     await fs.promises.writeFile(filePath, prompt, { encoding: 'utf-8', mode: PROMPT_FILE_MODE });
   });
-  return { dir: tmpDir, filePath };
-}
-
-export function removePromptTempFile(tmp: { dir: string; filePath: string } | undefined): void {
-  if (!tmp) return;
-  fs.rmSync(tmp.dir, { recursive: true, force: true });
+  return filePath;
 }
 
 export function getPiInvocation(args: string[]): { command: string; args: string[] } {

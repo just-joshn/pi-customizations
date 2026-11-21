@@ -55,19 +55,26 @@ export function matchesToolGlob(relativePath: string, pattern: string): boolean 
   return minimatch(path.posix.basename(relativePath), normalizedPattern, GLOB_OPTIONS);
 }
 
-async function firstMatches(files: AsyncIterable<GuestFile>, pattern: string, limit: number): Promise<string[]> {
-  let results: readonly string[] = [];
-  for await (const file of files) {
-    if (results.length >= limit) break;
-    if (matchesToolGlob(file.relativePath, pattern)) results = [...results, file.guestPath];
-    if (results.length >= limit) break;
+/** Collects the first `limit` items and then stops the source, so a walk ends at the last item it needs. */
+export async function takeFirst<T>(items: AsyncIterable<T>, limit: number): Promise<T[]> {
+  if (limit <= 0) return [];
+  let taken: readonly T[] = [];
+  for await (const item of items) {
+    taken = [...taken, item];
+    if (taken.length >= limit) break;
   }
-  return [...results];
+  return [...taken];
+}
+
+async function* matchingFiles(files: AsyncIterable<GuestFile>, pattern: string): AsyncGenerator<GuestFile> {
+  for await (const file of files) {
+    if (matchesToolGlob(file.relativePath, pattern)) yield file;
+  }
 }
 
 export function createGondolinFindOps(vm: VM, localCwd: string): FindOperations {
   return {
     exists: async (filePath) => guestExists(vm, localCwd, filePath),
-    glob: async (pattern, cwd, options) => firstMatches(walkGuestFiles(vm, toGuestPath(localCwd, cwd)), pattern, options.limit),
+    glob: async (pattern, cwd, options) => (await takeFirst(matchingFiles(walkGuestFiles(vm, toGuestPath(localCwd, cwd)), pattern), options.limit)).map((file) => file.guestPath),
   };
 }

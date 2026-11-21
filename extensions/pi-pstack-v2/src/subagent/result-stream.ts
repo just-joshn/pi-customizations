@@ -3,13 +3,16 @@ import { z } from 'zod';
 import type { ProcessOutcome } from './run-in-tmux.ts';
 import type { SingleResult } from './types.ts';
 
-/** A `message_end` line of Pi's JSON mode output whose message is of a user, an assistant, or a tool result. Other keys stay as they were read. */
-const JsonLineSchema = z.looseObject({ type: z.literal('message_end'), message: z.looseObject({ role: z.enum(['user', 'assistant', 'toolResult']) }) });
+/** A `message_end` line of Pi's JSON mode output. Its message is checked apart, since its shape depends on its role. */
+const JsonLineSchema = z.looseObject({ type: z.literal('message_end'), message: z.unknown() });
 
-type ReadableMessage = z.infer<typeof JsonLineSchema>['message'];
+const Count = z.number().optional();
+const AssistantUsageSchema = z.looseObject({ input: Count, output: Count, cacheRead: Count, cacheWrite: Count, totalTokens: Count, cost: z.looseObject({ total: Count }).optional() });
 
-/** The schema has checked the role, which is all that was ever checked of a message, so the rest is read where it is used. */
-const isMessage = (_message: ReadableMessage): _message is ReadableMessage & Message => true;
+/** What the dispatcher reads of each kind of message: an assistant message's content and its usage, which may lack counts, and the role of the others. */
+const MessageSchema = z.union([z.looseObject({ role: z.literal('assistant'), content: z.array(z.looseObject({ type: z.string() })), usage: AssistantUsageSchema }), z.looseObject({ role: z.enum(['user', 'toolResult']) })]);
+
+const isMessage = (value: unknown): value is Message => MessageSchema.safeParse(value).success;
 
 function safeParseLine(line: string) {
   try {
@@ -21,8 +24,8 @@ function safeParseLine(line: string) {
 
 /**
  * Parse one JSON-mode stdout line; anything other than a `message_end` of a user, assistant, or tool result yields
- * undefined. The message is returned untouched, with every key and its order, and its fields are read where they are used,
- * so a message without usage fails there, as it always did, and is not dropped here.
+ * undefined, and so does an assistant message without its content or usage object. A usage that lacks counts is kept, and
+ * counts what it has. The message is returned untouched, with every key and its order.
  */
 export function parseMessageEnd(line: string): Message | undefined {
   if (!line.trim()) return undefined;
@@ -32,6 +35,8 @@ export function parseMessageEnd(line: string): Message | undefined {
   return isMessage(message) ? message : undefined;
 }
 
+const amount = (count: number | undefined): number => count ?? 0;
+
 export function applyMessage(result: SingleResult, message: Message): SingleResult {
   const withMessage = { ...result, messages: [...result.messages, message] };
   if (message.role !== 'assistant') return withMessage;
@@ -40,12 +45,12 @@ export function applyMessage(result: SingleResult, message: Message): SingleResu
     ...withMessage,
     usage: {
       turns: result.usage.turns + 1,
-      input: result.usage.input + usage.input,
-      output: result.usage.output + usage.output,
-      cacheRead: result.usage.cacheRead + usage.cacheRead,
-      cacheWrite: result.usage.cacheWrite + usage.cacheWrite,
-      cost: result.usage.cost + usage.cost.total,
-      contextTokens: usage.totalTokens,
+      input: result.usage.input + amount(usage.input),
+      output: result.usage.output + amount(usage.output),
+      cacheRead: result.usage.cacheRead + amount(usage.cacheRead),
+      cacheWrite: result.usage.cacheWrite + amount(usage.cacheWrite),
+      cost: result.usage.cost + amount(usage.cost?.total),
+      contextTokens: amount(usage.totalTokens),
     },
     model: result.model || message.model,
     stopReason: message.stopReason,

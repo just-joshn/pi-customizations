@@ -1,9 +1,8 @@
+import { concurrencyCapMessage } from './admission.ts';
 import { mapWithConcurrencyLimit } from './concurrency.ts';
-import { frameSubagentReport } from './framing.ts';
-import { aggregateUsage, createUnstartedResult, getResultOutput, isFailedResult, makeDetails, type ToolResult, textResult, truncateParallelOutput, withWorktreeNote } from './results.ts';
+import { createUnstartedResult, formatResultText, getResultOutput, isFailedResult, progressResult, refusalResult, reportResult, type ToolResult, truncateParallelOutput } from './results.ts';
 import { runSingleAgent } from './run-single.ts';
-import type { WorkItem } from './schema.ts';
-import type { DispatchRun, OnUpdateCallback, ResolvedAgent, SingleResult } from './types.ts';
+import type { DispatchRun, SingleResult, Work } from './types.ts';
 
 const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
@@ -18,36 +17,35 @@ function progressText(all: SingleResult[]): string {
 function summarize(result: SingleResult): string {
   const showReason = isFailedResult(result) && result.stopReason && result.stopReason !== 'end';
   const status = showReason ? `${result.status} (${result.stopReason})` : result.status;
-  return `### [${result.agent}] ${status}\n\n${withWorktreeNote(result, truncateParallelOutput(getResultOutput(result)))}`;
+  return `### [${result.agent}] ${status}\n\n${formatResultText(result, getResultOutput(result), truncateParallelOutput)}`;
 }
 
-function finishParallel(results: SingleResult[]): ToolResult {
+function finalText(results: SingleResult[]): string {
   const successCount = results.filter((result) => !isFailedResult(result)).length;
-  const text = `Parallel: ${successCount}/${results.length} succeeded\n\n${results.map(summarize).join(SEPARATOR)}`;
-  return textResult(frameSubagentReport(text, aggregateUsage(results)), makeDetails('parallel')(results));
+  return `Parallel: ${successCount}/${results.length} succeeded\n\n${results.map(summarize).join(SEPARATOR)}`;
 }
 
-export async function runParallel(run: DispatchRun, tasks: WorkItem[], resolved: ResolvedAgent[]): Promise<ToolResult> {
-  if (tasks.length > MAX_PARALLEL_TASKS) {
-    return textResult(`Too many parallel tasks (${tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`, makeDetails('parallel', true)([]));
-  }
+/** A call is turned away, starting none, when it could not start the workers it runs at once. */
+function refusalFor(run: DispatchRun, work: Work[]): ToolResult | undefined {
+  if (work.length > MAX_PARALLEL_TASKS) return refusalResult('parallel', `Too many parallel tasks (${work.length}). Max is ${MAX_PARALLEL_TASKS}.`);
+  if (Math.min(work.length, MAX_CONCURRENCY) > run.gate.available()) return refusalResult('parallel', concurrencyCapMessage(run.gate.limit()));
+  return undefined;
+}
 
-  let all = tasks.map((item) => createUnstartedResult(item.agent, item.task, undefined, 'pending'));
+export async function runParallel(run: DispatchRun, work: Work[]): Promise<ToolResult> {
+  const refused = refusalFor(run, work);
+  if (refused) return refused;
+
+  let all = work.map(({ item }) => createUnstartedResult(item.agent, item.task, undefined, 'pending'));
   const record = (index: number, result: SingleResult): void => {
     all = all.with(index, result);
-    run.onUpdate?.({ content: [{ type: 'text', text: progressText(all) }], details: makeDetails('parallel')(all) });
+    run.onUpdate?.(progressResult('parallel', all, progressText(all)));
   };
 
-  const results = await mapWithConcurrencyLimit(tasks, MAX_CONCURRENCY, async (item, index) => {
-    const agent = resolved[index];
-    if (!agent) throw new Error(`No resolved agent for task ${index + 1}.`);
-    const onUpdate: OnUpdateCallback = (partial) => {
-      const current = partial.details?.results[0];
-      if (current) record(index, current);
-    };
-    const result = await runSingleAgent(run.defaults, agent, item.agent, item.task, undefined, run.signal, onUpdate, makeDetails('parallel'));
+  const results = await mapWithConcurrencyLimit(work, MAX_CONCURRENCY, async (unit, index) => {
+    const result = await runSingleAgent(run, unit, undefined, (current) => record(index, current));
     record(index, result);
     return result;
   });
-  return finishParallel(results);
+  return reportResult('parallel', results, finalText(results));
 }

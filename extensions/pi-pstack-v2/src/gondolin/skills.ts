@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import * as path from 'node:path';
 
 import { z } from 'zod';
-import { isInsideHostPath } from './paths.ts';
+import { isInsideHostPath } from '../paths.ts';
 
 export type SkillMountOptions = { packageRoot: string; agentDir: string; homeDir: string; localCwd: string };
 

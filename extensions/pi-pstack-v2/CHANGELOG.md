@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+
+- Remove the job directory when `tmux new-session` fails so `tmux_jobs` never lists ghost `lost` jobs, validate `job.json` with a real Zod schema so corrupt entries do not crash `list()`, and use distinct temp filenames for exit-file writes.
+- Close the Gondolin VM when the startup shell probe fails or when `session_shutdown` fires while startup is in flight.
+- Use one per-worker scratch directory in `subagent` so launch failures never leak `pi-subagent-*` temp directories.
+- Acquire concurrency slots per running worker in `subagent` so a sequential chain runs under `PI_SUBAGENT_MAX_CONCURRENT=1`.
+- Validate assistant message `usage` with Zod in `result-stream.ts` so malformed lines skip cleanly without hiding later messages in the same chunk.
+- Check `tmux has-session` asynchronously every 1000 ms instead of calling blocking `spawnSync` every 50 ms per running worker.
+
+### Changed
+
+- Split `src/index.ts` into `mode.ts`, `prompt.ts`, `tmux-tools.ts`, and `watcher.ts`, break the `gondolin`/`subagent` cyclic import via `src/paths.ts`, add missing `@earendil-works/pi-ai` and `@earendil-works/pi-tui` peer dependencies, and simplify `subagent` progress, dispatch, call normalization, and rendering.
+
 ## [0.3.0]
 
 ### Added

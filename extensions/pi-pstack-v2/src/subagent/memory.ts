@@ -8,7 +8,7 @@ import * as path from 'node:path';
 
 import { CONFIG_DIR_NAME } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
-import { isInsideHostPath } from '../gondolin/paths.ts';
+import { isInsideHostPath } from '../paths.ts';
 
 export const SUBAGENT_MEMORY_DIR_ENV = 'PI_SUBAGENT_MEMORY_DIR';
 
