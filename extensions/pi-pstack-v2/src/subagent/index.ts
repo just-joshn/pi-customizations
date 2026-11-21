@@ -39,7 +39,7 @@ const toolDescription = (): string =>
 
 const SUBAGENT_TOOL_NAME = 'subagent';
 const interactive = (ctx: { mode?: string }): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
-const noDetails = makeDetails('single')([]);
+const noDetails = makeDetails('single', []);
 const ErrorFlag = z.object({ isError: z.boolean() });
 const reportsError = (details: unknown): boolean => ErrorFlag.safeParse(details).data?.isError === true;
 

@@ -19,9 +19,13 @@ function signature(message: Conversational): string {
   return `a:${parts.join('')}`;
 }
 
-/** Key for an agent whose Cursor conversation matches this prompt, tool list, and history. */
-export function conversationKey(systemPrompt: string, tools: Tool[], history: Conversational[]): string {
-  const hash = createHash('sha256').update(systemPrompt).update('\0');
+/** Key for an agent made with this API key whose Cursor conversation matches this prompt, tool list, and history. */
+export function conversationKey(apiKey: string | undefined, systemPrompt: string, tools: Tool[], history: Conversational[]): string {
+  const hash = createHash('sha256')
+    .update(apiKey ?? '')
+    .update('\0')
+    .update(systemPrompt)
+    .update('\0');
   for (const tool of tools) hash.update(tool.name).update('\0');
   for (const message of history) hash.update('\u0001').update(signature(message));
   return hash.digest('hex');

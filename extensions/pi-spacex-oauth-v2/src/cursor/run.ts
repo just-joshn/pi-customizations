@@ -33,12 +33,19 @@ export interface CursorRun {
   resume(turn: PiTurn, messages: Message[], results: ToolResultMessage[], signal: AbortSignal | undefined): void;
 }
 
+/**
+ * Where the run is, and what only that place holds. `streaming` feeds the live Pi turn. `batching` has gathered
+ * calls and waits toolBatchMs for parallel siblings. `paused` has ended the turn with toolUse and waits for Pi's
+ * results; calls that arrive meanwhile are `late`, and events are kept in `backlog`. `done` has released everything.
+ */
+type Phase =
+  | { kind: 'streaming'; turn: PiTurn }
+  | { kind: 'batching'; turn: PiTurn; calls: ParkedCall[]; timer: NodeJS.Timeout }
+  | { kind: 'paused'; calls: ParkedCall[]; late: ParkedCall[]; backlog: SDKMessage[]; timer: NodeJS.Timeout }
+  | { kind: 'done' };
+
 interface RunState {
-  turn: PiTurn | undefined;
-  backlog: SDKMessage[];
-  parked: ParkedCall[];
-  batchTimer: NodeJS.Timeout | undefined;
-  waitTimer: NodeJS.Timeout | undefined;
+  phase: Phase;
   run: Run | undefined;
   messages: Message[];
 }
@@ -48,6 +55,8 @@ interface RunContext {
   readonly outcome: RunOutcome;
   readonly bridge: CursorRun;
 }
+
+const ENDED_RESULT: SDKCustomToolResult = { content: [{ type: 'text', text: 'The run ended before Pi answered this tool call.' }], isError: true };
 
 /** Runs waiting on Pi tool results, by Pi tool call id. */
 const parkedRuns = createCell(new Map<string, CursorRun>());
@@ -73,7 +82,7 @@ function toToolResult(result: ToolResultMessage | undefined): SDKCustomToolResul
 }
 
 export function createCursorRun(turn: PiTurn, messages: Message[], outcome: RunOutcome): CursorRun {
-  const state = createCell<RunState>({ turn, backlog: [], parked: [], batchTimer: undefined, waitTimer: undefined, run: undefined, messages });
+  const state = createCell<RunState>({ phase: { kind: 'streaming', turn }, run: undefined, messages });
   const bridge: CursorRun = {
     customTools: (tools) => customTools(context, tools),
     start: (run, signal) => start(context, run, signal),
@@ -82,6 +91,8 @@ export function createCursorRun(turn: PiTurn, messages: Message[], outcome: RunO
   const context: RunContext = { state, outcome, bridge };
   return bridge;
 }
+
+const turnOf = (phase: Phase): PiTurn | undefined => (phase.kind === 'streaming' || phase.kind === 'batching' ? phase.turn : undefined);
 
 function customTools(context: RunContext, tools: Tool[]): Record<string, SDKCustomTool> {
   const entries = tools.map((tool): [string, SDKCustomTool] => [
@@ -104,18 +115,25 @@ function parkedExecute(context: RunContext, name: string): SDKCustomTool['execut
 
 function start(context: RunContext, run: Run, signal: AbortSignal | undefined): void {
   patchCell(context.state, { run });
-  watch(context, signal, context.state.read().turn);
+  watch(context, signal, turnOf(context.state.read().phase));
   void pump(context, run);
 }
 
+/** Pi answered the calls of the paused turn. Calls that arrived late become the next turn's batch. */
 function resume(context: RunContext, turn: PiTurn, messages: Message[], results: ToolResultMessage[], signal: AbortSignal | undefined): void {
-  const { waitTimer, parked, backlog } = context.state.read();
-  clearTimeout(waitTimer);
-  patchCell(context.state, { turn, messages, parked: [], backlog: [] });
+  const { phase } = context.state.read();
+  if (phase.kind !== 'paused') {
+    turn.fail('The Cursor run is no longer waiting for tool results', false);
+    return;
+  }
+  clearTimeout(phase.timer);
+  forget(phase.calls);
+  patchCell(context.state, { messages });
   watch(context, signal, turn);
-  forget(parked);
-  for (const call of parked) call.resolve(toToolResult(results.find((r) => r.toolCallId === call.id)));
-  for (const event of backlog) handleEvent(context, event);
+  if (phase.late.length > 0) batch(context, turn, phase.late);
+  else patchCell(context.state, { phase: { kind: 'streaming', turn } });
+  for (const call of phase.calls) call.resolve(toToolResult(results.find((r) => r.toolCallId === call.id)));
+  for (const event of phase.backlog) handleEvent(context, event);
 }
 
 /** Pi aborts one request at a time, so only the turn that request is streaming cancels the run. */
@@ -123,33 +141,45 @@ function watch(context: RunContext, signal: AbortSignal | undefined, turn: PiTur
   signal?.addEventListener(
     'abort',
     () => {
-      if (context.state.read().turn === turn) void cancel(context);
+      if (turnOf(context.state.read().phase) === turn) void cancel(context);
     },
     { once: true },
   );
 }
 
 function park(context: RunContext, call: ParkedCall): void {
-  const { parked, batchTimer } = context.state.read();
-  clearTimeout(batchTimer);
-  patchCell(context.state, { parked: [...parked, call], batchTimer: setTimeout(() => pause(context), CURSOR_CONFIG.toolBatchMs) });
+  const { phase } = context.state.read();
+  if (phase.kind === 'streaming') batch(context, phase.turn, [call]);
+  else if (phase.kind === 'batching') {
+    clearTimeout(phase.timer);
+    batch(context, phase.turn, [...phase.calls, call]);
+  } else if (phase.kind === 'paused') patchCell(context.state, { phase: { ...phase, late: [...phase.late, call] } });
+  else call.resolve(ENDED_RESULT);
+}
+
+/** Gathers `calls` for toolBatchMs, so parallel calls from one model step share one Pi turn. */
+function batch(context: RunContext, turn: PiTurn, calls: ParkedCall[]): void {
+  const timer = setTimeout(() => pause(context), CURSOR_CONFIG.toolBatchMs);
+  patchCell(context.state, { phase: { kind: 'batching', turn, calls, timer } });
 }
 
 function pause(context: RunContext): void {
-  const { turn, parked } = context.state.read();
-  if (!turn) return;
-  patchCell(context.state, { turn: undefined });
-  parkedRuns.write(parked.reduce((runs, call) => withEntry(runs, call.id, context.bridge), parkedRuns.read()));
-  turn.toolUse(parked.map(({ id, name, arguments: args }) => ({ id, name, arguments: args })));
-  patchCell(context.state, { waitTimer: setTimeout(() => void cancel(context), CURSOR_CONFIG.toolWaitMs) });
+  const { phase } = context.state.read();
+  if (phase.kind !== 'batching') return;
+  const timer = setTimeout(() => void cancel(context), CURSOR_CONFIG.toolWaitMs);
+  patchCell(context.state, { phase: { kind: 'paused', calls: phase.calls, late: [], backlog: [], timer } });
+  parkedRuns.write(phase.calls.reduce((runs, call) => withEntry(runs, call.id, context.bridge), parkedRuns.read()));
+  phase.turn.toolUse(phase.calls.map(({ id, name, arguments: args }) => ({ id, name, arguments: args })));
 }
 
 function handleEvent(context: RunContext, event: SDKMessage): void {
-  const { turn, backlog } = context.state.read();
-  if (!turn) {
-    patchCell(context.state, { backlog: [...backlog, event] });
+  const { phase } = context.state.read();
+  if (phase.kind === 'paused') {
+    patchCell(context.state, { phase: { ...phase, backlog: [...phase.backlog, event] } });
     return;
   }
+  const turn = turnOf(phase);
+  if (!turn) return;
   if (event.type === 'assistant') {
     for (const block of event.message.content) if (block.type === 'text' && block.text) turn.text(block.text);
   } else if (event.type === 'thinking') {
@@ -171,9 +201,10 @@ async function pump(context: RunContext, run: Run): Promise<void> {
 }
 
 function settle(context: RunContext, result: RunResult): void {
-  const { turn, messages } = context.state.read();
+  const { phase, messages } = context.state.read();
+  const turn = turnOf(phase);
   if (result.status === 'finished' && turn) {
-    cleanup(context);
+    done(context);
     turn.finish('stop');
     context.outcome.finished(turn, messages);
     return;
@@ -182,9 +213,9 @@ function settle(context: RunContext, result: RunResult): void {
 }
 
 function end(context: RunContext, message: string, aborted: boolean): void {
-  cleanup(context);
-  context.state.read().turn?.fail(message, aborted);
-  patchCell(context.state, { turn: undefined });
+  const turn = turnOf(context.state.read().phase);
+  done(context);
+  turn?.fail(message, aborted);
   context.outcome.failed();
 }
 
@@ -192,14 +223,30 @@ async function cancel(context: RunContext): Promise<void> {
   const { run } = context.state.read();
   if (run?.status !== 'running') return;
   await run.cancel().catch((error: unknown) => console.error('Cursor run cancel failed:', error));
-  cleanup(context);
+  patchCell(context.state, { phase: release(context.state.read().phase) });
 }
 
-function cleanup(context: RunContext): void {
-  const { batchTimer, waitTimer, parked } = context.state.read();
-  clearTimeout(batchTimer);
-  clearTimeout(waitTimer);
-  patchCell(context.state, { parked: [] });
-  forget(parked);
-  for (const call of parked) call.resolve({ content: [{ type: 'text', text: 'The run ended before Pi answered this tool call.' }], isError: true });
+function done(context: RunContext): void {
+  release(context.state.read().phase);
+  patchCell(context.state, { phase: { kind: 'done' } });
+}
+
+/** Stops the phase's timers and answers every call it still holds with an error, so Cursor's tools stop waiting. */
+function release(phase: Phase): Phase {
+  if (phase.kind === 'batching') {
+    clearTimeout(phase.timer);
+    drop(phase.calls);
+    return { kind: 'streaming', turn: phase.turn };
+  }
+  if (phase.kind === 'paused') {
+    clearTimeout(phase.timer);
+    drop([...phase.calls, ...phase.late]);
+    return { ...phase, calls: [], late: [] };
+  }
+  return phase;
+}
+
+function drop(calls: ParkedCall[]): void {
+  forget(calls);
+  for (const call of calls) call.resolve(ENDED_RESULT);
 }

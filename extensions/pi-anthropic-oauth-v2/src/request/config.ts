@@ -17,12 +17,8 @@ export const REQUEST_CONFIG = {
   claudeCodeIdentity: "You are Claude Code, Anthropic's official CLI for Claude.",
   maxTokensDivisor: MAX_TOKENS_DIVISOR,
   thinkingDisplay: 'summarized',
-  thinkingBudgets: { minimal: BUDGET_MINIMAL, low: BUDGET_LOW, medium: BUDGET_MEDIUM, high: BUDGET_HIGH } as Readonly<Record<string, number>>,
+  thinkingBudgets: { minimal: BUDGET_MINIMAL, low: BUDGET_LOW, medium: BUDGET_MEDIUM, high: BUDGET_HIGH },
   fallbackThinkingBudget: BUDGET_MEDIUM,
-  effortByLevel: { minimal: 'low', low: 'low', medium: 'medium', high: 'high' } as Readonly<Record<string, string>>,
+  effortByLevel: { minimal: 'low', low: 'low', medium: 'medium', high: 'high' },
   fallbackEffort: 'high',
-  imageOnlyPlaceholder: '(see attached image)',
-  claudeCodeTools: ['Read', 'Write', 'Edit', 'Bash', 'Grep', 'Glob', 'AskUserQuestion', 'TodoWrite', 'WebFetch', 'WebSearch'],
 } as const;
-
-export const EPHEMERAL_CACHE = { type: 'ephemeral' } as const;

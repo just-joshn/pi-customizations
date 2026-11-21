@@ -82,7 +82,11 @@ const walkCode = (target) => {
 const fileSizeViolations = (file, lines) => (lines.length < FILE_LINES_LIMIT ? [] : [{ file, rule: 'file-size', detail: `${lines.length} lines, must be under ${FILE_LINES_LIMIT}` }]);
 
 /** @param {string} file @param {string[]} lines @returns {Violation[]} */
-const nestingViolations = (file, lines) => lines.flatMap((line, i) => (indentDepth(line) > MAX_NESTING ? [{ file, rule: 'nesting', detail: `line ${i + 1}: depth ${indentDepth(line)} > ${MAX_NESTING}` }] : []));
+const nestingViolations = (file, lines) =>
+  lines.flatMap((line, i) => {
+    const depth = indentDepth(line);
+    return depth > MAX_NESTING ? [{ file, rule: 'nesting', detail: `line ${i + 1}: depth ${depth} > ${MAX_NESTING}` }] : [];
+  });
 
 /** @param {string} file @param {string[]} lines @returns {Violation[]} */
 const suppressionViolations = (file, lines) => lines.flatMap((line, i) => (AUDITED_RULES.test(line) ? [{ file, rule: 'suppression', detail: `line ${i + 1}: style rules cannot be suppressed` }] : []));

@@ -1,6 +1,7 @@
 import { CustomEditor, type KeybindingsManager, type Theme } from '@earendil-works/pi-coding-agent';
 import { type EditorTheme, type TUI, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 import { cell } from './cell.ts';
+import { memoLast } from './memo.ts';
 import { gutterAt } from './text.ts';
 
 type Indicator = NonNullable<Parameters<CustomEditor['setWorkingStatusIndicator']>[0]>;
@@ -15,15 +16,7 @@ export function editorStatus(indicator: Indicator | undefined): EditorStatus {
   return indicator.kind === 'working' ? WORKING : { kind: 'pi', indicator };
 }
 
-interface RuleCache {
-  readonly width: number;
-  readonly hidden: number;
-  readonly border: (text: string) => string;
-  readonly theme: Theme;
-  readonly status: EditorStatus | undefined;
-  readonly piLabel: string;
-  readonly line: string;
-}
+type Border = (text: string) => string;
 
 interface EditorConfig {
   readonly theme: () => Theme;
@@ -33,9 +26,12 @@ interface EditorConfig {
 abstract class RuleEditor extends CustomEditor {
   protected abstract readonly config: EditorConfig;
   private readonly snoopStatus = cell<EditorStatus>(READY);
-  private readonly topRule = cell<RuleCache | undefined>(undefined);
-  private readonly bottomRule = cell<RuleCache | undefined>(undefined);
-  private readonly prompt = cell<{ theme: Theme; text: string } | undefined>(undefined);
+  private readonly topRule = memoLast((width: number, hidden: number, border: Border, theme: Theme, status: EditorStatus, piLabel: string) => {
+    const left = hidden > 0 ? `${theme.fg('dim', `↑ ${hidden}`)} ` : '';
+    return this.rule(width, left, ` ${statusLabel(status, theme, piLabel)}`, border);
+  });
+  private readonly bottomRule = memoLast((width: number, hidden: number, border: Border, theme: Theme) => this.rule(width, '', hidden > 0 ? ` ${theme.fg('dim', `↓ ${hidden}`)}` : '', border));
+  private readonly prompt = memoLast((theme: Theme) => `${' '.repeat(this.config.gutter)}${theme.fg('accent', '›')}${' '.repeat(Math.max(0, PROMPT_INSET - 1))}`);
   override setPaddingX(_padding: number): void {
     super.setPaddingX(this.config.gutter + PROMPT_INSET);
   }
@@ -47,27 +43,17 @@ abstract class RuleEditor extends CustomEditor {
     const theme = this.config.theme();
     const status = this.snoopStatus.read();
     const piLabel = status.kind === 'pi' ? status.indicator.renderInBorder(Math.max(1, width - BORDER_LABEL_RESERVE)) : '';
-    const cached = this.topRule.read();
-    if (cached && cached.width === width && cached.hidden === hidden && cached.border === this.borderColor && cached.theme === theme && cached.status === status && cached.piLabel === piLabel) return cached.line;
-    const left = hidden > 0 ? `${theme.fg('dim', `↑ ${hidden}`)} ` : '';
-    const line = this.rule(width, left, ` ${statusLabel(status, theme, piLabel)}`);
-    this.topRule.write({ width, hidden, border: this.borderColor, theme, status, piLabel, line });
-    return line;
+    return this.topRule.get(width, hidden, this.borderColor, theme, status, piLabel);
   }
   protected override renderBottomBorder(width: number, hidden: number): string {
-    const theme = this.config.theme();
-    const cached = this.bottomRule.read();
-    if (cached && cached.width === width && cached.hidden === hidden && cached.border === this.borderColor && cached.theme === theme) return cached.line;
-    const line = this.rule(width, '', hidden > 0 ? ` ${theme.fg('dim', `↓ ${hidden}`)}` : '');
-    this.bottomRule.write({ width, hidden, border: this.borderColor, theme, status: undefined, piLabel: '', line });
-    return line;
+    return this.bottomRule.get(width, hidden, this.borderColor, this.config.theme());
   }
-  private rule(width: number, left: string, right: string): string {
+  private rule(width: number, left: string, right: string, border: Border): string {
     const g = gutterAt(this.config.gutter, width);
     const inner = width - 2 * g;
     const labels = visibleWidth(left) + visibleWidth(right);
     const [start, end, fill] = labels < inner ? [left, right, inner - labels] : ['', '', inner];
-    const line = ' '.repeat(g) + start + this.borderColor('─'.repeat(Math.max(0, fill))) + end + ' '.repeat(g);
+    const line = ' '.repeat(g) + start + border('─'.repeat(Math.max(0, fill))) + end + ' '.repeat(g);
     return visibleWidth(line) <= width ? line : truncateToWidth(line, width, '');
   }
   override render(width: number): string[] {
@@ -75,20 +61,13 @@ abstract class RuleEditor extends CustomEditor {
     const inset = this.config.gutter + PROMPT_INSET;
     const first = lines[1];
     if (first === undefined || gutterAt(inset, width) < inset) return lines;
-    return lines.with(1, this.promptText(this.config.theme()) + first.slice(inset));
-  }
-  private promptText(theme: Theme): string {
-    const cached = this.prompt.read();
-    if (cached?.theme === theme) return cached.text;
-    const text = `${' '.repeat(this.config.gutter)}${theme.fg('accent', '›')}${' '.repeat(Math.max(0, PROMPT_INSET - 1))}`;
-    this.prompt.write({ theme, text });
-    return text;
+    return lines.with(1, this.prompt.get(this.config.theme()) + first.slice(inset));
   }
   override invalidate(): void {
     super.invalidate();
-    this.topRule.write(undefined);
-    this.bottomRule.write(undefined);
-    this.prompt.write(undefined);
+    this.topRule.reset();
+    this.bottomRule.reset();
+    this.prompt.reset();
   }
 }
 

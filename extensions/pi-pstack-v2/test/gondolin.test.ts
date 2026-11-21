@@ -12,6 +12,8 @@ const SHORT_ID = 'aaaabbbb';
 const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 const OUTSIDE_HOST = '/etc/hosts';
 const EXIT_CODE = 3;
+const PROBE_FAILURE = 'probe failed';
+const PROBE_EXIT_CODE = 0;
 const TIMEOUT_SECONDS = 0.01;
 const NOTE_SNIPPETS = [
   'The VM has no `git`, `gh`, `tmux`, or `bun`',
@@ -92,6 +94,36 @@ describe('the Gondolin VM at shutdown', () => {
     await host.fire('session_shutdown');
     await host.text('read', { path: 'a.txt' });
     expect(host.notify).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('the Gondolin VM when startup goes wrong', () => {
+  test('a VM whose shell probe fails is closed instead of leaked', async () => {
+    const host = loadGondolin({ tree: { 'a.txt': 'hello' } });
+    host.exec.mockImplementationOnce(() => Promise.reject(new Error(PROBE_FAILURE)));
+    await expect(host.text('read', { path: 'a.txt' })).rejects.toThrow(PROBE_FAILURE);
+    expect(host.close).toHaveBeenCalledTimes(1);
+  });
+
+  test('the next call after a failed startup boots a VM and announces only that one as ready', async () => {
+    const host = loadGondolin({ tree: { 'a.txt': 'hello' } });
+    host.exec.mockImplementationOnce(() => Promise.reject(new Error(PROBE_FAILURE)));
+    await expect(host.text('read', { path: 'a.txt' })).rejects.toThrow(PROBE_FAILURE);
+    expect(await host.text('read', { path: 'a.txt' })).toBe('hello');
+    expect(host.notify).toHaveBeenCalledTimes(1);
+    expect(host.setStatus).toHaveBeenLastCalledWith('gondolin', `Gondolin: ${SHORT_ID} (${GUEST})`);
+  });
+
+  test('a VM still starting when the session shuts down is closed once it is up', async () => {
+    const host = loadGondolin();
+    const probe = Promise.withResolvers<{ stdout: string; exitCode: number }>();
+    host.exec.mockImplementationOnce(() => probe.promise);
+    const starting = host.fire('session_start');
+    await vi.waitFor(() => expect(host.exec).toHaveBeenCalledTimes(1));
+    const shuttingDown = host.fire('session_shutdown');
+    probe.resolve({ stdout: `${BASH}\n`, exitCode: PROBE_EXIT_CODE });
+    await Promise.all([starting, shuttingDown]);
+    expect(host.close).toHaveBeenCalledTimes(1);
   });
 });
 

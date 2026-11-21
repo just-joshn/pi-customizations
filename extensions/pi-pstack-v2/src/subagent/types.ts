@@ -1,7 +1,9 @@
 import type { AgentToolResult, ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Message } from '@earendil-works/pi-ai';
+import type { ConcurrencyGate } from './admission.ts';
 import type { AgentConfig, AgentSource } from './agents.ts';
 import type { ParentSession } from './fork.ts';
+import type { WorkItem } from './schema.ts';
 
 export interface UsageStats {
   input: number;
@@ -41,9 +43,10 @@ export interface SubagentDetails {
   isError: boolean;
 }
 
-export type MakeDetails = (results: SingleResult[]) => SubagentDetails;
-
 export type OnUpdateCallback = (partial: AgentToolResult<SubagentDetails>) => void;
+
+/** Called with a worker's result each time it changes, from its start to its end. */
+export type OnProgress = (result: SingleResult) => void;
 
 export interface DispatchDefaults {
   model?: string | undefined;
@@ -58,20 +61,20 @@ export interface DispatchRun {
   defaults: DispatchDefaults;
   signal: AbortSignal | undefined;
   onUpdate: OnUpdateCallback | undefined;
-}
-
-/** The model, thinking level and isolation one call names for one item, ahead of the agent's and the session's. */
-export interface CallModel {
-  model?: string | undefined;
-  thinking?: ThinkingLevel | undefined;
-  isolation?: 'worktree' | undefined;
+  /** Every worker holds one of its slots while it runs. */
+  gate: ConcurrencyGate;
 }
 
 export interface ResolvedAgent {
   agent: AgentConfig | undefined;
   available: AgentConfig[];
   cwd: string;
-  call?: CallModel | undefined;
+}
+
+/** One worker the call asks for: what to run, and the agent it resolved to. */
+export interface Work {
+  item: WorkItem;
+  resolved: ResolvedAgent;
 }
 
 export type DisplayItem = { type: 'text'; text: string } | { type: 'toolCall'; name: string; args: Record<string, unknown> };

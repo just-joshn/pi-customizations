@@ -1,7 +1,6 @@
 import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { vi } from 'vitest';
 import { EXPIRES_IN_SECONDS, ROUTE_LOAD, ROUTE_TOKEN } from './constants.ts';
-import { deferred } from './deferred.ts';
 import { type GoogleFake, installGoogle, json, type Routes } from './google.ts';
 import { loadProvider, oauthOf } from './session.ts';
 
@@ -27,7 +26,7 @@ export const waitsForAbort = (prompt: AuthPrompt) =>
 export type PromptImpl = (prompt: AuthPrompt) => Promise<string>;
 
 function interaction(promptImpl: PromptImpl) {
-  const urlShown = deferred<void>();
+  const urlShown = Promise.withResolvers<void>();
   const notify = vi.fn<(event: AuthEvent) => void>((event) => {
     if (event.type === 'auth_url') urlShown.resolve();
   });

@@ -1,11 +1,14 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
+import { closeIdleAgents } from './cursor/agent-pool.ts';
 import { CURSOR_PROVIDER_ID, cursorProvider } from './cursor/provider.ts';
 import { GROK_PROVIDER_ID, grokProvider } from './grok.ts';
 import { fetchCursorAccount, fetchGrokBilling, formatGrokBilling, formatRateLimit, parseRateLimit, type RateLimit } from './usage.ts';
 
 const CommandArgs = z.string().optional();
 const STATUS_KEY = 'spacex-usage';
+
+const describeFailure = (reason: unknown): string => (reason instanceof Error ? reason.message : String(reason));
 
 export default function piSpacexOauth(pi: ExtensionAPI) {
   pi.registerProvider(GROK_PROVIDER_ID, grokProvider);
@@ -17,7 +20,8 @@ export default function piSpacexOauth(pi: ExtensionAPI) {
 
   async function usageLines(ctx: ExtensionContext): Promise<string[]> {
     const [cursorToken, grokToken] = await Promise.all([token(ctx, CURSOR_PROVIDER_ID), token(ctx, GROK_PROVIDER_ID)]);
-    const lines = await Promise.all([cursorToken ? fetchCursorAccount(cursorToken) : undefined, grokToken ? fetchGrokBilling(grokToken).then(formatGrokBilling) : undefined]);
+    const lookups = await Promise.allSettled([cursorToken ? fetchCursorAccount(cursorToken) : undefined, grokToken ? fetchGrokBilling(grokToken).then(formatGrokBilling) : undefined]);
+    const lines = lookups.map((lookup) => (lookup.status === 'fulfilled' ? lookup.value : `Usage lookup failed: ${describeFailure(lookup.reason)}`));
     const all = grokRateLimit ? [...lines, formatRateLimit(grokRateLimit)] : lines;
     return all.filter((l): l is string => !!l);
   }
@@ -29,6 +33,7 @@ export default function piSpacexOauth(pi: ExtensionAPI) {
     ctx.ui.setStatus(STATUS_KEY, show ? ctx.ui.theme.fg('dim', `${grokRateLimit?.remainingRequests} req left`) : undefined);
   }
 
+  pi.on('session_shutdown', closeIdleAgents);
   pi.on('session_start', (_e, ctx) => refreshStatus(ctx));
   pi.on('model_select', (_e, ctx) => refreshStatus(ctx));
   pi.on('turn_end', (_e, ctx) => refreshStatus(ctx));
@@ -40,7 +45,7 @@ export default function piSpacexOauth(pi: ExtensionAPI) {
     description: 'Show X subscription usage for Grok Build and the signed-in Cursor account',
     handler: async (args, ctx) => {
       CommandArgs.parse(args);
-      const lines = await usageLines(ctx).catch((err: unknown) => [`Usage lookup failed: ${err instanceof Error ? err.message : String(err)}`]);
+      const lines = await usageLines(ctx).catch((err: unknown) => [`Usage lookup failed: ${describeFailure(err)}`]);
       ctx.ui.notify(lines.length > 0 ? lines.join('\n') : 'Sign in with /login (Grok Build or Cursor) to see usage.', 'info');
     },
   });

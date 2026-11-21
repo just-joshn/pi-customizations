@@ -1,3 +1,5 @@
+import { getEventListeners } from 'node:events';
+
 import type { Message } from '@earendil-works/pi-ai';
 import { isContextOverflow, isRetryableAssistantError } from '@earendil-works/pi-ai/compat';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -253,6 +255,15 @@ describe('retry delay hints and cancellation', () => {
     expect(requestCount()).toBe(1);
     await vi.advanceTimersByTimeAsync(ONE_MS);
     expect(message((await pending).at(-1)).stopReason).toBe('stop');
+  });
+
+  test('leaves no abort listener on the caller signal once the retries finish', async () => {
+    const controller = new AbortController();
+    const retries = 3;
+    const { stream, requestCount } = await run((_request, attempt) => (attempt < retries ? throttled({ 'Retry-After': '0' }) : okReply()), { maxRetries: retries, maxRetryDelayMs: 0, signal: controller.signal });
+    expect(message(terminal(await collect(stream))[0]).stopReason).toBe('stop');
+    expect(requestCount()).toBe(retries + 1);
+    expect(getEventListeners(controller.signal, 'abort')).toEqual([]);
   });
 
   test('cancelling while waiting to retry ends the stream as aborted', async () => {

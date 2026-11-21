@@ -1,11 +1,24 @@
 import type { Tool } from '@earendil-works/pi-ai';
-import { REQUEST_CONFIG } from '../request/config.ts';
 
-const claudeCodeNames: ReadonlyMap<string, string> = new Map(REQUEST_CONFIG.claudeCodeTools.map((name) => [name.toLowerCase(), name]));
+/** Translates tool names between Pi and the wire, so callers never branch on the sign-in mode. */
+export type NameCodec = {
+  readonly toWire: (name: string) => string;
+  readonly fromWire: (name: string) => string;
+};
 
-export const toClaudeCodeName = (name: string): string => claudeCodeNames.get(name.toLowerCase()) ?? name;
+const CLAUDE_CODE_TOOLS = ['Read', 'Write', 'Edit', 'Bash', 'Grep', 'Glob', 'AskUserQuestion', 'TodoWrite', 'WebFetch', 'WebSearch'];
 
-export function fromClaudeCodeName(name: string, tools: readonly Tool[]): string {
-  const lowerName = name.toLowerCase();
-  return tools.find((tool) => tool.name.toLowerCase() === lowerName)?.name ?? name;
+const claudeCodeNames: ReadonlyMap<string, string> = new Map(CLAUDE_CODE_TOOLS.map((name) => [name.toLowerCase(), name]));
+
+const keepName = (name: string): string => name;
+
+const PASSTHROUGH: NameCodec = { toWire: keepName, fromWire: keepName };
+
+/** OAuth requests must call Claude Code's tools by their Claude Code names. API-key requests keep Pi's names. */
+export function createNameCodec(isOAuth: boolean, tools: readonly Tool[]): NameCodec {
+  if (!isOAuth) return PASSTHROUGH;
+  return {
+    toWire: (name) => claudeCodeNames.get(name.toLowerCase()) ?? name,
+    fromWire: (name) => tools.find((tool) => tool.name.toLowerCase() === name.toLowerCase())?.name ?? name,
+  };
 }

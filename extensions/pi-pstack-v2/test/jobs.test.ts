@@ -11,6 +11,7 @@ const MANY_LINES = 200;
 const FIRST_DEFAULT_LINE = MANY_LINES - DEFAULT_OUTPUT_LINES + 2;
 const TAIL_LINES = 3;
 const NOT_EXECUTABLE_MODE = 0o644;
+const SPEC_CREATED_AT_NUMBER = 42;
 
 let world: World;
 let host: Host;
@@ -90,6 +91,12 @@ describe('tmux_run without a working tmux', () => {
     await expect(host.call('tmux_run', { name: 'x', command: 'true' })).rejects.toThrow(/Command failed: tmux -S \S+\.sock new-session/);
   });
 
+  test('a refused job leaves no job behind, so the list never shows it as lost', async () => {
+    vi.stubEnv('FAKE_TMUX_REFUSE', '1');
+    await expect(host.call('tmux_run', { name: 'ghost', command: 'true' })).rejects.toThrow(/new-session/);
+    expect(await host.text('tmux_jobs', { action: 'list' })).toBe('No jobs in this session.');
+  });
+
   test('a tmux that cannot be executed fails the call with the system error', async () => {
     const dir = join(world.root, 'broken-bin');
     mkdirSync(dir);
@@ -163,5 +170,19 @@ describe('tmux_jobs list and output, edge cases', { timeout: JOB_TIMEOUT_MS }, (
     expect(listing).toContain(`${id}  exited 0`);
     expect(listing).not.toMatch(/broken|null-spec|array-spec|string-spec/);
     expect(readFileSync(join(world.jobsRoot, 'sparse', 'job.json'), 'utf8')).toContain('"future"');
+  });
+
+  test.for<[string, Record<string, unknown>]>([
+    ['has no createdAt', {}],
+    ['has a createdAt that is not text', { createdAt: SPEC_CREATED_AT_NUMBER }],
+  ])('a job.json that %s does not stop the list from showing the other jobs', async ([, fields]) => {
+    const id = await startJob(host, { name: 'real', command: 'true' });
+    await untilExited(host, id);
+    // Two damaged jobs, so the oldest-first ordering compares them with each other whatever order the directory lists in.
+    for (const dir of ['damaged-a', 'damaged-b']) {
+      mkdirSync(join(world.jobsRoot, dir));
+      writeFileSync(join(world.jobsRoot, dir, 'job.json'), JSON.stringify({ id: dir, owner: host.sessionId, ...fields }));
+    }
+    expect(await host.text('tmux_jobs', { action: 'list' })).toContain(`${id}  exited 0`);
   });
 });

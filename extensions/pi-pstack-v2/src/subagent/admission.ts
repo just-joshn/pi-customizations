@@ -41,28 +41,42 @@ export function readDepthPolicy(env: NodeJS.ProcessEnv): DepthPolicy {
 
 export const readConcurrencyLimit = (env: NodeJS.ProcessEnv): number => readInteger(env[SUBAGENT_MAX_CONCURRENT_ENV], MIN_CONCURRENT, DEFAULT_MAX_CONCURRENT);
 
-export interface ConcurrencyGate {
-  tryAcquire: (count: number) => { release: () => void } | undefined;
-  active: () => number;
+/** One running worker's place under the cap. */
+export interface Slot {
+  release: () => void;
 }
+
+export interface ConcurrencyGate {
+  /** Takes one worker's slot, or returns undefined at the cap. */
+  tryAcquire: () => Slot | undefined;
+  /** How many more workers the cap lets start now. */
+  available: () => number;
+  limit: () => number;
+}
+
+export const concurrencyCapMessage = (limit: number): string => `Subagent concurrency cap reached (max ${limit} workers at once). Wait for running workers to finish, or raise ${SUBAGENT_MAX_CONCURRENT_ENV}.`;
 
 /** Counts the workers running at once across every call of a session, foreground or woken. */
 export function createConcurrencyGate(limit: () => number = () => DEFAULT_MAX_CONCURRENT): ConcurrencyGate {
   let activeCount = 0;
-  const makeReleaser = (count: number): (() => void) => {
+  const available = (): number => Math.max(0, limit() - activeCount);
+  const makeSlot = (): Slot => {
     let released = false;
-    return () => {
-      if (released) return;
-      released = true;
-      activeCount -= count;
+    return {
+      release: () => {
+        if (released) return;
+        released = true;
+        activeCount -= 1;
+      },
     };
   };
   return {
-    tryAcquire: (count) => {
-      if (activeCount + count > limit()) return undefined;
-      activeCount += count;
-      return { release: makeReleaser(count) };
+    tryAcquire: () => {
+      if (available() === 0) return undefined;
+      activeCount += 1;
+      return makeSlot();
     },
-    active: () => activeCount,
+    available,
+    limit,
   };
 }

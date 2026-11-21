@@ -2,9 +2,9 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type { FetchFunction, ModelAuth, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { z } from 'zod';
-import { readProjectOverride, resolveProject } from './code-assist.ts';
 import { PRIVATE_PROJECT_HEADER } from './constants.ts';
-import { type LoopbackCallback, LoopbackExpiredError, startLoopbackCallback } from './loopback.ts';
+import { type LoopbackCallback, startLoopbackCallback } from './loopback.ts';
+import { readProjectOverride, resolveProject } from './onboarding.ts';
 
 const ANTIGRAVITY_CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
 // biome-ignore lint/security/noSecrets: Antigravity's public desktop OAuth client requires this shared application secret, not a user credential.
@@ -106,13 +106,6 @@ interface AuthorizationResult {
   redirectUri: string;
 }
 
-/** Once the loopback window expires, only the pasted code can finish the login, so this side never settles. */
-function unsettled(): Promise<never> {
-  return new Promise<never>(() => {
-    // Intentionally never resolves or rejects.
-  });
-}
-
 async function awaitAuthorizationCode(interaction: ProviderAuthInteraction, loopback: LoopbackCallback, pkce: { state: string; codeChallenge: string }, cancelPrompt: AbortSignal): Promise<AuthorizationResult> {
   const { state, codeChallenge } = pkce;
   interaction.notify({
@@ -127,13 +120,7 @@ async function awaitAuthorizationCode(interaction: ProviderAuthInteraction, loop
   });
   const pasted = interaction.prompt({ type: 'manual_code', message: 'Authorization code', signal: cancelPrompt }).then((code): AuthorizationResult => ({ code: code.trim(), redirectUri: MANUAL_REDIRECT_URI }));
   pasted.catch(() => undefined);
-  const callback = loopback.code.then(
-    (code): AuthorizationResult => ({ code, redirectUri: loopback.redirectUri }),
-    (error: unknown): Promise<never> => {
-      if (error instanceof LoopbackExpiredError) return unsettled();
-      throw error instanceof Error ? error : new Error(String(error));
-    },
-  );
+  const callback = loopback.code.then((code): AuthorizationResult => ({ code, redirectUri: loopback.redirectUri }));
   callback.catch(() => undefined);
   const won = await Promise.race([callback, pasted]);
   if (!won.code) throw new Error('No authorization code entered');

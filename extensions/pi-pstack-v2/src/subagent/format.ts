@@ -5,6 +5,9 @@ const THOUSAND = 1000;
 const TEN_THOUSAND = 10_000;
 const MILLION = 1_000_000;
 
+/** The text cut to `max` characters, with an ellipsis when it was longer. */
+export const clip = (text: string, max: number): string => (text.length > max ? `${text.slice(0, max)}...` : text);
+
 export function formatTokens(count: number): string {
   if (count < THOUSAND) return count.toString();
   if (count < TEN_THOUSAND) return `${(count / THOUSAND).toFixed(1)}k`;

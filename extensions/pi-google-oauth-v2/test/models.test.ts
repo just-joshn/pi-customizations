@@ -72,6 +72,20 @@ describe('the account catalog', () => {
   });
 });
 
+describe('the baseline models', () => {
+  test.for(BASELINE_IDS)('%s offers low, medium, and high thinking with images and the full context window', async (id) => {
+    const model = (await startSession()).provider.getModels().find((candidate) => candidate.id === id);
+    expect(model).toMatchObject({
+      reasoning: true,
+      input: ['text', 'image'],
+      contextWindow: HYDROGEN_CONTEXT_WINDOW,
+      maxTokens: SMALL_OUTPUT_TOKENS,
+      thinkingLevelMap: { off: null, minimal: null, low: `${id}-low`, medium: `${id}-medium`, high: `${id}-high` },
+    });
+    expect(model?.name).not.toMatch(/\(/);
+  });
+});
+
 describe('catalog failures', () => {
   test('keeps the last accepted catalog when a later request fails', async () => {
     let failing = false;

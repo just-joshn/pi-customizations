@@ -48,3 +48,6 @@ export const COST_CACHE_READ = 6e-7;
 export const COST_CACHE_WRITE = 0.00001125;
 export const COST_TOTAL = 0.00034185;
 export const STATUS_RATE_LIMITED = 429;
+
+// Thinking budgets next to the output limit.
+export const BUDGET_ABOVE_DEFAULT_MAX = 30000;

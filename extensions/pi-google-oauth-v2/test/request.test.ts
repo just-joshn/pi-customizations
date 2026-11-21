@@ -27,7 +27,7 @@ const BODY = z.looseObject({ model: z.string(), requestId: z.string(), request: 
 
 const fixture = loadCatalogFixture();
 const PLAIN_CATALOG = {
-  models: { 'plain-model': { displayName: 'Plain', maxTokens: PLAIN_MAX_TOKENS, maxOutputTokens: PLAIN_MAX_OUTPUT } },
+  models: { 'plain-model': { displayName: 'Plain', supportsImages: true, maxTokens: PLAIN_MAX_TOKENS, maxOutputTokens: PLAIN_MAX_OUTPUT } },
   agentModelSorts: [{ groups: [{ modelIds: ['plain-model'] }] }],
 };
 const catalog = {
@@ -208,6 +208,13 @@ describe('tool call ids', () => {
     expect(resultTurn?.parts[0]?.['functionResponse']).toEqual({ id: wireId, name: 'read', response: { output: 'file' } });
   });
 
+  test('sends the same ids on the call and its result for a model that is not a Gemini', async () => {
+    const body = await send([user('hi'), toolUse([call('c1')]), toolResult('c1', 'file')], {}, 'plain-model');
+    const [, callTurn, resultTurn] = body.request.contents;
+    expect(callTurn?.parts[0]?.['functionCall']).toEqual({ id: 'c1', name: 'read', args: { path: 'a.ts' } });
+    expect(resultTurn?.parts[0]?.['functionResponse']).toEqual({ id: 'c1', name: 'read', response: { output: 'file' } });
+  });
+
   test('sends no ids for Gemini 2.5', async () => {
     const body = await send([user('hi'), toolUse([call('c1')], GEMINI_25), toolResult('c1', 'file')], {}, GEMINI_25.model);
     const [, callTurn, resultTurn] = body.request.contents;
@@ -240,6 +247,11 @@ describe('image tool results', () => {
   test('nests image results in the response for Gemini 3', async () => {
     const body = await send([user('hi'), toolUse([call('c1')]), toolResult('c1', '', { content: [IMAGE_BLOCK] })]);
     expect(body.request.contents[2]?.parts[0]?.['functionResponse']).toMatchObject({ response: { output: '(see attached image)' }, parts: [IMAGE_PART] });
+  });
+
+  test('nests image results in the response for a model that is not a Gemini', async () => {
+    const body = await send([user('hi'), toolUse([call('c1')]), toolResult('c1', '', { content: [IMAGE_BLOCK] })], {}, 'plain-model');
+    expect(body.request.contents[2]?.parts[0]?.['functionResponse']).toMatchObject({ id: 'c1', response: { output: '(see attached image)' }, parts: [IMAGE_PART] });
   });
 
   test('sends image results as a separate turn for Gemini 2.5', async () => {

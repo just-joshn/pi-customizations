@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { ANTIGRAVITY_CLIENT_ID, AUTH_ENDPOINT, EXPIRES_IN_SECONDS, HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_OK, LOOPBACK_TIMEOUT_MS, MANUAL_REDIRECT, MS_PER_SECOND, PROVIDER_ID, ROUTE_LOAD, ROUTE_TOKEN, SCOPE_BASE } from './constants.ts';
-import { deferred } from './deferred.ts';
 import { json } from './google.ts';
 import { AUTH_CODE, authUrl, healthyGoogle, signInByPaste, startLogin, stubProjectEnv, tokenRequest, waitsForAbort } from './login-driver.ts';
 import { startSession } from './session.ts';
@@ -125,7 +124,7 @@ describe('signing in with a pasted code', () => {
 
   test('keeps the paste prompt open after the browser listener times out', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    const paste = deferred<string>();
+    const paste = Promise.withResolvers<string>();
     const login = await startLogin(() => paste.promise);
     await vi.advanceTimersByTimeAsync(LOOPBACK_TIMEOUT_MS);
     vi.useRealTimers();

@@ -6,10 +6,10 @@ import { streamCodeAssist } from './stream.ts';
 
 type CodeAssistModel = Model<typeof API_ID>;
 
-/** Registers the provider only. The factory starts no listener, timer, or request. */
 /** The part of Pi's ExtensionAPI this extension uses. */
 type ProviderRegistry = { registerProvider(provider: Provider): void };
 
+/** Registers the provider only. The factory starts no listener, timer, or request. */
 export default function (pi: ProviderRegistry): void {
   let current: readonly CodeAssistModel[] | undefined;
   const fetchModels = createFetchModels();

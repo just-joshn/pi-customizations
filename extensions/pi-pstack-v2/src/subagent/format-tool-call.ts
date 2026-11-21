@@ -1,6 +1,7 @@
 import * as os from 'node:os';
 
 import { formatReadLineRange } from '@earendil-works/pi-coding-agent';
+import { clip } from './format.ts';
 
 export type ThemeFg = (color: 'muted' | 'toolOutput' | 'accent' | 'warning' | 'dim', text: string) => string;
 type ToolArgs = Record<string, unknown>;
@@ -19,9 +20,7 @@ const argText = (args: ToolArgs, keys: string[], fallback: string): string => {
   return typeof hit === 'string' ? hit : fallback;
 };
 
-const preview = (text: string, max: number): string => (text.length > max ? `${text.slice(0, max)}...` : text);
-
-const formatBash: ToolCallFormatter = (args, fg) => fg('muted', '$ ') + fg('toolOutput', preview(argText(args, ['command'], '...'), BASH_PREVIEW_CHARS));
+const formatBash: ToolCallFormatter = (args, fg) => fg('muted', '$ ') + fg('toolOutput', clip(argText(args, ['command'], '...'), BASH_PREVIEW_CHARS));
 
 const formatRead: ToolCallFormatter = (args, fg) => {
   const filePath = shortenPath(argText(args, ['file_path', 'path'], '...'));
@@ -56,5 +55,5 @@ const FORMATTERS = new Map<string, ToolCallFormatter>([
 export function formatToolCall(toolName: string, args: ToolArgs, fg: ThemeFg): string {
   const formatter = FORMATTERS.get(toolName);
   if (formatter) return formatter(args, fg);
-  return fg('accent', toolName) + fg('dim', ` ${preview(JSON.stringify(args), DEFAULT_PREVIEW_CHARS)}`);
+  return fg('accent', toolName) + fg('dim', ` ${clip(JSON.stringify(args), DEFAULT_PREVIEW_CHARS)}`);
 }

@@ -1,11 +1,9 @@
-import { formatReadLineRange } from '@earendil-works/pi-coding-agent';
-import { z } from 'zod';
-import { countLines, headLines, type LineSlice, tailLines } from '../text.ts';
+import { homedir } from 'node:os';
 
-export interface Preview extends LineSlice {
-  readonly tone: 'output' | 'error';
-  readonly from: 'head' | 'tail';
-}
+import { formatReadLineRange } from '@earendil-works/pi-coding-agent';
+import { countLines, headLines, tailLines } from '../text.ts';
+import type { Preview, TargetText } from './view.ts';
+
 export interface ResultSummary {
   readonly meta: string | undefined;
   readonly preview: Preview | undefined;
@@ -27,22 +25,13 @@ export interface ResultInput {
   readonly isError: boolean;
   readonly isPartial: boolean;
 }
-export interface TargetText {
-  readonly text: string;
-  readonly kind: 'path' | 'plain';
-}
 export interface ToolSpec {
   readonly verb: string;
-  target(args: ToolArgs | undefined, cwd: string): TargetText;
+  target(args: ToolArgs, cwd: string): TargetText;
   summarize(input: ResultInput): ResultSummary;
 }
 export const RUNNING_TAIL_LINES = 3;
 export const ERROR_PREVIEW_LINES = 5;
-const HomeEnv = z.object({ HOME: z.string().optional(), USERPROFILE: z.string().optional() });
-function homeDir(): string | undefined {
-  const env = HomeEnv.parse(process.env);
-  return env.HOME ?? env.USERPROFILE;
-}
 const STATUS_TAIL_CHARS = 200;
 
 function str(value: unknown): string {
@@ -54,12 +43,21 @@ function field(value: unknown, key: string): unknown {
 function relPath(value: unknown, cwd: string): string {
   const path = str(value);
   if (path.startsWith(`${cwd}/`)) return path.slice(cwd.length + 1);
-  const home = homeDir();
+  const home = homedir();
   if (home && (path === home || path.startsWith(`${home}/`))) return `~${path.slice(home.length)}`;
   return path;
 }
-function pathTarget(args: ToolArgs | undefined, cwd: string): TargetText {
-  return { kind: 'path', text: relPath(args?.path, cwd) };
+function pathTarget(args: ToolArgs, cwd: string): TargetText {
+  return { kind: 'path', text: relPath(args.path, cwd) };
+}
+/** The exit status a failed command reports on its last line, such as `exit 2`. */
+function parseExit(text: string): string | undefined {
+  const code = /exit(?:ed with)? code (\d+)\s*$/i.exec(text.slice(-STATUS_TAIL_CHARS))?.[1];
+  return code === undefined ? undefined : `exit ${code}`;
+}
+function totalLines(details: unknown): number | undefined {
+  const total = field(field(details, 'truncation'), 'totalLines');
+  return typeof total === 'number' ? total : undefined;
 }
 function firstLine(text: string): string {
   const end = text.indexOf('\n');
@@ -95,10 +93,17 @@ function countPatchLines(patch: string): { added: number; removed: number } {
 }
 function listing(input: ResultInput, unit: 'match' | 'file' | 'entry', limit: string, empty: string): ResultSummary {
   return checked(input, () => {
-    const total = field(field(input.details, 'truncation'), 'totalLines');
-    const count = input.text.startsWith(empty) ? 0 : typeof total === 'number' ? total : countLines(withoutNotice(input.text));
+    const count = input.text.startsWith(empty) ? 0 : (totalLines(input.details) ?? countLines(withoutNotice(input.text)));
     return summary(units(count, unit, Boolean(field(input.details, limit))));
   });
+}
+function bashFailure(input: ResultInput): ResultSummary {
+  const rawTail = input.text.slice(-STATUS_TAIL_CHARS);
+  const tail = rawTail.trimEnd();
+  const meta = parseExit(input.text) ?? (/Command timed out/.test(tail) ? 'timeout' : /Command aborted$/.test(tail) ? 'aborted' : 'failed');
+  const status = /Command (?:exited with code \d+|timed out[^\n]*|aborted)$/.exec(tail);
+  const text = status ? input.text.slice(0, input.text.length - rawTail.length + status.index).trimEnd() : input.text;
+  return { meta, preview: { ...tailLines(text, ERROR_PREVIEW_LINES), tone: 'error', from: 'tail' } };
 }
 
 export const TOOL_SPECS = {
@@ -106,13 +111,12 @@ export const TOOL_SPECS = {
     verb: 'read',
     target: (args, cwd) => ({
       kind: 'path',
-      text: relPath(args?.path, cwd) + formatReadLineRange(typeof args?.offset === 'number' ? args.offset : undefined, typeof args?.limit === 'number' ? args.limit : undefined),
+      text: relPath(args.path, cwd) + formatReadLineRange(typeof args.offset === 'number' ? args.offset : undefined, typeof args.limit === 'number' ? args.limit : undefined),
     }),
     summarize: (input) =>
       checked(input, () => {
         if (input.images > 0) return summary('image');
-        const total = field(field(input.details, 'truncation'), 'totalLines');
-        return summary(units(typeof total === 'number' ? total : countLines(withoutNotice(input.text)), 'line'));
+        return summary(units(totalLines(input.details) ?? countLines(withoutNotice(input.text)), 'line'));
       }),
   },
   edit: {
@@ -132,38 +136,30 @@ export const TOOL_SPECS = {
   },
   bash: {
     verb: 'bash',
-    target: (args) => ({ kind: 'plain', text: firstLine(str(args?.command)) }),
+    target: (args) => ({ kind: 'plain', text: firstLine(str(args.command)) }),
     summarize: (input) => {
       if (input.isPartial) return { meta: undefined, preview: { ...tailLines(input.text, RUNNING_TAIL_LINES), tone: 'output', from: 'tail' } };
-      if (!input.isError) return summary('exit 0');
-      const rawTail = input.text.slice(-STATUS_TAIL_CHARS);
-      const tail = rawTail.trimEnd();
-      const exit = /Command exited with code (\d+)$/.exec(tail);
-      const meta = exit ? `exit ${exit[1]}` : /Command timed out/.test(tail) ? 'timeout' : /Command aborted$/.test(tail) ? 'aborted' : 'failed';
-      const status = /Command (?:exited with code \d+|timed out[^\n]*|aborted)$/.exec(tail);
-      const text = status ? input.text.slice(0, input.text.length - rawTail.length + status.index).trimEnd() : input.text;
-      return { meta, preview: { ...tailLines(text, ERROR_PREVIEW_LINES), tone: 'error', from: 'tail' } };
+      return input.isError ? bashFailure(input) : summary('exit 0');
     },
   },
   grep: {
     verb: 'grep',
-    target: (args) => ({ kind: 'plain', text: str(args?.pattern) + (typeof args?.path === 'string' ? `  ${args.path}` : '') }),
+    target: (args) => ({ kind: 'plain', text: str(args.pattern) + (typeof args.path === 'string' ? `  ${args.path}` : '') }),
     summarize: (input) => (input.text === 'No matches found' && !input.isError ? summary('no matches') : listing(input, 'match', 'matchLimitReached', 'No matches found')),
   },
   find: {
     verb: 'find',
-    target: (args) => ({ kind: 'plain', text: str(args?.pattern) }),
+    target: (args) => ({ kind: 'plain', text: str(args.pattern) }),
     summarize: (input) => listing(input, 'file', 'resultLimitReached', 'No files found'),
   },
   ls: {
     verb: 'ls',
-    target: (args, cwd) => pathTarget({ path: args?.path ?? '.' }, cwd),
+    target: (args, cwd) => pathTarget({ path: args.path ?? '.' }, cwd),
     summarize: (input) => listing(input, 'entry', 'entryLimitReached', '(empty directory)'),
   },
 } satisfies Record<string, ToolSpec>;
 
 export type CompactToolName = keyof typeof TOOL_SPECS;
-export const VERB_COLUMN = 8;
 export function isCompactTool(name: string): name is CompactToolName {
   return Object.hasOwn(TOOL_SPECS, name);
 }
@@ -174,17 +170,13 @@ export function genericSpec(toolName: string): ToolSpec {
   return {
     verb: toolName,
     target: (args, cwd) => {
-      const fields = args ?? {};
-      const key = TARGET_KEYS.find((name) => typeof fields[name] === 'string') ?? Object.keys(fields).find((name) => typeof fields[name] === 'string');
-      const value = key === undefined ? '' : str(fields[key]);
+      const key = TARGET_KEYS.find((name) => typeof args[name] === 'string') ?? Object.keys(args).find((name) => typeof args[name] === 'string');
+      const value = key === undefined ? '' : str(args[key]);
       return key === 'path' ? { kind: 'path', text: relPath(value, cwd) } : { kind: 'plain', text: firstLine(value) };
     },
     summarize: (input) => {
       if (input.isPartial) return { meta: undefined, preview: undefined };
-      if (input.isError) {
-        const exit = /exit(?:ed with)? code (\d+)\s*$/i.exec(input.text.slice(-STATUS_TAIL_CHARS));
-        return failed(input, exit ? `exit ${exit[1]}` : 'failed');
-      }
+      if (input.isError) return failed(input, parseExit(input.text) ?? 'failed');
       return summary(input.images > 0 ? 'image' : units(countLines(input.text), 'line'));
     },
   };

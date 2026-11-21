@@ -1,6 +1,5 @@
 import { type Api, type AssistantMessage, type AssistantMessageEvent, calculateCost, type Model, type ToolCall, uuidv7 } from '@earendil-works/pi-ai';
 import { z } from 'zod';
-import { CodeAssistError } from './code-assist.ts';
 
 const RESPONSE_PART = z.looseObject({
   text: z.string().optional(),
@@ -148,9 +147,9 @@ function withMetadata(state: ReducerState, chunk: CodeAssistChunk): ReducerState
   return withOutput(state, { ...state.output, ...responseId, ...responseModel });
 }
 
-/** Applies one chunk. Throws only when the chunk itself is an error, before any state changes. */
+/** Applies one chunk. A chunk that is itself an error leaves the state as it was and carries the error in the step. */
 export function reduceChunk(state: ReducerState, chunk: CodeAssistChunk, model: Model<Api>): ReducerStep {
-  if (chunk.error) throw new CodeAssistError(chunk.error.message ?? 'Google Code Assist returned an error');
+  if (chunk.error) return { ...noEvents(state), error: new Error(chunk.error.message ?? 'Google Code Assist returned an error') };
   const stamped = withMetadata(state, chunk);
   const { response } = chunk;
   if (!response) return noEvents(stamped);

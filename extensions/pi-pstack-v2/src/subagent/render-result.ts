@@ -1,7 +1,23 @@
 import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import type { Component, Text } from '@earendil-works/pi-tui';
-import { COLLAPSED_ITEM_COUNT, containerOf, diagnosticLines, failedOrMuted, type GroupLayout, outputComponents, renderDisplayItems, renderGroupBody, renderGroupExpanded, resultIcon, spacer, text, usageLine } from './render-shared.ts';
+import {
+  COLLAPSED_ITEM_COUNT,
+  containerOf,
+  diagnosticLines,
+  failedOrMuted,
+  type GroupLayout,
+  type IconKind,
+  outputComponents,
+  renderDisplayItems,
+  renderGroupBody,
+  renderGroupExpanded,
+  resultKind,
+  spacer,
+  statusIcon,
+  text,
+  usageLine,
+} from './render-shared.ts';
 import { aggregateUsage, getDisplayItems, getFinalOutput, isActiveResult, isFailedResult } from './results.ts';
 import { isSubagentDetails, type SingleResult } from './types.ts';
 
@@ -13,7 +29,7 @@ const fallbackText = (result: AgentToolResult<unknown>): Text => {
 };
 
 function singleHeader(theme: Theme, r: SingleResult): string {
-  const base = `${resultIcon(theme, r)} ${theme.fg('toolTitle', theme.bold(r.agent))}${theme.fg('muted', ` (${r.agentSource})`)}`;
+  const base = `${statusIcon(theme, resultKind(r))} ${theme.fg('toolTitle', theme.bold(r.agent))}${theme.fg('muted', ` (${r.agentSource})`)}`;
   if (isActiveResult(r)) return `${base} ${theme.fg('warning', `[${r.status}]`)}`;
   if (isFailedResult(r)) return `${base} ${theme.fg('error', `[${r.stopReason ?? r.status}]`)}`;
   return base;
@@ -49,51 +65,62 @@ function renderSingle(theme: Theme, r: SingleResult, expanded: boolean): Compone
   return text(singleHeader(theme, r) + singleCollapsedBody(theme, r) + (usage ? `\n${usage}` : ''));
 }
 
-function chainIcon(theme: Theme, results: SingleResult[], successCount: number): string {
-  if (results.some(isActiveResult)) return theme.fg('warning', '⏳');
-  return successCount === results.length ? theme.fg('success', '✓') : theme.fg('error', '✗');
-}
+type GroupMode = 'chain' | 'parallel';
 
-function renderChain(theme: Theme, results: SingleResult[], expanded: boolean): Component {
-  const successCount = results.filter((r) => r.status === 'completed').length;
-  const icon = chainIcon(theme, results, successCount);
-  const layout: GroupLayout = {
-    header: `${icon} ${theme.fg('toolTitle', theme.bold('chain '))}${theme.fg('accent', `${successCount}/${results.length} steps`)}`,
-    heading: (r, rIcon) => `${theme.fg('muted', `─── Step ${r.step}: `) + theme.fg('accent', r.agent)} ${rIcon}`,
-    collapsedSummary: (r) => failedOrMuted(theme, r, '(no output)'),
-  };
-  const total = aggregateUsage(results);
-  if (expanded) return renderGroupExpanded(theme, layout, results, total);
-  const totalLine = usageLine(theme, total, undefined, 'Total: ');
-  return text(`${renderGroupBody(theme, layout, results, false)}${totalLine ? `\n\n${totalLine}` : ''}\n${theme.fg('muted', EXPAND_HINT)}`);
-}
+const GROUP_UNITS: Record<GroupMode, string> = { chain: 'steps', parallel: 'tasks' };
 
-function parallelIcon(theme: Theme, running: boolean, failCount: number): string {
-  if (running) return theme.fg('warning', '⏳');
-  return failCount > 0 ? theme.fg('warning', '◐') : theme.fg('success', '✓');
-}
-
-function parallelSummary(theme: Theme, r: SingleResult): string {
+/** A worker that has not finished reads as what it is doing, not as having no output. */
+function groupSummary(theme: Theme, r: SingleResult): string {
   if (r.status === 'pending') return theme.fg('muted', '(pending...)');
   if (r.status === 'running') return theme.fg('muted', '(running...)');
   return failedOrMuted(theme, r, '(no output)');
 }
 
-function renderParallel(theme: Theme, results: SingleResult[], expanded: boolean): Component {
-  const running = results.filter((r) => r.status === 'running').length;
-  const pending = results.filter((r) => r.status === 'pending').length;
-  const successCount = results.filter((r) => r.status === 'completed').length;
-  const failCount = results.filter(isFailedResult).length;
-  const isRunning = running > 0 || pending > 0;
-  const status = isRunning ? `${successCount + failCount}/${results.length} done, ${running} running, ${pending} pending` : `${successCount}/${results.length} tasks`;
+interface GroupCounts {
+  done: number;
+  failed: number;
+  running: number;
+  pending: number;
+  isRunning: boolean;
+}
+
+function countGroup(results: SingleResult[]): GroupCounts {
+  const count = (status: SingleResult['status']): number => results.filter((r) => r.status === status).length;
+  const running = count('running');
+  const pending = count('pending');
+  return { done: count('completed'), failed: results.filter(isFailedResult).length, running, pending, isRunning: running + pending > 0 };
+}
+
+/** A chain with a failed step failed. A parallel call with one only partly did. */
+function groupIcon(mode: GroupMode, counts: GroupCounts): IconKind {
+  if (counts.isRunning) return 'active';
+  if (counts.failed === 0) return 'done';
+  return mode === 'chain' ? 'failed' : 'partial';
+}
+
+function groupStatusText(mode: GroupMode, counts: GroupCounts, total: number): string {
+  if (mode === 'chain') return `${counts.done}/${total} steps`;
+  if (counts.isRunning) return `${counts.done + counts.failed}/${total} done, ${counts.running} running, ${counts.pending} pending`;
+  return `${counts.done}/${total} ${GROUP_UNITS[mode]}`;
+}
+
+/** The chain and the parallel call differ in their title, their icons and how each worker's heading starts, and in nothing else. */
+function groupLayout(theme: Theme, mode: GroupMode, results: SingleResult[]): { layout: GroupLayout; counts: GroupCounts } {
+  const counts = countGroup(results);
+  const status = groupStatusText(mode, counts, results.length);
   const layout: GroupLayout = {
-    header: `${parallelIcon(theme, isRunning, failCount)} ${theme.fg('toolTitle', theme.bold('parallel '))}${theme.fg('accent', status)}`,
-    heading: (r, rIcon) => `${theme.fg('muted', '─── ') + theme.fg('accent', r.agent)} ${rIcon}`,
-    collapsedSummary: (r) => parallelSummary(theme, r),
+    header: `${statusIcon(theme, groupIcon(mode, counts))} ${theme.fg('toolTitle', theme.bold(`${mode} `))}${theme.fg('accent', status)}`,
+    heading: (r, icon) => `${theme.fg('muted', mode === 'chain' ? `─── Step ${r.step}: ` : '─── ') + theme.fg('accent', r.agent)} ${icon}`,
+    collapsedSummary: (r) => groupSummary(theme, r),
   };
+  return { layout, counts };
+}
+
+function renderGroup(theme: Theme, mode: GroupMode, results: SingleResult[], expanded: boolean): Component {
+  const { layout, counts } = groupLayout(theme, mode, results);
   const total = aggregateUsage(results);
-  if (expanded && !isRunning) return renderGroupExpanded(theme, layout, results, total);
-  const totalLine = isRunning ? '' : usageLine(theme, total, undefined, 'Total: ');
+  if (expanded && !counts.isRunning) return renderGroupExpanded(theme, layout, results, total);
+  const totalLine = counts.isRunning ? '' : usageLine(theme, total, undefined, 'Total: ');
   const hint = expanded ? '' : `\n${theme.fg('muted', EXPAND_HINT)}`;
   return text(`${renderGroupBody(theme, layout, results, expanded)}${totalLine ? `\n\n${totalLine}` : ''}${hint}`);
 }
@@ -103,7 +130,6 @@ export function renderSubagentResult(result: AgentToolResult<unknown>, expanded:
   if (!isSubagentDetails(details) || details.results.length === 0) return fallbackText(result);
   const [first] = details.results;
   if (details.mode === 'single' && details.results.length === 1 && first) return renderSingle(theme, first, expanded);
-  if (details.mode === 'chain') return renderChain(theme, details.results, expanded);
-  if (details.mode === 'parallel') return renderParallel(theme, details.results, expanded);
+  if (details.mode === 'chain' || details.mode === 'parallel') return renderGroup(theme, details.mode, details.results, expanded);
   return fallbackText(result);
 }

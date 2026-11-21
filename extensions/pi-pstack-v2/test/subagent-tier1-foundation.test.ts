@@ -12,6 +12,7 @@ const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/
 const ONE_TURN_USAGE = '<usage>turns=1 input=1 output=1 cache_read=0 cache_write=0 cost=1.0000</usage>';
 const TWO_TURN_USAGE = '<usage>turns=2 input=2 output=2 cache_read=0 cache_write=0 cost=2.0000</usage>';
 const TWO_TURNS = 2;
+const CHAIN_STEPS = 3;
 const LONG_ANSWER_LINES = 3000;
 const DEPTH = 'PI_SUBAGENT_DEPTH';
 const MAX_DEPTH = 'PI_SUBAGENT_MAX_DEPTH';
@@ -21,6 +22,10 @@ const NOT_AN_OBJECT_LINE = 'null';
 const NO_MESSAGE_LINE = '{"type":"message_end"}';
 
 const ctx = (mode = 'print') => makeCtx(workspace().project, { mode });
+/** A session that cannot be read, so a fork call crashes before any worker starts. */
+const unreadableBranch = (): unknown[] => {
+  throw new Error('session is unreadable');
+};
 const single = (params: Record<string, unknown> = {}) => loadSubagent().call({ agent: 'scout', task: 'look', ...params }, ctx());
 const tasksFor = (...tasks: string[]) => tasks.map((task) => ({ agent: 'scout', task }));
 const countOf = (text: string, part: string): number => text.split(part).length - 1;
@@ -92,12 +97,9 @@ describe('wake reports are framed once as untrusted model output', () => {
   });
 
   test('a wake job that crashed is framed too', async () => {
-    fakePi.onChild((child) => {
-      child.stdout(JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [] } }));
-      child.exit(0);
-    });
+    const crashing = makeCtx(workspace().project, { mode: 'tui', sessionManager: { getSessionFile: () => undefined, getBranch: unreadableBranch } });
     const subagent = loadSubagent();
-    await subagent.call(WAKE, ctx('tui'));
+    await subagent.call({ ...WAKE, agent: 'fork' }, crashing);
     await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     expect(subagent.sent()[0]?.message.content).toContain(`${SUBAGENT_BANNER}\n\nFailed: `);
   });
@@ -194,6 +196,14 @@ describe('the cap on workers running at once', () => {
     expect(result.details?.isError).toBe(true);
     expect(textOf(result)).toMatch(/concurrency cap/i);
     expect(fakePi.children()).toHaveLength(0);
+  });
+
+  test('lets a chain of several steps run under a cap of one, since a chain runs one worker at a time', async () => {
+    vi.stubEnv(MAX_CONCURRENT, '1');
+    const result = await loadSubagent().call({ chain: tasksFor('a', 'b', 'c') }, ctx());
+    expect(result.details?.isError).toBe(false);
+    expect(result.details?.results.map((step) => step.status)).toEqual(Array.from({ length: CHAIN_STEPS }, () => 'completed'));
+    expect(fakePi.children()).toHaveLength(CHAIN_STEPS);
   });
 
   test('lets a call use exactly the cap', async () => {

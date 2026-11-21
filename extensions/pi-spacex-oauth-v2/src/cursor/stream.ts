@@ -2,32 +2,15 @@ import { mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { Agent, type SDKAgent } from '@cursor/sdk';
+import { Agent } from '@cursor/sdk';
 import { type Api, type AssistantMessageEventStream, collapseSystemMessages, getCurrentSystemPrompt, getCurrentTools, type Model, type SimpleStreamOptions, type ToolResultMessage, type TranscriptContext } from '@earendil-works/pi-ai';
-import { createCell, withEntry, withoutKeys } from '../cell.ts';
+import { keepIdle, takeIdle } from './agent-pool.ts';
 import { findCursorModel } from './catalog.ts';
-import { CURSOR_CONFIG } from './config.ts';
 import { describeCursorError } from './errors.ts';
 import { selectModel } from './models.ts';
 import { createCursorRun, findParkedRun } from './run.ts';
 import { conversationKey, conversationOf, followUpMessage, openingMessage } from './transcript.ts';
 import { createPiTurn, type PiTurn } from './turn.ts';
-
-/** Agents between runs, keyed by the conversation Cursor holds for them. Map order is recency. */
-const idleAgents = createCell(new Map<string, SDKAgent>());
-
-function keepIdle(key: string, agent: SDKAgent): void {
-  const entries = [...withEntry(idleAgents.read(), key, agent)];
-  const excess = Math.max(0, entries.length - CURSOR_CONFIG.maxIdleAgents);
-  idleAgents.write(new Map(entries.slice(excess)));
-  for (const [, evicted] of entries.slice(0, excess)) evicted.close();
-}
-
-function takeIdle(key: string): SDKAgent | undefined {
-  const agent = idleAgents.read().get(key);
-  idleAgents.write(withoutKeys(idleAgents.read(), [key]));
-  return agent;
-}
 
 /**
  * Pi supplies the system prompt, history, and tools, so Cursor gets only the MCP capability group (which
@@ -55,12 +38,13 @@ async function startRun(model: Model<Api>, transcript: TranscriptContext, option
 
   const apiKey = options?.apiKey || undefined;
   const selection = selectModel(await findCursorModel(apiKey, model.id), model.id, options?.reasoning);
-  const idle = latest ? takeIdle(conversationKey(systemPrompt, tools, history)) : undefined;
+  const keyFor = (messages: typeof history) => conversationKey(apiKey, systemPrompt, tools, messages);
+  const idle = latest ? takeIdle(keyFor(history)) : undefined;
   const agent = idle ?? (await Agent.create({ ...(apiKey ? { apiKey } : {}), model: selection, tools: ['mcp'], local: { cwd: workspace() } }));
   const message = idle && latest ? followUpMessage(latest) : openingMessage(systemPrompt, history, latest);
 
   const bridge = createCursorRun(turn, transcript.messages, {
-    finished: (final, messages) => keepIdle(conversationKey(systemPrompt, tools, [...conversationOf(messages), final.message]), agent),
+    finished: (final, messages) => keepIdle(keyFor([...conversationOf(messages), final.message]), agent),
     failed: () => agent.close(),
   });
 

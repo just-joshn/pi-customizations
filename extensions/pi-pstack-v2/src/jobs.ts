@@ -1,11 +1,11 @@
 import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
+import { z } from 'zod';
 import { hostEnv } from './host-env.ts';
-import { passthroughObject } from './object-schema.ts';
 
 export interface JobSpec {
   id: string;
@@ -28,8 +28,25 @@ export interface JobSpec {
   env?: Record<string, string>;
 }
 
-/** A job.json is read as written: older and newer versions of it differ in which keys they hold. */
-const JobSpecSchema = passthroughObject<JobSpec>();
+/**
+ * A job.json an older version wrote may lack any key but these three, which every version has held, so the rest read as
+ * their quietest value: no wake, no repeat, no socket, and a series of its own.
+ */
+const JobSpecSchema = z
+  .object({
+    id: z.string(),
+    owner: z.string(),
+    createdAt: z.string(),
+    name: z.string().optional(),
+    cwd: z.string().default(''),
+    command: z.array(z.string()).default([]),
+    wake: z.string().nullable().default(null),
+    repeat: z.boolean().default(false),
+    series: z.string().optional(),
+    socket: z.string().default(''),
+    env: z.record(z.string(), z.string()).optional(),
+  })
+  .transform(({ name, series, env, ...rest }): JobSpec => ({ ...rest, name: name ?? rest.id, series: series ?? rest.id, ...(env ? { env } : {}) }));
 
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 
@@ -54,9 +71,15 @@ const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
 const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, HASH_LENGTH);
 
-export const jobDir = (root: string, id: string): string => join(root, id);
-export const outputPath = (dir: string): string => join(dir, 'output.log');
-export const exitPath = (dir: string): string => join(dir, 'exit');
+/** Every file a job keeps in its directory. */
+export const jobFiles = (dir: string) => ({
+  spec: join(dir, 'job.json'),
+  wrapper: join(dir, 'wrapper.sh'),
+  wrapperPid: join(dir, 'wrapper.pid'),
+  output: join(dir, 'output.log'),
+  exit: join(dir, 'exit'),
+  woken: join(dir, 'woken'),
+});
 
 export function newJobId(name: string): string {
   const slug = name
@@ -85,14 +108,14 @@ function tmuxRun(socket: string, args: string[]): SpawnSyncReturns<Buffer> {
   return spawnSync('tmux', ['-S', basename(socket), ...args], { stdio: 'ignore', env, cwd: dirname(socket), windowsHide: true });
 }
 
-/** Whether tmux ran and exited zero. A missing tmux or session reads as false. */
-const tmuxOk = (socket: string, args: string[]): boolean => tmuxRun(socket, args).status === 0;
+/** Whether tmux ran and exited zero. A missing tmux or session, or a job.json that names no socket, reads as false. */
+const tmuxOk = (socket: string, args: string[]): boolean => socket !== '' && tmuxRun(socket, args).status === 0;
 
-function tmux(socket: string, args: string[]): void {
-  const result = tmuxRun(socket, args);
-  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') throw new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`Command failed: tmux -S ${basename(socket)} ${args.join(' ')}`);
+/** Why a tmux command failed, or undefined when it ran and exited zero. */
+function tmuxFailure(socket: string, args: string[], result: SpawnSyncReturns<Buffer>): Error | undefined {
+  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') return new Error('pstack needs tmux to run jobs and found none on PATH. Install tmux and try again.');
+  if (result.error) return result.error;
+  return result.status === 0 ? undefined : new Error(`Command failed: tmux -S ${basename(socket)} ${args.join(' ')}`);
 }
 
 function exportLines(env: Record<string, string>): string[] {
@@ -104,19 +127,21 @@ function exportLines(env: Record<string, string>): string[] {
 
 /** The shell script that runs the job in its own process group, mirrors its output, and records its exit on every exit path. */
 function wrapperScript(dir: string, command: string[], env: Record<string, string> = {}): string {
-  const out = shellQuote(outputPath(dir));
-  const exit = shellQuote(exitPath(dir));
+  const files = jobFiles(dir);
+  const out = shellQuote(files.output);
+  const exit = shellQuote(files.exit);
   return [
     'set -m',
     ...exportLines(env),
-    `echo $$ > ${shellQuote(join(dir, 'wrapper.pid'))}`,
+    `echo $$ > ${shellQuote(files.wrapperPid)}`,
     'finished=0',
     'finish() {',
     '  [ "$finished" = 1 ] && return',
     '  finished=1',
     '  kill -KILL -- -$pid 2>/dev/null; wait $pid 2>/dev/null',
     '  kill $mirror 2>/dev/null',
-    `  echo "$1" > ${exit}.tmp && mv ${exit}.tmp ${exit}`,
+    // The temp name holds the wrapper's pid, so a stop that records the exit itself never writes the same file.
+    `  echo "$1" > ${exit}.$$.tmp && mv ${exit}.$$.tmp ${exit}`,
     '}',
     `trap 'kill -TERM -- -$pid 2>/dev/null; for i in $(seq 30); do kill -0 -- -$pid 2>/dev/null || break; sleep 0.1; done; finish ${STOPPED_EXIT_CODE}; exit ${STOPPED_EXIT_CODE}' HUP TERM INT`,
     // Output goes straight to its file, not through a pipe, so a child the job leaves running cannot hold the job open.
@@ -134,33 +159,38 @@ function wrapperScript(dir: string, command: string[], env: Record<string, strin
  * Creates the job directory, writes its spec and wrapper, and starts it in a detached tmux session. The job runs in its
  * own process group while the wrapper waits on it, so when `tmux_jobs stop` hangs the session up, the trap fires at once.
  * Bash would defer a trap until a foreground command finished. On every exit path the whole group is killed, and a job
- * that ignores TERM gets KILL after a short grace period.
+ * that ignores TERM gets KILL after a short grace period. A job that tmux fails to start leaves no directory behind.
  */
 export function launch(root: string, spec: JobSpec): Job {
-  const dir = jobDir(root, spec.id);
+  const dir = join(root, spec.id);
+  const files = jobFiles(dir);
+  const script = wrapperScript(dir, spec.command, spec.env);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'job.json'), `${JSON.stringify(spec, null, 2)}\n`);
+  writeFileSync(files.spec, `${JSON.stringify(spec, null, 2)}\n`);
   // The script runs from a file, since a long command would not fit on a tmux command line.
-  const file = join(dir, 'wrapper.sh');
-  writeFileSync(file, `${wrapperScript(dir, spec.command, spec.env)}\n`);
-  tmux(spec.socket, ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', file]);
+  writeFileSync(files.wrapper, `${script}\n`);
+  const args = ['new-session', '-d', '-s', spec.id, '-c', spec.cwd, 'bash', files.wrapper];
+  const failure = tmuxFailure(spec.socket, args, tmuxRun(spec.socket, args));
+  if (failure) {
+    rmSync(dir, { recursive: true, force: true });
+    throw failure;
+  }
   return { spec, dir, status: { state: 'running' } };
 }
 
 export function status(dir: string, spec: JobSpec): JobStatus {
-  const exit = exitPath(dir);
+  const exit = jobFiles(dir).exit;
   const exited = (): JobStatus | undefined => (existsSync(exit) ? { state: 'exited', code: Number(readFileSync(exit, 'utf8').trim()) } : undefined);
   const before = exited();
   if (before) return before;
-  // A job.json an older version wrote may name no socket, and no tmux server can still run it.
-  if (spec.socket && tmuxOk(spec.socket, ['has-session', '-t', `=${spec.id}`])) return { state: 'running' };
+  if (tmuxOk(spec.socket, ['has-session', '-t', `=${spec.id}`])) return { state: 'running' };
   // The job may have written its exit code and closed its session between the two checks.
   return exited() ?? { state: 'lost' };
 }
 
 export function readSpec(dir: string): JobSpec | undefined {
   try {
-    return JobSpecSchema.parse(JSON.parse(readFileSync(join(dir, 'job.json'), 'utf8')));
+    return JobSpecSchema.safeParse(JSON.parse(readFileSync(jobFiles(dir).spec, 'utf8'))).data;
   } catch {
     return undefined;
   }
@@ -168,7 +198,7 @@ export function readSpec(dir: string): JobSpec | undefined {
 
 /** Reads one of the owner's jobs. Another session's job reads as missing. */
 export function read(root: string, id: string, owner: string): Job | undefined {
-  const dir = jobDir(root, id);
+  const dir = join(root, id);
   const spec = readSpec(dir);
   return spec?.owner === owner ? { spec, dir, status: status(dir, spec) } : undefined;
 }
@@ -198,29 +228,33 @@ export async function stop(job: Job): Promise<void> {
   tmuxOk(job.spec.socket, ['kill-session', '-t', `=${job.spec.id}`]);
   // The wrapper records the exit once it has ended the job. Only a wrapper that is already gone, and so can never record
   // it, leaves that to stop.
-  const exit = exitPath(job.dir);
+  const { exit, wrapperPid } = jobFiles(job.dir);
   const deadline = Date.now() + STOP_GRACE_MS;
-  const wrapper = Number(readEnd(join(job.dir, 'wrapper.pid'), PID_FILE_BYTES).trim());
+  const wrapper = Number(readEnd(wrapperPid, PID_FILE_BYTES).trim());
   while (!existsSync(exit) && Date.now() < deadline && wrapperAlive(wrapper)) {
     await new Promise((done) => {
       setTimeout(done, STOP_POLL_MS);
     });
   }
   if (!existsSync(exit)) {
-    writeFileSync(`${exit}.tmp`, `${STOPPED_EXIT_CODE}\n`);
-    renameSync(`${exit}.tmp`, exit);
+    const temp = `${exit}.${process.pid}.tmp`;
+    writeFileSync(temp, `${STOPPED_EXIT_CODE}\n`);
+    renameSync(temp, exit);
   }
 }
 
 /** Returns true exactly once per job, so a wake survives restarts without being delivered twice. */
 export function claimWake(job: Job): boolean {
   try {
-    writeFileSync(join(job.dir, 'woken'), '', { flag: 'wx' });
+    writeFileSync(jobFiles(job.dir).woken, '', { flag: 'wx' });
     return true;
   } catch {
     return false;
   }
 }
+
+/** Whether the job's wake was already claimed, by the watcher or by a stop. */
+export const wakeClaimed = (job: Job): boolean => existsSync(jobFiles(job.dir).woken);
 
 /** The end of a file, read without loading the whole of it, since a job's output can be very large. */
 export function readEnd(path: string, bytes: number): string {

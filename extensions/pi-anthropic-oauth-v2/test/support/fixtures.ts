@@ -43,8 +43,10 @@ export const context = (overrides: Partial<Context> = {}) => normalizeContext({ 
 const startUsage = { input_tokens: INPUT_TOKENS, output_tokens: OUTPUT_TOKENS_START, cache_read_input_tokens: CACHE_READ_TOKENS, cache_creation_input_tokens: CACHE_WRITE_TOKENS };
 const finalUsage = { input_tokens: INPUT_TOKENS, output_tokens: OUTPUT_TOKENS_FINAL, cache_read_input_tokens: CACHE_READ_TOKENS, cache_creation_input_tokens: CACHE_WRITE_TOKENS };
 
+export const messageStart = { type: 'message_start', message: { usage: startUsage } };
+
 export const streamEvents = [
-  { type: 'message_start', message: { usage: startUsage } },
+  messageStart,
   { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '' } },
   { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'hmm' } },
   { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'abc' } },

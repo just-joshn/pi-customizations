@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Include indent, frame tone, and theme in the panel cache key so mid-session `outputPad` and theme changes re-render without manual invalidation.
+- Replace the hand-written ANSI blank-line scanner with `stripTerminalSequences`, use `os.homedir()` in `rows/specs.ts`, make `footer.ts` table-driven, and share a `memoLast` cache helper.
+
 ## [0.1.3]
 
 - Fix every `bun lint` behavior error. The editor inset can no longer pass a negative count to `repeat()`, and the home directory is read when a path is shown instead of when the module loads.

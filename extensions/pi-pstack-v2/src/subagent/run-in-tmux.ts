@@ -1,6 +1,5 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { hostEnv } from '../host-env.ts';
@@ -12,6 +11,7 @@ export interface ProcessOutcome {
 }
 
 const POLL_INTERVAL_MS = 50;
+const SESSION_CHECK_INTERVAL_MS = 1000;
 const BASE36 = 36;
 const SESSION_SUFFIX_END = 8;
 const WRAPPER_MODE = 0o755;
@@ -35,6 +35,14 @@ function tmuxArgs(dir: string, args: string[], extraEnv: Readonly<Record<string,
 function tmuxOk(dir: string, args: string[]): boolean {
   const [command, argv, options] = tmuxArgs(dir, args);
   return spawnSync(command, argv, { ...options, stdio: 'ignore' }).status === 0;
+}
+
+/** Asks tmux without blocking the event loop. A tmux that cannot be asked reads as a session that is gone. */
+function sessionAlive(dir: string, session: string): Promise<boolean> {
+  const [command, argv, options] = tmuxArgs(dir, ['has-session', '-t', `=${session}`]);
+  return new Promise((resolve) => {
+    execFile(command, argv, options, (error) => resolve(error === null));
+  });
 }
 
 /** A server that is already gone makes this fail, which is expected. */
@@ -82,9 +90,8 @@ interface RunFiles {
   wrapper: string;
 }
 
-/** Temp dir holding the wrapper script plus the files the child's stdout, stderr and exit code land in. */
-function prepareRunFiles(command: string, args: string[]): RunFiles {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-subagent-tmux-'));
+/** Writes the wrapper script into the run directory, beside the files the child's stdout, stderr and exit code land in. */
+function prepareRunFiles(dir: string, command: string, args: string[]): RunFiles {
   const files = {
     dir,
     outFile: path.join(dir, 'stdout.log'),
@@ -109,16 +116,25 @@ interface WaitContext {
   aborted: () => boolean;
 }
 
-/** Polls until the exit file appears. Resolves false when the session vanished without writing one. */
+/** The session is gone, so the exit file is either already written or never will be. */
+async function exitedAfterSessionEnded(exitFile: string, pump: () => void): Promise<boolean> {
+  await sleep(POLL_INTERVAL_MS);
+  pump();
+  return fs.existsSync(exitFile);
+}
+
+/**
+ * Polls until the exit file appears. tmux is asked whether the session is alive only now and then, so a running worker
+ * costs a file check per poll. Resolves false when the session vanished without writing an exit file.
+ */
 async function waitForExit({ exitFile, dir, session, pump, aborted }: WaitContext): Promise<boolean> {
+  let nextCheck = 0;
   while (!fs.existsSync(exitFile)) {
     pump();
-    const alive = tmuxOk(dir, ['has-session', '-t', `=${session}`]);
-    if (!alive && aborted()) return true;
-    if (!alive) {
-      await sleep(POLL_INTERVAL_MS);
-      pump();
-      return fs.existsSync(exitFile);
+    if (aborted()) return true;
+    if (Date.now() >= nextCheck) {
+      nextCheck = Date.now() + SESSION_CHECK_INTERVAL_MS;
+      if (!(await sessionAlive(dir, session))) return exitedAfterSessionEnded(exitFile, pump);
     }
     await sleep(POLL_INTERVAL_MS);
   }
@@ -134,25 +150,26 @@ function readOutcome(exitFile: string, wasAborted: boolean): ProcessOutcome {
 
 /**
  * Run `command args` inside a detached tmux session. Stdout/stderr are mirrored
- * into temp files so the parent can stream JSON events the same way a pipe did.
+ * into files in `runDir` so the parent can stream JSON events the same way a pipe did.
  */
 export async function runPiInTmux(options: {
   command: string;
   args: string[];
   cwd: string;
+  /** The directory the run's files live in. The caller owns it and removes it. */
+  runDir: string;
   signal?: AbortSignal | undefined;
   extraEnv?: Readonly<Record<string, string>> | undefined;
   onStdoutChunk: (chunk: string) => void;
   onStderrChunk: (chunk: string) => void;
 }): Promise<ProcessOutcome> {
   const session = `pi-subagent-${process.pid}-${Date.now().toString(BASE36)}-${Math.random().toString(BASE36).slice(2, SESSION_SUFFIX_END)}`;
-  const files = prepareRunFiles(options.command, options.args);
+  const files = prepareRunFiles(options.runDir, options.command, options.args);
 
   try {
     const [command, argv, spawnOptions] = tmuxArgs(files.dir, ['new-session', '-d', '-s', session, '-c', options.cwd, 'bash', files.wrapper], options.extraEnv);
     execFileSync(command, argv, { ...spawnOptions, stdio: 'ignore' });
   } catch (error) {
-    fs.rmSync(files.dir, { recursive: true, force: true });
     return { code: null, signal: null, spawnError: error instanceof Error ? error : new Error(String(error)) };
   }
 
@@ -178,6 +195,5 @@ export async function runPiInTmux(options: {
   } finally {
     options.signal?.removeEventListener('abort', abort);
     tmuxKillServer(files.dir);
-    fs.rmSync(files.dir, { recursive: true, force: true });
   }
 }

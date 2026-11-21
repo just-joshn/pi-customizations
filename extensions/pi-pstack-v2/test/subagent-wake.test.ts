@@ -19,6 +19,10 @@ const finish = (child: FakeChild | undefined): void => {
 };
 const holdChildren = (): void => fakePi.onChild(() => undefined);
 const ctx = (mode: string) => makeCtx(workspace().project, { mode });
+/** A session that cannot be read, so a fork call crashes before any worker starts. */
+const unreadableBranch = (): unknown[] => {
+  throw new Error('session is unreadable');
+};
 
 describe('a call with wake in an interactive session', () => {
   test.for(['tui', 'rpc'])('returns a job id at once, then wakes the %s session with the message and the report', async (mode) => {
@@ -57,12 +61,9 @@ describe('a call with wake in an interactive session', () => {
 
 describe('a call with wake, when the job ends oddly', () => {
   test('a job whose workers crash wakes the session with the failure', async () => {
-    fakePi.onChild((child) => {
-      child.stdout(JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [] } }));
-      child.exit(0);
-    });
+    const crashing = makeCtx(workspace().project, { mode: 'tui', sessionManager: { getSessionFile: () => undefined, getBranch: unreadableBranch } });
     const subagent = loadSubagent();
-    await subagent.call(WAKE, ctx('tui'));
+    await subagent.call({ ...WAKE, agent: 'fork' }, crashing);
     await vi.waitFor(() => expect(subagent.sent()).toHaveLength(1), CHILD_WAIT_MS);
     expect(subagent.sent()[0]?.message.content).toMatch(/subagent job \S+ finished\.\n\nSubagent report [^\n]*\n\nFailed: /);
   });

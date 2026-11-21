@@ -2,8 +2,8 @@ import { basename } from 'node:path';
 
 import type { ExtensionAPI, ExtensionUIContext, Theme } from '@earendil-works/pi-coding-agent';
 import type { Component } from '@earendil-works/pi-tui';
-import { cell } from './cell.ts';
 import { createRuleEditor } from './editor.ts';
+import { memoLast } from './memo.ts';
 import { fitPlain, gutterAt, gutterOf, sanitizeLine } from './text.ts';
 
 type EditorFactory = NonNullable<ReturnType<ExtensionUIContext['getEditorComponent']>>;
@@ -32,20 +32,11 @@ export default function chrome(pi: ExtensionAPI): void {
   });
 }
 export function headerLine(theme: Theme, workspace: string, gutter: number): Component {
-  const cache = cell<{ width: number; lines: string[] } | undefined>(undefined);
-  return {
-    render(width: number): string[] {
-      const cached = cache.read();
-      if (cached?.width === width) return cached.lines;
-      const g = gutterAt(gutter, width);
-      const inner = width - 2 * g;
-      const text = inner < HEADER_MIN_INNER ? theme.fg('accent', fitPlain('pi', inner)) : theme.fg('accent', 'pi') + theme.fg('dim', ' / ') + theme.fg('muted', fitPlain(sanitizeLine(workspace), inner - HEADER_MIN_INNER));
-      const lines = ['', ' '.repeat(g) + text, ''];
-      cache.write({ width, lines });
-      return lines;
-    },
-    invalidate(): void {
-      cache.write(undefined);
-    },
-  };
+  const lines = memoLast((width: number) => {
+    const g = gutterAt(gutter, width);
+    const inner = width - 2 * g;
+    const text = inner < HEADER_MIN_INNER ? theme.fg('accent', fitPlain('pi', inner)) : theme.fg('accent', 'pi') + theme.fg('dim', ' / ') + theme.fg('muted', fitPlain(sanitizeLine(workspace), inner - HEADER_MIN_INNER));
+    return ['', ' '.repeat(g) + text, ''];
+  });
+  return { render: lines.get, invalidate: lines.reset };
 }

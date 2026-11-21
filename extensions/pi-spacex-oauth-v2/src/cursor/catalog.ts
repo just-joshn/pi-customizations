@@ -1,12 +1,12 @@
 import { Cursor, type SDKModel } from '@cursor/sdk';
-import type { RefreshModelsContext } from '@earendil-works/pi-ai';
+import type { CatalogSource } from '../catalog.ts';
 import { createCell, withEntry, withoutKeys } from '../cell.ts';
-import { type ChatModelConfig, readStoredModels, toStoredModels } from '../stored-models.ts';
+import type { ChatModelConfig } from '../stored-models.ts';
 import { CURSOR_CONFIG, cursorApiKey } from './config.ts';
 import { toPiModel } from './models.ts';
 
 // Composer until the first live refresh replaces the list with Cursor.models.list().
-export const FALLBACK_MODELS: ChatModelConfig[] = [toPiModel({ id: 'composer-2.5', displayName: 'Composer 2.5' })];
+const FALLBACK_MODELS: ChatModelConfig[] = [toPiModel({ id: 'composer-2.5', displayName: 'Composer 2.5' })];
 
 // One catalog request per API key per process, as the SDK docs recommend.
 const catalogs = createCell(new Map<string, Promise<SDKModel[]>>());
@@ -30,14 +30,15 @@ export async function findCursorModel(apiKey: string | undefined, modelId: strin
   return models.find((m) => m.id === modelId || m.aliases?.includes(modelId));
 }
 
-/** Live models when Pi allows network access, persisted so offline starts list the same models. */
-export async function refreshCursorModels(ctx: RefreshModelsContext): Promise<ChatModelConfig[]> {
-  const stored = readStoredModels(ctx.stored);
-  const apiKey = cursorApiKey(ctx.credential);
-  if (!ctx.allowNetwork || !apiKey) return stored ?? FALLBACK_MODELS;
+/** A refresh always asks Cursor again, so it drops the list a run may have cached for this key. */
+async function fetchLiveModels(apiKey: string): Promise<ChatModelConfig[]> {
   catalogs.write(withoutKeys(catalogs.read(), [apiKey]));
-  const models = (await listCursorModels(apiKey)).map(toPiModel);
-  const target = { provider: CURSOR_CONFIG.providerId, api: CURSOR_CONFIG.api, baseUrl: CURSOR_CONFIG.baseUrl };
-  await ctx.publish({ persist: { models: toStoredModels(target, models), checkedAt: Date.now() } });
-  return models;
+  return (await listCursorModels(apiKey)).map(toPiModel);
 }
+
+export const cursorCatalog: CatalogSource = {
+  target: { provider: CURSOR_CONFIG.providerId, api: CURSOR_CONFIG.api, baseUrl: CURSOR_CONFIG.baseUrl },
+  fallback: FALLBACK_MODELS,
+  apiKey: cursorApiKey,
+  fetchLive: fetchLiveModels,
+};

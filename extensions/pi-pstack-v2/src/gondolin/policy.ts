@@ -65,16 +65,23 @@ export type VmPolicyOptions = {
   writableMemoryDir?: string | undefined;
 };
 
+type Mount = [string, VirtualProvider];
+
+/** A writable mount of `dir` at `guestPath`, which defaults to the same path, or no mount when `dir` is unset. */
+const writableMount = (dir: string | undefined, guestPath?: string): Mount[] => (dir === undefined ? [] : [[toPosix(guestPath ?? dir), new RealFSProvider(dir)]]);
+
 export function createVmOptions({ localCwd, readonlyMounts, sharedBuildCacheDir, writableMemoryDir }: VmPolicyOptions): VMOptions {
   const { httpHooks, env } = createDefaultNetworkPolicy();
-  const workspace: [string, VirtualProvider][] = [[GUEST_WORKSPACE, createWorkspaceProvider(localCwd)]];
-  const readonly = readonlyMounts.map((dir): [string, VirtualProvider] => [toPosix(dir), new ReadonlyProvider(new RealFSProvider(dir))]);
-  const cache: [string, VirtualProvider][] = sharedBuildCacheDir === undefined ? [] : [[GUEST_BUILD_CACHE, new RealFSProvider(sharedBuildCacheDir)]];
-  const memory: [string, VirtualProvider][] = writableMemoryDir === undefined ? [] : [[toPosix(writableMemoryDir), new RealFSProvider(writableMemoryDir)]];
+  const mounts: Mount[] = [
+    [GUEST_WORKSPACE, createWorkspaceProvider(localCwd)],
+    ...readonlyMounts.map((dir): Mount => [toPosix(dir), new ReadonlyProvider(new RealFSProvider(dir))]),
+    ...writableMount(sharedBuildCacheDir, GUEST_BUILD_CACHE),
+    ...writableMount(writableMemoryDir),
+  ];
   return {
     sessionLabel: `pi ${path.basename(localCwd)}`,
     httpHooks,
     env: sharedBuildCacheDir === undefined ? env : { ...env, ...buildCacheEnv(GUEST_BUILD_CACHE, path.posix) },
-    vfs: { mounts: Object.fromEntries([...workspace, ...readonly, ...cache, ...memory]) },
+    vfs: { mounts: Object.fromEntries(mounts) },
   };
 }

@@ -1,8 +1,8 @@
 import type { OAuthCredentials, OAuthLoginCallbacks, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import type { ProviderConfig } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
-import { refreshCatalog } from './catalog.ts';
-import type { ChatModelConfig } from './stored-models.ts';
+import { type CatalogSource, refreshCatalog } from './catalog.ts';
+import { type ChatModelConfig, chatModel } from './stored-models.ts';
 
 // Grok Build's own OIDC client and scopes, read from a Grok Build 1.0.77 login.
 const ISSUER = 'https://auth.x.ai';
@@ -22,7 +22,6 @@ const DEFAULT_TOKEN_TTL_SECONDS = 3600;
 const DEFAULT_POLL_INTERVAL_SECONDS = 5;
 const SLOW_DOWN_STEP_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 256_000;
-const MAX_OUTPUT_TOKENS = 64_000;
 
 const TokenResponseSchema = z.object({
   access_token: z.string().nullish(),
@@ -70,7 +69,10 @@ async function postForm(path: string, body: Record<string, string>, signal?: Abo
     body: new URLSearchParams(body),
     ...(signal ? { signal } : {}),
   });
-  return TokenResponseSchema.parse(await res.json());
+  const parsed = TokenResponseSchema.safeParse(await res.json().catch(() => undefined));
+  // An OAuth error such as authorization_pending arrives as a 400 whose body names it. Any other failure has no such body.
+  if (parsed.success && (res.ok || parsed.data.error)) return parsed.data;
+  throw new Error(`Grok token request failed: HTTP ${res.status}`);
 }
 
 function toCredentials(token: TokenResponse, previousRefresh?: string): OAuthCredentials {
@@ -81,18 +83,27 @@ function toCredentials(token: TokenResponse, previousRefresh?: string): OAuthCre
 
 const abortError = (signal: AbortSignal): Error => (signal.reason instanceof Error ? signal.reason : new Error('Grok sign-in aborted', { cause: signal.reason }));
 
-const sleep = (ms: number, signal?: AbortSignal) =>
-  new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(abortError(signal));
-      },
-      { once: true },
-    );
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
+
+/** Waits `ms`, or rejects with the abort reason as soon as `signal` aborts, including when it already has. */
+function wait(ms: number, signal: AbortSignal | undefined): Promise<void> {
+  if (!signal) return delay(ms);
+  if (signal.aborted) return Promise.reject(abortError(signal));
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(abortError(signal));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
 
 export async function grokLogin(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
   const res = await fetch(`${ISSUER}${DEVICE_CODE_PATH}`, {
@@ -112,7 +123,7 @@ export async function grokLogin(callbacks: OAuthLoginCallbacks): Promise<OAuthCr
   });
   const deadline = Date.now() + device.expires_in * MS_PER_SECOND;
   while (Date.now() < deadline) {
-    await sleep(interval, callbacks.signal);
+    await wait(interval, callbacks.signal);
     const token = await postForm(TOKEN_PATH, { grant_type: 'urn:ietf:params:oauth:grant-type:device_code', device_code: device.device_code, client_id: CLIENT_ID }, callbacks.signal);
     if (token.error === 'authorization_pending') continue;
     if (token.error === 'slow_down') {
@@ -144,16 +155,7 @@ const toThinkingLevelMap = (efforts: Set<string>): ThinkingLevelMap => ({
 export function toGrokModel(m: GrokModel): ChatModelConfig {
   const efforts = new Set((m.reasoning_efforts ?? []).map((e) => e.value));
   const supported = THINKING_LEVELS.filter((l) => efforts.has(l));
-  return {
-    id: m.id,
-    name: m.name ?? m.id,
-    reasoning: supported.length > 0,
-    ...(supported.length > 0 ? { thinkingLevelMap: toThinkingLevelMap(efforts) } : {}),
-    input: ['text', 'image'],
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: m.context_window ?? DEFAULT_CONTEXT_WINDOW,
-    maxTokens: MAX_OUTPUT_TOKENS,
-  };
+  return chatModel({ id: m.id, name: m.name ?? m.id, contextWindow: m.context_window ?? DEFAULT_CONTEXT_WINDOW, levels: supported.length > 0 ? toThinkingLevelMap(efforts) : undefined });
 }
 
 export async function fetchGrokModels(accessToken: string, signal?: AbortSignal): Promise<ChatModelConfig[]> {
@@ -171,13 +173,20 @@ const FALLBACK_MODELS: GrokModel[] = [
   { id: 'grok-4.5', name: 'Grok 4.5', context_window: DEFAULT_CONTEXT_WINDOW, reasoning_efforts: ['low', 'medium', 'high'].map((value) => ({ value })) },
 ];
 
+const grokCatalog: CatalogSource = {
+  target: { provider: GROK_PROVIDER_ID, api: 'openai-responses', baseUrl: GROK_BASE_URL },
+  fallback: FALLBACK_MODELS.map(toGrokModel),
+  apiKey: (credential) => (credential?.type === 'oauth' ? credential.access : undefined),
+  fetchLive: fetchGrokModels,
+};
+
 export const grokProvider: ProviderConfig = {
   name: 'Grok Build (X subscription)',
   baseUrl: GROK_BASE_URL,
   api: 'openai-responses',
   headers: GROK_HEADERS,
-  models: FALLBACK_MODELS.map(toGrokModel),
-  refreshModels: (ctx) => refreshCatalog(ctx, { provider: GROK_PROVIDER_ID, api: 'openai-responses', baseUrl: GROK_BASE_URL }, FALLBACK_MODELS.map(toGrokModel), fetchGrokModels),
+  models: grokCatalog.fallback,
+  refreshModels: (ctx) => refreshCatalog(ctx, grokCatalog),
   oauth: {
     name: 'Grok Build (X subscription)',
     isSubscription: true,

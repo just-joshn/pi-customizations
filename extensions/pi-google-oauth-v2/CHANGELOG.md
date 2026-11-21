@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6
+
+- Fix sign-in that blamed `GOOGLE_CLOUD_PROJECT` (or silently used it) when onboarding returned an unfinished operation with no name. It now fails with an incomplete-operation error.
+- Send tool call ids and nested tool result images the same way for models that are not a Gemini (Claude, gpt-oss) as for Gemini 3+. One wire profile now decides both, and only Gemini 2.x keeps the legacy shape.
+- Fix retry waits that left one abort listener on the request signal per retry.
+- Cancelling a sign-in now stops the onboarding poll wait at once.
+- Split Code Assist calls from onboarding, extract the SSE reader, tool schema rewrite, and abortable sleep, and build the baseline models directly. Remove the loopback expiry error, unused error subclasses, and the reducer's dependency on the Code Assist client. No other behavior changes.
+
 ## [0.1.5]
 
 - Fix every `bun lint` behavior error. Code Assist responses, catalog answers, token responses, and stream chunks are now parsed with zod at the boundary instead of cast. A malformed response now fails with a clear error instead of passing through unchecked. Stream hooks still receive each chunk exactly as Google sent it.

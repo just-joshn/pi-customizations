@@ -1,18 +1,12 @@
 [
   {
-    "file": "extensions/pi-google-oauth-v2/src/code-assist.ts",
-    "rule": "plugin",
-    "line": "} catch {",
-    "reason": "Code Assist can answer 2xx with a non-JSON body. The catch turns that into a typed CodeAssistError that Pi shows at sign-in. Logging to stderr as well would write raw output into the Pi TUI."
-  },
-  {
-    "file": "extensions/pi-google-oauth-v2/src/code-assist.ts",
+    "file": "extensions/pi-google-oauth-v2/src/code-assist-client.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "googleErrorMessage runs on every failed request, and proxies often answer 502/429 with an HTML body. The catch must swallow that and return undefined so the caller falls back to the HTTP status text. Throwing would replace the real HTTP error and break retry handling; logging would flood the TUI."
   },
   {
-    "file": "extensions/pi-google-oauth-v2/src/stream.ts",
+    "file": "extensions/pi-google-oauth-v2/src/sse.ts",
     "rule": "plugin",
     "line": "} catch {",
     "reason": "A malformed SSE event becomes an Error that the stream reports as an `error` event. Logging to stderr as well would write raw output into the Pi TUI while the same failure is already shown."

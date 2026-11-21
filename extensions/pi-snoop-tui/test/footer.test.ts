@@ -16,6 +16,10 @@ const LATER_USAGE = 50;
 const LAST_USAGE = 60;
 const WARNING_PERCENT = 71;
 const ERROR_PERCENT = 91;
+const WARNING_BOUNDARY = 70;
+const ERROR_BOUNDARY = 90;
+const MIN_SHRUNK_COLUMNS = 7;
+const HEAD_CHARS = 3;
 const SEGMENTS = [
   ['thinking', 'medium'],
   ['branch', 'main'],
@@ -91,6 +95,22 @@ describe('footer content', () => {
   });
 });
 
+describe('footer shrinking', () => {
+  test.for([
+    ['status', 'qqq-status-that-is-far-too-long'],
+    ['model', 'zzz-model-that-is-far-too-long'],
+  ] as const)('shortens a long %s to a readable stub or drops it, never to a fragment', ([kind, text]) => {
+    const session = createSession(theme, kind === 'model' ? { model: { id: text, reasoning: true } } : {});
+    const { footer, data } = mountFooter(loadSnoop(), session);
+    if (kind === 'status') data.setStatus('task', text);
+    const fragments = Array.from({ length: WIDE }, (_, width) => line(footer, width)).filter((shown) => {
+      const start = shown.indexOf(text.slice(0, HEAD_CHARS));
+      return start !== -1 && shown.slice(start, start + MIN_SHRUNK_COLUMNS) !== text.slice(0, MIN_SHRUNK_COLUMNS);
+    });
+    expect(fragments).toEqual([]);
+  });
+});
+
 describe('footer for sparse sessions', () => {
   test('leaves out the model name and thinking level a session lacks, and shows an unknown context as a question mark', () => {
     const session = createSession(theme, { model: undefined, usagePercent: undefined });
@@ -114,8 +134,10 @@ describe('footer for sparse sessions', () => {
 
 describe('footer colors and gutter', () => {
   test.for([
-    [WARNING_PERCENT, 'warning'],
     [ERROR_PERCENT, 'error'],
+    [ERROR_BOUNDARY, 'warning'],
+    [WARNING_PERCENT, 'warning'],
+    [WARNING_BOUNDARY, 'accent'],
     [DEFAULT_USAGE, 'accent'],
   ] as const)('colors context usage %i%% with the %s color', ([percent, color]) => {
     const session = createSession(theme, { usagePercent: percent });

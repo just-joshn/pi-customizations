@@ -217,6 +217,42 @@ describe('a fork cleans up its session copy', () => {
   });
 });
 
+const TEMP_DIR_PREFIX = 'pi-subagent-';
+const leftovers = (tmp: string): string[] => fs.readdirSync(tmp).filter((name) => name.startsWith(TEMP_DIR_PREFIX));
+
+const LONG_NAME_LENGTH = 300;
+
+/** Points os.tmpdir() at an empty directory of the test's own, so the test sees only the temp files this call makes. */
+function isolateTmpdir(): string {
+  const tmp = path.join(workspace().root, 'isolated-tmp');
+  fs.mkdirSync(tmp);
+  vi.stubEnv('TMPDIR', tmp);
+  return tmp;
+}
+
+describe('a worker that cannot start leaves no temp files behind', () => {
+  test('removes the prompt temp directory when the prompt file cannot be written', async () => {
+    const tmp = isolateTmpdir();
+    const longName = 'a'.repeat(LONG_NAME_LENGTH);
+    fs.mkdirSync(workspace().userAgents, { recursive: true });
+    fs.writeFileSync(path.join(workspace().userAgents, 'long.md'), `---\nname: ${longName}\ndescription: long\n---\nBe helpful.\n`);
+    const result = await loadSubagent().call({ agent: longName, task: 'look' }, makeCtx(workspace().project));
+    expect(result.details?.isError).toBe(true);
+    expect(fakePi.children()).toHaveLength(0);
+    expect(leftovers(tmp)).toEqual([]);
+  });
+
+  test('removes every pi-subagent temp directory when a fork cannot read the parent session', async () => {
+    const tmp = isolateTmpdir();
+    const unreadable = path.join(workspace().root, 'parent-is-a-directory.jsonl');
+    fs.mkdirSync(unreadable);
+    const result = await fork(parentCtx(unreadable));
+    expect(result.details?.isError).toBe(true);
+    expect(fakePi.children()).toHaveLength(0);
+    expect(leftovers(tmp)).toEqual([]);
+  });
+});
+
 describe('a fork cannot fork again or run when disabled', () => {
   const refused = async (ctx: unknown) => {
     const result = await fork(ctx);

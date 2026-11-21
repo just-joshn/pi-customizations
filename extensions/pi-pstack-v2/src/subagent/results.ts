@@ -1,7 +1,8 @@
 import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import type { Message } from '@earendil-works/pi-ai';
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, truncateHead } from '@earendil-works/pi-coding-agent';
-import type { DisplayItem, MakeDetails, SingleResult, SubagentDetails, SubagentMode, UsageStats } from './types.ts';
+import { frameSubagentReport } from './framing.ts';
+import type { DisplayItem, SingleResult, SubagentDetails, SubagentMode, UsageStats } from './types.ts';
 
 const KIBIBYTES_PER_TASK = 50;
 const BYTES_PER_KIBIBYTE = 1024;
@@ -59,9 +60,6 @@ export function getResultOutput(result: SingleResult): string {
   return isFailedResult(result) ? getFailureEvidence(result) : getFinalOutput(result.messages) || NO_OUTPUT;
 }
 
-/** Appends where a kept worktree lives. Call it after truncation, so a long report never drops the note. */
-export const withWorktreeNote = (result: SingleResult, text: string): string => (result.worktreeNote ? `${text}\n\n${result.worktreeNote}` : text);
-
 export function truncateParallelOutput(output: string): string {
   const byteLength = Buffer.byteLength(output, 'utf8');
   if (byteLength <= PER_TASK_OUTPUT_CAP) return output;
@@ -84,6 +82,12 @@ export function truncateModelOutput(output: string): string {
   const omittedBytes = initial.totalBytes - body.outputBytes;
   const notice = `[Output truncated: ${omittedBytes} bytes omitted. Full output preserved in tool details.]`;
   return body.content ? `${body.content}\n\n${notice}` : notice;
+}
+
+/** A worker's text cut to `truncate`'s limit, then the note of where its kept worktree lives, so a long report never drops the note. */
+export function formatResultText(result: SingleResult, text: string, truncate: (output: string) => string = truncateModelOutput): string {
+  const body = truncate(text);
+  return result.worktreeNote ? `${body}\n\n${result.worktreeNote}` : body;
 }
 
 export function getDisplayItems(messages: Message[]): DisplayItem[] {
@@ -116,6 +120,16 @@ export type ToolResult = AgentToolResult<SubagentDetails>;
 
 export const textResult = (text: string, details: SubagentDetails): ToolResult => ({ content: [{ type: 'text', text }], details });
 
-export const makeDetails =
-  (mode: SubagentMode, forceError = false): MakeDetails =>
-  (results) => ({ mode, results, isError: forceError || results.some(isFailedResult) });
+export const makeDetails = (mode: SubagentMode, results: SingleResult[], forceError = false): SubagentDetails => ({ mode, results, isError: forceError || results.some(isFailedResult) });
+
+/** A call's report: the text framed as untrusted output with the usage of every worker, and the workers as details. */
+export const reportResult = (mode: SubagentMode, results: SingleResult[], text: string): ToolResult => textResult(frameSubagentReport(text, aggregateUsage(results)), makeDetails(mode, results));
+
+/** A call that was turned away before any worker started. */
+export const refusalResult = (mode: SubagentMode, text: string): ToolResult => textResult(text, makeDetails(mode, [], true));
+
+/** The update a call streams while its workers run. */
+export const progressResult = (mode: SubagentMode, results: SingleResult[], text: string): ToolResult => textResult(text, makeDetails(mode, results));
+
+/** What a worker has said so far, or a note that it has said nothing yet. */
+export const runningText = (result: SingleResult): string => getFinalOutput(result.messages) || '(running...)';

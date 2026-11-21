@@ -143,6 +143,45 @@ describe('rows over repeated updates', () => {
   });
 });
 
+describe('rows when Pi changes a setting mid-session', () => {
+  const OPEN_PANEL = { args: { path: 'a.ts' }, result: output('a'), isPartial: false, expanded: true };
+
+  test('an open panel whose lines ignore the width moves with the gutter at the same width, and back', () => {
+    const row = driveRow(host, 'read', { native: rawNative(['NATIVE']), outputPad: 0 });
+    row.apply(OPEN_PANEL);
+    expect((row.text(NARROW)[1] ?? '').trimEnd()).toBe('    NATIVE');
+    row.apply({ outputPad: 3 });
+    expect((row.text(NARROW)[1] ?? '').trimEnd()).toBe('       NATIVE');
+    row.apply({ outputPad: 0 });
+    expect((row.text(NARROW)[1] ?? '').trimEnd()).toBe('    NATIVE');
+  });
+
+  test.for(['text', 'native'] as const)('an open %s panel takes the new theme colors without being rebuilt', (kind) => {
+    const dark = loadTheme('snoop-dark');
+    const light = loadTheme('snoop-light');
+    const row = driveRow(host, 'read', { native: kind === 'native' ? fakeNative().native : EMPTY_NATIVE, theme: dark });
+    row.apply(OPEN_PANEL);
+    expect(row.lines(NARROW).join('\n')).toContain(dark.getBgAnsi('toolPendingBg'));
+    row.apply({ theme: light });
+    const shown = row.lines(NARROW).join('\n');
+    expect(shown).toContain(light.getBgAnsi('toolPendingBg'));
+    expect(shown).not.toContain(dark.getBgAnsi('toolPendingBg'));
+  });
+
+  test('the header and a collapsed preview take the new theme colors', () => {
+    const dark = loadTheme('snoop-dark');
+    const light = loadTheme('snoop-light');
+    const row = driveRow(host, 'bash', { native: fakeNative().native, theme: dark });
+    row.apply({ args: { command: 'make' }, executionStarted: true, result: output('boom\nCommand exited with code 1', true), isPartial: false });
+    expect(row.lines(NARROW).join('\n')).toContain(dark.fg('error', 'boom'));
+    row.apply({ theme: light });
+    const shown = row.lines(NARROW).join('\n');
+    expect(shown).toContain(light.fg('error', '✗'));
+    expect(shown).toContain(light.fg('error', 'boom'));
+    expect(shown).not.toContain(dark.fg('error', 'boom'));
+  });
+});
+
 describe('rows within the terminal width', () => {
   test('collapsed headers and expanded panels fit every width with any gutter', () => {
     for (const outputPad of [0, 1, 2]) {
