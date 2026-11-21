@@ -7,6 +7,14 @@ import { basename, dirname, join } from 'node:path';
 import { z } from 'zod';
 import { hostEnv } from './host-env.ts';
 
+export interface OutputNotificationConfig {
+  pattern: string;
+  reason?: string;
+  debounceSeconds?: number;
+  /** Positive cap on matched occurrences, null for unlimited, or undefined for the default cap (100). */
+  notificationLimit?: number | null;
+}
+
 export interface JobSpec {
   id: string;
   name: string;
@@ -26,7 +34,18 @@ export interface JobSpec {
   createdAt: string;
   /** Variables exported to the command before it runs. */
   env?: Record<string, string>;
+  /** Wakes the owner when the job's output matches. Absent for jobs that never watch their output. */
+  notifyOnOutput?: OutputNotificationConfig;
+  /** Marks jobs created by /loop so /loop list and /loop stop never collide with user tmux_run names. */
+  source?: 'loop';
 }
+
+export const OutputNotificationConfigSchema = z.object({
+  pattern: z.string(),
+  reason: z.string().optional(),
+  debounceSeconds: z.number().optional(),
+  notificationLimit: z.number().nullable().optional(),
+});
 
 /**
  * A job.json an older version wrote may lack any key but these three, which every version has held, so the rest read as
@@ -45,8 +64,19 @@ const JobSpecSchema = z
     series: z.string().optional(),
     socket: z.string().default(''),
     env: z.record(z.string(), z.string()).optional(),
+    notifyOnOutput: OutputNotificationConfigSchema.optional(),
+    source: z.literal('loop').optional(),
   })
-  .transform(({ name, series, env, ...rest }): JobSpec => ({ ...rest, name: name ?? rest.id, series: series ?? rest.id, ...(env ? { env } : {}) }));
+  .transform(
+    ({ name, series, env, notifyOnOutput, source, ...rest }): JobSpec => ({
+      ...rest,
+      name: name ?? rest.id,
+      series: series ?? rest.id,
+      ...(env ? { env } : {}),
+      ...(notifyOnOutput ? { notifyOnOutput: withoutUndefined(notifyOnOutput) } : {}),
+      ...(source ? { source } : {}),
+    }),
+  );
 
 export type JobStatus = { state: 'running' } | { state: 'exited'; code: number } | { state: 'lost' };
 
@@ -57,6 +87,16 @@ export interface Job {
 }
 
 export const STOPPED_EXIT_CODE = 143;
+
+/** Zod reads an absent optional key as undefined, which exactOptionalPropertyTypes would reject. */
+function withoutUndefined(config: z.infer<typeof OutputNotificationConfigSchema>): OutputNotificationConfig {
+  return {
+    pattern: config.pattern,
+    ...(config.reason !== undefined ? { reason: config.reason } : {}),
+    ...(config.debounceSeconds !== undefined ? { debounceSeconds: config.debounceSeconds } : {}),
+    ...(config.notificationLimit !== undefined ? { notificationLimit: config.notificationLimit } : {}),
+  };
+}
 const HASH_LENGTH = 16;
 const JOB_ID_SUFFIX_BYTES = 3;
 const STOP_GRACE_MS = 6000;
@@ -68,8 +108,43 @@ const TAIL_WINDOW_BYTES = TAIL_WINDOW_KIBIBYTES * BYTES_PER_KIBIBYTE;
 
 const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
+export const shellQuote = (word: string): string => `'${word.replaceAll("'", "'\\''")}'`;
 const hash = (text: string): string => createHash('sha256').update(text).digest('hex').slice(0, HASH_LENGTH);
+
+/** Whether a job finishes on its own and wakes the session once on exit, rather than repeating or watching output. */
+export const isOneShotWakeJob = (spec: JobSpec): boolean => spec.wake !== null && !spec.repeat && spec.notifyOnOutput === undefined;
+
+export interface CreateJobSpecInput {
+  name: string;
+  cwd: string;
+  shellCommand: string;
+  owner: string;
+  wake?: string | null;
+  repeat?: boolean;
+  env?: Record<string, string>;
+  notifyOnOutput?: OutputNotificationConfig;
+  source?: 'loop';
+}
+
+/** Builds a fresh JobSpec for a bash -c command in the owner's tmux server. */
+export function createJobSpec(input: CreateJobSpecInput): JobSpec {
+  const id = newJobId(input.name);
+  return {
+    id,
+    name: input.name,
+    cwd: input.cwd,
+    command: ['bash', '-c', input.shellCommand],
+    owner: input.owner,
+    wake: input.wake ?? null,
+    repeat: input.repeat ?? false,
+    series: id,
+    socket: tmuxSocket(input.owner),
+    createdAt: new Date().toISOString(),
+    ...(input.env ? { env: input.env } : {}),
+    ...(input.notifyOnOutput ? { notifyOnOutput: input.notifyOnOutput } : {}),
+    ...(input.source ? { source: input.source } : {}),
+  };
+}
 
 /** Every file a job keeps in its directory. */
 export const jobFiles = (dir: string) => ({
@@ -79,6 +154,7 @@ export const jobFiles = (dir: string) => ({
   output: join(dir, 'output.log'),
   exit: join(dir, 'exit'),
   woken: join(dir, 'woken'),
+  notifyState: join(dir, 'notify-state.json'),
 });
 
 export function newJobId(name: string): string {
@@ -188,13 +264,16 @@ export function status(dir: string, spec: JobSpec): JobStatus {
   return exited() ?? { state: 'lost' };
 }
 
-export function readSpec(dir: string): JobSpec | undefined {
+/** Reads and validates a JSON file, returning undefined when the file is missing, unreadable, or malformed. */
+export function readJson<T>(path: string, schema: z.ZodType<T>): T | undefined {
   try {
-    return JobSpecSchema.safeParse(JSON.parse(readFileSync(jobFiles(dir).spec, 'utf8'))).data;
+    return schema.safeParse(JSON.parse(readFileSync(path, 'utf8'))).data;
   } catch {
     return undefined;
   }
 }
+
+export const readSpec = (dir: string): JobSpec | undefined => readJson(jobFiles(dir).spec, JobSpecSchema);
 
 /** Reads one of the owner's jobs. Another session's job reads as missing. */
 export function read(root: string, id: string, owner: string): Job | undefined {

@@ -8,7 +8,8 @@ import { z } from 'zod';
 import { resolveGondolinConfig, SHARED_BUILD_CACHE_FLAG } from './gondolin/config.ts';
 import { buildCacheEnv, ensureSharedBuildCacheDir, sharedBuildCacheHostDir } from './gondolin/shared-cache.ts';
 import { hostEnv } from './host-env.ts';
-import { claimWake, type Job, type JobSpec, jobFiles, launch, list, newJobId, read, tail, tmuxSocket } from './jobs.ts';
+import { claimWake, createJobSpec, isOneShotWakeJob, type Job, jobFiles, launch, list, read, tail } from './jobs.ts';
+import { type OutputNotificationConfig, validateOutputNotificationConfig } from './output-notify.ts';
 import { finish, type JobWatch, jobsRoot, POLL_MS, report, sleep, stopRuns } from './watcher.ts';
 
 const MS_PER_SECOND = 1000;
@@ -21,6 +22,14 @@ const tmuxRunParameters = Type.Object({
   cwd: Type.Optional(Type.String({ description: 'Working directory, relative to this session cwd. Default this session cwd.' })),
   wake: Type.Optional(Type.String({ description: 'Message to wake this session with when the command exits. Omit for a server you will stop yourself.' })),
   repeat: Type.Optional(Type.Boolean({ description: 'Restart the command after each clean exit and wake each time. Requires wake. Stop it with tmux_jobs stop.' })),
+  notify_on_output: Type.Optional(
+    Type.Object({
+      pattern: Type.String({ description: 'Regular expression (multiline) matched against new output lines. Each match wakes this session.' }),
+      reason: Type.Optional(Type.String({ description: 'Why you are watching, shown as the notification title.' })),
+      debounce_seconds: Type.Optional(Type.Number({ description: 'Batch later matches for at least this long. Minimum and default 5.' })),
+      notification_limit: Type.Optional(Type.Number({ description: 'Stop notifying after this many matches. Default 100.' })),
+    }),
+  ),
 });
 const tmuxJobsParameters = Type.Object({
   action: StringEnum(['list', 'output', 'wait', 'stop'] as const),
@@ -30,7 +39,8 @@ const tmuxJobsParameters = Type.Object({
 });
 // Mirror the TypeBox parameters, which Pi checks before a tool runs, so these accept exactly the calls that reach it.
 // StringEnum types its field as unknown, so the parsed shape names it.
-const TmuxRunParamsSchema = z.looseObject({ name: z.string(), command: z.string(), cwd: z.string().optional(), wake: z.string().optional(), repeat: z.boolean().optional() });
+const NotifyOnOutputSchema = z.object({ pattern: z.string(), reason: z.string().optional(), debounce_seconds: z.number().optional(), notification_limit: z.number().optional() });
+const TmuxRunParamsSchema = z.looseObject({ name: z.string(), command: z.string(), cwd: z.string().optional(), wake: z.string().optional(), repeat: z.boolean().optional(), notify_on_output: NotifyOnOutputSchema.optional() });
 const TmuxJobsParamsSchema = z.looseObject({ action: z.enum(['list', 'output', 'wait', 'stop']), ids: z.array(z.string()).optional(), lines: z.number().optional(), timeout_seconds: z.number().optional() });
 
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }], details: undefined });
@@ -54,10 +64,10 @@ async function blockWhileRunning(current: () => Job[], deadline: number, { signa
   }
 }
 
-/** A heartbeat or a server never stops on its own, so waiting on everything leaves them out. */
+/** A heartbeat, a server, or an output watcher never stops on its own, so waiting on everything leaves them out. */
 const waitableIds = (root: string, owner: string): string[] =>
   list(root, owner)
-    .filter((job) => job.status.state === 'running' && !job.spec.repeat && job.spec.wake !== null)
+    .filter((job) => job.status.state === 'running' && isOneShotWakeJob(job.spec))
     .map((job) => job.spec.id);
 
 /** The jobs a tmux_jobs action named, each of which must belong to this session. */
@@ -84,12 +94,25 @@ function sharedCacheEnv(pi: ExtensionAPI, localCwd: string): Record<string, stri
   return config.enableSharedBuildCache ? { ...buildCacheEnv(ensureSharedBuildCacheDir(sharedBuildCacheHostDir()), { join }) } : undefined;
 }
 
+/** The validated notify_on_output config, in the job spec's camelCase shape, or undefined when none was given. */
+function notifyConfig(input: z.infer<typeof NotifyOnOutputSchema> | undefined): OutputNotificationConfig | undefined {
+  if (!input) return undefined;
+  const config: OutputNotificationConfig = {
+    pattern: input.pattern,
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+    ...(input.debounce_seconds !== undefined ? { debounceSeconds: input.debounce_seconds } : {}),
+    ...(input.notification_limit !== undefined ? { notificationLimit: input.notification_limit } : {}),
+  };
+  validateOutputNotificationConfig(config);
+  return config;
+}
+
 function registerTmuxRun(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'tmux_run',
     label: 'Run in tmux',
     description:
-      'Run a shell command in its own tmux session instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. The command reads no input.',
+      'Run a shell command in its own tmux session instead of a background shell. Use it for watchers, dev servers, long builds, and heartbeat timers. With wake set, you are woken with that message and the output tail when the command exits. With repeat, the command restarts each time it exits cleanly, so `sleep 3600` plus a wake message is an hourly tick. With notify_on_output, every line of output matching the pattern wakes you (the first at once, later ones batched at least 5 seconds apart, up to a limit), so a watcher can stay running and report events. The command reads no input.',
     promptSnippet: 'Run a long-lived or watched command in tmux and get woken when it exits',
     promptGuidelines: ['Use tmux_run for any command that would otherwise run in the background. Never background a command with &, nohup, setsid, or disown.'],
     parameters: tmuxRunParameters,
@@ -97,21 +120,18 @@ function registerTmuxRun(pi: ExtensionAPI): void {
       const input = TmuxRunParamsSchema.parse(params);
       if (input.repeat && input.wake === undefined) throw new Error('repeat needs a wake message, or nothing would ever notice the ticks.');
       const owner = ctx.sessionManager.getSessionId();
-      const id = newJobId(input.name);
+      const notifyOnOutput = notifyConfig(input.notify_on_output);
       const env = sharedCacheEnv(pi, ctx.cwd);
-      const spec: JobSpec = {
-        id,
+      const spec = createJobSpec({
         name: input.name,
         cwd: workingDir(ctx.cwd, input.cwd),
-        command: ['bash', '-c', input.command],
+        shellCommand: input.command,
         owner,
         wake: input.wake ?? null,
         repeat: input.repeat ?? false,
-        series: id,
-        socket: tmuxSocket(owner),
-        createdAt: new Date().toISOString(),
         ...(env ? { env } : {}),
-      };
+        ...(notifyOnOutput ? { notifyOnOutput } : {}),
+      });
       return text(`Started ${describe(launch(jobsRoot(), spec))}`);
     },
   });

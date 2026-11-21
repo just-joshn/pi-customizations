@@ -54,6 +54,7 @@ function recordPi() {
   let handlers: Record<string, Handler[]> = {};
   let branch: BranchEntry[] = [];
   const sendMessage = vi.fn();
+  const sendUserMessage = vi.fn();
   const api = {
     appendEntry: (customType: string, data?: unknown) => {
       branch = [...branch, { type: 'custom', customType, data }];
@@ -68,10 +69,12 @@ function recordPi() {
       tools = { ...tools, [tool.name]: tool };
     },
     sendMessage,
+    sendUserMessage,
   };
   return {
     api: extensionApiFrom(api),
     sendMessage,
+    sendUserMessage,
     tool: (name: string): ToolDefinition => {
       const found = tools[name];
       if (!found) throw new Error(`extension registered no ${name} tool`);
@@ -115,6 +118,7 @@ export function loadPstack(world: World, session: SessionOptions = {}, extension
   return {
     sessionId,
     sendMessage: pi.sendMessage,
+    sendUserMessage: pi.sendUserMessage,
     setStatus,
     notify,
     ctx,

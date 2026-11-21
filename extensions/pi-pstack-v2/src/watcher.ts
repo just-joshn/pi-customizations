@@ -3,7 +3,8 @@ import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
-import { claimWake, type Job, jobFiles, launch, list, newJobId, stop, tail, tmuxSocket, wakeClaimed } from './jobs.ts';
+import { claimWake, isOneShotWakeJob, type Job, jobFiles, launch, list, newJobId, stop, tail, tmuxSocket, wakeClaimed } from './jobs.ts';
+import { pollOutputNotifications } from './output-notify.ts';
 
 export const POLL_MS = 2000;
 const SECONDS_PER_MINUTE = 60;
@@ -86,11 +87,25 @@ export async function stopRuns(watch: JobWatch, owner: string, named: readonly J
 
 const interactive = (ctx: ExtensionContext): boolean => ctx.mode === 'tui' || ctx.mode === 'rpc';
 
+const sendJobMessage = (pi: ExtensionAPI, content: string): void => {
+  pi.sendMessage({ customType: 'pstack-job', content, display: true }, { triggerTurn: true, deliverAs: 'steer' });
+};
+
+/** Wakes the session with each new output match of a job that watches its output; returns false while unread output remains. */
+const deliverOutputMatches = (pi: ExtensionAPI, watch: JobWatch, job: Job): boolean => {
+  if (job.spec.notifyOnOutput === undefined || wakeClaimed(job) || watch.isSeriesStopped(job.spec.series) || watch.isAwaited(job.spec.id)) return true;
+  const { messages, done } = pollOutputNotifications(job);
+  for (const content of messages) sendJobMessage(pi, content);
+  if (done && job.spec.wake === null) claimWake(job);
+  return done;
+};
+
 const deliverFinished = (pi: ExtensionAPI, watch: JobWatch, ctx: ExtensionContext): void => {
   const jobs = list(jobsRoot(), ctx.sessionManager.getSessionId());
   for (const job of jobs) {
+    if (!deliverOutputMatches(pi, watch, job)) continue;
     if (job.spec.wake === null || job.status.state === 'running' || watch.isAwaited(job.spec.id) || !claimWake(job)) continue;
-    pi.sendMessage({ customType: 'pstack-job', content: finish(watch, job), display: true }, { triggerTurn: true, deliverAs: 'steer' });
+    sendJobMessage(pi, finish(watch, job));
   }
   if (ctx.hasUI) {
     const running = jobs.filter((job) => job.status.state === 'running').length;
@@ -134,7 +149,7 @@ export function registerWatcher(pi: ExtensionAPI, watch: JobWatch): void {
   pi.on('agent_before_settle', async (event, ctx) => {
     if (interactive(ctx)) return undefined;
     const owner = ctx.sessionManager.getSessionId();
-    const pending = () => list(jobsRoot(), owner).filter((job) => job.spec.wake !== null && !job.spec.repeat && !wakeClaimed(job));
+    const pending = () => list(jobsRoot(), owner).filter((job) => isOneShotWakeJob(job.spec) && !wakeClaimed(job));
     if (pending().length === 0) return undefined;
     settling = true;
     try {

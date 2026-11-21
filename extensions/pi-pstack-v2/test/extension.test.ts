@@ -140,7 +140,7 @@ describe('the system prompt additions', () => {
 
 describe('what the extension registers with Pi', () => {
   test('tmux_run and tmux_jobs describe their parameters to the model', () => {
-    expect(Object.keys(host.tool('tmux_run').parameters.properties)).toEqual(['name', 'command', 'cwd', 'wake', 'repeat']);
+    expect(Object.keys(host.tool('tmux_run').parameters.properties)).toEqual(['name', 'command', 'cwd', 'wake', 'repeat', 'notify_on_output']);
     expect(Object.keys(host.tool('tmux_jobs').parameters.properties)).toEqual(['action', 'ids', 'lines', 'timeout_seconds']);
     expect(host.tool('tmux_run').parameters.properties['wake']?.description).toContain('Message to wake this session with');
     expect(host.tool('tmux_jobs').description).toContain('wait blocks until the named jobs');
