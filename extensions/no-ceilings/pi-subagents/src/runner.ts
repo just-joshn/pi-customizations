@@ -3,7 +3,18 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { type AgentSession, type AgentSessionEvent, createAgentSession, DefaultResourceLoader, type ExtensionContext, getAgentDir, SessionManager } from '@earendil-works/pi-coding-agent';
+import {
+  type AgentSession,
+  type AgentSessionEvent,
+  createAgentSession,
+  DefaultResourceLoader,
+  type ExtensionAPI,
+  type ExtensionContext,
+  type ExtensionFactory,
+  getAgentDir,
+  type ProviderConfig,
+  SessionManager,
+} from '@earendil-works/pi-coding-agent';
 import { formatSessionTitle, formatToolActivity } from './formatters.ts';
 import { createReadonlySubagentExtension } from './readonly-guard.ts';
 import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
@@ -168,6 +179,23 @@ function handleSubagentEvent(agentId: string, event: AgentSessionEvent, store: S
   return progress;
 }
 
+function createInheritedProvidersExtension(modelRegistry: ExtensionContext['modelRegistry']): ExtensionFactory {
+  return (pi: ExtensionAPI): void => {
+    const providerIds = modelRegistry.getRegisteredProviderIds?.() ?? [];
+    for (const providerId of providerIds) {
+      const nativeProvider = modelRegistry.getRegisteredNativeProvider?.(providerId);
+      if (nativeProvider !== undefined) {
+        pi.registerProvider(nativeProvider);
+        continue;
+      }
+      const config = modelRegistry.getRegisteredProviderConfig?.(providerId);
+      if (config !== undefined) {
+        pi.registerProvider(providerId, config as ProviderConfig);
+      }
+    }
+  };
+}
+
 async function createChildSession(
   options: RunTaskOptions,
   model: Model<Api> | undefined,
@@ -177,7 +205,8 @@ async function createChildSession(
 ): Promise<{ readonly session: AgentSession; readonly transcriptPath?: string }> {
   const sessionDir = resolveSubagentSessionDir(options.ctx);
   const sessionManager = createChildSessionManager(options.ctx.cwd, existingTranscriptPath, isResume, sessionDir);
-  const extensionFactories = readonly ? [createReadonlySubagentExtension()] : [];
+  const providerBridge = createInheritedProvidersExtension(options.ctx.modelRegistry);
+  const extensionFactories = readonly ? [createReadonlySubagentExtension(), providerBridge] : [providerBridge];
   const resourceLoader = new DefaultResourceLoader({
     cwd: options.ctx.cwd,
     agentDir: getAgentDir(),
