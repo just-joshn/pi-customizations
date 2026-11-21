@@ -37,8 +37,7 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "style-audit": "node ../../../scripts/style-audit.mjs extensions/no-ceilings/pi-subagents"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

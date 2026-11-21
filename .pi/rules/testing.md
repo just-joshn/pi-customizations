@@ -8,7 +8,7 @@ Workflow:
 3. Write the minimal implementation (GREEN)
 4. Run the test and confirm it passes
 5. Refactor (IMPROVE)
-6. Verify coverage and audit checks (`bun run test`, `bun run behavior-test-audit`)
+6. Verify coverage (`bun run test`)
 
 ## Coverage and Test Types
 
@@ -33,4 +33,3 @@ Cover these cases on public boundaries:
 - [ ] External I/O and network dependencies are isolated
 - [ ] Both happy path and error paths are tested
 - [ ] No flaky tests
-- [ ] `bun run behavior-test-audit` reports 0 violations

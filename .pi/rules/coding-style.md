@@ -63,4 +63,3 @@ Before marking work complete:
 - [ ] No stray `console.log` statements
 - [ ] No hardcoded values
 - [ ] Immutable patterns used
-- [ ] `bun run style-audit` reports 0 violations

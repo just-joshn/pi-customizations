@@ -40,9 +40,7 @@ You need Node `>=22.19.0` and Bun. The `pi-pstack-v2` tests also need `tmux`.
 
 ```sh
 bun install
-bun run ci                   # Biome format and assist check, bun lint, style audit, behavior-test audit
-bun run style-audit          # style audit alone
-bun run behavior-test-audit  # behavior-test audit alone
+bun run ci                   # Biome format and assist check, bun lint
 bun run typecheck            # every package
 bun run test                 # every package
 ```

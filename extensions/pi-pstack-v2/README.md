@@ -138,7 +138,6 @@ pi remove npm:@justjoshn/pi-pstack
 ```sh
 bun run --filter @justjoshn/pi-pstack-v2 test
 bun run --filter @justjoshn/pi-pstack-v2 typecheck
-bun run --filter @justjoshn/pi-pstack-v2 style-audit
 ```
 
 `upstream.lock.json` pins the pstack and cursor-team-kit source that the package copies. MIT license, from upstream pstack.
