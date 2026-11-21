@@ -25,14 +25,11 @@ jobs:
   release:
     runs-on: macos-latest
     timeout-minutes: 30
-    env:
-      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '26.13.0'
-          registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
@@ -49,11 +46,17 @@ jobs:
             fi
             version=$(jq -r .version "$manifest")
             dir="${manifest%/package.json}"
-            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            out=""
+            status=0
+            out=$(npm view "${name}@${version}" version 2>&1) || status=$?
+            if [ "$status" -eq 0 ]; then
               echo "already published: ${name}@${version}"
-            else
+            elif printf '%s' "$out" | grep -q 'E404'; then
               echo "unreleased: ${name}@${version}"
               unreleased="${unreleased}${dir} "
+            else
+              echo "::error::npm view failed for ${name}@${version} (exit ${status}): ${out}"
+              exit 1
             fi
           done
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
@@ -65,8 +68,6 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Verify and publish unreleased packages
         if: steps.detect.outputs.packages != ''
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # The runner starts this script with `bash -e`; without `set +e` the
           # first failed package aborts the whole loop (run 41529762501).
@@ -79,21 +80,11 @@ jobs:
             echo "::group::${name}@${version}"
             (
               set -euo pipefail
-              if jq -e '.scripts.typecheck' "$dir/package.json" > /dev/null; then
-                (cd "$dir" && bun run typecheck)
-              fi
-              if jq -e '.scripts.build' "$dir/package.json" > /dev/null; then
-                (cd "$dir" && bun run build)
-              fi
-              if jq -e '.scripts.test' "$dir/package.json" > /dev/null; then
-                (cd "$dir" && bun run test)
-              fi
+              (cd "$dir" && bun run --if-present typecheck)
+              (cd "$dir" && bun run --if-present build)
+              (cd "$dir" && bun run --if-present test)
               (cd "$dir" && npm pack --dry-run)
-              if [ "$HAS_NPM_TOKEN" = "true" ]; then
-                (cd "$dir" && NODE_AUTH_TOKEN="${NPM_TOKEN}" npm publish --access public)
-              else
-                (cd "$dir" && npm publish)
-              fi
+              (cd "$dir" && npm publish)
               npm view "${name}@${version}" version
               npm dist-tag ls "${name}"
             )

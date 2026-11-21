@@ -31,9 +31,9 @@ Install dependencies from the **workspace root** using `bun.lock`, then run vali
 
 ```sh
 bun install --frozen-lockfile   # at workspace root, matching bun.lock
-bun run typecheck               # if a typecheck script is defined
-bun run build --if-present
-bun run test                    # if a test script is defined
+bun run --if-present typecheck
+bun run --if-present build
+bun run --if-present test
 npm pack --dry-run
 npm publish --dry-run
 ```
@@ -100,7 +100,7 @@ Report package, version, registry, dist-tag, verification result, CI run or sour
 
 - Favor **trusted publishing** over long-lived npm publishing tokens. Supported providers in npm's documentation are GitHub Actions on GitHub-hosted runners, GitLab.com shared runners, and CircleCI cloud. Self-hosted runners are not supported. Trusted publishing requires npm CLI `>=11.5.1` and Node.js `>=22.14.0`.
 - Configure the package's **Trusted Publisher** in its settings on npmjs.com, matching the provider's project identity and workflow precisely. For GitHub Actions, enter the **filename only** (for example, `publish.yml`, not `.github/workflows/publish.yml`); the workflow itself must exist in `.github/workflows/`. If a GitHub environment is configured, its name must also match. `repository.url` in `package.json` must match the GitHub repository.
-- For GitHub Actions, the documented critical permission is `id-token: write`; also use `contents: read`. In the release workflow use a supported Node/npm and Bun toolchain, `actions/setup-node` with `registry-url: https://registry.npmjs.org`, and **disable package-manager caching for release builds** (`package-manager-cache: false`). Install with `bun install --frozen-lockfile`, run typecheck/build/test with Bun, then call the approved `npm stage publish` or `npm publish`. Never add a write token merely to make OIDC publishing work.
+- For GitHub Actions, the documented critical permission is `id-token: write`; also use `contents: read`. In the release workflow use a supported Node/npm and Bun toolchain, `actions/setup-node` **without** `registry-url` (setting `registry-url` causes `actions/setup-node` to write `_authToken=${NODE_AUTH_TOKEN}` into `.npmrc`, which makes npm skip OIDC and fail with HTTP 404 when no token is set), and **disable package-manager caching for release builds** (`package-manager-cache: false`). Install with `bun install --frozen-lockfile`, run `bun run --if-present typecheck`, `build`, and `test`, then call the approved `npm stage publish` or `npm publish`. Never add a write token merely to make OIDC publishing work.
 - For GitLab CI/CD, configure `id_tokens` with npm audience **`npm:registry.npmjs.org`** and use a GitLab.com shared runner. For CircleCI, supply `NPM_ID_TOKEN` from CircleCI's OIDC mechanism; CircleCI provenance is not supported.
 - A newly created trusted publisher must complete its **first successful publish within 2 days** to validate the configuration; if it expires, delete the expired connection and create a new one. These settings are not verified on save.
 - Trusted-publisher permissions are independent: `npm stage publish` is allowed, while direct `npm publish` and `npm dist-tag` require their respective permissions. For dist-tags over OIDC, npm requires CLI `>=12.2.0` or `>=11.21.0` (on those respective major lines). Prefer **stage-only** permission for automation.
