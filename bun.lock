@@ -11,6 +11,31 @@
         "zod": "^4",
       },
     },
+    "extensions/no-ceilings/pi-goals": {
+      "name": "@justjoshn/pi-goals",
+      "version": "0.1.1",
+      "dependencies": {
+        "zod": "^4",
+      },
+      "devDependencies": {
+        "@earendil-works/pi-agent-core": "1.5.2",
+        "@earendil-works/pi-ai": "1.5.2",
+        "@earendil-works/pi-coding-agent": "1.5.2",
+        "@earendil-works/pi-tui": "1.5.2",
+        "@types/node": "^22.19.0",
+        "@vitest/coverage-v8": "5.1.0",
+        "typebox": "1.3.27",
+        "typescript": "^7.0.2",
+        "vitest": "5.1.0",
+      },
+      "peerDependencies": {
+        "@earendil-works/pi-agent-core": "*",
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
+        "@earendil-works/pi-tui": "*",
+        "typebox": "*",
+      },
+    },
     "extensions/no-ceilings/pi-modes": {
       "name": "@justjoshn/pi-modes",
       "version": "0.1.1",
@@ -38,7 +63,7 @@
     },
     "extensions/no-ceilings/pi-subagents": {
       "name": "@justjoshn/pi-subagents",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "dependencies": {
         "zod": "^4",
       },
@@ -287,6 +312,8 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
     "@justjoshn/pi-anthropic-oauth-v2": ["@justjoshn/pi-anthropic-oauth-v2@workspace:extensions/pi-anthropic-oauth-v2"],
+
+    "@justjoshn/pi-goals": ["@justjoshn/pi-goals@workspace:extensions/no-ceilings/pi-goals"],
 
     "@justjoshn/pi-google-oauth-v2": ["@justjoshn/pi-google-oauth-v2@workspace:extensions/pi-google-oauth-v2"],
 
