@@ -1,8 +1,9 @@
 name: release
 
-# Publishes every extension whose package.json version is not yet on npm.
-# Release policy, OIDC trusted publishing, staged publishing, and fallback
-# authentication are defined in docs/releases.md (source of truth).
+# Publishes every extension under extensions/*/package.json whose version is not
+# yet on npm via OIDC-only direct `npm publish` on push to `main`. Packages not
+# yet on npm are skipped until bootstrapped per docs/releases.md.
+# General npm release and publishing policy lives in docs/releases.md.
 
 on:
   push:
@@ -48,25 +49,21 @@ jobs:
             dir="${manifest%/package.json}"
             out=""
             status=0
-            out=$(npm view "${name}@${version}" version 2>&1) || status=$?
-            if [ "$status" -eq 0 ]; then
-              echo "already published: ${name}@${version}"
-            elif printf '%s' "$out" | grep -q 'E404'; then
-              pkg_out=""
-              pkg_status=0
-              pkg_out=$(npm view "${name}" name 2>&1) || pkg_status=$?
-              if [ "$pkg_status" -eq 0 ]; then
-                echo "unreleased: ${name}@${version}"
-                unreleased="${unreleased}${dir} "
-              elif printf '%s' "$pkg_out" | grep -q 'E404'; then
+            out=$(npm view "${name}" versions --json 2>&1) || status=$?
+            if [ "$status" -ne 0 ]; then
+              if printf '%s' "$out" | grep -q 'E404'; then
                 echo "::notice::skipping ${name}@${version}: package is not on npm yet; complete initial publish and Trusted Publisher setup per docs/releases.md"
-              else
-                echo "::error::npm view failed for ${name} (exit ${pkg_status}): ${pkg_out}"
-                exit 1
+                continue
               fi
-            else
-              echo "::error::npm view failed for ${name}@${version} (exit ${status}): ${out}"
+              printf '%s\n' "$out" >&2
+              echo "::error::npm view failed for ${name} (exit ${status})"
               exit 1
+            fi
+            if printf '%s' "$out" | jq -e --arg v "$version" '(if type == "array" then . else [.] end) | index($v) != null' >/dev/null; then
+              echo "already published: ${name}@${version}"
+            else
+              echo "unreleased: ${name}@${version}"
+              unreleased="${unreleased}${dir} "
             fi
           done
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
@@ -107,19 +104,22 @@ jobs:
               failed="${failed}${name} "
             else
               verified=false
-              for _ in 1 2 3 4 5; do
+              for attempt in 1 2 3 4 5; do
                 if npm view "${name}@${version}" version >/dev/null 2>&1; then
                   verified=true
                   break
                 fi
-                sleep 5
+                if [ "$attempt" -lt 5 ]; then
+                  sleep 5
+                fi
               done
               if [ "$verified" = "true" ]; then
                 npm dist-tag ls "${name}" || true
+                echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name})" >> "$GITHUB_STEP_SUMMARY"
               else
-                echo "::warning::${name}@${version} published, but npm view did not reflect it within 25s (CDN propagation lag)"
+                echo "::warning::${name}@${version} published, but npm view did not reflect it within 20s (CDN propagation lag)"
+                echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) (unverified: npm view timed out after 20s)" >> "$GITHUB_STEP_SUMMARY"
               fi
-              echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name})" >> "$GITHUB_STEP_SUMMARY"
             fi
             echo "::endgroup::"
           done

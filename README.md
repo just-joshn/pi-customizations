@@ -49,7 +49,7 @@ bun run test                 # every package
 
 To load a package from this checkout, run `pi -e extensions/<package>`.
 
-See [`docs/releases.md`](docs/releases.md) for package release and publishing instructions.
+Merging a `version` bump under `extensions/*/package.json` to `main` triggers `.github/workflows/release.yml` (OIDC-only direct `npm publish`). See [`docs/releases.md`](docs/releases.md) for package release and publishing policy.
 
 ## License
 
