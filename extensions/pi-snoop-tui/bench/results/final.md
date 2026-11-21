@@ -1,15 +1,17 @@
 # Final stock comparison
 
+> This file supersedes [`2026-11-15.md`](2026-11-15.md). It records the scripts under their names on the run date. `summary.py` and `report.py` are now `summary.ts` and `report.ts`, run with `node`. `run.py` is unchanged.
+
 ## Setup
 
 - Machine: Apple M4, 10 cores
 - Pi: 1.5.2
-- Commit: bcaf77cdf381bb9c168bdb60f9521f22f4f3b756 (HEAD when the runs started). The working tree differed only in `bench/README.md` and an untracked `bench/summary.py`, and Pi loads neither.
+- Commit: bcaf77cdf381bb9c168bdb60f9521f22f4f3b756. It was HEAD when the runs started. The working tree differed only in `bench/README.md` and an untracked `bench/summary.py`, and Pi loads neither.
 - Configs: stock, theme, full, interleaved with a rotating order per round
 - Rounds: startup 15, stream 7, medium 9, long 9, mixed 7, each round running every config once
 - Raw records: `final-<workload>.jsonl` beside this file
 - Problem records: none. Every record in all five files has no `error`, no `problems`, exit code 0, 4 tool results and 0 tool errors (stream and medium), 0 echo misses, and an echoed burst (long and mixed).
-- Summary tables: `python3 summary.py startup=results/final-startup.jsonl ...` from `bench/`
+- Summary tables: `node summary.ts startup=results/final-startup.jsonl ...` from `bench/`. The runs used the earlier `summary.py`.
 
 ## Uptime log
 

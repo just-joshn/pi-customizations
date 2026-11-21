@@ -1,16 +1,15 @@
 # Route work through `/skill:poteto-mode`
 
-`/skill:poteto-mode` is the front door. You give it a goal, it matches one of twenty-two playbooks, copies that playbook's steps into `TODO.md`, and calls the other skills as the steps need them. In this page you learn what a good prompt looks like, and how little of one you actually need.
+`/skill:poteto-mode` takes a goal and matches it to one of 22 playbooks. It copies that playbook's steps into `TODO.md` and calls the other skills as the steps need them. This page shows what a prompt needs and how a short one routes.
 
-![A dispatcher pulls a switch lever to route robots on rail handcars toward lit gates, under a /skill:poteto-mode departure board listing BUG FIX, FEATURE, and INVESTIGATION.](./images/router.jpg)
+![A dispatcher pulls a switch lever to route robots on rail handcars toward lit gates. A departure board above her displays poteto-mode and lists BUG FIX, FEATURE, and INVESTIGATION.](./images/router.jpg)
 
-## What happens to your prompt
+## How a prompt routes
 
 ```mermaid
 flowchart TD
     A[Your prompt] --> B[poteto-mode]
-    B --> C[Read the Principles section]
-    C --> D{Match the task}
+    B --> D{Match the task}
     D -->|Read-only question| E[Investigation]
     D -->|Defect| F[Bug fix]
     D -->|New behavior| G[Feature]
@@ -25,11 +24,23 @@ flowchart TD
     J --> K
 ```
 
-The diagram shows the common routes. There are also playbooks for hillclimbing a metric, diagnosing runtime symptoms and captured traces, prototypes, visual parity, authoring and evaluating skills, autonomous runs, opening a PR, babysitting a PR or stack to merge-ready, shipping a verified stack, running a PR queue or a stack on autopilot, session pickup, pausing safely, multi-phase plans, and worktree cleanup. The [playbook directory](../../skills/poteto-mode/playbooks/) has the full set.
+The diagram shows the common routes. Other playbooks cover these tasks:
+
+- hillclimbing a metric
+- diagnosing runtime symptoms and captured traces
+- prototypes and visual parity
+- authoring and evaluating skills
+- autonomous runs
+- opening a pull request, babysitting one to merge-ready, and shipping a verified stack
+- running a pull request queue or a stack on autopilot
+- session pickup and pausing safely
+- multi-phase plans and worktree cleanup
+
+The [playbook directory](../../skills/poteto-mode/playbooks/) has the full set.
 
 ## How code work is accepted
 
-For code-producing work, the route ends on evidence. Here is the acceptance flow:
+Code-producing work ends on evidence:
 
 ```mermaid
 flowchart TD
@@ -46,38 +57,40 @@ flowchart TD
     I -->|Gate cannot be met| F
 ```
 
-The diagram shows acceptance and handoff, not the timing of every step. Autopilot-full, for example, opens its PR while implementation and verification are still running. Investigation and multi-phase plans stop earlier, at their findings or plan. `/skill:reflect` and `/skill:correct` run only when you ask. Opening a PR is not a merge grant. Without one, you get the PR and its evidence. With one, the Shipping playbook lands it behind an independent verifier and reads the merge state back.
+The diagram shows acceptance and handoff, not the timing of every step. Autopilot-full opens its pull request while implementation and verification still run. Investigation and multi-phase plans stop at their findings or plan. `/skill:reflect` and `/skill:correct` run only when you ask.
 
-## Say the goal, not the ceremony
+Opening a pull request does not grant a merge. Without a merge grant, you get the pull request and its evidence. With one, the Shipping playbook lands it behind an independent verifier and reads the merge state back.
 
-You don't write a spec. You say what's wrong or what you want, plus anything you already know that saves the agent time:
+## State the goal
+
+Say what is wrong or what you want, plus anything you already know:
 
 ```text
 /skill:poteto-mode users get two notifications after a retry. repro first, then fix and verify.
 ```
 
-That's a Bug fix prompt. "repro first" is a real constraint, not politeness, and the playbook honors it. Watch `TODO.md` fill with the Bug fix steps.
+That is a Bug fix prompt. The playbook honors "repro first" as a constraint, and `TODO.md` fills with the Bug fix steps.
 
 ## What goes in a prompt
 
-A useful prompt carries up to five things, and each one fits in a sentence:
+A prompt carries up to five things, each in one sentence:
 
-- **The goal.** Say what's wrong, or what you want.
-- **The done check.** It must be able to pass or fail. "Make it better" and "work on it for an hour" aren't checks.
-- **The proof you want to see.** Ask for the real command output, a video of the flow, the stored value, or a before-and-after number.
+- **The goal.** Say what is wrong or what you want.
+- **The done check.** It must be able to pass or fail. "Make it better" and "work on it for an hour" are not checks.
+- **The proof you want.** Ask for real command output, a video of the flow, the stored value, or a before-and-after number.
 - **What you already know.** A symptom, a repro step, a log line, or a link saves the agent a search.
-- **The real constraints.** "repro first", "don't change any code yet", "zero behavior change", and "let me review before proceeding" each change what the agent does.
+- **The constraints.** "repro first", "don't change any code yet", "zero behavior change", and "let me review before proceeding" each change what the agent does.
 
-Here's one prompt with all five:
+This prompt has all five:
 
 ```text
 /skill:poteto-mode the csv export drops its last row since yesterday's deploy. failing job id is 4812. repro first, then fix. done means the 60k-row fixture exports every row. show me the row counts before and after.
 ```
 
-Two things are worth leaving out:
+Leave two things out:
 
-- **The how.** Say what to achieve, and leave the agent room to find a better path than the one you'd pick. The same goes for a list of skills, covered in the pitfall below.
-- **Your theory of the cause, at first.** A stated guess narrows the search to wherever you pointed. Let the agent restate the problem before you share your hunch.
+- **The method.** Say what to achieve, and let the agent find a better path than the one you would pick. The same goes for a list of skills.
+- **Your theory of the cause, at first.** A stated guess narrows the search to where you pointed. Let the agent restate the problem before you share your guess.
 
 For a noisy report, such as a long thread or a vague bug, make the restatement the first step:
 
@@ -85,19 +98,19 @@ For a noisy report, such as a long thread or a vague bug, make the restatement t
 /skill:poteto-mode read this thread. restate the underlying issue in your own words, in plain english. don't change any code yet.
 ```
 
-A misreading shows up in the restatement, before any code exists. Correct it there, and it costs you one message instead of one wrong fix. For the restatement alone, with no playbook, run [`/skill:in-your-own-words`](../../skills/in-your-own-words/SKILL.md). It restates what the agent thinks your goals are and what problem you're trying to solve.
+A misreading shows up in the restatement, before any code exists. Correcting it costs one message. For the restatement alone, run [`/skill:in-your-own-words`](../../skills/in-your-own-words/SKILL.md). It restates the goals and the problem the agent thinks you have.
 
-When you're unsure whether a prompt is aimed right, run [`/skill:sharpen`](../../skills/sharpen/SKILL.md) on it before you send it:
+To check a prompt before you send it, run [`/skill:sharpen`](../../skills/sharpen/SKILL.md) on it:
 
 ```text
 /skill:sharpen write a migration guide for the v2 config format.
 ```
 
-The agent says what a top professional would do that you didn't ask for, the rawest material they would start from, the methods and tools they would use, and what other than you or the agent would show the result is right. Then it rewrites your prompt to ask for exactly that, deeper but not bigger. The rewrite asks the agent to prototype any choice an experiment can settle and to recommend an option from what it observed, and it leaves product and preference choices to you. It doesn't do the task. Read the rewrite, then send it, for example with `/skill:poteto-mode`.
+The agent names what a top professional would do that you did not ask for. It lists the raw material they would start from, the methods and tools they would use, and what other than you or the agent would show the result is right. Then it rewrites your prompt to ask for exactly that, deeper but not bigger. The rewrite asks the agent to prototype any choice an experiment can settle and to recommend an option from what it observed. Product and preference choices stay with you. `/skill:sharpen` does not do the task. Read the rewrite, then send it, for example with `/skill:poteto-mode`.
 
 ## Follow up short
 
-When the conversation already carries the context, the prompt shrinks to almost nothing. All of these are enough:
+When the conversation already carries the context, a short prompt is enough:
 
 ```text
 /skill:poteto-mode do it
@@ -111,7 +124,7 @@ continue
 keep going until done
 ```
 
-Short works because the playbook holds the structure, and the skill's text stays in your session's context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) says when to send it again. Your words carry the intent, and the skill carries the rigor.
+The playbook holds the structure, so your words only need to carry the intent. `/skill:poteto-mode` attaches the skill to the one message it is typed in, and its influence fades as the session moves on. Send `/skill:poteto-mode` again with each new task, or type `/pstack-mode poteto-mode` to keep the skill in the system prompt on every turn. [Set up pstack](./01-setup.md#run-your-first-task) covers both.
 
 ## Switch tasks with "new task"
 
@@ -121,38 +134,47 @@ A long chat accumulates context from the last task. When you change subjects, sa
 /skill:poteto-mode new task. figure out why the cache entry survives logout. don't change any code yet.
 ```
 
-"new task" tells `/skill:poteto-mode` to re-match rather than continue the prior playbook. "don't change any code yet" pins this one to Investigation. Without those two phrases, a mode mid-Feature tends to treat your question as the next feature step.
+"new task" tells `/skill:poteto-mode` to match a fresh playbook instead of continuing the prior one. "don't change any code yet" pins this one to Investigation. Without those phrases, a session in the middle of a Feature may treat your question as the next feature step.
 
 ## Give parallel work its own worktree
 
-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a git worktree per worker. A spawned Pi started with a `worktree` branch gets its own checkout, and its Gondolin VM mounts only that checkout, so it can install dependencies, run your app, and record video of the result without touching your working tree. A worktree does not isolate ports, so two workers that start the same dev server still collide. Give each its own port. The coordinator does this on its own for parallel code work. You can also ask for a worktree up front:
+Several agents in one working tree overwrite each other's files and share ports and build output. A git worktree for each worker prevents the file collisions. A worktree does not isolate ports, so give each worker's dev server its own port.
+
+`subagent` has no `worktree` parameter. Use one of these:
+
+- Set `isolation: "worktree"` on the `subagent` call or on a task. The call creates a git worktree for that worker. It keeps the worktree, and reports it, only if the worker leaves changes or commits.
+- Create the worktree yourself on the host with `tmux_run` running `git worktree add -b <branch> .pi/worktrees/<slug> <ref>`, and pass its path as `cwd`. The path is inside the working directory, so the worker's VM can edit it.
+
+The worker's VM mounts only its own checkout, so it can install dependencies, run your app, and record video without touching your working tree.
+
+You can ask for a worktree in the prompt:
 
 ```text
 /skill:poteto-mode new task. branch off <base> in a fresh worktree, then port the parser change there.
 ```
 
-Each task in its own branch and worktree means no agent stomps another's files. Worktrees cost disk and machine resources, so a laptop runs only a handful at once. The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) already works from a worktree for code changes, so mostly you only say this when a specific base or location matters.
+The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) already works from a worktree for code changes. Name a base or a location only when it matters. Worktrees cost disk space, so a laptop holds only a handful at once.
 
-Worktrees accumulate. When disk gets tight, ask:
+When disk space runs low, ask:
 
 ```text
 /skill:poteto-mode what's eating my disk? prune the worktrees that are safe to prune.
 ```
 
-The [Worktree cleanup playbook](../../skills/poteto-mode/playbooks/worktree-cleanup.md) classifies every worktree by merge state, uncommitted work, and which chats still touch it. It deletes only what that evidence clears and pauses for your call on anything holding uncommitted work.
+The [Worktree cleanup playbook](../../skills/poteto-mode/playbooks/worktree-cleanup.md) classifies each worktree by merge state, uncommitted work, and which chats still touch it. It deletes only what that evidence clears. It stops for your decision on anything with uncommitted work.
 
 ## Leave it running
 
-When you step away, say what done means and go:
+When you step away, state what done means:
 
 ```text
 /skill:poteto-mode im stepping away. keep going until the migration check reports zero old callers. log your decisions.
 ```
 
-Work you'll review later routes through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs the run's phases and keeps a [`/skill:show-me-your-work`](../../skills/show-me-your-work/SKILL.md) decision log. [Run work while you sleep](./07-overnight.md) covers the full overnight contract.
+Work you will review later routes through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md). It designs the run's phases and keeps a [`/skill:show-me-your-work`](../../skills/show-me-your-work/SKILL.md) decision log. [Run work overnight](./07-overnight.md) covers the full contract.
 
-**Pitfall:** don't enumerate skills in your prompt ("use /skill:architect, then /skill:arena, then /skill:interrogate..."). The playbook already sequences them, and a hand-written sequence usually reorders or drops steps the playbook would have kept. Name a skill only when you want to override a specific choice.
+**Pitfall.** Do not list skills in your prompt, as in "use /skill:architect, then /skill:arena, then /skill:interrogate". The playbook already sequences them. A hand-written sequence can reorder or drop steps the playbook would keep. Name a skill only to override a specific choice.
 
-Read [`poteto-mode`](../../skills/poteto-mode/SKILL.md) itself for the full routing rules.
+[`poteto-mode`](../../skills/poteto-mode/SKILL.md) has the full routing rules.
 
 Next: [Understand the code](./03-understand.md).

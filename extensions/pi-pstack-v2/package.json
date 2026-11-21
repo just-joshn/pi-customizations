@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Use the pstack skills and workflow in Pi, with the upstream subagent tool spawning Pi in tmux, shell jobs running in tmux, and Pi's tools running in a Gondolin micro-VM.",
   "type": "module",
   "license": "MIT",

@@ -1,6 +1,10 @@
 # Grounding for a performance hillclimb, 2026-11-15
 
-The goal is a `pi-snoop-tui` that looks modern and measurably beats stock Pi on every user-facing number, using only Pi's documented extension mechanisms. This file records where stock Pi spends work, which of that work an extension can remove, and which numbers no extension can move.
+> This is the pre-optimization grounding record. Source line numbers and hypotheses refer to the code on that date. Some have since landed in `src/`, including compact rows for `write`, `find`, and `ls` (hypothesis 5). For current numbers, read [`final.md`](final.md).
+>
+> The commands below use the script names from that date. `report.py`, `profile-summary.py`, `medium-fixture.py`, and `visual/mockup-fixture.py` are now `.ts` files, run with `node`. `run.py` is unchanged.
+
+The goal is a `pi-snoop-tui` that matches the visual mockups and measurably beats stock Pi on every user-facing number, using only Pi's documented extension mechanisms. This file records where stock Pi spends work, which of that work an extension can remove, and which numbers no extension can move.
 
 ## Verdict
 
@@ -11,7 +15,7 @@ The goal is a `pi-snoop-tui` that looks modern and measurably beats stock Pi on 
 
 ## Setup
 
-- Apple M4, 10 cores. Pi 1.5.2 on Node v26.13.1. Harness at commit `test(pi-snoop-tui): add startup, typing, idle, and medium-session scenarios`.
+- Apple M4, 10 cores. Pi 1.5.2 on Node v26.13.1. Benchmark scripts at commit `test(pi-snoop-tui): add startup, typing, idle, and medium-session scenarios`.
 - Five interleaved rounds per workload. Each round runs `stock`, `theme`, and `full` once in rotating order. Every run produced a record. None failed or reported problems.
 - Commands, run from `bench/`:
   `python3 run.py --workload <startup|stream|medium|long> --runs 5 --out results/grounding-<workload>.jsonl`, then `python3 report.py results/grounding-<workload>.jsonl`.
@@ -28,15 +32,15 @@ after long:    12:47  load averages: 6.98 6.23 6.32
 profiles:      12:47 load averages: 6.66 6.18 6.30, 12:49 load averages: 4.84 5.75 6.11
 ```
 
-Other work shared the machine, and the sandbox blocks process inspection. Interleaving gives every configuration the same noise. Outliers fall in single rounds of different configurations (for example stock stream round 4 at 538 ms and full long round 2 at 1245 ms).
+Other work shared the machine, and the sandbox blocks process inspection. Interleaving gives every configuration the same noise. Outliers fall in single rounds of different configurations . Examples are stock stream round 4 at 538 ms and full long round 2 at 1245 ms.
 
-Three conditions of the harness apply to every configuration and inflate startup:
+Three conditions of the benchmark setup apply to every configuration and inflate startup:
 
 - The pseudo-terminal does not answer Pi's color and DA1 query, so startup waits the full 100 ms timeout (`TERMINAL_QUERY_TIMEOUT_MS`, `pi-coding-agent/dist/modes/interactive/theme/theme-controller.js:7`, awaited at `interactive-mode.js:744`). A real terminal answers in a few milliseconds.
 - `TMUX` is set in the bench environment, so Pi runs `probeTmuxHyperlinks` through `execSync` (`pi-tui/dist/terminal-image.js:20`), 9 ms in the warm startup profile.
 - Pi loads `.ts` extensions through jiti with a cache in the temp directory. The first launch in a new temp directory transpiles with Babel. That cold launch cost 150 to 170 ms of extra settle time in the profile jobs (stock 450 then 320 ms, full 429 then 324 ms). Round 0 of the baseline shows the same thing (stock 437 ms, full 384 ms). Medians use the warm rounds.
 
-## Harness changes
+## Benchmark script changes
 
 `run.py`, `report.py`, `bench-provider.ts`, and `profile-summary.py` gained these measurements. Existing metrics keep their definitions. The long workload's whole-run CPU now includes the new typing and storm steps, so compare it only within this file.
 
@@ -440,10 +444,10 @@ The list follows the order of the performance mantras (don't do it, don't do it 
 |---|---|---|---|---|---|---|
 | 1 | Don't do it | Snoop's own load at startup: three `pi.extensions` entries, each with its own jiti instance (`core/extensions/loader.js:486-488`) | Full costs +8.4 ms process CPU on empty startup (paired, lower 0/5). `PI_TIMING` extensions 14 ms against 9 ms. `createAgentSessionRuntime` +6 ms. | One entry module in `package.json` `pi.extensions` that registers rows, footer, and chrome. Keep factories to handler registration only. | -2 to -5 ms startup CPU. Parity at best, since stock loads nothing here. | Low. Packaging only. Tests can keep importing the modules. |
 | 2 | Don't do it | **Pi-owned.** Built-in Mermaid transformer lexes every user and assistant message, during streaming, at restore, and on every width change (`components/mermaid.js:50-60`, first in the chain at `interactive-mode.js:1820`) | 16.8 ms of 314 ms busy (5.4%) in a stock streamed turn. 20.1 ms of 200 ms (10%) in full. Most of the remaining cost of a full resize (lexer frames in `narrow` and `storm`). | None. Extension transformers run after it, and `pi.getSettings()` returns a copy. `markdown.mermaid: "final"` would remove the streaming half, but that changes the user's settings. | | |
-| 3 | Don't do it | **Pi-owned.** Startup work before extensions bind: color and DA1 query wait (100 ms in this harness), `which fd` and `which rg` through `spawnSync` (6 ms), tmux probe (9 ms, harness env), module compile, then a first frame with stock chrome and a repaint after `session_start` (`interactive-mode.js:737-820`) | Empty startup settles at 284 ms in stock. Snoop's code takes 0 samples in the warm startup profile. The repaint is +1311 bytes and one frame. | None. `session_start` is the earliest point with `ctx.ui`, and it runs after the first frame. | | |
+| 3 | Don't do it | **Pi-owned.** Startup work before extensions bind: color and DA1 query wait (100 ms in this benchmark), `which fd` and `which rg` through `spawnSync` (6 ms), tmux probe (9 ms, set by the benchmark environment), module compile, then a first frame with stock chrome and a repaint after `session_start` (`interactive-mode.js:737-820`) | Empty startup settles at 284 ms in stock. Snoop's code takes 0 samples in the warm startup profile. The repaint is +1311 bytes and one frame. | None. `session_start` is the earliest point with `ctx.ui`, and it runs after the first frame. | | |
 | 4 | Don't do it again | Re-lexing the whole streaming message on every frame in `Markdown.render` (`pi-tui/dist/components/markdown.js:277-284`) | marked lexer 26.4 ms inclusive of 314 ms busy in stock. About 9.6 ms of that is `Markdown`'s own pass (the rest is Mermaid, item 2). `Markdown` inclusive 46.5 ms (14.8%) stock, 38.2 ms (19%) full. | `pi.registerMarkdownTransformer` for `assistant` text while `isStreaming`: return only the tail from the last top-level block boundary outside a code fence once the text passes a threshold. When streaming ends, Pi re-renders the full text. | -5 to -10 ms per 3 KB turn. Cost grows with the square of message length, so long answers gain more. | Medium to high. While streaming, a user scrolled up sees only the tail. Fences, list numbering, and reference links need care. Mermaid still lexes the full text. |
 | 5 | Don't do it again | `Box` shell on tool rows snoop does not cover (`write`, `find`, `ls`, `codemode`, MCP). Each frame calls `bgFn("test")` and compares every child line (`pi-tui/dist/components/box.js:83-110`) | For the four covered tools, `Box` 10.2 ms and `Container` 18.4 ms self of 39 ms busy in stock collapsed typing, against 14 ms total in full. Uncovered tools are not in any fixture, so their share is unmeasured. | `pi.registerToolRenderer` with `renderShell: 'self'` for every remaining built-in tool and an MCP fallback. Add those rows to `medium-fixture.py` first so the step is measurable. | Per-row savings like the 2.15 to 1.62 ms echo change, scaled by how many such rows a session has. | Low. Same pattern as the existing rows. |
-| 6 | Do it less | Ctrl+O expand of 1050 rows: every row's native `renderResult` (highlight.js, `Box`, `Text` wrap) runs in the input handler and the next frame | 135 ms in stock, 132 ms in full. Profile: the key-handling path (`StdinBuffer` to `CustomEditor` to `InteractiveMode`) 49.8 ms stock and 55.6 ms full, the frame (`TuiAltScreen`) 83.7 and 75.2 ms, highlight.js `MultiRegex` 9.2 and 18.8 ms. Expanded echo is 0.84 ms higher in full (1 of 5 rounds lower, ranges overlap). | `registerToolRenderer` expanded body drawn by snoop (cached per width, capped lines with a hint, no syntax highlight for `read` and `bash`) instead of delegating to native `renderResult`. | -40 to -80 ms per expand. | Medium. Expanded `read` output would lose syntax highlighting, which works against the modern look. |
+| 6 | Do it less | Ctrl+O expand of 1050 rows: every row's native `renderResult` (highlight.js, `Box`, `Text` wrap) runs in the input handler and the next frame | 135 ms in stock, 132 ms in full. Profile: the key-handling path (`StdinBuffer` to `CustomEditor` to `InteractiveMode`) 49.8 ms stock and 55.6 ms full, the frame (`TuiAltScreen`) 83.7 and 75.2 ms, highlight.js `MultiRegex` 9.2 and 18.8 ms. Expanded echo is 0.84 ms higher in full (1 of 5 rounds lower, ranges overlap). | `registerToolRenderer` expanded body drawn by snoop (cached per width, capped lines with a hint, no syntax highlight for `read` and `bash`) instead of delegating to native `renderResult`. | -40 to -80 ms per expand. | Medium. Expanded `read` output would lose syntax highlighting, which works against the mockup's look. |
 | 7 | Do it less | Editor layout on every frame (`pi-tui/dist/components/editor.js:397-407`) | 15.0 ms inclusive in a stock streamed turn (4.8%), 4.4 ms in full (2.2%), 1.5 ms per 20 typed keys in full. | `ctx.ui.setEditorComponent` with a `CustomEditor` subclass that returns cached lines while width, text, cursor, focus, border color, autocomplete, and the embedded status are unchanged. | -3 ms per streamed turn. Nothing for typing, where every frame changes the text. | Medium. Must keep autocomplete, paste markers, cursor marker, and the embedded working status. Conflicts with other extensions that set an editor. |
 | 8 | Do it less | **Pi-owned.** Full transcript walk on every frame for user and assistant messages (`pi-tui/dist/tui.js:138-150`, `layout.js:70-89`) | Full collapsed typing: `Container` 3.3 ms and `TuiAltScreen` 3.0 ms self of 14 ms busy for 20 keys. Echo p50 1.62 ms against 0.53 ms on an empty history. | None for message components. Snoop's rows are already one cached line each. | | |
 | 9 | Do it later | Snoop row setup at restore. Pi calls `renderCall` and `renderResult` for every row when it builds the transcript (`components/tool-execution.js:210-262`) | Snoop self time 6.2 ms of 233 ms busy at a 1050-row restore (resolver `tool-rows.ts:6` 1.5 ms, `specs.target` 1.5 ms, `tailLines` 1.2 ms). | Inside the existing renderers, compute targets and summaries on the first `render()` of `RowHeader` and `RowBody` instead of in `renderCall` and `renderResult`. | -3 to -6 ms on restore. | Low. |
@@ -474,7 +478,7 @@ Two units ran against this baseline: one extension entry instead of three (hypot
 
 ### How these runs were made
 
-The harness was not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`, so the base, Unit 1, and Unit 2 packages could run in alternating order. A driver ran one `run.py --runs 1 --configs stock,full` per side per round, reversed the side order each round, and renumbered `round` so `report.py` pairs stock and full from the same invocation. Every config in a round runs back to back, so `full−stock` is paired within one invocation. The last column compares the two packages' `full` runs from the same round.
+The benchmark scripts were not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`, so the base, Unit 1, and Unit 2 packages could run in alternating order. A driver ran one `run.py --runs 1 --configs stock,full` per side per round, reversed the side order each round, and renumbered `round` so `report.py` pairs stock and full from the same invocation. Every config in a round runs back to back, so `full−stock` is paired within one invocation. The last column compares the two packages' `full` runs from the same round.
 
 The machine was shared with other jobs. Load averages ranged from 3.6 to 24 on 10 cores (`look-uptime.txt`, `final-uptime.txt`). Two earlier Unit 1 startup sets, measured at loads of 8 to 24, were discarded because stock's own extension load swung from 9 to 108 ms. Rounds in a noisy window move both configs, so the paired `full−stock` columns are the primary statistic. The cross-package column is reported, but it is confounded when load changes between invocations.
 
@@ -503,7 +507,7 @@ Verdict: no measurable difference. Full−stock process CPU went from 5 ms to 10
 
 Captures are in `bench/results/visual/final-*.png` (100x40, `snoop-dark`): `collapsed`, `expanded`, and `working` on the full mockup fixture, and `collapsed-short`, `expanded-short`, `collapsed-short-slash`, `collapsed-short-wrap`, and `collapsed-short-bash` on the three-tool fixture. `symmetry.py` on `collapsed-short` gives the same result as prototype A: every non-blank row starts at column 1, and 6 rows end one column from the right edge. In bash mode both rules are `#d6c79c`, the theme's `bashMode`.
 
-The long workload's frozen harness checks that the widest rule after a resize equals the new width. The new editor rules are inset by the gutter, so every `full` long run reports `widest rule 88 != 90`, `118 != 120`, and `last rule 88 != 90` as problems. All runs still recorded every step. The rules were 88 and 118 columns in every run, which is the new width minus two gutters, so each resize re-laid out the frame.
+The long workload's frozen `run.py` checks that the widest rule after a resize equals the new width. The new editor rules are inset by the gutter, so every `full` long run reports `widest rule 88 != 90`, `118 != 120`, and `last rule 88 != 90` as problems. All runs still recorded every step. The rules were 88 and 118 columns in every run, which is the new width minus two gutters, so each resize re-laid out the frame.
 
 #### Regressions found and fixed before the commit
 
@@ -870,7 +874,7 @@ Captures are in `bench/results/visual/generic-*.png` (100x40, `pty-capture.py` o
 
 Verdict: reverted. The prebuilt entry made startup substantially slower in this checkout. The existing TypeScript entries remain in the package.
 
-The startup harness alternates stock and full, starts each run with a new agent directory, checks output and exit status, and takes Pi's timings on a second launch. Both launches share `TMPDIR`, so jiti's `TMPDIR/jiti` cache is warm after the first round, despite fresh agent directories. Node also uses `TMPDIR/node-compile-cache`. The cold first round remains in the table. Pi 1.5.2 documents `.js` extension discovery in `docs/extensions.md`.
+The startup driver alternates stock and full, starts each run with a new agent directory, checks output and exit status, and takes Pi's timings on a second launch. Both launches share `TMPDIR`, so jiti's `TMPDIR/jiti` cache is warm after the first round, despite fresh agent directories. Node also uses `TMPDIR/node-compile-cache`. The cold first round remains in the table. Pi 1.5.2 documents `.js` extension discovery in `docs/extensions.md`.
 
 The prototype bundled one entry with `bun build src/index.ts --target=node --format=esm --external '@earendil-works/*'` and changed `pi.extensions` to the bundle. Each table value is the median and min..max of nine interleaved rounds. The paired columns are full minus stock in each round. All startup runs exited successfully and reported complete timing groups. Raw records are [before](js-entry-before.jsonl) and [prototype](js-entry-prototype.jsonl).
 
@@ -919,7 +923,7 @@ Behavior tests drove the real `RuleEditor`. They checked that an unchanged edito
 
 ### How these runs were made
 
-The harness was not changed. `base` is a `git archive` copy of `b75ce80b` and `cache` is the same tree with the change. A driver ran one `run.py --runs 1` per side per round. It reversed the side order every round and the config order (`stock,full` or `full,stock`) every two rounds, then renumbered `round` so each side's `stock` and `full` pair within one invocation. Load averages were 2.9 to 4.1 on 10 cores (`editor-cache-uptime.txt`). Records are in `editor-cache-base-*.jsonl` and `editor-cache-new-*.jsonl`.
+The benchmark scripts were not changed. `base` is a `git archive` copy of `b75ce80b` and `cache` is the same tree with the change. A driver ran one `run.py --runs 1` per side per round. It reversed the side order every round and the config order (`stock,full` or `full,stock`) every two rounds, then renumbered `round` so each side's `stock` and `full` pair within one invocation. Load averages were 2.9 to 4.1 on 10 cores (`editor-cache-uptime.txt`). Records are in `editor-cache-base-*.jsonl` and `editor-cache-new-*.jsonl`.
 
 A probe build counted renders in one `full` stream run. 224 of 241 editor renders returned the stored frame, and none were uncacheable. So the cache did run on the streaming path.
 
@@ -975,7 +979,7 @@ Three units ran one at a time on top of `6e710840`. Unit 1 and Unit 2 were kept.
 
 ### How these runs were made
 
-The harness was not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`. A driver ran `run.py --runs 1` per side per round, rotated the side order, swapped the config order (`stock,full` or `full,stock`) every two rounds, and renumbered `round` so each side's `stock` and `full` pair inside one invocation. Before each round it waited until the one-minute load average fell below 6 on 10 cores. A first attempt at Unit 1's long check ran at load 16 to 20, gave stock restores of 413 to 2061 ms, and was discarded. Every kept set ran at load 2.9 to 5.6 (`round3-*-uptime.txt`). Every run below recorded all steps with no problems. The first round of a new package copy can pay a cold jiti and Node compile cache, and the tables say where that happened.
+The benchmark scripts were not changed. Each side is a `git archive` copy of the package with its own frozen `bench/run.py`. A driver ran `run.py --runs 1` per side per round, rotated the side order, swapped the config order (`stock,full` or `full,stock`) every two rounds, and renumbered `round` so each side's `stock` and `full` pair inside one invocation. Before each round it waited until the one-minute load average fell below 6 on 10 cores. A first attempt at Unit 1's long check ran at load 16 to 20, gave stock restores of 413 to 2061 ms, and was discarded. Every kept set ran at load 2.9 to 5.6 (`round3-*-uptime.txt`). Every run below recorded all steps with no problems. The first round of a new package copy can pay a cold jiti and Node compile cache, and the tables say where that happened.
 
 The paired columns are `full − stock` in the same invocation, and the last column is the new package's `full` minus the old package's `full` in the same round, with the rounds where the new one was lower.
 
