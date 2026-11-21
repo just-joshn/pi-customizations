@@ -1,0 +1,14 @@
+[
+  {
+    "file": "extensions/no-ceilings/pi-modes/src/debug-logs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "JSON.parse throws on malformed NDJSON lines and has no non-throwing form. The catch returns undefined so one corrupt debug log line falls back to raw display instead of crashing /logs or the Runtime Logs widget."
+  },
+  {
+    "file": "extensions/no-ceilings/pi-modes/src/debug-logs.ts",
+    "rule": "plugin",
+    "line": "} catch {",
+    "reason": "statSync and readFileSync throw on unreadable, vanished, or non-file debug log paths. Returning undefined degrades /logs and the 1s Runtime Logs widget to an empty preview instead of crashing the TUI."
+  }
+]

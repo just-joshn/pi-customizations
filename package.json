@@ -6,7 +6,8 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "extensions/*"
+    "extensions/*",
+    "extensions/no-ceilings/*"
   ],
   "description": "Workspace root for the pi-customizations Pi extensions.",
   "license": "MIT",
