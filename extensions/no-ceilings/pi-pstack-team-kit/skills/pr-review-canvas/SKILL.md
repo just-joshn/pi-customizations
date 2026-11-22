@@ -111,17 +111,19 @@ gh api repos/{owner}/{repo}/pulls/{number}/files --paginate \
   > /tmp/pr-patches-{number}.json
 ```
 
-2. During assembly, use Python to safely inject the JSON into `template.html`:
+2. During assembly, use Python to safely inject the JSON into `template.html`. Pass this skill's absolute directory as the argument:
 ```bash
-python3 <<'PY'
+python3 - "<absolute path to this skill directory>" <<'PY'
 import json
+import sys
 from pathlib import Path
 
+skill = Path(sys.argv[1])
 patches = json.loads(Path('/tmp/pr-patches-{number}.json').read_text())
 html = Path('/tmp/pr-review-{number}-body.html').read_text()
-css = Path('styles.css').read_text()
-js = Path('renderer.js').read_text()
-tmpl = Path('template.html').read_text()
+css = (skill / 'styles.css').read_text()
+js = (skill / 'renderer.js').read_text()
+tmpl = (skill / 'template.html').read_text()
 
 # Prevent literal </script> from terminating HTML script tags early.
 safe_json = json.dumps(patches).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
@@ -152,7 +154,7 @@ Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines
 
 1. Write your body HTML (everything that goes inside `<body>`) to `/tmp/pr-review-{number}-body.html`
 2. Save patches to `/tmp/pr-patches-{number}.json` using the `jq` command from step 3 above
-3. Run the Python assembly script from step 3 above (reads styles.css, renderer.js, template.html from this skill directory, injects body + patches safely, writes final HTML)
+3. Run the Python assembly script from step 3 above, passing this skill's absolute directory. It reads styles.css, renderer.js, and template.html from that directory, injects body and patches safely, and writes the final HTML.
 4. Start a local server on a fixed port:
 
    ```bash

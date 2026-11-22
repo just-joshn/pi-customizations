@@ -4,7 +4,7 @@
 # operated in it. Emits a table sorted by size with a suggested bucket. Never
 # deletes anything; deletion stays a human-gated step in the playbook.
 #
-# Usage: worktree-audit.sh [-b|--base <ref>] [repo-path]
+# Usage: worktree-audit.sh [-b|--base <ref>] [-s|--session-dir <dir>] [repo-path]
 #   repo-path defaults to the current repo.
 #   -b sets the ref the MERGED column checks against (e.g. origin/integration).
 #   Without it the base is origin/HEAD, then origin/main, then origin/master.
@@ -13,8 +13,10 @@
 set -u
 
 base=""
+session_dir_arg=""
 while [ $# -gt 0 ]; do
 	case "$1" in
+	-s|--session-dir) [ $# -ge 2 ] || { echo "error: $1 needs a directory" >&2; exit 2; }; session_dir_arg="$2"; shift 2 ;;
 	-b|--base) [ $# -ge 2 ] || { echo "error: $1 needs a ref" >&2; exit 2; }; base="$2"; shift 2 ;;
 	-h|--help) sed -n '2,/^set -u/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
 	-*) echo "error: unknown option: $1" >&2; exit 2 ;;
@@ -81,14 +83,29 @@ slugify_path() {
 	printf '%s' "$1" | sed 's#^[/\\]##; s#[/\\:]#-#g'
 }
 
-# Transcripts dirs: ${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slug>-- (main repo and each linked worktree), plus $PI_CODING_AGENT_SESSION_DIR when set.
+# Transcripts dirs: ${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slug>-- (main repo and each linked worktree). A session override stores sessions flat, with no --<slug>-- level. Read it from -s, PI_CODING_AGENT_SESSION_DIR, the sessionDir setting, or --session-dir.
 agent_dir=$(expand_tilde "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
 sessions_root="$agent_dir/sessions"
 slug=$(slugify_path "$main_wt")
 main_transcripts="$sessions_root/--$slug--"
 session_override=""
-if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
+if [ -n "$session_dir_arg" ]; then
+	session_override=$(expand_tilde "$session_dir_arg")
+elif [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
 	session_override=$(expand_tilde "$PI_CODING_AGENT_SESSION_DIR")
+else
+	for settings in "$agent_dir/settings.json" "$repo/.pi/settings.json"; do
+		[ -f "$settings" ] || continue
+		raw=$(jq -r '.sessionDir // empty' "$settings" 2>/dev/null) || continue
+		[ -n "$raw" ] || continue
+		case "$raw" in
+		"~"*) raw=$(expand_tilde "$raw") ;;
+		/*) ;;
+		*) raw="$(dirname "$settings")/$raw" ;;
+		esac
+		session_override="$raw"
+		break
+	done
 fi
 now=$(date +%s)
 

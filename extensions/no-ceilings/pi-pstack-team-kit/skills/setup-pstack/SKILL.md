@@ -5,17 +5,17 @@ description: Configure which models pstack uses per role and at what reasoning b
 
 # Setup pstack
 
-Write `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`, a user-level configuration file that sets pstack's model per role.
+Write `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`, a user-level configuration file that sets pstack's model and thinking level per role.
 
 ## Steps
 
 ### 1. Detect available models
 
-Run `pi --list-models` to enumerate the registered model IDs you can pass to a `task` subagent in this session. That is the dependable source. In Pi, unregistered slugs silently fall back to the parent model instead of rejecting, so only write real slugs confirmed in `pi --list-models`. If you cannot detect any, ask the user to paste the model IDs they have access to. Never write a real slug you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected slugs.
+Run `pi --list-models` to enumerate the registered model IDs you can pass to a `task` subagent in this session. That is the dependable source. In Pi, an unregistered model id silently falls back to the parent model instead of rejecting, so write only ids confirmed in `pi --list-models`. The effort token after an id is not part of the id; it becomes the `thinking` level. If you cannot detect any, ask the user to paste the model IDs they have access to. Never write an id you have not confirmed is available. The aliases `inherit-parent` and `auto` are always valid even though they are not detected ids.
 
 ### 2. Load current state
 
-The default role-to-model mapping is the rule shape shown in step 5 below. If `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `hardest tasks`, `architect runners`, `reflect tooling`, or `why investigators`, is from a retired role. Drop it.
+The default role-to-model-and-level mapping is the rule shape shown in step 5 below. If `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `hardest tasks`, `architect runners`, `reflect tooling`, or `why investigators`, is from a retired role. Drop it.
 
 Older defaults put another Gemini model, then `gemini-4-neon-high`, in the panel seat. So in any rule, a `gemini-4-neon-high` entry, or a `gemini-4-*` entry other than `gemini-4-neon-*`, in a panel role (`arena runners`, `arena cross-judge pool`, `interrogate reviewers`) is an old default. Each one becomes `gemini-4-neon-xhigh`. A Gemini 4 Neon entry at any other level is the user's choice and stays. Tell the user which entries you replaced.
 
@@ -37,11 +37,11 @@ Every other value is the user's choice and stays, including an old slug in any o
 
 **(b) Apply it.** Build the working table from the skill defaults, and on a re-run keep any role you changed by family, list, or alias (`inherit-parent`, `auto`). Families are the ones Phase A of the **arena** skill defines, so Fable is its own family. Each role has a target effort, which is its default's effort moved by the budget. `large` keeps it, `medium` lowers it one step, and `small` lowers it two steps, on the ladder `xhigh` > `high` > `medium` > `low`. No role runs above `xhigh`, and a target at the bottom of the ladder stays there. Most defaults are at `xhigh`, and each budget label names where those land. Set the effort token of every real slug in the role, panel entries included, to the role's target. The effort token is the last token, or the one before a trailing `fast`. If the result is not a detected slug, use the same family's detected slug with the highest effort at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `medium` turns `claude-opus-5-5-xhigh-fast` into `claude-opus-5-5-high-fast` and `claude-opus-5-5-high-fast` into `claude-opus-5-5-medium-fast`, and `small` turns them into `claude-opus-5-5-medium-fast` and `claude-opus-5-5-low-fast`. Opus 5.5 always runs its `-fast` slug, so every Opus 5.5 value ends in `-fast`. Fable 5.2 and Gemini have no fast slug, so never write one. Gemini 4 Neon slugs run from `low` to `xhigh` with no `max` or `fast` slug, so its seat runs at `gemini-4-neon-xhigh`, its top slug. A Gemini 4 Neon entry in a panel role takes its own target, `xhigh` moved by the budget, so `large` keeps `gemini-4-neon-xhigh`, `medium` writes `gemini-4-neon-high`, and `small` writes `gemini-4-neon-medium`.
 
-**(c) Show the roles and confirm.** Show every role with its model, marking any real slug not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models at `xhigh` or below plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how Auto users stay on Auto) as the options. Prefer `ask_question` over free text. For panel roles (arena runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only values from a vendor other than the parent's, in list order, so order it by preference. Fable and the other Claude models are one vendor. An `inherit-parent` or `auto` value never judges. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
+**(c) Show the roles and confirm.** Show every role with its model and thinking level, marking any bare model id not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models at `xhigh` or below plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how Auto users stay on Auto) as the options. Prefer `ask_question` over free text. For panel roles (arena runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only values from a vendor other than the parent's, in list order, so order it by preference. Fable and the other Claude models are one vendor. An `inherit-parent` or `auto` value never judges. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
 
 ### 4. Validate
 
-Every real slug written must be in the detected set and at `xhigh` or below. `inherit-parent` and `auto` always pass. If a chosen real slug is not available, stop and ask again.
+Every real value is a registered model id plus an optional effort token at `xhigh` or below. Split it at dispatch. Drop a trailing `-fast`, then the token (`xhigh`, `high`, `medium`, or `low`), and validate the bare id against the detected set. The token becomes `thinking`; a value with no token passes `model` only. `inherit-parent` and `auto` always pass. If a bare id is not available, stop and ask again.
 
 ### 5. Write the rule
 
@@ -49,7 +49,8 @@ Write `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` with the `# default
 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
-# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit `task` `model` and spawn `general-purpose`). Alias entries in a panel list still count toward its fan-out.
+# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit `task` `model` and `thinking`, and spawn `general-purpose`). Alias entries in a panel list still count toward its fan-out.
+# Each value is `<registered model id>-<effort>[-fast]`. Split it at dispatch: bare id as `model`, effort as `thinking`.
 # defaults: 3
 # budget: large (xhigh)
 feature, refactoring: claude-opus-5-5-xhigh-fast

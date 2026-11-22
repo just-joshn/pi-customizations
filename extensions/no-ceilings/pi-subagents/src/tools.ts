@@ -17,6 +17,7 @@ const TaskToolParams = Type.Object({
   prompt: Type.Optional(Type.String({ description: 'The task for the subagent to perform' })),
   subagent_type: Type.Optional(Type.String({ description: 'Subagent type to use (general-purpose, explore, shell, debug, or a custom agent name)' })),
   model: Type.Optional(Type.String({ description: 'Optional model override ("inherit", "fast", or explicit model id)' })),
+  thinking: Type.Optional(Type.String({ description: 'Optional Pi thinking level: off, minimal, low, medium, high, xhigh, or max' })),
   readonly: Type.Optional(Type.Boolean({ description: 'Run subagent in read-only mode, restricting file writes, deletes, mutating shell commands, and MCP tools' })),
   resume: Type.Optional(Type.String({ description: 'Optional subagent agent_id to resume from a previous invocation' })),
   run_in_background: Type.Optional(Type.Boolean({ description: 'Run the subagent asynchronously in the background and return immediately with agent_id' })),

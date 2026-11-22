@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+import type { ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Api, Model } from '@earendil-works/pi-ai';
 import {
   type AgentSession,
@@ -235,6 +236,7 @@ async function createChildSession(
   childDepth: number,
   ownedAgentIds: readonly string[],
   model: Model<Api> | undefined,
+  thinkingLevel: ThinkingLevel | undefined,
   readonly: boolean,
   existingTranscriptPath: string | undefined,
   isResume: boolean,
@@ -261,6 +263,7 @@ async function createChildSession(
     cwd: options.ctx.cwd,
     agentDir: getAgentDir(),
     ...(model ? { model } : {}),
+    ...(thinkingLevel ? { thinkingLevel } : {}),
     ...(tools ? { tools } : {}),
     sessionManager,
     resourceLoader,
@@ -551,6 +554,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const agentId = existing ? existing.agentId : randomUUID();
   const startedAt = Date.now();
   const resolvedModel = resolveModelForSubagent(options.input.model, options.definition, options.ctx);
+  const thinkingLevel = options.input.thinking as ThinkingLevel | undefined;
   const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
   const ownedAgentIds = existing
     ? callbacks.store
@@ -558,7 +562,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
         .filter((s) => s.ownerAgentId === agentId)
         .map((s) => s.agentId)
     : [];
-  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, parentSessionId, childDepth, ownedAgentIds, resolvedModel, isReadonly, existing?.transcriptPath, existing !== undefined);
+  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, parentSessionId, childDepth, ownedAgentIds, resolvedModel, thinkingLevel, isReadonly, existing?.transcriptPath, existing !== undefined);
   const initialRecord = buildInitialSessionRecord(options, agentId, parentSessionId, existing, resolvedModel, isReadonly, wantBackground, startedAt, transcriptPath);
   callbacks.store.upsertSession(initialRecord);
   options.scope?.agentIds.add(agentId);

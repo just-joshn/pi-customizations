@@ -2,7 +2,7 @@
 
 **You own the skill's voice.**
 
-1. Use the **create-skill** skill (`/skill:create-skill`) for authoring `SKILL.md` files. Prefer `.agents/skills/` and `~/.agents/skills/`.
+1. Use the **create-skill** skill (`/skill:create-skill`) for authoring `SKILL.md` files. Write a new skill to `.pi/skills/`, `${PI_CODING_AGENT_DIR:-~/.pi/agent}/skills`, or the package's `skills/`. Do not copy a packaged skill into a user skills directory; that copy wins over the package and freezes its text.
 2. Validate the skill: frontmatter has `name` (matching parent directory, lowercase letters/numbers/hyphens, <= 64 chars) and `description` (<= 1024 chars), referenced files exist, cross-skill links resolve, and `/reload` loads cleanly in Pi with no warnings.
 3. Test cases if structural. Skip if subjective.
 4. Run **Opening a PR**.

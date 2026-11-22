@@ -48,6 +48,15 @@ pi install ./extensions/no-ceilings/pi-goals
 pi install ./extensions/no-ceilings/pi-pstack-team-kit
 ```
 
+A user or project skill copy wins over the package. Archive older copies of these skills:
+
+```bash
+node extensions/no-ceilings/pi-pstack-team-kit/scripts/purge-shadowed-skills.mjs
+node extensions/no-ceilings/pi-pstack-team-kit/scripts/purge-shadowed-skills.mjs --apply
+```
+
+The script moves them to `${PI_CODING_AGENT_DIR:-~/.pi/agent}/backups/pstack-team-kit-shadows-<timestamp>`. It never deletes a skill.
+
 To register the agents, copy `agents/*.md` into `${PI_CODING_AGENT_DIR:-~/.pi/agent}/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `${PI_CODING_AGENT_DIR:-~/.pi/agent}` and the project's `.pi` directory for npm and git installs. Keep the package installed.
 
 `/skill:automate` requires a configured editor that can open an unsaved draft. `/skill:make-bot-ui` also requires an authenticated webhook provider that can wake a Pi run. Neither skill creates or enables an automation without the editor handoff.

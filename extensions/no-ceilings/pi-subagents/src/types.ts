@@ -170,6 +170,7 @@ export const TaskToolInputSchema = z.object({
   prompt: z.string().optional().default(''),
   subagent_type: z.string().optional(),
   model: z.string().optional(),
+  thinking: z.enum(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']).optional(),
   readonly: z.boolean().optional(),
   resume: z.string().optional(),
   run_in_background: z.boolean().optional(),
