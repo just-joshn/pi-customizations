@@ -77,10 +77,14 @@ expand_tilde() {
 	esac
 }
 
+slugify_path() {
+	printf '%s' "$1" | sed 's#^[/\\]##; s#[/\\:]#-#g'
+}
+
 # Transcripts dirs: ${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slug>-- (main repo and each linked worktree), plus $PI_CODING_AGENT_SESSION_DIR when set.
 agent_dir=$(expand_tilde "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
 sessions_root="$agent_dir/sessions"
-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
+slug=$(slugify_path "$main_wt")
 main_transcripts="$sessions_root/--$slug--"
 session_override=""
 if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
@@ -129,7 +133,7 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 	# or a Pi session launched in a subdirectory of the worktree
 	# (sessions/--<wt-slug>-*--/*.jsonl referencing the worktree path).
 	last="-"; last_ts=0
-	wt_slug=$(printf '%s' "$wt" | sed 's#^/##; s#/#-#g')
+	wt_slug=$(slugify_path "$wt")
 	wt_transcripts="$sessions_root/--$wt_slug--"
 	f=$({
 		[ -d "$main_transcripts" ] && rg -l -F --no-ignore --hidden -e "${wt}/" -e "${wt}\"" "$main_transcripts" 2>/dev/null
