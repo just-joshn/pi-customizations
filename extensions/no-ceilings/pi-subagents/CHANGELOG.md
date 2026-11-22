@@ -29,6 +29,7 @@
 ### Fixed
 
 - Extension load no longer calls runtime actions, so `pi -e` and `pi -ne -e` load the extension without an initialization error.
+- The agent catalog now reaches the model through the run's system prompt. Injecting it as a custom message was stripped by the extension's own context filter, so custom agent names and descriptions never arrived.
 
 ## 0.1.4
 

@@ -25,6 +25,8 @@ Each run gets its own `AgentSession`, so the child has a separate context window
 
 Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins. An ambiguous match falls back to `general-purpose`.
 
+Every run appends the discovered agent catalog to the system prompt, so the model sees each name and description before it decides how to delegate.
+
 Parallel work: call `task` several times with `run_in_background: true`, then collect each result with `await_subagent`. Foreground runs are sequential by nature.
 
 ### Retries

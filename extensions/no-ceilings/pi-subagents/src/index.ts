@@ -1,4 +1,3 @@
-import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, type SessionEntry } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
 import { registerAgentCommands, registerSubagentCommands } from './commands.ts';
@@ -18,7 +17,6 @@ import {
   ONE,
   PersistedSubagentsStateSchema,
   SUBAGENTS_CONFIG_FILE_NAME,
-  SUBAGENTS_CONTEXT_CUSTOM_TYPE,
   SUBAGENTS_ENTRY_CUSTOM_TYPE,
   type SubagentDefinition,
   ZERO,
@@ -29,10 +27,6 @@ import { removeSubagentWorktree } from './worktree.ts';
 const EXPLORE_MODEL_FLAG = 'subagent-explore-model';
 const MAX_DEPTH_FLAG = 'subagent-max-depth';
 const MCP_TOOL_PREFIX = 'mcp__';
-
-function isStaleSubagentsContextMessage(message: AgentMessage): boolean {
-  return 'customType' in message && message.customType === SUBAGENTS_CONTEXT_CUSTOM_TYPE;
-}
 
 function restorePersistedSessions(ctx: ExtensionContext, store: SubagentStore): void {
   const entries: readonly SessionEntry[] = ctx.sessionManager.getEntries();
@@ -249,16 +243,11 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   pi.registerMessageRenderer(BACKGROUND_COMPLETION_CUSTOM_TYPE, (message, _options, theme) => renderBackgroundCompletionMessage(message, theme));
   registerSubagentShortcuts(pi, store);
 
-  pi.on('context', async (event) => ({
-    messages: event.messages.filter((message) => !isStaleSubagentsContextMessage(message)),
-  }));
-
-  pi.on('before_agent_start', async (event, ctx) => {
+  pi.on('before_agent_start', async (_event, ctx) => {
     latestCtx = ctx;
-    if (event.messageType !== 'user') {
-      return undefined;
-    }
-    return { message: { customType: SUBAGENTS_CONTEXT_CUSTOM_TYPE, content: buildSubagentsContextPrompt(getDefinitions(ctx.cwd), getConfig(ctx.cwd)), display: false } };
+    const catalog = buildSubagentsContextPrompt(getDefinitions(ctx.cwd), getConfig(ctx.cwd));
+    const basePrompt = ctx.getSystemPrompt().trim();
+    return { systemPrompt: basePrompt.length === ZERO ? catalog : `${basePrompt}\n\n${catalog}` };
   });
 
   pi.on('agent_end', async (_event, ctx) => {

@@ -315,8 +315,8 @@ describe('built-in subagents and explore configuration', () => {
     try {
       writeConfig(h.cwd, { explore: { enabled: false } });
       await h.emit('session_start', {});
-      const contextResult = double<{ readonly message?: { readonly content: string } }>(await h.emit('before_agent_start', { messageType: 'user' }));
-      expect(contextResult.message?.content).not.toContain('`explore`');
+      const contextResult = double<{ readonly systemPrompt?: string }>(await h.emit('before_agent_start', { messageType: 'user' }));
+      expect(contextResult.systemPrompt).not.toContain('`explore`');
       await expect(h.callTool('task', { description: 'Explore', prompt: 'x', subagent_type: 'explore' })).rejects.toThrow('Unknown subagent_type');
     } finally {
       await h.cleanup();
@@ -327,8 +327,8 @@ describe('built-in subagents and explore configuration', () => {
     const without = createTestHarness();
     try {
       await without.emit('session_start', {});
-      const contextResult = double<{ readonly message?: { readonly content: string } }>(await without.emit('before_agent_start', { messageType: 'user' }));
-      expect(contextResult.message?.content).not.toContain('`browser`');
+      const contextResult = double<{ readonly systemPrompt?: string }>(await without.emit('before_agent_start', { messageType: 'user' }));
+      expect(contextResult.systemPrompt).not.toContain('`browser`');
     } finally {
       await without.cleanup();
     }

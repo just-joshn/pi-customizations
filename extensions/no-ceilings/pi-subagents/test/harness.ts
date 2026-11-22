@@ -273,6 +273,7 @@ function createFakeContext(cwd: string, sessionDir: string, sessionId: string, o
       getRegisteredNativeProvider: (id: string) => options.registeredNativeProviders?.[id],
       getRegisteredProviderConfig: (id: string) => options.registeredProviderConfigs?.[id],
     },
+    getSystemPrompt: () => 'BASE SYSTEM PROMPT',
     sessionManager: {
       getSessionId: () => sessionId,
       getSessionDir: () => sessionDir,

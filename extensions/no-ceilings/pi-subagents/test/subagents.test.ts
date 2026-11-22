@@ -131,11 +131,12 @@ describe('pi-subagents discovery and commands', () => {
     try {
       writeReviewerAgent(h.cwd);
       await h.emit('session_start', {});
-      const ctxRes = double<{ readonly message?: { readonly content: string } } | undefined>(await h.emit('before_agent_start', { messageType: 'user' }));
-      expect(ctxRes?.message?.content).toContain('[SUBAGENTS AVAILABLE]');
-      expect(ctxRes?.message?.content).toContain('general-purpose');
-      expect(ctxRes?.message?.content).toContain('explore');
-      expect(ctxRes?.message?.content).toContain('reviewer');
+      const ctxRes = double<{ readonly systemPrompt?: string } | undefined>(await h.emit('before_agent_start', { messageType: 'user' }));
+      expect(ctxRes?.systemPrompt).toContain('BASE SYSTEM PROMPT');
+      expect(ctxRes?.systemPrompt).toContain('[SUBAGENTS AVAILABLE]');
+      expect(ctxRes?.systemPrompt).toContain('general-purpose');
+      expect(ctxRes?.systemPrompt).toContain('explore');
+      expect(ctxRes?.systemPrompt).toContain('reviewer');
 
       await h.runCommand('agents');
       const note = h.getNotifications().at(-ONE)?.message ?? '';

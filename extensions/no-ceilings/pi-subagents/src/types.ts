@@ -31,7 +31,6 @@ export const WORKTREE_SLUG_CHARS = 24;
 export const WORKTREE_SUFFIX_CHARS = 3;
 
 export const SUBAGENTS_ENTRY_CUSTOM_TYPE = 'pi-subagents-state';
-export const SUBAGENTS_CONTEXT_CUSTOM_TYPE = 'pi-subagents-context';
 export const BACKGROUND_COMPLETION_CUSTOM_TYPE = 'pi-subagents-background-completion';
 export const SUBAGENTS_STATUS_KEY = 'pi-subagents-status';
 export const SUBAGENTS_WIDGET_KEY = 'pi-subagents-running';

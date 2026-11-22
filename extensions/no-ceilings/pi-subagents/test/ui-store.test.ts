@@ -427,7 +427,7 @@ describe('session lifecycle', () => {
     }
   });
 
-  it('restores persisted sessions and drops stale context messages on the next start', async () => {
+  it('restores persisted sessions on the next start', async () => {
     const persisted = {
       sessions: [
         {
@@ -452,26 +452,20 @@ describe('session lifecycle', () => {
       await h.emit('session_start', {});
       await h.runCommand('tasks', 'list');
       expect(h.getNotifications().at(-ONE)?.message).toContain('agent-1');
-      const contextResult = double<{ readonly messages: readonly unknown[] }>(
-        await h.emit('context', {
-          messages: [
-            { customType: 'pi-subagents-context', content: 'stale' },
-            { role: 'user', content: 'hello' },
-          ],
-        }),
-      );
-      expect(contextResult.messages.length).toBe(ONE);
     } finally {
       await h.cleanup();
     }
   });
 
-  it('skips context injection for non-user turns', async () => {
+  it('appends the agent catalog to the system prompt for user and custom runs', async () => {
     const h = createTestHarness();
     try {
       await h.emit('session_start', {});
-      const result = await h.emit('before_agent_start', { messageType: 'system' });
-      expect(result).toBeUndefined();
+      const userRun = double<{ readonly systemPrompt?: string }>(await h.emit('before_agent_start', { messageType: 'user' }));
+      expect(userRun.systemPrompt).toContain('BASE SYSTEM PROMPT');
+      expect(userRun.systemPrompt).toContain('[SUBAGENTS AVAILABLE]');
+      const customRun = double<{ readonly systemPrompt?: string }>(await h.emit('before_agent_start', { messageType: 'custom' }));
+      expect(customRun.systemPrompt).toContain('[SUBAGENTS AVAILABLE]');
     } finally {
       await h.cleanup();
     }
