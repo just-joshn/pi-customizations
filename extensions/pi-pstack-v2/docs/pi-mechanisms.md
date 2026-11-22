@@ -28,18 +28,18 @@ In this table, "subagent" means a Pi instance that the `subagent` tool starts.
 | `readonly: true`, Ask mode | A `subagent` call with `agent: "scout"`, which has no edit or write tool. MCP and shell stay available, so a reviewer that needs MCP can still be read-only. Its `bash` can still write, and the network stays open. A scout can change remote state with `gh`, `curl`, or an MCP tool, so the brief says what it must not change. When the role needs another agent, the brief says the subagent must not edit. |
 | `readonly: false`, agent mode | An agent with edit and write tools, such as `poteto-agent`. |
 | `environment: "cloud"`, Cursor cloud agent, `cloud_base_branch` | A checkout of its own. Pass `isolation: "worktree"` on the `subagent` call, or create the worktree yourself. See the next row. Cursor cloud agents start from the repository's default branch, so name that branch as `<ref>` when you create the worktree yourself. |
-| A worktree for one subagent | Two mechanisms exist. With `isolation: "worktree"`, the `subagent` tool creates `.pi/worktrees/subagent-<name>-<hex>` on branch `worktree/subagent-<name>-<hex>` at the current commit. It keeps both and reports `Worktree kept: <path>` only when the subagent leaves changes or commits. A `fork` refuses `isolation: "worktree"`. For a worktree on a branch you choose, run `git worktree add -b <branch> .pi/worktrees/<slug> <ref>` through `tmux_run`, inside the working directory so the VM can edit it. Then pass that path as the call's `cwd`. |
+| A worktree for one subagent | Two mechanisms exist. With `isolation: "worktree"`, the `subagent` tool creates `.pi/worktrees/subagent-<name>-<hex>` on branch `worktree/subagent-<name>-<hex>` at the current commit. It keeps both and reports `Worktree kept: <path> (branch <branch>)` only when the subagent leaves changes or commits. A `fork` refuses `isolation: "worktree"`. For a worktree on a branch you choose, run `git worktree add -b <branch> .pi/worktrees/<slug> <ref>` through `tmux_run`, inside the working directory so the VM can edit it. Then pass that path as the call's `cwd`. |
 | `environment: "local"` | Omit `cwd`. The subagent runs in your working directory. |
 | `run_in_background: true` | A `subagent` call with `wake`. It returns a job id at once and wakes you with the message and the report when every subagent finishes. Without `wake`, the call blocks until its subagents finish and returns their reports. |
 | Spawn N in one message | One `subagent` call with `tasks`. Up to 8 tasks run, 4 at a time. Use a `chain` when each step needs the last step's output. `{previous}` in a step's task is the prior step's output. |
 | Nested subagents, launched by a subagent | A subagent loads the same extensions, so it has `subagent`, `tmux_run`, and `tmux_jobs` too. Every pstack workflow fits in one level. The extension limits depth and concurrency. See the environment variables below. |
 | `resume` an agent | Not available. A standard subagent runs `pi` with `--no-session`, so it keeps no session. A fix round goes to a fresh subagent, and passing the earlier subagent's worktree as `cwd` keeps its uncommitted state. A `fork` runs with `--session` on a temp copy of the parent session, and the copy is deleted when the fork ends. |
 | Steer or stop a running agent | `subagent` with `stop: "<job id>"` for a wake job, or abort a blocking call. Then give a fresh subagent consolidated scope. A print-mode Pi takes no mid-run input. |
-| Wait for agents | A blocking `subagent` call returns when its subagents finish. A wake job wakes you, so end your turn and let the wake arrive. Use `tmux_jobs` `wait` only for a short wait on named `tmux_run` jobs. A subagent in print mode waits for its own `tmux_run` jobs and wake jobs before it finishes. |
+| Wait for agents | A blocking `subagent` call returns when its subagents finish. A wake job wakes you, so end your turn and let the wake arrive. Use `tmux_jobs` `wait` only for a short wait on named `tmux_run` jobs. A subagent in print mode waits for its subagent wake jobs and for non-repeating `tmux_run` jobs that set `wake` before it finishes. |
 | Structured review findings | The `report_findings` tool. It takes an optional `level` and up to 32 `findings`. Each finding has a `file`, a `summary`, and a `failure_scenario`, and may add `line`, `short_summary`, `category`, `verdict`, and `outcome`. |
 | `file_attachments` | List the paths in the brief. |
 | `model` slug such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast` | `subagent` `model: "<provider>/<id>"` and `thinking: "<level>"`. Thinking levels are `off`, `minimal`, `low`, `medium`, `high`, and `xhigh`. A call's model and thinking override the agent's and the session's. Pi has no fast variant, so a fast choice is dropped. |
-| `~/.cursor/rules/pstack-models.mdc`, `~/.claude/rules/pstack-models.md` | `~/.pi/agent/pstack-v2-models.md`, written by `/skill:setup-pstack`. The extension shows its role lines to the model in a `pstack-models` system-prompt section. A role with no line, or a line of `inherit-parent` or `auto`, runs on the session model, so omit `model`. |
+| `~/.cursor/rules/pstack-models.mdc`, `~/.claude/rules/pstack-models.md` | `<agentDir>/pstack-v2-models.md`, written by `/skill:setup-pstack`; `<agentDir>` defaults to `~/.pi/agent`. The extension shows its role lines to the model in a `pstack-models` system-prompt section. A role with no line, or a line of `inherit-parent` or `auto`, runs on the session model, so omit `model`. |
 | A model slug the Task tool rejects | A subagent that fails because its model is not valid. Only `provider/id` values that `pi --list-models` prints work, which are the models Pi holds credentials for. An omitted model runs on the session model. |
 | Open a todolist, `TodoWrite` | Write `TODO.md`. |
 | Custom Mode, set with Option+Enter on a slash skill | `/pstack-mode <skill>`. The extension puts the skill in a `pstack-mode` system-prompt section every turn and records the choice on the session branch, so it survives `/compact`, resume, and `/tree`. `/pstack-mode off` ends it, and the footer shows the active mode. |
@@ -53,7 +53,7 @@ In this table, "subagent" means a Pi instance that the `subagent` tool starts.
 | `.cursor/skills/`, `~/.cursor/skills/` | `.pi/skills/`, `~/.pi/agent/skills/`, or the Agent Skills paths `.agents/skills/` and `~/.agents/skills/`. |
 | `.cursor/rules/*.mdc`, always-applied rules | `AGENTS.md` in the project, or `~/.pi/agent/AGENTS.md` for the user. |
 | `~/.cursor/plugins/`, `.cursor-plugin/plugin.json`, `/add-plugin` | A Pi package. Install it with `pi install <source>` and list it with `pi list`. |
-| Cursor chat transcripts in `~/.cursor/projects/<slug>/agent-transcripts/` | Pi sessions in `~/.pi/agent/sessions/--<cwd with / as ->--/*.jsonl`. Standard subagents run with no session, so they keep none. The extension names the current session's file in a `pstack-session` system-prompt section. A brief that asks a subagent to read it carries that path, because the subagent cannot find it alone. |
+| Cursor chat transcripts in `~/.cursor/projects/<slug>/agent-transcripts/` | Pi sessions in `~/.pi/agent/sessions/--<slug>--/<timestamp>_<session-id>.jsonl`, where `<slug>` is the working directory with its leading `/` or `\` removed and each `/`, `\`, or `:` replaced by `-`. That directory is the default; `sessionDir`, `--session-dir`, or `PI_CODING_AGENT_SESSION_DIR` can move it. Standard subagents run with no session, so they keep none. The extension names the current session's file in a `pstack-session` system-prompt section. A brief that asks a subagent to read it carries that path, because the subagent cannot find it alone. |
 | `/create-skill` | Write `SKILL.md` to the Agent Skills format that Pi's skills spec describes, and check that it loads with `/skill:<name>`. |
 | Cursor Automations, routines, webhook wakes, `SendToUser` | A tmux job that runs `pi -p` against a session, or Pi's RPC mode. Secrets come from environment variables the user sets, never from chat. Upstream's dormant benny pack runs Slack issue triage, then reproduce-and-fix. It needs that service, so this package does not ship it. |
 | Cursor canvas | A self-contained HTML file opened in the browser. |
@@ -93,10 +93,10 @@ In this table, "subagent" means a Pi instance that the `subagent` tool starts.
 - Each of these is mounted read-only at its host path, when it exists and lies outside the working directory:
   - This package's root.
   - `<agentDir>/skills`.
+  - `<agentDir>/pstack-v2/subagents`, which holds the `.output` logs of subagent wake jobs.
   - `~/.agents/skills`.
   - Each directory in the `skills` array of `<agentDir>/settings.json`.
-  - `<agentDir>/pstack-v2/subagents`, which holds the `.output` logs of subagent wake jobs.
-- The directory in `PI_SUBAGENT_MEMORY_DIR` is mounted writable at its host path, when it is a directory outside the working directory.
+- The directory in `PI_SUBAGENT_MEMORY_DIR` is mounted writable at its host path, when it is an existing directory outside the working directory.
 - `/cache` is mounted writable when the shared build cache is on.
 
 ### Network
@@ -113,7 +113,7 @@ The VM reaches only the hosts in `DEFAULT_ALLOWED_HOSTS` in `src/gondolin/policy
 
 ## Jobs on disk
 
-Each `tmux_run` job lives in `~/.pi/agent/pstack-v2/jobs/<id>/` and holds these files:
+Each `tmux_run` job lives in `<agentDir>/pstack-v2/jobs/<id>/`, where `<agentDir>` defaults to `~/.pi/agent`, and holds these files:
 
 - `job.json`, the job spec. Its `env` field holds the variables exported before the command runs. The field is set only when the shared build cache is on.
 - `wrapper.sh` and `wrapper.pid`.
@@ -122,4 +122,4 @@ Each `tmux_run` job lives in `~/.pi/agent/pstack-v2/jobs/<id>/` and holds these 
 
 Each spawning session runs its own tmux server on a socket in `pstack-v2-<uid>/` under the system temp directory. The socket name is a hash of the session id. `tmux_jobs` `list` prints a `tail -f` command to follow each job's output and a `tmux attach` command for each running job.
 
-Subagent wake jobs write their logs to `~/.pi/agent/pstack-v2/subagents/<id>.output`.
+Subagent wake jobs write their logs to `<agentDir>/pstack-v2/subagents/<id>.output`.

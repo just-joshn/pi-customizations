@@ -68,7 +68,7 @@ Run:
 /skill:setup-pstack
 ```
 
-[`/skill:setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you can use and asks for a reasoning budget. It shows each role and asks whether to change it. It writes `~/.pi/agent/pstack-v2-models.md`, a file of role lines that the extension adds to the system prompt in every session.
+[`/skill:setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you can use and asks for a reasoning budget. It shows each role and asks whether to change it. It writes `<agentDir>/pstack-v2-models.md`, where `<agentDir>` defaults to `~/.pi/agent`, a file of role lines that the extension adds to the system prompt in every session.
 
 Each role line names a model as `provider/id`, exactly as `pi --list-models` prints it, and a thinking level.
 
@@ -76,7 +76,7 @@ The defaults match the `large` budget. Code, prose, and judgment roles run at `x
 
 `/skill:poteto-mode` then adjusts the thinking level for each job. It raises the level one step for the hardest work and lowers it for judgment or routine work. Panel seats keep their listed level.
 
-A role with no line in the file keeps the skill's default. To restore a default, delete that role's line. A rerun of `/skill:setup-pstack` keeps every role whose model differs from the default. A file written before a default changed still pins the old default. Rerunning `/skill:setup-pstack` replaces the old defaults it recognizes and tells you which. To drop a pin it does not recognize, delete that role's line or the file first.
+A role with no line in the file runs on the session model and thinking level until a rerun of `/skill:setup-pstack` fills in its default. To restore a skill default, rerun setup or write that role's model and level explicitly. A rerun keeps every role whose model differs from the default. A file written before a default changed still pins the old default. Rerunning `/skill:setup-pstack` replaces the old defaults it recognizes and tells you which. To drop a pin it does not recognize, delete that role's line or the file first.
 
 To make a role follow your session model, set it to `inherit-parent` or `auto`. pstack then omits the model on that role's `subagent` call. Neither value is a model. A panel role takes a list, and one subagent worker runs per entry, so the list length sets the panel size. Setup also configures `swarm workers`, the default model for every `/skill:swarm` worker unless a race names a model for each arm.
 
@@ -84,7 +84,7 @@ The extension rereads the file every turn, so role lines apply from your next me
 
 ## Accept or decline the verification offers
 
-At the end of setup, `/skill:setup-pstack` looks for a way to prove app behavior, either a `verify-*` skill or an existing test script. If it finds neither, it offers once to generate a verification skill with [`/skill:create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
+At the end of setup, `/skill:setup-pstack` looks for a way to prove app behavior, either a `verify-*` skill or an existing harness. If it finds neither, it offers once to generate a verification skill with [`/skill:create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
 
 If you accept, it writes `.pi/skills/verify-<app>/`, a project skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. If you decline, setup moves on, and you can run the skill later. Setup itself installs no browser driver, dependency, or app environment. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) has the details.
 

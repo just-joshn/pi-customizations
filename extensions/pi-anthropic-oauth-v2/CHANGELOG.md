@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+- Update `README.md` to match the thinking-level map's null handling, the fixed Claude Code tool-name list, and the max-token budget increase.
+
 ## 0.2.5
 
 - Update `README.md` and `CHANGELOG.md` to match the current thinking, OAuth, caching, and error behavior, and tighten the prose.

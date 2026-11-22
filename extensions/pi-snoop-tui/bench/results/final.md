@@ -1,12 +1,12 @@
 # Final stock comparison
 
-> This file supersedes [`2026-11-15.md`](2026-11-15.md). It records the scripts under their names on the run date. `summary.py` and `report.py` are now `summary.ts` and `report.ts`, run with `node`. `run.py` is unchanged.
+> This file is the later recorded run after [`2026-11-15.md`](2026-11-15.md), not a description of the current package. It records the scripts under their names on the run date. `summary.py` and `report.py` are now `summary.ts` and `report.ts`, run with `node`. `run.py` is unchanged. Commit ids below come from the benchmark worktree and are not part of this repository's history.
 
 ## Setup
 
 - Machine: Apple M4, 10 cores
 - Pi: 1.5.2
-- Commit: bcaf77cdf381bb9c168bdb60f9521f22f4f3b756. It was HEAD when the runs started. The working tree differed only in `bench/README.md` and an untracked `bench/summary.py`, and Pi loads neither.
+- Commit: bcaf77cdf381bb9c168bdb60f9521f22f4f3b756 from the benchmark worktree. It was HEAD when the runs started. The working tree differed only in `bench/README.md` and an untracked `bench/summary.py`, and Pi loads neither.
 - Configs: stock, theme, full, interleaved with a rotating order per round
 - Rounds: startup 15, stream 7, medium 9, long 9, mixed 7, each round running every config once
 - Raw records: `final-<workload>.jsonl` beside this file

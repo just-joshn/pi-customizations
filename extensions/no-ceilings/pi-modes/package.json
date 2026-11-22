@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-modes",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Four Pi-native execution modes (Agent, Ask, Plan, Debug) with read-only enforcement, structured plan artifacts, interactive clarifying questions, mode-switch proposals, and a local NDJSON debug ingest server.",
   "type": "module",
   "license": "MIT",

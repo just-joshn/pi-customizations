@@ -145,7 +145,7 @@ Several agents in one working tree overwrite each other's files and share ports 
 - Set `isolation: "worktree"` on the `subagent` call or on a task. The call creates a git worktree for that worker. It keeps the worktree, and reports it, only if the worker leaves changes or commits.
 - Create the worktree yourself on the host with `tmux_run` running `git worktree add -b <branch> .pi/worktrees/<slug> <ref>`, and pass its path as `cwd`. The path is inside the working directory, so the worker's VM can edit it.
 
-The worker's VM mounts only its own checkout, so it can install dependencies, run your app, and record video without touching your working tree.
+The worker's VM maps `/workspace` to its own checkout, so it can install dependencies, run your app, and record video without touching your working tree. The package, skill roots, and subagent log directory are still mounted read-only.
 
 You can ask for a worktree in the prompt:
 

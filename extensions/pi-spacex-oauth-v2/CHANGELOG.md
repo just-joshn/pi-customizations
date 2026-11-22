@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+- Update `README.md` sign-in steps and the Cursor agent directory description to match the current code.
+
 ## 0.2.5
 
 - Update `README.md` and `CHANGELOG.md` to match the current Cursor key expiry, `/spacex-usage` output, Grok model filter, and runtime limits, and tighten the prose.

@@ -32,7 +32,7 @@ The editor sits between two thin rules. The top rule ends with `ready`, or `● 
 
 When the editor scrolls, the top rule starts with `↑ N` and the bottom rule ends with `↓ N`. `N` is the number of hidden lines in that direction.
 
-User messages in the transcript get the same `›`, unless they start with Markdown block syntax.
+User messages in the transcript get the same `›`, unless they start with Markdown block syntax or an inline code span.
 
 ### Working and thinking labels
 

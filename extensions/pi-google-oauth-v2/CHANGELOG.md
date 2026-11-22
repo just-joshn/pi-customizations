@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+
+- Update `README.md` sign-in steps to match Pi's account-or-API-key login screen.
+
 ## 0.1.7
 
 - Update `README.md` and `CHANGELOG.md` to document loopback login, `thinkingLevel` mapping, retries, `GOOGLE_CLOUD_PROJECT` precedence, and `verify-live.ts`, and tighten the prose.

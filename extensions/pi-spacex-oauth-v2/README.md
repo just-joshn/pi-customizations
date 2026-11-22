@@ -13,9 +13,9 @@ Built and tested against Pi 1.5.2. The package requires Node `>=22.19.0`.
 ## Sign in
 
 1. Start Pi and run `/login`.
-2. Choose **Grok Build (X subscription)** or **Cursor (X subscription)**.
+2. Choose **Sign in with an account**, then **Grok Build (X subscription)** or **Cursor (X subscription)**.
 3. For Grok Build, confirm the code that Pi shows in the browser.
-4. For Cursor, open the sign-in link that Pi shows and approve it. You can set `CURSOR_API_KEY` instead.
+4. For Cursor, open the sign-in link that Pi shows and approve it. For an existing Cursor key, choose **Sign in with an API key** or set `CURSOR_API_KEY` instead.
 5. Run `/model` and pick a `spacex-grok` model for Grok Build or a `spacex-cursor` model for Cursor.
 
 Run `/login` again to add the other provider.
@@ -48,7 +48,7 @@ While a `spacex-grok` model is selected, Pi also shows `N req left` in the statu
 ## Notes
 
 - **Undocumented Grok endpoints.** Grok Build sign-in and requests use endpoints that Grok Build does not document. The extension sends Grok Build's client name and version in its request headers. A change to an endpoint or client requirement can break them.
-- **Cursor agents.** Each Cursor turn runs a local Cursor SDK agent in `<tmpdir>/pi-spacex-cursor`, an empty directory. The agent has only the `mcp` tool group enabled, plus Pi's tools as custom tools. Pi sends its system prompt and history in the first message to a new agent, because Cursor's `systemPrompt` option needs per-account access.
+- **Cursor agents.** Each Cursor turn runs a local Cursor SDK agent in `<tmpdir>/pi-spacex-cursor`, a dedicated directory. The extension creates it and does not load a project into it. The agent has only the `mcp` tool group enabled, plus Pi's tools as custom tools. Pi sends its system prompt and history in the first message to a new agent, because Cursor's `systemPrompt` option needs per-account access.
 - **Idle agents.** When a turn ends, the agent stays idle so a follow-up message in the same conversation reuses it. The extension keeps up to 16 idle agents.
 - **Tool calls.** When the model calls a tool, the Cursor run waits up to 30 minutes for Pi to return the result.
 - **Context size.** Cursor turns report no token usage, so Pi estimates context from the transcript.

@@ -159,7 +159,7 @@ cd extensions/pi-snoop-tui/bench/visual
 uv run --with pyte python3 record-demo.py && uv run --with pillow python3 make-gif.py
 ```
 
-`record-demo.py` starts Pi in a 100x32 PTY in a fresh git workspace on `main`. It uses a fresh `PI_CODING_AGENT_DIR` whose `settings.json` sets `quietStartup`, `collapseChangelog`, and `hideThinkingBlock` to `true`, `lastChangelogVersion` to `1.5.2`, and `outputPad` to `1`. It removes `npm_config_*` variables from the environment.
+`record-demo.py` starts Pi in a 100x32 PTY in a fresh git workspace on `main`. It uses a fresh `PI_CODING_AGENT_DIR` whose `settings.json` sets `quietStartup`, `collapseChangelog`, and `hideThinkingBlock` to `true`, `lastChangelogVersion` to `1.5.2`, and `outputPad` to `1`. It drops inherited `npm_config_*` variables, then sets `npm_config_update_notifier` and `npm_config_fund` to `false`.
 
 Pi runs with `--no-extensions -e <package> -e demo-provider.ts --provider demo --model demo-model --thinking medium --no-session --offline --no-skills --no-prompt-templates --no-context-files --tools read,bash,edit,grep --use-theme snoop-dark`.
 

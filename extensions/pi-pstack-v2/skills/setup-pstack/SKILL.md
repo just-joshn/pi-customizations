@@ -46,7 +46,7 @@ Every real model written must be in the detected set and at `xhigh` or below. `i
 Write `pstack-v2-models.md` in the Pi agent directory with the `# defaults: 3` line, a `# budget` line holding the chosen budget name and the thinking level that name gives the `xhigh` defaults, as in `large (xhigh)`, and one line per role, using the same labels poteto-mode uses. Each line is `<role>[, <role>]: <provider>/<id> <thinking>[, <provider>/<id> <thinking>]`, or `inherit-parent`. Overwrite the whole file so re-runs stay idempotent. Shape:
 
 ```
-# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+# pstack model configuration. One line per role. Delete a line to run that role on the session model.
 # `inherit-parent` or `auto` as a value: the role runs on the session model (omit subagent `model`). Alias entries in a panel list still count toward its fan-out.
 # defaults: 3
 # budget: large (xhigh)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Changed
+
+- Update `README.md` to describe when plan frontmatter is written and the derived debug log filename.
+
 ## 0.1.2
 
 ### Changed

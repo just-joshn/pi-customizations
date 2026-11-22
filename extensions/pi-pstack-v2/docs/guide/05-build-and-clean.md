@@ -52,11 +52,11 @@ With the bug in context, [`/skill:tdd`](../../skills/tdd/SKILL.md) writes the sm
 
 ## Load the TypeScript rules by name
 
-[`typescript-best-practices`](../../skills/typescript-best-practices/SKILL.md) turns the type-system principles into concrete rules: discriminated unions, `unknown` at boundaries, exhaustive variants, and schema-derived types. It does not load on its own. Type `/skill:typescript-best-practices` when a task touches `.ts` or `.tsx` files.
+[`typescript-best-practices`](../../skills/typescript-best-practices/SKILL.md) turns the type-system principles into concrete rules: discriminated unions, `unknown` at boundaries, exhaustive variants, and schema-derived types. Pi can load it from its description. Type `/skill:typescript-best-practices` when you want it explicit for a task that touches `.ts` or `.tsx` files.
 
 ## Clean before you commit
 
-The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before each commit. [`/skill:deslop`](../../skills/deslop/SKILL.md) comes from cursor-team-kit and ships in this package. It checks the diff against main and removes slop the branch introduced:
+The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/skill:deslop` on the diff before commit. [`/skill:deslop`](../../skills/deslop/SKILL.md) comes from cursor-team-kit and ships in this package. It checks the diff against main and removes slop the branch introduced:
 
 - extra comments that are unnecessary or inconsistent with local style
 - defensive checks and try/catch blocks that are abnormal for trusted code paths
@@ -86,6 +86,8 @@ The agent that wrote a comment defends it, so a different reviewer should remove
 - doc comments on a public API
 - links that explain what the code cannot
 - notes on behavior that an external dependency forces
+- `// prettier-ignore`
+- lint suppressions whose rule is faulty, pedantic, or style-only
 
 It removes every other comment. A comment that explains a surprise in your own code is a refactor flag. `/skill:no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint such as "do not remove", the skill offers to encode the claim as a type, test, or lint. The comment comes out either way.
 

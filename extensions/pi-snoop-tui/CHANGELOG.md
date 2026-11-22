@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+
+- Update `README.md` user-prompt marker rule and the bench notes for historical results and environment handling.
+
 ## 0.1.5
 
 - Update `README.md`, `CHANGELOG.md`, and `bench/` docs to match the current tool rows, footer behavior, editor labels, and TypeScript benchmark scripts, and tighten the prose.

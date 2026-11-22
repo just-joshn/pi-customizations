@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+### Changed
+
+- Correct the companion-tool lists in `README.md` and the 0.1.2 `sessionDir` note.
+- Rename the two vendored private tool packages to the `@justjoshn/pi-pstack-team-kit-*` scope. No behavior change.
+
 ## 0.1.2
 
 ### Fixed
@@ -11,7 +18,7 @@
 - Restore `model: claude-opus-5-5` on `poteto-agent` and `model: fast` on `ci-watcher`, with parent-model fallback when a model is absent.
 - Keep the effort token when `setup-pstack` validates a role against the detected model set, so `medium` and `small` write different rules and dispatch carries `thinking`.
 - Split the `arena cross-judge pool` value before dispatch, so the judge runs on another vendor instead of falling back to the parent.
-- Honor a trusted project `sessionDir` over the user setting, resolve relative values from the working directory, and tell `worktree-cleanup` to pass `-s` when Pi runs with `--session-dir`.
+- Honor a project `sessionDir` over the user setting, resolve relative values from the working directory, and tell `worktree-cleanup` to pass `-s` when Pi runs with `--session-dir`.
 - Document that an unregistered explicit model fails the task instead of silently using the parent, and that an ambiguous bare id needs `provider/id`.
 
 ## 0.1.1

@@ -33,8 +33,8 @@ Playbooks and principles stay inside those skill folders. Agents stay under `age
 
 This package ships skills, including `/skill:loop`, `/skill:create-skill`, `/skill:automate`, and `/skill:goal`. The workflows call tools from these companion packages:
 
-- `@justjoshn/pi-subagents` provides `task` and `await_subagent`, used by `swarm`, `arena`, `interrogate`, `poteto-mode`, `loop-on-ci`, and `review-and-ship`.
-- `@justjoshn/pi-modes` provides `ask_question` and `switch_mode`, used by `setup-pstack`, `automate-me`, and `poteto-help`.
+- `@justjoshn/pi-subagents` provides `task` and `await_subagent`. The delegated workflows use `task`; `swarm` and `loop` also use `await_subagent`.
+- `@justjoshn/pi-modes` provides `ask_question` and `switch_mode`. `setup-pstack`, `automate-me`, `automate`, and `create-skill` use `ask_question`; `poteto-help` points at `switch_mode`.
 
 - `@justjoshn/pi-goals` provides `create_goal` and `update_goal` for `/skill:goal`. The loop skill does not use goals.
 

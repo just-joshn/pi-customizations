@@ -10,7 +10,7 @@ Prompts to copy, followed by common mistakes. Replace the paths and finish condi
 use /skill:how first to understand how this initialization works. then use /skill:why to figure out why it broke recently.
 ```
 
-`/skill:how` covers the mechanics and `/skill:why` covers the history. Each report names the sources it searched, so you know what the answer rests on.
+`/skill:how` covers the mechanics. `/skill:why` covers the history and cites the commits and discussions it used, and says what the record does not answer.
 
 ## Restate a noisy report before touching code
 
@@ -50,7 +50,7 @@ Ask only after the design settles. The plan file is the deliverable. The Multi-p
 ask /skill:arena for a second opinion on this thread and our approach
 ```
 
-Your current design becomes one candidate among several. The synthesis says whether the panel found something better or confirmed your design. The cost is small next to a design that is expensive to reverse.
+`/skill:arena` runs the same brief on several fresh attempts, then returns one artifact that grafts the best parts onto a chosen base, with a note naming the base and grafts. Your current design is not one of the candidates. The cost is small next to a design that is expensive to reverse.
 
 ## Check independent slices in parallel
 
@@ -58,7 +58,7 @@ Your current design becomes one candidate among several. The synthesis says whet
 /skill:swarm check every package under packages/ against its check.sh. one worker per package. one report.
 ```
 
-Each worker owns one package. The `subagent` call blocks until every worker finishes. The parent returns one `PASS`, `ISSUES`, or `BLOCKED` report, not raw worker output.
+Each worker owns one package. The `subagent` call blocks until every worker finishes; one call holds at most 8 tasks, so a larger set needs more calls. Each worker reports `PASS`, `ISSUES`, or `BLOCKED`. The parent returns one consolidated report with a table, issue lines, and gaps, not raw worker output.
 
 ## Review a branch skeptically
 
@@ -172,7 +172,7 @@ For a video instead, run [`/skill:ketchup-video`](../../skills/ketchup-video/SKI
 - **Trusting an unvetted number.** A warm cache or a skipped code path can fake a speedup. Run `/skill:benchmark-checklist` before the number goes anywhere.
 - **Correcting the same mistake by hand.** A correction in chat helps one run. `/skill:correct` fixes the repository so no later run repeats the mistake.
 - **Using `/skill:arena` for coverage.** `/skill:arena` repeats one design or code brief, then picks a base and grafts the best parts. `/skill:swarm` partitions slices or declared race arms and aggregates one report.
-- **Accepting every review comment.** Bots and humans file real catches and noise in one list. `/skill:interrogate` keeps only the findings that a rerun proves, lists what it dropped and why, and lets you override either way.
+- **Accepting every review comment.** Bots and humans file real catches and noise in one list. `/skill:interrogate` keeps only the findings that a rerun proves, and lists what it dropped and why.
 - **Treating `auto` as a model.** `auto` and `inherit-parent` mean "omit the model, so the subagent worker runs on your session model." [Set up pstack](./01-setup.md#pick-your-models) covers the roles.
 - **Reporting success from a green build.** A build proves the code compiles. Ask for the real command, flow, stored value, or profile, and expect the evidence in the reply.
 - **Writing a `SKILL.md` freehand.** Route it through the [Authoring or modifying a skill playbook](../../skills/poteto-mode/playbooks/authoring-a-skill.md), so validation and review happen.
