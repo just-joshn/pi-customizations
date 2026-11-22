@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Opt-in `nested-tasks: true` agent frontmatter: non-readonly children get `task` and `await_subagent` one level deep, scoped to their own runs, with lifecycle cancellation.
+
 ## 0.1.3
 
 ### Changed

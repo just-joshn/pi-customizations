@@ -103,7 +103,7 @@ Close calls:
 Not in pstack (but shipped here from team-kit, or as external companions):
 
 - `/skill:deslop`, `/skill:control-cli`, `/skill:control-ui`, and the other team-kit skills in this package (`fix-ci`, `loop-on-ci`, `review-and-ship`, `verify-this`, …) come from cursor-team-kit 1.2.0 and ship beside pstack in `@justjoshn/pi-pstack-team-kit`.
-- `/skill:loop`, `/skill:create-skill`, and `/skill:automate` are companion skills installed in `~/.agents/skills/` (not part of this package).
+- [`/skill:loop`](../loop/SKILL.md), [`/skill:create-skill`](../create-skill/SKILL.md), and [`/skill:automate`](../automate/SKILL.md) are bundled companion skills.
 - pstack has no `/orchestrate` skill. If another skill or command provides `/orchestrate`, it is not part of pstack.
 
 ## Playbooks and principles

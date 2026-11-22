@@ -18,6 +18,7 @@ const BUILTIN_SUBAGENTS: readonly SubagentDefinition[] = [
     prompt: 'You are a focused subagent executing a delegated task. Complete the task thoroughly and return a concise, accurate summary of findings and changes.',
     permissionMode: 'default',
     isBackground: false,
+    nestedTasks: false,
     source: 'builtin',
   },
   {
@@ -29,6 +30,7 @@ const BUILTIN_SUBAGENTS: readonly SubagentDefinition[] = [
     prompt: 'You are a fast read-only codebase exploration subagent. Inspect files, search patterns, trace symbols, and return a clear, evidence-backed report with exact file paths and line numbers. Do not modify any files.',
     permissionMode: 'readonly',
     isBackground: false,
+    nestedTasks: false,
     source: 'builtin',
   },
   {
@@ -40,6 +42,7 @@ const BUILTIN_SUBAGENTS: readonly SubagentDefinition[] = [
     prompt: 'You are a shell command execution specialist. Run the requested commands carefully, inspect output and exit codes, and report the concise result.',
     permissionMode: 'default',
     isBackground: false,
+    nestedTasks: false,
     source: 'builtin',
   },
   {
@@ -51,6 +54,7 @@ const BUILTIN_SUBAGENTS: readonly SubagentDefinition[] = [
     prompt: 'You are a debugging subagent. Investigate symptoms systematically, verify hypotheses against real evidence, and report root causes with exact locations.',
     permissionMode: 'default',
     isBackground: false,
+    nestedTasks: false,
     source: 'builtin',
   },
 ];
@@ -142,6 +146,7 @@ function parseSubagentFile(filePath: string, source: SubagentSource): SubagentDe
     prompt,
     permissionMode: parsePermissionMode(frontmatter),
     isBackground: readTruthy(frontmatter['background'] ?? frontmatter['is_background']),
+    nestedTasks: readTruthy(frontmatter['nested-tasks']),
     source,
     fullPath: filePath,
   };

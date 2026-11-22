@@ -93,6 +93,8 @@ const expectedTeamKitSkills = [
   'workflow-from-chats',
 ];
 
+const expectedCompanionSkills = ['automate', 'create-skill', 'goal', 'loop'];
+
 const expectedAgents = ['poteto-agent.md', 'comment-sicko.md', 'ci-watcher.md', 'thermo-nuclear-code-quality-review.md'];
 
 const expectedRules = ['no-inline-imports.md', 'typescript-exhaustive-switch.md'];
@@ -132,7 +134,7 @@ function frontmatterKeys(skillMd) {
 }
 
 const present = new Set(readdirSync(skillsDir));
-const allExpectedSkills = [...expectedPstackSkills, ...expectedPrinciples, ...expectedTeamKitSkills];
+const allExpectedSkills = [...expectedPstackSkills, ...expectedPrinciples, ...expectedTeamKitSkills, ...expectedCompanionSkills];
 const missingSkills = allExpectedSkills.filter((n) => !present.has(n));
 const missingAgents = expectedAgents.filter((a) => !existsSync(join(agentsDir, a)));
 const missingRules = expectedRules.filter((r) => !existsSync(join(rulesDir, r)));
@@ -145,12 +147,15 @@ if (missingAgents.length) failures.push(`missing agents: ${missingAgents.join(',
 if (missingRules.length) failures.push(`missing rules: ${missingRules.join(', ')}`);
 if (missingPlaybooks.length) failures.push(`missing playbooks: ${missingPlaybooks.join(', ')}`);
 
+const unavailableTools = /`(tmux_run|tmux_jobs|subagent|update_state|SendToUser)`|agent: "scout"|cursor-subscriptions-/;
 for (const name of allExpectedSkills) {
   const skillMd = join(skillsDir, name, 'SKILL.md');
   if (!existsSync(skillMd) || readFileSync(skillMd, 'utf8').length < 20) {
     failures.push(`empty or missing SKILL.md: ${name}`);
     continue;
   }
+  const hit = readFileSync(skillMd, 'utf8').match(unavailableTools);
+  if (hit) failures.push(`${name} calls ${hit[0]}, which no documented companion package provides`);
   const keys = frontmatterKeys(skillMd);
   if (!keys) {
     failures.push(`missing frontmatter: ${name}`);
@@ -174,13 +179,6 @@ for (const agent of expectedAgents) {
 }
 if (cursorLeftovers.length) failures.push(`Cursor leftovers in agents: ${cursorLeftovers.join(', ')}`);
 
-const unavailableTools = /`(tmux_run|tmux_jobs|subagent)`|agent: "scout"/;
-for (const name of allExpectedSkills) {
-  const text = readFileSync(join(skillsDir, name, 'SKILL.md'), 'utf8');
-  const hit = text.match(unavailableTools);
-  if (hit) failures.push(`${name} calls ${hit[0]}, which no documented companion package provides`);
-}
-
 if (failures.length) {
   throw new Error(failures.join('\n'));
 }
@@ -191,6 +189,7 @@ console.info(
       pstackSkills: expectedPstackSkills.length,
       principles: expectedPrinciples.length,
       teamKitSkills: expectedTeamKitSkills.length,
+      companionSkills: expectedCompanionSkills.length,
       playbooks: expectedPlaybooks.length,
       agents: expectedAgents.length,
       rules: expectedRules.length,
