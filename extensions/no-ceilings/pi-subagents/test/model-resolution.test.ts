@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import { resolveModelForSubagent } from '../src/runner.ts';
 import type { SubagentDefinition } from '../src/types.ts';
 
