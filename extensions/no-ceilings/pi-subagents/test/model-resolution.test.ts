@@ -1,10 +1,15 @@
-import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { describe, expect, it } from 'vitest';
+
 import { resolveModelForSubagent } from '../src/runner.ts';
 import type { SubagentDefinition } from '../src/types.ts';
 
-const parent = { id: 'parent', provider: 'test' };
-const other = { id: 'other', provider: 'test' };
+interface TestModel {
+  readonly id: string;
+  readonly provider: string;
+}
+
+const parent: TestModel = { id: 'parent', provider: 'test' };
+const other: TestModel = { id: 'other', provider: 'test' };
 
 const ctx = {
   model: parent,
@@ -13,7 +18,7 @@ const ctx = {
     getAll: () => [parent, other],
     find: (provider: string, id: string) => (provider === 'test' && id === 'other' ? other : undefined),
   },
-} as unknown as ExtensionContext;
+};
 
 const definition: SubagentDefinition = {
   name: 'test',

@@ -57,7 +57,21 @@ export interface RunTaskOptions {
   readonly onUpdate?: (details: TaskToolDetails) => void;
 }
 
-export function resolveModelForSubagent(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ExtensionContext): Model<Api> | undefined {
+interface ModelIdentity {
+  readonly id: string;
+  readonly provider: string;
+}
+
+interface ModelResolutionContext<M extends ModelIdentity> {
+  readonly model: M | undefined;
+  readonly modelRegistry: {
+    getAvailable(): readonly M[];
+    getAll(): readonly M[];
+    find(provider: string, id: string): M | undefined;
+  };
+}
+
+export function resolveModelForSubagent<M extends ModelIdentity>(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ModelResolutionContext<M>): M | undefined {
   const requested = (requestedModel ?? '').trim();
   const effective = requested || definition.model;
   if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default' || effective === 'auto' || effective === 'inherit-parent') {
