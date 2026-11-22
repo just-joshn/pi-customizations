@@ -353,6 +353,59 @@ function failedOutcome(plan: AttemptPlan, error: string, code: SubagentFailureCo
   return { status: 'error', error, errorCode: code, durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
 }
 
+async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan, attempt: number): Promise<SubagentRunOutcome> {
+  const attemptRecord = callbacks.store.updateSession(plan.agentId, (record) => ({
+    ...record,
+    attempts: attempt,
+    status: 'running',
+    error: undefined,
+    errorCode: undefined,
+    streamingText: undefined,
+    streamingThinking: undefined,
+    currentStep: attempt === ONE ? 'Starting…' : `Retry ${attempt}/${plan.maxAttempts}`,
+    updatedAt: Date.now(),
+  }));
+  if (attemptRecord) {
+    callbacks.emit('status', attemptRecord);
+  }
+  try {
+    const child = await createChildSession(
+      {
+        ctx: options.ctx,
+        definition: options.definition,
+        agentId: plan.agentId,
+        parentSessionId: plan.parentSessionId,
+        childDepth: plan.childDepth,
+        ownedAgentIds: plan.ownedAgentIds,
+        model: plan.model,
+        thinking: plan.thinking,
+        readonly: plan.readonly,
+        existingTranscriptPath: attempt === ONE ? plan.existing?.transcriptPath : undefined,
+        isResume: attempt === ONE && plan.isResume,
+        cwd: plan.childCwd,
+        nestedScope: plan.nestedScope,
+        createNestedExtension: options.createNestedExtension,
+      },
+      callbacks.getParentActiveTools(),
+    );
+    callbacks.store.updateSession(plan.agentId, (record) => ({ ...record, ...(child.transcriptPath !== undefined ? { transcriptPath: child.transcriptPath } : {}) }));
+    return await runSession({
+      session: child.session,
+      agentId: plan.agentId,
+      prompt: plan.prompt,
+      startedAt: plan.startedAt,
+      abortController: plan.abortController,
+      transcriptPath: child.transcriptPath,
+      nestedScope: plan.nestedScope,
+      store: callbacks.store,
+      callbacks,
+      ...(options.onUpdate ? { onUpdate: options.onUpdate } : {}),
+    });
+  } catch (error) {
+    return { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
+  }
+}
+
 async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan): Promise<SubagentRunOutcome> {
   let lastOutcome: SubagentRunOutcome = failedOutcome(plan, 'Subagent did not run', 'failed');
   for (let attempt: number = ONE; attempt <= plan.maxAttempts; attempt += ONE) {
@@ -362,56 +415,7 @@ async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, 
     if (plan.abortController.signal.aborted) {
       return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
     }
-    const attemptRecord = callbacks.store.updateSession(plan.agentId, (record) => ({
-      ...record,
-      attempts: attempt,
-      status: 'running',
-      error: undefined,
-      errorCode: undefined,
-      streamingText: undefined,
-      streamingThinking: undefined,
-      currentStep: attempt === ONE ? 'Starting…' : `Retry ${attempt}/${plan.maxAttempts}`,
-      updatedAt: Date.now(),
-    }));
-    if (attemptRecord) {
-      callbacks.emit('status', attemptRecord);
-    }
-    try {
-      const child = await createChildSession(
-        {
-          ctx: options.ctx,
-          definition: options.definition,
-          agentId: plan.agentId,
-          parentSessionId: plan.parentSessionId,
-          childDepth: plan.childDepth,
-          ownedAgentIds: plan.ownedAgentIds,
-          model: plan.model,
-          thinking: plan.thinking,
-          readonly: plan.readonly,
-          existingTranscriptPath: attempt === ONE ? plan.existing?.transcriptPath : undefined,
-          isResume: attempt === ONE && plan.isResume,
-          cwd: plan.childCwd,
-          nestedScope: plan.nestedScope,
-          createNestedExtension: options.createNestedExtension,
-        },
-        callbacks.getParentActiveTools(),
-      );
-      callbacks.store.updateSession(plan.agentId, (record) => ({ ...record, ...(child.transcriptPath !== undefined ? { transcriptPath: child.transcriptPath } : {}) }));
-      lastOutcome = await runSession({
-        session: child.session,
-        agentId: plan.agentId,
-        prompt: plan.prompt,
-        startedAt: plan.startedAt,
-        abortController: plan.abortController,
-        transcriptPath: child.transcriptPath,
-        nestedScope: plan.nestedScope,
-        store: callbacks.store,
-        callbacks,
-        ...(options.onUpdate ? { onUpdate: options.onUpdate } : {}),
-      });
-    } catch (error) {
-      lastOutcome = { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
-    }
+    lastOutcome = await runOneAttempt(options, callbacks, plan, attempt);
     if (lastOutcome.status !== 'error' || plan.abortController.signal.aborted) {
       return lastOutcome;
     }
@@ -552,15 +556,128 @@ async function attachWorktreeSummary(agentId: string, callbacks: RunnerCallbacks
   callbacks.store.updateSession(agentId, (current) => ({ ...current, worktreeSummary: summary, updatedAt: Date.now() }));
 }
 
+interface RunSetup {
+  readonly parentSessionId: string;
+  readonly prompt: string;
+  readonly existing: SubagentSessionRecord | undefined;
+  readonly isReadonly: boolean;
+  readonly wantBackground: boolean;
+  readonly backgroundReason: BackgroundReason;
+  readonly maxAttempts: number;
+  readonly model: Model<Api> | undefined;
+  readonly thinking: SubagentThinkingLevel | undefined;
+}
+
+function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
+  const resolved = resolveSubagentModel({ model: options.input.model, thinking: options.input.thinking }, options.definition, options.ctx);
+  const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store);
+  const wantBackground = options.input.run_in_background ?? options.definition.isBackground ?? config.defaultBackground;
+  const backgroundReason: BackgroundReason = wantBackground && (options.input.run_in_background !== undefined || options.definition.isBackground !== undefined) ? 'agent_request' : 'unspecified';
+  return {
+    parentSessionId,
+    prompt,
+    existing,
+    isReadonly: options.input.readonly ?? existing?.readonly ?? options.definition.permissionMode === 'readonly',
+    wantBackground,
+    backgroundReason,
+    maxAttempts: Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts)),
+    model: resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition),
+    thinking: resolved.thinking,
+  };
+}
+
+function buildNestedScope(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, setup: RunSetup, agentId: string): NestedScope | undefined {
+  const childDepth = resolveChildDepth(setup.existing, options.scope, callbacks.store);
+  const ownedAgentIds = setup.existing
+    ? callbacks.store
+        .listSessions()
+        .filter((session) => session.ownerAgentId === agentId)
+        .map((session) => session.agentId)
+    : [];
+  if (setup.isReadonly || !options.definition.nestedTasks || childDepth >= config.maxNestingDepth) {
+    return undefined;
+  }
+  return { depth: childDepth, maxDepth: config.maxNestingDepth, ownerAgentId: agentId, rootSessionId: setup.parentSessionId, agentIds: new Set(ownedAgentIds) };
+}
+
+function startBackgroundRun(
+  options: RunTaskOptions,
+  callbacks: RunnerCallbacks,
+  agentId: string,
+  initialRecord: SubagentSessionRecord,
+  startedAt: number,
+  runPromise: Promise<SubagentRunOutcome>,
+  abortController: AbortController,
+): TaskToolDetails {
+  const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
+  callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
+  callbacks.onStateChanged();
+  return buildDetailsFromRecord(callbacks.store.getSession(agentId) ?? initialRecord);
+}
+
+async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, setup: RunSetup, agentId: string, startedAt: number): Promise<TaskToolDetails> {
+  const nestedScope = buildNestedScope(options, callbacks, config, setup, agentId);
+  const childDepth = resolveChildDepth(setup.existing, options.scope, callbacks.store);
+  const initialRecord = buildInitialSessionRecord({
+    options,
+    agentId,
+    parentSessionId: setup.parentSessionId,
+    existing: setup.existing,
+    resolvedModel: describeModel(setup.model),
+    thinking: setup.thinking,
+    readonly: setup.isReadonly,
+    wantBackground: setup.wantBackground,
+    backgroundReason: setup.backgroundReason,
+    startedAt,
+    maxAttempts: setup.maxAttempts,
+  });
+  callbacks.store.upsertSession(initialRecord);
+  options.scope?.agentIds.add(agentId);
+  callbacks.emit('runStart', initialRecord);
+  callbacks.onStateChanged();
+
+  const requestedWorktree = options.input.worktree ?? options.definition.worktree;
+  const childCwd = setup.existing?.worktree !== undefined ? setup.existing.worktree.path : requestedWorktree ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;
+  const abortController = new AbortController();
+  if (!setup.wantBackground && options.signal?.aborted) {
+    abortController.abort();
+  }
+  const plan: AttemptPlan = {
+    agentId,
+    prompt: setup.prompt,
+    parentSessionId: setup.parentSessionId,
+    startedAt,
+    existing: setup.existing,
+    isResume: setup.existing !== undefined,
+    childDepth,
+    ownedAgentIds: [...(nestedScope?.agentIds ?? [])],
+    nestedScope,
+    abortController,
+    childCwd,
+    maxAttempts: setup.maxAttempts,
+    retryDelayMs: config.retry.delayMs,
+    model: setup.model,
+    thinking: setup.thinking,
+    readonly: setup.isReadonly,
+  };
+  const runPromise = runAttempts(options, callbacks, plan).then(async (outcome) => {
+    await attachWorktreeSummary(agentId, callbacks);
+    return outcome;
+  });
+  options.onUpdate?.(buildDetailsFromRecord(initialRecord));
+
+  if (!setup.wantBackground) {
+    return runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
+  }
+  return startBackgroundRun(options, callbacks, agentId, initialRecord, startedAt, runPromise, abortController);
+}
+
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
   const config = callbacks.getConfig(options.ctx.cwd);
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
   const provisionalReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
-  const resolved = resolveSubagentModel({ model: options.input.model, thinking: options.input.thinking }, options.definition, options.ctx);
-  const model = resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition);
-  const maxAttempts = Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts));
 
   if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {
     const awaited = await awaitBackgroundSubagent(resumeId, callbacks.store, undefined, options.signal);
@@ -573,77 +690,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
     throw new SubagentRunError('empty-prompt');
   }
 
-  const wantBackground = options.input.run_in_background ?? options.definition.isBackground ?? config.defaultBackground;
-  const backgroundReason: BackgroundReason = wantBackground && (options.input.run_in_background !== undefined || options.definition.isBackground !== undefined) ? 'agent_request' : 'unspecified';
-  const existing = resumeId ? validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store) : undefined;
-  const isReadonly = options.input.readonly ?? existing?.readonly ?? options.definition.permissionMode === 'readonly';
-  const agentId = existing ? existing.agentId : randomUUID();
-  const startedAt = Date.now();
-  const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
-  const ownedAgentIds = existing
-    ? callbacks.store
-        .listSessions()
-        .filter((session) => session.ownerAgentId === agentId)
-        .map((session) => session.agentId)
-    : [];
-  const nestedScope: NestedScope | undefined =
-    !isReadonly && options.definition.nestedTasks && childDepth < config.maxNestingDepth
-      ? { depth: childDepth, maxDepth: config.maxNestingDepth, ownerAgentId: agentId, rootSessionId: parentSessionId, agentIds: new Set(ownedAgentIds) }
-      : undefined;
-  const initialRecord = buildInitialSessionRecord({
-    options,
-    agentId,
-    parentSessionId,
-    existing,
-    resolvedModel: describeModel(model),
-    thinking: resolved.thinking,
-    readonly: isReadonly,
-    wantBackground,
-    backgroundReason,
-    startedAt,
-    maxAttempts,
-  });
-  callbacks.store.upsertSession(initialRecord);
-  options.scope?.agentIds.add(agentId);
-  callbacks.emit('runStart', initialRecord);
-  callbacks.onStateChanged();
-
-  const requestedWorktree = options.input.worktree ?? options.definition.worktree;
-  const childCwd = existing?.worktree !== undefined ? existing.worktree.path : requestedWorktree ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;
-  const abortController = new AbortController();
-  if (!wantBackground && options.signal?.aborted) {
-    abortController.abort();
-  }
-  const plan: AttemptPlan = {
-    agentId,
-    prompt,
-    parentSessionId,
-    startedAt,
-    existing,
-    isResume: existing !== undefined,
-    childDepth,
-    ownedAgentIds,
-    nestedScope,
-    abortController,
-    childCwd,
-    maxAttempts,
-    retryDelayMs: config.retry.delayMs,
-    model,
-    thinking: resolved.thinking,
-    readonly: isReadonly,
-  };
-  const runPromise = runAttempts(options, callbacks, plan).then(async (outcome) => {
-    await attachWorktreeSummary(agentId, callbacks);
-    return outcome;
-  });
-
-  options.onUpdate?.(buildDetailsFromRecord(initialRecord));
-
-  if (wantBackground) {
-    const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
-    callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
-    callbacks.onStateChanged();
-    return buildDetailsFromRecord(callbacks.store.getSession(agentId) ?? initialRecord);
-  }
-  return runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
+  const setup = resolveRunSetup(options, callbacks, config, parentSessionId, prompt, resumeId);
+  const agentId = setup.existing ? setup.existing.agentId : randomUUID();
+  return launchRun(options, callbacks, config, setup, agentId, Date.now());
 }

@@ -80,18 +80,8 @@ function appendItem(record: SubagentSessionRecord, item: Omit<SubagentTranscript
   return { ...record, transcriptItems: [...record.transcriptItems, next], updatedAt: item.timestamp };
 }
 
-/**
- * Projects one child session event onto the run record. Every field the pager and the tool result
- * render comes from here, so a new event only needs one branch.
- */
-export function reduceSubagentEvent(record: SubagentSessionRecord, event: AgentSessionEvent, progress: RunProgress, now: number): ReduceResult {
-  if (event.type === 'turn_start') {
-    return {
-      record: { ...record, streamingText: undefined, streamingThinking: undefined, currentStep: RESPONDING_STEP, updatedAt: now },
-      progress,
-      checkpoint: false,
-    };
-  }
+/** Message streaming and assistant text. Returns undefined for events this helper does not own. */
+function reduceMessageEvent(record: SubagentSessionRecord, event: AgentSessionEvent, progress: RunProgress, now: number): ReduceResult | undefined {
   if (event.type === 'message_update') {
     const sub = event.assistantMessageEvent;
     if (sub.type === 'text_delta') {
@@ -104,15 +94,20 @@ export function reduceSubagentEvent(record: SubagentSessionRecord, event: AgentS
     }
     return { record, progress, checkpoint: false };
   }
-  if (event.type === 'message_end') {
-    const flushed = flushThinking(record, now);
-    const text = messageText(event.message);
-    if (event.message.role !== 'assistant' || text.trim().length === ZERO) {
-      return { record: flushed, progress, checkpoint: false };
-    }
-    const withItem = appendItem({ ...flushed, streamingText: undefined }, { role: 'assistant', text, completed: true, timestamp: now });
-    return { record: { ...withItem, lastMessage: text }, progress: { ...progress, finalMessage: text }, checkpoint: false };
+  if (event.type !== 'message_end') {
+    return undefined;
   }
+  const flushed = flushThinking(record, now);
+  const text = messageText(event.message);
+  if (event.message.role !== 'assistant' || text.trim().length === ZERO) {
+    return { record: flushed, progress, checkpoint: false };
+  }
+  const withItem = appendItem({ ...flushed, streamingText: undefined }, { role: 'assistant', text, completed: true, timestamp: now });
+  return { record: { ...withItem, lastMessage: text }, progress: { ...progress, finalMessage: text }, checkpoint: false };
+}
+
+/** Tool call lifecycle with arguments and output. Returns undefined for other events. */
+function reduceToolEvent(record: SubagentSessionRecord, event: AgentSessionEvent, progress: RunProgress, now: number): ReduceResult | undefined {
   if (event.type === 'tool_execution_start') {
     const activity = formatToolActivity(event.toolName, typeof event.args === 'object' && event.args !== null ? event.args : {});
     const withItem = appendItem(
@@ -121,23 +116,34 @@ export function reduceSubagentEvent(record: SubagentSessionRecord, event: AgentS
     );
     return { record: withItem, progress, checkpoint: false };
   }
-  if (event.type === 'tool_execution_end') {
-    const toolCallCount = progress.toolCallCount + ONE;
-    const resultText = toolResultText(event.result);
-    const withEndedTool = {
-      ...record,
-      toolCallCount,
-      activeToolVerb: undefined,
-      activeToolDetail: undefined,
-      currentStep: WORKING_STEP,
-      updatedAt: now,
-      transcriptItems: record.transcriptItems.map((item) => (item.id === event.toolCallId ? { ...item, completed: true, ...(event.isError ? { isError: true } : {}) } : item)),
-    };
-    const withResult = resultText.length > ZERO ? appendItem(withEndedTool, { role: 'result', text: resultText, toolName: event.toolName, isError: event.isError, completed: true, timestamp: now }) : { ...withEndedTool, updatedAt: now };
-    return { record: withResult, progress: { ...progress, toolCallCount }, checkpoint: true };
+  if (event.type !== 'tool_execution_end') {
+    return undefined;
+  }
+  const toolCallCount = progress.toolCallCount + ONE;
+  const resultText = toolResultText(event.result);
+  const withEndedTool = {
+    ...record,
+    toolCallCount,
+    activeToolVerb: undefined,
+    activeToolDetail: undefined,
+    currentStep: WORKING_STEP,
+    updatedAt: now,
+    transcriptItems: record.transcriptItems.map((item) => (item.id === event.toolCallId ? { ...item, completed: true, ...(event.isError ? { isError: true } : {}) } : item)),
+  };
+  const withResult = resultText.length > ZERO ? appendItem(withEndedTool, { role: 'result', text: resultText, toolName: event.toolName, isError: event.isError, completed: true, timestamp: now }) : { ...withEndedTool, updatedAt: now };
+  return { record: withResult, progress: { ...progress, toolCallCount }, checkpoint: true };
+}
+
+/**
+ * Projects one child session event onto the run record. Every field the pager and the tool result
+ * render comes from here, so a new event only needs one branch.
+ */
+export function reduceSubagentEvent(record: SubagentSessionRecord, event: AgentSessionEvent, progress: RunProgress, now: number): ReduceResult {
+  if (event.type === 'turn_start') {
+    return { record: { ...record, streamingText: undefined, streamingThinking: undefined, currentStep: RESPONDING_STEP, updatedAt: now }, progress, checkpoint: false };
   }
   if (event.type === 'turn_end') {
     return { record: { ...flushThinking(record, now), streamingText: undefined, status: 'running', updatedAt: now }, progress, checkpoint: true };
   }
-  return { record, progress, checkpoint: false };
+  return reduceMessageEvent(record, event, progress, now) ?? reduceToolEvent(record, event, progress, now) ?? { record, progress, checkpoint: false };
 }
