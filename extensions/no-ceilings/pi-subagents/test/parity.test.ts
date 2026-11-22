@@ -665,6 +665,231 @@ describe('state growth and disabled defaults', () => {
   });
 });
 
+describe('read-only floors and retry safety', () => {
+  it('keeps a read-only agent read-only when the call passes readonly false', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'explored' });
+      const result = await h.callTool('task', { description: 'Explore', prompt: 'go', subagent_type: 'explore', readonly: false });
+      expect(result.details?.readonly).toBe(true);
+      expect((loaderOptions['extensionFactories'] as readonly unknown[]).length).toBe(TWO);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('does not retry a refused resume into a fresh run', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Resume job', prompt: 'go', subagent_type: 'general-purpose' });
+      const transcriptPath = first.details?.transcriptPath;
+      expect(transcriptPath).toBeDefined();
+      if (transcriptPath === undefined) {
+        return;
+      }
+      writeFileSync(transcriptPath, 'not a session\n');
+      enqueuePlan({ finalText: 'should not run' });
+      const corrupt = await h.callTool('task', { description: 'Resume job', prompt: 'again', subagent_type: 'general-purpose', resume: first.details?.agentId, max_attempts: TWO });
+      expect(corrupt.details?.status).toBe('error');
+      expect(corrupt.details?.errorCode).toBe('resume-unavailable');
+      expect(corrupt.details?.attempts).toBe(ONE);
+      expect(captured.length).toBe(ONE);
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('state snapshots and shutdown', () => {
+  it('keeps a completed run transcript in a mid-run snapshot', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'completed reply' });
+      const completed = await h.callTool('task', { description: 'Completed job', prompt: 'first prompt', subagent_type: 'general-purpose' });
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', events: toolEvent('read', 'call-slow', { path: 'a.ts' }), waitForRelease: gate.promise });
+      const running = await h.callTool('task', { description: 'Running job', prompt: 'second prompt', subagent_type: 'general-purpose', run_in_background: true });
+      for (let attempt = ZERO; attempt < 40; attempt += 1) {
+        if (h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')) {
+          break;
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, 5);
+        });
+      }
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(state?.data).sessions;
+      const completedRecord = sessions.find((session) => session.agentId === completed.details?.agentId);
+      const runningRecord = sessions.find((session) => session.agentId === running.details?.agentId);
+      expect(completedRecord?.transcriptItems?.some((item) => item.text.includes('completed reply'))).toBe(true);
+      expect(runningRecord?.transcriptItems === undefined || runningRecord.transcriptItems.length === ZERO).toBe(true);
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: running.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('marks running records cancelled on session shutdown', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Shutdown job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      await h.emit('session_shutdown', {});
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string }[] }>(state?.data).sessions;
+      expect(sessions.find((session) => session.agentId === launched.details?.agentId)?.status).toBe('cancelled');
+      gate.release();
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('hook events, thinking, and duplicates', () => {
+  it('emits run_end when a worktree cannot be created', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      await expect(h.callTool('task', { description: 'Broken worktree', prompt: 'go', subagent_type: 'general-purpose', worktree: true })).rejects.toMatchObject({ code: 'worktree-failed' });
+      const end = h.getEmittedEvents().find((entry) => entry.channel === 'subagents:run_end');
+      const payload = double<{ readonly errorCode?: string } | undefined>(end?.data);
+      expect(payload?.errorCode).toBe('worktree-failed');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('records thinking from thinking_end and message_end blocks once', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({
+        finalText: 'done',
+        events: [
+          double<AgentSessionEvent>({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_start', contentIndex: ZERO, partial: {} } }),
+          double<AgentSessionEvent>({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_end', contentIndex: ZERO, content: 'hidden reasoning', partial: {} } }),
+          double<AgentSessionEvent>({
+            type: 'message_end',
+            message: {
+              role: 'assistant',
+              content: [
+                { type: 'thinking', thinking: 'hidden reasoning' },
+                { type: 'text', text: 'done' },
+              ],
+            },
+          }),
+        ],
+      });
+      const result = await h.callTool('task', { description: 'Thinking job', prompt: 'think', subagent_type: 'general-purpose' });
+      const record = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems: readonly { readonly role: string; readonly text: string }[] }[] }>(
+        h
+          .getEntries()
+          .filter((entry) => entry.customType === 'pi-subagents-state')
+          .at(-ONE)?.data,
+      );
+      const items = record.sessions.find((session) => session.agentId === result.details?.agentId)?.transcriptItems ?? [];
+      const thinking = items.filter((item) => item.role === 'thinking');
+      expect(thinking.length).toBe(ONE);
+      expect(thinking[ZERO]?.text).toContain('hidden reasoning');
+      expect(items.filter((item) => item.role === 'assistant').length).toBe(ONE);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('stores one assistant item when the final text has trailing whitespace', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'All done.', events: [double<AgentSessionEvent>({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'All done.\n' }] } })] });
+      const result = await h.callTool('task', { description: 'Whitespace job', prompt: 'go', subagent_type: 'general-purpose' });
+      const record = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems: readonly { readonly role: string; readonly text: string }[] }[] }>(
+        h
+          .getEntries()
+          .filter((entry) => entry.customType === 'pi-subagents-state')
+          .at(-ONE)?.data,
+      );
+      const items = record.sessions.find((session) => session.agentId === result.details?.agentId)?.transcriptItems ?? [];
+      expect(items.filter((item) => item.role === 'assistant').length).toBe(ONE);
+      expect(items.find((item) => item.role === 'assistant')?.text).toBe('All done.');
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('abort handling and pre-aborted worktrees', () => {
+  it('reports an aborted await as aborted', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Await abort', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      const controller = new AbortController();
+      controller.abort();
+      const awaited = await h.callTool('await_subagent', { agent_id: launched.details?.agentId }, { signal: controller.signal });
+      expect(awaited.details?.errorCode).toBe('aborted');
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('reports an aborted resume-await as aborted', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Resume abort', prompt: 'go', subagent_type: 'explore', run_in_background: true });
+      const controller = new AbortController();
+      controller.abort();
+      await expect(h.callTool('task', { description: 'Resume abort', prompt: '', subagent_type: 'explore', resume: launched.details?.agentId }, { signal: controller.signal })).rejects.toMatchObject({ code: 'aborted' });
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('does not create a worktree when the call is already aborted', async () => {
+    const h = createTestHarness();
+    try {
+      execFileSync('git', ['init'], { cwd: h.cwd });
+      execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: h.cwd });
+      execFileSync('git', ['config', 'user.name', 'Test'], { cwd: h.cwd });
+      writeFileSync(join(h.cwd, 'README.md'), 'base\n');
+      execFileSync('git', ['add', '.'], { cwd: h.cwd });
+      execFileSync('git', ['commit', '-m', 'base'], { cwd: h.cwd });
+      await h.emit('session_start', {});
+      const controller = new AbortController();
+      controller.abort();
+      const result = await h.callTool('task', { description: 'Aborted worktree', prompt: 'go', subagent_type: 'general-purpose', worktree: true }, { signal: controller.signal });
+      expect(result.details?.status).toBe('cancelled');
+      expect(result.details?.worktreePath).toBeUndefined();
+      const branches = execFileSync('git', ['branch', '--list', 'pi-subagents/*'], { cwd: h.cwd, encoding: 'utf8' });
+      expect(branches.trim()).toBe('');
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('nesting limit at zero', () => {
   it('rejects a top-level subagent when no nesting level is allowed', async () => {
     const h = createTestHarness();

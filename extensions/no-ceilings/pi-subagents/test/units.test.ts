@@ -124,6 +124,23 @@ describe('discovery helpers', () => {
     expect(parseContextWindow(-1)).toBeUndefined();
   });
 
+  it('ignores configured agent directories inside an untrusted project', () => {
+    const home = tempDir('cfg-trust-home-');
+    const agentDir = tempDir('cfg-trust-agent-');
+    const cwd = tempDir('cfg-trust-cwd-');
+    const outside = tempDir('cfg-trust-outside-');
+    mkdirSync(join(cwd, '.pi/agents'), { recursive: true });
+    mkdirSync(outside, { recursive: true });
+    writeFileSync(join(cwd, '.pi/agents/evil.md'), ['---', 'name: evil-agent', 'description: Evil', '---', 'Body.'].join('\n'));
+    writeFileSync(join(outside, 'good.md'), ['---', 'name: good-agent', 'description: Good', '---', 'Body.'].join('\n'));
+    const config = parseSubagentsConfig({ agents: { directories: [join(cwd, '.pi/agents'), outside] } }, undefined, { cwd }).config;
+    const untrusted = discoverSubagents(cwd, { homeDir: home, agentDir, config, projectTrusted: false });
+    expect(untrusted.some((definition) => definition.name === 'evil-agent')).toBe(false);
+    expect(untrusted.some((definition) => definition.name === 'good-agent')).toBe(true);
+    const trusted = discoverSubagents(cwd, { homeDir: home, agentDir, config, projectTrusted: true });
+    expect(trusted.some((definition) => definition.name === 'evil-agent')).toBe(true);
+  });
+
   it('loads project agents only for trusted projects', () => {
     const home = tempDir('trust-home-');
     const agentDir = tempDir('trust-agent-');
@@ -363,6 +380,25 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
   });
 
+  it('blocks program-file and quoted sed writers and awk redirection', () => {
+    expect(isSafeReadOnlyCommand('sed -f script.sed input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand("sed -n 'w/path/out.txt' input.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand('awk -f script.awk')).toBe(false);
+    expect(isSafeReadOnlyCommand('awk \'BEGIN { print "x" > "f" }\'')).toBe(false);
+  });
+
+  it('keeps read-only git inspection available', () => {
+    expect(isSafeReadOnlyCommand('git branch --show-current')).toBe(true);
+    expect(isSafeReadOnlyCommand('git branch --list')).toBe(true);
+    expect(isSafeReadOnlyCommand('git branch -a')).toBe(true);
+    expect(isSafeReadOnlyCommand('git remote show origin')).toBe(true);
+    expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
+    expect(isSafeReadOnlyCommand('git tag -l "v*"')).toBe(true);
+    expect(isSafeReadOnlyCommand('git branch new-branch')).toBe(false);
+    expect(isSafeReadOnlyCommand('git tag v1')).toBe(false);
+    expect(isSafeReadOnlyCommand('git remote add origin url')).toBe(false);
+  });
+
   it('blocks other safe-list commands that write files or refs', () => {
     expect(isSafeReadOnlyCommand('uniq a.txt b.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('uniq a.txt')).toBe(true);
@@ -409,6 +445,19 @@ describe('adversary regressions', () => {
     const dir = tempDir('claude-tools-');
     writeFileSync(join(dir, 'reviewer.md'), ['---', 'name: reviewer', 'description: Reviews', 'tools: Read, Grep, Glob, Bash, Edit, Write, LS, MultiEdit', '---', 'Review.'].join('\n'));
     expect(parseSubagentFile(join(dir, 'reviewer.md'), 'workspace')?.tools).toEqual(['read', 'grep', 'find', 'bash', 'edit', 'write', 'ls', 'edit']);
+  });
+
+  it('reads YAML yes and on as true', () => {
+    const dir = tempDir('yaml-bools-');
+    const parse = (fileName: string, line: string) => {
+      writeFileSync(join(dir, fileName), ['---', 'name: ' + fileName, 'description: Test', line, '---', 'Body.'].join('\n'));
+      return parseSubagentFile(join(dir, fileName), 'workspace');
+    };
+    expect(parse('ro.md', 'readonly: yes')?.permissionMode).toBe('readonly');
+    expect(parse('ro-on.md', 'readonly: on')?.permissionMode).toBe('readonly');
+    expect(parse('dis.md', 'disabled: yes')?.enabled).toBe(false);
+    expect(parse('en.md', 'enabled: yes')?.enabled).toBe(true);
+    expect(parse('nested.md', 'nested-tasks: yes')?.nestedTasks).toBe(true);
   });
 
   it('treats disabled as the inverse of enabled', () => {
