@@ -1,0 +1,43 @@
+{
+  "name": "@justjoshn/pi-pstack-team-kit",
+  "version": "0.1.1",
+  "private": true,
+  "description": "pstack v0.15.46 skills/principles/playbooks/agents plus cursor-team-kit 1.2.0 skills/agents/rules, as a Pi-native skills package.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/no-ceilings/pi-pstack-team-kit"
+  },
+  "keywords": [
+    "pi-package",
+    "no-ceilings",
+    "pstack",
+    "cursor-team-kit",
+    "poteto-mode"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "files": [
+    "skills",
+    "agents",
+    "rules",
+    "scripts",
+    "assets",
+    "README.md",
+    "CHANGELOG.md",
+    "TEAM-KIT-LICENSE",
+    "!**/node_modules"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "test": "node ./scripts/verify-inventory.mjs",
+    "typecheck": "node -e \"process.exit(0)\""
+  }
+}
