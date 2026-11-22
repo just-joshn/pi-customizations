@@ -1,10 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.1.4
 
 ### Added
 
+- `task` accepts a `thinking` level and passes it to the child session, so a caller can set the child's reasoning level.
 - Opt-in `nested-tasks: true` agent frontmatter: non-readonly children get `task` and `await_subagent` one level deep, scoped to their own runs, with lifecycle cancellation.
+
+### Changed
+
+- An explicit unknown `model` now fails with a clear error instead of silently using the parent model. An invalid agent default still inherits the parent. Pass `provider/id` when a bare id is ambiguous across providers.
+
+### Fixed
+
+- Persist nested child ownership (`ownerAgentId`) so a resumed owner can still await and cancel the children it launched.
+- Walk the `ownerAgentId` ancestry when resolving depth, so a resumed grandchild stays inside the nesting bound.
+- Record the root session id on a nested scope so nested children keep the root lineage when their owner is resumed.
 
 ## 0.1.3
 

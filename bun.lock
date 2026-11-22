@@ -62,11 +62,11 @@
     },
     "extensions/no-ceilings/pi-pstack-team-kit": {
       "name": "@justjoshn/pi-pstack-team-kit",
-      "version": "0.1.1",
+      "version": "0.1.2",
     },
     "extensions/no-ceilings/pi-subagents": {
       "name": "@justjoshn/pi-subagents",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "dependencies": {
         "zod": "^4",
       },
