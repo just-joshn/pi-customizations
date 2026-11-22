@@ -81,6 +81,14 @@ describe('config', () => {
     expect(config.explore.model).toBe('default');
   });
 
+  it('keeps valid sections when another section is invalid', () => {
+    const parsed = parseSubagentsConfig({ explore: { model: 'inherit' }, worktrees: { branchPrefix: 'custom' }, retry: { maxAttempts: 99 } }, undefined, { cwd: '/tmp' });
+    expect(parsed.config.explore.model).toBe('inherit');
+    expect(parsed.config.worktrees.branchPrefix).toBe('custom');
+    expect(parsed.config.retry.maxAttempts).toBe(1);
+    expect(parsed.errors.some((error) => error.includes('retry.maxAttempts'))).toBe(true);
+  });
+
   it('reports an invalid shape with a field path', () => {
     const parsed = parseSubagentsConfig({ nesting: { maxDepth: 99 }, explore: { model: 7 } }, undefined, { cwd: '/tmp' });
     expect(parsed.errors.some((error) => error.includes('nesting.maxDepth'))).toBe(true);

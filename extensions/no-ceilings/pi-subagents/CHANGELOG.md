@@ -30,6 +30,14 @@
 
 - Extension load no longer calls runtime actions, so `pi -e` and `pi -ne -e` load the extension without an initialization error.
 - The agent catalog now reaches the model through the run's system prompt. Injecting it as a custom message was stripped by the extension's own context filter, so custom agent names and descriptions never arrived.
+- A resumed or retried read-only run stays read-only. The record's mode now wins over the agent definition.
+- One invalid config section no longer resets the valid sections.
+- Restored records adopt the current parent session, so retry works after a restart.
+- Unknown models, unknown agent types, and resuming another agent's child now raise typed failure codes instead of the generic code.
+- Run records persist when the run starts, not only when it ends.
+- `/tasks prune` refuses to delete a worktree under a running subagent and no longer forces removal of a dirty worktree.
+- Per-agent command names are slugified, so an agent name with spaces is still callable.
+- An awaited background run clears its wakeup suppression, and a read-only agent that inherits tools no longer receives write tools.
 
 ## 0.1.4
 

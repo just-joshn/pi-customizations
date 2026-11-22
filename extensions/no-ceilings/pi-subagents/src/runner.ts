@@ -5,12 +5,14 @@ import type { AgentSession, AgentSessionEvent, ExtensionContext, ExtensionFactor
 import type { SubagentsConfig } from './config.ts';
 import type { SubagentEventName, SubagentEventPayload } from './events.ts';
 import { errorMessage, failureCode, SubagentRunError } from './failures.ts';
+import { formatSessionTitle } from './formatters.ts';
 import { applyDefinitionToModel, describeModel, resolveSubagentModel } from './model-resolution.ts';
 import { createChildSession } from './session-factory.ts';
 import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
 import { type RunProgress, reduceSubagentEvent } from './transcript.ts';
 import {
   type BackgroundCompletionPayload,
+  type BackgroundReason,
   DEFAULT_TASK_DESCRIPTION,
   type NestedScope,
   ONE,
@@ -162,7 +164,7 @@ function buildBackgroundPayload(record: SubagentSessionRecord, outcome: Subagent
     ...(record.toolCallId.trim().length > ZERO ? { toolCallId: record.toolCallId } : {}),
     kind: 'subagent',
     status,
-    title: record.description,
+    title: formatSessionTitle(record.description, record.prompt, record.agentId),
     ...(detail ? { detail } : {}),
     ...(record.transcriptPath ? { outputPath: record.transcriptPath } : {}),
     ...(record.failureId ? { failureId: record.failureId } : {}),
@@ -201,8 +203,10 @@ function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, pr
   const reduced = reduceSubagentEvent(previous, event, progress, Date.now());
   request.store.upsertSession(reduced.record);
   if (reduced.checkpoint) {
+    const before = previous.checkpoints.length;
     const checkpoint = request.store.withCheckpoint(request.agentId, { transcriptPath: request.transcriptPath });
-    if (checkpoint) {
+    const after = request.store.getSession(request.agentId)?.checkpoints.length ?? before;
+    if (checkpoint && after > before) {
       request.callbacks.emit('checkpoint', request.store.getSession(request.agentId) ?? reduced.record, { checkpointSeq: checkpoint.seq });
     }
   }
@@ -314,6 +318,7 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
     void active.completionPromise.then(() => finish('done'));
   });
   if (raceResult === 'done') {
+    store.unsuppressWakeup(agentId);
     const updated = store.getSession(agentId);
     return { outcome: 'complete', ...(updated ? { record: updated } : {}) };
   }
@@ -482,6 +487,7 @@ interface InitialRecordRequest {
   readonly thinking: SubagentThinkingLevel | undefined;
   readonly readonly: boolean;
   readonly wantBackground: boolean;
+  readonly backgroundReason: BackgroundReason;
   readonly startedAt: number;
   readonly maxAttempts: number;
 }
@@ -503,7 +509,7 @@ function buildInitialSessionRecord(request: InitialRecordRequest): SubagentSessi
     readonly: request.readonly,
     status: 'running',
     isBackground: request.wantBackground,
-    backgroundReason: request.wantBackground ? 'agent_request' : 'unspecified',
+    backgroundReason: request.backgroundReason,
     attempts: ONE,
     maxAttempts: request.maxAttempts,
     currentStep: request.wantBackground ? 'Running in background' : 'Starting…',
@@ -526,12 +532,14 @@ async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbac
   });
   if (!created.ok) {
     const failed = callbacks.store.markFailure(agentId, 'worktree-failed', created.error);
+    callbacks.onStateChanged();
     throw new SubagentRunError('worktree-failed', failed?.failureId === undefined ? created.error : `${created.error} (failure_id: ${failed.failureId})`);
   }
   const updated = callbacks.store.updateSession(agentId, (record) => ({ ...record, worktree: created.worktree, updatedAt: Date.now() }));
   if (updated) {
     callbacks.emit('worktree', updated);
   }
+  callbacks.onStateChanged();
   return created.worktree.path;
 }
 
@@ -549,12 +557,12 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
-  const isReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
+  const provisionalReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
   const resolved = resolveSubagentModel({ model: options.input.model, thinking: options.input.thinking }, options.definition, options.ctx);
   const model = resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition);
   const maxAttempts = Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts));
 
-  if (resumeId && prompt.length === ZERO && isReadonly && options.input.run_in_background !== true) {
+  if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {
     const awaited = await awaitBackgroundSubagent(resumeId, callbacks.store, undefined, options.signal);
     if (awaited.outcome === 'complete' && awaited.record) {
       return buildDetailsFromRecord(awaited.record);
@@ -566,7 +574,9 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   }
 
   const wantBackground = options.input.run_in_background ?? options.definition.isBackground ?? config.defaultBackground;
+  const backgroundReason: BackgroundReason = wantBackground && (options.input.run_in_background !== undefined || options.definition.isBackground !== undefined) ? 'agent_request' : 'unspecified';
   const existing = resumeId ? validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store) : undefined;
+  const isReadonly = options.input.readonly ?? existing?.readonly ?? options.definition.permissionMode === 'readonly';
   const agentId = existing ? existing.agentId : randomUUID();
   const startedAt = Date.now();
   const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
@@ -589,12 +599,14 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
     thinking: resolved.thinking,
     readonly: isReadonly,
     wantBackground,
+    backgroundReason,
     startedAt,
     maxAttempts,
   });
   callbacks.store.upsertSession(initialRecord);
   options.scope?.agentIds.add(agentId);
   callbacks.emit('runStart', initialRecord);
+  callbacks.onStateChanged();
 
   const requestedWorktree = options.input.worktree ?? options.definition.worktree;
   const childCwd = existing?.worktree !== undefined ? existing.worktree.path : requestedWorktree ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;

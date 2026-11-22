@@ -103,10 +103,12 @@ function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedS
 
 const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent]);
 
-function applyInheritedTools(session: AgentSession, parentActiveTools: readonly string[], nestedScope: NestedScope | undefined): void {
+const READONLY_BLOCKED_TOOLS = new Set(['write', 'edit', 'delete']);
+
+function applyInheritedTools(session: AgentSession, parentActiveTools: readonly string[], nestedScope: NestedScope | undefined, readonly: boolean): void {
   const callable = new Set(session.getCallableToolNames());
   const nested = nestedScope === undefined ? [] : [...NESTED_TOOL_SET];
-  const inherited = parentActiveTools.filter((name) => (callable.has(name) || nested.includes(name)) && !NESTED_TOOL_SET.has(name));
+  const inherited = parentActiveTools.filter((name) => (callable.has(name) || nested.includes(name)) && !NESTED_TOOL_SET.has(name) && (!readonly || !READONLY_BLOCKED_TOOLS.has(name)));
   if (inherited.length === ZERO) {
     return;
   }
@@ -137,7 +139,7 @@ export async function createChildSession(request: ChildSessionRequest, parentAct
     resourceLoader,
   });
   if (tools === undefined) {
-    applyInheritedTools(session, parentActiveTools, request.nestedScope);
+    applyInheritedTools(session, parentActiveTools, request.nestedScope, request.readonly);
   }
   const transcriptPath = sessionManager.getSessionFile() ?? request.existingTranscriptPath;
   if (transcriptPath) {

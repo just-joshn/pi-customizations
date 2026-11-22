@@ -1,4 +1,5 @@
 import type { Api, Model } from '@earendil-works/pi-ai';
+import { SubagentRunError } from './failures.ts';
 import { type SubagentDefinition, type SubagentSampling, type SubagentThinkingLevel, ZERO } from './types.ts';
 
 const FAST_MODEL_HINTS = ['haiku', 'flash', 'mini', 'nano', 'fast', 'lite'] as const;
@@ -65,7 +66,7 @@ export function resolveModelForSubagent<M extends ModelIdentity>(requestedModel:
     return found;
   }
   if (requested.length > ZERO) {
-    throw new Error(`Unknown model "${effective}". Pass a registered model id from pi --list-models, or "inherit".`);
+    throw new SubagentRunError('model-unknown', `"${effective}". Pass a registered model id from pi --list-models, or "inherit".`);
   }
   return ctx.model;
 }

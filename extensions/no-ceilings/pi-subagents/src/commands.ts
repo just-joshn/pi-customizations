@@ -12,11 +12,20 @@ export interface CommandCallbacks {
   readonly reloadDefinitions: (cwd: string) => readonly SubagentDefinition[];
   readonly getConfig: (cwd: string) => SubagentsConfig;
   readonly retryRun: (agentId: string, ctx: ExtensionContext) => Promise<void>;
-  readonly pruneWorktrees: (agentId: string) => Promise<boolean>;
+  readonly pruneWorktrees: (agentId: string) => Promise<PruneResult>;
   readonly registerAgentCommands: (definitions: readonly SubagentDefinition[]) => void;
 }
 
 const BACKGROUND_FLAG = '--bg';
+
+export type PruneResult = 'removed' | 'missing' | 'busy' | 'failed';
+
+const PRUNE_MESSAGES: Readonly<Record<PruneResult, { readonly text: string; readonly level: 'info' | 'warning' }>> = {
+  removed: { text: 'Removed worktree for', level: 'info' },
+  missing: { text: 'No worktree found for', level: 'warning' },
+  busy: { text: 'Subagent is still running, so its worktree was kept for', level: 'warning' },
+  failed: { text: 'Could not remove the worktree for', level: 'warning' },
+};
 
 function formatAgentsList(definitions: readonly SubagentDefinition[]): string {
   return definitions
@@ -85,8 +94,9 @@ async function handleTasksCommand(rawArgs: string, ctx: ExtensionContext, callba
     return;
   }
   if (subcommand === 'prune' && targetId) {
-    const removed = await callbacks.pruneWorktrees(targetId);
-    ctx.ui.notify(removed ? `Removed worktree for ${targetId}` : `No worktree found for ${targetId}`, removed ? 'info' : 'warning');
+    const result = await callbacks.pruneWorktrees(targetId);
+    const message = PRUNE_MESSAGES[result];
+    ctx.ui.notify(`${message.text} ${targetId}`, message.level);
     return;
   }
   if (!ctx.hasUI) {
@@ -154,6 +164,13 @@ function registerSubagentCommand(pi: ExtensionAPI, callbacks: CommandCallbacks):
   });
 }
 
+function slugifyCommandName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function splitAgentArgs(rawArgs: string): { readonly prompt: string; readonly background: boolean } {
   const args = CommandArgsSchema.parse(rawArgs).trim();
   return args.startsWith(BACKGROUND_FLAG) ? { prompt: args.slice(BACKGROUND_FLAG.length).trim(), background: true } : { prompt: args, background: false };
@@ -161,8 +178,14 @@ function splitAgentArgs(rawArgs: string): { readonly prompt: string; readonly ba
 
 /** One command per discovered agent, named like Pi's own `skill:` commands. */
 export function registerAgentCommands(pi: ExtensionAPI, definitions: readonly SubagentDefinition[]): void {
+  const registered = new Set<string>();
   for (const definition of definitions) {
-    pi.registerCommand(`subagent:${definition.name}`, {
+    const commandName = slugifyCommandName(definition.name);
+    if (commandName.length === ZERO || registered.has(commandName)) {
+      continue;
+    }
+    registered.add(commandName);
+    pi.registerCommand(`subagent:${commandName}`, {
       description: definition.description || `Run the ${definition.name} subagent`,
       handler: async (rawArgs, ctx) => {
         const { prompt, background } = splitAgentArgs(rawArgs);

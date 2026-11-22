@@ -182,9 +182,10 @@ describe('store', () => {
     const persisted = store.toPersistedState();
     expect(persisted.sessions[ZERO]?.checkpoints?.length).toBe(TWO);
     const restored = createSubagentStore();
-    restored.restoreFromPersisted(JSON.parse(JSON.stringify(persisted)));
+    restored.restoreFromPersisted(JSON.parse(JSON.stringify(persisted)), 'new-parent-session');
     expect(restored.getSession('agent-1')?.status).toBe('error');
     expect(restored.getSession('agent-1')?.checkpoints.length).toBe(TWO);
+    expect(restored.getSession('agent-1')?.parentSessionId).toBe('new-parent-session');
   });
 
   it('suppresses, drains, and re-enables wakeups', () => {

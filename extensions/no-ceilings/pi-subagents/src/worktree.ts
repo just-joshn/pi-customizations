@@ -113,7 +113,7 @@ export async function removeSubagentWorktree(worktree: SubagentWorktree): Promis
   if (!existsSync(worktree.path)) {
     return { ok: true };
   }
-  const removed = await git(worktree.repoRoot, ['worktree', 'remove', '--force', worktree.path]);
+  const removed = await git(worktree.repoRoot, ['worktree', 'remove', worktree.path]);
   if (removed.ok) {
     return { ok: true };
   }

@@ -39,16 +39,6 @@ const WorktreesConfigSchema = z.object({
   branchPrefix: z.string().min(ONE).default(DEFAULT_WORKTREE_BRANCH_PREFIX),
 });
 
-const SubagentsConfigFileSchema = z.object({
-  explore: ExploreConfigSchema.default(() => ExploreConfigSchema.parse({})),
-  browser: BrowserConfigSchema.default(() => BrowserConfigSchema.parse({})),
-  agents: AgentsConfigSchema.default(() => AgentsConfigSchema.parse({})),
-  nesting: NestingConfigSchema.default(() => NestingConfigSchema.parse({})),
-  defaults: DefaultsConfigSchema.default(() => DefaultsConfigSchema.parse({})),
-  retry: RetryConfigSchema.default(() => RetryConfigSchema.parse({})),
-  worktrees: WorktreesConfigSchema.default(() => WorktreesConfigSchema.parse({})),
-});
-
 export interface ExploreConfig {
   readonly enabled: boolean;
   /** `default` uses the built-in fast model pick, `inherit` uses the parent model, anything else is a model id. */
@@ -131,27 +121,45 @@ function resolveConfiguredPath(rawPath: string, cwd: string): string {
   return rawPath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(rawPath) ? rawPath : resolve(cwd, rawPath);
 }
 
+/** Parses one section, so one bad value cannot reset the sections that are valid. */
+function parseSection<T>(schema: z.ZodType<T>, raw: unknown, key: string, errors: string[]): T {
+  const parsed = schema.safeParse(raw ?? {});
+  if (parsed.success) {
+    return parsed.data;
+  }
+  for (const issue of parsed.error.issues) {
+    errors.push(`${key}.${issue.path.join('.') || key}: ${issue.message}`);
+  }
+  return schema.parse({});
+}
+
 export function parseSubagentsConfig(userRaw: unknown, projectRaw: unknown, options: { readonly cwd: string; readonly flags?: ConfigFlagOverrides }): { readonly config: SubagentsConfig; readonly errors: readonly string[] } {
-  const parsed = SubagentsConfigFileSchema.safeParse(mergeRawConfigs(userRaw, projectRaw));
-  const errors = parsed.success ? [] : parsed.error.issues.map((issue) => `${issue.path.join('.') || 'config'}: ${issue.message}`);
-  const file = parsed.success ? parsed.data : SubagentsConfigFileSchema.parse({});
+  const merged = asRecord(mergeRawConfigs(userRaw, projectRaw));
+  const errors: string[] = [];
+  const explore = parseSection(ExploreConfigSchema, merged['explore'], 'explore', errors);
+  const browser = parseSection(BrowserConfigSchema, merged['browser'], 'browser', errors);
+  const agents = parseSection(AgentsConfigSchema, merged['agents'], 'agents', errors);
+  const nesting = parseSection(NestingConfigSchema, merged['nesting'], 'nesting', errors);
+  const defaults = parseSection(DefaultsConfigSchema, merged['defaults'], 'defaults', errors);
+  const retry = parseSection(RetryConfigSchema, merged['retry'], 'retry', errors);
+  const worktrees = parseSection(WorktreesConfigSchema, merged['worktrees'], 'worktrees', errors);
   const depthOverride = parseDepthOverride(options.flags?.maxNestingDepth);
   const exploreModelOverride = options.flags?.exploreModel?.trim();
   return {
     config: {
       explore: {
-        enabled: file.explore.enabled,
-        model: exploreModelOverride !== undefined && exploreModelOverride.length > ZERO ? exploreModelOverride : file.explore.model,
+        enabled: explore.enabled,
+        model: exploreModelOverride !== undefined && exploreModelOverride.length > ZERO ? exploreModelOverride : explore.model,
       },
-      browser: { enabled: file.browser.enabled, serverHints: file.browser.serverHints },
-      disabledAgents: file.agents.disabled,
-      extraAgentDirectories: file.agents.directories.map((dirPath) => resolveConfiguredPath(dirPath, options.cwd)),
-      maxNestingDepth: depthOverride ?? file.nesting.maxDepth,
-      defaultBackground: file.defaults.background,
-      retry: { maxAttempts: file.retry.maxAttempts, delayMs: file.retry.delayMs },
+      browser: { enabled: browser.enabled, serverHints: browser.serverHints },
+      disabledAgents: agents.disabled,
+      extraAgentDirectories: agents.directories.map((dirPath) => resolveConfiguredPath(dirPath, options.cwd)),
+      maxNestingDepth: depthOverride ?? nesting.maxDepth,
+      defaultBackground: defaults.background,
+      retry: { maxAttempts: retry.maxAttempts, delayMs: retry.delayMs },
       worktrees: {
-        root: file.worktrees.root === undefined ? undefined : resolveConfiguredPath(file.worktrees.root, options.cwd),
-        branchPrefix: file.worktrees.branchPrefix,
+        root: worktrees.root === undefined ? undefined : resolveConfiguredPath(worktrees.root, options.cwd),
+        branchPrefix: worktrees.branchPrefix,
       },
       configFiles: [],
       errors,

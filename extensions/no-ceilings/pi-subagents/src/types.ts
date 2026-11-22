@@ -103,7 +103,7 @@ export interface SubagentDefinition {
   readonly forceDefaultModel: boolean;
   readonly prompt: string;
   readonly permissionMode: SubagentPermissionMode;
-  readonly isBackground: boolean;
+  readonly isBackground: boolean | undefined;
   readonly nestedTasks: boolean;
   readonly thinking: SubagentThinkingLevel | undefined;
   readonly sampling: SubagentSampling | undefined;
@@ -174,7 +174,7 @@ export interface SubagentSessionRecord {
   readonly thinking?: SubagentThinkingLevel | undefined;
   readonly readonly: boolean;
   readonly status: SubagentStatus;
-  readonly isBackground: boolean;
+  readonly isBackground: boolean | undefined;
   readonly backgroundReason: BackgroundReason;
   readonly attempts: number;
   readonly maxAttempts: number;
@@ -229,7 +229,7 @@ export interface TaskToolDetails {
   readonly thinking?: SubagentThinkingLevel;
   readonly readonly: boolean;
   readonly status: SubagentStatus;
-  readonly isBackground: boolean;
+  readonly isBackground: boolean | undefined;
   readonly backgroundReason: BackgroundReason;
   readonly attempts: number;
   readonly maxAttempts: number;

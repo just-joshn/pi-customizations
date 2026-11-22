@@ -1,5 +1,6 @@
 import type { Api, Model } from '@earendil-works/pi-ai';
 import { describe, expect, it } from 'vitest';
+import { SubagentRunError } from '../src/failures.ts';
 import { applyDefinitionToModel, resolveModelForSubagent, resolveSubagentModel } from '../src/model-resolution.ts';
 import type { SubagentDefinition } from '../src/types.ts';
 import { double, makeDefinition } from './harness.ts';
@@ -36,7 +37,8 @@ describe('subagent model resolution', () => {
   });
 
   it('throws on an unregistered explicit id instead of silently using the parent', () => {
-    expect(() => resolveModelForSubagent('missing', definition, ctx)).toThrow('Unknown model "missing"');
+    expect(() => resolveModelForSubagent('missing', definition, ctx)).toThrow(SubagentRunError);
+    expect(() => resolveModelForSubagent('missing', definition, ctx)).toThrow('Unknown model: "missing"');
   });
 
   it('falls back to the parent when the agent default is unavailable', () => {

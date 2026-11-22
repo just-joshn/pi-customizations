@@ -1,6 +1,6 @@
 import { type ExtensionAPI, type ExtensionContext, getAgentDir, type SessionEntry } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
-import { registerAgentCommands, registerSubagentCommands } from './commands.ts';
+import { type PruneResult, registerAgentCommands, registerSubagentCommands } from './commands.ts';
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, type SubagentsConfig } from './config.ts';
 import { discoverSubagents, resolveSubagentDefinition } from './discovery.ts';
 import { emitSubagentEvent } from './events.ts';
@@ -36,7 +36,7 @@ function restorePersistedSessions(ctx: ExtensionContext, store: SubagentStore): 
   }
   const parsed = PersistedSubagentsStateSchema.safeParse(lastEntry.data);
   if (parsed.success) {
-    store.restoreFromPersisted(parsed.data);
+    store.restoreFromPersisted(parsed.data, ctx.sessionManager.getSessionId());
   }
 }
 
@@ -202,7 +202,15 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
       await runSubagentTask(
         {
           toolCallId: record.toolCallId,
-          input: { description: record.description, prompt: record.prompt, subagent_type: record.subagentType, resume: record.agentId, max_attempts: record.maxAttempts },
+          input: {
+            description: record.description,
+            prompt: record.prompt,
+            subagent_type: record.subagentType,
+            resume: record.agentId,
+            readonly: record.readonly,
+            max_attempts: record.maxAttempts,
+            ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
+          },
           definition,
           ctx,
           createNestedExtension,
@@ -214,13 +222,16 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     }
   };
 
-  const pruneWorktrees = async (agentId: string): Promise<boolean> => {
+  const pruneWorktrees = async (agentId: string): Promise<PruneResult> => {
     const record = store.getSession(agentId);
     if (!record?.worktree) {
-      return false;
+      return 'missing';
+    }
+    if (store.isRunBusy(agentId)) {
+      return 'busy';
     }
     const removed = await removeSubagentWorktree(record.worktree);
-    return removed.ok;
+    return removed.ok ? 'removed' : 'failed';
   };
 
   store.subscribe(() => {

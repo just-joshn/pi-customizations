@@ -117,6 +117,10 @@ function readField(frontmatter: RawFrontmatter, key: keyof typeof FRONTMATTER_KE
   return undefined;
 }
 
+function hasField(frontmatter: RawFrontmatter, key: keyof typeof FRONTMATTER_KEYS): boolean {
+  return FRONTMATTER_KEYS[key].some((alias) => frontmatter[alias] !== undefined && frontmatter[alias] !== null);
+}
+
 function readTruthy(value: unknown): boolean {
   if (typeof value === 'boolean') {
     return value;
@@ -275,7 +279,7 @@ export function parseSubagentFile(filePath: string, source: SubagentSource): Sub
     forceDefaultModel: readTruthy(readField(frontmatter, 'forceDefaultModel')),
     prompt,
     permissionMode: parsePermissionMode(frontmatter),
-    isBackground: readTruthy(readField(frontmatter, 'background')),
+    isBackground: hasField(frontmatter, 'background') ? readTruthy(readField(frontmatter, 'background')) : undefined,
     nestedTasks: readTruthy(readField(frontmatter, 'nestedTasks')),
     thinking: parseThinking(readField(frontmatter, 'thinking')),
     sampling: parseSampling(readField(frontmatter, 'sampling')),
@@ -340,7 +344,7 @@ function builtinGeneralPurpose(): BuiltinSpec {
       forceDefaultModel: false,
       prompt: 'You are a focused subagent executing a delegated task. Complete the task thoroughly and return a concise, accurate summary of findings and changes.',
       permissionMode: 'default',
-      isBackground: false,
+      isBackground: undefined,
       nestedTasks: false,
       thinking: undefined,
       sampling: undefined,
@@ -362,7 +366,7 @@ function builtinExplore(config: SubagentsConfig | undefined): BuiltinSpec {
       forceDefaultModel: false,
       prompt: 'You are a fast read-only codebase exploration subagent. Inspect files, search patterns, trace symbols, and return a clear, evidence-backed report with exact file paths and line numbers. Do not modify any files.',
       permissionMode: 'readonly',
-      isBackground: false,
+      isBackground: undefined,
       nestedTasks: false,
       thinking: undefined,
       sampling: undefined,
@@ -384,7 +388,7 @@ function builtinShell(): BuiltinSpec {
       forceDefaultModel: false,
       prompt: 'You are a shell command execution specialist. Run the requested commands carefully, inspect output and exit codes, and report the concise result.',
       permissionMode: 'default',
-      isBackground: false,
+      isBackground: undefined,
       nestedTasks: false,
       thinking: undefined,
       sampling: undefined,
@@ -406,7 +410,7 @@ function builtinDebug(): BuiltinSpec {
       forceDefaultModel: false,
       prompt: 'You are a debugging subagent. Investigate symptoms systematically, verify hypotheses against real evidence, and report root causes with exact locations.',
       permissionMode: 'default',
-      isBackground: false,
+      isBackground: undefined,
       nestedTasks: false,
       thinking: undefined,
       sampling: undefined,
@@ -428,7 +432,7 @@ function builtinBrowser(integration: string): BuiltinSpec {
       forceDefaultModel: false,
       prompt: 'You are a browser automation subagent. Use the available MCP browser tools to inspect and drive the page. Report what you observed with concrete evidence such as page titles, selectors, and captured text.',
       permissionMode: 'default',
-      isBackground: false,
+      isBackground: undefined,
       nestedTasks: false,
       thinking: undefined,
       sampling: undefined,

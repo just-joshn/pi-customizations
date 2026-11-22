@@ -2,6 +2,7 @@ import type { AgentToolUpdateCallback } from '@earendil-works/pi-agent-core';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { resolveSubagentDefinition, selectSubagentType } from './discovery.ts';
+import { SubagentRunError } from './failures.ts';
 import { awaitBackgroundSubagent, type RunnerCallbacks, runSubagentTask } from './runner.ts';
 import {
   type AwaitSubagentDetails,
@@ -96,7 +97,7 @@ function resolveDefinitionOrThrow(definitions: readonly SubagentDefinition[], pa
   const definition = resolveSubagentDefinition(definitions, selected);
   if (!definition) {
     const available = definitions.map((candidate) => candidate.name).join(', ');
-    throw new Error(`Unknown subagent_type "${params.subagent_type ?? ''}". Available subagents: ${available}`);
+    throw new SubagentRunError('type-unknown', `"${params.subagent_type ?? ''}". Available subagents: ${available}`);
   }
   return definition;
 }
@@ -121,7 +122,7 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
       const definition = resolveDefinitionOrThrow(definitions, parsed);
       const resumeId = parsed.resume?.trim();
       if (callbacks.scope && resumeId && !callbacks.scope.agentIds.has(resumeId)) {
-        throw new Error(`Cannot resume subagent ${resumeId}: it was not launched by this agent.`);
+        throw new SubagentRunError('resume-not-owned', resumeId);
       }
       const forwardUpdate = createUpdateForwarder(onUpdate);
       const runOptions = {

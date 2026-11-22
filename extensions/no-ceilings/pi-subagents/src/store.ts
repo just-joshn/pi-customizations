@@ -65,7 +65,7 @@ export interface SubagentStore {
   readonly unsuppressWakeup: (agentId: string) => void;
   readonly hasPendingWakeups: () => boolean;
   readonly subscribe: (listener: () => void) => () => void;
-  readonly restoreFromPersisted: (persisted: PersistedSubagentsState) => void;
+  readonly restoreFromPersisted: (persisted: PersistedSubagentsState, parentSessionId: string) => void;
   readonly toPersistedState: () => PersistedSubagentsState;
   readonly reset: () => void;
 }
@@ -92,7 +92,7 @@ function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentReco
     ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
     readonly: record.readonly,
     status,
-    isBackground: record.isBackground,
+    isBackground: record.isBackground ?? false,
     backgroundReason: record.backgroundReason,
     attempts: record.attempts,
     maxAttempts: record.maxAttempts,
@@ -303,9 +303,12 @@ export function createSubagentStore(): SubagentStore {
         state = { ...state, listeners: state.listeners.filter((item) => item !== listener) };
       };
     },
-    restoreFromPersisted: (persisted) => {
+    restoreFromPersisted: (persisted, parentSessionId) => {
       const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>(
-        (acc, rec) => ({ ...acc, [rec.agentId]: { ...rec, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] } }),
+        (acc, rec) => ({
+          ...acc,
+          [rec.agentId]: { ...rec, parentSessionId, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] },
+        }),
         {},
       );
       cell.commit({ ...state, sessions: restored });

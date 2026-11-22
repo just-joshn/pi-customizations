@@ -87,7 +87,7 @@ Add more project directories with `agents.directories` in the config file. `.mdc
 | `retry` | Default `max_attempts`. |
 | `enabled`, `disabled` | Hide the agent without deleting the file. |
 
-Children load project rules (`AGENTS.md`, `CLAUDE.md`) because the child resource loader keeps context files enabled. They get the parent's credentials, the parent's extension providers, and the parent's permission guard.
+Children load project rules (`AGENTS.md`, `CLAUDE.md`) because the child resource loader keeps context files enabled. They inherit the parent's credentials and extension providers, and they carry the read-only guard when the agent or the call asks for it. Extension `tool_call` hooks from other extensions are not cloned into a child session.
 
 ### Invoking an agent
 
@@ -123,7 +123,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Branch: `<branchPrefix>/<slug>-<3 hex>`.
 - Path: `worktrees.root` when set, else `<session dir>/worktrees/`.
 - The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge.
-- `/tasks prune <id>` removes the worktree directory. The branch stays for merging.
+- `/tasks prune <id>` removes the worktree directory. It refuses while the subagent still runs and does not force a dirty worktree. The branch stays for merging.
 
 ## Observability
 

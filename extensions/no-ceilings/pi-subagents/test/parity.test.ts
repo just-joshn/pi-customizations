@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -286,6 +286,90 @@ describe('delegation: retries and checkpoints', () => {
   });
 });
 
+describe('failure codes and resume safety', () => {
+  it('keeps a readonly subagent readonly when it is resumed', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first pass' });
+      const first = await h.callTool('task', { description: 'Read only run', prompt: 'go', subagent_type: 'general-purpose', readonly: true });
+      expect(first.details?.readonly).toBe(true);
+      enqueuePlan({ finalText: 'second pass' });
+      const resumed = await h.callTool('task', { description: 'Read only again', prompt: 'go', subagent_type: 'general-purpose', resume: first.details?.agentId });
+      expect(resumed.details?.readonly).toBe(true);
+      const factories = loaderOptions['extensionFactories'] as readonly unknown[];
+      expect(factories.length).toBe(TWO);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('reports typed failure codes for an unknown model and an unknown agent type', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      await expect(h.callTool('task', { description: 'Bad model', prompt: 'go', subagent_type: 'general-purpose', model: 'not-a-model' })).rejects.toMatchObject({ code: 'model-unknown' });
+      await expect(h.callTool('task', { description: 'Bad type', prompt: 'go', subagent_type: 'not-an-agent' })).rejects.toMatchObject({ code: 'type-unknown' });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('retries a run restored from an earlier session', async () => {
+    const persisted = {
+      sessions: [
+        {
+          agentId: '11111111-2222-4333-8444-555555555555',
+          parentSessionId: 'previous-session',
+          toolCallId: 'call-restored',
+          subagentType: 'general-purpose',
+          description: 'Restored run',
+          prompt: 'Do the restored work',
+          readonly: false,
+          status: 'error',
+          isBackground: false,
+          backgroundReason: 'unspecified',
+          error: 'boom',
+          toolCallCount: ZERO,
+          startedAt: 1,
+          updatedAt: 2,
+        },
+      ],
+    };
+    const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'recovered' });
+      await h.runCommand('tasks', 'retry 11111111-2222-4333-8444-555555555555');
+      await h.runCommand('tasks', 'list');
+      expect(h.getNotifications().at(-ONE)?.message).toContain('[success/fg]');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('persists the run record before the subagent finishes', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Slow background', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly prompt: string }[] }>(state?.data).sessions;
+      const recorded = sessions.find((session) => session.agentId === launched.details?.agentId);
+      expect(recorded?.prompt).toBe('go');
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('built-in subagents and explore configuration', () => {
   it('uses the fast model for explore by default and the parent model when configured to inherit', async () => {
     const defaults = createTestHarness();
@@ -420,6 +504,21 @@ describe('custom subagents: discovery and frontmatter', () => {
     }
   });
 
+  it('slugifies agent names for slash commands and keeps the first of two colliding names', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'spaced.md', ['---', 'name: My Agent', 'description: Spaced name', '---', 'Work.'].join('\n'));
+      writeAgent(h.cwd, '.pi/agents', 'collide.md', ['---', 'name: my-agent', 'description: Colliding name', '---', 'Work.'].join('\n'));
+      await h.emit('session_start', {});
+      expect(h.listCommands()).toContain('subagent:my-agent');
+      expect(h.listCommands()).not.toContain('subagent:My Agent');
+      await h.runCommand('subagent:my-agent', 'do the work');
+      expect(h.getSentUserMessages().at(-ONE)?.content).toMatch(/subagent_type="(My Agent|my-agent)"/);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('inherits the parent tool loadout when the definition lists no tools and passes an explicit list otherwise', async () => {
     const inheriting = createTestHarness();
     try {
@@ -441,6 +540,36 @@ describe('custom subagents: discovery and frontmatter', () => {
       expect(captured[ZERO]?.tools).toEqual(['bash', 'read']);
     } finally {
       await explicit.cleanup();
+    }
+  });
+
+  it('starts runs in the background when the config default says so', async () => {
+    const h = createTestHarness();
+    try {
+      writeConfig(h.cwd, { defaults: { background: true } });
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'background by default' });
+      const launched = await h.callTool('task', { description: 'Default background', prompt: 'go', subagent_type: 'general-purpose' });
+      expect(launched.details?.isBackground).toBe(true);
+      expect(launched.details?.backgroundReason).toBe('unspecified');
+      const awaited = await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      expect(awaited.details?.finalMessage).toBe('background by default');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('withholds write tools when a read-only agent inherits the parent loadout', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'reader.md', ['---', 'name: reader', 'description: Reads only', 'readonly: true', '---', 'Read the files.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'read' });
+      await h.callTool('task', { description: 'Read only', prompt: 'go', subagent_type: 'reader' });
+      expect(captured[ZERO]?.tools).toBeUndefined();
+      expect(activeToolsCalls[ZERO]).toEqual(['read', 'bash']);
+    } finally {
+      await h.cleanup();
     }
   });
 
@@ -491,6 +620,35 @@ describe('isolation and observability', () => {
       expect(worktree).toBeDefined();
       if (worktree) {
         expect((await summarizeWorktreeDiff(worktree)).length).toBeGreaterThanOrEqual(ZERO);
+      }
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('keeps a running worktree and removes it after the run finishes', async () => {
+    const h = createTestHarness();
+    try {
+      execFileSync('git', ['init'], { cwd: h.cwd });
+      execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: h.cwd });
+      execFileSync('git', ['config', 'user.name', 'Test'], { cwd: h.cwd });
+      writeFileSync(join(h.cwd, 'README.md'), 'base\n');
+      execFileSync('git', ['add', '.'], { cwd: h.cwd });
+      execFileSync('git', ['commit', '-m', 'base'], { cwd: h.cwd });
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
+      const worktreePath = launched.details?.worktreePath;
+      expect(worktreePath).toBeDefined();
+      await h.runCommand('tasks', `prune ${launched.details?.agentId ?? ''}`);
+      expect(h.getNotifications().at(-ONE)?.message).toContain('still running');
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      await h.runCommand('tasks', `prune ${launched.details?.agentId ?? ''}`);
+      expect(h.getNotifications().at(-ONE)?.message).toContain('Removed worktree');
+      if (worktreePath !== undefined) {
+        expect(existsSync(worktreePath)).toBe(false);
       }
     } finally {
       await h.cleanup();

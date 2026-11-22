@@ -45,7 +45,7 @@ export function buildEventPayload(event: SubagentEventName, record: SubagentSess
     subagentType: record.subagentType,
     description: record.description,
     status: record.status,
-    isBackground: record.isBackground,
+    isBackground: record.isBackground ?? false,
     backgroundReason: record.backgroundReason,
     attempt: record.attempts,
     maxAttempts: record.maxAttempts,
