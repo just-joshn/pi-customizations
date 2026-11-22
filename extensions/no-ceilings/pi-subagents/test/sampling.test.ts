@@ -36,6 +36,27 @@ describe('sampling injection', () => {
     expect(result).toMatchObject({ temperature: 0.2, top_p: 0.5, top_k: 8 });
   });
 
+  it('leaves an Anthropic payload alone when extended thinking is enabled', async () => {
+    const handler = captureRequestHandler('anthropic-messages', { temperature: 0.2, topP: 0.5, topK: 8 });
+    const payload = { model: 'm', thinking: { type: 'enabled', budget_tokens: 1024 }, messages: [] };
+    const result = (await handler?.({ type: 'before_provider_request', payload }, double<ExtensionContext>({}))) as Record<string, unknown>;
+    expect(result).toEqual(payload);
+  });
+
+  it('writes Google sampling into config', async () => {
+    const handler = captureRequestHandler('google-generative-ai', { temperature: 0.1, topP: 0.2, topK: 3 });
+    const result = (await handler?.({ type: 'before_provider_request', payload: { model: 'm', contents: [], config: { maxOutputTokens: 100 } } }, double<ExtensionContext>({}))) as Record<string, unknown>;
+    expect(result['config']).toMatchObject({ maxOutputTokens: 100, temperature: 0.1, topP: 0.2, topK: 3 });
+    expect(result).not.toHaveProperty('generationConfig');
+  });
+
+  it('writes Bedrock sampling into inferenceConfig without top_k', async () => {
+    const handler = captureRequestHandler('bedrock-converse-stream', { temperature: 0.1, topP: 0.2, topK: 3 });
+    const result = (await handler?.({ type: 'before_provider_request', payload: { modelId: 'm', messages: [], inferenceConfig: { maxTokens: 100 } } }, double<ExtensionContext>({}))) as Record<string, unknown>;
+    expect(result['inferenceConfig']).toMatchObject({ maxTokens: 100, temperature: 0.1, topP: 0.2 });
+    expect((result['inferenceConfig'] as Record<string, unknown>)['topK']).toBeUndefined();
+  });
+
   it('registers nothing when the definition sets no sampling', () => {
     expect(createSamplingExtension({ api: 'openai-completions' } as never, undefined)).toBeUndefined();
   });

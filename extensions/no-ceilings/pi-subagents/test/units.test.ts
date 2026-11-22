@@ -179,9 +179,24 @@ describe('discovery helpers', () => {
     expect(parseSubagentFile(join(cwd, 'agents', 'missing.md'), 'workspace')).toBeUndefined();
   });
 
-  it('lists workspace, claude, codex, user, and configured directories in order', () => {
-    const dirs = computeAgentDirectories('/repo', '/home/u', '/home/u/.pi/agent', { extraAgentDirectories: ['/extra'] } as never);
-    expect(dirs.map((entry) => entry.source)).toEqual(['workspace', 'claude-workspace', 'codex-workspace', 'shared-workspace', 'user', 'claude-user', 'codex-user', 'shared-user', 'configured']);
+  it('lists configured project directories before user directories', () => {
+    const config = parseSubagentsConfig({ agents: { directories: ['/extra'] } }, undefined, { cwd: '/repo' }).config;
+    const dirs = computeAgentDirectories('/repo', '/home/u', '/home/u/.pi/agent', config);
+    expect(dirs.map((entry) => entry.source)).toEqual(['workspace', 'claude-workspace', 'codex-workspace', 'shared-workspace', 'configured', 'user', 'claude-user', 'codex-user', 'shared-user']);
+  });
+
+  it('lets a configured project directory win over a user agent of the same name', () => {
+    const home = tempDir('prec-home-');
+    const agentDir = tempDir('prec-agent-');
+    const cwd = tempDir('prec-cwd-');
+    mkdirSync(join(cwd, 'tools/agents'), { recursive: true });
+    mkdirSync(join(agentDir, 'agents'), { recursive: true });
+    writeFileSync(join(cwd, 'tools/agents/auditor.md'), ['---', 'name: auditor', 'description: CONFIGURED project auditor', '---', 'Project.'].join('\n'));
+    writeFileSync(join(agentDir, 'agents/auditor.md'), ['---', 'name: auditor', 'description: USER auditor', '---', 'User.'].join('\n'));
+    const config = parseSubagentsConfig({ agents: { directories: ['tools/agents'] } }, undefined, { cwd }).config;
+    const auditor = discoverSubagents(cwd, { homeDir: home, agentDir, config }).find((definition) => definition.name === 'auditor');
+    expect(auditor?.source).toBe('configured');
+    expect(auditor?.description).toBe('CONFIGURED project auditor');
   });
 
   it('resolves a name case-insensitively and defaults to general-purpose', () => {
@@ -385,6 +400,21 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand("sed -n 'w/path/out.txt' input.txt")).toBe(false);
     expect(isSafeReadOnlyCommand('awk -f script.awk')).toBe(false);
     expect(isSafeReadOnlyCommand('awk \'BEGIN { print "x" > "f" }\'')).toBe(false);
+  });
+
+  it('blocks in-place sed after other flags and tree output files', () => {
+    expect(isSafeReadOnlyCommand("sed -e 's/a/b/' -i '' file.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed -n -i '' 's/a/b/' file.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand('tree -o out.txt .')).toBe(false);
+    expect(isSafeReadOnlyCommand('tree -oout.txt .')).toBe(false);
+    expect(isSafeReadOnlyCommand('tree .')).toBe(true);
+  });
+
+  it('allows quoted greater-than signs but blocks redirects', () => {
+    expect(isSafeReadOnlyCommand('grep ">" /etc/hosts')).toBe(true);
+    expect(isSafeReadOnlyCommand("echo 'note: x > y'")).toBe(true);
+    expect(isSafeReadOnlyCommand('echo hi > out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('echo hi >> out.txt')).toBe(false);
   });
 
   it('keeps read-only git inspection available', () => {

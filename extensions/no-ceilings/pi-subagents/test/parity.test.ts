@@ -919,6 +919,106 @@ describe('abort handling and pre-aborted worktrees', () => {
   });
 });
 
+describe('nested catalog and command naming', () => {
+  it('gives a nested child the agent catalog', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'owner.md', ['---', 'name: owner', 'description: Owns nested work', 'nested-tasks: true', '---', 'Own the work.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'owner done' });
+      await h.callTool('task', { description: 'Owner run', prompt: 'go', subagent_type: 'owner' });
+      const factories = loaderOptions['extensionFactories'] as readonly unknown[];
+      const nestedFactory = factories[ONE] as (api: ExtensionAPI) => void;
+      let handler: ((event: { readonly messageType: string }, ctx: ExtensionContext) => Promise<{ readonly systemPrompt?: string }>) | undefined;
+      nestedFactory(
+        double<ExtensionAPI>({
+          registerTool: () => undefined,
+          on: (name: string, callback: unknown) => {
+            if (name === 'before_agent_start') {
+              handler = callback as typeof handler;
+            }
+          },
+        }),
+      );
+      const result = await handler?.({ messageType: 'user' }, h.ctx);
+      expect(result?.systemPrompt).toContain('[SUBAGENTS AVAILABLE]');
+      expect(result?.systemPrompt).toContain('`owner`');
+      expect(result?.systemPrompt).toContain('`general-purpose`');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('registers a command for each agent when slugs collide', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'a.md', ['---', 'name: foo bar', 'description: Spaced', '---', 'Work.'].join('\n'));
+      writeAgent(h.cwd, '.pi/agents', 'b.md', ['---', 'name: foo-bar', 'description: Hyphenated', '---', 'Work.'].join('\n'));
+      await h.emit('session_start', {});
+      const commands = h.listCommands().filter((command) => command.startsWith('subagent:foo-bar'));
+      expect(commands.length).toBe(TWO);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('resolves a multi-word agent name in the generic subagent command', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'spaced.md', ['---', 'name: foo bar', 'description: Spaced name', '---', 'Work.'].join('\n'));
+      await h.emit('session_start', {});
+      await h.runCommand('subagent', 'foo bar scan');
+      const sent = h.getSentUserMessages().at(-ONE)?.content ?? '';
+      expect(sent).toContain('subagent_type="foo bar"');
+      expect(sent).toContain('to: scan');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('warns when the generic command has no prompt after the background flag', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const before = h.getSentUserMessages().length;
+      await h.runCommand('subagent', 'explore --bg');
+      expect(h.getSentUserMessages().length).toBe(before);
+      expect(h.getNotifications().at(-ONE)?.message).toContain('Usage');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('refuses a per-agent command after the agent file is removed', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'scout.md', ['---', 'name: scout', 'description: Finds things', '---', 'Scout.'].join('\n'));
+      await h.emit('session_start', {});
+      rmSync(join(h.cwd, '.pi/agents', 'scout.md'));
+      await h.emit('session_start', {});
+      const before = h.getSentUserMessages().length;
+      await h.runCommand('subagent:scout', 'find the bug');
+      expect(h.getSentUserMessages().length).toBe(before);
+      expect(h.getNotifications().at(-ONE)?.message).toContain('Unknown subagent');
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('read-only await validation', () => {
+  it('validates the id on the read-only await shortcut', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      await expect(h.callTool('task', { description: 'Await bad id', prompt: '', subagent_type: 'explore', resume: 'not-a-uuid' })).rejects.toMatchObject({ code: 'invalid-id' });
+      await expect(h.callTool('task', { description: 'Await unknown', prompt: '', subagent_type: 'explore', resume: '99999999-8888-4777-8666-555555555555' })).rejects.toMatchObject({ code: 'resume-unavailable' });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('nesting limit at zero', () => {
   it('rejects a top-level subagent when no nesting level is allowed', async () => {
     const h = createTestHarness();

@@ -52,6 +52,13 @@ describe('subagent model resolution', () => {
     expect(resolveSubagentModel({ model: 'inherit', thinking: undefined }, tuned, ctx).model).toBe(parent);
   });
 
+  it('keeps top_k out of the OpenAI sampling parameters', () => {
+    const base = double<Model<Api>>({ provider: 'test', id: 'other', reasoning: true, contextWindow: 200_000, maxTokens: 8192 });
+    const tuned = applyDefinitionToModel(base, makeDefinition({ sampling: { temperature: 0.3, topP: 0.5, topK: 9 } }));
+    expect(tuned.samplingParams).toMatchObject({ temperature: 0.3, top_p: 0.5 });
+    expect(tuned.samplingParams).not.toHaveProperty('top_k');
+  });
+
   it('applies sampling and context window to a copy of the model', () => {
     const base = double<Model<Api>>({ provider: 'test', id: 'other', reasoning: true, contextWindow: 200_000, maxTokens: 8192, samplingParams: { top_k: 7 } });
     const tuned = applyDefinitionToModel(base, makeDefinition({ sampling: { temperature: 0.3, topP: 0.5, maxTokens: 1024 }, contextWindow: 64_000 }));
