@@ -758,6 +758,35 @@ describe('state snapshots and shutdown', () => {
   });
 });
 
+describe('sampling wiring', () => {
+  it('adds a sampling factory that rewrites the provider payload', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'cold.md', ['---', 'name: cold', 'description: Reviews at a low temperature', 'model-params:', '  temperature: 0.2', '  top_p: 0.5', '---', 'Work.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'ok' });
+      await h.callTool('task', { description: 'Cold run', prompt: 'go', subagent_type: 'cold' });
+      const factories = loaderOptions['extensionFactories'] as readonly unknown[];
+      expect(factories.length).toBe(TWO);
+      let handler: ((event: { readonly type: 'before_provider_request'; readonly payload: unknown }) => Promise<unknown>) | undefined;
+      const samplingFactory = factories[ONE] as (api: ExtensionAPI) => void;
+      samplingFactory(
+        double<ExtensionAPI>({
+          on: (name: string, callback: unknown) => {
+            if (name === 'before_provider_request') {
+              handler = callback as typeof handler;
+            }
+          },
+        }),
+      );
+      const payload = await handler?.({ type: 'before_provider_request', payload: { model: 'm' } });
+      expect(payload).toMatchObject({ model: 'm', temperature: 0.2, top_p: 0.5 });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('hook events, thinking, and duplicates', () => {
   it('emits run_end when a worktree cannot be created', async () => {
     const h = createTestHarness();
