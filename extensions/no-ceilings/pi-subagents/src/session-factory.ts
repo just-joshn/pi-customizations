@@ -15,6 +15,7 @@ import {
   SessionManager,
   SettingsManager,
 } from '@earendil-works/pi-coding-agent';
+import { normalizeToolNames } from './discovery.ts';
 import { createReadonlySubagentExtension } from './readonly-guard.ts';
 import { type NestedScope, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
 
@@ -100,7 +101,8 @@ function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedS
   if (definition.tools.length === ZERO) {
     return undefined;
   }
-  return nestedScope === undefined ? [...definition.tools] : [...new Set([...definition.tools, SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent])];
+  const tools = normalizeToolNames(definition.tools);
+  return nestedScope === undefined ? [...tools] : [...new Set([...tools, SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent])];
 }
 
 const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent]);

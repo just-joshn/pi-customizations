@@ -6,10 +6,10 @@ import type { Api, Model } from '@earendil-works/pi-ai';
 import type { AgentSessionEvent } from '@earendil-works/pi-coding-agent';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, parseSubagentsConfig, subagentsConfigPaths } from '../src/config.ts';
-import { computeAgentDirectories, discoverSubagents, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
+import { computeAgentDirectories, discoverSubagents, normalizeToolNames, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
 import { applyDefinitionToModel } from '../src/model-resolution.ts';
-import { isSafeReadOnlyCommand } from '../src/readonly-guard.ts';
+import { evaluateReadonlySubagentGuard, isSafeReadOnlyCommand } from '../src/readonly-guard.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
 import { reduceSubagentEvent } from '../src/transcript.ts';
 import { type AwaitSubagentDetails, MAX_NESTED_TASK_DEPTH, type SubagentSessionRecord, type TaskToolDetails, ZERO } from '../src/types.ts';
@@ -360,6 +360,23 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand("sed -n '1w outfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed -n '1,5p' input.txt")).toBe(true);
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
+  });
+
+  it('normalizes Claude tool names for any definition source', () => {
+    expect(normalizeToolNames(['Read', 'Grep', 'Glob', 'Bash', 'Edit', 'Write', 'LS', 'MultiEdit', 'my_tool'])).toEqual(['read', 'grep', 'find', 'bash', 'edit', 'write', 'ls', 'edit', 'my_tool']);
+  });
+
+  it('blocks sed and sort writes through the read-only tool_call hook', () => {
+    for (const command of ["sed 's/a/b/woutfile'", 'sort -ooutfile input.txt']) {
+      const event = double<{ readonly type: 'tool_call'; readonly toolCallId: string; readonly toolName: string; readonly input: { readonly command: string } }>({
+        type: 'tool_call',
+        toolCallId: 'call-guard',
+        toolName: 'bash',
+        input: { command },
+      });
+      const decision = evaluateReadonlySubagentGuard(event);
+      expect(decision?.block).toBe(true);
+    }
   });
 
   it('maps Claude tool names onto Pi tool names', () => {

@@ -185,12 +185,19 @@ function mapToolName(name: string): string {
   return CLAUDE_TOOL_NAMES[name] ?? name;
 }
 
+/** Maps Claude tool names onto Pi tool names for any tool list, whatever produced the definition. */
+export function normalizeToolNames(tools: readonly string[]): readonly string[] {
+  return tools.map(mapToolName);
+}
+
 function parseToolsField(value: unknown): readonly string[] {
   const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,\s]+/) : [];
-  return raw
-    .filter((item): item is string => typeof item === 'string')
-    .map((item) => mapToolName(item.trim()))
-    .filter((item) => item.length > ZERO);
+  return normalizeToolNames(
+    raw
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter((item) => item.length > ZERO),
+  );
 }
 
 function parseThinking(value: unknown): SubagentThinkingLevel | undefined {
