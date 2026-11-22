@@ -119,7 +119,13 @@ jobs:
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
-      - run: npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+      # Packages without a vitest dependency run their own test script instead.
+      - run: |
+          if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json > /dev/null; then
+            npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+          else
+            bun run test
+          fi
       # Vitest cannot see the watch-pr Bun tests, so they run when the scripts they cover changed.
       - if: matrix.package == 'pi-pstack-v2'
         run: |

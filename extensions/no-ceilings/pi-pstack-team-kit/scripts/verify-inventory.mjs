@@ -175,11 +175,10 @@ for (const agent of expectedAgents) {
 if (cursorLeftovers.length) failures.push(`Cursor leftovers in agents: ${cursorLeftovers.join(', ')}`);
 
 if (failures.length) {
-  console.error(failures.join('\n'));
-  process.exit(1);
+  throw new Error(failures.join('\n'));
 }
 
-console.log(
+console.info(
   JSON.stringify(
     {
       pstackSkills: expectedPstackSkills.length,
