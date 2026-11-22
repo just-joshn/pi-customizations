@@ -11,7 +11,7 @@ The pstack source pin is `d42aff08aa58965d2735c4ead61a9af82b89d0d0`. The package
 
 - `skills/` — pstack + team-kit skills (including `poteto-mode` playbooks/scripts and `pr-review-canvas` assets)
 - `agents/` — `poteto-agent.md`, `comment-sicko.md`, `ci-watcher.md`, `thermo-nuclear-code-quality-review.md`
-- `rules/` — `no-inline-imports.md`, `typescript-exhaustive-switch.md` (paste into `AGENTS.md` / `~/.pi/agent/AGENTS.md`; Pi has no `.mdc` alwaysApply)
+- `rules/` — `no-inline-imports.md`, `typescript-exhaustive-switch.md` (paste into `AGENTS.md` / `${PI_CODING_AGENT_DIR:-~/.pi/agent}/AGENTS.md`; Pi has no `.mdc` alwaysApply)
 - `scripts/verify-inventory.mjs` — presence check for the combined inventory
 - `TEAM-KIT-LICENSE` — upstream team-kit MIT license text
 
@@ -22,9 +22,9 @@ Pi does **not** copy skills into `~/.agents/skills`. It loads them from the inst
 | Install style | Package root on disk | Skills live at |
 | --- | --- | --- |
 | Local path | the path you passed to `pi install` | `<root>/skills/...` |
-| npm (user) | `~/.pi/agent/npm/node_modules/@justjoshn/pi-pstack-team-kit` | `<root>/skills/...` |
+| npm (user) | `${PI_CODING_AGENT_DIR:-~/.pi/agent}/npm/node_modules/@justjoshn/pi-pstack-team-kit` | `<root>/skills/...` |
 | npm (project) | `<repo>/.pi/npm/node_modules/@justjoshn/pi-pstack-team-kit` | `<root>/skills/...` |
-| git (user) | under `~/.pi/agent/git/...` | `<root>/skills/...` |
+| git (user) | under `${PI_CODING_AGENT_DIR:-~/.pi/agent}/git/...` | `<root>/skills/...` |
 | git (project) | under `<repo>/.pi/git/...` | `<root>/skills/...` |
 
 Playbooks and principles stay inside those skill folders. Agents stay under `agents/` but are **not** auto-registered by Pi packages (no agents resource type). See [Install](#install) to register them.
@@ -48,7 +48,7 @@ pi install ./extensions/no-ceilings/pi-goals
 pi install ./extensions/no-ceilings/pi-pstack-team-kit
 ```
 
-To register the agents, copy `agents/*.md` into `~/.pi/agent/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `~/.pi/agent` and the project's `.pi` directory for npm and git installs. Keep the package installed.
+To register the agents, copy `agents/*.md` into `${PI_CODING_AGENT_DIR:-~/.pi/agent}/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `${PI_CODING_AGENT_DIR:-~/.pi/agent}` and the project's `.pi` directory for npm and git installs. Keep the package installed.
 
 `/skill:automate` requires a configured editor that can open an unsaved draft. `/skill:make-bot-ui` also requires an authenticated webhook provider that can wake a Pi run. Neither skill creates or enables an automation without the editor handoff.
 

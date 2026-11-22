@@ -13,7 +13,7 @@ This skill guides you through creating effective Agent Skills for Pi. Skills are
 Before creating a skill, gather essential information from the user about:
 
 1. **Purpose and scope**: What specific task or workflow should this skill help with?
-2. **Target location**: Should this be a personal skill (`~/.pi/agent/skills/`) or project skill (`.pi/skills/`)?
+2. **Target location**: Should this be a personal skill (`${PI_CODING_AGENT_DIR:-~/.pi/agent}/skills/`) or project skill (`.pi/skills/`)?
 3. **Trigger scenarios**: When should the agent automatically apply this skill?
 4. **Key domain knowledge**: What specialized information does the agent need that it wouldn't already know?
 5. **Output format preferences**: Are there specific templates, formats, or styles required?
@@ -33,7 +33,7 @@ If you need clarification, use `ask_question` when available:
 
 ```
 Example questions:
-- "Where should this skill be stored?" with options like ["Personal (~/.pi/agent/skills/)", "Project (.pi/skills/)"]
+- "Where should this skill be stored?" with options like ["Personal (${PI_CODING_AGENT_DIR:-~/.pi/agent}/skills/)", "Project (.pi/skills/)"]
 - "Should this skill include executable scripts?" with options like ["Yes", "No"]
 ```
 
@@ -61,7 +61,7 @@ skill-name/
 
 | Type | Path | Scope |
 |------|------|-------|
-| Personal | `~/.pi/agent/skills/skill-name/` | Available in every project in this Pi profile |
+| Personal | `${PI_CODING_AGENT_DIR:-~/.pi/agent}/skills/skill-name/` | Available in every project in this Pi profile |
 | Project | `.pi/skills/skill-name/` | Available in this project and shared when committed |
 
 Pi also discovers `~/.agents/skills/` and `.agents/skills/`. Follow the user's existing convention when present. If `PI_CODING_AGENT_DIR` points to a different profile, use that profile's `skills/` directory. Do not write to an installed package's managed directory unless editing that package's source is the task.

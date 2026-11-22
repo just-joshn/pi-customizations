@@ -5,7 +5,7 @@ description: Configure which models pstack uses per role and at what reasoning b
 
 # Setup pstack
 
-Write `~/.pi/agent/pstack-models.md`, a user-level configuration file that sets pstack's model per role.
+Write `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`, a user-level configuration file that sets pstack's model per role.
 
 ## Steps
 
@@ -15,7 +15,7 @@ Run `pi --list-models` to enumerate the registered model IDs you can pass to a `
 
 ### 2. Load current state
 
-The default role-to-model mapping is the rule shape shown in step 5 below. If `~/.pi/agent/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `hardest tasks`, `architect runners`, `reflect tooling`, or `why investigators`, is from a retired role. Drop it.
+The default role-to-model mapping is the rule shape shown in step 5 below. If `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `hardest tasks`, `architect runners`, `reflect tooling`, or `why investigators`, is from a retired role. Drop it.
 
 Older defaults put another Gemini model, then `gemini-4-neon-high`, in the panel seat. So in any rule, a `gemini-4-neon-high` entry, or a `gemini-4-*` entry other than `gemini-4-neon-*`, in a panel role (`arena runners`, `arena cross-judge pool`, `interrogate reviewers`) is an old default. Each one becomes `gemini-4-neon-xhigh`. A Gemini 4 Neon entry at any other level is the user's choice and stays. Tell the user which entries you replaced.
 
@@ -45,7 +45,7 @@ Every real slug written must be in the detected set and at `xhigh` or below. `in
 
 ### 5. Write the rule
 
-Write `~/.pi/agent/pstack-models.md` with the `# defaults: 3` line, a `# budget` line with the chosen label and the effort that label names, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs stay idempotent. Shape:
+Write `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` with the `# defaults: 3` line, a `# budget` line with the chosen label and the effort that label names, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs stay idempotent. Shape:
 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
@@ -65,7 +65,7 @@ interrogate reviewers: claude-fable-5-2-high, claude-opus-5-5-high-fast, gemini-
 
 ### 6. Confirm
 
-Tell the user the configuration was written to `~/.pi/agent/pstack-models.md` and that it applies to new sessions. Re-running this skill updates it.
+Tell the user the configuration was written to `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` and that it applies to new sessions. Re-running this skill updates it.
 
 ### 7. Offer a verification skill (optional)
 

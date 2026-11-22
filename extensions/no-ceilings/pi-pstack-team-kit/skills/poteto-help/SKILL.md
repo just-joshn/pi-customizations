@@ -24,7 +24,7 @@ Infer the need from the message and the conversation. A named situation, such as
 
 Check the state that changes the answer, and mention it only when it does:
 
-- No `~/.pi/agent/pstack-models.md` means `/skill:setup-pstack` hasn't run for this user, so every role uses its default model.
+- No `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md` means `/skill:setup-pstack` hasn't run for this user, so every role uses its default model.
 - No `verify-*` skill or other app harness in the project means agents have no scripted way to drive the app. Mention `/skill:create-verification-skill` when the question is about proving a change works.
 - No formal verification skill in the project means no property is checked past what tests reach. Mention `/skill:create-formal-verification-skill` when the question is about a race, an invariant, or another case tests rarely hit. When one exists and the code it covers changed after the commit it records as last in sync, mention `/skill:maintain-formal-verification-skill` if the question touches that code.
 
@@ -36,7 +36,7 @@ When the model rule is missing and it matters, ask whether the user wants to pic
 ## Get set up
 
 1. Skills live in `~/.agents/skills/` and subagents in `~/.agents/agents/`. Run `/reload` in Pi after editing any skill.
-2. Run [`/skill:setup-pstack`](../setup-pstack/SKILL.md). It detects available models via `pi --list-models`, asks for a reasoning budget, maps a model to each role, and writes `~/.pi/agent/pstack-models.md`. The configuration applies to new sessions. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
+2. Run [`/skill:setup-pstack`](../setup-pstack/SKILL.md). It detects available models via `pi --list-models`, asks for a reasoning budget, maps a model to each role, and writes `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`. The configuration applies to new sessions. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
 3. Start a real task with `/skill:poteto-mode`, a goal, and a check that can pass or fail.
 
 Installing changes nothing until the user invokes a skill. Only `/skill:setup-pstack` loads automatically from the user's words; all other pstack skills set `disable-model-invocation: true` and load via `/skill:<name>`. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
@@ -129,7 +129,7 @@ Principles are one-rule skills that `/skill:poteto-mode` reads and cites in its 
 |---|---|
 | The mode stopped applying after a few turns | Re-invoke `/skill:poteto-mode` at the start of the new task. |
 | A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
-| A new model choice had no effect | The configuration from `/skill:setup-pstack` (`~/.pi/agent/pstack-models.md`) applies to new sessions. Start one. |
+| A new model choice had no effect | The configuration from `/skill:setup-pstack` (`${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`) applies to new sessions. Start one. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |
 | A skill didn't load on its own | Only `/skill:setup-pstack` loads from the user's words. The others set `disable-model-invocation: true` and load when invoked with `/skill:<name>` or when `/skill:poteto-mode` runs them, and it doesn't run every skill. |
 | Parallel agents overwrote each other | Give each agent its own git worktree so they never share a working tree. |

@@ -2,7 +2,7 @@
 
 Keep imports at top of file and avoid inline imports.
 
-Apply this rule from project `AGENTS.md` or `~/.pi/agent/AGENTS.md` (Pi has no `.mdc` alwaysApply rules).
+Apply this rule from project `AGENTS.md` or `${PI_CODING_AGENT_DIR:-~/.pi/agent}/AGENTS.md` (Pi has no `.mdc` alwaysApply rules).
 
 # No inline imports
 
