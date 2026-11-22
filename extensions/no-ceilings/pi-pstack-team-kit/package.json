@@ -1,10 +1,12 @@
 {
   "name": "@justjoshn/pi-pstack-team-kit",
   "version": "0.1.1",
-  "private": true,
   "description": "pstack v0.15.46 skills/principles/playbooks/agents plus cursor-team-kit 1.2.0 skills/agents/rules, as a Pi-native skills package.",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/just-joshn/pi-customizations.git",

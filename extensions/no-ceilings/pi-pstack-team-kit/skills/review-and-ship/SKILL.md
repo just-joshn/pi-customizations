@@ -13,7 +13,7 @@ Reviewing changes before shipping. Close key issues, verify behavior, and open o
 
 1. Gather context: diff against base branch, uncommitted changes, recent commits, changed files, and user intent from recent relevant chats if useful.
 2. Run targeted tests for changed behavior. If no focused tests exist, decide whether to add them or document the gap.
-3. Review for correctness, regressions, security, and intent fit. For larger diffs, start parallel Pi workers in one `subagent` call with `tasks` and `agent: "scout"`.
+3. Review for correctness, regressions, security, and intent fit. For larger diffs, start parallel Pi workers with several `task` calls in one message, each with `subagent_type: "explore"` and `run_in_background: true`.
 4. Fix critical issues before finalizing and re-run affected tests.
 5. Commit selective files with a concise message.
 6. Push branch and open or update a PR.

@@ -31,13 +31,20 @@ Playbooks and principles stay inside those skill folders. Agents stay under `age
 
 ## Install
 
-This package ships skills only. The `swarm`, `arena`, `interrogate`, and `poteto-mode` workflows call the `task` and `await_subagent` tools, which come from `@justjoshn/pi-subagents`. Install both packages.
+This package ships skills only. The workflows call tools from two companion packages:
+
+- `@justjoshn/pi-subagents` provides `task` and `await_subagent`, used by `swarm`, `arena`, `interrogate`, `poteto-mode`, `loop-on-ci`, and `review-and-ship`.
+- `@justjoshn/pi-modes` provides `ask_question` and `switch_mode`, used by `setup-pstack`, `automate-me`, and `poteto-help`.
+
+Neither companion is on npm yet, so install all three from a checkout. Run `bun install` first, because the companions load their dependencies from the repo's `node_modules`.
 
 ```bash
+bun install --frozen-lockfile
 pi install ./extensions/no-ceilings/pi-subagents
+pi install ./extensions/no-ceilings/pi-modes
 pi install ./extensions/no-ceilings/pi-pstack-team-kit
 ```
 
-To register the agents, copy `agents/*.md` into `~/.pi/agent/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json`, so keep the package installed.
+To register the agents, copy `agents/*.md` into `~/.pi/agent/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `~/.pi/agent` and the project's `.pi` directory for npm and git installs. Keep the package installed.
 
 `node_modules` under skill scripts is omitted; restore with `bun install` in `skills/poteto-mode/scripts` when needed.

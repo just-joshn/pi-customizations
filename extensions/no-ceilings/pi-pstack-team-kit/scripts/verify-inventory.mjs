@@ -174,6 +174,13 @@ for (const agent of expectedAgents) {
 }
 if (cursorLeftovers.length) failures.push(`Cursor leftovers in agents: ${cursorLeftovers.join(', ')}`);
 
+const unavailableTools = /`(tmux_run|tmux_jobs|subagent)`|agent: "scout"/;
+for (const name of allExpectedSkills) {
+  const text = readFileSync(join(skillsDir, name, 'SKILL.md'), 'utf8');
+  const hit = text.match(unavailableTools);
+  if (hit) failures.push(`${name} calls ${hit[0]}, which no documented companion package provides`);
+}
+
 if (failures.length) {
   throw new Error(failures.join('\n'));
 }

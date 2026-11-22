@@ -153,7 +153,7 @@ Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines
 1. Write your body HTML (everything that goes inside `<body>`) to `/tmp/pr-review-{number}-body.html`
 2. Save patches to `/tmp/pr-patches-{number}.json` using the `jq` command from step 3 above
 3. Run the Python assembly script from step 3 above (reads styles.css, renderer.js, template.html from this skill directory, injects body + patches safely, writes final HTML)
-4. Open `/tmp/pr-review-{number}.html` in the browser and tell the user the path. The page is one self-contained HTML file, so no server is needed. A `tmux_run` server would not see the file on Linux, where each job gets its own private `/tmp`.
+4. Open `/tmp/pr-review-{number}.html` in the browser and tell the user the path. The page is one self-contained HTML file, so no server is needed.
 
 ### Diff features (handled automatically by renderer.js)
 

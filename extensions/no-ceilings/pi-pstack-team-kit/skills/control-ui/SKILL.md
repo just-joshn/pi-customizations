@@ -17,7 +17,7 @@ Use local browser automation to verify UI behavior with evidence. First reuse th
 
 ## Setup Pattern
 
-1. Start the app locally with `tmux_run`, using the repo's documented dev command.
+1. Start the app locally with the repo's documented dev command, in the background through `bash`: `nohup <dev command> > /tmp/<app>-dev.log 2>&1 & echo $!`. Record the printed PID and read the log to find the URL.
 2. Discover existing local harnesses: Playwright tests, Cypress specs, Storybook, browser scripts, Electron launch scripts, or snapshot tools.
 3. For a web app, connect to the local URL with the existing browser tooling.
 4. For Electron/Chromium, enable a remote debugging port when supported.
@@ -106,4 +106,4 @@ When multiple app windows/tabs share a debug port:
 - Keep test data local and disposable.
 - Do not store screenshots or heap snapshots from privacy-sensitive workspaces unless the user explicitly agrees.
 - Do not hard-code selectors, ports, or script paths from another repository. Discover the current repo's local app markers.
-- Stop dev servers with `tmux_jobs` `stop`, and clean up debug sessions and temp profiles when done.
+- Stop dev servers with `kill <pid>`, and clean up debug sessions and temp profiles when done.

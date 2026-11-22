@@ -16,7 +16,7 @@ Use `gh pr checks` as the source of truth. It includes all PR-attached checks, w
 1. Resolve the PR for the current branch.
 2. Inspect current PR checks before waiting.
 3. If checks already failed, diagnose those failures first.
-4. If checks are pending, watch with `gh pr checks --watch --fail-fast`. Run it with `tmux_run`, with `name` set to `watch-ci` and `wake` set to a message that tells you to re-check the PR checks and continue. Its exit wakes you, so keep working or end your turn while it runs.
+4. If checks are pending, watch with `gh pr checks --watch --fail-fast`. Run it in a `task` call with `subagent_type: "shell"`, `run_in_background: true`, and a prompt that runs the command and reports its output. The task's completion wakes you, so re-check the PR checks then. Keep working or end your turn while it runs.
 5. After each push, re-check the full PR check set and repeat until green.
 
 ## Commands
@@ -28,7 +28,7 @@ gh pr view --json number,url,headRefName
 # Inspect all attached checks
 gh pr checks --json name,bucket,state,workflow,link
 
-# Watch pending checks and fail fast (run through tmux_run)
+# Watch pending checks and fail fast (run through a background shell task)
 gh pr checks --watch --fail-fast
 
 # GitHub Actions logs, when the failing check links to a GHA run
