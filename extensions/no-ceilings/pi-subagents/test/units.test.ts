@@ -356,10 +356,36 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand("sed 's/a/b/woutfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed 's/a/b/Woutfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed 's|a|b|woutfile'")).toBe(false);
+    expect(isSafeReadOnlyCommand('sed w/tmp/out.txt file.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('sort -ooutfile input.txt')).toBe(false);
     expect(isSafeReadOnlyCommand("sed -n '1w outfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed -n '1,5p' input.txt")).toBe(true);
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
+  });
+
+  it('blocks other safe-list commands that write files or refs', () => {
+    expect(isSafeReadOnlyCommand('uniq a.txt b.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('uniq a.txt')).toBe(true);
+    expect(isSafeReadOnlyCommand('git branch new-branch')).toBe(false);
+    expect(isSafeReadOnlyCommand('git branch -a')).toBe(true);
+    expect(isSafeReadOnlyCommand('git branch')).toBe(true);
+    expect(isSafeReadOnlyCommand('git tag v1')).toBe(false);
+    expect(isSafeReadOnlyCommand('git tag -l')).toBe(true);
+    expect(isSafeReadOnlyCommand('git tag')).toBe(true);
+    expect(isSafeReadOnlyCommand('git remote add origin url')).toBe(false);
+    expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
+    expect(isSafeReadOnlyCommand('date -s 2020-01-01')).toBe(false);
+    expect(isSafeReadOnlyCommand('date')).toBe(true);
+  });
+
+  it('blocks every powershell call in read-only mode', () => {
+    const event = double<{ readonly type: 'tool_call'; readonly toolCallId: string; readonly toolName: string; readonly input: { readonly command: string } }>({
+      type: 'tool_call',
+      toolCallId: 'call-ps',
+      toolName: 'powershell',
+      input: { command: 'Remove-Item -Recurse -Force ./src' },
+    });
+    expect(evaluateReadonlySubagentGuard(event)?.block).toBe(true);
   });
 
   it('normalizes Claude tool names for any definition source', () => {
