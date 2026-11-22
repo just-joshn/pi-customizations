@@ -132,12 +132,12 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 	wt_slug=$(printf '%s' "$wt" | sed 's#^/##; s#/#-#g')
 	wt_transcripts="$sessions_root/--$wt_slug--"
 	f=$({
-		[ -d "$main_transcripts" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$main_transcripts" 2>/dev/null
-		[ -n "$session_override" ] && [ -d "$session_override" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$session_override" 2>/dev/null
+		[ -d "$main_transcripts" ] && rg -l -F --no-ignore --hidden -e "${wt}/" -e "${wt}\"" "$main_transcripts" 2>/dev/null
+		[ -n "$session_override" ] && [ -d "$session_override" ] && rg -l -F --no-ignore --hidden -e "${wt}/" -e "${wt}\"" "$session_override" 2>/dev/null
 		[ -d "$wt_transcripts" ] && find "$wt_transcripts" -maxdepth 1 -type f -name '*.jsonl' 2>/dev/null
 		if [ -d "$sessions_root" ]; then
 			for d in "$sessions_root/--${wt_slug}-"*--; do
-				[ -d "$d" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$d" 2>/dev/null
+				[ -d "$d" ] && rg -l -F --no-ignore --hidden -e "${wt}/" -e "${wt}\"" "$d" 2>/dev/null
 			done
 		fi
 	} | sort -u | while IFS= read -r p; do [ -n "$p" ] && stat "${stat_fmt[@]}" "$p" 2>/dev/null; done | sort -rn | head -1)
