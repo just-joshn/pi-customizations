@@ -58,8 +58,9 @@ export interface RunTaskOptions {
 }
 
 export function resolveModelForSubagent(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ExtensionContext): Model<Api> | undefined {
-  const effective = (requestedModel ?? '').trim() || definition.model;
-  if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default') {
+  const requested = (requestedModel ?? '').trim();
+  const effective = requested || definition.model;
+  if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default' || effective === 'auto' || effective === 'inherit-parent') {
     return ctx.model;
   }
   const available = ctx.modelRegistry.getAvailable();
@@ -77,7 +78,13 @@ export function resolveModelForSubagent(requestedModel: string | undefined, defi
     }
   }
   const byId = available.find((m) => m.id === effective) ?? ctx.modelRegistry.getAll().find((m) => m.id === effective);
-  return byId ?? ctx.model;
+  if (!byId) {
+    if (requested.length > ZERO) {
+      throw new Error(`Unknown model "${effective}". Pass a registered model id from pi --list-models, or "inherit".`);
+    }
+    return ctx.model;
+  }
+  return byId;
 }
 
 function resolveSubagentSessionDir(ctx: ExtensionContext): string | undefined {

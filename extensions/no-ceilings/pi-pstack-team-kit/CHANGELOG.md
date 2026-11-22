@@ -18,3 +18,8 @@
 - Correct `poteto-help` skill discovery. It now lists `.pi/skills` and `${PI_CODING_AGENT_DIR}/skills`, and names the skills that load without `disable-model-invocation`.
 - `pr-review-canvas` assembly reads `styles.css`, `renderer.js`, and `template.html` from the skill directory instead of the agent cwd.
 - Restore `model: claude-opus-5-5` on `poteto-agent` and `model: fast` on `ci-watcher`, with parent-model fallback when a model is absent.
+- Keep the effort token when `setup-pstack` validates a role against the detected model set, so `medium` and `small` write different rules.
+- Split the `arena cross-judge pool` value before dispatch, so the judge runs on another vendor instead of falling back to the parent.
+- Honor a trusted project `sessionDir` over the user setting, resolve relative values from the working directory, and tell `worktree-cleanup` to pass `-s` when Pi runs with `--session-dir`.
+- List all 20 auto-loadable skills in `poteto-help`, including `create-skill`, and exclude the two team-kit skills that set `disable-model-invocation`.
+- Fail a task with a clear error when an explicit model id is not registered, instead of silently using the parent model. An invalid agent default still falls back. Pass `provider/id` when a bare id is ambiguous across providers.

@@ -39,7 +39,7 @@ When the model rule is missing and it matters, ask whether the user wants to pic
 2. Run [`/skill:setup-pstack`](../setup-pstack/SKILL.md). It detects available models via `pi --list-models`, asks for a reasoning budget, maps a model and thinking level to each role, and writes `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`. The configuration applies to new sessions. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
 3. Start a real task with `/skill:poteto-mode`, a goal, and a check that can pass or fail.
 
-Installing changes nothing until the user invokes a skill. A skill without `disable-model-invocation: true` can also load from the user's words; in this package that includes `setup-pstack`, the team-kit skills, `loop`, `automate`, and `workflow-from-chats`. The rest set the flag and load via `/skill:<name>`. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
+Installing changes nothing until the user invokes a skill. A skill without `disable-model-invocation: true` can also load from the user's words; in this package that includes `setup-pstack`, `loop`, `automate`, `create-skill`, and the team-kit skills except `pr-review-canvas` and `thermo-nuclear-code-quality-review`. The rest set the flag and load via `/skill:<name>`. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
 
 If cost is the worry, say where the tokens go and how to spend fewer. pstack spends extra tokens on subagents and review panels. Rerun `/skill:setup-pstack` and pick a smaller budget or cheaper models. A role set to `auto` or `inherit-parent` runs on the chat's model, which saves tokens when the chat runs on a cheaper model. A shorter panel list runs fewer subagents, one for each entry. Save `/skill:poteto-mode` for work that needs rigor.
 
@@ -131,7 +131,7 @@ Principles are one-rule skills that `/skill:poteto-mode` reads and cites in its 
 | A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
 | A new model choice had no effect | The configuration from `/skill:setup-pstack` (`${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`) applies to new sessions. Start one. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |
-| A skill didn't load on its own | A skill without `disable-model-invocation: true` can load from the user's words, including `setup-pstack`, the team-kit skills, `loop`, `automate`, and `workflow-from-chats`. The rest load when invoked with `/skill:<name>` or when `/skill:poteto-mode` runs them, and it doesn't run every skill. |
+| A skill didn't load on its own | A skill without `disable-model-invocation: true` can load from the user's words, including `setup-pstack`, `loop`, `automate`, `create-skill`, and the team-kit skills except `pr-review-canvas` and `thermo-nuclear-code-quality-review`. The rest load when invoked with `/skill:<name>` or when `/skill:poteto-mode` runs them, and it doesn't run every skill. |
 | Parallel agents overwrote each other | Give each agent its own git worktree so they never share a working tree. |
 | An overnight run moved but finished nothing | `/skill:loop` needs a check that can pass or fail, not a duration. |
 | The reply claims success from a green build | Ask for the real command, flow, stored value, or profile. That's the prove-it-works principle. |
