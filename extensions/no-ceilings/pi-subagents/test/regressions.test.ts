@@ -620,7 +620,7 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
     }
   });
 
-  it('does not grant nested tools when a depth-2 grandchild is resumed from the root session', async () => {
+  it('preserves root lineage without granting nested tools when a depth-2 grandchild launched by a real child session is resumed from root', async () => {
     const h = createTestHarness();
     try {
       writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
@@ -631,13 +631,23 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
       await h.callTool('task', { description: 'owner', prompt: 'go', subagent_type: 'pr-owner' });
       const [taskTool] = installNested(sessionFactories[ZERO] ?? []);
 
+      // Real child sessions carry their own session ID, distinct from the root session ID.
+      const childCtx = double<typeof h.ctx>({
+        ...h.ctx,
+        sessionManager: {
+          ...h.ctx.sessionManager,
+          getSessionId: () => '22222222-3333-4444-8555-666666666666',
+        },
+      });
+
       enqueuePlan({ finalText: 'grand pass 1' });
-      const grand = await taskTool?.execute('g1', { description: 'grand', prompt: 'go', subagent_type: 'grand' }, undefined, undefined, h.ctx);
+      const grand = await taskTool?.execute('g1', { description: 'grand', prompt: 'go', subagent_type: 'grand' }, undefined, undefined, childCtx);
       const grandId = grand?.details.agentId ?? '';
       expect(installNested(sessionFactories[ONE] ?? [])).toEqual([]);
 
       enqueuePlan({ finalText: 'grand pass 2' });
-      await h.callTool('task', { description: 'resume grand', prompt: 'again', subagent_type: 'grand', resume: grandId });
+      const resumed = await h.callTool('task', { description: 'resume grand', prompt: 'again', subagent_type: 'grand', resume: grandId });
+      expect(resumed.details?.agentId).toBe(grandId);
       expect(installNested(sessionFactories.at(-ONE) ?? [])).toEqual([]);
     } finally {
       await h.cleanup();

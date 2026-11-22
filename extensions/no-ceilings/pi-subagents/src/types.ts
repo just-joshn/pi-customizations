@@ -65,6 +65,7 @@ export interface SubagentDefinition {
 export interface NestedScope {
   readonly depth: number;
   readonly ownerAgentId: string;
+  readonly rootSessionId: string;
   readonly agentIds: Set<string>;
 }
 

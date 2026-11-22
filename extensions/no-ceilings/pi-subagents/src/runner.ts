@@ -231,6 +231,7 @@ function resolveChildDepth(existing: SubagentSessionRecord | undefined, scope: N
 async function createChildSession(
   options: RunTaskOptions,
   agentId: string,
+  parentSessionId: string,
   childDepth: number,
   ownedAgentIds: readonly string[],
   model: Model<Api> | undefined,
@@ -241,7 +242,8 @@ async function createChildSession(
   const sessionDir = resolveSubagentSessionDir(options.ctx);
   const sessionManager = createChildSessionManager(options.ctx.cwd, existingTranscriptPath, isResume, sessionDir);
   const providerBridge = createInheritedProvidersExtension(options.ctx.modelRegistry);
-  const nestedScope: NestedScope | undefined = !readonly && options.definition.nestedTasks && childDepth <= MAX_NESTED_TASK_DEPTH ? { depth: childDepth, ownerAgentId: agentId, agentIds: new Set(ownedAgentIds) } : undefined;
+  const nestedScope: NestedScope | undefined =
+    !readonly && options.definition.nestedTasks && childDepth <= MAX_NESTED_TASK_DEPTH ? { depth: childDepth, ownerAgentId: agentId, rootSessionId: parentSessionId, agentIds: new Set(ownedAgentIds) } : undefined;
   const extensionFactories = readonly ? [createReadonlySubagentExtension(), providerBridge] : [providerBridge, ...(nestedScope ? [options.createNestedExtension(nestedScope)] : [])];
   const resourceLoader = new DefaultResourceLoader({
     cwd: options.ctx.cwd,
@@ -528,7 +530,7 @@ function buildInitialSessionRecord(
 }
 
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
-  const parentSessionId = options.ctx.sessionManager.getSessionId();
+  const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
   const isReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
@@ -556,7 +558,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
         .filter((s) => s.ownerAgentId === agentId)
         .map((s) => s.agentId)
     : [];
-  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, childDepth, ownedAgentIds, resolvedModel, isReadonly, existing?.transcriptPath, existing !== undefined);
+  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, parentSessionId, childDepth, ownedAgentIds, resolvedModel, isReadonly, existing?.transcriptPath, existing !== undefined);
   const initialRecord = buildInitialSessionRecord(options, agentId, parentSessionId, existing, resolvedModel, isReadonly, wantBackground, startedAt, transcriptPath);
   callbacks.store.upsertSession(initialRecord);
   options.scope?.agentIds.add(agentId);
