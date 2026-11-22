@@ -34,6 +34,7 @@ export interface HarnessOptions {
   readonly mcpToolNames?: readonly string[];
   readonly mcpServerNames?: readonly string[];
   readonly flags?: Readonly<Record<string, string>>;
+  readonly projectTrusted?: boolean;
   readonly hasUI?: boolean;
   readonly initialEntries?: readonly Record<string, unknown>[];
   readonly registeredNativeProviders?: Readonly<Record<string, Record<string, unknown>>>;
@@ -274,6 +275,7 @@ function createFakeContext(cwd: string, sessionDir: string, sessionId: string, o
       getRegisteredProviderConfig: (id: string) => options.registeredProviderConfigs?.[id],
     },
     getSystemPrompt: () => 'BASE SYSTEM PROMPT',
+    isProjectTrusted: () => options.projectTrusted ?? true,
     sessionManager: {
       getSessionId: () => sessionId,
       getSessionDir: () => sessionDir,

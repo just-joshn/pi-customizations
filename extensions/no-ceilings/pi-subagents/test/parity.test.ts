@@ -455,6 +455,19 @@ describe('custom subagents: discovery and frontmatter', () => {
     expect(byName.get('user-agent')?.source).toBe('claude-user');
   });
 
+  it('hides project agents from an untrusted project', async () => {
+    const h = createTestHarness({ projectTrusted: false });
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'secret.md', ['---', 'name: secret-agent', 'description: Project only', '---', 'Body.'].join('\n'));
+      await h.emit('session_start', {});
+      const contextResult = double<{ readonly systemPrompt?: string }>(await h.emit('before_agent_start', { messageType: 'user' }));
+      expect(contextResult.systemPrompt).not.toContain('secret-agent');
+      expect(h.listCommands()).not.toContain('subagent:secret-agent');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('applies thinking, sampling, context window, retry, worktree, and mcp frontmatter', () => {
     const home = join(tmpdir(), `pi-subagents-home2-${process.pid}-${Date.now()}`);
     const agentDir = join(tmpdir(), `pi-subagents-agent2-${process.pid}-${Date.now()}`);

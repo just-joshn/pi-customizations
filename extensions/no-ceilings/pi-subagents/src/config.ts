@@ -172,12 +172,12 @@ export function subagentsConfigPaths(cwd: string, agentDir: string): { readonly 
   return { user: join(agentDir, SUBAGENTS_CONFIG_FILE_NAME), project: join(cwd, '.pi', SUBAGENTS_CONFIG_FILE_NAME) };
 }
 
-export function loadSubagentsConfig(cwd: string, agentDir: string, flags?: ConfigFlagOverrides): SubagentsConfig {
+export function loadSubagentsConfig(cwd: string, agentDir: string, flags?: ConfigFlagOverrides, projectTrusted = true): SubagentsConfig {
   const paths = subagentsConfigPaths(cwd, agentDir);
   const userFile = readConfigFile(paths.user);
-  const projectFile = readConfigFile(paths.project);
+  const projectFile = projectTrusted ? readConfigFile(paths.project) : undefined;
   const parsed = parseSubagentsConfig(userFile?.raw, projectFile?.raw, { cwd, ...(flags ? { flags } : {}) });
   const fileErrors = [userFile?.error, projectFile?.error].filter((item): item is string => item !== undefined);
-  const configFiles = [paths.user, paths.project].filter((filePath) => existsSync(filePath));
+  const configFiles = [paths.user, projectTrusted ? paths.project : undefined].filter((filePath): filePath is string => filePath !== undefined && existsSync(filePath));
   return { ...parsed.config, configFiles, errors: [...fileErrors, ...parsed.config.errors] };
 }

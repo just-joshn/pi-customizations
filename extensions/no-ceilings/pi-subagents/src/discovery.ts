@@ -105,6 +105,8 @@ export interface DiscoverSubagentsOptions {
   readonly config?: SubagentsConfig;
   /** Names of MCP servers or `mcp__` tools that look like a browser integration. */
   readonly browserIntegration?: string | undefined;
+  /** Project agent directories load only for trusted projects. User directories always load. */
+  readonly projectTrusted?: boolean;
 }
 
 function readField(frontmatter: RawFrontmatter, key: keyof typeof FRONTMATTER_KEYS): unknown {
@@ -318,13 +320,18 @@ function walkAgentFiles(dirPath: string): readonly string[] {
   });
 }
 
-export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig): readonly DirectorySpec[] {
+export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig, projectTrusted = true): readonly DirectorySpec[] {
   const workspaceRoot = resolve(cwd);
+  const workspaceDirs: readonly DirectorySpec[] = projectTrusted
+    ? [
+        { dirPath: join(workspaceRoot, '.pi', 'agents'), source: 'workspace' },
+        { dirPath: join(workspaceRoot, '.claude', 'agents'), source: 'claude-workspace' },
+        { dirPath: join(workspaceRoot, '.codex', 'agents'), source: 'codex-workspace' },
+        { dirPath: join(workspaceRoot, '.agents', 'agents'), source: 'shared-workspace' },
+      ]
+    : [];
   const base: readonly DirectorySpec[] = [
-    { dirPath: join(workspaceRoot, '.pi', 'agents'), source: 'workspace' },
-    { dirPath: join(workspaceRoot, '.claude', 'agents'), source: 'claude-workspace' },
-    { dirPath: join(workspaceRoot, '.codex', 'agents'), source: 'codex-workspace' },
-    { dirPath: join(workspaceRoot, '.agents', 'agents'), source: 'shared-workspace' },
+    ...workspaceDirs,
     { dirPath: join(agentDir, 'agents'), source: 'user' },
     { dirPath: join(userHome, '.claude', 'agents'), source: 'claude-user' },
     { dirPath: join(userHome, '.codex', 'agents'), source: 'codex-user' },
@@ -468,7 +475,7 @@ function dedupeByName(definitions: readonly SubagentDefinition[]): readonly Suba
 
 export function discoverSubagents(cwd: string, options: DiscoverSubagentsOptions = {}): readonly SubagentDefinition[] {
   const config = options.config;
-  const dirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config);
+  const dirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config, options.projectTrusted ?? true);
   const discovered = dirs.flatMap((spec) =>
     walkAgentFiles(spec.dirPath)
       .map((filePath) => parseSubagentFile(filePath, spec.source))

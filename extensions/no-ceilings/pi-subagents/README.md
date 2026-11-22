@@ -69,6 +69,8 @@ Discovery reads Markdown files with YAML frontmatter from these directories. Pro
 
 Add more project directories with `agents.directories` in the config file. `.mdc` and `.markdown` files also load. Subdirectories are walked.
 
+Project directories load only for a trusted project, the same gate Pi puts on project skills and MCP configuration. Approve the project with `--approve` or set `defaultProjectTrust`. User directories always load.
+
 | Frontmatter | Meaning |
 | --- | --- |
 | `name`, `description` | Identity and delegation text. Missing `name` falls back to the file name. |
@@ -98,7 +100,7 @@ Children load project rules (`AGENTS.md`, `CLAUDE.md`) because the child resourc
 
 ## Configuration
 
-The extension reads `subagents.json` from the Pi agent directory and from `<workspace>/.pi/subagents.json`. Project values win.
+The extension reads `subagents.json` from the Pi agent directory and from `<workspace>/.pi/subagents.json`. Project values win. The project file loads only for a trusted project.
 
 ```json
 {

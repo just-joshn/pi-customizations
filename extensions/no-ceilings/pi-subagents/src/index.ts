@@ -127,14 +127,20 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   let config: SubagentsConfig | undefined;
   let configCwd: string | undefined;
   let latestCtx: ExtensionContext | undefined;
+  let projectTrusted = true;
 
   registerFlags(pi);
 
   const loadConfig = (cwd: string): SubagentsConfig =>
-    loadSubagentsConfig(cwd, getAgentDir(), {
-      exploreModel: readStringFlag(pi, EXPLORE_MODEL_FLAG),
-      maxNestingDepth: readStringFlag(pi, MAX_DEPTH_FLAG),
-    });
+    loadSubagentsConfig(
+      cwd,
+      getAgentDir(),
+      {
+        exploreModel: readStringFlag(pi, EXPLORE_MODEL_FLAG),
+        maxNestingDepth: readStringFlag(pi, MAX_DEPTH_FLAG),
+      },
+      projectTrusted,
+    );
 
   const getConfig = (cwd: string): SubagentsConfig => {
     if (config === undefined || configCwd !== cwd) {
@@ -148,7 +154,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     const nextConfig = loadConfig(cwd);
     config = nextConfig;
     configCwd = cwd;
-    definitions = discoverSubagents(cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig) });
+    definitions = discoverSubagents(cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted });
     definitionsCwd = cwd;
     return definitions;
   };
@@ -256,6 +262,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   pi.on('before_agent_start', async (_event, ctx) => {
     latestCtx = ctx;
+    projectTrusted = ctx.isProjectTrusted?.() ?? projectTrusted;
     const catalog = buildSubagentsContextPrompt(getDefinitions(ctx.cwd), getConfig(ctx.cwd));
     const basePrompt = ctx.getSystemPrompt().trim();
     return { systemPrompt: basePrompt.length === ZERO ? catalog : `${basePrompt}\n\n${catalog}` };
@@ -271,6 +278,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   pi.on('session_start', async (_event, ctx) => {
     latestCtx = ctx;
+    projectTrusted = ctx.isProjectTrusted?.() ?? true;
     store.reset();
     registerAgentCommands(pi, reloadDefinitions(ctx.cwd));
     restorePersistedSessions(ctx, store);

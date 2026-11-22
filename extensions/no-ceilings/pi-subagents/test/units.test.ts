@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import type { AgentSessionEvent } from '@earendil-works/pi-coding-agent';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, parseSubagentsConfig, subagentsConfigPaths } from '../src/config.ts';
-import { computeAgentDirectories, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
+import { computeAgentDirectories, discoverSubagents, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
 import { reduceSubagentEvent } from '../src/transcript.ts';
@@ -119,6 +119,30 @@ describe('discovery helpers', () => {
     expect(parseContextWindow(4096)).toBe(4096);
     expect(parseContextWindow('nope')).toBeUndefined();
     expect(parseContextWindow(-1)).toBeUndefined();
+  });
+
+  it('loads project agents only for trusted projects', () => {
+    const home = tempDir('trust-home-');
+    const agentDir = tempDir('trust-agent-');
+    const cwd = tempDir('trust-cwd-');
+    mkdirSync(join(cwd, '.pi/agents'), { recursive: true });
+    mkdirSync(join(home, '.claude/agents'), { recursive: true });
+    writeFileSync(join(cwd, '.pi/agents/project.md'), ['---', 'name: project-agent', 'description: Project', '---', 'Body'].join('\n'));
+    writeFileSync(join(home, '.claude/agents/user.md'), ['---', 'name: user-agent', 'description: User', '---', 'Body'].join('\n'));
+    const untrusted = discoverSubagents(cwd, { homeDir: home, agentDir, projectTrusted: false });
+    expect(untrusted.some((definition) => definition.name === 'project-agent')).toBe(false);
+    expect(untrusted.some((definition) => definition.name === 'user-agent')).toBe(true);
+    const trusted = discoverSubagents(cwd, { homeDir: home, agentDir, projectTrusted: true });
+    expect(trusted.some((definition) => definition.name === 'project-agent')).toBe(true);
+  });
+
+  it('ignores the project config file when the project is untrusted', () => {
+    const cwd = tempDir('trust-cfg-');
+    mkdirSync(join(cwd, '.pi'), { recursive: true });
+    writeFileSync(join(cwd, '.pi', 'subagents.json'), JSON.stringify({ explore: { model: 'inherit' } }));
+    const config = loadSubagentsConfig(cwd, join(cwd, 'agent'), undefined, false);
+    expect(config.explore.model).toBe('default');
+    expect(config.configFiles).toEqual([]);
   });
 
   it('skips agent files without frontmatter or without a body', () => {

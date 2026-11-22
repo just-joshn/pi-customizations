@@ -22,6 +22,7 @@
 ### Changed
 
 - A `task` call without `subagent_type` selects an agent by description match, then falls back to `general-purpose`.
+- Project agent directories and the project `subagents.json` load only for a trusted project, matching Pi's gate on project skills and MCP configuration.
 - Child sessions inherit the parent's active tool loadout when the definition lists no `tools`.
 - The tasks pager and task renderer show retries, failure ids, worktrees, and checkpoints.
 - `/agents` prints the effective config and config errors.
