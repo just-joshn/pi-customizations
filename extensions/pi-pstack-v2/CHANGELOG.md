@@ -5,6 +5,7 @@
 ### Changed
 
 - Add `test:coverage` script to `package.json`, remove the retired `style-audit` script and README reference, and update `test/port.test.ts` comments to reference `.pi/rules/coding-style.md`.
+- Set `publishConfig.access` to public so the scoped package publishes publicly.
 
 ## 0.3.2
 

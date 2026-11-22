@@ -8,7 +8,7 @@ This file governs agents working at this repository root and in its npm packages
 
 ## This repository
 
-- `.github/workflows/release.yml` publishes non-private `extensions/*/package.json` packages on push to `main` via OIDC-only direct `npm publish`.
+- `.github/workflows/release.yml` publishes non-private `extensions/*/package.json` and `extensions/no-ceilings/*/package.json` packages on push to `main` via OIDC-only direct `npm publish`.
 - Configure each package's **Trusted Publisher** on npmjs.com with GitHub Actions, owner `just-joshn`, repository `pi-customizations`, workflow filename `release.yml`, no environment, and **direct publish** permission enabled.
 - Scoped `@justjoshn/*` packages must set `"publishConfig": { "access": "public" }` in `package.json`, because `release.yml` runs `npm publish` without `--access`.
 - New packages are skipped by `release.yml` until bootstrapped: complete an authorized initial interactive publish on npm, configure the Trusted Publisher, then merge future version bumps to `main`.
