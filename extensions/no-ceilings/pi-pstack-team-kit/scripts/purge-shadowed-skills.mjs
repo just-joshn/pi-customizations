@@ -6,19 +6,22 @@ import { fileURLToPath } from 'node:url';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageSkillsDir = join(packageRoot, 'skills');
-const agentDir = process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent');
 const apply = process.argv.includes('--apply');
+
+function resolveAgentDir() {
+  return process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent');
+}
 
 function packageSkillNames() {
   return readdirSync(packageSkillsDir)
     .filter((name) => existsSync(join(packageSkillsDir, name, 'SKILL.md')))
-    .sort();
+    .toSorted();
 }
 
 function candidateRoots() {
   const cwd = process.cwd();
   return [
-    { label: 'user-pi', dir: join(agentDir, 'skills') },
+    { label: 'user-pi', dir: join(resolveAgentDir(), 'skills') },
     { label: 'project-pi', dir: join(cwd, '.pi', 'skills') },
     { label: 'user-agents', dir: join(homedir(), '.agents', 'skills') },
     { label: 'project-agents', dir: join(cwd, '.agents', 'skills') },
@@ -36,7 +39,7 @@ function archive(root, name, backupRoot) {
 const names = packageSkillNames();
 const roots = candidateRoots();
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const backupRoot = join(agentDir, 'backups', `pstack-team-kit-shadows-${stamp}`);
+const backupRoot = join(resolveAgentDir(), 'backups', `pstack-team-kit-shadows-${stamp}`);
 const matches = [];
 
 for (const root of roots) {
@@ -59,21 +62,20 @@ for (const root of roots) {
 
 if (matches.length === 0) {
   console.info('No shadowing copies found. Pi will load the package skills.');
-  process.exit(0);
-}
-
-for (const match of matches) {
-  const source = join(match.root.dir, match.name);
-  if (apply) {
-    const destination = archive(match.root, match.name, backupRoot);
-    console.info(`archived ${source} -> ${destination} (${match.kind})`);
-  } else {
-    console.info(`would archive ${source} (${match.kind})`);
-  }
-}
-
-if (apply) {
-  console.info(`\nArchived ${matches.length} copies under ${backupRoot}. Run /reload, then the package skills win.`);
 } else {
-  console.info(`\n${matches.length} copies shadow the package. Re-run with --apply to archive them under ${backupRoot}.`);
+  for (const match of matches) {
+    const source = join(match.root.dir, match.name);
+    if (apply) {
+      const destination = archive(match.root, match.name, backupRoot);
+      console.info(`archived ${source} -> ${destination} (${match.kind})`);
+    } else {
+      console.info(`would archive ${source} (${match.kind})`);
+    }
+  }
+
+  if (apply) {
+    console.info(`\nArchived ${matches.length} copies under ${backupRoot}. Run /reload, then the package skills win.`);
+  } else {
+    console.info(`\n${matches.length} copies shadow the package. Re-run with --apply to archive them under ${backupRoot}.`);
+  }
 }
