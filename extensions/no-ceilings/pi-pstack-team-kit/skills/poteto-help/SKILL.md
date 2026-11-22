@@ -35,7 +35,7 @@ When the model rule is missing and it matters, ask whether the user wants to pic
 
 ## Get set up
 
-1. Skills live in `~/.agents/skills/` and subagents in `~/.agents/agents/`. Run `/reload` in Pi after editing any skill.
+1. Skills load from this package, `.agents/skills/`, or `~/.agents/skills/`. Subagents load from `.pi/agents`, `.agents/agents`, `${PI_CODING_AGENT_DIR:-~/.pi/agent}/agents`, or `~/.agents/agents`. Run `/reload` after editing any skill.
 2. Run [`/skill:setup-pstack`](../setup-pstack/SKILL.md). It detects available models via `pi --list-models`, asks for a reasoning budget, maps a model to each role, and writes `${PI_CODING_AGENT_DIR:-~/.pi/agent}/pstack-models.md`. The configuration applies to new sessions. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
 3. Start a real task with `/skill:poteto-mode`, a goal, and a check that can pass or fail.
 
@@ -67,7 +67,7 @@ The default answer is `/skill:poteto-mode`, which runs most of the others when i
 | Know what a small diff could break outside itself | [`/skill:blast-radius`](../blast-radius/SKILL.md) |
 | Settle types and module shape before code that crosses a function boundary | [`/skill:architect`](../architect/SKILL.md) |
 | Get several attempts at one brief, merged into the best one | [`/skill:arena`](../arena/SKILL.md) |
-| Run parallel checks over slices, or race workers, as cloud agents | [`/skill:swarm`](../swarm/SKILL.md) |
+| Run parallel checks over slices, or race workers, each in its own worktree | [`/skill:swarm`](../swarm/SKILL.md) |
 | Have different models review a diff and try to break it | [`/skill:interrogate`](../interrogate/SKILL.md) |
 | Fix a bug test-first when a cheap local test exists | [`/skill:tdd`](../tdd/SKILL.md) |
 | Apply TypeScript rules to `.ts` or `.tsx` work | [`/skill:typescript-best-practices`](../typescript-best-practices/SKILL.md) |
@@ -87,7 +87,7 @@ The default answer is `/skill:poteto-mode`, which runs most of the others when i
 | Turn their own working habits into a personal mode skill | [`/skill:automate-me`](../automate-me/SKILL.md) |
 | Turn what a finished task taught into skill edits | [`/skill:reflect`](../reflect/SKILL.md) |
 | Stop agents from repeating the same mistakes in this repo | [`/skill:correct`](../correct/SKILL.md) |
-| Build a page whose buttons wake a Grok Bot over a webhook | [`/skill:make-bot-ui`](../make-bot-ui/SKILL.md) |
+| Build a page whose buttons wake a Pi automation over a webhook, with a configured provider | [`/skill:make-bot-ui`](../make-bot-ui/SKILL.md) |
 | Find their way around pstack | `/skill:poteto-help` |
 
 If a skill directory next to this one is missing from the table, read its frontmatter and route by its description. The `principle-*` directories are covered under principles below.
@@ -102,7 +102,7 @@ Close calls:
 
 Not in pstack (but shipped here from team-kit, or as external companions):
 
-- `/skill:deslop`, `/skill:control-cli`, `/skill:control-ui`, and the other team-kit skills in this package (`fix-ci`, `loop-on-ci`, `review-and-ship`, `verify-this`, …) come from cursor-team-kit 1.2.0 and ship beside pstack in `@justjoshn/pi-pstack-team-kit`.
+- `/skill:deslop`, `/skill:control-cli`, `/skill:control-ui`, and the other team-kit skills in this package (`fix-ci`, `loop-on-ci`, `review-and-ship`, `verify-this`, …) come from the team kit v1.2.0 and ship beside pstack in `@justjoshn/pi-pstack-team-kit`.
 - [`/skill:loop`](../loop/SKILL.md), [`/skill:create-skill`](../create-skill/SKILL.md), and [`/skill:automate`](../automate/SKILL.md) are bundled companion skills.
 - pstack has no `/orchestrate` skill. If another skill or command provides `/orchestrate`, it is not part of pstack.
 

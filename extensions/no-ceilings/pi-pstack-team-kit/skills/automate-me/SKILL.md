@@ -26,7 +26,7 @@ Update mode changes the rest of the flow:
 
 ### 1. Mine their history
 
-Locate the active workspace's session transcripts under `${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slug>--/` (or `$PI_CODING_AGENT_SESSION_DIR` when set, where `<slug>` is the workspace path with the leading slash dropped and each `/` turned into `-`) before fanning out. Use only that workspace directory. Don't glob across `${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
+Locate the active workspace's session transcripts before fanning out. `$PI_SESSION_FILE` names this session's file. Otherwise use `${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slug>--/`, where `<slug>` is the workspace path with the leading slash dropped and each `/`, `\`, or `:` turned into `-`. When `PI_CODING_AGENT_SESSION_DIR`, the `sessionDir` setting, or `--session-dir` is set, sessions live directly in that directory with no `--<slug>--` level. Use only that workspace directory. Don't glob across `${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
 
 Survey recent agent conversations within that scope for recurring patterns. Run multiple parallel subagents across slices of history (e.g. last 2-4 weeks, split into 3 slices so each has enough material). Pick each subagent's reasoning level for the job, per the Subagents section of the **poteto-mode** skill. Each slice mining subagent reads transcripts from the workspace-scoped path the parent provides, looks for the signals below, and returns a short structured list of patterns it saw with evidence pointers. Default signals worth hunting:
 
@@ -66,7 +66,7 @@ The **poteto-mode** skill shows the shape. Read it for granularity. Don't copy i
 
 Use `/skill:create-skill` to author the skill. Placement:
 
-- Path: preserve an existing mode skill's category. For a new mode, use `.agents/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle. Otherwise default to `.agents/skills/<handle>-mode/SKILL.md` in the project (or `~/.agents/skills/<handle>-mode/SKILL.md` if the user prefers a personal skill). Prefer these over any Cursor-only path `create-skill` still names.
+- Path: preserve an existing mode skill's category. For a new mode, use `.agents/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle. Otherwise default to `.agents/skills/<handle>-mode/SKILL.md` in the project (or `~/.agents/skills/<handle>-mode/SKILL.md` if the user prefers a personal skill).
 - Handle: the user's first name or chosen identifier.
 - Frontmatter `description`: trigger on their name + `/skill:<handle>-mode` + "work in their style", not on generic keywords like "write code" or "review PR".
 - Frontmatter formatting: follow `create-skill`'s YAML rules, keep portable Agent Skills fields, and keep `description` as one YAML scalar (<= 1024 chars). Match `name` to the parent directory name (lowercase letters, numbers, hyphens, <= 64 chars).

@@ -3,7 +3,7 @@
 Pi skills package with:
 
 - **pstack** (v0.15.46): operational skills, `principle-*` skills, `poteto-mode` playbooks, `poteto-agent`, `comment-sicko`
-- **cursor-team-kit** (v1.2.0): CI/review/shipping/control/verify skills, `ci-watcher`, `thermo-nuclear-code-quality-review`, and the two always-on engineering rules
+- **team kit** (v1.2.0): CI/review/shipping/control/verify skills, `ci-watcher`, `thermo-nuclear-code-quality-review`, and the two always-on engineering rules
 
 The pstack source pin is `d42aff08aa58965d2735c4ead61a9af82b89d0d0`. The package keeps the upstream workflow instructions where they apply and uses Pi's skill commands, subagent tools, and session paths. Automation creation and webhook wakes require a configured provider. Pi core does not supply the upstream editor or webhook service.
 

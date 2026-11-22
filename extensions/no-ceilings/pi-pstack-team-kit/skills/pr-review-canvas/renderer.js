@@ -1,19 +1,14 @@
-const MOVE_MIN_LINES = 3;
-const MOVE_MAX_RUN = 40;
-const MOVE_MATCH_RATIO = 0.7;
-
 function toggle(hdr) {
-  const b = hdr.nextElementSibling;
-  const c = hdr.querySelector('.chev');
-  b.classList.toggle('open');
-  c.classList.toggle('open');
+  var b = hdr.nextElementSibling, c = hdr.querySelector('.chev');
+  b.classList.toggle('open'); c.classList.toggle('open');
 }
 function toggleBP(hdr) {
-  toggle(hdr);
+  var b = hdr.nextElementSibling, c = hdr.querySelector('.chev');
+  b.classList.toggle('open'); c.classList.toggle('open');
 }
 
 function isImport(line) {
-  const s = line.replace(/^[+ -]/, '').trim();
+  var s = line.replace(/^[+ -]/, '').trim();
   return s.startsWith('import ') || s.startsWith('import{') || s.startsWith('} from ');
 }
 
@@ -36,187 +31,48 @@ function toLines(input) {
   return [];
 }
 
-/* Diff payload is a plain object assigned by template.html: window.__PR_DIFFS__ = {...}. */
 function loadPrDiffs() {
-  const diffs = window.__PR_DIFFS__;
-  if (!diffs || typeof diffs !== 'object' || Array.isArray(diffs)) return null;
-  return diffs;
-}
-
-function setHtml(el, html) {
-  el.replaceChildren();
-  el.insertAdjacentHTML('afterbegin', html);
-}
-
-function isFileHeader(l) {
-  return l.startsWith('--- ') || l.startsWith('+++ ') || l.startsWith('diff ');
-}
-
-function collectRun(items, start, used) {
-  const end = items.findIndex(function (item, idx) {
-    return idx > start && (idx - start >= MOVE_MAX_RUN || !item.consecutive || used[idx]);
-  });
-  const stop = end === -1 ? items.length : end;
-  return items.slice(start, stop).map(function (_, k) {
-    return start + k;
-  });
-}
-
-function findAddMatch(adds, ma, dn) {
-  for (let ai = 0; ai < adds.length; ai++) {
-    if (ma[ai]) continue;
-    const ab = collectRun(adds, ai, ma);
-    if (ab.length < MOVE_MIN_LINES) continue;
-    const an = ab.map(function (i) {
-      return normWs(adds[i].code);
-    });
-    const ml = Math.min(dn.length, an.length);
-    const mc = Array.from({ length: ml }, function (_, m) {
-      return dn[m] === an[m];
-    }).filter(Boolean).length;
-    if (mc >= MOVE_MIN_LINES && mc >= ml * MOVE_MATCH_RATIO) return { ab: ab, an: an, ml: ml };
+  var el = document.getElementById('pr-diffs-json');
+  if (!el) return null;
+  try {
+    return JSON.parse(el.textContent || '');
+  } catch (err) {
+    console.error('Failed to parse PR diff JSON payload', err);
+    return null;
   }
-  return null;
-}
-
-function markMoved(map, indices, flags) {
-  const entries = flags.map(function (exact, k) {
-    return [indices[k], { exact: exact }];
-  });
-  return { ...map, ...Object.fromEntries(entries) };
 }
 
 function detectMoves(dels, adds) {
-  let md = {};
-  let ma = {};
-  for (let di = 0; di < dels.length; di++) {
+  var TH = 3;
+  var md = {}, ma = {};
+  for (var di = 0; di < dels.length; di++) {
     if (md[di]) continue;
-    const db = collectRun(dels, di, md);
-    if (db.length < MOVE_MIN_LINES) continue;
-    const dn = db.map(function (i) {
-      return normWs(dels[i].code);
-    });
-    const hit = findAddMatch(adds, ma, dn);
-    if (!hit) continue;
-    const flags = Array.from({ length: hit.ml }, function (_, k) {
-      return dn[k] === hit.an[k];
-    });
-    md = markMoved(md, db, flags);
-    ma = markMoved(ma, hit.ab, flags);
-  }
-  return { movedDels: md, movedAdds: ma };
-}
-
-function takeWhilePrefix(lines, start, prefix) {
-  const end = lines.findIndex(function (l, i) {
-    return i >= start && !l.startsWith(prefix);
-  });
-  return lines.slice(start, end === -1 ? lines.length : end);
-}
-
-/* A '-' run followed by an equally long '+' run that differs only by whitespace. */
-function readWhitespaceRun(lines, i) {
-  if (!lines[i].startsWith('-')) return null;
-  const dr = takeWhilePrefix(lines, i, '-');
-  const ar = takeWhilePrefix(lines, i + dr.length, '+');
-  const same =
-    dr.length === ar.length &&
-    dr.every(function (d, k) {
-      return isWhitespaceOnly(d, ar[k]);
-    });
-  return same ? { adds: ar, next: i + dr.length + ar.length } : null;
-}
-
-function collapseWhitespaceRuns(lines) {
-  let out = [];
-  let i = 0;
-  while (i < lines.length) {
-    const run = readWhitespaceRun(lines, i);
-    if (run) {
-      out = out.concat(
-        run.adds.map(function (a) {
-          return ' ' + a.slice(1);
-        }),
-      );
-      i = run.next;
-    } else {
-      out = out.concat([lines[i]]);
-      i++;
+    var db = [di];
+    for (var d2 = di+1; d2 < dels.length && d2-di < 40; d2++) {
+      if (dels[d2].consecutive && !md[d2]) db.push(d2); else break;
+    }
+    if (db.length < TH) continue;
+    var dn = db.map(function(i){ return normWs(dels[i].code); });
+    for (var ai = 0; ai < adds.length; ai++) {
+      if (ma[ai]) continue;
+      var ab = [ai];
+      for (var a2 = ai+1; a2 < adds.length && a2-ai < 40; a2++) {
+        if (adds[a2].consecutive && !ma[a2]) ab.push(a2); else break;
+      }
+      if (ab.length < TH) continue;
+      var an = ab.map(function(i){ return normWs(adds[i].code); });
+      var ml = Math.min(dn.length, an.length), mc = 0;
+      for (var m = 0; m < ml; m++) { if (dn[m] === an[m]) mc++; }
+      if (mc >= TH && mc >= ml * 0.7) {
+        for (var k = 0; k < ml; k++) {
+          md[db[k]] = { exact: dn[k] === an[k] };
+          ma[ab[k]] = { exact: dn[k] === an[k] };
+        }
+        break;
+      }
     }
   }
-  return out;
-}
-
-function parseHunk(state, line) {
-  const hm = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)/);
-  const oL = hm ? parseInt(hm[1]) : state.oL;
-  const nL = hm ? parseInt(hm[2]) : state.nL;
-  return { oL: oL, nL: nL, pD: false, pA: false, parsed: state.parsed.concat([{ type: 'hunk', text: line }]) };
-}
-
-function parseLine(state, line) {
-  if (isFileHeader(line)) return state;
-  if (line.startsWith('@@')) return parseHunk(state, line);
-  const idx = state.parsed.length;
-  if (line.startsWith('+')) {
-    const ae = { type: 'add', code: line.slice(1), newLine: state.nL, consecutive: state.pA, idx: idx };
-    return { ...state, nL: state.nL + 1, pA: true, pD: false, parsed: state.parsed.concat([ae]) };
-  }
-  if (line.startsWith('-')) {
-    const de = { type: 'del', code: line.slice(1), oldLine: state.oL, consecutive: state.pD, idx: idx };
-    return { ...state, oL: state.oL + 1, pD: true, pA: false, parsed: state.parsed.concat([de]) };
-  }
-  const code = line.startsWith(' ') ? line.slice(1) : line;
-  const ctx = { type: 'ctx', code: code, oldLine: state.oL, newLine: state.nL };
-  return { oL: state.oL + 1, nL: state.nL + 1, pD: false, pA: false, parsed: state.parsed.concat([ctx]) };
-}
-
-function parseDiff(lines) {
-  const init = { oL: 0, nL: 0, pD: false, pA: false, parsed: [] };
-  return lines.reduce(parseLine, init).parsed;
-}
-
-function movedClass(moved, base) {
-  if (!moved) return 'diff-' + base;
-  return 'diff-moved-' + base + (moved.exact ? '' : '-edited');
-}
-
-function row(cls, oldCell, newCell, code) {
-  return '<tr class="' + cls + '"><td class="diff-ln">' + oldCell + '</td><td class="diff-ln">' + newCell + '</td><td class="diff-code">' + esc(code) + '</td></tr>';
-}
-
-function rowHtml(p, ctx) {
-  if (p.type === 'hunk') return row('diff-hunk', '', '', p.text);
-  if (p.type === 'add') {
-    return row(movedClass(ctx.mv.movedAdds[ctx.adds.indexOf(p)], 'add'), '', p.newLine, p.code);
-  }
-  if (p.type === 'del') {
-    return row(movedClass(ctx.mv.movedDels[ctx.dels.indexOf(p)], 'del'), p.oldLine, '', p.code);
-  }
-  return row('diff-ctx', p.oldLine, p.newLine, p.code);
-}
-
-function resolveTarget(target) {
-  if (typeof target === 'string') return document.getElementById(target) || document.querySelector(target);
-  return target;
-}
-
-function buildTable(lines) {
-  const filtered = lines.filter(function (l) {
-    return l.startsWith('--- ') || l.startsWith('+++ ') || l.startsWith('@@') || l.startsWith('diff ') || !isImport(l);
-  });
-  const parsed = parseDiff(collapseWhitespaceRuns(filtered));
-  const adds = parsed.filter(function (p) {
-    return p.type === 'add';
-  });
-  const dels = parsed.filter(function (p) {
-    return p.type === 'del';
-  });
-  const ctx = { mv: detectMoves(dels, adds), adds: adds, dels: dels };
-  const rows = parsed.map(function (p) {
-    return rowHtml(p, ctx);
-  });
-  return '<table class="diff-table"><tbody>' + rows.join('') + '</tbody></table>';
+  return { movedDels: md, movedAdds: ma };
 }
 
 /**
@@ -225,22 +81,90 @@ function buildTable(lines) {
  *   diffInput: array of diff lines, OR a single string (will be split on \n)
  */
 function renderDiff(target, diffInput) {
-  const el = resolveTarget(target);
-  if (!el) return;
-  const lines = toLines(diffInput);
-  if (!lines.length) {
-    setHtml(el, '<div style="padding:12px;color:#777;font-size:12px;">No diff data</div>');
-    return;
+  var el;
+  if (typeof target === 'string') {
+    el = document.getElementById(target) || document.querySelector(target);
+  } else {
+    el = target;
   }
-  setHtml(el, buildTable(lines));
+  if (!el) return;
+
+  var lines = toLines(diffInput);
+  if (!lines.length) { el.innerHTML = '<div style="padding:12px;color:#777;font-size:12px;">No diff data</div>'; return; }
+
+  var filtered = lines.filter(function(l) {
+    if (l.startsWith('--- ') || l.startsWith('+++ ') || l.startsWith('@@') || l.startsWith('diff ')) return true;
+    return !isImport(l);
+  });
+
+  var wsOut = [];
+  for (var wi = 0; wi < filtered.length; wi++) {
+    if (filtered[wi].startsWith('-')) {
+      var dr = [filtered[wi]], wj = wi+1;
+      while (wj < filtered.length && filtered[wj].startsWith('-')) { dr.push(filtered[wj]); wj++; }
+      var ar = [], wk = wj;
+      while (wk < filtered.length && filtered[wk].startsWith('+')) { ar.push(filtered[wk]); wk++; }
+      if (dr.length === ar.length && dr.length > 0) {
+        var allWs = true;
+        for (var wc = 0; wc < dr.length; wc++) { if (!isWhitespaceOnly(dr[wc], ar[wc])) { allWs = false; break; } }
+        if (allWs) { for (var wx = 0; wx < ar.length; wx++) wsOut.push(' ' + ar[wx].slice(1)); wi = wk-1; continue; }
+      }
+    }
+    wsOut.push(filtered[wi]);
+  }
+
+  var dels = [], adds = [], parsed = [];
+  var oL = 0, nL = 0, pD = false, pA = false;
+  for (var pi = 0; pi < wsOut.length; pi++) {
+    var line = wsOut[pi];
+    if (line.startsWith('--- ') || line.startsWith('+++ ') || line.startsWith('diff ')) continue;
+    if (line.startsWith('@@')) {
+      var hm = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)/);
+      if (hm) { oL = parseInt(hm[1]); nL = parseInt(hm[2]); }
+      parsed.push({ type: 'hunk', text: line }); pD = false; pA = false; continue;
+    }
+    if (line.startsWith('+')) {
+      var ae = { type:'add', code:line.slice(1), newLine:nL, consecutive:pA, idx:parsed.length };
+      adds.push(ae); parsed.push(ae); nL++; pA = true; pD = false;
+    } else if (line.startsWith('-')) {
+      var de = { type:'del', code:line.slice(1), oldLine:oL, consecutive:pD, idx:parsed.length };
+      dels.push(de); parsed.push(de); oL++; pD = true; pA = false;
+    } else {
+      var c = line.startsWith(' ') ? line.slice(1) : line;
+      parsed.push({ type:'ctx', code:c, oldLine:oL, newLine:nL }); oL++; nL++; pD = false; pA = false;
+    }
+  }
+
+  var mv = detectMoves(dels, adds);
+  var rows = [];
+  for (var ri = 0; ri < parsed.length; ri++) {
+    var p = parsed[ri];
+    if (p.type === 'hunk') {
+      rows.push('<tr class="diff-hunk"><td class="diff-ln"></td><td class="diff-ln"></td><td class="diff-code">' + esc(p.text) + '</td></tr>');
+    } else if (p.type === 'add') {
+      var ai2 = -1; for (var fa=0;fa<adds.length;fa++) if(adds[fa].idx===p.idx){ai2=fa;break;}
+      var cls = (mv.movedAdds[ai2]) ? (mv.movedAdds[ai2].exact ? 'diff-moved-add' : 'diff-moved-add-edited') : 'diff-add';
+      rows.push('<tr class="'+cls+'"><td class="diff-ln"></td><td class="diff-ln">'+p.newLine+'</td><td class="diff-code">'+esc(p.code)+'</td></tr>');
+    } else if (p.type === 'del') {
+      var di2 = -1; for(var fd=0;fd<dels.length;fd++) if(dels[fd].idx===p.idx){di2=fd;break;}
+      var cls2 = (mv.movedDels[di2]) ? (mv.movedDels[di2].exact ? 'diff-moved-del' : 'diff-moved-del-edited') : 'diff-del';
+      rows.push('<tr class="'+cls2+'"><td class="diff-ln">'+p.oldLine+'</td><td class="diff-ln"></td><td class="diff-code">'+esc(p.code)+'</td></tr>');
+    } else {
+      rows.push('<tr class="diff-ctx"><td class="diff-ln">'+p.oldLine+'</td><td class="diff-ln">'+p.newLine+'</td><td class="diff-code">'+esc(p.code)+'</td></tr>');
+    }
+  }
+  el.innerHTML = '<table class="diff-table"><tbody>' + rows.join('') + '</tbody></table>';
 }
 
-/* Auto-discovery: after DOM loads, find all [data-diff] elements and render diffs from window.__PR_DIFFS__. */
-document.addEventListener('DOMContentLoaded', function () {
-  const prDiffs = loadPrDiffs();
+/* Auto-discovery: after DOM loads, find all [data-diff] elements and render diffs from pr-diffs-json. */
+document.addEventListener('DOMContentLoaded', function() {
+  var prDiffs = loadPrDiffs();
   if (!prDiffs) return;
-  document.querySelectorAll('[data-diff]').forEach(function (el) {
-    const key = el.getAttribute('data-diff');
-    if (key && Object.prototype.hasOwnProperty.call(prDiffs, key)) renderDiff(el, prDiffs[key]);
-  });
+  var els = document.querySelectorAll('[data-diff]');
+  for (var i = 0; i < els.length; i++) {
+    var key = els[i].getAttribute('data-diff');
+    if (key && Object.prototype.hasOwnProperty.call(prDiffs, key)) {
+      renderDiff(els[i], prDiffs[key]);
+    }
+  }
 });

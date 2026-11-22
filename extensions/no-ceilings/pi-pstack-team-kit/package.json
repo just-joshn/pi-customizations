@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-pstack-team-kit",
   "version": "0.1.1",
-  "description": "pstack v0.15.46 skills/principles/playbooks/agents plus cursor-team-kit 1.2.0 skills/agents/rules, as a Pi-native skills package.",
+  "description": "pstack v0.15.46 skills/principles/playbooks/agents plus team kit v1.2.0 skills/agents/rules, as a Pi-native skills package.",
   "type": "module",
   "license": "MIT",
   "publishConfig": {
@@ -16,7 +16,7 @@
     "pi-package",
     "no-ceilings",
     "pstack",
-    "cursor-team-kit",
+    "team-kit",
     "poteto-mode"
   ],
   "engines": {

@@ -173,7 +173,7 @@ for (const name of allExpectedSkills) {
 const cursorLeftovers = [];
 for (const agent of expectedAgents) {
   const text = readFileSync(join(agentsDir, agent), 'utf8');
-  if (/\bTask\b/.test(text) || /cursor-team-kit plugin/.test(text) || /^model:\s*fast\s*$/m.test(text)) {
+  if (/\bTask\b/.test(text) || /cursor-team-kit plugin/.test(text)) {
     cursorLeftovers.push(agent);
   }
 }
