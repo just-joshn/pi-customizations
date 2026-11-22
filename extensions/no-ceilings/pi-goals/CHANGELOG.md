@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Changed
+
+- Update `README.md` to include the idle-continuation cap and the interrupt pause in the goal lifecycle.
+
 ## 0.1.2
 
 ### Changed

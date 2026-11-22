@@ -12,7 +12,7 @@
     },
     "extensions/no-ceilings/pi-goals": {
       "name": "@justjoshn/pi-goals",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "dependencies": {
         "zod": "^4",
       },
@@ -37,7 +37,7 @@
     },
     "extensions/no-ceilings/pi-modes": {
       "name": "@justjoshn/pi-modes",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "dependencies": {
         "zod": "^4",
       },
@@ -60,9 +60,13 @@
         "typebox": "*",
       },
     },
+    "extensions/no-ceilings/pi-pstack-team-kit": {
+      "name": "@justjoshn/pi-pstack-team-kit",
+      "version": "0.1.2",
+    },
     "extensions/no-ceilings/pi-subagents": {
       "name": "@justjoshn/pi-subagents",
-      "version": "0.1.2",
+      "version": "0.1.4",
       "dependencies": {
         "zod": "^4",
       },
@@ -126,7 +130,7 @@
     },
     "extensions/pi-pstack-v2": {
       "name": "@justjoshn/pi-pstack-v2",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "dependencies": {
         "@earendil-works/gondolin": "0.14.0",
         "minimatch": "11.0.3",
@@ -317,6 +321,8 @@
     "@justjoshn/pi-google-oauth-v2": ["@justjoshn/pi-google-oauth-v2@workspace:extensions/pi-google-oauth-v2"],
 
     "@justjoshn/pi-modes": ["@justjoshn/pi-modes@workspace:extensions/no-ceilings/pi-modes"],
+
+    "@justjoshn/pi-pstack-team-kit": ["@justjoshn/pi-pstack-team-kit@workspace:extensions/no-ceilings/pi-pstack-team-kit"],
 
     "@justjoshn/pi-pstack-v2": ["@justjoshn/pi-pstack-v2@workspace:extensions/pi-pstack-v2"],
 

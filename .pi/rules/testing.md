@@ -1,35 +1,35 @@
-# Testing
+# Testing Rules
+
+## Minimum Test Coverage: 80%
+
+Test Types (ALL required):
+1. **Unit Tests** - Individual functions, utilities, components
+2. **Integration Tests** - API endpoints, database operations
+3. **E2E Tests** - Critical user flows
 
 ## Test-Driven Development
 
-Workflow:
-1. Write a failing behavior test first (RED)
-2. Run the test and confirm it fails
-3. Write the minimal implementation (GREEN)
-4. Run the test and confirm it passes
+MANDATORY workflow:
+1. Write test first (RED)
+2. Run test - it should FAIL
+3. Write minimal implementation (GREEN)
+4. Run test - it should PASS
 5. Refactor (IMPROVE)
-6. Verify coverage (`bun run --filter <pkg> test:coverage`)
-
-## Coverage and Test Types
-
-Target at least 80% coverage across observable user behavior:
-1. **Unit tests** for pure helpers, parsers, and state transitions
-2. **Integration tests** for extension wiring, tool execution, and host boundaries
-3. **End-to-end checks** for CLI or TUI flows where applicable
+6. Verify coverage (80%+)
 
 ## Edge Cases to Test
 
-Cover these cases on public boundaries:
-- [ ] Null and undefined inputs
-- [ ] Empty arrays and strings
-- [ ] Invalid types and malformed payloads
+Every function must be tested with:
+- [ ] Null/undefined inputs
+- [ ] Empty arrays/strings
+- [ ] Invalid types
 - [ ] Boundary values (min/max)
-- [ ] Error conditions and failure paths
+- [ ] Error conditions
 
 ## Test Quality Checklist
 
-- [ ] Tests are independent (no shared mutable state)
-- [ ] Test names describe observable behavior, not internals
-- [ ] External I/O and network dependencies are isolated
-- [ ] Both happy path and error paths are tested
+- [ ] Tests are independent (no shared state)
+- [ ] Test names describe behavior
+- [ ] Mocks used for external dependencies
+- [ ] Both happy path and error paths tested
 - [ ] No flaky tests

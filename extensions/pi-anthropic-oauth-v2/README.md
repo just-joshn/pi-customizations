@@ -39,7 +39,7 @@ The extension sends thinking only when the model is a reasoning model and Pi req
 - **Adaptive thinking.** When `model.compat.forceAdaptiveThinking` is `true`, the request sets `thinking: { type: "adaptive", display: "summarized" }` and `output_config.effort`.
 - **Token-budget thinking.** Other reasoning models set `thinking: { type: "enabled", budget_tokens, display: "summarized" }`. The request also sends the `interleaved-thinking-2025-05-14` beta header, for both OAuth and API-key sign-in.
 
-The effort comes from `model.thinkingLevelMap` when the map has an entry for the level. Otherwise `minimal` and `low` map to `low`, `medium` maps to `medium`, and `high` and any other level map to `high`.
+The effort comes from `model.thinkingLevelMap` when the map has a non-null entry for the level. Otherwise `minimal` and `low` map to `low`, `medium` maps to `medium`, and `high` and any other level map to `high`.
 
 The default token budgets are:
 
@@ -60,13 +60,13 @@ The extension treats a credential as an OAuth token when it contains `sk-ant-oat
 - The `user-agent` header `claude-cli/<version> (external, cli)`.
 - The headers `x-app: cli` and `anthropic-dangerous-direct-browser-access: true`.
 - The system line `You are Claude Code, Anthropic's official CLI for Claude.`
-- Renamed tools. Pi tool names that match Claude Code tools are renamed in requests and mapped back in responses.
+- Renamed tools. Pi tool names that match Claude Code's `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `AskUserQuestion`, `TodoWrite`, `WebFetch`, or `WebSearch` are renamed in OAuth requests and mapped back in responses. API-key requests keep Pi's names.
 
 Any other credential is an API key. API-key requests send none of these items.
 
 ### Other request settings
 
-- **Max tokens.** `max_tokens` is Pi's `maxTokens` option when set. Otherwise it is `Math.floor(model.maxTokens / 3)`.
+- **Max tokens.** `max_tokens` is Pi's `maxTokens` option when set. Otherwise it is `Math.floor(model.maxTokens / 3)`. With token-budget thinking on and a budget at least that large, `max_tokens` becomes the budget plus that value, because Anthropic rejects a budget that reaches `max_tokens`.
 - **Prompt caching.** The request adds an ephemeral `cache_control` entry to each system block and to the last block of the final user message.
 - **Replayed thinking.** Thinking blocks that have no signature are sent back as plain text blocks. Signed thinking blocks are sent back as thinking blocks.
 - **Tool input.** Each tool sets `eager_input_streaming`, so Claude streams tool arguments as partial JSON deltas.

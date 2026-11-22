@@ -53,11 +53,12 @@ The package adds these tools:
 | `tmux_run` | Runs a shell command on the host in tmux. `cwd` sets the working directory, relative to the session's. `wake` wakes your session when the command exits. `repeat` restarts the command after each clean exit as a heartbeat, and it requires `wake`. |
 | `tmux_jobs` | Lists, tails, waits on, or stops this session's `tmux_run` jobs. |
 
-It also adds the Gondolin tool routing and two slash commands:
+It also adds the Gondolin tool routing and two slash commands of its own:
 
-- `/skill:<name>` runs any skill.
 - `/pstack-mode <skill>` keeps that skill in the system prompt every turn, which is pstack's Custom Mode. `/pstack-mode off` ends it.
 - `/gondolin` shows the session's VM.
+
+Pi also provides `/skill:<name>` to run any skill.
 
 It registers one Pi CLI flag, `--gondolin-shared-build-cache`. See the Gondolin section.
 
@@ -65,7 +66,7 @@ It registers one Pi CLI flag, `--gondolin-shared-build-cache`. See the Gondolin 
 
 `src/gondolin` is Pi's [`gondolin` example extension](https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/gondolin), split into modules in this package's style. This package adds the following to the example:
 
-- Read-only mounts of the package, the skill directories, and the subagent `.output` log directory.
+- Read-only mounts of the package, the skill directories, and the `<agentDir>/pstack-v2/subagents` log directory.
 - A writable mount of the subagent memory directory.
 - Write denial on `.git/hooks` and `.git/config`.
 - An HTTP and HTTPS host allowlist.
@@ -86,9 +87,9 @@ A host path outside the working directory does not exist in the guest, except th
 
 - This package.
 - `<agentDir>/skills`.
+- The `<agentDir>/pstack-v2/subagents` directory, which holds the `<id>.output` logs of `subagent` wake jobs. The extension creates it when the agent directory exists.
 - `~/.agents/skills`.
 - Every existing directory in the `skills` array of `<agentDir>/settings.json`. A leading `~/` expands to your home directory, and relative paths resolve against the agent directory.
-- The `.output` log directory under `<agentDir>/pstack-v2/`, which holds the logs of `subagent` wake jobs. The extension creates it when the agent directory exists.
 
 The system prompt tells the model about this boundary and which commands only the host has.
 

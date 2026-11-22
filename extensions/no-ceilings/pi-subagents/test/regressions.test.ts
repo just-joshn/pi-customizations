@@ -20,6 +20,8 @@ const FAST_ABORT_BUDGET_MS = 100;
 let plans: readonly MockPlan[] = [];
 let capturedFactories: readonly ExtensionFactory[] = [];
 let lastLoaderFactories: readonly ExtensionFactory[] = [];
+let sessionToolLists: readonly (readonly string[] | undefined)[] = [];
+let sessionFactories: readonly (readonly ExtensionFactory[])[] = [];
 
 function enqueuePlan(plan: MockPlan): void {
   plans = [...plans, plan];
@@ -67,8 +69,10 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
   return {
     ...actual,
     DefaultResourceLoader: MockDefaultResourceLoader,
-    createAgentSession: async () => {
+    createAgentSession: async (opts: { readonly tools?: readonly string[] }) => {
       const plan = dequeuePlan();
+      sessionToolLists = [...sessionToolLists, opts.tools];
+      sessionFactories = [...sessionFactories, lastLoaderFactories];
       capturedFactories = [...capturedFactories, ...lastLoaderFactories];
       return { session: createMockSession(plan) };
     },
@@ -79,6 +83,8 @@ afterEach(() => {
   plans = [];
   capturedFactories = [];
   lastLoaderFactories = [];
+  sessionToolLists = [];
+  sessionFactories = [];
 });
 
 async function evaluateReadonlyBashMatrix(blocked: readonly string[], allowed: readonly string[]): Promise<{ readonly blockedFailures: readonly string[]; readonly allowedFailures: readonly string[] }> {
@@ -468,6 +474,180 @@ describe('Inherited extension providers in child subagent sessions', () => {
 
       expect(registered).toContainEqual({ value: nativeProvider });
       expect(registered).toContainEqual({ name: 'custom-anthropic', value: configProvider });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('Nested task + await for opted-in non-readonly subagents', () => {
+  interface FakeTool {
+    readonly name: string;
+    readonly execute: (id: string, params: unknown, signal: AbortSignal | undefined, onUpdate: undefined, ctx: unknown) => Promise<{ readonly details: { readonly agentId: string; readonly outcome?: string } }>;
+  }
+
+  function writeAgent(cwd: string, name: string, frontmatter: string): void {
+    const dir = join(cwd, '.pi', 'agents');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, `${name}.md`), `---\nname: ${name}\ndescription: test\n${frontmatter}\n---\nPrompt for ${name}`);
+  }
+
+  function installNested(factories: readonly ExtensionFactory[]): readonly FakeTool[] {
+    let tools: readonly FakeTool[] = [];
+    const fakePi = double<{ readonly on: () => void; readonly registerProvider: () => void; readonly registerTool: (tool: FakeTool) => void }>({
+      on: () => undefined,
+      registerProvider: () => undefined,
+      registerTool: (tool: FakeTool) => {
+        tools = [...tools, tool];
+      },
+    });
+    for (const factory of factories) {
+      void factory(double(fakePi));
+    }
+    return tools;
+  }
+
+  it('gives task and await_subagent only to opted-in, non-readonly children', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true\ntools: read, bash');
+      writeAgent(h.cwd, 'plain', 'tools: read');
+      writeAgent(h.cwd, 'ro-owner', 'nested-tasks: true\nreadonly: true');
+      await h.emit('session_start', {});
+      for (const type of ['pr-owner', 'plain', 'ro-owner']) {
+        enqueuePlan({ finalText: type });
+        await h.callTool('task', { description: type, prompt: 'go', subagent_type: type });
+      }
+      const names = sessionFactories.map((f) => installNested(f).map((t) => t.name));
+      expect(names).toEqual([['task', 'await_subagent'], [], []]);
+      expect(sessionToolLists[ZERO]).toEqual(['read', 'bash', 'task', 'await_subagent']);
+      expect(sessionToolLists[ONE]).toEqual(['read']);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('allows exactly one extra level and keeps await inside the launching scope', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
+      writeAgent(h.cwd, 'grand', 'nested-tasks: true');
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'owner' });
+      await h.callTool('task', { description: 'owner', prompt: 'go', subagent_type: 'pr-owner' });
+      const [taskTool, awaitTool] = installNested(sessionFactories[ZERO] ?? []);
+      expect(taskTool?.name).toBe('task');
+      enqueuePlan({ finalText: 'grandchild done' });
+      const grand = await taskTool?.execute('c1', { description: 'grand', prompt: 'x', subagent_type: 'grand' }, undefined, undefined, h.ctx);
+      expect(sessionFactories).toHaveLength(2);
+      expect(installNested(sessionFactories[ONE] ?? [])).toEqual([]);
+      expect(sessionToolLists[ONE]).toBeUndefined();
+      expect(grand?.details.agentId).toBeTruthy();
+      const foreign = await awaitTool?.execute('c2', { agent_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }, undefined, undefined, h.ctx);
+      expect(foreign?.details.outcome).toBe('not_found');
+      await expect(taskTool?.execute('c3', { description: 'r', prompt: 'x', resume: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }, undefined, undefined, h.ctx)).rejects.toThrow(/not launched by this agent/);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('aborts nested background runs when the owning child ends, without parent wakeups', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
+      await h.emit('session_start', {});
+      const ownerGate = createGate();
+      const grandGate = createGate();
+      enqueuePlan({ finalText: 'owner', waitForRelease: ownerGate.promise });
+      await h.callTool('task', { description: 'owner', prompt: 'go', subagent_type: 'pr-owner', run_in_background: true });
+      const [taskTool, awaitTool] = installNested(sessionFactories[ZERO] ?? []);
+      enqueuePlan({ finalText: 'late', waitForRelease: grandGate.promise });
+      const launched = await taskTool?.execute('c1', { description: 'bg', prompt: 'x', run_in_background: true }, undefined, undefined, h.ctx);
+      const grandId = launched?.details.agentId ?? '';
+      const waiting = await awaitTool?.execute('c2', { agent_id: grandId, timeout_ms: SHORT_DELAY_MS }, undefined, undefined, h.ctx);
+      expect(waiting?.details.outcome).toBe('still_running');
+      ownerGate.release();
+      await delay(SHORT_DELAY_MS);
+      grandGate.release();
+      await delay(SHORT_DELAY_MS);
+      const states = h.getEntries().filter((e) => e.customType === 'pi-subagents-state');
+      const lastState = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string }[] }>(states.at(-ONE)?.data);
+      expect(lastState.sessions.find((x) => x.agentId === grandId)?.status).toBe('cancelled');
+      const wakeups = h.getSentMessages().map((m) => JSON.stringify(m));
+      expect(wakeups.filter((m) => m.includes('owner') || m.includes('Background Subagent'))).not.toHaveLength(ZERO);
+      expect(wakeups.some((m) => m.includes(grandId))).toBe(false);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('lets a resumed owner resume its own child while still rejecting foreign children', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
+      await h.emit('session_start', {});
+
+      enqueuePlan({ finalText: 'foreign done' });
+      const foreign = await h.callTool('task', { description: 'foreign', prompt: 'root child' });
+      const foreignId = foreign.details?.agentId ?? '';
+
+      const ownerGate = createGate();
+      enqueuePlan({ finalText: 'owner pass 1', waitForRelease: ownerGate.promise });
+      const owner = await h.callTool('task', { description: 'owner', prompt: 'first', subagent_type: 'pr-owner', run_in_background: true });
+      const ownerId = owner.details?.agentId ?? '';
+      const [task1] = installNested(sessionFactories[ONE] ?? []);
+
+      enqueuePlan({ finalText: 'child pass 1' });
+      const child = await task1?.execute('n1', { description: 'child', prompt: 'first' }, undefined, undefined, h.ctx);
+      const childId = child?.details.agentId ?? '';
+
+      ownerGate.release();
+      await h.callTool('await_subagent', { agent_id: ownerId, timeout_ms: LONG_TIMEOUT_MS });
+
+      enqueuePlan({ finalText: 'owner pass 2' });
+      await h.callTool('task', { description: 'owner', prompt: 'continue', subagent_type: 'pr-owner', resume: ownerId });
+      const [task2, await2] = installNested(sessionFactories.at(-ONE) ?? []);
+
+      enqueuePlan({ finalText: 'child pass 2' });
+      const resumedChild = await task2?.execute('n2', { description: 'child', prompt: 'continue', resume: childId }, undefined, undefined, h.ctx);
+      expect(resumedChild?.details.agentId).toBe(childId);
+      const awaitedChild = await await2?.execute('n3', { agent_id: childId }, undefined, undefined, h.ctx);
+      expect(awaitedChild?.details.outcome).toBe('complete');
+
+      await expect(task2?.execute('n4', { description: 'steal', prompt: 'nope', resume: foreignId }, undefined, undefined, h.ctx)).rejects.toThrow(/not launched by this agent/);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('preserves root lineage without granting nested tools when a depth-2 grandchild launched by a real child session is resumed from root', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
+      writeAgent(h.cwd, 'grand', 'nested-tasks: true');
+      await h.emit('session_start', {});
+
+      enqueuePlan({ finalText: 'owner' });
+      await h.callTool('task', { description: 'owner', prompt: 'go', subagent_type: 'pr-owner' });
+      const [taskTool] = installNested(sessionFactories[ZERO] ?? []);
+
+      const childCtx = double<typeof h.ctx>({
+        ...h.ctx,
+        sessionManager: {
+          ...h.ctx.sessionManager,
+          getSessionId: () => '22222222-3333-4444-8555-666666666666',
+        },
+      });
+
+      enqueuePlan({ finalText: 'grand pass 1' });
+      const grand = await taskTool?.execute('g1', { description: 'grand', prompt: 'go', subagent_type: 'grand' }, undefined, undefined, childCtx);
+      const grandId = grand?.details.agentId ?? '';
+      expect(installNested(sessionFactories[ONE] ?? [])).toEqual([]);
+
+      enqueuePlan({ finalText: 'grand pass 2' });
+      const resumed = await h.callTool('task', { description: 'resume grand', prompt: 'again', subagent_type: 'grand', resume: grandId });
+      expect(resumed.details?.agentId).toBe(grandId);
+      expect(installNested(sessionFactories.at(-ONE) ?? [])).toEqual([]);
     } finally {
       await h.cleanup();
     }

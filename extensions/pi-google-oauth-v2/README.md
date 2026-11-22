@@ -16,7 +16,7 @@ pi install npm:@justjoshn/pi-google-oauth-v2
 ## Sign in
 
 1. Start Pi and run `/login`.
-2. Choose **Google AI subscription**.
+2. Choose **Sign in with an account**, then **Google AI subscription**.
 3. Complete sign-in in your browser with the Google account that holds your plan.
 
 Pi then shows the plan tier and the Code Assist project that Google reports.

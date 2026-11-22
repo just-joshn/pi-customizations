@@ -3,11 +3,12 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { Type } from 'typebox';
 import { resolveSubagentDefinition } from './discovery.ts';
 import { awaitBackgroundSubagent, type RunnerCallbacks, runSubagentTask } from './runner.ts';
-import { type AwaitSubagentDetails, AwaitSubagentInputSchema, DEFAULT_AWAIT_TIMEOUT_MS, SUBAGENT_TOOL_NAMES, type SubagentDefinition, type TaskToolDetails, TaskToolInputSchema } from './types.ts';
+import { type AwaitSubagentDetails, AwaitSubagentInputSchema, DEFAULT_AWAIT_TIMEOUT_MS, type NestedScope, SUBAGENT_TOOL_NAMES, type SubagentDefinition, type TaskToolDetails, TaskToolInputSchema } from './types.ts';
 import { renderTaskCall, renderTaskResult } from './ui-renderers.ts';
 
 export interface SubagentToolCallbacks extends RunnerCallbacks {
   readonly getDefinitions: (cwd: string) => readonly SubagentDefinition[];
+  readonly scope?: NestedScope;
 }
 
 const TaskToolParams = Type.Object({
@@ -15,6 +16,7 @@ const TaskToolParams = Type.Object({
   prompt: Type.Optional(Type.String({ description: 'The task for the subagent to perform' })),
   subagent_type: Type.Optional(Type.String({ description: 'Subagent type to use (general-purpose, explore, shell, debug, or a custom agent name)' })),
   model: Type.Optional(Type.String({ description: 'Optional model override ("inherit", "fast", or explicit model id)' })),
+  thinking: Type.Optional(Type.String({ description: 'Optional Pi thinking level: off, minimal, low, medium, high, xhigh, or max' })),
   readonly: Type.Optional(Type.Boolean({ description: 'Run subagent in read-only mode, restricting file writes, deletes, mutating shell commands, and MCP tools' })),
   resume: Type.Optional(Type.String({ description: 'Optional subagent agent_id to resume from a previous invocation' })),
   run_in_background: Type.Optional(Type.Boolean({ description: 'Run the subagent asynchronously in the background and return immediately with agent_id' })),
@@ -74,8 +76,23 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
         const available = definitions.map((d) => d.name).join(', ');
         throw new Error(`Unknown subagent_type "${parsed.subagent_type ?? ''}". Available subagents: ${available}`);
       }
+      const resumeId = parsed.resume?.trim();
+      if (callbacks.scope && resumeId && !callbacks.scope.agentIds.has(resumeId)) {
+        throw new Error(`Cannot resume subagent ${resumeId}: it was not launched by this agent.`);
+      }
       const forwardUpdate = createUpdateForwarder(onUpdate);
-      const runOpts = { toolCallId, input: parsed, definition, ctx, ...(signal ? { signal } : {}), ...(forwardUpdate ? { onUpdate: forwardUpdate } : {}) };
+      const runOpts = {
+        toolCallId,
+        input: parsed,
+        definition,
+        ctx,
+        createNestedExtension: (scope: NestedScope) => (child: ExtensionAPI) => {
+          registerSubagentTools(child, { ...callbacks, store: { ...callbacks.store, enqueueWakeup: () => false }, scope });
+        },
+        ...(signal ? { signal } : {}),
+        ...(callbacks.scope ? { scope: callbacks.scope } : {}),
+        ...(forwardUpdate ? { onUpdate: forwardUpdate } : {}),
+      };
       const details = await runSubagentTask(runOpts, callbacks);
       return { content: [{ type: 'text', text: formatTaskResultText(details) }], details };
     },
@@ -88,7 +105,7 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
   });
 }
 
-function registerAwaitTool(pi: ExtensionAPI, callbacks: RunnerCallbacks): void {
+function registerAwaitTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): void {
   pi.registerTool<typeof AwaitSubagentParams, AwaitSubagentDetails>({
     name: SUBAGENT_TOOL_NAMES.awaitSubagent,
     label: 'Await Subagent',
@@ -98,7 +115,10 @@ function registerAwaitTool(pi: ExtensionAPI, callbacks: RunnerCallbacks): void {
     async execute(_toolCallId, params, signal) {
       const parsed = AwaitSubagentInputSchema.parse(params);
       const timeoutMs = parsed.timeout_ms ?? DEFAULT_AWAIT_TIMEOUT_MS;
-      const result = await awaitBackgroundSubagent(parsed.agent_id, callbacks.store, timeoutMs, signal);
+      const result: Awaited<ReturnType<typeof awaitBackgroundSubagent>> =
+        callbacks.scope && !callbacks.scope.agentIds.has(parsed.agent_id)
+          ? { outcome: 'not_found', error: `No background subagent found for id: ${parsed.agent_id}` }
+          : await awaitBackgroundSubagent(parsed.agent_id, callbacks.store, timeoutMs, signal);
       const details: AwaitSubagentDetails = {
         agentId: parsed.agent_id,
         outcome: result.outcome,

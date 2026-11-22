@@ -2,7 +2,7 @@
 
 Pi-native Long-Lived Goals (`/goal`) for [Pi](https://pi.dev) (part of the `no-ceilings` package suite).
 
-Pursue objectives beyond a single turn, track active duration live, automatically continue while idle until complete, and pause cleanly on user interrupt.
+Pursue objectives beyond a single turn, track active duration live, continue while idle until complete or the `--goal-max-idle` cap, and pause cleanly on a user interrupt.
 
 ## Commands
 

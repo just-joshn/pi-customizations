@@ -4,7 +4,7 @@
 
 [lint]
 # The bundled skill scripts are vendored Bun tools, linted upstream.
-ignorePatterns = ["/extensions/pi-pstack-v2/skills/"]
+ignorePatterns = ["/extensions/pi-pstack-v2/skills/", "/extensions/no-ceilings/pi-pstack-team-kit/skills/"]
 
 [lint.rules]
 # Control flow and values

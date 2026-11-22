@@ -1,55 +1,57 @@
-# Coding Style
+# Coding Style Rules
 
-## Immutability
+## Immutability (CRITICAL)
 
-Create new objects instead of mutating existing ones:
+ALWAYS create new objects, NEVER mutate:
 
-```ts
+```javascript
 // WRONG: Mutation
-function updateUser(user: User, name: string): User {
-  user.name = name;
-  return user;
+function updateUser(user, name) {
+  user.name = name  // MUTATION!
+  return user
 }
 
 // CORRECT: Immutability
-function updateUser(user: User, name: string): User {
-  return { ...user, name };
+function updateUser(user, name) {
+  return { ...user, name }
 }
 ```
 
 ## File Organization
 
-Prefer small, cohesive files over large monoliths:
+MANY SMALL FILES > FEW LARGE FILES:
 - High cohesion, low coupling
 - 200-400 lines typical, 800 max
-- Extract utilities from large modules
-- Organize by feature or domain, not by type
+- Extract utilities from large components
+- Organize by feature/domain, not by type
 
 ## Error Handling
 
-Handle errors at boundaries with context:
+ALWAYS handle errors comprehensively:
 
-```ts
+```typescript
 try {
-  return await riskyOperation();
+  const result = await riskyOperation()
+  return result
 } catch (error) {
-  throw new Error(`Operation failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  console.error('Operation failed:', error)
+  throw new Error('User-friendly error message')
 }
 ```
 
 ## Input Validation
 
-Validate external input at boundaries with `zod`:
+ALWAYS validate user input:
 
-```ts
-import { z } from 'zod';
+```typescript
+import { z } from 'zod'
 
 const schema = z.object({
   email: z.string().email(),
-  age: z.number().int().min(0).max(150),
-});
+  age: z.number().int().min(0).max(150)
+})
 
-const validated = schema.parse(input);
+const validated = schema.parse(input)
 ```
 
 ## Code Quality Checklist
@@ -60,6 +62,6 @@ Before marking work complete:
 - [ ] Files are focused (<800 lines)
 - [ ] No deep nesting (>4 levels)
 - [ ] Proper error handling
-- [ ] No stray `console.log` statements
+- [ ] No console.log statements
 - [ ] No hardcoded values
 - [ ] Immutable patterns used

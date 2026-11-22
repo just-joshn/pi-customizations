@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+import type { ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Api, Model } from '@earendil-works/pi-ai';
 import {
   type AgentSession,
@@ -22,9 +23,12 @@ import {
   AWAIT_TIMEOUT_ERROR,
   type BackgroundCompletionPayload,
   DEFAULT_TASK_DESCRIPTION,
+  MAX_NESTED_TASK_DEPTH,
+  type NestedScope,
   ONE,
   SUBAGENT_ABORTED_ERROR,
   SUBAGENT_BUSY_ERROR,
+  SUBAGENT_TOOL_NAMES,
   type SubagentDefinition,
   type SubagentSessionRecord,
   type TaskToolDetails,
@@ -48,12 +52,29 @@ export interface RunTaskOptions {
   readonly definition: SubagentDefinition;
   readonly ctx: ExtensionContext;
   readonly signal?: AbortSignal;
+  readonly scope?: NestedScope;
+  readonly createNestedExtension: (scope: NestedScope) => ExtensionFactory;
   readonly onUpdate?: (details: TaskToolDetails) => void;
 }
 
-export function resolveModelForSubagent(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ExtensionContext): Model<Api> | undefined {
-  const effective = (requestedModel ?? '').trim() || definition.model;
-  if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default') {
+interface ModelIdentity {
+  readonly id: string;
+  readonly provider: string;
+}
+
+interface ModelResolutionContext<M extends ModelIdentity> {
+  readonly model: M | undefined;
+  readonly modelRegistry: {
+    getAvailable(): readonly M[];
+    getAll(): readonly M[];
+    find(provider: string, id: string): M | undefined;
+  };
+}
+
+export function resolveModelForSubagent<M extends ModelIdentity>(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ModelResolutionContext<M>): M | undefined {
+  const requested = (requestedModel ?? '').trim();
+  const effective = requested || definition.model;
+  if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default' || effective === 'auto' || effective === 'inherit-parent') {
     return ctx.model;
   }
   const available = ctx.modelRegistry.getAvailable();
@@ -71,7 +92,13 @@ export function resolveModelForSubagent(requestedModel: string | undefined, defi
     }
   }
   const byId = available.find((m) => m.id === effective) ?? ctx.modelRegistry.getAll().find((m) => m.id === effective);
-  return byId ?? ctx.model;
+  if (!byId) {
+    if (requested.length > ZERO) {
+      throw new Error(`Unknown model "${effective}". Pass a registered model id from pi --list-models, or "inherit".`);
+    }
+    return ctx.model;
+  }
+  return byId;
 }
 
 function resolveSubagentSessionDir(ctx: ExtensionContext): string | undefined {
@@ -200,17 +227,47 @@ function createInheritedProvidersExtension(modelRegistry: ExtensionContext['mode
   };
 }
 
+const NESTED_TOOL_NAMES = [SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent] as const;
+
+function abortNestedRuns(scope: NestedScope | undefined, store: SubagentStore): void {
+  for (const id of scope?.agentIds ?? []) {
+    store.abortRun(id);
+  }
+}
+
+function resolveChildDepth(existing: SubagentSessionRecord | undefined, scope: NestedScope | undefined, store: SubagentStore): number {
+  if (scope !== undefined) {
+    return scope.depth + ONE;
+  }
+  let depth = ONE;
+  const visited = new Set<string>();
+  let ownerId = existing?.ownerAgentId;
+  while (ownerId !== undefined && !visited.has(ownerId)) {
+    visited.add(ownerId);
+    depth += ONE;
+    ownerId = store.getSession(ownerId)?.ownerAgentId;
+  }
+  return depth;
+}
+
 async function createChildSession(
   options: RunTaskOptions,
+  agentId: string,
+  parentSessionId: string,
+  childDepth: number,
+  ownedAgentIds: readonly string[],
   model: Model<Api> | undefined,
+  thinkingLevel: ThinkingLevel | undefined,
   readonly: boolean,
   existingTranscriptPath: string | undefined,
   isResume: boolean,
-): Promise<{ readonly session: AgentSession; readonly transcriptPath?: string }> {
+): Promise<{ readonly session: AgentSession; readonly transcriptPath?: string; readonly nestedScope?: NestedScope }> {
   const sessionDir = resolveSubagentSessionDir(options.ctx);
   const sessionManager = createChildSessionManager(options.ctx.cwd, existingTranscriptPath, isResume, sessionDir);
   const providerBridge = createInheritedProvidersExtension(options.ctx.modelRegistry);
-  const extensionFactories = readonly ? [createReadonlySubagentExtension(), providerBridge] : [providerBridge];
+  const nestedScope: NestedScope | undefined =
+    !readonly && options.definition.nestedTasks && childDepth <= MAX_NESTED_TASK_DEPTH ? { depth: childDepth, ownerAgentId: agentId, rootSessionId: parentSessionId, agentIds: new Set(ownedAgentIds) } : undefined;
+  const extensionFactories = readonly ? [createReadonlySubagentExtension(), providerBridge] : [providerBridge, ...(nestedScope ? [options.createNestedExtension(nestedScope)] : [])];
   const resourceLoader = new DefaultResourceLoader({
     cwd: options.ctx.cwd,
     agentDir: getAgentDir(),
@@ -221,11 +278,13 @@ async function createChildSession(
     appendSystemPrompt: [options.definition.prompt],
   });
   await resourceLoader.reload();
-  const tools = options.definition.tools.length > ZERO ? [...options.definition.tools] : undefined;
+  const baseTools = options.definition.tools.length > ZERO ? [...options.definition.tools] : undefined;
+  const tools = baseTools && nestedScope ? [...new Set([...baseTools, ...NESTED_TOOL_NAMES])] : baseTools;
   const { session } = await createAgentSession({
     cwd: options.ctx.cwd,
     agentDir: getAgentDir(),
     ...(model ? { model } : {}),
+    ...(thinkingLevel ? { thinkingLevel } : {}),
     ...(tools ? { tools } : {}),
     sessionManager,
     resourceLoader,
@@ -237,7 +296,7 @@ async function createChildSession(
       mkdirSync(parentDir, { recursive: true });
     }
   }
-  return { session, ...(transcriptPath ? { transcriptPath } : {}) };
+  return { session, ...(transcriptPath ? { transcriptPath } : {}), ...(nestedScope ? { nestedScope } : {}) };
 }
 
 function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome: SubagentRunOutcome, startedAt: number): SubagentSessionRecord | undefined {
@@ -292,6 +351,7 @@ function executeSessionLifecycle(
   startedAt: number,
   abortController: AbortController,
   store: SubagentStore,
+  nestedScope: NestedScope | undefined,
   onUpdate?: (details: TaskToolDetails) => void,
 ): Promise<SubagentRunOutcome> {
   let progress: StreamProgressState = { toolCallCount: ZERO };
@@ -331,6 +391,7 @@ function executeSessionLifecycle(
     .finally(() => {
       abortController.signal.removeEventListener('abort', onAbort);
       unsubscribe();
+      abortNestedRuns(nestedScope, store);
       session.dispose();
     });
 }
@@ -469,9 +530,11 @@ function buildInitialSessionRecord(
 ): SubagentSessionRecord {
   const prompt = options.input.prompt.trim();
   const description = options.input.description.trim() || existing?.description || DEFAULT_TASK_DESCRIPTION;
+  const ownerAgentId = options.scope?.ownerAgentId ?? existing?.ownerAgentId;
   return {
     agentId,
     parentSessionId,
+    ...(ownerAgentId !== undefined ? { ownerAgentId } : {}),
     toolCallId: options.toolCallId,
     subagentType: options.definition.name,
     description,
@@ -491,7 +554,7 @@ function buildInitialSessionRecord(
 }
 
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
-  const parentSessionId = options.ctx.sessionManager.getSessionId();
+  const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
   const isReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
@@ -512,16 +575,25 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const agentId = existing ? existing.agentId : randomUUID();
   const startedAt = Date.now();
   const resolvedModel = resolveModelForSubagent(options.input.model, options.definition, options.ctx);
-  const { session, transcriptPath } = await createChildSession(options, resolvedModel, isReadonly, existing?.transcriptPath, existing !== undefined);
+  const thinkingLevel = options.input.thinking;
+  const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
+  const ownedAgentIds = existing
+    ? callbacks.store
+        .listSessions()
+        .filter((s) => s.ownerAgentId === agentId)
+        .map((s) => s.agentId)
+    : [];
+  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, parentSessionId, childDepth, ownedAgentIds, resolvedModel, thinkingLevel, isReadonly, existing?.transcriptPath, existing !== undefined);
   const initialRecord = buildInitialSessionRecord(options, agentId, parentSessionId, existing, resolvedModel, isReadonly, wantBackground, startedAt, transcriptPath);
   callbacks.store.upsertSession(initialRecord);
+  options.scope?.agentIds.add(agentId);
   options.onUpdate?.(buildDetailsFromRecord(initialRecord));
 
   const abortController = new AbortController();
   if (!wantBackground && options.signal?.aborted) {
     abortController.abort();
   }
-  const runPromise = executeSessionLifecycle(session, agentId, prompt, startedAt, abortController, callbacks.store, wantBackground ? undefined : options.onUpdate);
+  const runPromise = executeSessionLifecycle(session, agentId, prompt, startedAt, abortController, callbacks.store, nestedScope, wantBackground ? undefined : options.onUpdate);
 
   if (wantBackground) {
     const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);

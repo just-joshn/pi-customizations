@@ -38,7 +38,7 @@ const withMechanisms = [...prose, join(root, 'docs', 'pi-mechanisms.md')];
 // mechanism to say what replaced it, or that refer to an external service that still exists under Pi.
 const LINE_PREVIEW_CHARS = 160;
 const bannedBase: { pattern: RegExp; why: string; allow?: RegExp }[] = [
-  { pattern: /\bsub-agents?\b|\bsubagents\b/i, why: 'Pi has no sub-agents; use the packaged subagent tool', allow: /Pi has no sub-?agents/i },
+  { pattern: /\bsub-agents?\b|\bsubagents\b/i, why: 'Pi has no sub-agents; use the packaged subagent tool', allow: /Pi has no sub-?agents|pstack-v2\/subagents/ },
   { pattern: /`Task`|\bTask (call|tool|spawn|subagent)s?\b/, why: 'Cursor Task tool; use the packaged subagent tool' },
   { pattern: /subagent_type|generalPurpose|run_in_background|cloud_base_branch|file_attachments|environment: "/, why: 'Cursor Task fields; use subagent parameters' },
   { pattern: /todolist|todo list|TodoWrite/i, why: 'Pi has no built-in to-dos; use TODO.md' },

@@ -6,9 +6,10 @@ Pi-native subagents extension providing isolated delegated execution, built-in a
 
 - **Built-in subagents**: `general-purpose`, `explore` (fast, read-only), `shell` (alias `bash`), and `debug`.
 - **Custom subagent discovery**: Loads `.md`, `.mdc`, and `.markdown` definitions with YAML frontmatter from `.pi/agents`, `.agents/agents`, `~/.pi/agent/agents`, and `~/.agents/agents`.
-  - Frontmatter fields: `name`, `description`, `tools`, `model`, `force-default-model`, `readonly`, `permissionMode`, `background` / `is_background`.
+  - Frontmatter fields: `name`, `description`, `tools`, `model`, `force-default-model`, `readonly`, `permissionMode`, `background` / `is_background`, `nested-tasks`.
+  - `nested-tasks: true` (non-readonly agents only) gives that child `task` and `await_subagent` for one extra level. Grandchildren never get them, `await_subagent`/`resume` are limited to runs the child launched, nested background results are not sent as parent wakeups, and remaining nested runs are aborted when the child ends or is cancelled. Children still run with `noExtensions`; only the inline task tools are added, and a restricted `tools` list is extended with them.
 - **Tools**:
-  - `task`: Launches or resumes a subagent in foreground or background (`description`, `prompt`, `subagent_type`, `model`, `readonly`, `resume`, `run_in_background`).
+  - `task`: Launches or resumes a subagent in foreground or background (`description`, `prompt`, `subagent_type`, `model`, `thinking`, `readonly`, `resume`, `run_in_background`).
   - `await_subagent`: Waits on a running background subagent by `agent_id` with optional `timeout_ms`.
 - **Pi-native execution**: Runs child sessions in-process via `createAgentSession()`, inheriting credentials and model registry, persisting transcripts in the session directory, and enforcing `readonly: true` via an inline `tool_call` guard extension.
 - **Visual TUI**:

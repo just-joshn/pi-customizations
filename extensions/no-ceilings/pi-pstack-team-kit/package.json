@@ -1,0 +1,45 @@
+{
+  "name": "@justjoshn/pi-pstack-team-kit",
+  "version": "0.1.3",
+  "description": "pstack v0.15.46 skills/principles/playbooks/agents plus team kit v1.2.0 skills/agents/rules, as a Pi-native skills package.",
+  "type": "module",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/no-ceilings/pi-pstack-team-kit"
+  },
+  "keywords": [
+    "pi-package",
+    "no-ceilings",
+    "pstack",
+    "team-kit",
+    "poteto-mode"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "files": [
+    "skills",
+    "agents",
+    "rules",
+    "scripts",
+    "assets",
+    "README.md",
+    "CHANGELOG.md",
+    "TEAM-KIT-LICENSE",
+    "!**/node_modules"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "test": "node ./scripts/verify-inventory.mjs",
+    "typecheck": "node -e \"process.exit(0)\""
+  }
+}

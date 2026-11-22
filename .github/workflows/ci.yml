@@ -40,15 +40,44 @@ jobs:
           fetch-depth: 2
       - id: plan
         run: |
+          list_workspace_packages() {
+            {
+              find extensions -mindepth 2 -maxdepth 2 -name package.json
+              find extensions/no-ceilings -mindepth 2 -maxdepth 2 -name package.json 2>/dev/null
+            } | sed 's#^extensions/##;s#/package.json$##' | sort -u
+          }
+          is_workspace_package() {
+            case "$1" in
+              no-ceilings/*/*) return 1 ;;
+              no-ceilings/*) return 0 ;;
+              */*) return 1 ;;
+              *) return 0 ;;
+            esac
+          }
+          package_for_path() {
+            local d rel
+            d=$(dirname "$1")
+            while [ "$d" = extensions ] || [ "${d#extensions/}" != "$d" ]; do
+              if [ -f "$d/package.json" ]; then
+                rel=${d#extensions/}
+                if is_workspace_package "$rel"; then
+                  printf '%s\n' "$rel"
+                  return 0
+                fi
+              fi
+              [ "$d" = extensions ] && break
+              d=$(dirname "$d")
+            done
+            return 0
+          }
           changed=$(git diff --name-only HEAD^1 HEAD)
           if grep -qxE 'bun\.lock|package\.json|tsconfig\.json|\.github/workflows/ci\.yml' <<< "$changed"; then
             full=true
-            packages=$(ls extensions)
+            packages=$(list_workspace_packages)
           else
             full=false
-            packages=$(sed -n 's#^extensions/\([^/]*\)/.*#\1#p' <<< "$changed" | sort -u)
+            packages=$(while IFS= read -r f; do package_for_path "$f"; done <<< "$changed" | sort -u)
           fi
-          packages=$(for p in $packages; do [ -f "extensions/$p/package.json" ] && echo "$p"; done)
           matrix=$(jq -cnR '[inputs | select(. != "") | {package: ., os: "ubuntu-latest"}]' <<< "$packages")
           echo "full=$full" >> "$GITHUB_OUTPUT"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
@@ -88,7 +117,12 @@ jobs:
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
-      - run: npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+      - run: |
+          if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json > /dev/null; then
+            npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+          else
+            bun run test
+          fi
       # Vitest cannot see the watch-pr Bun tests, so they run when the scripts they cover changed.
       - if: matrix.package == 'pi-pstack-v2'
         run: |

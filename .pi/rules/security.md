@@ -1,30 +1,33 @@
-# Security
+# Security Rules
 
 ## Mandatory Security Checks
 
-Before any commit:
-- [ ] No hardcoded secrets (API keys, OAuth tokens, passwords, credentials)
-- [ ] All external inputs validated at boundaries
-- [ ] File paths and subprocess arguments sanitized (no command injection or path traversal)
-- [ ] Error messages and logs do not leak tokens or sensitive data
-- [ ] Network egress and sandbox boundaries enforced where applicable
+Before ANY commit:
+- [ ] No hardcoded secrets (API keys, passwords, tokens)
+- [ ] All user inputs validated
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] XSS prevention (sanitized HTML)
+- [ ] CSRF protection enabled
+- [ ] Authentication/authorization verified
+- [ ] Rate limiting on all endpoints
+- [ ] Error messages don't leak sensitive data
 
 ## Secret Management
 
-```ts
+```typescript
 // NEVER: Hardcoded secrets
-const apiKey = 'sk-proj-xxxxx';
+const apiKey = "sk-proj-xxxxx"
 
-// ALWAYS: Environment variables or secure secret store
-const apiKey = process.env.API_KEY;
-if (!apiKey) throw new Error('API_KEY not configured');
+// ALWAYS: Environment variables
+const apiKey = process.env.API_KEY
+if (!apiKey) throw new Error('API_KEY not configured')
 ```
 
 ## Security Response Protocol
 
-If a security issue is found:
+If security issue found:
 1. STOP immediately
-2. Use `security-reviewer` agent (`~/.agents/agents/security-reviewer.md`)
+2. Use `security-reviewer` agent
 3. Fix CRITICAL issues before continuing
 4. Rotate any exposed secrets
-5. Review the codebase for similar issues
+5. Review entire codebase for similar issues

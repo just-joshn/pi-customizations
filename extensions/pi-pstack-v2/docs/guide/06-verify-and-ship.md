@@ -46,7 +46,7 @@ A before-and-after number is often wrong. A warm cache, a debug build on one sid
 6. Does it matter end to end, on the path a user waits on?
 7. Did the work happen inside the timed region?
 
-The verdict is faster, slower, no measurable difference, or inconclusive. It includes the run count, the range, and the limiter. The verdict is inconclusive when the skill cannot name the limiter or a side ran untuned. The Perf issue and Hillclimb playbooks already run the checklist. Run it yourself when you measured something outside them, or when someone else's number looks too good. It is the working form of the [Explain the Number principle](../../skills/principle-explain-the-number/SKILL.md).
+The verdict is faster, slower, no measurable difference, or inconclusive. It includes the run count, the range, and the limiter. The verdict is inconclusive when you claim a difference but cannot name the limiter, when a side ran untuned, or when questions 4 and 7 could not be checked. The Perf issue playbook runs the full checklist on its baseline and every later number. The Hillclimb playbook vets its harness before it is frozen, and the frozen harness prints the error and work counts that cover questions 4 and 7. Run the checklist yourself when you measured something outside them, or when someone else's number looks too good. It is the working form of the [Explain the Number principle](../../skills/principle-explain-the-number/SKILL.md).
 
 ## Create a project verification skill
 
@@ -167,9 +167,9 @@ An open pull request collects blockers: checks fail, reviewers comment, and trun
 /skill:poteto-mode babysit this pr. get it green.
 ```
 
-Babysit watches the pull request with a `tmux_run` watcher that wakes your session when a check or comment changes. It reads the pull request through `gh` by default, or through the Origin CLI when it is available. It takes blockers in order: conflicts, then review threads, then continuous integration failures. It never rebases or force-pushes. A conflict or a stale base comes back to you with the branch that needs the rebase.
+Babysit watches the pull request with a `tmux_run` watcher that wakes your session when it reaches a terminal verdict: a conflict, an unresolved review thread, a failing check, a merge gate, a timeout, or ready. It reads the pull request through `gh` by default, or through the Origin CLI when it is available. It takes blockers in order: conflicts, then review threads, then continuous integration failures. It never rebases or force-pushes. A conflict or a stale base comes back to you with the branch that needs the rebase.
 
-Babysit triages comments skeptically, because humans and bots file real catches and noise in the same list. A real finding gets a fix. Noise gets dismissed, with the disproof posted on the thread. When you only want status, ask a smaller question and Babysit answers without starting the loop:
+Babysit triages Bugbot comments skeptically, because bots file real catches and noise in the same list. A real finding gets a fix. Noise gets dismissed, with the disproof posted on the thread. Human review threads are handled in the conflict, thread, and CI order. When you only want status, ask a smaller question and Babysit answers without starting the loop:
 
 ```text
 /skill:poteto-mode check on pr 123. anything outstanding?
@@ -185,6 +185,6 @@ Green checks do not prove a change is safe. When you are ready to land, say so:
 /skill:poteto-mode land the stack.
 ```
 
-The [Shipping playbook](../../skills/poteto-mode/playbooks/shipping.md) verifies each pull request independently before it arms anything. One fresh subagent worker per pull request proves the behavior live, so the agent that judges a change never wrote it. Shipping then lands only the contiguous verified run from the bottom, one pull request at a time. It uses `gh` by default, or Origin when its CLI is available. It reports the first pull request that breaks the chain. A verified pull request above an unverified one waits, because merging it would pull the gap in underneath.
+The [Shipping playbook](../../skills/poteto-mode/playbooks/shipping.md) verifies each pull request independently before it arms anything. One fresh subagent worker per pull request proves the behavior live, so the agent that judges a change never wrote it. Shipping then lands only the contiguous verified run from the bottom, one pull request at a time. It uses `gh` by default, or Origin when its CLI is available. It reports the first pull request that breaks the chain. A verified pull request above an unverified one waits, because merging it would pull the gap in underneath, unless its branch neither holds nor needs the code below; then it can land on its own after a fresh verdict.
 
 Next: [Run work overnight](./07-overnight.md).

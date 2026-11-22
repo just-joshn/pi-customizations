@@ -1,8 +1,9 @@
 name: release
 
-# Publishes every extension under extensions/*/package.json whose version is not
-# yet on npm via OIDC-only direct `npm publish` on push to `main`. Packages not
-# yet on npm are skipped until bootstrapped per docs/releases.md.
+# Publishes every extension under extensions/*/package.json or
+# extensions/no-ceilings/*/package.json whose version is not yet on npm via
+# OIDC-only direct `npm publish` on push to `main`. Packages not yet on npm are
+# skipped until bootstrapped per docs/releases.md.
 # General npm release and publishing policy lives in docs/releases.md.
 
 on:
@@ -39,11 +40,12 @@ jobs:
         id: detect
         run: |
           set -euo pipefail
+          shopt -s nullglob
           unreleased=""
           out_file=$(mktemp)
           err_file=$(mktemp)
           trap 'rm -f "$out_file" "$err_file"' EXIT
-          for manifest in extensions/*/package.json; do
+          for manifest in extensions/*/package.json extensions/no-ceilings/*/package.json; do
             name=$(jq -r .name "$manifest")
             if [ "$(jq -r '.private // false' "$manifest")" = "true" ]; then
               continue

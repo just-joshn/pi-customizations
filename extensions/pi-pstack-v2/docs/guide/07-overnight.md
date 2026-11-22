@@ -38,15 +38,15 @@ Each line does a specific job:
 Pi has no permission popups. The Gondolin VM limits Pi's built-in tools instead:
 
 - Guest tools can reach `/workspace`, which is the directory Pi started in. Writes to `.git/hooks` and `.git/config` there are denied.
-- The package directory, the skill directories, and the subagent `.output` directory are mounted read-only.
-- A subagent's memory directory is mounted writable when one is set.
+- The package root, out-of-workspace skill directories, and `<agentDir>/pstack-v2/subagents` (where wake-job `.output` files live) are mounted read-only.
+- A subagent's memory directory is mounted writable when `PI_SUBAGENT_MEMORY_DIR` names an existing directory outside `/workspace`.
 - `/cache` is mounted writable when the shared build cache is enabled.
 
 `tmux_run` jobs and the `pi` processes that `subagent` starts run on your machine, outside the VM. [Set up pstack](./01-setup.md#check-the-requirements) describes the boundary.
 
 Because you will review this work after stepping away, `/skill:poteto-mode` routes it through [`/skill:figure-it-out`](../../skills/figure-it-out/SKILL.md). That skill designs the run's phases before any code and sets up the decision log.
 
-To stop a run on purpose, tell the agent to pause, or say that you are about to go offline or restart Pi. The [Pause safely playbook](../../skills/poteto-mode/playbooks/pause-safely.md) finishes or backs out of the current step, commits a work-in-progress checkpoint, and writes a resume note. A fresh session picks the work up from that note through the Session pickup playbook. "keep going" never triggers a pause.
+To stop a run on purpose, tell the agent to pause, or say that you are about to go offline or restart Pi. The [Pause safely playbook](../../skills/poteto-mode/playbooks/pause-safely.md) finishes or backs out of the current step, commits a work-in-progress checkpoint, and writes a resume note. A fresh session reconstructs the state from the session transcript, the job directory, the branch, and `TODO.md` through the Session pickup playbook; the resume note records where the pause left off. "keep going" never triggers a pause.
 
 ## What the loop does
 
@@ -74,7 +74,7 @@ When you return, ask for the run in review form:
 /skill:show-me-your-work catch me up on what you did last night
 ```
 
-Before the skill hands back its summary, it starts a reviewer on a model from a different vendor. The reviewer reads the trail and the transcript. The reply ends with an Attention section that lists what deserves your scrutiny. Read that section first, then the log rows it points at. You audit decisions and do not need to re-read the whole night.
+Before the skill hands back its summary, it starts a reviewer on a model from a different vendor when one is available, otherwise on the session model, and says which. The reviewer reads the trail and the transcript. The reply ends with an Attention section that lists what deserves your scrutiny. Read that section first, then the log rows it points at. You audit decisions and do not need to re-read the whole night.
 
 For a quick status instead of an audit, run [`/skill:ketchup`](../../skills/ketchup/SKILL.md) in the session that ran the work. It only reads. It reports in plain words what changed since your last message, with the screenshots and small diagrams the work produced. It then lists each call waiting on you, such as a merge, an approval, or a choice between options. Each entry has the skill's pick, the evidence, and the risk, so you can decide from the reply alone.
 
@@ -82,7 +82,7 @@ For a quick status instead of an audit, run [`/skill:ketchup`](../../skills/ketc
 
 The contract above drives one task to one finish condition. A queue of independent changes, or a whole program, needs two playbooks and one skill.
 
-[Autopilot-full](../../skills/poteto-mode/playbooks/autopilot-full.md) runs a queue of independent pull requests to merged. Each pull request has one owner agent that carries it from build through merge, and no owner merges on its own verdict. A swarm of fresh verifiers checks the owner's code-ready head. A later rebase or minor fix gets one fresh verifier. Only new behavior or a large new diff calls the full swarm again. Only a clean verdict on the patch that merges authorizes the merge:
+[Autopilot-full](../../skills/poteto-mode/playbooks/autopilot-full.md) runs a queue of independent pull requests to merged. Each pull request has one owner agent that carries it from build through merge, and no owner merges on its own verdict. A swarm of fresh verifiers checks the owner's code-ready head. A later rebase or minor fix gets one fresh verifier. New behavior, a large new diff, or a redesign calls the full swarm again; a wording-only change gets no verifier. Only a clean verdict on the patch that merges authorizes the merge:
 
 ```text
 /skill:poteto-mode full autopilot on this queue. each item is independent. i want them merged by morning.
@@ -102,12 +102,12 @@ A whole program, such as a migration across many packages, has no playbook of it
 
 ## Run many projects in parallel
 
-A coordinator session writes no code. It directs subagent workers, each in its own worktree and VM. Each worker wakes the coordinator with its report when it exits. Start your prompts to the coordinator with `/skill:poteto-mode`, and the workers follow the playbooks. Each worker reads [`worker.md`](../../skills/poteto-mode/worker.md) first. Workers therefore hold to the kickoff's bar, decide reversible calls instead of asking you, and open pull requests ready for review.
+A coordinator session writes no code. It directs subagent workers, each in its own VM; a worker that needs its own checkout gets a worktree first. A blocking call returns the reports when the workers finish; with `wake`, one wake reports when the whole call finishes. Start your prompts to the coordinator with `/skill:poteto-mode`, and the workers follow the playbooks. Each worker reads [`worker.md`](../../skills/poteto-mode/worker.md) first. Workers therefore hold to the kickoff's bar, decide reversible calls instead of asking you, and open pull requests ready for review.
 
 These habits help:
 
 - Give each body of work its own coordinator session, such as a feature, a migration, a perf push, or a tech-debt cleanup. Several can run side by side, each in its own checkout with its own `TODO.md`.
-- Point the coordinator at related sessions, finished ones included. Pi keeps them under `~/.pi/agent/sessions/`, and they become context for every worker it starts.
+- Point the coordinator at related sessions, finished ones included. Pi keeps them by default under `~/.pi/agent/sessions/`; `sessionDir`, `--session-dir`, or `PI_CODING_AGENT_SESSION_DIR` can move that directory. They become context for every worker it starts.
 - Give each pull request a verification swarm before it merges, and let Autopilot-stack or Autopilot-full carry the queue.
 - Ask the coordinator for a plan file backed by data, and have it answer open questions with prototypes before it asks you.
 

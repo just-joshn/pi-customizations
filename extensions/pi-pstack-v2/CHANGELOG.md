@@ -1,10 +1,17 @@
 # Changelog
 
+## 0.3.4
+
+### Changed
+
+- Update `README.md`, `docs/pi-mechanisms.md`, `docs/guide/`, `src/subagent/README.md`, and the `setup-pstack` template to match the current mount names, session paths, role fallback, and command behavior.
+
 ## 0.3.3
 
 ### Changed
 
 - Add `test:coverage` script to `package.json`, remove the retired `style-audit` script and README reference, and update `test/port.test.ts` comments to reference `.pi/rules/coding-style.md`.
+- Set `publishConfig.access` to public so the scoped package publishes publicly.
 
 ## 0.3.2
 

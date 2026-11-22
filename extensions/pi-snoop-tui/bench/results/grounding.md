@@ -2,7 +2,7 @@
 
 > This is the pre-optimization grounding record. Source line numbers and hypotheses refer to the code on that date. Some have since landed in `src/`, including compact rows for `write`, `find`, and `ls` (hypothesis 5). For current numbers, read [`final.md`](final.md).
 >
-> The commands below use the script names from that date. `report.py`, `profile-summary.py`, `medium-fixture.py`, and `visual/mockup-fixture.py` are now `.ts` files, run with `node`. `run.py` is unchanged.
+> The commands below use the script names from that date. `report.py`, `profile-summary.py`, `medium-fixture.py`, and `visual/mockup-fixture.py` are now `.ts` files, run with `node`. `run.py` is unchanged. Commit ids below come from the benchmark worktree and are not part of this repository's history.
 
 The goal is a `pi-snoop-tui` that matches the visual mockups and measurably beats stock Pi on every user-facing number, using only Pi's documented extension mechanisms. This file records where stock Pi spends work, which of that work an extension can remove, and which numbers no extension can move.
 

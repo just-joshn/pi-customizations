@@ -11,6 +11,7 @@ export const MS_PER_SECOND = 1000;
 export const SECONDS_PER_MINUTE = 60;
 export const SECONDS_PER_HOUR = 3600;
 export const SECONDS_PER_DAY = 86400;
+export const MAX_NESTED_TASK_DEPTH = 1;
 export const DEFAULT_AWAIT_TIMEOUT_MS = 30_000;
 export const MAX_COLLAPSED_THINKING_LINES = 4;
 export const MAX_COLLAPSED_STREAMING_LINES = 4;
@@ -53,8 +54,16 @@ export interface SubagentDefinition {
   readonly prompt: string;
   readonly permissionMode: SubagentPermissionMode;
   readonly isBackground: boolean;
+  readonly nestedTasks: boolean;
   readonly source: SubagentSource;
   readonly fullPath?: string;
+}
+
+export interface NestedScope {
+  readonly depth: number;
+  readonly ownerAgentId: string;
+  readonly rootSessionId: string;
+  readonly agentIds: Set<string>;
 }
 
 export type SubagentStatus = 'pending' | 'running' | 'success' | 'error' | 'cancelled';
@@ -78,6 +87,7 @@ export interface SubagentTranscriptItem {
 export interface SubagentSessionRecord {
   readonly agentId: string;
   readonly parentSessionId: string;
+  readonly ownerAgentId?: string | undefined;
   readonly toolCallId: string;
   readonly subagentType: string;
   readonly description: string;
@@ -157,6 +167,7 @@ export const TaskToolInputSchema = z.object({
   prompt: z.string().optional().default(''),
   subagent_type: z.string().optional(),
   model: z.string().optional(),
+  thinking: z.enum(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']).optional(),
   readonly: z.boolean().optional(),
   resume: z.string().optional(),
   run_in_background: z.boolean().optional(),
@@ -176,6 +187,7 @@ export const CommandArgsSchema = z.string();
 export const PersistedSubagentRecordSchema = z.object({
   agentId: z.string().min(ONE),
   parentSessionId: z.string().min(ONE),
+  ownerAgentId: z.string().optional(),
   toolCallId: z.string(),
   subagentType: z.string().min(ONE),
   description: z.string(),
