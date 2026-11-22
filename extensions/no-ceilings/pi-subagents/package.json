@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-subagents",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Pi-native subagents extension with built-in and custom subagent discovery, foreground/background execution, resumption, read-only enforcement, live streaming TUI, background completion wakeups, and interactive tasks/transcript pager.",
   "type": "module",
   "license": "MIT",
@@ -38,7 +38,8 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:e2e": "node test/e2e/verify-subagents.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

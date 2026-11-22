@@ -78,6 +78,8 @@ function createMockSession(plan: MockSessionPlan) {
     },
     dispose: () => undefined,
     getLastAssistantText: () => plan.finalText,
+    getCallableToolNames: () => ['read', 'bash', 'edit', 'write'],
+    setActiveToolsByName: () => undefined,
   };
 }
 
@@ -249,7 +251,7 @@ describe('pi-subagents background execution and resume', () => {
       const resumed = await h.callTool('task', { description: 'Follow up', prompt: 'Summarize risks', resume: agentId });
       expect(resumed.details?.finalMessage).toBe('Resumed follow-up answer.');
 
-      await expect(h.callTool('task', { description: 'Bad', prompt: 'Hi', resume: 'not-a-uuid' })).rejects.toThrow('Invalid resumeAgentId format');
+      await expect(h.callTool('task', { description: 'Bad', prompt: 'Hi', resume: 'not-a-uuid' })).rejects.toThrow('Invalid subagent agent_id format');
     } finally {
       await h.cleanup();
     }

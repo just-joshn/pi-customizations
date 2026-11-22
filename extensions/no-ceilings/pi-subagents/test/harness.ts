@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import type { ExtensionAPI, ExtensionContext, ExtensionFactory, Theme } from '@earendil-works/pi-coding-agent';
 import piSubagentsExtension from '../src/index.ts';
-import type { TaskToolDetails } from '../src/types.ts';
+import type { SubagentDefinition, TaskToolDetails } from '../src/types.ts';
 
 const ZERO = 0;
 
@@ -31,6 +31,9 @@ type EventHandler = (event: unknown, ctx: ExtensionContext) => Promise<unknown> 
 
 export interface HarnessOptions {
   readonly sessionId?: string;
+  readonly mcpToolNames?: readonly string[];
+  readonly mcpServerNames?: readonly string[];
+  readonly flags?: Readonly<Record<string, string>>;
   readonly hasUI?: boolean;
   readonly initialEntries?: readonly Record<string, unknown>[];
   readonly registeredNativeProviders?: Readonly<Record<string, Record<string, unknown>>>;
@@ -51,6 +54,8 @@ export interface SubagentsTestHarness {
   readonly getEntries: () => readonly { readonly customType: string; readonly data: unknown }[];
   readonly getSentMessages: () => readonly { readonly message: unknown; readonly options?: unknown }[];
   readonly getSentUserMessages: () => readonly { readonly content: string; readonly options?: unknown }[];
+  readonly getEmittedEvents: () => readonly { readonly channel: string; readonly data: unknown }[];
+  readonly listCommands: () => readonly string[];
   readonly runCommand: (name: string, args?: string) => Promise<void>;
   readonly triggerShortcut: (shortcut: string) => Promise<void>;
   readonly callTool: (
@@ -73,6 +78,30 @@ const DEFAULT_WIDTH = 100;
 
 function isDouble<T>(_value: unknown): _value is T {
   return true;
+}
+
+export function makeDefinition(overrides: Partial<SubagentDefinition> = {}): SubagentDefinition {
+  return {
+    name: 'test',
+    description: '',
+    tools: [],
+    model: 'inherit',
+    forceDefaultModel: false,
+    prompt: '',
+    permissionMode: 'default',
+    isBackground: false,
+    nestedTasks: false,
+    thinking: undefined,
+    sampling: undefined,
+    contextWindow: undefined,
+    retryAttempts: undefined,
+    worktree: false,
+    mcp: false,
+    enabled: true,
+    source: 'builtin',
+    fullPath: undefined,
+    ...overrides,
+  };
 }
 
 export function double<T>(value: unknown): T {
@@ -131,16 +160,18 @@ function createUiRecorder(
   return { ui, getStatuses: () => statuses, getWidgets: () => widgets, getNotifications: () => notifications };
 }
 
-function createApiRecorder(): {
+function createApiRecorder(options: HarnessOptions): {
   readonly pi: ExtensionAPI;
   readonly getEntries: () => readonly { readonly customType: string; readonly data: unknown }[];
   readonly getSentMessages: () => readonly { readonly message: unknown; readonly options?: unknown }[];
   readonly getSentUserMessages: () => readonly { readonly content: string; readonly options?: unknown }[];
   readonly getCommand: (name: string) => RegisteredCommand | undefined;
+  readonly listCommands: () => readonly string[];
   readonly getShortcut: (key: string) => RegisteredShortcut | undefined;
   readonly getTool: (name: string) => RegisteredTool | undefined;
   readonly getMessageRenderer: (customType: string) => MessageRenderer | undefined;
   readonly getListeners: (eventName: string) => readonly EventHandler[];
+  readonly getEmittedEvents: () => readonly { readonly channel: string; readonly data: unknown }[];
 } {
   let entries: readonly { readonly customType: string; readonly data: unknown }[] = [];
   let sentMessages: readonly { readonly message: unknown; readonly options?: unknown }[] = [];
@@ -150,8 +181,31 @@ function createApiRecorder(): {
   let tools: Readonly<Record<string, RegisteredTool>> = {};
   let renderers: Readonly<Record<string, MessageRenderer>> = {};
   let listeners: Readonly<Record<string, readonly EventHandler[]>> = {};
+  const flags: Record<string, string | boolean | undefined> = { ...(options.flags ?? {}) };
+  const emitted: { readonly channel: string; readonly data: unknown }[] = [];
+  const busListeners: Readonly<Record<string, readonly ((data: unknown) => void)[]>> = {};
 
   const pi = double<ExtensionAPI>({
+    registerFlag: (name: string, options: { readonly type: 'boolean' | 'string'; readonly default?: boolean | string }) => {
+      flags[name] ??= options.default;
+    },
+    getFlag: (name: string) => flags[name],
+    getActiveTools: () => ['read', 'bash', 'edit', 'write'],
+    getAllTools: () => (options.mcpToolNames ?? []).map((name) => ({ name, exposure: 'direct' as const, sourceInfo: {} })),
+    getMcpServers: () => (options.mcpServerNames ?? []).map((name) => ({ name, config: {}, extensionPath: 'test' })),
+    events: {
+      emit: (channel: string, data: unknown) => {
+        emitted.push({ channel, data });
+        for (const handler of busListeners[channel] ?? []) {
+          handler(data);
+        }
+      },
+      on: (channel: string, handler: (data: unknown) => void) => {
+        const next = { ...busListeners, [channel]: [...(busListeners[channel] ?? []), handler] };
+        Object.assign(busListeners, next);
+        return () => undefined;
+      },
+    },
     registerCommand: (name: string, cmd: RegisteredCommand) => {
       commands = { ...commands, [name]: cmd };
     },
@@ -184,10 +238,12 @@ function createApiRecorder(): {
     getSentMessages: () => sentMessages,
     getSentUserMessages: () => sentUserMessages,
     getCommand: (name) => commands[name],
+    listCommands: () => Object.keys(commands),
     getShortcut: (key) => shortcuts[key],
     getTool: (name) => tools[name],
     getMessageRenderer: (customType) => renderers[customType],
     getListeners: (eventName) => listeners[eventName] ?? [],
+    getEmittedEvents: () => emitted,
   };
 }
 
@@ -258,7 +314,7 @@ export function createTestHarness(options: HarnessOptions = {}): SubagentsTestHa
   const sessionId = options.sessionId ?? '11111111-2222-4333-8444-555555555555';
   const theme = createFakeTheme();
   const uiRec = createUiRecorder(options, theme);
-  const apiRec = createApiRecorder();
+  const apiRec = createApiRecorder(options);
   const ctx = createFakeContext(cwd, sessionDir, sessionId, options, uiRec.ui, apiRec.getEntries);
 
   piSubagentsExtension(apiRec.pi);
@@ -282,6 +338,8 @@ export function createTestHarness(options: HarnessOptions = {}): SubagentsTestHa
     getEntries: apiRec.getEntries,
     getSentMessages: apiRec.getSentMessages,
     getSentUserMessages: apiRec.getSentUserMessages,
+    getEmittedEvents: apiRec.getEmittedEvents,
+    listCommands: apiRec.listCommands,
     runCommand: (name, args = '') => requireRegistered(apiRec.getCommand(name), 'Command', name).handler(args, ctx),
     triggerShortcut: (shortcut) => requireRegistered(apiRec.getShortcut(shortcut), 'Shortcut', shortcut).handler(ctx),
     callTool: (name, params, opts) => requireRegistered(apiRec.getTool(name), 'Tool', name).execute(opts?.toolCallId ?? `call-${ZERO}`, params, opts?.signal, opts?.onUpdate, ctx),

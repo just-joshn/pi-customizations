@@ -51,6 +51,8 @@ function createMockSession(plan: MockPlan) {
     },
     dispose: () => undefined,
     getLastAssistantText: () => plan.finalText,
+    getCallableToolNames: () => ['read', 'bash', 'edit', 'write'],
+    setActiveToolsByName: () => undefined,
   };
 }
 

@@ -3,78 +3,119 @@ import { homedir } from 'node:os';
 import { basename, extname, join, resolve } from 'node:path';
 
 import { getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
-import { DEFAULT_SUBAGENT_TYPE, type SubagentDefinition, type SubagentPermissionMode, type SubagentSource, ZERO } from './types.ts';
+import type { SubagentsConfig } from './config.ts';
+import { DEFAULT_SUBAGENT_TYPE, ONE, type SubagentDefinition, type SubagentPermissionMode, type SubagentSampling, type SubagentSource, type SubagentThinkingLevel, ThinkingLevelSchema, ZERO } from './types.ts';
 
 const AGENT_FILE_EXTENSIONS = new Set(['.md', '.mdc', '.markdown']);
 const FRONTMATTER_BLOCK_REGEX = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/;
+const MIN_KEYWORD_CHARS = 4;
+const MIN_AUTO_SELECT_SCORE = 2;
+const WORD_SPLIT_REGEX = /[^a-z0-9]+/;
 
-const BUILTIN_SUBAGENTS: readonly SubagentDefinition[] = [
-  {
-    name: 'general-purpose',
-    description: 'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks.',
-    tools: [],
-    model: 'inherit',
-    forceDefaultModel: false,
-    prompt: 'You are a focused subagent executing a delegated task. Complete the task thoroughly and return a concise, accurate summary of findings and changes.',
-    permissionMode: 'default',
-    isBackground: false,
-    nestedTasks: false,
-    source: 'builtin',
-  },
-  {
-    name: 'explore',
-    description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, searching code for keywords, and answering questions about the codebase.',
-    tools: ['read', 'grep', 'find', 'ls', 'bash'],
-    model: 'fast',
-    forceDefaultModel: false,
-    prompt: 'You are a fast read-only codebase exploration subagent. Inspect files, search patterns, trace symbols, and return a clear, evidence-backed report with exact file paths and line numbers. Do not modify any files.',
-    permissionMode: 'readonly',
-    isBackground: false,
-    nestedTasks: false,
-    source: 'builtin',
-  },
-  {
-    name: 'shell',
-    description: 'Command execution specialist for running bash commands, git operations, builds, and test suites.',
-    tools: ['bash', 'read'],
-    model: 'inherit',
-    forceDefaultModel: false,
-    prompt: 'You are a shell command execution specialist. Run the requested commands carefully, inspect output and exit codes, and report the concise result.',
-    permissionMode: 'default',
-    isBackground: false,
-    nestedTasks: false,
-    source: 'builtin',
-  },
-  {
-    name: 'debug',
-    description: 'Debugging specialist for tracing failures, inspecting logs, forming hypotheses, and isolating root causes.',
-    tools: [],
-    model: 'inherit',
-    forceDefaultModel: false,
-    prompt: 'You are a debugging subagent. Investigate symptoms systematically, verify hypotheses against real evidence, and report root causes with exact locations.',
-    permissionMode: 'default',
-    isBackground: false,
-    nestedTasks: false,
-    source: 'builtin',
-  },
-];
+const SELECTION_STOPWORDS = new Set([
+  'with',
+  'from',
+  'that',
+  'this',
+  'then',
+  'when',
+  'your',
+  'into',
+  'over',
+  'code',
+  'file',
+  'files',
+  'task',
+  'work',
+  'agent',
+  'agent.',
+  'subagent',
+  'uses',
+  'using',
+  'also',
+  'more',
+  'than',
+  'they',
+  'them',
+  'have',
+  'will',
+  'must',
+  'should',
+]);
 
-const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
-  unspecified: 'general-purpose',
-  generalpurpose: 'general-purpose',
-  'general-purpose': 'general-purpose',
-  bash: 'shell',
-  shell: 'shell',
-  explore: 'explore',
-  debug: 'debug',
+const EXPLORE_DEFAULT_TOOLS = ['read', 'grep', 'find', 'ls', 'bash'] as const;
+const SHELL_DEFAULT_TOOLS = ['bash', 'read'] as const;
+const BROWSER_TOOL_PATTERN = 'mcp__*';
+
+const CLAUDE_MODEL_ALIASES: Readonly<Record<string, string>> = {
+  haiku: 'fast',
+  sonnet: 'inherit',
+  opus: 'inherit',
+  inherit: 'inherit',
+  default: 'inherit',
 };
+
+const THINKING_ALIASES: Readonly<Record<string, SubagentThinkingLevel>> = {
+  none: 'off',
+  off: 'off',
+  minimal: 'minimal',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  xhigh: 'xhigh',
+  max: 'max',
+};
+
+/** One entry per frontmatter concept. Every key spelling an agent author may use lives here. */
+const FRONTMATTER_KEYS = {
+  name: ['name'],
+  description: ['description', 'when-to-use', 'when_to_use', 'whenToUse'],
+  tools: ['tools'],
+  model: ['model'],
+  forceDefaultModel: ['force-default-model', 'force_default_model', 'forceDefaultModel'],
+  readonly: ['readonly', 'read-only', 'read_only'],
+  permissionMode: ['permissionMode', 'permission-mode', 'permission_mode', 'permission'],
+  sandbox: ['sandbox_mode', 'sandbox-mode', 'sandboxMode', 'sandbox'],
+  background: ['background', 'is_background', 'is-background', 'isBackground'],
+  nestedTasks: ['nested-tasks', 'nested_tasks', 'nestedTasks', 'nested'],
+  thinking: ['thinking', 'reasoning-effort', 'reasoning_effort', 'reasoningEffort', 'effort'],
+  sampling: ['model-params', 'model_params', 'modelParams', 'sampling', 'sampling-params', 'sampling_params'],
+  contextWindow: ['context-window', 'context_window', 'contextWindow', 'max-context', 'max_context', 'maxContext'],
+  maxTokens: ['max-tokens', 'max_tokens', 'maxTokens'],
+  retry: ['retry', 'max-attempts', 'max_attempts', 'maxAttempts'],
+  worktree: ['worktree', 'isolate'],
+  mcp: ['mcp'],
+  enabled: ['enabled', 'disabled'],
+} as const;
+
+type RawFrontmatter = Record<string, unknown>;
 
 interface DirectorySpec {
   readonly dirPath: string;
   readonly source: SubagentSource;
 }
 
-type RawFrontmatter = Record<string, unknown>;
+interface BuiltinSpec {
+  readonly definition: Omit<SubagentDefinition, 'source' | 'fullPath' | 'enabled'>;
+}
+
+export interface DiscoverSubagentsOptions {
+  readonly homeDir?: string;
+  readonly agentDir?: string;
+  readonly config?: SubagentsConfig;
+  /** Names of MCP servers or `mcp__` tools that look like a browser integration. */
+  readonly browserIntegration?: string | undefined;
+}
+
+function readField(frontmatter: RawFrontmatter, key: keyof typeof FRONTMATTER_KEYS): unknown {
+  for (const alias of FRONTMATTER_KEYS[key]) {
+    const value = frontmatter[alias];
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+}
 
 function readTruthy(value: unknown): boolean {
   if (typeof value === 'boolean') {
@@ -91,20 +132,106 @@ function readTrimmedString(value: unknown): string | undefined {
   return trimmed.length > ZERO ? trimmed : undefined;
 }
 
+function readPositiveInteger(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isInteger(value) && value > ZERO) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > ZERO ? parsed : undefined;
+  }
+  return undefined;
+}
+
+export function parseContextWindow(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value) && value > ZERO) {
+    return Math.floor(value);
+  }
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const match = /^\s*(\d+(?:\.\d+)?)\s*([km])?\s*$/i.exec(value);
+  if (!match) {
+    return undefined;
+  }
+  const [, amount, unit] = match;
+  if (amount === undefined) {
+    return undefined;
+  }
+  const multiplier = unit?.toLowerCase() === 'm' ? 1_000_000 : unit?.toLowerCase() === 'k' ? 1000 : ONE;
+  return Math.floor(Number.parseFloat(amount) * multiplier);
+}
+
 function parseToolsField(value: unknown): readonly string[] {
-  const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,\s]+/) : [];
   return raw
     .filter((item): item is string => typeof item === 'string')
     .map((item) => item.trim())
     .filter((item) => item.length > ZERO);
 }
 
+function parseThinking(value: unknown): SubagentThinkingLevel | undefined {
+  const raw = readTrimmedString(value)?.toLowerCase();
+  if (raw === undefined) {
+    return undefined;
+  }
+  const alias = THINKING_ALIASES[raw];
+  if (alias !== undefined) {
+    return alias;
+  }
+  return ThinkingLevelSchema.safeParse(raw).success ? (raw as SubagentThinkingLevel) : undefined;
+}
+
+function parseSampling(value: unknown): SubagentSampling | undefined {
+  const raw = typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+  if (!raw) {
+    return undefined;
+  }
+  const readNumber = (...keys: readonly string[]): number | undefined => {
+    for (const key of keys) {
+      const candidate = raw[key];
+      if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+        return candidate;
+      }
+    }
+    return undefined;
+  };
+  const sampling: SubagentSampling = {
+    ...(readNumber('temperature') !== undefined ? { temperature: readNumber('temperature') } : {}),
+    ...(readNumber('topP', 'top_p', 'topp') !== undefined ? { topP: readNumber('topP', 'top_p', 'topp') } : {}),
+    ...(readNumber('topK', 'top_k', 'topk') !== undefined ? { topK: readNumber('topK', 'top_k', 'topk') } : {}),
+    ...(readNumber('maxTokens', 'max_tokens', 'maxOutputTokens') !== undefined ? { maxTokens: readNumber('maxTokens', 'max_tokens', 'maxOutputTokens') } : {}),
+  };
+  return Object.keys(sampling).length > ZERO ? sampling : undefined;
+}
+
 function parsePermissionMode(frontmatter: RawFrontmatter): SubagentPermissionMode {
-  if (readTruthy(frontmatter['readonly'])) {
+  if (readTruthy(readField(frontmatter, 'readonly'))) {
     return 'readonly';
   }
-  const modeVal = readTrimmedString(frontmatter['permissionMode'] ?? frontmatter['permissionmode'] ?? frontmatter['permission_mode']);
-  return modeVal?.toLowerCase() === 'readonly' ? 'readonly' : 'default';
+  const modeVal = readTrimmedString(readField(frontmatter, 'permissionMode'))?.toLowerCase();
+  if (modeVal === 'readonly' || modeVal === 'read-only' || modeVal === 'plan') {
+    return 'readonly';
+  }
+  const sandbox = readTrimmedString(readField(frontmatter, 'sandbox'))?.toLowerCase();
+  return sandbox === 'read-only' || sandbox === 'readonly' ? 'readonly' : 'default';
+}
+
+function parseModel(value: unknown): string {
+  const raw = readTrimmedString(value);
+  if (raw === undefined) {
+    return 'inherit';
+  }
+  return CLAUDE_MODEL_ALIASES[raw.toLowerCase()] ?? raw;
+}
+
+function resolveEnabled(frontmatter: RawFrontmatter): boolean {
+  const disabled = frontmatter['disabled'];
+  if (readTruthy(disabled)) {
+    return false;
+  }
+  const enabled = readField(frontmatter, 'enabled');
+  return enabled === undefined ? true : readTruthy(enabled);
 }
 
 function fallbackNameFromPath(filePath: string): string {
@@ -121,13 +248,14 @@ function safeParseAgentFrontmatter(filePath: string): { readonly frontmatter: Ra
     if (!FRONTMATTER_BLOCK_REGEX.test(content)) {
       return undefined;
     }
-    return parseFrontmatter<RawFrontmatter>(content);
+    const parsed = parseFrontmatter<RawFrontmatter>(content);
+    return parsed;
   } catch {
     return undefined;
   }
 }
 
-function parseSubagentFile(filePath: string, source: SubagentSource): SubagentDefinition | undefined {
+export function parseSubagentFile(filePath: string, source: SubagentSource): SubagentDefinition | undefined {
   const parsed = safeParseAgentFrontmatter(filePath);
   if (!parsed) {
     return undefined;
@@ -137,16 +265,25 @@ function parseSubagentFile(filePath: string, source: SubagentSource): SubagentDe
   if (prompt.length === ZERO) {
     return undefined;
   }
+  const tools = parseToolsField(readField(frontmatter, 'tools'));
+  const name = readTrimmedString(readField(frontmatter, 'name')) ?? fallbackNameFromPath(filePath);
   return {
-    name: readTrimmedString(frontmatter['name']) ?? fallbackNameFromPath(filePath),
-    description: readTrimmedString(frontmatter['description']) ?? '',
-    tools: parseToolsField(frontmatter['tools']),
-    model: readTrimmedString(frontmatter['model']) ?? 'inherit',
-    forceDefaultModel: readTruthy(frontmatter['force-default-model']),
+    name,
+    description: readTrimmedString(readField(frontmatter, 'description')) ?? '',
+    tools,
+    model: parseModel(readField(frontmatter, 'model')),
+    forceDefaultModel: readTruthy(readField(frontmatter, 'forceDefaultModel')),
     prompt,
     permissionMode: parsePermissionMode(frontmatter),
-    isBackground: readTruthy(frontmatter['background'] ?? frontmatter['is_background']),
-    nestedTasks: readTruthy(frontmatter['nested-tasks']),
+    isBackground: readTruthy(readField(frontmatter, 'background')),
+    nestedTasks: readTruthy(readField(frontmatter, 'nestedTasks')),
+    thinking: parseThinking(readField(frontmatter, 'thinking')),
+    sampling: parseSampling(readField(frontmatter, 'sampling')),
+    contextWindow: parseContextWindow(readField(frontmatter, 'contextWindow')),
+    retryAttempts: readPositiveInteger(readField(frontmatter, 'retry')),
+    worktree: readTruthy(readField(frontmatter, 'worktree')),
+    mcp: readTruthy(readField(frontmatter, 'mcp')) || tools.some((tool) => tool.startsWith('mcp__')),
+    enabled: resolveEnabled(frontmatter),
     source,
     fullPath: filePath,
   };
@@ -177,49 +314,228 @@ function walkAgentFiles(dirPath: string): readonly string[] {
   });
 }
 
-function computeAgentDirectories(cwd: string, userHome: string, agentDir: string): readonly DirectorySpec[] {
+export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig): readonly DirectorySpec[] {
   const workspaceRoot = resolve(cwd);
-  return [
+  const base: readonly DirectorySpec[] = [
     { dirPath: join(workspaceRoot, '.pi', 'agents'), source: 'workspace' },
+    { dirPath: join(workspaceRoot, '.claude', 'agents'), source: 'claude-workspace' },
+    { dirPath: join(workspaceRoot, '.codex', 'agents'), source: 'codex-workspace' },
     { dirPath: join(workspaceRoot, '.agents', 'agents'), source: 'shared-workspace' },
     { dirPath: join(agentDir, 'agents'), source: 'user' },
+    { dirPath: join(userHome, '.claude', 'agents'), source: 'claude-user' },
+    { dirPath: join(userHome, '.codex', 'agents'), source: 'codex-user' },
     { dirPath: join(userHome, '.agents', 'agents'), source: 'shared-user' },
   ];
+  const configured = (config?.extraAgentDirectories ?? []).map((dirPath): DirectorySpec => ({ dirPath, source: 'configured' }));
+  return [...base, ...configured];
 }
 
-export function discoverSubagents(cwd: string, options?: { readonly homeDir?: string; readonly agentDir?: string }): readonly SubagentDefinition[] {
-  const dirs = computeAgentDirectories(cwd, options?.homeDir ?? homedir(), options?.agentDir ?? getAgentDir());
-  const discoveredCustom = dirs.flatMap((spec) =>
+function builtinGeneralPurpose(): BuiltinSpec {
+  return {
+    definition: {
+      name: 'general-purpose',
+      description: 'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks.',
+      tools: [],
+      model: 'inherit',
+      forceDefaultModel: false,
+      prompt: 'You are a focused subagent executing a delegated task. Complete the task thoroughly and return a concise, accurate summary of findings and changes.',
+      permissionMode: 'default',
+      isBackground: false,
+      nestedTasks: false,
+      thinking: undefined,
+      sampling: undefined,
+      contextWindow: undefined,
+      retryAttempts: undefined,
+      worktree: false,
+      mcp: false,
+    },
+  };
+}
+
+function builtinExplore(config: SubagentsConfig | undefined): BuiltinSpec {
+  return {
+    definition: {
+      name: 'explore',
+      description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, searching code for keywords, and answering questions about the codebase.',
+      tools: [...EXPLORE_DEFAULT_TOOLS],
+      model: config === undefined || config.explore.model === 'default' ? 'fast' : config.explore.model,
+      forceDefaultModel: false,
+      prompt: 'You are a fast read-only codebase exploration subagent. Inspect files, search patterns, trace symbols, and return a clear, evidence-backed report with exact file paths and line numbers. Do not modify any files.',
+      permissionMode: 'readonly',
+      isBackground: false,
+      nestedTasks: false,
+      thinking: undefined,
+      sampling: undefined,
+      contextWindow: undefined,
+      retryAttempts: undefined,
+      worktree: false,
+      mcp: false,
+    },
+  };
+}
+
+function builtinShell(): BuiltinSpec {
+  return {
+    definition: {
+      name: 'shell',
+      description: 'Command execution specialist for running bash commands, git operations, builds, and test suites.',
+      tools: [...SHELL_DEFAULT_TOOLS],
+      model: 'inherit',
+      forceDefaultModel: false,
+      prompt: 'You are a shell command execution specialist. Run the requested commands carefully, inspect output and exit codes, and report the concise result.',
+      permissionMode: 'default',
+      isBackground: false,
+      nestedTasks: false,
+      thinking: undefined,
+      sampling: undefined,
+      contextWindow: undefined,
+      retryAttempts: undefined,
+      worktree: false,
+      mcp: false,
+    },
+  };
+}
+
+function builtinDebug(): BuiltinSpec {
+  return {
+    definition: {
+      name: 'debug',
+      description: 'Debugging specialist for tracing failures, inspecting logs, forming hypotheses, and isolating root causes.',
+      tools: [],
+      model: 'inherit',
+      forceDefaultModel: false,
+      prompt: 'You are a debugging subagent. Investigate symptoms systematically, verify hypotheses against real evidence, and report root causes with exact locations.',
+      permissionMode: 'default',
+      isBackground: false,
+      nestedTasks: false,
+      thinking: undefined,
+      sampling: undefined,
+      contextWindow: undefined,
+      retryAttempts: undefined,
+      worktree: false,
+      mcp: false,
+    },
+  };
+}
+
+function builtinBrowser(integration: string): BuiltinSpec {
+  return {
+    definition: {
+      name: 'browser',
+      description: `Browser work through the ${integration} MCP integration: open pages, click, type, read the DOM, and capture screenshots.`,
+      tools: [BROWSER_TOOL_PATTERN],
+      model: 'inherit',
+      forceDefaultModel: false,
+      prompt: 'You are a browser automation subagent. Use the available MCP browser tools to inspect and drive the page. Report what you observed with concrete evidence such as page titles, selectors, and captured text.',
+      permissionMode: 'default',
+      isBackground: false,
+      nestedTasks: false,
+      thinking: undefined,
+      sampling: undefined,
+      contextWindow: undefined,
+      retryAttempts: undefined,
+      worktree: false,
+      mcp: true,
+    },
+  };
+}
+
+function toDefinition(spec: BuiltinSpec): SubagentDefinition {
+  return { ...spec.definition, enabled: true, source: 'builtin', fullPath: undefined };
+}
+
+function buildBuiltins(config: SubagentsConfig | undefined, browserIntegration: string | undefined): readonly SubagentDefinition[] {
+  const explore = config?.explore.enabled === false ? [] : [toDefinition(builtinExplore(config))];
+  const browser = browserIntegration !== undefined && config?.browser.enabled !== false ? [toDefinition(builtinBrowser(browserIntegration))] : [];
+  return [toDefinition(builtinGeneralPurpose()), ...explore, toDefinition(builtinShell()), toDefinition(builtinDebug()), ...browser];
+}
+
+function dedupeByName(definitions: readonly SubagentDefinition[]): readonly SubagentDefinition[] {
+  const seen = new Set<string>();
+  return definitions.filter((definition) => {
+    const key = definition.name.trim();
+    if (key.length === ZERO || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+export function discoverSubagents(cwd: string, options: DiscoverSubagentsOptions = {}): readonly SubagentDefinition[] {
+  const config = options.config;
+  const dirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config);
+  const discovered = dirs.flatMap((spec) =>
     walkAgentFiles(spec.dirPath)
       .map((filePath) => parseSubagentFile(filePath, spec.source))
-      .filter((def): def is SubagentDefinition => def !== undefined),
+      .filter((definition): definition is SubagentDefinition => definition !== undefined),
   );
-  const combined = [...discoveredCustom, ...BUILTIN_SUBAGENTS];
-  const deduped = combined.reduce<Readonly<Record<string, SubagentDefinition>>>((acc, def) => {
-    const key = def.name.trim();
-    if (key.length === ZERO || acc[key] !== undefined) {
-      return acc;
-    }
-    return { ...acc, [key]: def };
-  }, {});
-  return Object.values(deduped);
+  const disabled = new Set((config?.disabledAgents ?? []).map((name) => name.trim().toLowerCase()));
+  const combined = dedupeByName([...discovered, ...buildBuiltins(config, options.browserIntegration)]);
+  return combined.filter((definition) => definition.enabled && !disabled.has(definition.name.toLowerCase()));
 }
 
 export function normalizeSubagentTypeName(rawType: string | undefined): string {
   const trimmed = (rawType ?? '').trim();
-  if (trimmed.length === ZERO) {
-    return DEFAULT_SUBAGENT_TYPE;
-  }
-  const lower = trimmed.toLowerCase();
-  return SUBAGENT_TYPE_ALIASES[lower] ?? trimmed;
+  return trimmed.length === ZERO ? DEFAULT_SUBAGENT_TYPE : trimmed;
 }
 
 export function resolveSubagentDefinition(definitions: readonly SubagentDefinition[], rawType: string | undefined): SubagentDefinition | undefined {
   const normalized = normalizeSubagentTypeName(rawType);
-  const exact = definitions.find((def) => def.name === normalized);
+  const exact = definitions.find((definition) => definition.name === normalized);
   if (exact) {
     return exact;
   }
   const lower = normalized.toLowerCase();
-  return definitions.find((def) => def.name.toLowerCase() === lower);
+  return definitions.find((definition) => definition.name.toLowerCase() === lower);
+}
+
+const PLURAL_SUFFIX_CHARS = 1;
+
+function normalizeWord(word: string): string {
+  return word.length > MIN_KEYWORD_CHARS && word.endsWith('s') ? word.slice(ZERO, -PLURAL_SUFFIX_CHARS) : word;
+}
+
+function descriptionKeywords(description: string): readonly string[] {
+  return description
+    .toLowerCase()
+    .split(WORD_SPLIT_REGEX)
+    .map(normalizeWord)
+    .filter((word) => word.length >= MIN_KEYWORD_CHARS && !SELECTION_STOPWORDS.has(word));
+}
+
+function countMentionedKeywords(text: string, keywords: readonly string[]): number {
+  const words = new Set(text.toLowerCase().split(WORD_SPLIT_REGEX).map(normalizeWord));
+  return keywords.filter((keyword) => words.has(keyword)).length;
+}
+
+function mentionsName(text: string, name: string): boolean {
+  const words = text.toLowerCase().split(WORD_SPLIT_REGEX);
+  return words.includes(name.toLowerCase());
+}
+
+/**
+ * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
+ * the definition whose description shares the most keywords with the task. Ambiguity falls back to
+ * the general-purpose agent so delegation stays predictable.
+ */
+export function selectSubagentType(definitions: readonly SubagentDefinition[], hint: { readonly subagentType?: string | undefined; readonly description: string; readonly prompt: string }): string {
+  const named = hint.subagentType?.trim();
+  if (named !== undefined && named.length > ZERO) {
+    return resolveSubagentDefinition(definitions, named)?.name ?? named;
+  }
+  const text = `${hint.description} ${hint.prompt}`;
+  const namedMatches = definitions.filter((definition) => mentionsName(text, definition.name));
+  const singleMatch = namedMatches[ZERO];
+  if (namedMatches.length === ONE && singleMatch !== undefined) {
+    return singleMatch.name;
+  }
+  const scored = definitions.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
+  const best = scored[ZERO];
+  const runnerUp = scored[ONE];
+  if (best === undefined || (runnerUp !== undefined && runnerUp.score >= best.score)) {
+    return DEFAULT_SUBAGENT_TYPE;
+  }
+  const uniqueLeader = best.score > ZERO && runnerUp?.score === ZERO;
+  return best.score >= MIN_AUTO_SELECT_SCORE || uniqueLeader ? best.name : DEFAULT_SUBAGENT_TYPE;
 }

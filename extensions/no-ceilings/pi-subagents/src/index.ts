@@ -1,24 +1,34 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
-import type { ExtensionAPI, ExtensionContext, SessionEntry } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionContext, getAgentDir, type SessionEntry } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
-import { registerSubagentCommands } from './commands.ts';
-import { discoverSubagents } from './discovery.ts';
+import { registerAgentCommands, registerSubagentCommands } from './commands.ts';
+import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, type SubagentsConfig } from './config.ts';
+import { discoverSubagents, resolveSubagentDefinition } from './discovery.ts';
+import { emitSubagentEvent } from './events.ts';
 import { buildSubagentsContextPrompt } from './formatters.ts';
+import { runSubagentTask } from './runner.ts';
 import { createSubagentStore, type SubagentStore } from './store.ts';
 import { openTasksOverlay } from './tasks-overlay.ts';
-import { registerSubagentTools } from './tools.ts';
+import { registerSubagentTools, type SubagentToolCallbacks } from './tools.ts';
 import {
   BACKGROUND_COMPLETION_CUSTOM_TYPE,
   type BackgroundCompletionMessageDetails,
   type BackgroundCompletionPayload,
+  type NestedScope,
   ONE,
   PersistedSubagentsStateSchema,
+  SUBAGENTS_CONFIG_FILE_NAME,
   SUBAGENTS_CONTEXT_CUSTOM_TYPE,
   SUBAGENTS_ENTRY_CUSTOM_TYPE,
   type SubagentDefinition,
   ZERO,
 } from './types.ts';
 import { renderBackgroundCompletionMessage, syncSubagentsUi } from './ui-renderers.ts';
+import { removeSubagentWorktree } from './worktree.ts';
+
+const EXPLORE_MODEL_FLAG = 'subagent-explore-model';
+const MAX_DEPTH_FLAG = 'subagent-max-depth';
+const MCP_TOOL_PREFIX = 'mcp__';
 
 function isStaleSubagentsContextMessage(message: AgentMessage): boolean {
   return 'customType' in message && message.customType === SUBAGENTS_CONTEXT_CUSTOM_TYPE;
@@ -36,13 +46,15 @@ function restorePersistedSessions(ctx: ExtensionContext, store: SubagentStore): 
   }
 }
 
-function buildBackgroundCompletionText(completions: readonly BackgroundCompletionPayload[]): string {
+export function buildBackgroundCompletionText(completions: readonly BackgroundCompletionPayload[]): string {
   return completions
     .map((item) => {
       const header = `## Background Subagent ${item.taskId} — ${item.status.toUpperCase()} (${item.title})`;
       const detail = item.detail ? `\n\n${item.detail}` : '';
       const pathLine = item.outputPath ? `\n\ntranscript_path: ${item.outputPath}` : '';
-      return `${header}${detail}${pathLine}`;
+      const failureLine = item.failureId ? `\n\nfailure_id: ${item.failureId}` : '';
+      const worktreeLine = item.worktreePath ? `\nworktree_path: ${item.worktreePath}\nbranch: ${item.branch ?? '(unknown)'}` : '';
+      return `${header}${detail}${pathLine}${failureLine}${worktreeLine}`;
     })
     .join('\n\n---\n\n');
 }
@@ -65,88 +77,156 @@ function flushBackgroundWakeups(pi: ExtensionAPI, store: SubagentStore): void {
 }
 
 function registerSubagentShortcuts(pi: ExtensionAPI, store: SubagentStore): void {
-  const onOpenTasks = async (ctx: ExtensionContext): Promise<void> => {
-    await openTasksOverlay(ctx, store);
-  };
-
-  const onBackgroundForeground = async (ctx: ExtensionContext): Promise<void> => {
-    const fgRuns = store.listForegroundRuns();
-    const movedCount = fgRuns.filter((run) => run.requestBackground?.() === true).length;
-    syncSubagentsUi(ctx, store);
-    if (movedCount > ZERO) {
-      ctx.ui.notify(movedCount === ONE ? 'Moved 1 subagent to background' : `Moved ${movedCount} subagents to background`, 'info');
-    } else {
-      ctx.ui.notify('No foreground subagents running', 'info');
-    }
-  };
-
   pi.registerShortcut(Key.ctrlAlt('t'), {
     description: 'Open subagent tasks pager and live transcript viewer',
-    handler: onOpenTasks,
+    handler: async (ctx: ExtensionContext): Promise<void> => {
+      await openTasksOverlay(ctx, store);
+    },
   });
 
   pi.registerShortcut(Key.ctrlAlt('b'), {
     description: 'Send currently running foreground subagent(s) to background',
-    handler: onBackgroundForeground,
+    handler: async (ctx: ExtensionContext): Promise<void> => {
+      const foregroundRuns = store.listForegroundRuns();
+      const movedCount = foregroundRuns.filter((run) => run.requestBackground?.() === true).length;
+      syncSubagentsUi(ctx, store);
+      if (movedCount > ZERO) {
+        ctx.ui.notify(movedCount === ONE ? 'Moved 1 subagent to background' : `Moved ${movedCount} subagents to background`, 'info');
+      } else {
+        ctx.ui.notify('No foreground subagents running', 'info');
+      }
+    },
   });
 }
 
-interface LifecycleHandlers {
-  readonly store: SubagentStore;
-  readonly getDefinitions: (cwd: string) => readonly SubagentDefinition[];
-  readonly reloadDefinitions: (cwd: string) => readonly SubagentDefinition[];
-  readonly setLatestCtx: (ctx: ExtensionContext) => void;
+function readStringFlag(pi: ExtensionAPI, name: string): string | undefined {
+  const value = pi.getFlag?.(name);
+  return typeof value === 'string' && value.trim().length > ZERO ? value.trim() : undefined;
 }
 
-function registerLifecycleEvents(pi: ExtensionAPI, handlers: LifecycleHandlers): void {
-  pi.on('context', async (event) => ({
-    messages: event.messages.filter((msg) => !isStaleSubagentsContextMessage(msg)),
-  }));
+function findBrowserIntegration(pi: ExtensionAPI, config: SubagentsConfig): string | undefined {
+  const hints = (config.browser.serverHints.length > ZERO ? config.browser.serverHints : DEFAULT_BROWSER_SERVER_HINTS).map((hint) => hint.toLowerCase());
+  try {
+    const serverNames = (pi.getMcpServers?.() ?? []).map((server) => server.name);
+    const toolNames = (pi.getAllTools?.() ?? []).filter((tool) => tool.name.startsWith(MCP_TOOL_PREFIX)).map((tool) => tool.name);
+    return [...serverNames, ...toolNames].find((name) => hints.some((hint) => name.toLowerCase().includes(hint)));
+  } catch {
+    return undefined;
+  }
+}
 
-  pi.on('before_agent_start', async (event, ctx) => {
-    handlers.setLatestCtx(ctx);
-    const defs = handlers.getDefinitions(ctx.cwd);
-    if (event.messageType !== 'user') {
-      return undefined;
-    }
-    return { message: { customType: SUBAGENTS_CONTEXT_CUSTOM_TYPE, content: buildSubagentsContextPrompt(defs), display: false } };
+function registerFlags(pi: ExtensionAPI): void {
+  pi.registerFlag(EXPLORE_MODEL_FLAG, {
+    description: `Explore subagent model: default, inherit, or a model id (also settable in ${SUBAGENTS_CONFIG_FILE_NAME})`,
+    type: 'string',
   });
-
-  pi.on('agent_end', async (_event, ctx) => {
-    handlers.setLatestCtx(ctx);
-    if (handlers.store.hasPendingWakeups()) {
-      flushBackgroundWakeups(pi, handlers.store);
-    }
-    syncSubagentsUi(ctx, handlers.store);
-  });
-
-  pi.on('session_start', async (_event, ctx) => {
-    handlers.setLatestCtx(ctx);
-    handlers.store.reset();
-    handlers.reloadDefinitions(ctx.cwd);
-    restorePersistedSessions(ctx, handlers.store);
-    syncSubagentsUi(ctx, handlers.store);
-  });
-
-  pi.on('session_shutdown', async () => {
-    handlers.store.abortAllRuns();
+  pi.registerFlag(MAX_DEPTH_FLAG, {
+    description: `Deepest subagent level allowed, 0-5 (also settable in ${SUBAGENTS_CONFIG_FILE_NAME})`,
+    type: 'string',
   });
 }
 
 export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const store = createSubagentStore();
   let definitions: readonly SubagentDefinition[] = [];
+  let definitionsCwd: string | undefined;
+  let config: SubagentsConfig | undefined;
+  let configCwd: string | undefined;
   let latestCtx: ExtensionContext | undefined;
 
+  registerFlags(pi);
+
+  const loadConfig = (cwd: string): SubagentsConfig =>
+    loadSubagentsConfig(cwd, getAgentDir(), {
+      exploreModel: readStringFlag(pi, EXPLORE_MODEL_FLAG),
+      maxNestingDepth: readStringFlag(pi, MAX_DEPTH_FLAG),
+    });
+
+  const getConfig = (cwd: string): SubagentsConfig => {
+    if (config === undefined || configCwd !== cwd) {
+      config = loadConfig(cwd);
+      configCwd = cwd;
+    }
+    return config;
+  };
+
   const reloadDefinitions = (cwd: string): readonly SubagentDefinition[] => {
-    definitions = discoverSubagents(cwd);
+    const nextConfig = loadConfig(cwd);
+    config = nextConfig;
+    configCwd = cwd;
+    definitions = discoverSubagents(cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig) });
+    definitionsCwd = cwd;
     return definitions;
   };
 
-  const getDefinitions = (cwd: string): readonly SubagentDefinition[] => (definitions.length === ZERO ? reloadDefinitions(cwd) : definitions);
+  const getDefinitions = (cwd: string): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsCwd !== cwd ? reloadDefinitions(cwd) : definitions);
 
   const onStateChanged = (): void => {
     pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState());
+  };
+
+  const nestedStore: SubagentStore = { ...store, enqueueWakeup: () => false };
+
+  const createNestedExtension =
+    (scope: NestedScope) =>
+    (child: ExtensionAPI): void => {
+      registerSubagentTools(child, { ...callbacks, store: nestedStore, scope });
+    };
+
+  const callbacks: SubagentToolCallbacks = {
+    store,
+    getDefinitions,
+    getConfig,
+    onBackgroundCompleted: () => flushBackgroundWakeups(pi, store),
+    onStateChanged,
+    emit: (event, record, extra) => emitSubagentEvent(pi, event, record, extra),
+    getParentActiveTools: () => pi.getActiveTools?.() ?? [],
+  };
+
+  const runnerCallbacks = {
+    store,
+    getConfig,
+    onBackgroundCompleted: callbacks.onBackgroundCompleted,
+    onStateChanged,
+    emit: callbacks.emit,
+    getParentActiveTools: callbacks.getParentActiveTools,
+  };
+
+  const retryRun = async (agentId: string, ctx: ExtensionContext): Promise<void> => {
+    const record = store.getSession(agentId);
+    if (!record) {
+      ctx.ui.notify(`No subagent found for ${agentId}`, 'warning');
+      return;
+    }
+    const definition = resolveSubagentDefinition(getDefinitions(ctx.cwd), record.subagentType);
+    if (!definition) {
+      ctx.ui.notify(`Subagent type "${record.subagentType}" is no longer available`, 'warning');
+      return;
+    }
+    ctx.ui.notify(`Retrying subagent ${agentId}`, 'info');
+    try {
+      await runSubagentTask(
+        {
+          toolCallId: record.toolCallId,
+          input: { description: record.description, prompt: record.prompt, subagent_type: record.subagentType, resume: record.agentId, max_attempts: record.maxAttempts },
+          definition,
+          ctx,
+          createNestedExtension,
+        },
+        runnerCallbacks,
+      );
+    } catch (error) {
+      ctx.ui.notify(`Retry failed: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
+  };
+
+  const pruneWorktrees = async (agentId: string): Promise<boolean> => {
+    const record = store.getSession(agentId);
+    if (!record?.worktree) {
+      return false;
+    }
+    const removed = await removeSubagentWorktree(record.worktree);
+    return removed.ok;
   };
 
   store.subscribe(() => {
@@ -155,27 +235,53 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     }
   });
 
-  registerSubagentTools(pi, {
-    store,
-    getDefinitions,
-    onBackgroundCompleted: () => flushBackgroundWakeups(pi, store),
-    onStateChanged,
-  });
-
+  registerSubagentTools(pi, callbacks);
   registerSubagentCommands(pi, {
     store,
     getDefinitions,
     reloadDefinitions,
+    getConfig,
+    retryRun,
+    pruneWorktrees,
+    registerAgentCommands: (nextDefinitions) => registerAgentCommands(pi, nextDefinitions),
   });
 
   pi.registerMessageRenderer(BACKGROUND_COMPLETION_CUSTOM_TYPE, (message, _options, theme) => renderBackgroundCompletionMessage(message, theme));
   registerSubagentShortcuts(pi, store);
-  registerLifecycleEvents(pi, {
-    store,
-    getDefinitions,
-    reloadDefinitions,
-    setLatestCtx: (ctx) => {
-      latestCtx = ctx;
-    },
+
+  pi.on('context', async (event) => ({
+    messages: event.messages.filter((message) => !isStaleSubagentsContextMessage(message)),
+  }));
+
+  pi.on('before_agent_start', async (event, ctx) => {
+    latestCtx = ctx;
+    if (event.messageType !== 'user') {
+      return undefined;
+    }
+    return { message: { customType: SUBAGENTS_CONTEXT_CUSTOM_TYPE, content: buildSubagentsContextPrompt(getDefinitions(ctx.cwd), getConfig(ctx.cwd)), display: false } };
+  });
+
+  pi.on('agent_end', async (_event, ctx) => {
+    latestCtx = ctx;
+    if (store.hasPendingWakeups()) {
+      flushBackgroundWakeups(pi, store);
+    }
+    syncSubagentsUi(ctx, store);
+  });
+
+  pi.on('session_start', async (_event, ctx) => {
+    latestCtx = ctx;
+    store.reset();
+    registerAgentCommands(pi, reloadDefinitions(ctx.cwd));
+    restorePersistedSessions(ctx, store);
+    syncSubagentsUi(ctx, store);
+  });
+
+  pi.on('session_shutdown', async () => {
+    store.abortAllRuns();
+  });
+
+  pi.on('mcp_servers_change', async (_event, ctx) => {
+    registerAgentCommands(pi, reloadDefinitions(ctx.cwd));
   });
 }

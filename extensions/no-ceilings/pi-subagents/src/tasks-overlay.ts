@@ -31,7 +31,8 @@ function renderTaskListLines(sessions: readonly SubagentSessionRecord[], selecte
     const isRunning = isActiveSubagentStatus(session.status);
     const elapsed = selected && isRunning ? `  ${formatElapsedCompact(Math.max(ZERO, now - session.startedAt))}` : '';
     const badge = session.isBackground ? ' [bg]' : isRunning ? ' [fg]' : ` [${session.status}]`;
-    const suffix = `${badge}${elapsed}`;
+    const retry = session.attempts > ONE ? ` [try ${session.attempts}/${session.maxAttempts}]` : '';
+    const suffix = `${badge}${retry}${elapsed}`;
     const maxTitleLen = Math.max(ONE, innerWidth - pointer.length - suffix.length);
     const title = truncateEnd(formatSessionTitle(session.description, session.prompt, session.agentId), maxTitleLen);
     const line = `${pointer}${selected ? theme.bold(title) : title}${theme.fg('dim', suffix)}`;
@@ -58,6 +59,12 @@ function renderTranscriptLines(session: SubagentSessionRecord | undefined, theme
     }
     if (item.role === 'tool') {
       return [theme.fg('dim', `  → ${item.toolSummary || item.text}`)];
+    }
+    if (item.role === 'result') {
+      return [theme.fg('dim', `    ${item.text.split('\n').join('\n    ')}`)];
+    }
+    if (item.role === 'thinking') {
+      return [theme.fg('dim', item.text)];
     }
     return item.text.split('\n');
   });

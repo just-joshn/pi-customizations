@@ -1,14 +1,24 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   type BackgroundCompletionPayload,
   isActiveSubagentStatus,
+  MAX_CHECKPOINTS,
+  ONE,
   type PersistedSubagentRecord,
   type PersistedSubagentsState,
+  type SubagentCheckpoint,
+  type SubagentFailureCode,
   type SubagentSessionRecord,
   type SubagentStatus,
   type SubagentTranscriptItem,
   UUID_PATTERN,
   ZERO,
 } from './types.ts';
+
+const FAILURE_ID_CHARS = 12;
+const MAX_PERSISTED_TRANSCRIPT_ITEMS = 50;
+const MAX_PERSISTED_ITEM_CHARS = 4000;
 
 export interface ActiveRunHandle {
   readonly agentId: string;
@@ -21,8 +31,8 @@ export interface ActiveRunHandle {
 
 export type SubagentRunOutcome =
   | { readonly status: 'completed'; readonly finalMessage?: string; readonly toolCallCount: number; readonly durationMs: number }
-  | { readonly status: 'aborted'; readonly error: string; readonly durationMs: number }
-  | { readonly status: 'error'; readonly error: string; readonly durationMs: number };
+  | { readonly status: 'aborted'; readonly error: string; readonly errorCode: SubagentFailureCode; readonly durationMs: number }
+  | { readonly status: 'error'; readonly error: string; readonly errorCode: SubagentFailureCode; readonly durationMs: number };
 
 interface SubagentStoreState {
   readonly sessions: Readonly<Record<string, SubagentSessionRecord>>;
@@ -39,6 +49,9 @@ export interface SubagentStore {
   readonly upsertSession: (record: SubagentSessionRecord) => void;
   readonly updateSession: (agentId: string, updater: (prev: SubagentSessionRecord) => SubagentSessionRecord) => SubagentSessionRecord | undefined;
   readonly appendTranscriptItem: (agentId: string, item: SubagentTranscriptItem) => void;
+  readonly appendCheckpoint: (agentId: string, checkpoint: SubagentCheckpoint) => void;
+  readonly withCheckpoint: (agentId: string, options: { readonly transcriptPath?: string | undefined }) => SubagentCheckpoint | undefined;
+  readonly markFailure: (agentId: string, code: SubagentFailureCode, message: string) => SubagentSessionRecord | undefined;
   readonly registerActiveRun: (handle: ActiveRunHandle) => void;
   readonly getActiveRun: (agentId: string) => ActiveRunHandle | undefined;
   readonly clearActiveRun: (agentId: string) => void;
@@ -76,18 +89,27 @@ function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentReco
     description: record.description,
     prompt: record.prompt,
     ...(record.model !== undefined ? { model: record.model } : {}),
+    ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
     readonly: record.readonly,
     status,
     isBackground: record.isBackground,
     backgroundReason: record.backgroundReason,
+    attempts: record.attempts,
+    maxAttempts: record.maxAttempts,
     ...(record.lastMessage !== undefined ? { lastMessage: record.lastMessage } : {}),
     ...(record.error !== undefined ? { error: record.error } : {}),
+    ...(record.errorCode !== undefined ? { errorCode: record.errorCode } : {}),
+    ...(record.failureId !== undefined ? { failureId: record.failureId } : {}),
     toolCallCount: record.toolCallCount,
     ...(record.durationMs !== undefined ? { durationMs: record.durationMs } : {}),
     startedAt: record.startedAt,
     updatedAt: record.updatedAt,
     ...(record.closedAt !== undefined ? { closedAt: record.closedAt } : {}),
     ...(record.transcriptPath !== undefined ? { transcriptPath: record.transcriptPath } : {}),
+    ...(record.worktree !== undefined ? { worktree: record.worktree } : {}),
+    ...(record.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}),
+    checkpoints: [...record.checkpoints],
+    transcriptItems: record.transcriptItems.slice(-MAX_PERSISTED_TRANSCRIPT_ITEMS).map((item) => ({ ...item, text: item.text.slice(ZERO, MAX_PERSISTED_ITEM_CHARS) })),
   };
 }
 
@@ -209,6 +231,51 @@ function buildWakeupOps(cell: StoreCell) {
   };
 }
 
+function buildObservabilityOps(cell: StoreCell) {
+  const appendCheckpoint = (agentId: string, checkpoint: SubagentCheckpoint): void => {
+    const prev = cell.read().sessions[agentId];
+    if (!prev) {
+      return;
+    }
+    const next = [...prev.checkpoints, checkpoint].slice(-MAX_CHECKPOINTS);
+    cell.commit({ ...cell.read(), sessions: { ...cell.read().sessions, [agentId]: { ...prev, checkpoints: next, updatedAt: checkpoint.at } } });
+  };
+  return {
+    appendCheckpoint,
+    withCheckpoint: (agentId: string, options: { readonly transcriptPath?: string | undefined }): SubagentCheckpoint | undefined => {
+      const prev = cell.read().sessions[agentId];
+      if (!prev) {
+        return undefined;
+      }
+      const last = prev.checkpoints.at(-ONE);
+      if (last !== undefined && last.status === prev.status && last.toolCallCount === prev.toolCallCount && last.transcriptItems === prev.transcriptItems.length) {
+        return last;
+      }
+      const checkpoint: SubagentCheckpoint = {
+        seq: (last?.seq ?? -ONE) + ONE,
+        at: Date.now(),
+        status: prev.status,
+        toolCallCount: prev.toolCallCount,
+        transcriptItems: prev.transcriptItems.length,
+        ...(options.transcriptPath !== undefined ? { transcriptPath: options.transcriptPath } : {}),
+      };
+      appendCheckpoint(agentId, checkpoint);
+      return checkpoint;
+    },
+    markFailure: (agentId: string, code: SubagentFailureCode, message: string): SubagentSessionRecord | undefined => {
+      const state = cell.read();
+      const prev = state.sessions[agentId];
+      if (!prev) {
+        return undefined;
+      }
+      const now = Date.now();
+      const next: SubagentSessionRecord = { ...prev, status: 'error', error: message, errorCode: code, failureId: randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS), updatedAt: now, closedAt: now };
+      cell.commit({ ...state, sessions: { ...state.sessions, [agentId]: next } });
+      return next;
+    },
+  };
+}
+
 export function createSubagentStore(): SubagentStore {
   let state: SubagentStoreState = createEmptyState();
   const cell: StoreCell = {
@@ -223,11 +290,13 @@ export function createSubagentStore(): SubagentStore {
   const sessionOps = buildSessionOps(cell);
   const runOps = buildRunOps(cell);
   const wakeupOps = buildWakeupOps(cell);
+  const observabilityOps = buildObservabilityOps(cell);
 
   return {
     ...sessionOps,
     ...runOps,
     ...wakeupOps,
+    ...observabilityOps,
     subscribe: (listener) => {
       state = { ...state, listeners: [...state.listeners, listener] };
       return () => {
@@ -235,7 +304,10 @@ export function createSubagentStore(): SubagentStore {
       };
     },
     restoreFromPersisted: (persisted) => {
-      const restored = persisted.sessions.reduce<Readonly<Record<string, SubagentSessionRecord>>>((acc, rec) => ({ ...acc, [rec.agentId]: { ...rec, transcriptItems: [] } }), {});
+      const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>(
+        (acc, rec) => ({ ...acc, [rec.agentId]: { ...rec, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] } }),
+        {},
+      );
       cell.commit({ ...state, sessions: restored });
     },
     toPersistedState: () => ({ sessions: sessionOps.listSessions().map(toPersistedRecord) }),
