@@ -69,9 +69,10 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Transcripts dir: ${PI_CODING_AGENT_SESSION_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slugified-repo-path>--}.
+# Transcripts dirs: ${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slug>-- (main repo and each linked worktree), plus $PI_CODING_AGENT_SESSION_DIR when set.
+sessions_root="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions"
 slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="${PI_CODING_AGENT_SESSION_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--}"
+transcripts="${PI_CODING_AGENT_SESSION_DIR:-$sessions_root/--$slug--}"
 now=$(date +%s)
 
 echo "# base: $base"
@@ -108,15 +109,19 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		'.[] | select(.head==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
 	[ -z "$pr" ] && pr="-"
 
-	# Most recent chat whose transcript operated in this worktree. Match path
-	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
+	# Most recent chat whose transcript operated in this worktree: either a
+	# main-repo session referencing the worktree path (followed by "/" or quote
+	# so glint-482 does not match glint-482-r37) or a Pi session launched with
+	# cwd inside the worktree itself (sessions/--<wt-slug>--/*.jsonl).
 	last="-"; last_ts=0
-	if [ -d "$transcripts" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
-			| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
-		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
-			last=$(fmt_day "$last_ts" 2>/dev/null); fi
-	fi
+	wt_slug=$(printf '%s' "$wt" | sed 's#^/##; s#/#-#g')
+	wt_transcripts="$sessions_root/--$wt_slug--"
+	f=$({
+		[ -d "$transcripts" ] && rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null
+		[ -d "$wt_transcripts" ] && find "$wt_transcripts" -maxdepth 1 -type f -name '*.jsonl' 2>/dev/null
+	} | sort -u | while IFS= read -r p; do [ -n "$p" ] && stat "${stat_fmt[@]}" "$p" 2>/dev/null; done | sort -rn | head -1)
+	if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
+		last=$(fmt_day "$last_ts" 2>/dev/null); fi
 	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
 	case "$dirty" in wip:*) bucket=hold-wip ;; *)
