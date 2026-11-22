@@ -580,4 +580,43 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
       await h.cleanup();
     }
   });
+
+  it('lets a resumed owner resume its own child while still rejecting foreign children', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, 'pr-owner', 'nested-tasks: true');
+      await h.emit('session_start', {});
+
+      enqueuePlan({ finalText: 'foreign done' });
+      const foreign = await h.callTool('task', { description: 'foreign', prompt: 'root child' });
+      const foreignId = foreign.details?.agentId ?? '';
+
+      const ownerGate = createGate();
+      enqueuePlan({ finalText: 'owner pass 1', waitForRelease: ownerGate.promise });
+      const owner = await h.callTool('task', { description: 'owner', prompt: 'first', subagent_type: 'pr-owner', run_in_background: true });
+      const ownerId = owner.details?.agentId ?? '';
+      const [task1] = installNested(sessionFactories[ONE] ?? []);
+
+      enqueuePlan({ finalText: 'child pass 1' });
+      const child = await task1?.execute('n1', { description: 'child', prompt: 'first' }, undefined, undefined, h.ctx);
+      const childId = child?.details.agentId ?? '';
+
+      ownerGate.release();
+      await h.callTool('await_subagent', { agent_id: ownerId, timeout_ms: LONG_TIMEOUT_MS });
+
+      enqueuePlan({ finalText: 'owner pass 2' });
+      await h.callTool('task', { description: 'owner', prompt: 'continue', subagent_type: 'pr-owner', resume: ownerId });
+      const [task2, await2] = installNested(sessionFactories.at(-ONE) ?? []);
+
+      enqueuePlan({ finalText: 'child pass 2' });
+      const resumedChild = await task2?.execute('n2', { description: 'child', prompt: 'continue', resume: childId }, undefined, undefined, h.ctx);
+      expect(resumedChild?.details.agentId).toBe(childId);
+      const awaitedChild = await await2?.execute('n3', { agent_id: childId }, undefined, undefined, h.ctx);
+      expect(awaitedChild?.details.outcome).toBe('complete');
+
+      await expect(task2?.execute('n4', { description: 'steal', prompt: 'nope', resume: foreignId }, undefined, undefined, h.ctx)).rejects.toThrow(/not launched by this agent/);
+    } finally {
+      await h.cleanup();
+    }
+  });
 });

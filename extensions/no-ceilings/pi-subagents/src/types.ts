@@ -64,6 +64,7 @@ export interface SubagentDefinition {
 /** Tracks the runs one nested-capable child launched, so await and cancellation stay inside that child. */
 export interface NestedScope {
   readonly depth: number;
+  readonly ownerAgentId: string;
   readonly agentIds: Set<string>;
 }
 
@@ -88,6 +89,7 @@ export interface SubagentTranscriptItem {
 export interface SubagentSessionRecord {
   readonly agentId: string;
   readonly parentSessionId: string;
+  readonly ownerAgentId?: string | undefined;
   readonly toolCallId: string;
   readonly subagentType: string;
   readonly description: string;
@@ -186,6 +188,7 @@ export const CommandArgsSchema = z.string();
 export const PersistedSubagentRecordSchema = z.object({
   agentId: z.string().min(ONE),
   parentSessionId: z.string().min(ONE),
+  ownerAgentId: z.string().optional(),
   toolCallId: z.string(),
   subagentType: z.string().min(ONE),
   description: z.string(),

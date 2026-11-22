@@ -70,6 +70,7 @@ function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentReco
   return {
     agentId: record.agentId,
     parentSessionId: record.parentSessionId,
+    ...(record.ownerAgentId !== undefined ? { ownerAgentId: record.ownerAgentId } : {}),
     toolCallId: record.toolCallId,
     subagentType: record.subagentType,
     description: record.description,
