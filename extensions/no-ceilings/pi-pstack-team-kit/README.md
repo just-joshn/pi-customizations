@@ -27,12 +27,17 @@ Pi does **not** copy skills into `~/.agents/skills`. It loads them from the inst
 | git (user) | under `~/.pi/agent/git/...` | `<root>/skills/...` |
 | git (project) | under `<repo>/.pi/git/...` | `<root>/skills/...` |
 
-Playbooks and principles stay inside those skill folders. Agents stay under `agents/` but are **not** auto-registered by Pi packages (no agents resource type). Point subagent discovery at `<package-root>/agents`, or copy into `~/.pi/agent/agents` / `.pi/agents`. Agents resolve sibling skills via `../skills/<name>/SKILL.md`.
+Playbooks and principles stay inside those skill folders. Agents stay under `agents/` but are **not** auto-registered by Pi packages (no agents resource type). See [Install](#install) to register them.
 
 ## Install
 
+This package ships skills only. The `swarm`, `arena`, `interrogate`, and `poteto-mode` workflows call the `task` and `await_subagent` tools, which come from `@justjoshn/pi-subagents`. Install both packages.
+
 ```bash
+pi install ./extensions/no-ceilings/pi-subagents
 pi install ./extensions/no-ceilings/pi-pstack-team-kit
 ```
+
+To register the agents, copy `agents/*.md` into `~/.pi/agent/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json`, so keep the package installed.
 
 `node_modules` under skill scripts is omitted; restore with `bun install` in `skills/poteto-mode/scripts` when needed.

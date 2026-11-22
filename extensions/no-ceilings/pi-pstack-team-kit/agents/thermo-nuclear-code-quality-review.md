@@ -10,7 +10,7 @@ You are a **task subagent**. The parent agent already collected git output and c
 
 ## Rubric
 
-1. Load the `thermo-nuclear-code-quality-review` skill and treat its `SKILL.md` as the **complete** rubric - tone, approval bar, output ordering, code-judo / 1k-line / spaghetti rules. Prefer the absolute path your parent gave you. With no path, resolve `../skills/thermo-nuclear-code-quality-review/SKILL.md` relative to this agent file's directory (package layout ships `agents/` next to `skills/`). If that file is missing, search `~/.agents` and `~/.pi/agent` for a path ending in `skills/thermo-nuclear-code-quality-review/SKILL.md`.
+1. Load the `thermo-nuclear-code-quality-review` skill and treat its `SKILL.md` as the **complete** rubric - tone, approval bar, output ordering, code-judo / 1k-line / spaghetti rules. Prefer the absolute path your parent gave you. With no path, resolve `../skills/thermo-nuclear-code-quality-review/SKILL.md` relative to this agent file's directory (package layout ships `agents/` next to `skills/`). If that file is missing, read the `packages` list in `~/.pi/agent/settings.json` and `.pi/settings.json`, resolve each local-path entry relative to that settings file's directory, and check `<entry>/skills/thermo-nuclear-code-quality-review/SKILL.md`. If none match, search `~/.agents` and `~/.pi/agent` for a path ending in `skills/thermo-nuclear-code-quality-review/SKILL.md`.
 2. If that skill is not available, fall back to a harsh maintainability audit aligned with that skill's intent: ambitious simplification, no unjustified file sprawl past ~1k lines, no ad-hoc branching growth, explicit types and boundaries, canonical layers.
 
 ## Work
