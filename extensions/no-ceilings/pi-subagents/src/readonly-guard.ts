@@ -22,15 +22,13 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bkill\b/i,
   /\bpkill\b/i,
   /\bkillall\b/i,
-  /(^|[^<])>(?!&)/,
-  />>/,
   /\bnpm\s+(install|uninstall|update|ci|publish|link)\b/i,
   /\byarn\s+(add|remove|install|publish)\b/i,
   /\bpnpm\s+(add|remove|install|publish)\b/i,
   /\bbun\s+(add|remove|install|publish)\b/i,
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
-  /\bsed\s+-i/i,
+  /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
   /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s]).*?\1.*?\1[wW]\S|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
   /\b(?:sed|awk)\b.*(?:\s-f\b|\s--file\b)/,
   /\bawk\b.*>/,
@@ -45,6 +43,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bawk\b.*\s-i\s+inplace\b/i,
   /^\s*env\s+\S/i,
   /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
+  /\btree\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\bgit\b.*\s--output(?:=|\s)/i,
 ];
 
@@ -59,12 +58,35 @@ const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
 
 const SUBSHELL_OR_CHAIN_PATTERN = /(?:[\r\n]|;|&&|\|\||`|\$\(|<\()/;
 
+/** True when an unquoted `>` or `>>` redirects output. Quoted `>` and `>&` stay allowed. */
+function hasUnquotedRedirect(command: string): boolean {
+  let quote: "'" | '"' | undefined;
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index] ?? '';
+    if (quote !== undefined) {
+      if (char === quote) {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char !== '>' || command[index - 1] === '<' || command[index + 1] === '&') {
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
 function isSingleReadOnlySegment(segment: string): boolean {
   const trimmed = segment.trim();
   if (!trimmed) {
     return false;
   }
-  if (DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+  if (hasUnquotedRedirect(trimmed) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
     return false;
   }
   return SAFE_READONLY_PREFIXES.some((pattern) => pattern.test(trimmed));

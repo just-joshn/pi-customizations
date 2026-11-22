@@ -97,7 +97,6 @@ function mergeSampling(base: Record<string, unknown> | undefined, extra: Subagen
     ...(base ?? {}),
     ...(extra.temperature !== undefined ? { temperature: extra.temperature } : {}),
     ...(extra.topP !== undefined ? { top_p: extra.topP } : {}),
-    ...(extra.topK !== undefined ? { top_k: extra.topK } : {}),
   };
 }
 

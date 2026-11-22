@@ -3,6 +3,7 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { Type } from 'typebox';
 import { resolveSubagentDefinition, selectSubagentType } from './discovery.ts';
 import { SubagentRunError } from './failures.ts';
+import { buildSubagentsContextPrompt } from './formatters.ts';
 import { awaitBackgroundSubagent, type RunnerCallbacks, runSubagentTask } from './runner.ts';
 import {
   type AwaitSubagentDetails,
@@ -193,4 +194,11 @@ function registerAwaitTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): 
 export function registerSubagentTools(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): void {
   registerTaskTool(pi, callbacks);
   registerAwaitTool(pi, callbacks);
+  if (callbacks.scope && typeof pi.on === 'function') {
+    pi.on('before_agent_start', async (_event, ctx) => {
+      const catalog = buildSubagentsContextPrompt(callbacks.getDefinitions(ctx), callbacks.getConfig(ctx));
+      const basePrompt = ctx.getSystemPrompt().trim();
+      return { systemPrompt: basePrompt.length === ZERO ? catalog : `${basePrompt}\n\n${catalog}` };
+    });
+  }
 }

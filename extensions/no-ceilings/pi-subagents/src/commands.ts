@@ -136,30 +136,48 @@ function buildInvocationMessage(definition: SubagentDefinition, prompt: string, 
   return `Use the task tool with subagent_type="${definition.name}"${backgroundArg} to: ${prompt}`;
 }
 
+function findLongestAgentPrefix(parts: readonly string[], definitions: readonly SubagentDefinition[]): { readonly definition: SubagentDefinition; readonly consumed: number } | undefined {
+  for (let count = parts.length; count >= ONE; count -= ONE) {
+    const name = parts.slice(ZERO, count).join(' ');
+    const definition = resolveSubagentDefinition(definitions, name);
+    if (definition && definition.name.toLowerCase() === name.toLowerCase()) {
+      return { definition, consumed: count };
+    }
+  }
+  return undefined;
+}
+
+function promptAfterBackgroundFlag(parts: readonly string[]): { readonly prompt: string; readonly background: boolean } {
+  if (parts[ZERO] === BACKGROUND_FLAG) {
+    return { prompt: parts.slice(ONE).join(' ').trim(), background: true };
+  }
+  return { prompt: parts.join(' ').trim(), background: false };
+}
+
 function registerSubagentCommand(pi: ExtensionAPI, callbacks: CommandCallbacks): void {
   pi.registerCommand('subagent', {
     description: 'Invoke a specific subagent: /subagent <name> [--bg] <prompt>',
     handler: async (rawArgs, ctx) => {
       const args = CommandArgsSchema.parse(rawArgs).trim();
-      const parts = args.split(/\s+/);
-      const rawName = parts[ZERO] ?? '';
-      const restPrompt = parts.slice(ONE).join(' ').trim();
-      if (rawName.length === ZERO || parts.length < TWO || restPrompt.length === ZERO) {
-        ctx.ui.notify('Usage: /subagent <name> [--bg] <prompt>', 'warning');
-        return;
-      }
-      const definition = resolveSubagentDefinition(callbacks.getDefinitions(ctx), rawName);
-      if (!definition) {
-        const available = callbacks
-          .getDefinitions(ctx)
-          .map((candidate) => candidate.name)
-          .join(', ');
+      const parts = args.length > ZERO ? args.split(/\s+/) : [];
+      const definitions = callbacks.getDefinitions(ctx);
+      const matched = findLongestAgentPrefix(parts, definitions);
+      if (!matched) {
+        const rawName = parts[ZERO] ?? '';
+        if (rawName.length === ZERO) {
+          ctx.ui.notify('Usage: /subagent <name> [--bg] <prompt>', 'warning');
+          return;
+        }
+        const available = definitions.map((candidate) => candidate.name).join(', ');
         ctx.ui.notify(`Unknown subagent "${rawName}". Available: ${available}`, 'warning');
         return;
       }
-      const background = restPrompt.startsWith(BACKGROUND_FLAG);
-      const prompt = background ? restPrompt.slice(BACKGROUND_FLAG.length).trim() : restPrompt;
-      pi.sendUserMessage(buildInvocationMessage(definition, prompt, background), { deliverAs: 'followUp' });
+      const { prompt, background } = promptAfterBackgroundFlag(parts.slice(matched.consumed));
+      if (prompt.length === ZERO) {
+        ctx.ui.notify('Usage: /subagent <name> [--bg] <prompt>', 'warning');
+        return;
+      }
+      pi.sendUserMessage(buildInvocationMessage(matched.definition, prompt, background), { deliverAs: 'followUp' });
     },
   });
 }
@@ -171,29 +189,49 @@ function slugifyCommandName(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function nextCommandSlug(base: string, registered: ReadonlySet<string>): string | undefined {
+  if (base.length === ZERO) {
+    return undefined;
+  }
+  if (!registered.has(base)) {
+    return base;
+  }
+  for (let suffix = TWO; ; suffix += ONE) {
+    const candidate = `${base}-${suffix}`;
+    if (!registered.has(candidate)) {
+      return candidate;
+    }
+  }
+}
+
 function splitAgentArgs(rawArgs: string): { readonly prompt: string; readonly background: boolean } {
   const args = CommandArgsSchema.parse(rawArgs).trim();
   return args.startsWith(BACKGROUND_FLAG) ? { prompt: args.slice(BACKGROUND_FLAG.length).trim(), background: true } : { prompt: args, background: false };
 }
 
 /** One command per discovered agent, named like Pi's own `skill:` commands. */
-export function registerAgentCommands(pi: ExtensionAPI, definitions: readonly SubagentDefinition[]): void {
+export function registerAgentCommands(pi: ExtensionAPI, definitions: readonly SubagentDefinition[], getDefinitions: (ctx: ExtensionContext) => readonly SubagentDefinition[]): void {
   const registered = new Set<string>();
   for (const definition of definitions) {
-    const commandName = slugifyCommandName(definition.name);
-    if (commandName.length === ZERO || registered.has(commandName)) {
+    const commandName = nextCommandSlug(slugifyCommandName(definition.name), registered);
+    if (commandName === undefined) {
       continue;
     }
     registered.add(commandName);
     pi.registerCommand(`subagent:${commandName}`, {
       description: definition.description || `Run the ${definition.name} subagent`,
       handler: async (rawArgs, ctx) => {
-        const { prompt, background } = splitAgentArgs(rawArgs);
-        if (prompt.length === ZERO) {
-          ctx.ui.notify(`Usage: /subagent:${definition.name} [--bg] <prompt>`, 'warning');
+        const current = resolveSubagentDefinition(getDefinitions(ctx), definition.name);
+        if (!current) {
+          ctx.ui.notify(`Unknown subagent "${definition.name}"`, 'warning');
           return;
         }
-        pi.sendUserMessage(buildInvocationMessage(definition, prompt, background), { deliverAs: 'followUp' });
+        const { prompt, background } = splitAgentArgs(rawArgs);
+        if (prompt.length === ZERO) {
+          ctx.ui.notify(`Usage: /subagent:${current.name} [--bg] <prompt>`, 'warning');
+          return;
+        }
+        pi.sendUserMessage(buildInvocationMessage(current, prompt, background), { deliverAs: 'followUp' });
       },
     });
   }

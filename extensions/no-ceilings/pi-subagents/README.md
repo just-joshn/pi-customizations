@@ -78,7 +78,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model` | `inherit`, `fast`, a model id, or `provider/id`. Claude aliases `haiku`, `sonnet`, and `opus` map to `fast` and `inherit`. |
 | `force-default-model` | Ignore `model` and any caller override. |
 | `thinking`, `reasoning-effort` | Pi thinking level: `off` through `max`. |
-| `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. Temperature and top_p reach every provider, top_k is added for Anthropic and Google, and max_tokens caps output. |
+| `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. OpenAI and other flat adapters get `temperature` and `top_p`. Anthropic also gets `top_k`, except when extended thinking is enabled, which leaves the request unchanged. Google writes `temperature`, `topP`, and `topK` into `config`. Bedrock writes `temperature` and `topP` into `inferenceConfig` and does not send `topK`. `max_tokens` caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
 | `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, mutating shell commands (bash and powershell), and MCP tools. |
@@ -95,8 +95,9 @@ Children load project rules (`AGENTS.md`, `CLAUDE.md`) because the child resourc
 
 - Automatic: ask for work and let the model choose, or omit `subagent_type`.
 - Explicit tool call: `task` with `subagent_type`.
-- Slash command per agent: `/subagent:<name> [--bg] <prompt>`.
-- Generic form: `/subagent <name> [--bg] <prompt>`.
+- Slash command per agent: `/subagent:<slug> [--bg] <prompt>`. The slug is the lowercased name with non-alphanumeric runs turned into hyphens. Every discovered agent gets a command; when two slugs collide, the later one is suffixed `-2`, then `-3`.
+- Generic form: `/subagent <name> [--bg] <prompt>`. A name may contain spaces. The longest prefix that matches a discovered agent is the target, and the rest is the prompt. After `--bg`, an empty prompt prints the usage text and sends nothing.
+- A per-agent command resolves the agent again when it runs. If that agent is gone, Pi warns `Unknown subagent "<name>"` and sends nothing.
 
 ## Configuration
 

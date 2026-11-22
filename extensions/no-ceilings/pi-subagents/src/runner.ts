@@ -269,7 +269,8 @@ function validateResumeRequest(resumeId: string, prompt: string, parentSessionId
   if (!isValidSubagentId(resumeId)) {
     throw new SubagentRunError('invalid-id', resumeId);
   }
-  if (prompt.trim().length > ZERO && store.isRunBusy(resumeId)) {
+  const running = store.isRunBusy(resumeId);
+  if (prompt.trim().length > ZERO && running) {
     throw new SubagentRunError('busy');
   }
   const existing = store.getSession(resumeId);
@@ -279,7 +280,8 @@ function validateResumeRequest(resumeId: string, prompt: string, parentSessionId
   if (existing.worktree !== undefined && !existsSync(existing.worktree.path)) {
     throw new SubagentRunError('resume-unavailable', resumeId);
   }
-  if (existing.transcriptPath !== undefined && !existsSync(existing.transcriptPath)) {
+  // The path is recorded when the child starts, and the file is flushed when the run ends.
+  if (!running && existing.transcriptPath !== undefined && !existsSync(existing.transcriptPath)) {
     throw new SubagentRunError('resume-unavailable', resumeId);
   }
   return existing;
@@ -710,7 +712,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
-  const resumed = resumeId === undefined ? undefined : callbacks.store.getSession(resumeId);
+  const resumed = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store);
   const provisionalReadonly = options.definition.permissionMode === 'readonly' || (options.input.readonly ?? resumed?.readonly ?? false);
 
   if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {

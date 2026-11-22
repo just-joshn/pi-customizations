@@ -72,6 +72,14 @@
 - `/tasks prune` refuses to delete a worktree under a running subagent and no longer forces removal of a dirty worktree.
 - Per-agent command names are slugified, so an agent name with spaces is still callable.
 - An awaited background run clears its wakeup suppression, and a read-only agent that inherits tools no longer receives write tools.
+- Read-only mode blocks `sed -i` and `sed --in-place` anywhere in the command, and `tree -o` or `tree --output` output files.
+- A quoted `>` in a read-only command is not a redirect. Unquoted `>` and `>>` stay blocked, and `>&` stays allowed.
+- `model-params` writes Google sampling into `config` and Bedrock sampling into `inferenceConfig`. An Anthropic request with extended thinking enabled is left unchanged. `top_k` is no longer copied onto OpenAI sampling parameters.
+- Configured agent directories come after the workspace directories and before user directories, so a configured project agent wins over a user agent of the same name.
+- Every discovered agent gets a slash command. Colliding slugs are suffixed `-2` and `-3`. `/subagent` accepts a multi-word name, and `/subagent <name> --bg` with no prompt prints usage and sends nothing.
+- A per-agent command resolves the agent at invocation. A removed agent warns `Unknown subagent "<name>"` and sends nothing.
+- A nested child receives the agent catalog in its system prompt.
+- A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
 
 ## 0.1.4
 

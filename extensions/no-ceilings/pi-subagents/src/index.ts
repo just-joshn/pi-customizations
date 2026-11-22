@@ -260,7 +260,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     getConfig,
     retryRun,
     pruneWorktrees,
-    registerAgentCommands: (nextDefinitions) => registerAgentCommands(pi, nextDefinitions),
+    registerAgentCommands: (nextDefinitions) => registerAgentCommands(pi, nextDefinitions, getDefinitions),
   });
 
   pi.registerMessageRenderer(BACKGROUND_COMPLETION_CUSTOM_TYPE, (message, _options, theme) => renderBackgroundCompletionMessage(message, theme));
@@ -284,7 +284,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   pi.on('session_start', async (_event, ctx) => {
     latestCtx = ctx;
     store.reset();
-    registerAgentCommands(pi, reloadDefinitions(ctx));
+    registerAgentCommands(pi, reloadDefinitions(ctx), getDefinitions);
     restorePersistedSessions(ctx, store);
     syncSubagentsUi(ctx, store);
   });
@@ -295,6 +295,6 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   });
 
   pi.on('mcp_servers_change', async (_event, ctx) => {
-    registerAgentCommands(pi, reloadDefinitions(ctx));
+    registerAgentCommands(pi, reloadDefinitions(ctx), getDefinitions);
   });
 }

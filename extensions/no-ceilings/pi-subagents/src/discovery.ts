@@ -369,15 +369,14 @@ export function computeAgentDirectories(cwd: string, userHome: string, agentDir:
         { dirPath: join(workspaceRoot, '.agents', 'agents'), source: 'shared-workspace' },
       ]
     : [];
-  const base: readonly DirectorySpec[] = [
-    ...workspaceDirs,
+  const userDirs: readonly DirectorySpec[] = [
     { dirPath: join(agentDir, 'agents'), source: 'user' },
     { dirPath: join(userHome, '.claude', 'agents'), source: 'claude-user' },
     { dirPath: join(userHome, '.codex', 'agents'), source: 'codex-user' },
     { dirPath: join(userHome, '.agents', 'agents'), source: 'shared-user' },
   ];
   const configured = (config?.extraAgentDirectories ?? []).filter((dirPath) => projectTrusted || !isInsideProject(workspaceRoot, dirPath)).map((dirPath): DirectorySpec => ({ dirPath, source: 'configured' }));
-  return [...base, ...configured];
+  return [...workspaceDirs, ...configured, ...userDirs];
 }
 
 function builtinGeneralPurpose(): BuiltinSpec {

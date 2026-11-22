@@ -2,23 +2,28 @@ import type { ExtensionFactory } from '@earendil-works/pi-coding-agent';
 import type { SubagentSampling } from './types.ts';
 
 const ANTHROPIC_MESSAGES_API = 'anthropic-messages';
+const BEDROCK_CONVERSE_API = 'bedrock-converse-stream';
 const GOOGLE_API_PREFIX = 'google';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function acceptsTopK(api: string): boolean {
-  return api === ANTHROPIC_MESSAGES_API || api.startsWith(GOOGLE_API_PREFIX);
+function thinkingEnabled(payload: Record<string, unknown>): boolean {
+  const thinking = payload['thinking'];
+  return isRecord(thinking) && thinking['type'] === 'enabled';
 }
 
 function withSampling(payload: Record<string, unknown>, api: string, sampling: SubagentSampling): Record<string, unknown> {
+  if (thinkingEnabled(payload)) {
+    return payload;
+  }
   if (api.startsWith(GOOGLE_API_PREFIX)) {
-    const generationConfig = payload['generationConfig'];
-    const current = isRecord(generationConfig) ? generationConfig : {};
+    const config = payload['config'];
+    const current = isRecord(config) ? config : {};
     return {
       ...payload,
-      generationConfig: {
+      config: {
         ...current,
         ...(sampling.temperature !== undefined ? { temperature: sampling.temperature } : {}),
         ...(sampling.topP !== undefined ? { topP: sampling.topP } : {}),
@@ -26,11 +31,23 @@ function withSampling(payload: Record<string, unknown>, api: string, sampling: S
       },
     };
   }
+  if (api === BEDROCK_CONVERSE_API) {
+    const inferenceConfig = payload['inferenceConfig'];
+    const current = isRecord(inferenceConfig) ? inferenceConfig : {};
+    return {
+      ...payload,
+      inferenceConfig: {
+        ...current,
+        ...(sampling.temperature !== undefined ? { temperature: sampling.temperature } : {}),
+        ...(sampling.topP !== undefined ? { topP: sampling.topP } : {}),
+      },
+    };
+  }
   return {
     ...payload,
     ...(sampling.temperature !== undefined ? { temperature: sampling.temperature } : {}),
     ...(sampling.topP !== undefined ? { top_p: sampling.topP } : {}),
-    ...(acceptsTopK(api) && sampling.topK !== undefined ? { top_k: sampling.topK } : {}),
+    ...(api === ANTHROPIC_MESSAGES_API && sampling.topK !== undefined ? { top_k: sampling.topK } : {}),
   };
 }
 
