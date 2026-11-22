@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/coverage", "!!extensions/pi-pstack-v2/skills"]
+    "includes": ["**", "!!**/coverage", "!!**/*.md", "!!extensions/pi-pstack-v2/skills"]
   },
   "formatter": {
     "enabled": true,
