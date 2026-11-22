@@ -13,6 +13,7 @@ import {
   getAgentDir,
   type ProviderConfig,
   SessionManager,
+  SettingsManager,
 } from '@earendil-works/pi-coding-agent';
 import { createReadonlySubagentExtension } from './readonly-guard.ts';
 import { type NestedScope, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
@@ -34,6 +35,7 @@ export interface ChildSessionRequest {
   readonly existingTranscriptPath: string | undefined;
   readonly isResume: boolean;
   readonly cwd: string;
+  readonly projectTrusted: boolean;
   readonly nestedScope: NestedScope | undefined;
   readonly createNestedExtension: NestedExtensionFactory;
 }
@@ -109,18 +111,18 @@ function applyInheritedTools(session: AgentSession, parentActiveTools: readonly 
   const callable = new Set(session.getCallableToolNames());
   const nested = nestedScope === undefined ? [] : [...NESTED_TOOL_SET];
   const inherited = parentActiveTools.filter((name) => (callable.has(name) || nested.includes(name)) && !NESTED_TOOL_SET.has(name) && (!readonly || !READONLY_BLOCKED_TOOLS.has(name)));
-  if (inherited.length === ZERO) {
-    return;
-  }
   session.setActiveToolsByName([...inherited, ...nested]);
 }
 
 export async function createChildSession(request: ChildSessionRequest, parentActiveTools: readonly string[]): Promise<ChildSession> {
+  const projectTrusted = request.projectTrusted ?? false;
+  const settingsManager = SettingsManager.create(request.cwd, getAgentDir(), { projectTrusted });
   const sessionDir = resolveSubagentSessionDir(request.ctx);
   const sessionManager = createChildSessionManager(request.cwd, request.existingTranscriptPath, request.isResume, sessionDir);
   const resourceLoader = new DefaultResourceLoader({
     cwd: request.cwd,
     agentDir: getAgentDir(),
+    settingsManager,
     noExtensions: true,
     noPromptTemplates: true,
     noThemes: true,
@@ -132,6 +134,7 @@ export async function createChildSession(request: ChildSessionRequest, parentAct
   const { session } = await createAgentSession({
     cwd: request.cwd,
     agentDir: getAgentDir(),
+    settingsManager,
     ...(request.model ? { model: request.model } : {}),
     ...(request.thinking ? { thinkingLevel: request.thinking } : {}),
     ...(tools ? { tools: [...tools] } : {}),

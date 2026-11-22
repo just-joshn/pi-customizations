@@ -68,7 +68,8 @@ function renderTranscriptLines(session: SubagentSessionRecord | undefined, theme
     }
     return item.text.split('\n');
   });
-  const liveLines = [...(session.streamingText ? session.streamingText.split('\n') : []), ...(isActiveSubagentStatus(session.status) ? ['', `${theme.fg('success', '●')} ${theme.bold('Working')}`] : [])];
+  const liveThinking = session.streamingThinking ? session.streamingThinking.split('\n').map((line) => theme.fg('dim', line)) : [];
+  const liveLines = [...liveThinking, ...(session.streamingText ? session.streamingText.split('\n') : []), ...(isActiveSubagentStatus(session.status) ? ['', `${theme.fg('success', '●')} ${theme.bold('Working')}`] : [])];
   const combined = [...itemLines, ...liveLines].slice(-MAX_TRANSCRIPT_LINES);
   const footer = theme.fg('dim', `Subagent · ${title}  ·  esc to go back`);
   return [...combined, '', footer];

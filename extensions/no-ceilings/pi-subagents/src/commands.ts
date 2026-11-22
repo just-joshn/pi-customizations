@@ -8,9 +8,9 @@ import { CommandArgsSchema, ONE, type SubagentDefinition, TWO, ZERO } from './ty
 
 export interface CommandCallbacks {
   readonly store: SubagentStore;
-  readonly getDefinitions: (cwd: string) => readonly SubagentDefinition[];
-  readonly reloadDefinitions: (cwd: string) => readonly SubagentDefinition[];
-  readonly getConfig: (cwd: string) => SubagentsConfig;
+  readonly getDefinitions: (ctx: ExtensionContext) => readonly SubagentDefinition[];
+  readonly reloadDefinitions: (ctx: ExtensionContext) => readonly SubagentDefinition[];
+  readonly getConfig: (ctx: ExtensionContext) => SubagentsConfig;
   readonly retryRun: (agentId: string, ctx: ExtensionContext) => Promise<void>;
   readonly pruneWorktrees: (agentId: string) => Promise<PruneResult>;
   readonly registerAgentCommands: (definitions: readonly SubagentDefinition[]) => void;
@@ -121,12 +121,12 @@ function registerAgentsCommand(pi: ExtensionAPI, callbacks: CommandCallbacks): v
     handler: async (rawArgs, ctx) => {
       const args = CommandArgsSchema.parse(rawArgs).trim().toLowerCase();
       if (args === 'reload') {
-        const reloaded = callbacks.reloadDefinitions(ctx.cwd);
+        const reloaded = callbacks.reloadDefinitions(ctx);
         callbacks.registerAgentCommands(reloaded);
         ctx.ui.notify(`Reloaded ${reloaded.length} subagents`, 'info');
         return;
       }
-      ctx.ui.notify(`${formatAgentsList(callbacks.getDefinitions(ctx.cwd))}\n\n${formatConfigSummary(callbacks.getConfig(ctx.cwd))}`, 'info');
+      ctx.ui.notify(`${formatAgentsList(callbacks.getDefinitions(ctx))}\n\n${formatConfigSummary(callbacks.getConfig(ctx))}`, 'info');
     },
   });
 }
@@ -148,10 +148,10 @@ function registerSubagentCommand(pi: ExtensionAPI, callbacks: CommandCallbacks):
         ctx.ui.notify('Usage: /subagent <name> [--bg] <prompt>', 'warning');
         return;
       }
-      const definition = resolveSubagentDefinition(callbacks.getDefinitions(ctx.cwd), rawName);
+      const definition = resolveSubagentDefinition(callbacks.getDefinitions(ctx), rawName);
       if (!definition) {
         const available = callbacks
-          .getDefinitions(ctx.cwd)
+          .getDefinitions(ctx)
           .map((candidate) => candidate.name)
           .join(', ');
         ctx.ui.notify(`Unknown subagent "${rawName}". Available: ${available}`, 'warning');

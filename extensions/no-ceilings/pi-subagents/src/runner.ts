@@ -37,7 +37,7 @@ export interface RunnerCallbacks {
   readonly onStateChanged: () => void;
   readonly emit: (event: SubagentEventName, record: SubagentSessionRecord, extra?: Partial<SubagentEventPayload>) => void;
   readonly getParentActiveTools: () => readonly string[];
-  readonly getConfig: (cwd: string) => SubagentsConfig;
+  readonly getConfig: (ctx: ExtensionContext) => SubagentsConfig;
 }
 
 export interface RunTaskOptions {
@@ -208,6 +208,7 @@ function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, pr
     const after = request.store.getSession(request.agentId)?.checkpoints.length ?? before;
     if (checkpoint && after > before) {
       request.callbacks.emit('checkpoint', request.store.getSession(request.agentId) ?? reduced.record, { checkpointSeq: checkpoint.seq });
+      request.callbacks.onStateChanged();
     }
   }
   if (event.type === 'tool_execution_start') {
@@ -383,12 +384,14 @@ async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks
         existingTranscriptPath: attempt === ONE ? plan.existing?.transcriptPath : undefined,
         isResume: attempt === ONE && plan.isResume,
         cwd: plan.childCwd,
+        projectTrusted: options.ctx.isProjectTrusted?.() ?? false,
         nestedScope: plan.nestedScope,
         createNestedExtension: options.createNestedExtension,
       },
       callbacks.getParentActiveTools(),
     );
     callbacks.store.updateSession(plan.agentId, (record) => ({ ...record, ...(child.transcriptPath !== undefined ? { transcriptPath: child.transcriptPath } : {}) }));
+    callbacks.onStateChanged();
     return await runSession({
       session: child.session,
       agentId: plan.agentId,
@@ -569,8 +572,8 @@ interface RunSetup {
 }
 
 function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
-  const resolved = resolveSubagentModel({ model: options.input.model, thinking: options.input.thinking }, options.definition, options.ctx);
   const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store);
+  const resolved = resolveSubagentModel({ model: options.input.model ?? existing?.model, thinking: options.input.thinking ?? existing?.thinking }, options.definition, options.ctx);
   const wantBackground = options.input.run_in_background ?? options.definition.isBackground ?? config.defaultBackground;
   const backgroundReason: BackgroundReason = wantBackground && (options.input.run_in_background !== undefined || options.definition.isBackground !== undefined) ? 'agent_request' : 'unspecified';
   return {
@@ -673,7 +676,10 @@ async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, co
 }
 
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
-  const config = callbacks.getConfig(options.ctx.cwd);
+  const config = callbacks.getConfig(options.ctx);
+  if (config.maxNestingDepth < ONE) {
+    throw new SubagentRunError('nesting-limit');
+  }
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();

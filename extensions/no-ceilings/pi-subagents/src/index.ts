@@ -123,43 +123,46 @@ function registerFlags(pi: ExtensionAPI): void {
 export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const store = createSubagentStore();
   let definitions: readonly SubagentDefinition[] = [];
-  let definitionsCwd: string | undefined;
+  let definitionsKey: string | undefined;
   let config: SubagentsConfig | undefined;
-  let configCwd: string | undefined;
+  let configKey: string | undefined;
   let latestCtx: ExtensionContext | undefined;
-  let projectTrusted = true;
 
   registerFlags(pi);
 
-  const loadConfig = (cwd: string): SubagentsConfig =>
+  const projectTrust = (ctx: ExtensionContext): boolean => ctx.isProjectTrusted?.() ?? false;
+  const cacheKey = (ctx: ExtensionContext): string => `${ctx.cwd}\0${projectTrust(ctx) ? '1' : '0'}`;
+
+  const loadConfig = (ctx: ExtensionContext): SubagentsConfig =>
     loadSubagentsConfig(
-      cwd,
+      ctx.cwd,
       getAgentDir(),
       {
         exploreModel: readStringFlag(pi, EXPLORE_MODEL_FLAG),
         maxNestingDepth: readStringFlag(pi, MAX_DEPTH_FLAG),
       },
-      projectTrusted,
+      projectTrust(ctx),
     );
 
-  const getConfig = (cwd: string): SubagentsConfig => {
-    if (config === undefined || configCwd !== cwd) {
-      config = loadConfig(cwd);
-      configCwd = cwd;
+  const getConfig = (ctx: ExtensionContext): SubagentsConfig => {
+    const key = cacheKey(ctx);
+    if (config === undefined || configKey !== key) {
+      config = loadConfig(ctx);
+      configKey = key;
     }
     return config;
   };
 
-  const reloadDefinitions = (cwd: string): readonly SubagentDefinition[] => {
-    const nextConfig = loadConfig(cwd);
+  const reloadDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => {
+    const nextConfig = loadConfig(ctx);
     config = nextConfig;
-    configCwd = cwd;
-    definitions = discoverSubagents(cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted });
-    definitionsCwd = cwd;
+    configKey = cacheKey(ctx);
+    definitions = discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx) });
+    definitionsKey = cacheKey(ctx);
     return definitions;
   };
 
-  const getDefinitions = (cwd: string): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsCwd !== cwd ? reloadDefinitions(cwd) : definitions);
+  const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsKey !== cacheKey(ctx) ? reloadDefinitions(ctx) : definitions);
 
   const onStateChanged = (): void => {
     pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState());
@@ -198,7 +201,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
       ctx.ui.notify(`No subagent found for ${agentId}`, 'warning');
       return;
     }
-    const definition = resolveSubagentDefinition(getDefinitions(ctx.cwd), record.subagentType);
+    const definition = resolveSubagentDefinition(getDefinitions(ctx), record.subagentType);
     if (!definition) {
       ctx.ui.notify(`Subagent type "${record.subagentType}" is no longer available`, 'warning');
       return;
@@ -214,7 +217,9 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
             subagent_type: record.subagentType,
             resume: record.agentId,
             readonly: record.readonly,
+            run_in_background: record.isBackground ?? false,
             max_attempts: record.maxAttempts,
+            ...(record.model !== undefined ? { model: record.model } : {}),
             ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
           },
           definition,
@@ -262,8 +267,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   pi.on('before_agent_start', async (_event, ctx) => {
     latestCtx = ctx;
-    projectTrusted = ctx.isProjectTrusted?.() ?? projectTrusted;
-    const catalog = buildSubagentsContextPrompt(getDefinitions(ctx.cwd), getConfig(ctx.cwd));
+    const catalog = buildSubagentsContextPrompt(getDefinitions(ctx), getConfig(ctx));
     const basePrompt = ctx.getSystemPrompt().trim();
     return { systemPrompt: basePrompt.length === ZERO ? catalog : `${basePrompt}\n\n${catalog}` };
   });
@@ -278,9 +282,8 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   pi.on('session_start', async (_event, ctx) => {
     latestCtx = ctx;
-    projectTrusted = ctx.isProjectTrusted?.() ?? true;
     store.reset();
-    registerAgentCommands(pi, reloadDefinitions(ctx.cwd));
+    registerAgentCommands(pi, reloadDefinitions(ctx));
     restorePersistedSessions(ctx, store);
     syncSubagentsUi(ctx, store);
   });
@@ -290,6 +293,6 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   });
 
   pi.on('mcp_servers_change', async (_event, ctx) => {
-    registerAgentCommands(pi, reloadDefinitions(ctx.cwd));
+    registerAgentCommands(pi, reloadDefinitions(ctx));
   });
 }

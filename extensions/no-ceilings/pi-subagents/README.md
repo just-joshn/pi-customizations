@@ -74,7 +74,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | Frontmatter | Meaning |
 | --- | --- |
 | `name`, `description` | Identity and delegation text. Missing `name` falls back to the file name. |
-| `tools` | Comma or space separated tool allowlist. Omit it to inherit the parent's active tools. |
+| `tools` | Comma or space separated tool allowlist. Omit it to inherit the parent's active tools. Claude names such as `Read`, `Grep`, and `Glob` map to Pi's `read`, `grep`, and `find`. |
 | `model` | `inherit`, `fast`, a model id, or `provider/id`. Claude aliases `haiku`, `sonnet`, and `opus` map to `fast` and `inherit`. |
 | `force-default-model` | Ignore `model` and any caller override. |
 | `thinking`, `reasoning-effort` | Pi thinking level: `off` through `max`. |
@@ -132,7 +132,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
-- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`.
+- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.
 
 ### Hook events
@@ -150,7 +150,7 @@ Subscribe with `pi.events.on(channel, handler)` from another extension. Every pa
 
 ## Nesting
 
-A child gets `task` and `await_subagent` only when its definition sets `nested-tasks: true` and the run is above `nesting.maxDepth`. Nested runs are scoped: a child can await or cancel only the runs it started, and its remaining children stop when it ends. Nested completions never wake the parent.
+A child gets `task` and `await_subagent` only when its definition sets `nested-tasks: true` and the run is above `nesting.maxDepth`. `nesting.maxDepth` of `0` rejects delegation entirely. Nested runs are scoped: a child can await or cancel only the runs it started, and its remaining children stop when it ends. Nested completions never wake the parent.
 
 ## Tests
 

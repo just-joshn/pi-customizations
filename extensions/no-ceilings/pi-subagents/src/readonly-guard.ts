@@ -31,7 +31,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bsed\s+-i/i,
-  /\bsed\b.*(?:\/[we]\b|['"]\s*(?:[\d$,]*)[wWeE]\s|\b[wW]\s+\S)/,
+  /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s]).*?\1.*?\1[wW]\S|['"]\s*(?:[\d$,]*)[wWeE]\s|\b[wW]\s+\S)/,
   /\bperl\s+-i/i,
   /\byq\b.*\s(?:-i|--inplace)(?:=|\s|$)/i,
   /\bfind\b.*\s-(?:delete|exec|execdir|ok|okdir|fls|fprint|fprint0|fprintf)\b/i,
@@ -40,7 +40,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bawk\b.*\b(?:system|getline)\b/i,
   /\bawk\b.*\s-i\s+inplace\b/i,
   /^\s*env\s+\S/i,
-  /\bsort\b.*\s(?:-o|--output)(?:=|\s|$)/i,
+  /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\bgit\b.*\s--output(?:=|\s)/i,
 ];
 

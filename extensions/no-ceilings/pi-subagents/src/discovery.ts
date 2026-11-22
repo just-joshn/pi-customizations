@@ -11,6 +11,18 @@ const FRONTMATTER_BLOCK_REGEX = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/;
 const MIN_KEYWORD_CHARS = 4;
 const MIN_AUTO_SELECT_SCORE = 2;
 const WORD_SPLIT_REGEX = /[^a-z0-9]+/;
+const NAME_SPLIT_REGEX = /[^a-z0-9_-]+/;
+
+const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
+  Read: 'read',
+  Write: 'write',
+  Edit: 'edit',
+  MultiEdit: 'edit',
+  Bash: 'bash',
+  Grep: 'grep',
+  Glob: 'find',
+  LS: 'ls',
+};
 
 const SELECTION_STOPWORDS = new Set([
   'with',
@@ -85,7 +97,8 @@ const FRONTMATTER_KEYS = {
   retry: ['retry', 'max-attempts', 'max_attempts', 'maxAttempts'],
   worktree: ['worktree', 'isolate'],
   mcp: ['mcp'],
-  enabled: ['enabled', 'disabled'],
+  enabled: ['enabled'],
+  disabled: ['disabled'],
 } as const;
 
 type RawFrontmatter = Record<string, unknown>;
@@ -168,11 +181,15 @@ export function parseContextWindow(value: unknown): number | undefined {
   return Math.floor(Number.parseFloat(amount) * multiplier);
 }
 
+function mapToolName(name: string): string {
+  return CLAUDE_TOOL_NAMES[name] ?? name;
+}
+
 function parseToolsField(value: unknown): readonly string[] {
   const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,\s]+/) : [];
   return raw
     .filter((item): item is string => typeof item === 'string')
-    .map((item) => item.trim())
+    .map((item) => mapToolName(item.trim()))
     .filter((item) => item.length > ZERO);
 }
 
@@ -186,6 +203,11 @@ function parseThinking(value: unknown): SubagentThinkingLevel | undefined {
     return alias;
   }
   return ThinkingLevelSchema.safeParse(raw).success ? (raw as SubagentThinkingLevel) : undefined;
+}
+
+function mergeTopLevelMaxTokens(sampling: SubagentSampling | undefined, frontmatter: RawFrontmatter): SubagentSampling | undefined {
+  const maxTokens = readPositiveInteger(readField(frontmatter, 'maxTokens'));
+  return maxTokens === undefined ? sampling : { ...sampling, maxTokens };
 }
 
 function parseSampling(value: unknown): SubagentSampling | undefined {
@@ -232,12 +254,13 @@ function parseModel(value: unknown): string {
 }
 
 function resolveEnabled(frontmatter: RawFrontmatter): boolean {
-  const disabled = frontmatter['disabled'];
-  if (readTruthy(disabled)) {
+  if (readTruthy(readField(frontmatter, 'disabled'))) {
     return false;
   }
-  const enabled = readField(frontmatter, 'enabled');
-  return enabled === undefined ? true : readTruthy(enabled);
+  if (!hasField(frontmatter, 'enabled')) {
+    return true;
+  }
+  return readTruthy(readField(frontmatter, 'enabled'));
 }
 
 function fallbackNameFromPath(filePath: string): string {
@@ -284,7 +307,7 @@ export function parseSubagentFile(filePath: string, source: SubagentSource): Sub
     isBackground: hasField(frontmatter, 'background') ? readTruthy(readField(frontmatter, 'background')) : undefined,
     nestedTasks: readTruthy(readField(frontmatter, 'nestedTasks')),
     thinking: parseThinking(readField(frontmatter, 'thinking')),
-    sampling: parseSampling(readField(frontmatter, 'sampling')),
+    sampling: mergeTopLevelMaxTokens(parseSampling(readField(frontmatter, 'sampling')), frontmatter),
     contextWindow: parseContextWindow(readField(frontmatter, 'contextWindow')),
     retryAttempts: readPositiveInteger(readField(frontmatter, 'retry')),
     worktree: readTruthy(readField(frontmatter, 'worktree')),
@@ -521,8 +544,7 @@ function countMentionedKeywords(text: string, keywords: readonly string[]): numb
 }
 
 function mentionsName(text: string, name: string): boolean {
-  const words = text.toLowerCase().split(WORD_SPLIT_REGEX);
-  return words.includes(name.toLowerCase());
+  return text.toLowerCase().split(NAME_SPLIT_REGEX).includes(name.toLowerCase());
 }
 
 /**

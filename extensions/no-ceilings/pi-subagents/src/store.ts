@@ -79,7 +79,6 @@ function omitKey<T>(record: Readonly<Record<string, T>>, keyToOmit: string): Rea
 }
 
 function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentRecord {
-  const status: SubagentStatus = isActiveSubagentStatus(record.status) ? 'cancelled' : record.status;
   return {
     agentId: record.agentId,
     parentSessionId: record.parentSessionId,
@@ -91,7 +90,7 @@ function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentReco
     ...(record.model !== undefined ? { model: record.model } : {}),
     ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
     readonly: record.readonly,
-    status,
+    status: record.status,
     isBackground: record.isBackground ?? false,
     backgroundReason: record.backgroundReason,
     attempts: record.attempts,
@@ -304,13 +303,13 @@ export function createSubagentStore(): SubagentStore {
       };
     },
     restoreFromPersisted: (persisted, parentSessionId) => {
-      const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>(
-        (acc, rec) => ({
+      const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>((acc, rec) => {
+        const status: SubagentStatus = isActiveSubagentStatus(rec.status) ? 'cancelled' : rec.status;
+        return {
           ...acc,
-          [rec.agentId]: { ...rec, parentSessionId, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] },
-        }),
-        {},
-      );
+          [rec.agentId]: { ...rec, status, parentSessionId, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] },
+        };
+      }, {});
       cell.commit({ ...state, sessions: restored });
     },
     toPersistedState: () => ({ sessions: sessionOps.listSessions().map(toPersistedRecord) }),

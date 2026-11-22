@@ -31,7 +31,19 @@
 
 - Extension load no longer calls runtime actions, so `pi -e` and `pi -ne -e` load the extension without an initialization error.
 - The agent catalog now reaches the model through the run's system prompt. Injecting it as a custom message was stripped by the extension's own context filter, so custom agent names and descriptions never arrived.
-- A resumed or retried read-only run stays read-only. The record's mode now wins over the agent definition.
+- A resumed or retried run keeps its read-only mode, model, thinking level, and foreground or background mode.
+- A child session uses the parent project's trust state, so an untrusted project cannot supply its system prompt, skills, or shell prefix.
+- Project agents and project config are read from the calling context, so an untrusted project cannot use them before `session_start`.
+- A child never falls back to Pi's default tools when the parent has nothing to inherit.
+- Read-only shell enforcement blocks attached `sed` write commands and `sort -o` output files.
+- `await_subagent` reports the failure reason of a failed run.
+- Claude and Codex tool names map to Pi tool names, so a Claude agent file actually activates its tools.
+- `disabled: false` and `disabled: no` keep an agent enabled.
+- A hyphenated agent named in the task text is selected.
+- `nesting.maxDepth: 0` rejects delegation.
+- The tasks pager shows live thinking.
+- Top-level `max-tokens` caps the child output.
+- Checkpoints, tool counts, and transcript paths persist while a run is in flight.
 - One invalid config section no longer resets the valid sections.
 - Restored records adopt the current parent session, so retry works after a restart.
 - Unknown models, unknown agent types, and resuming another agent's child now raise typed failure codes instead of the generic code.

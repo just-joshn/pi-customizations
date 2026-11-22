@@ -20,7 +20,7 @@ import {
 import { renderTaskCall, renderTaskResult } from './ui-renderers.ts';
 
 export interface SubagentToolCallbacks extends RunnerCallbacks {
-  readonly getDefinitions: (cwd: string) => readonly SubagentDefinition[];
+  readonly getDefinitions: (ctx: ExtensionContext) => readonly SubagentDefinition[];
   readonly scope?: NestedScope;
 }
 
@@ -72,9 +72,11 @@ export function formatTaskResultText(details: TaskToolDetails): string {
 
 export function formatAwaitResultText(details: AwaitSubagentDetails): string {
   if (details.outcome === 'complete') {
-    const body = details.finalMessage?.trim() || '(no output)';
+    const body = details.finalMessage?.trim() ?? '';
+    const shownBody = body.length > ZERO ? body : details.error === undefined ? '(no output)' : '';
+    const errorLine = details.error ? `${shownBody.length > ZERO ? '\n' : ''}${details.error}` : '';
     const failure = details.failureId ? `\nfailure_id: ${details.failureId}` : '';
-    return `Background subagent ${details.agentId} finished with status ${details.status ?? 'success'}.\n\n${body}${failure}`;
+    return `Background subagent ${details.agentId} finished with status ${details.status ?? 'success'}.\n\n${shownBody}${errorLine}${failure}`;
   }
   if (details.outcome === 'still_running') {
     const transcript = details.transcriptPath ? ` (transcript: ${details.transcriptPath})` : '';
@@ -118,7 +120,7 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
     parameters: TaskToolParams,
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionContext) {
       const parsed = TaskToolInputSchema.parse(params);
-      const definitions = callbacks.getDefinitions(ctx.cwd);
+      const definitions = callbacks.getDefinitions(ctx);
       const definition = resolveDefinitionOrThrow(definitions, parsed);
       const resumeId = parsed.resume?.trim();
       if (callbacks.scope && resumeId && !callbacks.scope.agentIds.has(resumeId)) {
@@ -151,13 +153,14 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
 
 function toAwaitDetails(agentId: string, result: Awaited<ReturnType<typeof awaitBackgroundSubagent>>): AwaitSubagentDetails {
   const record: SubagentSessionRecord | undefined = result.record;
+  const error = result.error ?? record?.error;
   return {
     agentId,
     outcome: result.outcome,
     ...(record ? { toolCallCount: record.toolCallCount, status: record.status } : {}),
     ...(record?.lastMessage ? { finalMessage: record.lastMessage } : {}),
     ...(record?.transcriptPath ? { transcriptPath: record.transcriptPath } : {}),
-    ...(result.error ? { error: result.error } : {}),
+    ...(error !== undefined ? { error } : {}),
     ...(result.errorCode ? { errorCode: result.errorCode } : {}),
     ...(record?.failureId ? { failureId: record.failureId } : {}),
   };

@@ -36,12 +36,22 @@ function findFastModel<M extends ModelIdentity>(available: readonly M[], fallbac
   return available.find((candidate) => FAST_MODEL_HINTS.some((hint) => candidate.id.toLowerCase().includes(hint))) ?? fallback;
 }
 
+function sameModel<M extends ModelIdentity>(candidate: M, provider: string, id: string): boolean {
+  return candidate.provider === provider && candidate.id === id;
+}
+
 function findModelByRequest<M extends ModelIdentity>(effective: string, ctx: ModelResolutionContext<M>): M | undefined {
   const slashIndex = effective.indexOf(SLASH_CHAR);
   if (slashIndex > ZERO) {
-    const exact = ctx.modelRegistry.find(effective.slice(ZERO, slashIndex), effective.slice(slashIndex + PROVIDER_SEPARATOR_CHARS));
+    const provider = effective.slice(ZERO, slashIndex);
+    const id = effective.slice(slashIndex + PROVIDER_SEPARATOR_CHARS);
+    const exact = ctx.modelRegistry.find(provider, id);
     if (exact) {
       return exact;
+    }
+    const listed = ctx.modelRegistry.getAvailable().find((candidate) => sameModel(candidate, provider, id)) ?? ctx.modelRegistry.getAll().find((candidate) => sameModel(candidate, provider, id));
+    if (listed) {
+      return listed;
     }
   }
   return ctx.modelRegistry.getAvailable().find((candidate) => candidate.id === effective) ?? ctx.modelRegistry.getAll().find((candidate) => candidate.id === effective);

@@ -59,6 +59,7 @@ export const SUBAGENT_FAILURE_MESSAGES = {
   failed: 'Subagent run failed',
   'invalid-id': 'Invalid subagent agent_id format',
   'model-unknown': 'Unknown model',
+  'nesting-limit': 'Subagent nesting depth does not allow this run',
   'resume-unavailable': 'Cannot resume subagent: its conversation state is no longer available. Start a new subagent instead.',
   'resume-not-owned': 'Cannot resume subagent: it was not launched by this agent.',
   readonly: 'This operation is not allowed in readonly mode. The subagent was launched with readonly: true, which restricts shell, write, delete, and MCP operations.',
