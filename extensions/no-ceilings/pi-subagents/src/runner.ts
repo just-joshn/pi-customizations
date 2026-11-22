@@ -575,7 +575,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const agentId = existing ? existing.agentId : randomUUID();
   const startedAt = Date.now();
   const resolvedModel = resolveModelForSubagent(options.input.model, options.definition, options.ctx);
-  const thinkingLevel = options.input.thinking as ThinkingLevel | undefined;
+  const thinkingLevel = options.input.thinking;
   const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
   const ownedAgentIds = existing
     ? callbacks.store

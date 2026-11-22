@@ -126,8 +126,7 @@ const expectedPlaybooks = [
 
 const portableFrontmatterKeys = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 
-function frontmatterKeys(skillMd) {
-  const text = readFileSync(skillMd, 'utf8');
+function frontmatterKeys(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
   return [...match[1].matchAll(/^([A-Za-z0-9_-]+):/gm)].map((m) => m[1]);
@@ -150,13 +149,18 @@ if (missingPlaybooks.length) failures.push(`missing playbooks: ${missingPlaybook
 const unavailableTools = /`(tmux_run|tmux_jobs|subagent|update_state|SendToUser)`|agent: "scout"|cursor-subscriptions-/;
 for (const name of allExpectedSkills) {
   const skillMd = join(skillsDir, name, 'SKILL.md');
-  if (!existsSync(skillMd) || readFileSync(skillMd, 'utf8').length < 20) {
+  if (!existsSync(skillMd)) {
     failures.push(`empty or missing SKILL.md: ${name}`);
     continue;
   }
-  const hit = readFileSync(skillMd, 'utf8').match(unavailableTools);
+  const text = readFileSync(skillMd, 'utf8');
+  if (text.length < 20) {
+    failures.push(`empty or missing SKILL.md: ${name}`);
+    continue;
+  }
+  const hit = text.match(unavailableTools);
   if (hit) failures.push(`${name} calls ${hit[0]}, which no documented companion package provides`);
-  const keys = frontmatterKeys(skillMd);
+  const keys = frontmatterKeys(text);
   if (!keys) {
     failures.push(`missing frontmatter: ${name}`);
     continue;
@@ -170,14 +174,14 @@ for (const name of allExpectedSkills) {
   }
 }
 
-const cursorLeftovers = [];
+const hostLeftovers = [];
 for (const agent of expectedAgents) {
   const text = readFileSync(join(agentsDir, agent), 'utf8');
   if (/\bTask\b/.test(text) || /cursor-team-kit plugin/.test(text)) {
-    cursorLeftovers.push(agent);
+    hostLeftovers.push(agent);
   }
 }
-if (cursorLeftovers.length) failures.push(`Cursor leftovers in agents: ${cursorLeftovers.join(', ')}`);
+if (hostLeftovers.length) failures.push(`host leftovers in agents: ${hostLeftovers.join(', ')}`);
 
 if (failures.length) {
   throw new Error(failures.join('\n'));

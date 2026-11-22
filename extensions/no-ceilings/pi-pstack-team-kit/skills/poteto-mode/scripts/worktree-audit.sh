@@ -95,7 +95,7 @@ if [ -n "$session_dir_arg" ]; then
 elif [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
 	session_override=$(expand_tilde "$PI_CODING_AGENT_SESSION_DIR")
 else
-	for settings in "$main_wt/.pi/settings.json" "$repo/.pi/settings.json" "$agent_dir/settings.json"; do
+	for settings in "$main_wt/.pi/settings.json" "$agent_dir/settings.json"; do
 		[ -f "$settings" ] || continue
 		raw=$(jq -r '.sessionDir // empty' "$settings" 2>/dev/null) || continue
 		[ -n "$raw" ] || continue
