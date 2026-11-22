@@ -212,6 +212,7 @@ export const BackgroundCompletionPayloadSchema = z.object({
   attempts: z.number().int().min(ONE).optional(),
   worktreePath: z.string().optional(),
   branch: z.string().optional(),
+  worktreeSummary: z.string().optional(),
 });
 
 export type BackgroundCompletionPayload = z.infer<typeof BackgroundCompletionPayloadSchema>;
@@ -263,6 +264,9 @@ export interface AwaitSubagentDetails {
   readonly error?: string;
   readonly errorCode?: SubagentFailureCode;
   readonly failureId?: string;
+  readonly worktreePath?: string;
+  readonly branch?: string;
+  readonly worktreeSummary?: string;
 }
 
 export const FailureCodeSchema = z.enum(Object.keys(SUBAGENT_FAILURE_MESSAGES) as [SubagentFailureCode, ...SubagentFailureCode[]]);

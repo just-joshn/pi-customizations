@@ -557,8 +557,13 @@ function mentionsName(text: string, name: string): boolean {
 /**
  * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
  * the definition whose description shares the most keywords with the task. Ambiguity falls back to
- * the general-purpose agent so delegation stays predictable.
+ * the general-purpose agent when it is available, otherwise the first available definition.
  */
+function fallbackSubagentType(definitions: readonly SubagentDefinition[]): string {
+  const general = definitions.find((definition) => definition.name.toLowerCase() === DEFAULT_SUBAGENT_TYPE);
+  return general?.name ?? definitions[ZERO]?.name ?? DEFAULT_SUBAGENT_TYPE;
+}
+
 export function selectSubagentType(definitions: readonly SubagentDefinition[], hint: { readonly subagentType?: string | undefined; readonly description: string; readonly prompt: string }): string {
   const named = hint.subagentType?.trim();
   if (named !== undefined && named.length > ZERO) {
@@ -573,9 +578,10 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
   const scored = definitions.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
   const best = scored[ZERO];
   const runnerUp = scored[ONE];
+  const fallback = fallbackSubagentType(definitions);
   if (best === undefined || (runnerUp !== undefined && runnerUp.score >= best.score)) {
-    return DEFAULT_SUBAGENT_TYPE;
+    return fallback;
   }
   const uniqueLeader = best.score > ZERO && runnerUp?.score === ZERO;
-  return best.score >= MIN_AUTO_SELECT_SCORE || uniqueLeader ? best.name : DEFAULT_SUBAGENT_TYPE;
+  return best.score >= MIN_AUTO_SELECT_SCORE || uniqueLeader ? best.name : fallback;
 }

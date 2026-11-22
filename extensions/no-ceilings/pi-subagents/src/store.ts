@@ -66,7 +66,7 @@ export interface SubagentStore {
   readonly hasPendingWakeups: () => boolean;
   readonly subscribe: (listener: () => void) => () => void;
   readonly restoreFromPersisted: (persisted: PersistedSubagentsState, parentSessionId: string) => void;
-  readonly toPersistedState: () => PersistedSubagentsState;
+  readonly toPersistedState: (options?: { readonly includeTranscriptItems?: boolean }) => PersistedSubagentsState;
   readonly reset: () => void;
 }
 
@@ -78,7 +78,7 @@ function omitKey<T>(record: Readonly<Record<string, T>>, keyToOmit: string): Rea
   return Object.fromEntries(Object.entries(record).filter(([key]) => key !== keyToOmit));
 }
 
-function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentRecord {
+function toPersistedRecord(record: SubagentSessionRecord, includeTranscriptItems: boolean): PersistedSubagentRecord {
   return {
     agentId: record.agentId,
     parentSessionId: record.parentSessionId,
@@ -107,8 +107,10 @@ function toPersistedRecord(record: SubagentSessionRecord): PersistedSubagentReco
     ...(record.transcriptPath !== undefined ? { transcriptPath: record.transcriptPath } : {}),
     ...(record.worktree !== undefined ? { worktree: record.worktree } : {}),
     ...(record.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}),
-    checkpoints: [...record.checkpoints],
-    transcriptItems: record.transcriptItems.slice(-MAX_PERSISTED_TRANSCRIPT_ITEMS).map((item) => ({ ...item, text: item.text.slice(ZERO, MAX_PERSISTED_ITEM_CHARS) })),
+    checkpoints: includeTranscriptItems
+      ? [...record.checkpoints]
+      : record.checkpoints.map((checkpoint) => ({ seq: checkpoint.seq, at: checkpoint.at, status: checkpoint.status, toolCallCount: checkpoint.toolCallCount, transcriptItems: checkpoint.transcriptItems })),
+    ...(includeTranscriptItems ? { transcriptItems: record.transcriptItems.slice(-MAX_PERSISTED_TRANSCRIPT_ITEMS).map((item) => ({ ...item, text: item.text.slice(ZERO, MAX_PERSISTED_ITEM_CHARS) })) } : {}),
   };
 }
 
@@ -312,7 +314,7 @@ export function createSubagentStore(): SubagentStore {
       }, {});
       cell.commit({ ...state, sessions: restored });
     },
-    toPersistedState: () => ({ sessions: sessionOps.listSessions().map(toPersistedRecord) }),
+    toPersistedState: (options) => ({ sessions: sessionOps.listSessions().map((record) => toPersistedRecord(record, options?.includeTranscriptItems !== false)) }),
     reset: () => {
       runOps.abortAllRuns();
       cell.commit({ ...createEmptyState(), listeners: state.listeners });

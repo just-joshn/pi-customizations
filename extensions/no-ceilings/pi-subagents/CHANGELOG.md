@@ -44,6 +44,13 @@
 - The tasks pager shows live thinking.
 - Top-level `max-tokens` caps the child output.
 - Checkpoints, tool counts, and transcript paths persist while a run is in flight.
+- A nested child inherits the calling child's tools, not the root session's tools.
+- Read-only shell enforcement blocks `sed w/file`, two-operand `uniq`, `git branch` and `git tag` creation, `git remote` writes, and `date -s`.
+- Read-only mode blocks the `powershell` tool, including when a child inherits tools.
+- Worktree metadata survives a resume, and a resume fails clearly when the worktree or transcript file is gone or corrupt.
+- Background completion and await results include the worktree diff summary.
+- Mid-run state snapshots omit transcript items, so a long run no longer writes a full transcript per step.
+- Disabling `general-purpose` falls back to the first available agent for an ambiguous task.
 - One invalid config section no longer resets the valid sections.
 - Restored records adopt the current parent session, so retry works after a restart.
 - Unknown models, unknown agent types, and resuming another agent's child now raise typed failure codes instead of the generic code.

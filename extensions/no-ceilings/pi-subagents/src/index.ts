@@ -47,7 +47,8 @@ export function buildBackgroundCompletionText(completions: readonly BackgroundCo
       const detail = item.detail ? `\n\n${item.detail}` : '';
       const pathLine = item.outputPath ? `\n\ntranscript_path: ${item.outputPath}` : '';
       const failureLine = item.failureId ? `\n\nfailure_id: ${item.failureId}` : '';
-      const worktreeLine = item.worktreePath ? `\nworktree_path: ${item.worktreePath}\nbranch: ${item.branch ?? '(unknown)'}` : '';
+      const summary = item.worktreeSummary && item.worktreeSummary.trim().length > ZERO ? `\n\n${item.worktreeSummary}` : '';
+      const worktreeLine = item.worktreePath ? `\nworktree_path: ${item.worktreePath}\nbranch: ${item.branch ?? '(unknown)'}${summary}` : '';
       return `${header}${detail}${pathLine}${failureLine}${worktreeLine}`;
     })
     .join('\n\n---\n\n');
@@ -164,8 +165,8 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsKey !== cacheKey(ctx) ? reloadDefinitions(ctx) : definitions);
 
-  const onStateChanged = (): void => {
-    pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState());
+  const onStateChanged = (options?: { readonly includeTranscriptItems?: boolean }): void => {
+    pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState(options));
   };
 
   const nestedStore: SubagentStore = { ...store, enqueueWakeup: () => false };
@@ -173,7 +174,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const createNestedExtension =
     (scope: NestedScope) =>
     (child: ExtensionAPI): void => {
-      registerSubagentTools(child, { ...callbacks, store: nestedStore, scope });
+      registerSubagentTools(child, { ...callbacks, store: nestedStore, scope, getParentActiveTools: () => child.getActiveTools?.() ?? [] });
     };
 
   const callbacks: SubagentToolCallbacks = {

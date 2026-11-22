@@ -76,7 +76,9 @@ export function formatAwaitResultText(details: AwaitSubagentDetails): string {
     const shownBody = body.length > ZERO ? body : details.error === undefined ? '(no output)' : '';
     const errorLine = details.error ? `${shownBody.length > ZERO ? '\n' : ''}${details.error}` : '';
     const failure = details.failureId ? `\nfailure_id: ${details.failureId}` : '';
-    return `Background subagent ${details.agentId} finished with status ${details.status ?? 'success'}.\n\n${shownBody}${errorLine}${failure}`;
+    const summary = details.worktreeSummary && details.worktreeSummary.trim().length > ZERO ? `\n\n${details.worktreeSummary}` : '';
+    const worktree = details.worktreePath === undefined ? '' : `\nworktree_path: ${details.worktreePath}\nbranch: ${details.branch ?? '(unknown)'}${summary}`;
+    return `Background subagent ${details.agentId} finished with status ${details.status ?? 'success'}.\n\n${shownBody}${errorLine}${failure}${worktree}`;
   }
   if (details.outcome === 'still_running') {
     const transcript = details.transcriptPath ? ` (transcript: ${details.transcriptPath})` : '';
@@ -99,7 +101,7 @@ function resolveDefinitionOrThrow(definitions: readonly SubagentDefinition[], pa
   const definition = resolveSubagentDefinition(definitions, selected);
   if (!definition) {
     const available = definitions.map((candidate) => candidate.name).join(', ');
-    throw new SubagentRunError('type-unknown', `"${params.subagent_type ?? ''}". Available subagents: ${available}`);
+    throw new SubagentRunError('type-unknown', `"${selected}". Available subagents: ${available}`);
   }
   return definition;
 }
@@ -133,7 +135,7 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
         definition,
         ctx,
         createNestedExtension: (scope: NestedScope) => (child: ExtensionAPI) => {
-          registerSubagentTools(child, { ...callbacks, store: { ...callbacks.store, enqueueWakeup: () => false }, scope });
+          registerSubagentTools(child, { ...callbacks, store: { ...callbacks.store, enqueueWakeup: () => false }, scope, getParentActiveTools: () => child.getActiveTools?.() ?? [] });
         },
         ...(signal ? { signal } : {}),
         ...(callbacks.scope ? { scope: callbacks.scope } : {}),
@@ -163,6 +165,8 @@ function toAwaitDetails(agentId: string, result: Awaited<ReturnType<typeof await
     ...(error !== undefined ? { error } : {}),
     ...(result.errorCode ? { errorCode: result.errorCode } : {}),
     ...(record?.failureId ? { failureId: record.failureId } : {}),
+    ...(record?.worktree ? { worktreePath: record.worktree.path, branch: record.worktree.branch } : {}),
+    ...(record?.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}),
   };
 }
 

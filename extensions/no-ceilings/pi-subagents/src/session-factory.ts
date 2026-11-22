@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import type { Api, Model } from '@earendil-works/pi-ai';
@@ -16,7 +16,8 @@ import {
   SettingsManager,
 } from '@earendil-works/pi-coding-agent';
 import { normalizeToolNames } from './discovery.ts';
-import { createReadonlySubagentExtension } from './readonly-guard.ts';
+import { SubagentRunError } from './failures.ts';
+import { createReadonlySubagentExtension, READONLY_BLOCKED_TOOLS } from './readonly-guard.ts';
 import { type NestedScope, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
 
 export interface NestedExtensionFactory {
@@ -82,9 +83,28 @@ export function resolveSubagentSessionDir(ctx: ExtensionContext): string | undef
 
 export function createChildSessionManager(cwd: string, transcriptPath: string | undefined, isResume: boolean, sessionDir: string | undefined): SessionManager {
   if (isResume && transcriptPath && existsSync(transcriptPath)) {
-    return SessionManager.open(transcriptPath, sessionDir, cwd);
+    try {
+      return SessionManager.open(transcriptPath, sessionDir, cwd);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new SubagentRunError('resume-unavailable', detail);
+    }
   }
   return sessionDir ? SessionManager.create(cwd, sessionDir) : SessionManager.inMemory(cwd);
+}
+
+/** Writes the session header once a run finishes if the agent never flushed the file. */
+export function materializeTranscriptFile(sessionManager: SessionManager): void {
+  const transcriptPath = sessionManager.getSessionFile();
+  if (transcriptPath === undefined || existsSync(transcriptPath)) {
+    return;
+  }
+  const header = sessionManager.getHeader();
+  if (header === null) {
+    return;
+  }
+  const lines = [header, ...sessionManager.getEntries()].map((entry) => JSON.stringify(entry)).join('\n');
+  writeFileSync(transcriptPath, `${lines}\n`);
 }
 
 function buildExtensionFactories(request: ChildSessionRequest): readonly ExtensionFactory[] {
@@ -106,8 +126,6 @@ function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedS
 }
 
 const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent]);
-
-const READONLY_BLOCKED_TOOLS = new Set(['write', 'edit', 'delete']);
 
 function applyInheritedTools(session: AgentSession, parentActiveTools: readonly string[], nestedScope: NestedScope | undefined, readonly: boolean): void {
   const callable = new Set(session.getCallableToolNames());

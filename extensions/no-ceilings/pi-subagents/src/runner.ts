@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
 
 import type { Api, Model } from '@earendil-works/pi-ai';
 import type { AgentSession, AgentSessionEvent, ExtensionContext, ExtensionFactory } from '@earendil-works/pi-coding-agent';
@@ -7,7 +8,7 @@ import type { SubagentEventName, SubagentEventPayload } from './events.ts';
 import { errorMessage, failureCode, SubagentRunError } from './failures.ts';
 import { formatSessionTitle } from './formatters.ts';
 import { applyDefinitionToModel, describeModel, resolveSubagentModel } from './model-resolution.ts';
-import { createChildSession } from './session-factory.ts';
+import { createChildSession, materializeTranscriptFile } from './session-factory.ts';
 import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
 import { type RunProgress, reduceSubagentEvent } from './transcript.ts';
 import {
@@ -34,7 +35,7 @@ const MAX_RETRY_ATTEMPTS_CAP = 10;
 export interface RunnerCallbacks {
   readonly store: SubagentStore;
   readonly onBackgroundCompleted: (payload: BackgroundCompletionPayload) => void;
-  readonly onStateChanged: () => void;
+  readonly onStateChanged: (options?: { readonly includeTranscriptItems?: boolean }) => void;
   readonly emit: (event: SubagentEventName, record: SubagentSessionRecord, extra?: Partial<SubagentEventPayload>) => void;
   readonly getParentActiveTools: () => readonly string[];
   readonly getConfig: (ctx: ExtensionContext) => SubagentsConfig;
@@ -169,7 +170,7 @@ function buildBackgroundPayload(record: SubagentSessionRecord, outcome: Subagent
     ...(record.transcriptPath ? { outputPath: record.transcriptPath } : {}),
     ...(record.failureId ? { failureId: record.failureId } : {}),
     attempts: record.attempts,
-    ...(record.worktree ? { worktreePath: record.worktree.path, branch: record.worktree.branch } : {}),
+    ...(record.worktree ? { worktreePath: record.worktree.path, branch: record.worktree.branch, ...(record.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}) } : {}),
   };
 }
 
@@ -208,7 +209,7 @@ function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, pr
     const after = request.store.getSession(request.agentId)?.checkpoints.length ?? before;
     if (checkpoint && after > before) {
       request.callbacks.emit('checkpoint', request.store.getSession(request.agentId) ?? reduced.record, { checkpointSeq: checkpoint.seq });
-      request.callbacks.onStateChanged();
+      request.callbacks.onStateChanged({ includeTranscriptItems: false });
     }
   }
   if (event.type === 'tool_execution_start') {
@@ -271,6 +272,12 @@ function validateResumeRequest(resumeId: string, prompt: string, parentSessionId
   }
   const existing = store.getSession(resumeId);
   if (!isMatchingLineage(existing, parentSessionId) || !existing) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  if (existing.worktree !== undefined && !existsSync(existing.worktree.path)) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  if (existing.transcriptPath !== undefined && !existsSync(existing.transcriptPath)) {
     throw new SubagentRunError('resume-unavailable', resumeId);
   }
   return existing;
@@ -391,19 +398,27 @@ async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks
       callbacks.getParentActiveTools(),
     );
     callbacks.store.updateSession(plan.agentId, (record) => ({ ...record, ...(child.transcriptPath !== undefined ? { transcriptPath: child.transcriptPath } : {}) }));
-    callbacks.onStateChanged();
-    return await runSession({
-      session: child.session,
-      agentId: plan.agentId,
-      prompt: plan.prompt,
-      startedAt: plan.startedAt,
-      abortController: plan.abortController,
-      transcriptPath: child.transcriptPath,
-      nestedScope: plan.nestedScope,
-      store: callbacks.store,
-      callbacks,
-      ...(options.onUpdate ? { onUpdate: options.onUpdate } : {}),
-    });
+    callbacks.onStateChanged({ includeTranscriptItems: false });
+    try {
+      return await runSession({
+        session: child.session,
+        agentId: plan.agentId,
+        prompt: plan.prompt,
+        startedAt: plan.startedAt,
+        abortController: plan.abortController,
+        transcriptPath: child.transcriptPath,
+        nestedScope: plan.nestedScope,
+        store: callbacks.store,
+        callbacks,
+        ...(options.onUpdate ? { onUpdate: options.onUpdate } : {}),
+      });
+    } finally {
+      try {
+        materializeTranscriptFile(child.sessionManager);
+      } catch {
+        // Best-effort repair. A transcript write must not turn a finished run into a failure.
+      }
+    }
   } catch (error) {
     return { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
   }
@@ -524,6 +539,9 @@ function buildInitialSessionRecord(request: InitialRecordRequest): SubagentSessi
     startedAt: request.startedAt,
     updatedAt: request.startedAt,
     checkpoints: request.existing?.checkpoints ?? [],
+    ...(request.existing?.worktree !== undefined ? { worktree: request.existing.worktree } : {}),
+    ...(request.existing?.worktreeSummary !== undefined ? { worktreeSummary: request.existing.worktreeSummary } : {}),
+    ...(request.existing?.transcriptPath !== undefined ? { transcriptPath: request.existing.transcriptPath } : {}),
     transcriptItems: [...(request.existing?.transcriptItems ?? []), { id: randomUUID(), role: 'user', text: prompt, completed: true, timestamp: request.startedAt }],
   };
 }

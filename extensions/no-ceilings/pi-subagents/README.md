@@ -23,7 +23,7 @@ The extension registers two tools.
 
 Each run gets its own `AgentSession`, so the child has a separate context window and an isolated history. Results and errors return to the parent through the tool result. Errors carry a `failure_id` and a `code` you can branch on.
 
-Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins. An ambiguous match falls back to `general-purpose`.
+Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins. An ambiguous match falls back to `general-purpose`, or to the first available agent when `general-purpose` is disabled.
 
 Every run appends the discovered agent catalog to the system prompt, so the model sees each name and description before it decides how to delegate.
 
@@ -81,7 +81,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. Copied onto the child model. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
-| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, mutating shell commands, and MCP tools. |
+| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, mutating shell commands (bash and powershell), and MCP tools. |
 | `background`, `is_background` | Start in background by default. |
 | `nested-tasks` | Let this child delegate one level deeper, up to `nesting.maxDepth`. |
 | `worktree` | Run in an isolated git worktree by default. |
@@ -124,7 +124,8 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 
 - Branch: `<branchPrefix>/<slug>-<3 hex>`.
 - Path: `worktrees.root` when set, else `<session dir>/worktrees/`.
-- The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge.
+- The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge. Background completions and `await_subagent` results include the same summary.
+- A resume stays in its worktree. If the worktree or the child transcript file is gone or unreadable, the resume fails with `resume-unavailable` instead of starting over in the shared checkout.
 - `/tasks prune <id>` removes the worktree directory. It refuses while the subagent still runs and does not force a dirty worktree. The branch stays for merging.
 
 ## Observability

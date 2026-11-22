@@ -1,7 +1,7 @@
 import { type ExtensionAPI, type ExtensionFactory, isToolCallEventType, type ToolCallEvent } from '@earendil-works/pi-coding-agent';
 import { READONLY_SUBAGENT_ERROR } from './types.ts';
 
-const READONLY_BLOCKED_TOOLS = new Set(['write', 'edit', 'delete']);
+export const READONLY_BLOCKED_TOOLS: ReadonlySet<string> = new Set(['write', 'edit', 'delete', 'powershell']);
 const MCP_TOOL_PREFIX = 'mcp__';
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
@@ -31,7 +31,9 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bsed\s+-i/i,
-  /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s]).*?\1.*?\1[wW]\S|['"]\s*(?:[\d$,]*)[wWeE]\s|\b[wW]\s+\S)/,
+  /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s]).*?\1.*?\1[wW]\S|['"]\s*(?:[\d$,]*)[wWeE]\s|\b[wW]\s+\S|\s[wW]\S)/,
+  /\buniq\b(?:\s+--?\S+)*\s+\S+\s+\S+/,
+  /\bdate\b.*(?:\s-s\b|\s--set(?:=|\s|$))/,
   /\bperl\s+-i/i,
   /\byq\b.*\s(?:-i|--inplace)(?:=|\s|$)/i,
   /\bfind\b.*\s-(?:delete|exec|execdir|ok|okdir|fls|fprint|fprint0|fprintf)\b/i,
@@ -47,7 +49,10 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
 const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
   /^\s*(cat|head|tail|less|more|wc|nl|file|stat|ls|ll|la|tree|pwd|which|whereis|type|realpath|readlink|basename|dirname|env|printenv|echo|printf|date|uname|whoami|id|hostname)\b/,
   /^\s*(find|fd|rg|ripgrep|grep|egrep|fgrep|ag|ack|awk|sed|cut|sort|uniq|tr|jq|yq|diff|cmp|comm|md5|sha256sum|shasum)\b/,
-  /^\s*git\s+(status|log|diff|show|branch|tag|remote|rev-parse|describe|blame|ls-files|ls-tree|shortlog|reflog|config\s+--get|config\s+--list)\b/,
+  /^\s*git\s+(status|log|diff|show|rev-parse|describe|blame|ls-files|ls-tree|shortlog|reflog|config\s+--get|config\s+--list)\b/,
+  /^\s*git\s+branch(?:\s+-[arv]+)?\s*$/,
+  /^\s*git\s+tag(?:\s+-l)?\s*$/,
+  /^\s*git\s+remote(?:\s+-v)?\s*$/,
 ];
 
 const SUBSHELL_OR_CHAIN_PATTERN = /(?:[\r\n]|;|&&|\|\||`|\$\(|<\()/;
