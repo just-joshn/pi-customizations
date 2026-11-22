@@ -354,6 +354,28 @@ describe('tasks overlay', () => {
     }
   });
 
+  it('shows live thinking in the transcript view', async () => {
+    const theme = createTheme();
+    let transcript = '';
+    const h = createTestHarness({
+      onCustomOverlay: async (factory) => {
+        const comp = factory({ requestRender: () => undefined }, theme, {}, () => undefined);
+        comp.handleInput?.('\r');
+        transcript = comp.render(WIDTH).join('\n');
+        comp.dispose?.();
+      },
+    });
+    try {
+      const store = createSubagentStore();
+      store.upsertSession(record({ streamingThinking: 'LIVE_THINKING' }));
+      const { openTasksOverlay } = await import('../src/tasks-overlay.ts');
+      await openTasksOverlay(h.ctx, store);
+      expect(transcript).toContain('LIVE_THINKING');
+    } finally {
+      void h.cleanup();
+    }
+  });
+
   it('aborts a selected background task with k', async () => {
     const theme = createTheme();
     const h = createTestHarness({ onCustomOverlay: driveOverlay(theme, ['k', '\u001b'], () => undefined) });

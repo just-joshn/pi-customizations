@@ -30,11 +30,14 @@ interface CapturedCreate {
   readonly modelId?: string;
   readonly thinkingLevel?: string;
   readonly activeTools: readonly string[];
+  readonly childTrust?: boolean;
+  readonly loaderTrust?: boolean;
 }
 
 let plans: readonly MockPlan[] = [];
 let captured: readonly CapturedCreate[] = [];
 let loaderOptions: Readonly<Record<string, unknown>> = {};
+let loaderSettingsTrust: boolean | undefined;
 let activeToolsCalls: readonly (readonly string[])[] = [];
 
 function enqueuePlan(plan: MockPlan): void {
@@ -92,6 +95,8 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
   class MockDefaultResourceLoader {
     constructor(options: Readonly<Record<string, unknown>>) {
       loaderOptions = options;
+      const settingsManager = options['settingsManager'] as { readonly isProjectTrusted?: () => boolean } | undefined;
+      loaderSettingsTrust = settingsManager?.isProjectTrusted?.();
     }
     async reload(): Promise<void> {
       return undefined;
@@ -101,7 +106,13 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
   return {
     ...actual,
     DefaultResourceLoader: MockDefaultResourceLoader,
-    createAgentSession: async (options: { readonly cwd?: string; readonly tools?: readonly string[]; readonly model?: { readonly id: string }; readonly thinkingLevel?: string }) => {
+    createAgentSession: async (options: {
+      readonly cwd?: string;
+      readonly tools?: readonly string[];
+      readonly model?: { readonly id: string };
+      readonly thinkingLevel?: string;
+      readonly settingsManager?: { readonly isProjectTrusted?: () => boolean };
+    }) => {
       captured = [
         ...captured,
         {
@@ -110,6 +121,8 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
           ...(options.model !== undefined ? { modelId: options.model.id } : {}),
           ...(options.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
           activeTools: [],
+          ...(options.settingsManager?.isProjectTrusted !== undefined ? { childTrust: options.settingsManager.isProjectTrusted() } : {}),
+          ...(loaderSettingsTrust !== undefined ? { loaderTrust: loaderSettingsTrust } : {}),
         },
       ];
       return { session: createMockSession(dequeuePlan()) };
@@ -138,6 +151,7 @@ beforeEach(() => {
   plans = [];
   captured = [];
   loaderOptions = {};
+  loaderSettingsTrust = undefined;
   activeToolsCalls = [];
 });
 
@@ -145,6 +159,7 @@ afterEach(() => {
   plans = [];
   captured = [];
   loaderOptions = {};
+  loaderSettingsTrust = undefined;
   activeToolsCalls = [];
 });
 
@@ -370,6 +385,148 @@ describe('failure codes and resume safety', () => {
   });
 });
 
+describe('trust and tool inheritance', () => {
+  it('gives the child an untrusted settings manager when the project is untrusted', async () => {
+    const h = createTestHarness({ projectTrusted: false });
+    try {
+      writeConfig(h.cwd, {});
+      writeAgent(h.cwd, '.pi', 'SYSTEM.md', 'UNTRUSTED_SYSTEM_CANARY');
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'ok' });
+      await h.callTool('task', { description: 'Trust check', prompt: 'go', subagent_type: 'general-purpose' });
+      expect(captured[ZERO]?.childTrust).toBe(false);
+      expect(captured[ZERO]?.loaderTrust).toBe(false);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('gives the child the parent tool set even when that set inherits nothing', async () => {
+    const h = createTestHarness({ activeTools: ['task'] });
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'ok' });
+      await h.callTool('task', { description: 'Restricted parent', prompt: 'go', subagent_type: 'general-purpose' });
+      expect(activeToolsCalls[ZERO]).toEqual([]);
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('retry, resume, and persistence', () => {
+  it('retries with the model the run actually used', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Model run', prompt: 'go', subagent_type: 'general-purpose', model: 'fast' });
+      expect(captured[ZERO]?.modelId).toBe('model-haiku-fast');
+      enqueuePlan({ finalText: 'retried' });
+      await h.runCommand('tasks', `retry ${first.details?.agentId ?? ''}`);
+      expect(captured[ONE]?.modelId).toBe('model-haiku-fast');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('resumes with the model and thinking level the run actually used', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Model run', prompt: 'go', subagent_type: 'general-purpose', model: 'fast', thinking: 'high' });
+      expect(captured[ZERO]?.thinkingLevel).toBe('high');
+      enqueuePlan({ finalText: 'resumed' });
+      await h.callTool('task', { description: 'Follow up', prompt: 'continue', subagent_type: 'general-purpose', resume: first.details?.agentId });
+      expect(captured[ONE]?.modelId).toBe('model-haiku-fast');
+      expect(captured[ONE]?.thinkingLevel).toBe('high');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('retries a background run as background and wakes the parent', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'background first', waitForRelease: gate.promise });
+      const first = await h.callTool('task', { description: 'Background run', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: first.details?.agentId });
+      enqueuePlan({ finalText: 'background retry' });
+      await h.runCommand('tasks', `retry ${first.details?.agentId ?? ''}`);
+      await new Promise((resolve) => {
+        setTimeout(resolve, 20);
+      });
+      await h.runCommand('tasks', 'list');
+      expect(h.getNotifications().at(-ONE)?.message).toContain('[success/bg]');
+      expect(h.getSentMessages().some((message) => JSON.stringify(message).includes('pi-subagents-background-completion'))).toBe(true);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('persists checkpoints and the transcript path while the run is still going', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'eventually', events: toolEvent('read', 'call-mid', { path: 'a.ts' }), waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Mid run', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      for (let attempt = ZERO; attempt < 40; attempt += 1) {
+        if (h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')) {
+          break;
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, 5);
+        });
+      }
+      const states = h.getEntries().filter((entry) => entry.customType === 'pi-subagents-state');
+      const snapshot = double<{
+        readonly sessions: readonly { readonly agentId: string; readonly status: string; readonly toolCallCount: number; readonly checkpoints: readonly { readonly seq: number }[]; readonly transcriptPath?: string }[];
+      }>(states.at(-ONE)?.data);
+      const recorded = snapshot.sessions.find((session) => session.agentId === launched.details?.agentId);
+      expect(recorded?.checkpoints.length).toBeGreaterThan(ZERO);
+      expect(recorded?.toolCallCount).toBeGreaterThan(ZERO);
+      expect(recorded?.transcriptPath).toBeDefined();
+      expect(recorded?.status).toBe('running');
+      gate.release();
+      await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('returns the failure reason from await_subagent', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: '', throwError: 'kaboom from child' });
+      const launched = await h.callTool('task', { description: 'Failing run', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      const awaited = await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      const text = (awaited.content[ZERO] as { readonly text?: string }).text ?? '';
+      expect(text).toContain('kaboom from child');
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
+describe('nesting limit at zero', () => {
+  it('rejects a top-level subagent when no nesting level is allowed', async () => {
+    const h = createTestHarness();
+    try {
+      writeConfig(h.cwd, { nesting: { maxDepth: 0 } });
+      await h.emit('session_start', {});
+      await expect(h.callTool('task', { description: 'No level', prompt: 'go', subagent_type: 'general-purpose' })).rejects.toMatchObject({ code: 'nesting-limit' });
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('built-in subagents and explore configuration', () => {
   it('uses the fast model for explore by default and the parent model when configured to inherit', async () => {
     const defaults = createTestHarness();
@@ -430,6 +587,31 @@ describe('built-in subagents and explore configuration', () => {
   });
 });
 
+describe('project trust before session_start', () => {
+  it('hides project agents before the first lifecycle event on an untrusted project', async () => {
+    const h = createTestHarness({ projectTrusted: false });
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'hidden.md', ['---', 'name: hidden-agent', 'description: Hidden project agent', '---', 'Body.'].join('\n'));
+      await h.runCommand('agents');
+      expect(h.getNotifications().at(-ONE)?.message).not.toContain('hidden-agent');
+      await expect(h.callTool('task', { description: 'Use it', prompt: 'go', subagent_type: 'hidden-agent' })).rejects.toMatchObject({ code: 'type-unknown' });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('still discovers project agents before the first lifecycle event on a trusted project', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'visible.md', ['---', 'name: visible-agent', 'description: Visible project agent', '---', 'Body.'].join('\n'));
+      await h.runCommand('agents');
+      expect(h.getNotifications().at(-ONE)?.message).toContain('visible-agent');
+    } finally {
+      await h.cleanup();
+    }
+  });
+});
+
 describe('custom subagents: discovery and frontmatter', () => {
   it('discovers agents from Claude and Codex directories with their frontmatter conventions', () => {
     const home = join(tmpdir(), `pi-subagents-home-${process.pid}-${Date.now()}`);
@@ -449,7 +631,7 @@ describe('custom subagents: discovery and frontmatter', () => {
     const byName = new Map(definitions.map((definition) => [definition.name, definition]));
     expect(byName.get('claude-reviewer')?.permissionMode).toBe('readonly');
     expect(byName.get('claude-reviewer')?.model).toBe('fast');
-    expect(byName.get('claude-reviewer')?.tools).toEqual(['Read', 'Grep']);
+    expect(byName.get('claude-reviewer')?.tools).toEqual(['read', 'grep']);
     expect(byName.get('codex-runner')?.permissionMode).toBe('readonly');
     expect(byName.get('pi-agent')?.source).toBe('workspace');
     expect(byName.get('user-agent')?.source).toBe('claude-user');

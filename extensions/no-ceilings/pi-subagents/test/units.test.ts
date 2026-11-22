@@ -2,11 +2,14 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import type { Api, Model } from '@earendil-works/pi-ai';
 import type { AgentSessionEvent } from '@earendil-works/pi-coding-agent';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, parseSubagentsConfig, subagentsConfigPaths } from '../src/config.ts';
 import { computeAgentDirectories, discoverSubagents, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
+import { applyDefinitionToModel } from '../src/model-resolution.ts';
+import { isSafeReadOnlyCommand } from '../src/readonly-guard.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
 import { reduceSubagentEvent } from '../src/transcript.ts';
 import { type AwaitSubagentDetails, MAX_NESTED_TASK_DEPTH, type SubagentSessionRecord, type TaskToolDetails, ZERO } from '../src/types.ts';
@@ -345,5 +348,52 @@ describe('worktree helpers', () => {
     expect(resolveWorktreeRoot({ root: '/root', sessionDir: '/sessions' })).toBe('/root');
     expect(resolveWorktreeRoot({ root: undefined, sessionDir: '/sessions' })).toBe('/sessions/worktrees');
     expect(resolveWorktreeRoot({ root: undefined, sessionDir: '  ' })).toContain('pi-subagents-worktrees');
+  });
+});
+
+describe('adversary regressions', () => {
+  it('blocks sed write commands and sort output flags in read-only mode', () => {
+    expect(isSafeReadOnlyCommand("sed 's/a/b/woutfile'")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed 's/a/b/Woutfile'")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed 's|a|b|woutfile'")).toBe(false);
+    expect(isSafeReadOnlyCommand('sort -ooutfile input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand("sed -n '1w outfile'")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed -n '1,5p' input.txt")).toBe(true);
+    expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
+  });
+
+  it('maps Claude tool names onto Pi tool names', () => {
+    const dir = tempDir('claude-tools-');
+    writeFileSync(join(dir, 'reviewer.md'), ['---', 'name: reviewer', 'description: Reviews', 'tools: Read, Grep, Glob, Bash, Edit, Write, LS, MultiEdit', '---', 'Review.'].join('\n'));
+    expect(parseSubagentFile(join(dir, 'reviewer.md'), 'workspace')?.tools).toEqual(['read', 'grep', 'find', 'bash', 'edit', 'write', 'ls', 'edit']);
+  });
+
+  it('treats disabled as the inverse of enabled', () => {
+    const dir = tempDir('disabled-');
+    const parse = (fileName: string, line: string) => {
+      writeFileSync(join(dir, fileName), ['---', 'name: ' + fileName, 'description: Test', line, '---', 'Body.'].join('\n'));
+      return parseSubagentFile(join(dir, fileName), 'workspace');
+    };
+    expect(parse('false.md', 'disabled: false')?.enabled).toBe(true);
+    expect(parse('no.md', 'disabled: no')?.enabled).toBe(true);
+    expect(parse('true.md', 'disabled: true')?.enabled).toBe(false);
+    expect(parse('enabled-false.md', 'enabled: false')?.enabled).toBe(false);
+    expect(parse('enabled-true.md', 'enabled: true')?.enabled).toBe(true);
+  });
+
+  it('selects a hyphenated agent named in the task text', () => {
+    const definitions = [makeDefinition({ name: 'code-reviewer', description: 'Reviews pull requests' }), makeDefinition({ name: 'shell', description: 'Runs commands' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    for (const text of ['Please ask code-reviewer to inspect the pull request', 'use code-reviewer to run the test suite', 'Have the code-reviewer look at this']) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('code-reviewer');
+    }
+  });
+
+  it('applies a top-level max-tokens cap to the child model', () => {
+    const dir = tempDir('max-tokens-');
+    writeFileSync(join(dir, 'capped.md'), ['---', 'name: capped', 'description: Capped', 'max-tokens: 1234', '---', 'Body.'].join('\n'));
+    const capped = parseSubagentFile(join(dir, 'capped.md'), 'workspace');
+    expect(capped?.sampling?.maxTokens).toBe(1234);
+    const model = double<Model<Api>>({ provider: 'test', id: 'm', reasoning: true, contextWindow: 200_000, maxTokens: 8192 });
+    expect(applyDefinitionToModel(model, capped ?? makeDefinition()).maxTokens).toBe(1234);
   });
 });
