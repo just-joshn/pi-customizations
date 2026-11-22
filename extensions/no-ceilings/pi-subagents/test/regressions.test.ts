@@ -631,7 +631,6 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
       await h.callTool('task', { description: 'owner', prompt: 'go', subagent_type: 'pr-owner' });
       const [taskTool] = installNested(sessionFactories[ZERO] ?? []);
 
-      // Real child sessions carry their own session ID, distinct from the root session ID.
       const childCtx = double<typeof h.ctx>({
         ...h.ctx,
         sessionManager: {

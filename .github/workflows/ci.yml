@@ -40,8 +40,6 @@ jobs:
           fetch-depth: 2
       - id: plan
         run: |
-          # Workspace packages live at extensions/<name> or extensions/no-ceilings/<name>.
-          # Skill-script package.json files deeper in the tree are not workspace packages.
           list_workspace_packages() {
             {
               find extensions -mindepth 2 -maxdepth 2 -name package.json
@@ -119,7 +117,6 @@ jobs:
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
-      # Packages without a vitest dependency run their own test script instead.
       - run: |
           if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json > /dev/null; then
             npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}

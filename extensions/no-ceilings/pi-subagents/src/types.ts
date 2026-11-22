@@ -11,7 +11,6 @@ export const MS_PER_SECOND = 1000;
 export const SECONDS_PER_MINUTE = 60;
 export const SECONDS_PER_HOUR = 3600;
 export const SECONDS_PER_DAY = 86400;
-/** Deepest child depth that may hold task tools (top-level child = 1, so grandchildren never get them). */
 export const MAX_NESTED_TASK_DEPTH = 1;
 export const DEFAULT_AWAIT_TIMEOUT_MS = 30_000;
 export const MAX_COLLAPSED_THINKING_LINES = 4;
@@ -55,13 +54,11 @@ export interface SubagentDefinition {
   readonly prompt: string;
   readonly permissionMode: SubagentPermissionMode;
   readonly isBackground: boolean;
-  /** Opt-in (frontmatter `nested-tasks: true`): non-readonly child may launch task/await_subagent one level deeper. */
   readonly nestedTasks: boolean;
   readonly source: SubagentSource;
   readonly fullPath?: string;
 }
 
-/** Tracks the runs one nested-capable child launched, so await and cancellation stay inside that child. */
 export interface NestedScope {
   readonly depth: number;
   readonly ownerAgentId: string;

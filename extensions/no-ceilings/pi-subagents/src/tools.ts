@@ -8,7 +8,6 @@ import { renderTaskCall, renderTaskResult } from './ui-renderers.ts';
 
 export interface SubagentToolCallbacks extends RunnerCallbacks {
   readonly getDefinitions: (cwd: string) => readonly SubagentDefinition[];
-  /** Present only for nested child sessions; limits await/resume to runs this scope launched. */
   readonly scope?: NestedScope;
 }
 

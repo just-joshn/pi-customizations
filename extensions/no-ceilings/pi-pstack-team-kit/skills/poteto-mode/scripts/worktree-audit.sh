@@ -41,9 +41,7 @@ if [ -z "$base" ]; then
 	echo "warn: no -b given; MERGED checks against $base" >&2
 fi
 
-# The base drives the merge check. The fetch is best-effort (stale is fine for
-# a first pass) and runs before the check, since -b may name a branch not
-# fetched yet. The explicit refspec creates it even in a single-branch clone.
+# The explicit refspec creates the remote-tracking ref even in a single-branch clone.
 case "$base" in
 origin/*) git fetch origin "+refs/heads/${base#origin/}:refs/remotes/$base" --quiet 2>/dev/null \
 	|| echo "warn: could not fetch $base; merged column may be stale" >&2 ;;
@@ -58,9 +56,6 @@ else
 	stat_fmt=(-f '%m %N'); fmt_day() { date -r "$1" '+%Y-%m-%d'; }
 fi
 
-# PR state by branch, fetched once as [{number, state, head}] with a lowercase
-# state. Origin when its CLI can read this repo's PRs, otherwise gh. Empty when
-# neither can.
 prs=$(mktemp)
 if command -v origin >/dev/null 2>&1 \
 	&& raw=$(origin pr list --author "@me" --state all --limit 1000 \
@@ -125,7 +120,6 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 	# real signal; merge-base only catches fast-forward/rebase merges.
 	git merge-base --is-ancestor "$head" "$base" 2>/dev/null && merged=YES || merged=no
 
-	# Distinguish real WIP (tracked edits) from disposable untracked scratch.
 	porcelain=$(git -C "$wt" status --porcelain 2>/dev/null)
 	if [ -z "$porcelain" ]; then dirty=clean
 	elif printf '%s\n' "$porcelain" | grep -qv '^??'; then
@@ -144,12 +138,6 @@ git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt
 		'.[] | select(.head==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
 	[ -z "$pr" ] && pr="-"
 
-	# Most recent chat whose transcript operated in this worktree: a main-repo
-	# or override session referencing the worktree path (fixed-string match
-	# followed by "/" or quote so glint-482 does not match glint-482-r37), a Pi
-	# session launched at the worktree root (sessions/--<wt-slug>--/*.jsonl),
-	# or a Pi session launched in a subdirectory of the worktree
-	# (sessions/--<wt-slug>-*--/*.jsonl referencing the worktree path).
 	last="-"; last_ts=0
 	wt_slug=$(slugify_path "$wt")
 	wt_transcripts="$sessions_root/--$wt_slug--"
