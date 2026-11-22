@@ -10,7 +10,7 @@ Infer durable working preferences from recent chats. Do not summarize chats; ext
 ## Scope
 
 - Default to the last 7 days unless the user asks for a different window.
-- Read main session transcripts in `~/.pi/agent/sessions/--<cwd with the leading slash dropped and each / turned into ->--/*.jsonl` (under the session directory (`~/.pi/agent/sessions`, or where `sessionDir` or `$PI_CODING_AGENT_SESSION_DIR` points)). A `task` subagent's transcript is saved under the main session's `subagents/` directory, and its report also appears as the `task` tool result in the main session.
+- Read main session transcripts in `${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<cwd with the leading slash dropped and each / turned into ->--/*.jsonl` (or under `sessionDir` / `$PI_CODING_AGENT_SESSION_DIR` when set). A `task` subagent's transcript is saved under the main session's `subagents/` directory, and its report also appears as the `task` tool result in the main session.
 - Do not expose local transcript paths, secrets, customer data, private chat content, or credentials.
 
 ## Workflow

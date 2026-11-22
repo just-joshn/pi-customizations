@@ -69,9 +69,9 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Transcripts dir: ~/.pi/agent/sessions/--<slugified-repo-path>--.
+# Transcripts dir: ${PI_CODING_AGENT_SESSION_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slugified-repo-path>--}.
 slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="$HOME/.pi/agent/sessions/--$slug--"
+transcripts="${PI_CODING_AGENT_SESSION_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--}"
 now=$(date +%s)
 
 echo "# base: $base"
