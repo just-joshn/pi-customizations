@@ -28,7 +28,7 @@ cd "$repo" || exit 1
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not a git repo: $repo" >&2; exit 1; }
 
 # Main worktree is the first entry; everything else is a candidate.
-main_wt=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
+main_wt=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
 
 if [ -z "$base" ]; then
 	for cand in "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)" origin/main origin/master; do
@@ -69,16 +69,29 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
+expand_tilde() {
+	case "$1" in
+	"~") printf '%s' "$HOME" ;;
+	"~/"*) printf '%s/%s' "$HOME" "${1#"~/"}" ;;
+	*) printf '%s' "$1" ;;
+	esac
+}
+
 # Transcripts dirs: ${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--<slug>-- (main repo and each linked worktree), plus $PI_CODING_AGENT_SESSION_DIR when set.
-sessions_root="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions"
+agent_dir=$(expand_tilde "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
+sessions_root="$agent_dir/sessions"
 slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="${PI_CODING_AGENT_SESSION_DIR:-$sessions_root/--$slug--}"
+main_transcripts="$sessions_root/--$slug--"
+session_override=""
+if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
+	session_override=$(expand_tilde "$PI_CODING_AGENT_SESSION_DIR")
+fi
 now=$(date +%s)
 
 echo "# base: $base"
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
 
-git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt; do
+git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt; do
 	[ "$wt" = "$main_wt" ] && continue
 
 	size=$(du -sh "$wt" 2>/dev/null | awk '{print $1}')
@@ -109,16 +122,24 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 		'.[] | select(.head==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
 	[ -z "$pr" ] && pr="-"
 
-	# Most recent chat whose transcript operated in this worktree: either a
-	# main-repo session referencing the worktree path (followed by "/" or quote
-	# so glint-482 does not match glint-482-r37) or a Pi session launched with
-	# cwd inside the worktree itself (sessions/--<wt-slug>--/*.jsonl).
+	# Most recent chat whose transcript operated in this worktree: a main-repo
+	# or override session referencing the worktree path (fixed-string match
+	# followed by "/" or quote so glint-482 does not match glint-482-r37), a Pi
+	# session launched at the worktree root (sessions/--<wt-slug>--/*.jsonl),
+	# or a Pi session launched in a subdirectory of the worktree
+	# (sessions/--<wt-slug>-*--/*.jsonl referencing the worktree path).
 	last="-"; last_ts=0
 	wt_slug=$(printf '%s' "$wt" | sed 's#^/##; s#/#-#g')
 	wt_transcripts="$sessions_root/--$wt_slug--"
 	f=$({
-		[ -d "$transcripts" ] && rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null
+		[ -d "$main_transcripts" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$main_transcripts" 2>/dev/null
+		[ -n "$session_override" ] && [ -d "$session_override" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$session_override" 2>/dev/null
 		[ -d "$wt_transcripts" ] && find "$wt_transcripts" -maxdepth 1 -type f -name '*.jsonl' 2>/dev/null
+		if [ -d "$sessions_root" ]; then
+			for d in "$sessions_root/--${wt_slug}-"*--; do
+				[ -d "$d" ] && rg -l -F -e "${wt}/" -e "${wt}\"" "$d" 2>/dev/null
+			done
+		fi
 	} | sort -u | while IFS= read -r p; do [ -n "$p" ] && stat "${stat_fmt[@]}" "$p" 2>/dev/null; done | sort -rn | head -1)
 	if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
 		last=$(fmt_day "$last_ts" 2>/dev/null); fi
