@@ -78,7 +78,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model` | `inherit`, `fast`, a model id, or `provider/id`. Claude aliases `haiku`, `sonnet`, and `opus` map to `fast` and `inherit`. |
 | `force-default-model` | Ignore `model` and any caller override. |
 | `thinking`, `reasoning-effort` | Pi thinking level: `off` through `max`. |
-| `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. Copied onto the child model. |
+| `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. Temperature and top_p reach every provider, top_k is added for Anthropic and Google, and max_tokens caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
 | `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, mutating shell commands (bash and powershell), and MCP tools. |

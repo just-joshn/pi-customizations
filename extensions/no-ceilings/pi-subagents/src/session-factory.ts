@@ -18,6 +18,7 @@ import {
 import { normalizeToolNames } from './discovery.ts';
 import { SubagentRunError } from './failures.ts';
 import { createReadonlySubagentExtension, READONLY_BLOCKED_TOOLS } from './readonly-guard.ts';
+import { createSamplingExtension } from './sampling.ts';
 import { type NestedScope, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
 
 export interface NestedExtensionFactory {
@@ -109,12 +110,14 @@ export function materializeTranscriptFile(sessionManager: SessionManager): void 
 
 function buildExtensionFactories(request: ChildSessionRequest): readonly ExtensionFactory[] {
   const providerBridge = createInheritedProvidersExtension(request.ctx.modelRegistry);
+  const sampling = createSamplingExtension(request.model, request.definition.sampling);
+  const samplingFactories = sampling === undefined ? [] : [sampling];
   if (request.readonly) {
-    return [createReadonlySubagentExtension(), providerBridge];
+    return [createReadonlySubagentExtension(), providerBridge, ...samplingFactories];
   }
   const mcp = request.definition.mcp ? [createMcpExtension()] : [];
   const nested = request.nestedScope === undefined ? [] : [request.createNestedExtension(request.nestedScope)];
-  return [providerBridge, ...mcp, ...nested];
+  return [providerBridge, ...samplingFactories, ...mcp, ...nested];
 }
 
 function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedScope | undefined): readonly string[] | undefined {

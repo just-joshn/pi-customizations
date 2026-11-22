@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, extname, join, resolve } from 'node:path';
+import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 import { getAgentDir, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import type { SubagentsConfig } from './config.ts';
@@ -12,6 +12,7 @@ const MIN_KEYWORD_CHARS = 4;
 const MIN_AUTO_SELECT_SCORE = 2;
 const WORD_SPLIT_REGEX = /[^a-z0-9]+/;
 const NAME_SPLIT_REGEX = /[^a-z0-9_-]+/;
+const YAML_TRUE_SPELLINGS = new Set(['true', 'yes', 'on', 'y', '1']);
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
   Read: 'read',
@@ -140,7 +141,10 @@ function readTruthy(value: unknown): boolean {
   if (typeof value === 'boolean') {
     return value;
   }
-  return typeof value === 'string' && value.trim().toLowerCase() === 'true';
+  if (typeof value === 'number') {
+    return value === ONE;
+  }
+  return typeof value === 'string' && YAML_TRUE_SPELLINGS.has(value.trim().toLowerCase());
 }
 
 function readTrimmedString(value: unknown): string | undefined {
@@ -350,6 +354,11 @@ function walkAgentFiles(dirPath: string): readonly string[] {
   });
 }
 
+function isInsideProject(projectRoot: string, candidate: string): boolean {
+  const relativePath = relative(resolve(projectRoot), resolve(candidate));
+  return relativePath === '' || (!relativePath.startsWith(`..${sep}`) && relativePath !== '..' && !isAbsolute(relativePath));
+}
+
 export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig, projectTrusted = true): readonly DirectorySpec[] {
   const workspaceRoot = resolve(cwd);
   const workspaceDirs: readonly DirectorySpec[] = projectTrusted
@@ -367,7 +376,7 @@ export function computeAgentDirectories(cwd: string, userHome: string, agentDir:
     { dirPath: join(userHome, '.codex', 'agents'), source: 'codex-user' },
     { dirPath: join(userHome, '.agents', 'agents'), source: 'shared-user' },
   ];
-  const configured = (config?.extraAgentDirectories ?? []).map((dirPath): DirectorySpec => ({ dirPath, source: 'configured' }));
+  const configured = (config?.extraAgentDirectories ?? []).filter((dirPath) => projectTrusted || !isInsideProject(workspaceRoot, dirPath)).map((dirPath): DirectorySpec => ({ dirPath, source: 'configured' }));
   return [...base, ...configured];
 }
 

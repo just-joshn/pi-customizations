@@ -58,11 +58,40 @@ function toolResultText(result: unknown): string {
   return '';
 }
 
+/** Appends one thinking item, skipping an immediate duplicate of the same text. */
+function rememberThinking(record: SubagentSessionRecord, text: string, now: number): SubagentSessionRecord {
+  const trimmed = text.trim();
+  const cleared = { ...record, streamingThinking: undefined };
+  if (trimmed.length === ZERO) {
+    return cleared;
+  }
+  const last = cleared.transcriptItems.at(-ONE);
+  if (last?.role === 'thinking' && last.text.trim() === trimmed) {
+    return cleared;
+  }
+  return appendItem(cleared, { role: 'thinking', text: trimmed, completed: true, timestamp: now });
+}
+
 /** Moves a streamed reasoning block into the transcript once, so history keeps it. */
 function flushThinking(record: SubagentSessionRecord, now: number): SubagentSessionRecord {
-  const thinking = record.streamingThinking?.trim() ?? '';
-  const cleared = { ...record, streamingThinking: undefined };
-  return thinking.length > ZERO ? appendItem(cleared, { role: 'thinking', text: thinking, completed: true, timestamp: now }) : cleared;
+  return rememberThinking(record, record.streamingThinking ?? '', now);
+}
+
+function thinkingBlockText(block: unknown): string | undefined {
+  if (typeof block !== 'object' || block === null || !('type' in block) || block.type !== 'thinking' || !('thinking' in block) || typeof block.thinking !== 'string') {
+    return undefined;
+  }
+  return block.thinking;
+}
+
+function appendMessageThinking(record: SubagentSessionRecord, message: AgentMessage, now: number): SubagentSessionRecord {
+  if (!('content' in message) || !Array.isArray(message.content)) {
+    return record;
+  }
+  return message.content.reduce((current, block) => {
+    const text = thinkingBlockText(block);
+    return text === undefined ? current : rememberThinking(current, text, now);
+  }, record);
 }
 
 function appendItem(record: SubagentSessionRecord, item: Omit<SubagentTranscriptItem, 'id'> & { readonly id?: string }): SubagentSessionRecord {
@@ -92,17 +121,24 @@ function reduceMessageEvent(record: SubagentSessionRecord, event: AgentSessionEv
       const streamingThinking = `${record.streamingThinking ?? ''}${sub.delta}`;
       return { record: { ...record, status: 'running', streamingThinking, currentStep: THINKING_STEP, updatedAt: now }, progress, checkpoint: false };
     }
+    if (sub.type === 'thinking_start') {
+      return { record: { ...record, status: 'running', streamingThinking: '', currentStep: THINKING_STEP, updatedAt: now }, progress, checkpoint: false };
+    }
+    if (sub.type === 'thinking_end') {
+      const remembered = rememberThinking(record, sub.content, now);
+      return { record: { ...remembered, status: 'running', currentStep: THINKING_STEP, updatedAt: now }, progress, checkpoint: false };
+    }
     return { record, progress, checkpoint: false };
   }
   if (event.type !== 'message_end') {
     return undefined;
   }
-  const flushed = flushThinking(record, now);
-  const text = messageText(event.message);
-  if (event.message.role !== 'assistant' || text.trim().length === ZERO) {
-    return { record: flushed, progress, checkpoint: false };
+  const withThinking = appendMessageThinking(flushThinking(record, now), event.message, now);
+  const text = messageText(event.message).trim();
+  if (event.message.role !== 'assistant' || text.length === ZERO) {
+    return { record: withThinking, progress, checkpoint: false };
   }
-  const withItem = appendItem({ ...flushed, streamingText: undefined }, { role: 'assistant', text, completed: true, timestamp: now });
+  const withItem = appendItem({ ...withThinking, streamingText: undefined }, { role: 'assistant', text, completed: true, timestamp: now });
   return { record: { ...withItem, lastMessage: text }, progress: { ...progress, finalMessage: text }, checkpoint: false };
 }
 

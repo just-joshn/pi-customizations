@@ -51,6 +51,20 @@
 - Background completion and await results include the worktree diff summary.
 - Mid-run state snapshots omit transcript items, so a long run no longer writes a full transcript per step.
 - Disabling `general-purpose` falls back to the first available agent for an ambiguous task.
+- A read-only agent stays read-only when a caller passes `readonly: false`.
+- Terminal failures such as `resume-unavailable` and `worktree-failed` are not retried into a fresh run.
+- Read-only shell enforcement blocks sed and awk program files, attached sed `w` forms, and awk redirection.
+- YAML `yes` and `on` are read as true for `readonly`, `enabled`, `disabled`, and `nested-tasks`.
+- A mid-run snapshot keeps the transcripts of completed runs and omits only the running record.
+- `model-params` sampling reaches the provider request for every adapter, including Anthropic and Google.
+- A failed worktree run emits `subagents:run_end`.
+- Thinking from `thinking_start`, `thinking_end`, and message thinking blocks is stored once in the transcript.
+- An aborted await reports `aborted` instead of `await-timeout`.
+- Read-only mode allows `git branch --show-current`, `git branch --list`, `git remote show`, and `git tag -l` again.
+- Configured agent directories inside an untrusted project are ignored.
+- The final assistant message is trimmed, so it is not stored twice.
+- `session_shutdown` marks running records cancelled and persists the state.
+- An already-aborted call does not create a worktree or branch.
 - One invalid config section no longer resets the valid sections.
 - Restored records adopt the current parent session, so retry works after a restart.
 - Unknown models, unknown agent types, and resuming another agent's child now raise typed failure codes instead of the generic code.

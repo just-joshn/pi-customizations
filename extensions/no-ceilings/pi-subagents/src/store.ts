@@ -190,10 +190,18 @@ function buildRunOps(cell: StoreCell) {
     abortAllRuns: () => {
       const state = cell.read();
       const runs = Object.values(state.activeRuns);
+      const now = Date.now();
+      const sessions = { ...state.sessions };
+      for (const run of runs) {
+        const prev = sessions[run.agentId];
+        if (prev) {
+          sessions[run.agentId] = { ...prev, status: 'cancelled', currentStep: 'Cancelled', closedAt: now, updatedAt: now };
+        }
+      }
+      cell.commit({ ...state, sessions, activeRuns: {} });
       for (const run of runs) {
         run.abort();
       }
-      cell.commit({ ...state, activeRuns: {} });
       return runs.length;
     },
   };
@@ -314,7 +322,9 @@ export function createSubagentStore(): SubagentStore {
       }, {});
       cell.commit({ ...state, sessions: restored });
     },
-    toPersistedState: (options) => ({ sessions: sessionOps.listSessions().map((record) => toPersistedRecord(record, options?.includeTranscriptItems !== false)) }),
+    toPersistedState: (options) => ({
+      sessions: sessionOps.listSessions().map((record) => toPersistedRecord(record, options?.includeTranscriptItems !== false || !isActiveSubagentStatus(record.status))),
+    }),
     reset: () => {
       runOps.abortAllRuns();
       cell.commit({ ...createEmptyState(), listeners: state.listeners });

@@ -31,6 +31,7 @@ import { createSubagentWorktree, summarizeWorktreeDiff } from './worktree.ts';
 
 const MAX_FAILURE_ID_CHARS = 12;
 const MAX_RETRY_ATTEMPTS_CAP = 10;
+const NON_RETRYABLE_FAILURES: ReadonlySet<SubagentFailureCode> = new Set(['resume-unavailable', 'worktree-failed', 'nesting-limit', 'invalid-id', 'empty-prompt', 'type-unknown', 'model-unknown', 'resume-not-owned', 'busy']);
 
 export interface RunnerCallbacks {
   readonly store: SubagentStore;
@@ -188,12 +189,13 @@ interface LifecycleRequest {
 }
 
 function ensureFinalAssistantItem(store: SubagentStore, agentId: string, finalText: string): void {
+  const trimmed = finalText.trim();
   const record = store.getSession(agentId);
   const lastAssistant = [...(record?.transcriptItems ?? [])].reverse().find((item) => item.role === 'assistant');
-  if (lastAssistant?.text === finalText) {
+  if (lastAssistant?.text.trim() === trimmed) {
     return;
   }
-  store.appendTranscriptItem(agentId, { id: randomUUID(), role: 'assistant', text: finalText, completed: true, timestamp: Date.now() });
+  store.appendTranscriptItem(agentId, { id: randomUUID(), role: 'assistant', text: trimmed, completed: true, timestamp: Date.now() });
 }
 
 function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, progress: RunProgress): RunProgress {
@@ -287,7 +289,7 @@ export interface AwaitSubagentResult {
   readonly outcome: 'complete' | 'still_running' | 'not_found' | 'error';
   readonly record?: SubagentSessionRecord;
   readonly error?: string;
-  readonly errorCode?: 'await-timeout' | 'await-not-found';
+  readonly errorCode?: 'await-timeout' | 'await-not-found' | 'aborted';
 }
 
 export async function awaitBackgroundSubagent(agentId: string, store: SubagentStore, timeoutMs: number | undefined, signal?: AbortSignal): Promise<AwaitSubagentResult> {
@@ -301,7 +303,7 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
     return { outcome: 'complete', record: existing };
   }
   if (signal?.aborted) {
-    return { outcome: 'error', error: SUBAGENT_FAILURE_MESSAGES['await-timeout'], errorCode: 'await-timeout' };
+    return { outcome: 'error', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted' };
   }
   store.suppressWakeup(agentId);
   const raceResult = await new Promise<'done' | 'timeout' | 'aborted'>((resolveRace) => {
@@ -332,7 +334,7 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
   }
   store.unsuppressWakeup(agentId);
   if (raceResult === 'aborted') {
-    return { outcome: 'error', error: SUBAGENT_FAILURE_MESSAGES['await-timeout'], errorCode: 'await-timeout' };
+    return { outcome: 'error', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted' };
   }
   const current = store.getSession(agentId);
   return { outcome: 'still_running', ...(current ? { record: current } : {}) };
@@ -435,6 +437,9 @@ async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, 
     }
     lastOutcome = await runOneAttempt(options, callbacks, plan, attempt);
     if (lastOutcome.status !== 'error' || plan.abortController.signal.aborted) {
+      return lastOutcome;
+    }
+    if (NON_RETRYABLE_FAILURES.has(lastOutcome.errorCode)) {
       return lastOutcome;
     }
   }
@@ -557,6 +562,9 @@ async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbac
   });
   if (!created.ok) {
     const failed = callbacks.store.markFailure(agentId, 'worktree-failed', created.error);
+    if (failed) {
+      callbacks.emit('runEnd', failed);
+    }
     callbacks.onStateChanged();
     throw new SubagentRunError('worktree-failed', failed?.failureId === undefined ? created.error : `${created.error} (failure_id: ${failed.failureId})`);
   }
@@ -598,7 +606,7 @@ function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, co
     parentSessionId,
     prompt,
     existing,
-    isReadonly: options.input.readonly ?? existing?.readonly ?? options.definition.permissionMode === 'readonly',
+    isReadonly: options.definition.permissionMode === 'readonly' || (options.input.readonly ?? existing?.readonly ?? false),
     wantBackground,
     backgroundReason,
     maxAttempts: Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts)),
@@ -657,12 +665,13 @@ async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, co
   callbacks.emit('runStart', initialRecord);
   callbacks.onStateChanged();
 
-  const requestedWorktree = options.input.worktree ?? options.definition.worktree;
-  const childCwd = setup.existing?.worktree !== undefined ? setup.existing.worktree.path : requestedWorktree ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;
   const abortController = new AbortController();
   if (!setup.wantBackground && options.signal?.aborted) {
     abortController.abort();
   }
+  const requestedWorktree = options.input.worktree ?? options.definition.worktree;
+  const childCwd =
+    setup.existing?.worktree !== undefined ? setup.existing.worktree.path : requestedWorktree && !abortController.signal.aborted ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;
   const plan: AttemptPlan = {
     agentId,
     prompt: setup.prompt,
@@ -701,12 +710,16 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
-  const provisionalReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
+  const resumed = resumeId === undefined ? undefined : callbacks.store.getSession(resumeId);
+  const provisionalReadonly = options.definition.permissionMode === 'readonly' || (options.input.readonly ?? resumed?.readonly ?? false);
 
   if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {
     const awaited = await awaitBackgroundSubagent(resumeId, callbacks.store, undefined, options.signal);
     if (awaited.outcome === 'complete' && awaited.record) {
       return buildDetailsFromRecord(awaited.record);
+    }
+    if (awaited.errorCode === 'aborted') {
+      throw new SubagentRunError('aborted');
     }
     throw new SubagentRunError('await-timeout', resumeId);
   }

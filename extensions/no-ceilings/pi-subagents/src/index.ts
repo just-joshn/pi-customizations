@@ -291,6 +291,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   pi.on('session_shutdown', async () => {
     store.abortAllRuns();
+    onStateChanged();
   });
 
   pi.on('mcp_servers_change', async (_event, ctx) => {
