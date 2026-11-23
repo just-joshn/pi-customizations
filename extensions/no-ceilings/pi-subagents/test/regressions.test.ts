@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { AgentSessionEvent, ExtensionFactory, Theme } from '@earendil-works/pi-coding-agent';
 import { visibleWidth } from '@earendil-works/pi-tui';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createGate, createTestHarness, delay, double, extractGuardHandler } from './harness.ts';
+import { createGate, createTestHarness, double, extractGuardHandler } from './harness.ts';
 
 interface MockPlan {
   readonly finalText: string;
@@ -58,8 +58,8 @@ function createMockSession(plan: MockPlan) {
   };
 }
 
-vi.mock('@earendil-works/pi-coding-agent', async () => {
-  const actual = await vi.importActual<typeof import('@earendil-works/pi-coding-agent')>('@earendil-works/pi-coding-agent');
+vi.mock(import('@earendil-works/pi-coding-agent'), async (importOriginal) => {
+  const actual = await importOriginal();
 
   class MockDefaultResourceLoader {
     constructor(opts: { readonly extensionFactories?: readonly ExtensionFactory[] }) {
@@ -72,14 +72,14 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
 
   return {
     ...actual,
-    DefaultResourceLoader: MockDefaultResourceLoader,
-    createAgentSession: async (opts: { readonly tools?: readonly string[] }) => {
+    DefaultResourceLoader: MockDefaultResourceLoader as typeof actual.DefaultResourceLoader,
+    createAgentSession: (async (opts: { readonly tools?: readonly string[] }) => {
       const plan = dequeuePlan();
       sessionToolLists = [...sessionToolLists, opts.tools];
       sessionFactories = [...sessionFactories, lastLoaderFactories];
       capturedFactories = [...capturedFactories, ...lastLoaderFactories];
       return { session: createMockSession(plan) };
-    },
+    }) as unknown as typeof actual.createAgentSession,
   };
 });
 
@@ -227,7 +227,6 @@ describe('Finding 6: abortRun waits for settlement or marks session cancelled im
 
       await h.runCommand('tasks', `abort ${agentId}`);
       const awaitPromise = h.callTool('await_subagent', { agent_id: agentId, timeout_ms: LONG_TIMEOUT_MS });
-      await delay(SHORT_DELAY_MS);
       gate.release();
       const res = await awaitPromise;
       expect(res.details?.status).not.toBe('running');
@@ -305,9 +304,7 @@ describe('Round 2 Finding 1: resumed background run clears prior wakeup suppress
       enqueuePlan({ finalText: 'Run 2 done.', waitForRelease: gate2.promise });
       await h.callTool('task', { description: 'BG run 2', prompt: 'Second pass', resume: agentId, run_in_background: true });
       gate2.release();
-      await delay(SHORT_DELAY_MS);
-
-      expect(h.getSentMessages().length).toBe(ONE);
+      await expect.poll(() => h.getSentMessages().length).toBe(ONE);
     } finally {
       await h.cleanup();
     }
@@ -354,8 +351,7 @@ describe('Round 2 Finding 4: resuming an active foreground subagent is rejected 
         runningAgentId = partial.details?.agentId ?? runningAgentId;
       };
       const fgPromise = h.callTool('task', { description: 'Active fg task', prompt: 'Run long work' }, { onUpdate });
-      await delay(SHORT_DELAY_MS);
-      expect(runningAgentId.length).toBeGreaterThan(ZERO);
+      await expect.poll(() => runningAgentId.length).toBeGreaterThan(ZERO);
 
       await expect(h.callTool('task', { description: 'Concurrent resume', prompt: 'Steal session', resume: runningAgentId })).rejects.toThrow('Sub-agent is currently running');
 
@@ -546,7 +542,7 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
       expect(sessionFactories).toHaveLength(2);
       expect(installNested(sessionFactories[ONE] ?? [])).toEqual([]);
       expect(sessionToolLists[ONE]).toBeUndefined();
-      expect(grand?.details.agentId).toBeTruthy();
+      expect(grand?.details.agentId).toMatch(/^[0-9a-f-]{36}$/i);
       const foreign = await awaitTool?.execute('c2', { agent_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }, undefined, undefined, h.ctx);
       expect(foreign?.details.outcome).toBe('not_found');
       await expect(taskTool?.execute('c3', { description: 'r', prompt: 'x', resume: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }, undefined, undefined, h.ctx)).rejects.toThrow(/not launched by this agent/);
@@ -571,9 +567,22 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
       const waiting = await awaitTool?.execute('c2', { agent_id: grandId, timeout_ms: SHORT_DELAY_MS }, undefined, undefined, h.ctx);
       expect(waiting?.details.outcome).toBe('still_running');
       ownerGate.release();
-      await delay(SHORT_DELAY_MS);
+      await expect
+        .poll(() => {
+          const states = h.getEntries().filter((e) => e.customType === 'pi-subagents-state');
+          const lastState = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string }[] }>(states.at(-ONE)?.data);
+          return lastState.sessions.find((x) => x.agentId === grandId)?.status;
+        })
+        .toBe('cancelled');
       grandGate.release();
-      await delay(SHORT_DELAY_MS);
+      await expect
+        .poll(() =>
+          h.getSentMessages().some((m) => {
+            const text = JSON.stringify(m);
+            return text.includes('owner') || text.includes('Background Subagent');
+          }),
+        )
+        .toBe(true);
       const states = h.getEntries().filter((e) => e.customType === 'pi-subagents-state');
       const lastState = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string }[] }>(states.at(-ONE)?.data);
       expect(lastState.sessions.find((x) => x.agentId === grandId)?.status).toBe('cancelled');

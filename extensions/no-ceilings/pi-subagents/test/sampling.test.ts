@@ -24,7 +24,7 @@ function captureRequestHandler(api: string | undefined, sampling: SubagentSampli
 describe('sampling injection', () => {
   it('adds temperature and top_p to an OpenAI payload', async () => {
     const handler = captureRequestHandler('openai-completions', { temperature: 0.2, topP: 0.5 });
-    expect(handler).toBeDefined();
+    expect(handler).toBeTypeOf('function');
     const result = (await handler?.({ type: 'before_provider_request', payload: { model: 'm', temperature: 1, messages: [] } }, double<ExtensionContext>({}))) as Record<string, unknown>;
     expect(result).toMatchObject({ model: 'm', temperature: 0.2, top_p: 0.5 });
     expect(result).not.toHaveProperty('top_k');

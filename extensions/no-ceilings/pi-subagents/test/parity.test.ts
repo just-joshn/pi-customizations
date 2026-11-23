@@ -41,6 +41,7 @@ let loaderSettingsTrust: boolean | undefined;
 let activeToolsCalls: readonly (readonly string[])[] = [];
 let creationGate: Promise<void> | undefined;
 let promptCalls = 0;
+let settledCount = 0;
 let createdSessions: readonly { readonly agent: { readonly state: { model: unknown } } }[] = [];
 
 function enqueuePlan(plan: MockPlan): void {
@@ -57,20 +58,24 @@ function createMockSession(plan: MockPlan) {
   let listeners: readonly ((event: AgentSessionEvent) => void)[] = [];
   let aborted = false;
   const prompt = async (): Promise<void> => {
-    promptCalls += 1;
-    for (const event of plan.events ?? []) {
-      for (const listener of listeners) {
-        listener(event);
+    try {
+      promptCalls += 1;
+      for (const event of plan.events ?? []) {
+        for (const listener of listeners) {
+          listener(event);
+        }
       }
-    }
-    if (plan.waitForRelease !== undefined) {
-      await plan.waitForRelease;
-    }
-    if (aborted) {
-      throw new Error('aborted');
-    }
-    if (plan.throwError) {
-      throw new Error(plan.throwError);
+      if (plan.waitForRelease !== undefined) {
+        await plan.waitForRelease;
+      }
+      if (aborted) {
+        throw new Error('aborted');
+      }
+      if (plan.throwError) {
+        throw new Error(plan.throwError);
+      }
+    } finally {
+      settledCount += 1;
     }
   };
   const session = {
@@ -97,8 +102,8 @@ function createMockSession(plan: MockPlan) {
   return session;
 }
 
-vi.mock('@earendil-works/pi-coding-agent', async () => {
-  const actual = await vi.importActual<typeof import('@earendil-works/pi-coding-agent')>('@earendil-works/pi-coding-agent');
+vi.mock(import('@earendil-works/pi-coding-agent'), async (importOriginal) => {
+  const actual = await importOriginal();
 
   class MockDefaultResourceLoader {
     constructor(options: Readonly<Record<string, unknown>>) {
@@ -113,8 +118,8 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
 
   return {
     ...actual,
-    DefaultResourceLoader: MockDefaultResourceLoader,
-    createAgentSession: async (options: {
+    DefaultResourceLoader: MockDefaultResourceLoader as unknown as typeof actual.DefaultResourceLoader,
+    createAgentSession: (async (options: {
       readonly cwd?: string;
       readonly tools?: readonly string[];
       readonly model?: { readonly id: string };
@@ -137,7 +142,7 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
         await creationGate;
       }
       return { session: createMockSession(dequeuePlan()) };
-    },
+    }) as unknown as typeof actual.createAgentSession,
   };
 });
 
@@ -166,10 +171,12 @@ beforeEach(() => {
   activeToolsCalls = [];
   creationGate = undefined;
   promptCalls = 0;
+  settledCount = 0;
   createdSessions = [];
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   plans = [];
   captured = [];
   loaderOptions = {};
@@ -177,6 +184,7 @@ afterEach(() => {
   activeToolsCalls = [];
   creationGate = undefined;
   promptCalls = 0;
+  settledCount = 0;
   createdSessions = [];
 });
 
@@ -549,9 +557,7 @@ describe('retry, resume, and persistence', () => {
       await h.callTool('await_subagent', { agent_id: first.details?.agentId });
       enqueuePlan({ finalText: 'background retry' });
       await h.runCommand('tasks', `retry ${first.details?.agentId ?? ''}`);
-      await new Promise((resolve) => {
-        setTimeout(resolve, 20);
-      });
+      await expect.poll(() => h.getSentMessages().some((message) => JSON.stringify(message).includes('pi-subagents-background-completion'))).toBe(true);
       await h.runCommand('tasks', 'list');
       expect(h.getNotifications().at(-ONE)?.message).toContain('[success/bg]');
       expect(h.getSentMessages().some((message) => JSON.stringify(message).includes('pi-subagents-background-completion'))).toBe(true);
@@ -567,14 +573,7 @@ describe('retry, resume, and persistence', () => {
       const gate = createGate();
       enqueuePlan({ finalText: 'eventually', events: toolEvent('read', 'call-mid', { path: 'a.ts' }), waitForRelease: gate.promise });
       const launched = await h.callTool('task', { description: 'Mid run', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
-      for (let attempt = ZERO; attempt < 40; attempt += 1) {
-        if (h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')) {
-          break;
-        }
-        await new Promise((resolve) => {
-          setTimeout(resolve, 5);
-        });
-      }
+      await expect.poll(() => h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')).toBe(true);
       const states = h.getEntries().filter((entry) => entry.customType === 'pi-subagents-state');
       const snapshot = double<{
         readonly sessions: readonly { readonly agentId: string; readonly status: string; readonly toolCallCount: number; readonly checkpoints: readonly { readonly seq: number }[]; readonly transcriptPath?: string }[];
@@ -582,7 +581,8 @@ describe('retry, resume, and persistence', () => {
       const recorded = snapshot.sessions.find((session) => session.agentId === launched.details?.agentId);
       expect(recorded?.checkpoints.length).toBeGreaterThan(ZERO);
       expect(recorded?.toolCallCount).toBeGreaterThan(ZERO);
-      expect(recorded?.transcriptPath).toBeDefined();
+      expect(recorded?.transcriptPath).toBeTypeOf('string');
+      expect(recorded?.transcriptPath ?? '').toContain('.jsonl');
       expect(recorded?.status).toBe('running');
       gate.release();
       await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
@@ -665,7 +665,8 @@ describe('worktree and transcript durability', () => {
       enqueuePlan({ finalText: 'first' });
       const first = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', worktree: true });
       const worktreePath = first.details?.worktreePath;
-      expect(worktreePath).toBeDefined();
+      expect(worktreePath).toBeTypeOf('string');
+      expect(typeof worktreePath === 'string' && existsSync(worktreePath)).toBe(true);
       enqueuePlan({ finalText: 'second' });
       const second = await h.callTool('task', { description: 'Isolated job', prompt: 'again', subagent_type: 'general-purpose', resume: first.details?.agentId });
       expect(second.details?.worktreePath).toBe(worktreePath);
@@ -686,7 +687,8 @@ describe('worktree and transcript durability', () => {
       enqueuePlan({ finalText: 'first' });
       const first = await h.callTool('task', { description: 'Transcript job', prompt: 'go', subagent_type: 'general-purpose' });
       const transcriptPath = first.details?.transcriptPath;
-      expect(transcriptPath).toBeDefined();
+      expect(transcriptPath).toBeTypeOf('string');
+      expect(transcriptPath ?? '').toContain('.jsonl');
       if (transcriptPath === undefined) {
         return;
       }
@@ -711,7 +713,8 @@ describe('worktree and transcript durability', () => {
       enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
       const launched = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
       const worktreePath = launched.details?.worktreePath;
-      expect(worktreePath).toBeDefined();
+      expect(worktreePath).toBeTypeOf('string');
+      expect(typeof worktreePath === 'string' && existsSync(worktreePath)).toBe(true);
       if (worktreePath !== undefined) {
         writeFileSync(join(worktreePath, 'notes.txt'), 'changed\n');
       }
@@ -778,7 +781,8 @@ describe('read-only floors and retry safety', () => {
       enqueuePlan({ finalText: 'first' });
       const first = await h.callTool('task', { description: 'Resume job', prompt: 'go', subagent_type: 'general-purpose' });
       const transcriptPath = first.details?.transcriptPath;
-      expect(transcriptPath).toBeDefined();
+      expect(transcriptPath).toBeTypeOf('string');
+      expect(transcriptPath ?? '').toContain('.jsonl');
       if (transcriptPath === undefined) {
         return;
       }
@@ -805,14 +809,7 @@ describe('state snapshots and shutdown', () => {
       const gate = createGate();
       enqueuePlan({ finalText: 'slow', events: toolEvent('read', 'call-slow', { path: 'a.ts' }), waitForRelease: gate.promise });
       const running = await h.callTool('task', { description: 'Running job', prompt: 'second prompt', subagent_type: 'general-purpose', run_in_background: true });
-      for (let attempt = ZERO; attempt < 40; attempt += 1) {
-        if (h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')) {
-          break;
-        }
-        await new Promise((resolve) => {
-          setTimeout(resolve, 5);
-        });
-      }
+      await expect.poll(() => h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')).toBe(true);
       const state = h
         .getEntries()
         .filter((entry) => entry.customType === 'pi-subagents-state')
@@ -865,8 +862,10 @@ describe('state snapshots and shutdown', () => {
       vi.spyOn(h.ctx.ui, 'setStatus').mockImplementation(() => {
         throw new Error('This extension ctx is stale after session replacement or reload.');
       });
+      const before = settledCount;
       gate.release();
-      await new Promise((resolve) => setTimeout(resolve, 25));
+      await expect.poll(() => settledCount).toBe(before + ONE);
+      await Promise.resolve();
       expect(errors).toEqual([]);
     } finally {
       process.off('unhandledRejection', onUnhandled);
@@ -1168,7 +1167,7 @@ describe('nested catalog and command naming', () => {
       const result = await h.callTool('task', { description: 'Failing provider', prompt: 'go', subagent_type: 'general-purpose', max_attempts: TWO });
       expect(result.details?.status).toBe('error');
       expect(result.details?.errorCode).toBe('failed');
-      expect(result.details?.failureId).toBeDefined();
+      expect(result.details?.failureId).toMatch(/^[0-9a-f]+$/);
       expect(result.details?.attempts).toBe(TWO);
     } finally {
       await h.cleanup();
@@ -1477,7 +1476,8 @@ describe('isolation and observability', () => {
 
       enqueuePlan({ finalText: 'isolated work' });
       const isolated = await h.callTool('task', { description: 'Isolated work', prompt: 'go', subagent_type: 'general-purpose', worktree: true });
-      expect(isolated.details?.worktreePath).toBeDefined();
+      expect(isolated.details?.worktreePath).toBeTypeOf('string');
+      expect(existsSync(isolated.details?.worktreePath ?? '')).toBe(true);
       expect(isolated.details?.branch).toMatch(/^pi-subagents\//);
       expect(captured[ONE]?.cwd).toBe(isolated.details?.worktreePath);
 
@@ -1488,7 +1488,10 @@ describe('isolation and observability', () => {
           .at(-ONE)?.data,
       );
       const worktree = record.sessions.find((session) => session.agentId === isolated.details?.agentId)?.worktree;
-      expect(worktree).toBeDefined();
+      expect(worktree).toMatchObject({
+        path: isolated.details?.worktreePath,
+        branch: isolated.details?.branch,
+      });
       if (worktree) {
         expect((await summarizeWorktreeDiff(worktree)).length).toBeGreaterThanOrEqual(ZERO);
       }
@@ -1511,7 +1514,8 @@ describe('isolation and observability', () => {
       enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
       const launched = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
       const worktreePath = launched.details?.worktreePath;
-      expect(worktreePath).toBeDefined();
+      expect(worktreePath).toBeTypeOf('string');
+      expect(typeof worktreePath === 'string' && existsSync(worktreePath)).toBe(true);
       await h.runCommand('tasks', `prune ${launched.details?.agentId ?? ''}`);
       expect(h.getNotifications().at(-ONE)?.message).toContain('still running');
       gate.release();
@@ -1659,7 +1663,8 @@ describe('isolation and observability', () => {
       const end = h.getEmittedEvents().find((entry) => entry.channel === 'subagents:run_end');
       const payload = double<{ readonly agentId?: string; readonly status?: string; readonly transcriptPath?: string }>(end?.data);
       expect(payload.status).toBe('success');
-      expect(payload.agentId).toBeDefined();
+      expect(payload.agentId).toBeTypeOf('string');
+      expect(payload.agentId?.length ?? ZERO).toBeGreaterThan(ZERO);
     } finally {
       await h.cleanup();
     }
@@ -1784,9 +1789,9 @@ describe('overlay edge cases and worktree cleanup', () => {
         transcriptItems: [],
       });
       await openTasksOverlay(h.ctx, store);
-      expect(rendered.at(-ONE)?.join('\n')).toBeDefined();
+      expect(rendered.at(-ONE)?.join('\n')).toMatch(/Work|Tasks/);
     } finally {
-      void h.cleanup();
+      await h.cleanup();
     }
   });
 

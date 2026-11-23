@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { createAgentSession, DefaultResourceLoader, type ExtensionFactory, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import piSubagentsExtension from '../src/index.ts';
 import { type FakeModelRequest, startFakeModelServer } from './fixtures/fake-model-server.mjs';
 
@@ -14,7 +14,6 @@ let server: Awaited<ReturnType<typeof startFakeModelServer>>;
 let root: string;
 let profile: string;
 let workspace: string;
-let previousAgentDir: string | undefined;
 
 function textOf(content: unknown): string {
   if (typeof content === 'string') {
@@ -78,16 +77,17 @@ describe('real session delegation', () => {
       join(workspace, '.pi', 'agents', 'worker.md'),
       ['---', 'name: worker', 'description: Reads one file and reports its contents.', 'tools: read', '---', `${CHILD_MARKER}. Read the requested file and report its contents.`].join('\n'),
     );
-    previousAgentDir = process.env['PI_CODING_AGENT_DIR'];
-    process.env['PI_CODING_AGENT_DIR'] = profile;
+  });
+
+  beforeEach(() => {
+    vi.stubEnv('PI_CODING_AGENT_DIR', profile);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   afterAll(async () => {
-    if (previousAgentDir === undefined) {
-      delete process.env['PI_CODING_AGENT_DIR'];
-    } else {
-      process.env['PI_CODING_AGENT_DIR'] = previousAgentDir;
-    }
     await server.close();
     rmSync(root, { recursive: true, force: true });
   });
@@ -158,7 +158,6 @@ describe('real session delegation', () => {
         return true;
       },
     });
-    const prevDir = process.env['PI_CODING_AGENT_DIR'];
     const errRoot = mkdtempSync(join(tmpdir(), 'pi-subagents-err-'));
     const errProfile = join(errRoot, 'profile');
     const errWorkspace = join(errRoot, 'workspace');
@@ -174,7 +173,7 @@ describe('real session delegation', () => {
       }),
     );
     writeFileSync(join(errWorkspace, '.pi', 'agents', 'worker.md'), ['---', 'name: worker', 'description: Worker.', 'tools: read', '---', `${CHILD_MARKER}.`].join('\n'));
-    process.env['PI_CODING_AGENT_DIR'] = errProfile;
+    vi.stubEnv('PI_CODING_AGENT_DIR', errProfile);
     const settings = SettingsManager.create(errWorkspace, errProfile, { projectTrusted: true });
     const loader = new DefaultResourceLoader({ cwd: errWorkspace, agentDir: errProfile, settingsManager: settings, extensionFactories: [piSubagentsExtension as ExtensionFactory] });
     await loader.reload();
@@ -193,11 +192,8 @@ describe('real session delegation', () => {
       expect(seenChildCalls).toBeGreaterThan(ONE);
     } finally {
       session.dispose();
-      if (prevDir === undefined) {
-        delete process.env['PI_CODING_AGENT_DIR'];
-      } else {
-        process.env['PI_CODING_AGENT_DIR'] = prevDir;
-      }
+      vi.unstubAllEnvs();
+      vi.stubEnv('PI_CODING_AGENT_DIR', profile);
       await errorServer.close();
       rmSync(errRoot, { recursive: true, force: true });
     }

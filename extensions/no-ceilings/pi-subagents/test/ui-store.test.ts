@@ -151,14 +151,14 @@ describe('task renderers', () => {
 });
 
 describe('status widget', () => {
-  it('clears the status and widget when nothing is active', () => {
+  it('clears the status and widget when nothing is active', async () => {
     const h = createTestHarness();
     try {
       syncSubagentsUi(h.ctx, createSubagentStore());
       expect(h.getStatuses()['pi-subagents-status']).toBeUndefined();
       expect(h.getWidgets()['pi-subagents-running']).toBeUndefined();
     } finally {
-      void h.cleanup();
+      await h.cleanup();
     }
   });
 });
@@ -350,7 +350,7 @@ describe('tasks overlay', () => {
       expect(rendered[THREE]?.join('\n')).toContain('tool output');
       expect(rendered[FOUR]?.join('\n')).toContain('Tasks');
     } finally {
-      void h.cleanup();
+      await h.cleanup();
     }
   });
 
@@ -372,7 +372,7 @@ describe('tasks overlay', () => {
       await openTasksOverlay(h.ctx, store);
       expect(transcript).toContain('LIVE_THINKING');
     } finally {
-      void h.cleanup();
+      await h.cleanup();
     }
   });
 
@@ -396,7 +396,7 @@ describe('tasks overlay', () => {
       await openTasksOverlay(h.ctx, store);
       expect(aborted).toBe(true);
     } finally {
-      void h.cleanup();
+      await h.cleanup();
     }
   });
 });

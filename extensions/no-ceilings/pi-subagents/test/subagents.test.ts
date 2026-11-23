@@ -4,10 +4,9 @@ import { join } from 'node:path';
 import type { AgentSessionEvent, ExtensionFactory } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createGate, createTestHarness, delay, double, extractGuardHandler } from './harness.ts';
+import { createGate, createTestHarness, double, extractGuardHandler } from './harness.ts';
 
 interface MockSessionPlan {
-  readonly delayMs?: number;
   readonly finalText: string;
   readonly events?: readonly AgentSessionEvent[];
   readonly throwError?: string;
@@ -54,9 +53,6 @@ function createMockSession(plan: MockSessionPlan) {
     if (plan.waitForRelease !== undefined) {
       await plan.waitForRelease;
     }
-    if (plan.delayMs && plan.delayMs > ZERO) {
-      await delay(plan.delayMs);
-    }
     if (aborted) {
       throw new Error('aborted');
     }
@@ -85,8 +81,8 @@ function createMockSession(plan: MockSessionPlan) {
   };
 }
 
-vi.mock('@earendil-works/pi-coding-agent', async () => {
-  const actual = await vi.importActual<typeof import('@earendil-works/pi-coding-agent')>('@earendil-works/pi-coding-agent');
+vi.mock(import('@earendil-works/pi-coding-agent'), async (importOriginal) => {
+  const actual = await importOriginal();
 
   class MockDefaultResourceLoader {
     constructor(opts: { readonly extensionFactories?: readonly ExtensionFactory[]; readonly appendSystemPrompt?: readonly string[] }) {
@@ -99,8 +95,8 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
 
   return {
     ...actual,
-    DefaultResourceLoader: MockDefaultResourceLoader,
-    createAgentSession: async (opts: { readonly model?: { readonly id: string }; readonly tools?: readonly string[] }) => {
+    DefaultResourceLoader: MockDefaultResourceLoader as typeof actual.DefaultResourceLoader,
+    createAgentSession: (async (opts: { readonly model?: { readonly id: string }; readonly tools?: readonly string[] }) => {
       const plan = dequeuePlan();
       const captured: CapturedCreateCall = {
         ...(opts.model?.id ? { modelId: opts.model.id } : {}),
@@ -110,7 +106,7 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
       };
       capturedCalls = [...capturedCalls, captured];
       return { session: createMockSession(plan) };
-    },
+    }) as unknown as typeof actual.createAgentSession,
   };
 });
 
@@ -201,7 +197,7 @@ describe('pi-subagents readonly guard', () => {
       enqueuePlan({ finalText: 'Checked.' });
       await h.callTool('task', { description: 'Read-only check', prompt: 'Check', subagent_type: 'explore' });
       const guardHandler = extractGuardHandler(capturedCalls[ZERO]?.extensionFactories[ZERO]);
-      expect(guardHandler).toBeDefined();
+      expect(guardHandler).toBeTypeOf('function');
 
       const writeBlocked = await guardHandler?.({ toolName: 'write', input: { path: 'a.ts', content: 'x' } });
       expect(writeBlocked?.block).toBe(true);
@@ -244,7 +240,7 @@ describe('pi-subagents background execution and resume', () => {
       expect(double<{ readonly outcome?: string } | undefined>(stillRunning.details)?.outcome).toBe('still_running');
 
       gate.release();
-      await delay(SHORT_TIMEOUT_MS);
+      await expect.poll(() => h.getSentMessages().length).toBe(ONE);
 
       const sent = double<{ readonly customType: string; readonly details: unknown; readonly content: string }>(h.getSentMessages()[ZERO]?.message);
       expect(sent.customType).toBe('pi-subagents-background-completion');
@@ -305,7 +301,7 @@ describe('pi-subagents foreground-to-background and overlay', () => {
       enqueuePlan({ finalText: 'Finished after backgrounding.', waitForRelease: fgGate.promise });
 
       const fgPromise = h.callTool('task', { description: 'Long foreground scan', prompt: 'Scan repo' });
-      await delay(SHORT_TIMEOUT_MS);
+      await expect.poll(() => h.getStatuses()['pi-subagents-status'] ?? '').toContain('1 task running');
 
       await h.triggerShortcut(Key.ctrlAlt('b'));
       const movedResult = await fgPromise;
@@ -317,8 +313,7 @@ describe('pi-subagents foreground-to-background and overlay', () => {
       expect(renderedTranscript.join('\n')).toContain('Subagent · Long foreground scan');
 
       fgGate.release();
-      await delay(SHORT_TIMEOUT_MS);
-      expect(h.getSentMessages().length).toBe(ONE);
+      await expect.poll(() => h.getSentMessages().length).toBe(ONE);
     } finally {
       await h.cleanup();
     }
