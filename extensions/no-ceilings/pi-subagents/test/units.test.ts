@@ -158,6 +158,17 @@ describe('discovery helpers', () => {
     expect(trusted.some((definition) => definition.name === 'project-agent')).toBe(true);
   });
 
+  it('dedupes agent names case-insensitively with project precedence', () => {
+    const cwd = tempDir('case-name-');
+    mkdirSync(join(cwd, '.pi/agents'), { recursive: true });
+    writeFileSync(join(cwd, '.pi/agents/explore.md'), ['---', 'name: Explore', 'description: Custom explore', '---', 'Body.'].join('\n'));
+    const definitions = discoverSubagents(cwd, { homeDir: cwd, agentDir: cwd, projectTrusted: true });
+    const explores = definitions.filter((definition) => definition.name.toLowerCase() === 'explore');
+    expect(explores).toHaveLength(1);
+    expect(explores[0]?.source).toBe('workspace');
+    expect(selectSubagentType(definitions, { description: 'use explore to find the bug', prompt: '' })).toBe('Explore');
+  });
+
   it('ignores the project config file when the project is untrusted', () => {
     const cwd = tempDir('trust-cfg-');
     mkdirSync(join(cwd, '.pi'), { recursive: true });
@@ -537,7 +548,22 @@ describe('adversary regressions', () => {
       makeDefinition({ name: 'explore', description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, and searching code', permissionMode: 'readonly' }),
       makeDefinition({ name: 'general-purpose', description: 'General-purpose agent for researching questions and executing multi-step tasks' }),
     ];
-    for (const text of ['explore the codebase before changing the search', 'explore the codebase and split the parser', 'explore the codebase and move the helper', 'explore the codebase and optimize the search']) {
+    for (const text of [
+      'explore the codebase before changing the search',
+      'explore the codebase and split the parser',
+      'explore the codebase and move the helper',
+      'explore the codebase and optimize the search',
+      'explore the codebase and replace the helper',
+      'explore the codebase and set the retry count',
+      'explore the codebase and insert a guard clause',
+      'explore the codebase and apply the reviewer suggestion',
+      'explore the codebase and generate a migration',
+      'explore the codebase and simplify the error handling',
+      'explore the codebase and clean up the dead branches',
+      'explore the codebase and swap the two arguments',
+      'explore the codebase and drop the deprecated field',
+      'explore the codebase and strip the unused imports',
+    ]) {
       expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
     }
     expect(selectSubagentType(definitions, { description: 'explore the codebase without changing any code', prompt: '' })).toBe('explore');
@@ -552,6 +578,13 @@ describe('adversary regressions', () => {
     ];
     expect(selectSubagentType(definitions, { description: 'explore the auth flow', prompt: 'Find where tokens are validated. Do not edit anything.' })).toBe('explore');
     expect(selectSubagentType(definitions, { description: 'explore the flaky test', prompt: 'Find the cause of the failure; do not change any files.' })).toBe('explore');
+    for (const text of [
+      'explore the auth flow. Do not edit, add, or delete anything.',
+      'explore the auth flow and report what to change; do not modify, add, or delete files',
+      'explore the auth flow without modifying, adding, or deleting files',
+    ]) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('explore');
+    }
   });
 
   it('blocks reflog mutations, non-slash sed execute flags, and mutating date or hostname calls', () => {
@@ -705,6 +738,16 @@ describe('adversary regressions', () => {
     expect(existsSync(target)).toBe(false);
   });
 
+  it('runs read-only commands that need a temporary file', () => {
+    const command = sandboxReadOnlyCommand('grep two <<<two');
+    if (process.platform !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
+      expect(command).toBe('grep two <<<two');
+      return;
+    }
+    const output = execFileSync('/bin/sh', ['-c', command], { encoding: 'utf8' });
+    expect(output.trim()).toBe('two');
+  });
+
   it('maps Claude tool names onto Pi tool names', () => {
     const dir = tempDir('claude-tools-');
     writeFileSync(join(dir, 'reviewer.md'), ['---', 'name: reviewer', 'description: Reviews', 'tools: Read, Grep, Glob, Bash, Edit, Write, LS, MultiEdit', '---', 'Review.'].join('\n'));
@@ -766,6 +809,15 @@ describe('adversary regressions', () => {
     const plural = [makeDefinition({ name: 'Code', description: 'Writes code' }), makeDefinition({ name: 'Code Reviewer', description: 'Reviews code' }), makeDefinition({ name: 'general-purpose', description: '' })];
     expect(selectSubagentType(plural, { description: 'Ask Code Reviewers to inspect the patch', prompt: '' })).toBe('general-purpose');
     expect(selectSubagentType(plural, { description: 'Ask Code Reviewer to inspect the patch', prompt: '' })).toBe('Code Reviewer');
+  });
+
+  it('scores distinct description keywords instead of repeated words', () => {
+    const definitions = [
+      makeDefinition({ name: 'manifest-checker', description: 'Validates Kubernetes manifests and deploys them' }),
+      makeDefinition({ name: 'kube-scout', description: 'Kubernetes. Kubernetes. Kubernetes. Kubernetes.' }),
+      makeDefinition({ name: 'general-purpose', description: '' }),
+    ];
+    expect(selectSubagentType(definitions, { description: 'validate the kubernetes manifests', prompt: '' })).toBe('manifest-checker');
   });
 
   it('applies a top-level max-tokens cap to the child model', () => {

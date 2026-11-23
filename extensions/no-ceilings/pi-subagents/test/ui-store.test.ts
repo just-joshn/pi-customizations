@@ -161,6 +161,20 @@ describe('status widget', () => {
       await h.cleanup();
     }
   });
+
+  it('keeps completed-run context in the status widget', async () => {
+    const h = createTestHarness();
+    try {
+      const store = createSubagentStore();
+      store.upsertSession(record({ agentId: 'done', status: 'success' }));
+      store.upsertSession(record({ agentId: 'running' }));
+      syncSubagentsUi(h.ctx, store);
+      const widget = (h.getWidgets()['pi-subagents-running'] ?? []).join('\n');
+      expect(widget).toContain('1 done');
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('store', () => {
@@ -186,6 +200,16 @@ describe('store', () => {
     expect(restored.getSession('agent-1')?.status).toBe('error');
     expect(restored.getSession('agent-1')?.checkpoints.length).toBe(TWO);
     expect(restored.getSession('agent-1')?.parentSessionId).toBe('new-parent-session');
+  });
+
+  it('assigns a failure id when restoring an in-flight run', () => {
+    const store = createSubagentStore();
+    store.upsertSession(record({ status: 'running' }));
+    const restored = createSubagentStore();
+    restored.restoreFromPersisted(JSON.parse(JSON.stringify(store.toPersistedState())), 'new-parent-session');
+    const restoredRecord = restored.getSession('agent-1');
+    expect(restoredRecord?.status).toBe('cancelled');
+    expect(restoredRecord?.failureId).toMatch(/^[0-9a-f]{12}$/);
   });
 
   it('suppresses, drains, and re-enables wakeups', () => {
