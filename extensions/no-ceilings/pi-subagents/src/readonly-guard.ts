@@ -65,6 +65,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bdate\b.*(?:\s-s\b|\s--set(?:=|\s|$))/,
   /\bperl\s+-i/i,
   /\byq\b.*\s(?:-i|--inplace)(?:=|\s|$)/i,
+  /\byq\b.*--security-enable(?:-[a-z-]*)?/i,
   /\bfind\b.*\s-(?:delete|exec|execdir|ok|okdir|fls|fprint|fprint0|fprintf)\b/i,
   /\bfd\b.*\s(?:-x|-X|--exec|--exec-batch)(?:=|\s|$)/,
   /\brg\b.*\s--pre(?:=|\s)/i,
