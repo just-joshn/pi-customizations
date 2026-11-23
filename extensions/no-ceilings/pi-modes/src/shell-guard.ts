@@ -82,7 +82,7 @@ const GIT_READ_SUBCOMMANDS = new Set<string>([
 /** Flags that make an otherwise read-only command write or execute. */
 const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   fd: ['--exec', '--exec-batch'],
-  sort: ['--output', '--compress-program'],
+  sort: ['--output', '--compress-program', '--temporary-directory'],
   rg: ['--pre', '--pre-glob', '--hostname-bin'],
   tree: ['--output'],
   sed: ['--in-place', '--file'],
@@ -92,7 +92,7 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
 
 /** Short options whose letter inside a cluster writes, runs a program, or names an unread script, as in `sort -nro out` or `sed -nf`. */
 const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
-  sort: ['o'],
+  sort: ['o', 'T'],
   tree: ['o'],
   fd: ['x', 'X'],
   file: ['C'],
@@ -275,6 +275,10 @@ function hasLongFlag(words: readonly string[], flags: readonly string[]): boolea
 
 function hasShortLetter(words: readonly string[], letters: readonly string[]): boolean {
   return words.some((word) => word.startsWith('-') && !word.startsWith('--') && word.length > 1 && letters.some((letter) => word.slice(1).includes(letter)));
+}
+
+function hasSignatureFormat(words: readonly string[]): boolean {
+  return words.some((word) => word.includes('%G'));
 }
 
 function hasExactWord(words: readonly string[], flags: readonly string[]): boolean {
@@ -539,10 +543,16 @@ function isAllowedBranchArgs(args: readonly string[]): boolean {
 function isAllowedGit(words: readonly string[]): boolean {
   // Skip the global options that only choose the repository or the pager.
   let subcommandIndex = 1;
+  let noOptionalLocks = false;
   while (subcommandIndex < words.length) {
     const word = words[subcommandIndex];
     if (word === '-C') {
       subcommandIndex += 2;
+      continue;
+    }
+    if (word === '--no-optional-locks') {
+      noOptionalLocks = true;
+      subcommandIndex += 1;
       continue;
     }
     if (word === '--no-pager' || word === '--paginate' || word === '-P') {
@@ -561,14 +571,23 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'status') {
     const options = gitOptionWords(args.slice(1));
-    return options.includes('--no-optional-locks') && !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
+    return noOptionalLocks && !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
+  }
+  if (subcommand === 'show' && hasSignatureFormat(args.slice(1))) {
+    return false;
+  }
+  if (subcommand === 'diff' || subcommand === 'diff-files' || subcommand === 'diff-index') {
+    return noOptionalLocks && isAllowedDiffArgs(args);
+  }
+  if (subcommand === 'ls-files') {
+    return noOptionalLocks;
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
   }
   if (subcommand === 'log') {
     const flags = args.slice(1);
-    return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
+    return !hasLongFlag(flags, ['--show-signature']) && !hasSignatureFormat(flags) && !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
   }
   if (subcommand === 'cat-file') {
     return !hasLongFlag(args.slice(1), ['--textconv', '--filters']);
@@ -609,7 +628,7 @@ function isAllowedGit(words: readonly string[]): boolean {
     if (verb === '-v' || verb === '--verbose') {
       return args.length === TWO;
     }
-    return verb === undefined || verb === 'show' || verb === 'get-url';
+    return verb === undefined || verb === 'get-url';
   }
   if (subcommand === 'stash') {
     if (args[1] === 'list') {

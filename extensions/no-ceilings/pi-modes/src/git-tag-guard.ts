@@ -23,13 +23,12 @@ function tagReadKind(arg: string): 'list' | 'verify' | 'passive' | undefined {
   return undefined;
 }
 
-/** Listing, filtering, and signature checks. Only those read flags are accepted. `-d` and `--force` write. */
+/** Listing and filtering. Signature verification is refused because it runs `gpg.program`. `-d` and `--force` write. */
 export function isAllowedTagArgs(args: readonly string[]): boolean {
   if (args.length === ZERO) {
     return true;
   }
   let listMode = false;
-  let verifyMode = false;
   let positional = false;
   for (const arg of args) {
     if (arg.startsWith('-')) {
@@ -41,11 +40,11 @@ export function isAllowedTagArgs(args: readonly string[]): boolean {
         listMode = true;
       }
       if (kind === 'verify') {
-        verifyMode = true;
+        return false;
       }
       continue;
     }
     positional = true;
   }
-  return !positional || listMode || verifyMode;
+  return !positional || listMode;
 }
