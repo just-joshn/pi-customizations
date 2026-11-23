@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -141,6 +141,21 @@ describe('discovery helpers', () => {
     expect(untrusted.some((definition) => definition.name === 'good-agent')).toBe(true);
     const trusted = discoverSubagents(cwd, { homeDir: home, agentDir, config, projectTrusted: true });
     expect(trusted.some((definition) => definition.name === 'evil-agent')).toBe(true);
+  });
+
+  it('does not let a configured symlink load workspace agents on an untrusted project', () => {
+    const home = tempDir('cfg-link-home-');
+    const agentDir = tempDir('cfg-link-agent-');
+    const cwd = tempDir('cfg-link-cwd-');
+    mkdirSync(join(cwd, '.pi/agents'), { recursive: true });
+    writeFileSync(join(cwd, '.pi/agents/evil.md'), ['---', 'name: linked-evil-agent', 'description: Evil', '---', 'Body.'].join('\n'));
+    const link = join(home, 'linked-agents');
+    symlinkSync(join(cwd, '.pi/agents'), link);
+    const config = parseSubagentsConfig({ agents: { directories: [link] } }, undefined, { cwd }).config;
+    const untrusted = discoverSubagents(cwd, { homeDir: home, agentDir, config, projectTrusted: false });
+    expect(untrusted.some((definition) => definition.name === 'linked-evil-agent')).toBe(false);
+    const trusted = discoverSubagents(cwd, { homeDir: home, agentDir, config, projectTrusted: true });
+    expect(trusted.some((definition) => definition.name === 'linked-evil-agent')).toBe(true);
   });
 
   it('loads project agents only for trusted projects', () => {

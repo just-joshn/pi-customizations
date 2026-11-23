@@ -61,6 +61,20 @@ execFileSync('git', ['remote', 'set-url', 'origin', 'https://example.invalid/acm
 console.log('== credential helper');
 run('git remote show origin');
 
+const filterScript = join(root, 'filter.sh');
+writeFileSync(filterScript, `#!/bin/sh\ncat "${secret}"\n`);
+chmodSync(filterScript, 0o755);
+execFileSync('git', ['config', '--unset-all', 'diff.evil.textconv'], { cwd: root });
+execFileSync('git', ['config', '--unset-all', 'core.sshCommand'], { cwd: root });
+execFileSync('git', ['config', '--unset-all', 'credential.helper'], { cwd: root });
+writeFileSync(join(root, '.gitattributes'), '* filter=evil\n');
+execFileSync('git', ['config', 'filter.evil.clean', filterScript], { cwd: root });
+execFileSync('git', ['config', 'filter.evil.required', 'true'], { cwd: root });
+console.log('== clean filter diff');
+run('git diff');
+console.log('== clean filter blame');
+run('git blame file.txt');
+
 const fsMarker = join(root, 'fsmonitor-marker');
 const extMarker = join(root, 'external-marker');
 writeFileSync(join(root, 'fsmonitor.sh'), `#!/bin/sh\ntouch "${fsMarker}"\n`);

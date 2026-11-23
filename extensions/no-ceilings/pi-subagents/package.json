@@ -45,7 +45,7 @@
     "test:e2e:tools": "node test/e2e/verify-crafted-tools.mjs",
     "test:e2e:git": "node test/e2e/verify-git-helpers.mjs",
     "test:e2e:growth": "node test/e2e/verify-state-growth.mjs 4 25",
-    "test:e2e:growth-heavy": "node test/e2e/verify-state-growth.mjs 4 50"
+    "test:e2e:growth-heavy": "node test/e2e/verify-state-growth.mjs 12 50"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

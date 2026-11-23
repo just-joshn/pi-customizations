@@ -422,6 +422,39 @@ describe('failure codes and resume safety', () => {
     }
   });
 
+  it('restores records from multiple persisted patches', async () => {
+    const persistedRecord = (agentId: string, description: string) => ({
+      agentId,
+      parentSessionId: 'previous-session',
+      toolCallId: `call-${agentId}`,
+      subagentType: 'general-purpose',
+      description,
+      prompt: 'go',
+      readonly: false,
+      status: 'success',
+      isBackground: false,
+      backgroundReason: 'unspecified',
+      toolCallCount: ZERO,
+      startedAt: 1,
+      updatedAt: 2,
+    });
+    const h = createTestHarness({
+      initialEntries: [
+        { type: 'custom', customType: 'pi-subagents-state', data: { sessions: [persistedRecord('11111111-2222-4333-8444-555555555555', 'First patch')] } },
+        { type: 'custom', customType: 'pi-subagents-state', data: { sessions: [persistedRecord('22222222-3333-4444-8555-666666666666', 'Second patch')] } },
+      ],
+    });
+    try {
+      await h.emit('session_start', {});
+      await h.runCommand('tasks', 'list');
+      const message = h.getNotifications().at(-ONE)?.message ?? '';
+      expect(message).toContain('First patch');
+      expect(message).toContain('Second patch');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('retries a run restored from an earlier session', async () => {
     const persisted = {
       sessions: [
@@ -708,6 +741,23 @@ describe('retry, resume, and persistence', () => {
       const finalRecord = finalSessions.find((session) => session.agentId === launched.details?.agentId);
       expect(finalRecord?.checkpoints.length).toBeGreaterThan(ZERO);
       expect(finalRecord?.transcriptPath).toBeTypeOf('string');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('persists state changes as patches for changed records', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      for (let index = ZERO; index < THREE; index += 1) {
+        enqueuePlan({ finalText: `done ${index}` });
+        await h.callTool('task', { description: `Patch job ${index}`, prompt: 'go', subagent_type: 'general-purpose' });
+      }
+      const states = h.getEntries().filter((entry) => entry.customType === 'pi-subagents-state');
+      expect(states.length).toBeGreaterThan(THREE);
+      const counts = states.map((entry) => double<{ readonly sessions: readonly unknown[] }>(entry.data).sessions.length);
+      expect(Math.max(...counts)).toBe(ONE);
     } finally {
       await h.cleanup();
     }
@@ -1120,12 +1170,11 @@ describe('state snapshots and shutdown', () => {
       expect(runningRecord?.transcriptItems === undefined || runningRecord.transcriptItems.length === ZERO).toBe(true);
       gate.release();
       await h.callTool('await_subagent', { agent_id: running.details?.agentId });
-      const finalState = h
+      const finalSessions = h
         .getEntries()
         .filter((entry) => entry.customType === 'pi-subagents-state')
-        .at(-ONE);
-      const finalSessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(finalState?.data).sessions;
-      expect(finalSessions.find((session) => session.agentId === completed.details?.agentId)?.transcriptItems?.some((item) => item.text.includes('completed reply'))).toBe(true);
+        .flatMap((entry) => double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(entry.data).sessions);
+      expect(finalSessions.findLast((session) => session.agentId === completed.details?.agentId)?.transcriptItems?.some((item) => item.text.includes('completed reply'))).toBe(true);
     } finally {
       await h.cleanup();
     }
