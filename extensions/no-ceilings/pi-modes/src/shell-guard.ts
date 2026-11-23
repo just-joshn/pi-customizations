@@ -600,8 +600,8 @@ function isAllowedGit(words: readonly string[]): boolean {
     return false;
   }
   if (subcommand === 'show') {
-    const flags = args.slice(1);
-    if (hasSignatureFormat(flags) || hasLongFlag(flags, ['--show-signature']) || !hasLongFlag(flags, ['--no-show-signature']) || !hasExplicitLogFormat(flags)) {
+    const options = gitOptionWords(args.slice(1));
+    if (hasSignatureFormat(options) || hasLongFlag(options, ['--show-signature']) || !hasLongFlag(options, ['--no-show-signature']) || !hasExplicitLogFormat(options)) {
       return false;
     }
   }
@@ -619,19 +619,31 @@ function isAllowedGit(words: readonly string[]): boolean {
     return noOptionalLocks && fsmonitorOff && !hasLongFlag(args.slice(1), ['--dirty', '--broken']);
   }
   if (subcommand === 'diff-tree') {
-    return noOptionalLocks && fsmonitorOff && !hasLongFlag(args.slice(1), ['--show-signature']) && isAllowedDiffArgs(args);
+    const options = gitOptionWords(args.slice(1));
+    return noOptionalLocks && fsmonitorOff && !hasLongFlag(options, ['--show-signature']) && !hasSignatureFormat(options) && isAllowedDiffArgs(args);
+  }
+  if (subcommand === 'whatchanged') {
+    const options = gitOptionWords(args.slice(1));
+    return !hasLongFlag(options, ['--show-signature']) && !hasSignatureFormat(options) && isAllowedDiffArgs(args);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
   }
   if (subcommand === 'log') {
     const flags = args.slice(1);
+    const options = gitOptionWords(flags);
     return (
-      hasLongFlag(flags, ['--no-show-signature']) && hasExplicitLogFormat(flags) && !hasLongFlag(flags, ['--show-signature']) && !hasSignatureFormat(flags) && !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags))
+      hasLongFlag(options, ['--no-show-signature']) &&
+      hasExplicitLogFormat(options) &&
+      !hasLongFlag(options, ['--show-signature']) &&
+      !hasSignatureFormat(options) &&
+      !hasDangerousDiffFlag(flags) &&
+      (!hasPatchFlag(flags) || hasSafeDiffFlags(flags))
     );
   }
   if (subcommand === 'rev-list') {
-    return !hasSignatureFormat(args.slice(1)) && !hasLongFlag(args.slice(1), ['--show-signature']);
+    const options = gitOptionWords(args.slice(1));
+    return !hasSignatureFormat(options) && !hasLongFlag(options, ['--show-signature']);
   }
   if (subcommand === 'cat-file') {
     return !hasLongFlag(args.slice(1), ['--textconv', '--filters']);
