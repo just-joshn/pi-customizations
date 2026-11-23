@@ -516,6 +516,13 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
   });
 
+  it('prefers an exact discovered name over a built-in alias', () => {
+    const definitions = [makeDefinition({ name: 'bash', source: 'workspace' }), makeDefinition({ name: 'shell' }), makeDefinition({ name: 'general-purpose' })];
+    expect(resolveSubagentDefinition(definitions, 'bash')?.name).toBe('bash');
+    expect(resolveSubagentDefinition(definitions, 'Bash')?.name).toBe('bash');
+    expect(resolveSubagentDefinition([makeDefinition({ name: 'shell' }), makeDefinition({ name: 'general-purpose' })], 'bash')?.name).toBe('shell');
+  });
+
   it('resolves documented subagent type aliases', () => {
     const definitions = [makeDefinition({ name: 'shell' }), makeDefinition({ name: 'general-purpose' }), makeDefinition({ name: 'explore' })];
     expect(resolveSubagentDefinition(definitions, 'bash')?.name).toBe('shell');
@@ -563,6 +570,12 @@ describe('adversary regressions', () => {
       'explore the codebase and swap the two arguments',
       'explore the codebase and drop the deprecated field',
       'explore the codebase and strip the unused imports',
+      'explore the repo and make the tests pass',
+      'explore the repo and address the TODOs',
+      'explore the repo and improve the error messages',
+      'explore the repo and rework the parser',
+      'explore the repo and get the build green',
+      'explore the repo and ensure the linter is clean',
     ]) {
       expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
     }
@@ -582,9 +595,50 @@ describe('adversary regressions', () => {
       'explore the auth flow. Do not edit, add, or delete anything.',
       'explore the auth flow and report what to change; do not modify, add, or delete files',
       'explore the auth flow without modifying, adding, or deleting files',
+      'explore the repo. Do not edit/add/delete anything.',
+      'explore the repo. Do not edit — add — or delete anything.',
+      'explore the repo. Do not edit (or add or delete) anything.',
+      'explore the repo. Do not, under any circumstances, edit files.',
+      'explore the repo. Under no circumstances should you edit files.',
     ]) {
       expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('explore');
     }
+  });
+
+  it('does not let a negation swallow a later imperative', () => {
+    const definitions = [makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    for (const text of ['explore the repo. No tests, but fix the parser.', 'explore the repo. Never mind, fix the parser.']) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
+    }
+  });
+
+  it('keeps a named read-only agent for report-only tasks', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'update-auditor', description: 'Audits release updates', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'general-purpose', description: '' }),
+    ];
+    for (const text of [
+      'explore the repo and report the format of the config files',
+      'explore how to create the app from the docs',
+      'explore the set of options available',
+      'explore the repo and explain the update path',
+      'explore the repo and find where we update the version',
+    ]) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('explore');
+    }
+    expect(selectSubagentType(definitions, { description: 'Use update-auditor to inspect the changelog', prompt: '' })).toBe('update-auditor');
+    expect(selectSubagentType(definitions, { description: 'Ask update-auditor what changed in the release', prompt: '' })).toBe('update-auditor');
+  });
+
+  it('does not auto-select a read-only agent when no writable agent is available', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'reviewer', description: 'Reviews changes read-only', permissionMode: 'readonly' }),
+    ];
+    const selected = selectSubagentType(definitions, { description: 'explore the repo and fix the parser', prompt: '' });
+    expect(selected).toBe('general-purpose');
+    expect(resolveSubagentDefinition(definitions, selected)).toBeUndefined();
   });
 
   it('blocks reflog mutations, non-slash sed execute flags, and mutating date or hostname calls', () => {

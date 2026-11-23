@@ -965,6 +965,28 @@ describe('read-only floors and retry safety', () => {
       await h.cleanup();
     }
   });
+  it('keeps call-level read-only mode when a resume passes readonly false', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Read only job', prompt: 'go', subagent_type: 'general-purpose', readonly: true });
+      expect(first.details?.readonly).toBe(true);
+      const firstFactories = (loaderOptions['extensionFactories'] as readonly unknown[]).length;
+      enqueuePlan({ finalText: 'resumed' });
+      const resumed = await h.callTool('task', {
+        description: 'Read only job',
+        prompt: 'again',
+        subagent_type: 'general-purpose',
+        resume: first.details?.agentId,
+        readonly: false,
+      });
+      expect(resumed.details?.readonly).toBe(true);
+      expect((loaderOptions['extensionFactories'] as readonly unknown[]).length).toBe(firstFactories);
+    } finally {
+      await h.cleanup();
+    }
+  });
 
   it('does not retry a refused resume into a fresh run', async () => {
     const h = createTestHarness();
