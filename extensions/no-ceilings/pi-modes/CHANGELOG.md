@@ -32,6 +32,7 @@
 - Read-only shell guard refuses `git apply --build-fake-ancestor`. Plan completion and step extraction reject qualifiers and trailing conditions, keep later steps after an earlier negation, and accept present-tense modal confirmations. Appearance writes preserve a BOM and handle flow maps with leading comments. Skill references ignore system-root paths such as `/tmp` and `/dev`.
 - Read-only shell guard rejects `git branch --color` and cosmetic tag flags as ref creation, zsh `=(...)` process substitution, BSD `sed -I`, and package-manager `audit --fix=...`.
 - Read-only shell guard rejects `>&<digit><suffix>` redirects, while keeping `2>&1` and `>&2`. Startup `--mode` and `--plan` selections now persist their state and tool baseline, so resume restores the mode and `/mode agent` restores edit and write.
+- Read-only shell guard rejects `git grep` pager flags inside short-option clusters. Bun is restricted to its real read-only verbs, so `bun view`, `bun ls`, and `bun search` cannot fall through to package scripts.
 - User prompts and extension triggers both start runs with mode guidance. If the transcript is compacted, Pi gets the same entry, exit, and one-message skill instructions for that run.
 - The mode picker disambiguates a custom row that matches a built-in row, and `/mode <title starting with a built-in name>` resolves the full title instead of the built-in.
 - Resuming a custom mode no longer writes a duplicate copy of its state.

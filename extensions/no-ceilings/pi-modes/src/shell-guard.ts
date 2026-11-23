@@ -645,7 +645,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'grep') {
     const flags = args.slice(1);
-    return !hasLongFlag(flags, ['--textconv', '--open-files-in-pager']) && !flags.some((arg) => arg.startsWith('-O') && !arg.startsWith('--'));
+    return !hasLongFlag(flags, ['--textconv', '--open-files-in-pager']) && !flags.some((arg) => arg.startsWith('-') && !arg.startsWith('--') && arg.slice(ONE).includes('O'));
   }
   if (subcommand === 'branch') {
     return isAllowedBranchArgs(args.slice(1));
@@ -744,7 +744,17 @@ function isAllowedSegment(words: readonly string[]): boolean {
   if (command === 'python' || command === 'python3') {
     return args.length === TWO && (args[1] === '--version' || args[1] === '-V');
   }
-  if (command === 'bun' || command === 'npm' || command === 'pnpm' || command === 'yarn') {
+  if (command === 'bun') {
+    if (args.length === TWO && (args[1] === '--version' || args[1] === '-v')) {
+      return true;
+    }
+    const verb = args[1];
+    if (verb === 'audit') {
+      return !args.slice(TWO).some((word) => word === 'fix' || word === '--fix' || word.startsWith('--fix='));
+    }
+    return verb === 'list' || verb === 'info' || verb === 'outdated' || verb === 'why';
+  }
+  if (command === 'npm' || command === 'pnpm' || command === 'yarn') {
     if (args.length === TWO && (args[1] === '--version' || args[1] === '-v')) {
       return true;
     }
