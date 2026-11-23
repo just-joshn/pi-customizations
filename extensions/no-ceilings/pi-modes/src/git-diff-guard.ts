@@ -1,4 +1,4 @@
-import { TWO } from './types.ts';
+import { TWO, ZERO } from './types.ts';
 
 export const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'diff-files', 'diff-index', 'whatchanged']);
 
@@ -23,12 +23,19 @@ const PATCH_FLAGS = new Set<string>([
   '--word-diff',
 ]);
 
+export function gitOptionWords(words: readonly string[]): readonly string[] {
+  const separator = words.indexOf('--');
+  return separator < ZERO ? words : words.slice(ZERO, separator);
+}
+
 export function hasPatchFlag(words: readonly string[]): boolean {
-  return words.some((word) => PATCH_FLAGS.has(word) || word.startsWith('-U') || word.startsWith('-S') || word.startsWith('-G') || word.startsWith('--unified=') || word.startsWith('--diff-merges=') || word.startsWith('--word-diff='));
+  const options = gitOptionWords(words);
+  return options.some((word) => PATCH_FLAGS.has(word) || word.startsWith('-U') || word.startsWith('-S') || word.startsWith('-G') || word.startsWith('--unified=') || word.startsWith('--diff-merges=') || word.startsWith('--word-diff='));
 }
 
 export function hasDangerousDiffFlag(words: readonly string[]): boolean {
-  return words.some((word) => {
+  const options = gitOptionWords(words);
+  return options.some((word) => {
     if (!word.startsWith('--')) {
       return false;
     }
@@ -38,7 +45,8 @@ export function hasDangerousDiffFlag(words: readonly string[]): boolean {
 }
 
 export function hasSafeDiffFlags(words: readonly string[]): boolean {
-  return SAFE_DIFF_FLAGS.every((flag) => words.includes(flag));
+  const options = gitOptionWords(words);
+  return SAFE_DIFF_FLAGS.every((flag) => options.includes(flag));
 }
 
 export function isAllowedDiffArgs(words: readonly string[]): boolean {

@@ -1,4 +1,5 @@
-import { DIFF_READ_SUBCOMMANDS, hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
+import { DIFF_READ_SUBCOMMANDS, gitOptionWords, hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
+import { isAllowedTagArgs } from './git-tag-guard.ts';
 import { hasBraceExpansion, isPathnameExpansionChar, startsShellExpansion } from './shell-expansions.ts';
 import { ONE, TWO, ZERO } from './types.ts';
 
@@ -12,6 +13,7 @@ const LESS_THAN = '<';
 const GREATER_THAN = '>';
 const DOLLAR = '$';
 const OPEN_PAREN = '(';
+const CLOSE_PAREN = ')';
 const OPEN_BRACE = '{';
 const EQUALS = '=';
 const BACKTICK = '`';
@@ -21,8 +23,6 @@ const READ_ONLY_COMMANDS = new Set<string>([
   'cat',
   'head',
   'tail',
-  'less',
-  'more',
   'grep',
   'rg',
   'find',
@@ -203,6 +203,9 @@ function lexCommand(command: string): LexedCommand {
       safe = false;
     }
     if (char === OPEN_BRACE && hasBraceExpansion(command, index)) {
+      safe = false;
+    }
+    if (char === OPEN_PAREN || char === CLOSE_PAREN) {
       safe = false;
     }
     if (char === EQUALS && command[index + 1] === OPEN_PAREN) {
@@ -505,56 +508,6 @@ function sedScripts(words: readonly string[]): readonly string[] {
   return scripts;
 }
 
-const TAG_LIST_FLAGS = new Set<string>(['-l', '--list', '-n', '--contains', '--no-contains', '--points-at', '--merged', '--no-merged']);
-
-const TAG_PASSIVE_FLAGS = new Set<string>(['-i', '--ignore-case', '--no-ignore-case', '--column', '--no-column', '--color', '--no-color', '--sort', '--format', '--omit-empty', '--no-omit-empty']);
-
-const TAG_VERIFY_FLAGS = new Set<string>(['-v', '--verify']);
-
-function tagReadKind(arg: string): 'list' | 'verify' | 'passive' | undefined {
-  if (/^-n[0-9]+$/.test(arg)) {
-    return 'list';
-  }
-  const name = arg.split('=')[0] ?? '';
-  if (TAG_LIST_FLAGS.has(name)) {
-    return 'list';
-  }
-  if (TAG_VERIFY_FLAGS.has(name)) {
-    return 'verify';
-  }
-  if (TAG_PASSIVE_FLAGS.has(name)) {
-    return 'passive';
-  }
-  return undefined;
-}
-
-/** Listing, filtering, and signature checks. Only those read flags are accepted. `-d` and `--force` write. */
-function isAllowedTagArgs(args: readonly string[]): boolean {
-  if (args.length === ZERO) {
-    return true;
-  }
-  let listMode = false;
-  let verifyMode = false;
-  let positional = false;
-  for (const arg of args) {
-    if (arg.startsWith('-')) {
-      const kind = tagReadKind(arg);
-      if (kind === undefined) {
-        return false;
-      }
-      if (kind === 'list') {
-        listMode = true;
-      }
-      if (kind === 'verify') {
-        verifyMode = true;
-      }
-      continue;
-    }
-    positional = true;
-  }
-  return !positional || listMode || verifyMode;
-}
-
 const BRANCH_DENIED_LONG = ['--delete', '--delete-merged', '--move', '--copy', '--force', '--set-upstream-to', '--unset-upstream', '--edit-description'];
 const BRANCH_DENIED_SHORT = new Set<string>(['d', 'D', 'm', 'M', 'c', 'C', 'f', 'u']);
 
@@ -608,6 +561,10 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
     return false;
+  }
+  if (subcommand === 'status') {
+    const options = gitOptionWords(args.slice(1));
+    return !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
