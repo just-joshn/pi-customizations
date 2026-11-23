@@ -66,7 +66,7 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   tree: ['--output'],
   sed: ['--in-place', '--file'],
   bat: ['--pager', '--config-file', '--generate-config-file'],
-  file: ['--compile'],
+  file: ['--compile', '--preserve-date'],
 };
 
 /** Short options whose letter inside a cluster writes, runs a program, or names an unread script, as in `sort -nro out` or `sed -nf`. */
@@ -74,7 +74,7 @@ const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
   sort: ['o', 'T'],
   tree: ['o'],
   fd: ['x', 'X'],
-  file: ['C'],
+  file: ['C', 'p'],
 };
 
 /** Short options that are complete words and take a separate argument, as in `find -exec`. */
@@ -203,8 +203,12 @@ function lexCommand(command: string): LexedCommand {
       const fdTarget = command[index + 1] === '&' ? (command[index + 2] ?? '') : '';
       const afterFd = command[index + 3];
       if (DIGIT.test(fdTarget) && (afterFd === undefined || WHITESPACE.test(afterFd) || SEGMENT_SEPARATORS.has(afterFd))) {
-        word += `>&${fdTarget}`;
-        hasWord = true;
+        if (word.length > ZERO && !/^[0-9]+$/.test(word)) {
+          endWord();
+        } else {
+          word += `>&${fdTarget}`;
+          hasWord = true;
+        }
         index += 3;
         continue;
       }
