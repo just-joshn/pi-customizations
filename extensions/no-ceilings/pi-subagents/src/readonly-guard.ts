@@ -7,6 +7,7 @@ export const READONLY_BLOCKED_TOOLS: ReadonlySet<string> = new Set(['write', 'ed
 const MCP_TOOL_PREFIX = 'mcp__';
 const DEV_NULL = '/dev/null';
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
+const SANDBOX_SHELL = '/bin/ksh';
 const READONLY_TEMP_ROOT = '/tmp/pi-subagents-readonly';
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
@@ -35,6 +36,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bgit\s+reflog\s+(?:expire|delete)\b/i,
   /\bgit\s+grep\b.*(?:\s-O|--open-files-in-pager(?:=|\s|$))/,
+  /\bgit\b.*\s--(?:ext-diff|textconv)\b/,
   /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
   /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s])(?:\\[\s\S]|.)*?\1(?:\\[\s\S]|.)*?\1[^\s'"\\]*[wWeE]|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
   /\b(?:sed|awk)\b.*(?:\s-f\b|\s--file\b)/,
@@ -48,6 +50,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brg\b.*\s--pre(?:=|\s)/i,
   /\bawk\b.*\b(?:system|getline)\b/i,
   /\bawk\b.*\s-i\s+inplace\b/i,
+  /\bawk\b.*\|/,
   /^\s*env\s+\S/i,
   /\bsort\b.*\s(?:--compress-program(?:=|\s|$))/i,
   /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
@@ -208,21 +211,17 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-const HERE_DOC_DIRS = ['/private/var/tmp', '/var/tmp'] as const;
-
 function sandboxProfile(tempRoot: string): string {
   const devNull = `(allow file-write* (literal "${DEV_NULL}"))`;
   const temp = `(allow file-write* (subpath "${tempRoot}"))`;
-  // macOS bash writes here-documents to /var/tmp/sh-thd-<digits> and does not use TMPDIR.
-  const hereDocs = HERE_DOC_DIRS.map((dir) => `(allow file-write* (literal "${dir}"))(allow file-write* (regex #"^${dir}/sh-thd-[0-9]+$"))`).join('');
-  return `(version 1)(allow default)(deny file-write*)${devNull}${temp}${hereDocs}`;
+  return `(version 1)(allow default)(deny file-write*)${devNull}${temp}`;
 }
 
 function readonlySandboxInvocation(command: string, tempRoot: string): string {
   const profile = shellQuote(sandboxProfile(tempRoot));
   const template = shellQuote(`${tempRoot}/tmp.XXXXXX`);
   const quoted = shellQuote(command);
-  const run = `TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p ${profile} /bin/sh -c ${quoted}`;
+  const run = `TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p ${profile} ${SANDBOX_SHELL} -c ${quoted}`;
   return `_pi_tmp=$(mktemp -d ${template}) || exit 1; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
 }
 

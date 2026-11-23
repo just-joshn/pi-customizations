@@ -107,7 +107,6 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
       resolve();
     };
     const timer = setTimeout(finish, ms);
-    timer.unref?.();
     signal.addEventListener('abort', finish, { once: true });
   });
 }
@@ -372,7 +371,6 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
   const raceResult = await new Promise<'done' | 'timeout' | 'aborted'>((resolveRace) => {
     let settled = false;
     const timer = timeoutMs !== undefined && Number.isFinite(timeoutMs) ? setTimeout(() => finish('timeout'), timeoutMs) : undefined;
-    timer?.unref?.();
     function finish(value: 'done' | 'timeout' | 'aborted'): void {
       if (settled) {
         return;

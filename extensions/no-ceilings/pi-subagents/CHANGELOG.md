@@ -39,7 +39,7 @@
 - A discovered agent whose name matches a built-in alias, such as `bash`, resolves to that agent. The alias applies only when no discovered agent has that name.
 - Negated write lists cover slashes, dashes, parentheses, and `under no circumstances`, including a negation split by extra words in the same sentence.
 - Persisted transcripts are kept for the three most recently updated finished runs. Success, error, and cancelled runs are eligible, including mid-run snapshots and completion saves.
-- Read-only bash on macOS runs under `sandbox-exec`, which denies filesystem writes except `/dev/null`, a private temp directory at `/tmp/pi-subagents-readonly`, and here-document files named `sh-thd-<digits>` in `/var/tmp`. The wrapper sets `TMPDIR` to a fresh directory under that root and removes it after the command. Writes outside those paths stay denied. `git grep -O` and `--open-files-in-pager` are blocked.
+- Read-only bash on macOS runs under `sandbox-exec`, which allows filesystem writes only under a private temp directory at `/tmp/pi-subagents-readonly` and `/dev/null`. The wrapper sets `TMPDIR` to a fresh directory under that root, runs the command with `/bin/ksh`, and removes the directory after the command. Writes outside those paths stay denied. `git grep -O` and `--open-files-in-pager` are blocked.
 - `/tasks abort` cancels a foreground launch during `git worktree add` and discards the worktree and branch.
 - Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, converting, replacing, setting, inserting, applying, generating, simplifying, cleaning up, swapping, dropping, and stripping as write intent, and prefers the longest overlapping agent name. A negation covers a coordinated verb list such as `do not edit, add, or delete`. `what to change` is not write intent. Description keywords are counted once. Agent names that differ only by case collapse to one definition.
 - Restoring an in-flight run marks it cancelled and stores a failure id. The status widget header keeps completed-run counts while another run is active.
@@ -123,6 +123,8 @@
 - A resume keeps background mode when the caller omits `run_in_background`.
 - A child session prepends the agent prompt and still inherits project and user `APPEND_SYSTEM.md`.
 - The tasks pager `k` aborts a foreground run as well as a background run. `b` still backgrounds only a foreground run.
+- Read-only sandbox writes are allowed only in the private temp root and `/dev/null`. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked.
+- Retry backoff and `await_subagent` timeouts stay referenced, so `pi -p` waits for a retried child instead of exiting 0 with no result.
 
 ## 0.1.4
 
