@@ -72,7 +72,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bawk\b.*\s-i\s+inplace\b/i,
   /\bawk\b.*\|/,
   /^\s*env\s+\S/i,
-  /\bsort\b.*\s--comp(?:[a-z-]*)(?:=|\s|$)/i,
+  /\bsort\b.*\s--co(?:[a-z-]*)(?:=|\s|$)/i,
   /\bsort\b.*\s(?:-o\S*|--o(?:[a-z]*)(?:=|\s|$))/i,
   /\btree\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   GIT_OUTPUT_PATTERN,
@@ -84,7 +84,7 @@ const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
   /^\s*(cat|head|tail|wc|nl|file|stat|ls|ll|la|tree|pwd|which|whereis|type|realpath|readlink|basename|dirname|env|printenv|echo|printf|uname|whoami|id)\b/,
   /^\s*date(?:\s+(?:-[uR]|--utc|--universal|-d\s+(?:'[^']*'|"[^"]*"|\S+)|--date(?:=|\s)(?:'[^']*'|"[^"]*"|\S+)|\+\S+|'\+(?:[^'\\]|\\.)*'|"\+(?:[^"\\]|\\.)*"))*\s*$/,
   /^\s*hostname(?:\s+--?[A-Za-z0-9][-A-Za-z0-9]*)*\s*$/,
-  /^\s*(find|fd|rg|ripgrep|grep|egrep|fgrep|ag|ack|awk|sed|cut|sort|uniq|tr|jq|yq|diff|cmp|comm|md5|sha256sum|shasum)\b/,
+  /^\s*(find|fd|rg|ripgrep|grep|egrep|fgrep|awk|sed|cut|sort|uniq|tr|jq|yq|diff|cmp|comm|md5|sha256sum|shasum)\b/,
   /^\s*git\s+(status|log|diff|show|rev-parse|describe|blame|ls-files|ls-tree|shortlog|reflog|grep|config\s+--get|config\s+--list)\b/,
   /^\s*git\s+branch(?:\s+(?:-[arv]+|--list|--show-current))?\s*$/,
   /^\s*git\s+tag(?:\s+-l(?:\s+\S+)?)?\s*$/,
@@ -383,7 +383,7 @@ function hasUnquotedLineContinuation(command: string): boolean {
 }
 
 function hasPagerCommand(command: string): boolean {
-  return /(?:^|[|;&])\s*(?:less|more)\b/.test(command);
+  return /(?:^|[|;&])\s*(?:less|more|ag|ack)\b/.test(command);
 }
 
 function blocksExternalViewer(command: string): boolean {
