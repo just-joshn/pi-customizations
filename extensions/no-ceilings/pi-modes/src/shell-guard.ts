@@ -1,5 +1,5 @@
-import { hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
-import { hasBraceExpansion } from './shell-expansions.ts';
+import { DIFF_READ_SUBCOMMANDS, hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
+import { hasBraceExpansion, isPathnameExpansionChar, startsShellExpansion } from './shell-expansions.ts';
 import { ONE, TWO, ZERO } from './types.ts';
 
 const SEGMENT_SEPARATORS = new Set<string>([';', '\n', '|', '&']);
@@ -164,7 +164,7 @@ function lexCommand(command: string): LexedCommand {
       if (next === '\n') {
         // Bash removes a line continuation before it parses the command, which can join an expansion.
         const after = command[index + 2];
-        if (word.endsWith(DOLLAR) && (after === OPEN_PAREN || after === OPEN_BRACE || after === SINGLE_QUOTE || after === DOUBLE_QUOTE)) {
+        if (word.endsWith(DOLLAR) && startsShellExpansion(after)) {
           safe = false;
         }
         index += 2;
@@ -183,8 +183,11 @@ function lexCommand(command: string): LexedCommand {
         index += 1;
         continue;
       }
-      if (char === DOLLAR && (command[index + 1] === OPEN_PAREN || command[index + 1] === OPEN_BRACE)) {
-        safe = false;
+      if (char === DOLLAR) {
+        const next = command[index + 1];
+        if (next !== DOUBLE_QUOTE && next !== SINGLE_QUOTE && startsShellExpansion(next)) {
+          safe = false;
+        }
       }
       if (char === BACKTICK) {
         safe = false;
@@ -194,14 +197,15 @@ function lexCommand(command: string): LexedCommand {
       index += 1;
       continue;
     }
-    if (char === DOLLAR) {
-      const next = command[index + 1];
+    if (char === DOLLAR && startsShellExpansion(command[index + 1])) {
       // Locale and ANSI-C quoting decode the argument, and parameter expansion runs before argv is fixed.
-      if (next === SINGLE_QUOTE || next === DOUBLE_QUOTE || next === OPEN_BRACE) {
-        safe = false;
-      }
+      safe = false;
     }
     if (char === OPEN_BRACE && hasBraceExpansion(command, index)) {
+      safe = false;
+    }
+    if (isPathnameExpansionChar(char)) {
+      // Unquoted pathname expansion can turn a filename into an option.
       safe = false;
     }
     if (char === SINGLE_QUOTE || char === DOUBLE_QUOTE) {
@@ -591,8 +595,6 @@ function isAllowedBranchArgs(args: readonly string[]): boolean {
   return true;
 }
 
-const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'diff-files', 'diff-index', 'whatchanged']);
-
 function isAllowedGit(words: readonly string[]): boolean {
   // Skip the global options that only choose the repository or the pager.
   let subcommandIndex = 1;
@@ -745,8 +747,11 @@ function isAllowedSegment(words: readonly string[]): boolean {
   if (command === 'env') {
     return args.length === 1;
   }
-  if (command === 'node' || command === 'python' || command === 'python3' || command === 'tsc') {
+  if (command === 'node' || command === 'tsc') {
     return args.length === TWO && (args[1] === '--version' || args[1] === '-v');
+  }
+  if (command === 'python' || command === 'python3') {
+    return args.length === TWO && (args[1] === '--version' || args[1] === '-V');
   }
   if (command === 'bun' || command === 'npm' || command === 'pnpm' || command === 'yarn') {
     if (args.length === TWO && (args[1] === '--version' || args[1] === '-v')) {

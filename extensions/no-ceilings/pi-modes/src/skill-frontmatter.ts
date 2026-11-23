@@ -161,20 +161,30 @@ function splitFlowEntries(inner: string): readonly string[] {
 }
 
 function expandFlowFrontmatter(lines: readonly string[]): readonly string[] {
-  if (lines.length !== EMPTY_BLOCK_LINES) {
+  const joined = lines.join('\n').trim();
+  if (!joined.startsWith(FLOW_OPEN)) {
     return lines;
   }
-  const line = (lines[ZERO] ?? '').trim();
-  if (!line.startsWith(FLOW_OPEN) || !line.endsWith(FLOW_CLOSE)) {
+  const close = joined.lastIndexOf(FLOW_CLOSE);
+  if (close < ZERO) {
     return lines;
   }
-  const inner = line.slice(ONE, -ONE).trim();
+  const trailing = joined.slice(close + ONE).trim();
+  if (trailing.length > ZERO && !trailing.startsWith('#')) {
+    return lines;
+  }
+  const inner = joined.slice(ONE, close).trim();
   if (inner.length === ZERO) {
     return [];
   }
   return splitFlowEntries(inner).map((entry) => {
     const colon = entry.indexOf(FLOW_KEY_SEPARATOR);
-    return colon < ZERO ? entry : `${entry.slice(ZERO, colon).trim()}: ${entry.slice(colon + ONE).trim()}`;
+    if (colon < ZERO) {
+      return entry;
+    }
+    const rawKey = entry.slice(ZERO, colon).trim();
+    const key = rawKey.replace(/^(["'])(.*)\1$/, '$2');
+    return `${key}: ${entry.slice(colon + ONE).trim()}`;
   });
 }
 
@@ -187,7 +197,7 @@ function rewriteFrontmatter(content: string, mutate: (lines: readonly string[]) 
 }
 
 function keyPattern(key: string): RegExp {
-  return new RegExp(`^${key}${KEY_PATTERN_SUFFIX}`);
+  return new RegExp(`^(?:"${key}"|'${key}'|${key})${KEY_PATTERN_SUFFIX}`);
 }
 
 function lineIndent(line: string): number {

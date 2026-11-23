@@ -1,5 +1,7 @@
 import { TWO } from './types.ts';
 
+export const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'diff-files', 'diff-index', 'whatchanged']);
+
 const DANGEROUS_DIFF_FLAGS = ['--ext-diff', '--textconv'];
 const SAFE_DIFF_FLAGS = ['--no-ext-diff', '--no-textconv'];
 const PATCH_FLAGS = new Set<string>([
@@ -7,6 +9,7 @@ const PATCH_FLAGS = new Set<string>([
   '--patch',
   '--patch-with-stat',
   '--patch-with-raw',
+  '-c',
   '--cc',
   '--combined-all-paths',
   '--binary',

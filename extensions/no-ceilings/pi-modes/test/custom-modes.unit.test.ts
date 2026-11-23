@@ -208,6 +208,7 @@ describe('findReferencedCustomModes', () => {
   it('ignores unknown skills, file paths, and word-internal slashes', () => {
     expect(findReferencedCustomModes('read src/index.ts then /nope', modes)).toEqual([]);
     expect(findReferencedCustomModes('open the docs at /reviewer.md', modes)).toEqual([]);
+    expect(findReferencedCustomModes('read /reviewer/notes/before acting', modes)).toEqual([]);
     expect(findReferencedCustomModes('nothing to do here', modes)).toEqual([]);
   });
 
@@ -329,6 +330,28 @@ describe('writeSkillAppearance', () => {
     const skill = await readSkillDocument(skillPath, 'reviewer');
     expect(skill.colorId).toBe('blue');
     expect(skill.body).toBe('Review every diff.');
+  });
+
+  it('updates a multi-line flow map', async () => {
+    const skillPath = writeSkillFile('pi-modes-flow-multiline-', '---\n{name: reviewer,\n color: red}\n---\n\nReview every diff.\n');
+
+    await writeSkillAppearance(skillPath, { color: 'blue' });
+    const written = readFileSync(skillPath, 'utf-8');
+    expect(written).toContain('color: "blue"');
+    expect(written).toContain('Review every diff.');
+
+    const skill = await readSkillDocument(skillPath, 'reviewer');
+    expect(skill.colorId).toBe('blue');
+  });
+
+  it('updates a quoted color key without creating a duplicate', async () => {
+    const skillPath = writeSkillFile('pi-modes-quoted-key-', '---\nname: reviewer\n"color": red\n---\n\nBody here.\n');
+
+    await writeSkillAppearance(skillPath, { color: 'blue' });
+    const written = readFileSync(skillPath, 'utf-8');
+    expect(written).toContain('color: "blue"');
+    expect(written).not.toContain('"color":');
+    expect(written).toContain('Body here.');
   });
 
   it('writes color and icon on a skill Pi discovered as a direct markdown file and keeps the body', async () => {

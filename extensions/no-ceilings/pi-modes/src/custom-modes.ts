@@ -11,7 +11,7 @@ const MARKDOWN_EXT = '.md';
 const UNHYDRATED_PREFIX = 'unhydrated:';
 const CUSTOM_MODE_ID_PREFIX = 'custom-mode:';
 const REFERENCE_PATTERN = /(?:^|\s)\/[a-zA-Z0-9_-]/;
-const REFERENCE_TOKEN_PATTERN = /(?:^|\s)\/([a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-]|\.[a-zA-Z0-9])/g;
+const REFERENCE_TOKEN_PATTERN = /(?:^|\s)\/([a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-]|\.[a-zA-Z0-9]|\/)/g;
 
 export interface SlashCommandLike {
   readonly name: string;
@@ -147,7 +147,7 @@ function collectReferenceTokens(prompt: string): readonly string[] {
 }
 
 export function referencesSkill(prompt: string): boolean {
-  return REFERENCE_PATTERN.test(prompt);
+  return collectReferenceTokens(prompt).length > ZERO;
 }
 
 export function findReferencedCustomModes(prompt: string, modes: readonly CustomModeSkill[]): readonly CustomModeSkill[] {

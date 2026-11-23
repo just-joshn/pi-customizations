@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
-import { advancePlanSteps } from '../src/plan-progress.ts';
+import { advancePlanSteps, extractDoneStepNumbers } from '../src/plan-progress.ts';
 import { double, type TestHarness, useTestHarness } from './harness.ts';
 
 const ZERO = 0;
@@ -277,5 +277,31 @@ describe('plan completion phrases', () => {
   it('completes all steps when the assistant says all steps are done', () => {
     const advanced = advancePlanSteps('All steps are done.', steps);
     expect(advanced.every((step) => step.completed)).toBe(true);
+  });
+
+  it('ignores negated all steps and every step statements', () => {
+    for (const text of ['not all steps are done', 'never every step is finished']) {
+      expect(advancePlanSteps(text, steps).every((step) => !step.completed)).toBe(true);
+    }
+  });
+
+  it('ignores future all steps statements', () => {
+    const advanced = advancePlanSteps('I will continue until all steps are done.', steps);
+    expect(advanced.every((step) => !step.completed)).toBe(true);
+  });
+
+  it('does not complete on a substring inside another word', () => {
+    const advanced = advancePlanSteps('Overall steps are done for now; step 2 remains.', steps);
+    expect(advanced.every((step) => !step.completed)).toBe(true);
+  });
+});
+
+describe('plan step extraction', () => {
+  it('ignores a negated Done marker', () => {
+    expect(extractDoneStepNumbers('Status — Done: 2, Not done: 1')).toEqual([TWO]);
+  });
+
+  it('ignores a negated Step marker', () => {
+    expect(extractDoneStepNumbers('not Step 1 is done')).toEqual([]);
   });
 });
