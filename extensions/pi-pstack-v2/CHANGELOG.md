@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5
+
+### Changed
+
+- Add TypeScript 7 as a development dependency so `tsc` matches the compiler the other extensions use. No runtime change.
+
 ## 0.3.4
 
 ### Changed

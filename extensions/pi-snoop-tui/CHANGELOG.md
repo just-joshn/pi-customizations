@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Reformat the column spec table and remove stale lint suppression comments. No behavior change.
+
 ## 0.1.6
 
 - Update `README.md` user-prompt marker rule and the bench notes for historical results and environment handling.

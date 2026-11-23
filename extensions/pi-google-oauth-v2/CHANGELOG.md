@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9
+
+- Replace a stale lint suppression comment and make the authorization URL parameter conversion explicit. No behavior change.
+
 ## 0.1.8
 
 - Update `README.md` sign-in steps to match Pi's account-or-API-key login screen.

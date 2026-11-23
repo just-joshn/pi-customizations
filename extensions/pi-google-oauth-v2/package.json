@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-google-oauth-v2",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Use a Google AI plan in Pi by signing in with your Google account, with no API key.",
   "keywords": [
     "pi-package"

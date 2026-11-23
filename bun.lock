@@ -101,7 +101,7 @@
     },
     "extensions/pi-anthropic-oauth-v2": {
       "name": "@justjoshn/pi-anthropic-oauth-v2",
-      "version": "0.2.6",
+      "version": "0.2.7",
       "dependencies": {
         "@anthropic-ai/sdk": "1.10.0",
         "zod": "^4",
@@ -121,7 +121,7 @@
     },
     "extensions/pi-google-oauth-v2": {
       "name": "@justjoshn/pi-google-oauth-v2",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "dependencies": {
         "zod": "^4",
       },
@@ -140,7 +140,7 @@
     },
     "extensions/pi-pstack-v2": {
       "name": "@justjoshn/pi-pstack-v2",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "dependencies": {
         "@earendil-works/gondolin": "0.14.0",
         "minimatch": "11.0.3",
@@ -165,7 +165,7 @@
     },
     "extensions/pi-snoop-tui": {
       "name": "@justjoshn/pi-snoop-tui",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "dependencies": {
         "zod": "^4",
       },

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7
+
+- Replace a stale lint suppression comment with a plain explanation. No behavior change.
+
 ## 0.2.6
 
 - Update `README.md` to match the thinking-level map's null handling, the fixed Claude Code tool-name list, and the max-token budget increase.
