@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,7 +10,7 @@ import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, parseSubagentsConfig
 import { computeAgentDirectories, discoverSubagents, normalizeToolNames, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
 import { applyDefinitionToModel } from '../src/model-resolution.ts';
-import { evaluateReadonlySubagentGuard, isSafeReadOnlyCommand } from '../src/readonly-guard.ts';
+import { evaluateReadonlySubagentGuard, isSafeReadOnlyCommand, sandboxReadOnlyCommand } from '../src/readonly-guard.ts';
 import { createSubagentStore } from '../src/store.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
 import { reduceSubagentEvent } from '../src/transcript.ts';
@@ -430,6 +431,9 @@ describe('worktree helpers', () => {
     const snapshot = store.toPersistedState({ includeTranscriptItems: false });
     const withTranscripts = snapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
     expect(withTranscripts.length).toBeLessThanOrEqual(3);
+    const defaultSnapshot = store.toPersistedState();
+    const defaultWithTranscripts = defaultSnapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
+    expect(defaultWithTranscripts.length).toBeLessThanOrEqual(3);
     expect(JSON.stringify(snapshot).length).toBeLessThan(100_000);
   });
   it('slugifies descriptions and falls back when empty', () => {
@@ -526,6 +530,17 @@ describe('adversary regressions', () => {
     ];
     expect(selectSubagentType(definitions, { description: '', prompt: 'explore the repo and fix the bug' })).toBe('general-purpose');
     expect(selectSubagentType(definitions, { description: '', prompt: 'use explore to find where the bug is' })).toBe('explore');
+  });
+
+  it('treats changing, splitting, moving, and optimizing as write intent', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, and searching code', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'general-purpose', description: 'General-purpose agent for researching questions and executing multi-step tasks' }),
+    ];
+    for (const text of ['explore the codebase before changing the search', 'explore the codebase and split the parser', 'explore the codebase and move the helper', 'explore the codebase and optimize the search']) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
+    }
+    expect(selectSubagentType(definitions, { description: 'explore the codebase without changing any code', prompt: '' })).toBe('explore');
   });
 
   it('keeps an explicitly named read-only agent when write verbs are negated', () => {
@@ -653,6 +668,43 @@ describe('adversary regressions', () => {
     }
   });
 
+  it('blocks git grep pager execution and sandboxes safe bash calls', () => {
+    const pager = `git grep --open-files-in-pager="sh -c 'echo pwned > owned.txt'" needle`;
+    expect(isSafeReadOnlyCommand(pager)).toBe(false);
+    const pagerEvent = double<{ readonly type: 'tool_call'; readonly toolCallId: string; readonly toolName: string; input: { command: string } }>({
+      type: 'tool_call',
+      toolCallId: 'call-pager',
+      toolName: 'bash',
+      input: { command: pager },
+    });
+    expect(evaluateReadonlySubagentGuard(pagerEvent)?.block).toBe(true);
+
+    const safeEvent = double<{ readonly type: 'tool_call'; readonly toolCallId: string; readonly toolName: string; input: { command: string } }>({
+      type: 'tool_call',
+      toolCallId: 'call-safe',
+      toolName: 'bash',
+      input: { command: 'ls -la' },
+    });
+    expect(evaluateReadonlySubagentGuard(safeEvent)).toBeUndefined();
+    if (process.platform === 'darwin' && existsSync('/usr/bin/sandbox-exec')) {
+      expect(safeEvent.input.command).toContain('sandbox-exec');
+    }
+  });
+
+  it('denies writes when the read-only sandbox is available', () => {
+    const wrapped = sandboxReadOnlyCommand('echo hi');
+    if (process.platform !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
+      expect(wrapped).toBe('echo hi');
+      return;
+    }
+    expect(wrapped).toContain('sandbox-exec');
+    const dir = tempDir('readonly-sandbox-');
+    const target = join(dir, 'owned.txt');
+    const write = sandboxReadOnlyCommand(`echo pwned > ${target}`);
+    expect(() => execFileSync('/bin/sh', ['-c', write], { stdio: 'pipe' })).toThrow();
+    expect(existsSync(target)).toBe(false);
+  });
+
   it('maps Claude tool names onto Pi tool names', () => {
     const dir = tempDir('claude-tools-');
     writeFileSync(join(dir, 'reviewer.md'), ['---', 'name: reviewer', 'description: Reviews', 'tools: Read, Grep, Glob, Bash, Edit, Write, LS, MultiEdit', '---', 'Review.'].join('\n'));
@@ -696,6 +748,21 @@ describe('adversary regressions', () => {
     const definitions = [makeDefinition({ name: 'Code Reviewer', description: 'Reviews patches for correctness' }), makeDefinition({ name: 'general-purpose', description: '' })];
     expect(selectSubagentType(definitions, { description: 'Ask Code Reviewer to inspect the patch', prompt: '' })).toBe('Code Reviewer');
     expect(selectSubagentType(definitions, { description: 'Ask Code Reviewers to inspect the patch', prompt: '' })).toBe('general-purpose');
+  });
+
+  it('prefers the longest whole agent name when names overlap', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'explore security', description: 'Checks security headers', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'general-purpose', description: '' }),
+    ];
+    expect(selectSubagentType(definitions, { description: 'Ask explore security to check the headers', prompt: '' })).toBe('explore security');
+    expect(selectSubagentType(definitions, { description: 'explore the repo', prompt: '' })).toBe('explore');
+    const docs = [makeDefinition({ name: 'docs', description: 'Writes docs' }), makeDefinition({ name: 'docs writer', description: 'Writes documentation' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    expect(selectSubagentType(docs, { description: 'Ask the docs writer to update the guide', prompt: '' })).toBe('docs writer');
+    expect(selectSubagentType(docs, { description: 'ask docs to update the guide', prompt: '' })).toBe('docs');
+    const distinct = [makeDefinition({ name: 'docs writer', description: 'Writes documentation' }), makeDefinition({ name: 'security', description: 'Checks security' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    expect(selectSubagentType(distinct, { description: 'ask docs writer and security to review', prompt: '' })).toBe('general-purpose');
   });
 
   it('applies a top-level max-tokens cap to the child model', () => {

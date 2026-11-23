@@ -70,6 +70,18 @@ function installSlowGit(bin: string, match: string, flag: string): void {
   chmodSync(wrapper, 0o755);
 }
 
+function latestRunningAgentId(h: SubagentsTestHarness): string | undefined {
+  const state = h
+    .getEntries()
+    .filter((entry) => entry.customType === 'pi-subagents-state')
+    .at(-ONE);
+  if (state === undefined) {
+    return undefined;
+  }
+  const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string }[] }>(state.data).sessions;
+  return sessions.find((session) => session.status === 'running')?.agentId;
+}
+
 function persistedWorktreePath(h: SubagentsTestHarness, agentId: string): string | undefined {
   const state = h
     .getEntries()
@@ -909,6 +921,35 @@ describe('state growth and disabled defaults', () => {
       await h.cleanup();
     }
   });
+
+  it('aborts a foreground worktree launch from /tasks while git worktree add is running', async () => {
+    const h = createTestHarness();
+    const bin = join(h.cwd, 'bin');
+    const flag = join(h.cwd, 'worktree-add-started');
+    installSlowGit(bin, 'worktree', flag);
+    const previousPath = process.env['PATH'];
+    process.env['PATH'] = `${bin}:${previousPath ?? ''}`;
+    try {
+      initRepo(h.cwd);
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'should not run' });
+      const pending = h.callTool('task', { description: 'Abort from tasks', prompt: 'go', subagent_type: 'general-purpose', worktree: true });
+      await vi.waitFor(() => expect(existsSync(flag)).toBe(true));
+      const agentId = latestRunningAgentId(h);
+      expect(agentId).toBeTypeOf('string');
+      await h.runCommand('tasks', `abort ${agentId ?? ''}`);
+      const result = await pending;
+      expect(result.details?.status).toBe('cancelled');
+      expect(result.details?.worktreePath).toBeUndefined();
+      expect(promptCalls).toBe(ZERO);
+      const branches = execFileSync('git', ['branch', '--list', 'pi-subagents/*'], { cwd: h.cwd, encoding: 'utf8' }).trim();
+      expect(branches).toBe('');
+      expect(h.getNotifications().at(-ONE)?.message).toContain('Aborted subagent');
+    } finally {
+      process.env['PATH'] = previousPath;
+      await h.cleanup();
+    }
+  }, 30_000);
 });
 
 describe('read-only floors and retry safety', () => {
@@ -972,6 +1013,26 @@ describe('state snapshots and shutdown', () => {
       expect(runningRecord?.transcriptItems === undefined || runningRecord.transcriptItems.length === ZERO).toBe(true);
       gate.release();
       await h.callTool('await_subagent', { agent_id: running.details?.agentId });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('caps restored transcripts after four foreground completions', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      for (let index = ZERO; index < 4; index += 1) {
+        enqueuePlan({ finalText: `done ${index}` });
+        await h.callTool('task', { description: `Completed job ${index}`, prompt: 'go', subagent_type: 'general-purpose' });
+      }
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly transcriptPath?: string; readonly transcriptItems?: readonly unknown[] }[] }>(state?.data).sessions;
+      expect(sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO).length).toBeLessThanOrEqual(3);
+      expect(sessions[ZERO]?.transcriptPath).toBeTypeOf('string');
     } finally {
       await h.cleanup();
     }
