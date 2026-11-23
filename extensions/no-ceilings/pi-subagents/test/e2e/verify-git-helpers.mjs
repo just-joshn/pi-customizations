@@ -128,6 +128,15 @@ execFileSync('git', ['config', 'pager.grep', filterScript], { cwd: root });
 console.log('== configured grep pager');
 run('git grep -nO cat');
 execFileSync('git', ['config', '--unset-all', 'pager.grep'], { cwd: root });
+console.log('== abbreviated grep pager');
+run('git grep --open-f=/bin/sh cat');
+
+writeFileSync(join(root, '.git/info/attributes'), '* diff=evil\n');
+execFileSync('git', ['config', 'diff.evil.textconv', filterScript], { cwd: root });
+console.log('== reflog textconv');
+run('git reflog -p -1');
+execFileSync('git', ['config', '--unset-all', 'diff.evil.textconv'], { cwd: root });
+writeFileSync(join(root, '.git/info/attributes'), '');
 
 const gpgScript = join(root, 'gpg-helper.sh');
 writeFileSync(gpgScript, `#!/bin/sh\necho EXFIL:$(cat "${secret}") >&2\nprintf '%s\\n' '-----BEGIN PGP SIGNATURE-----' 'fake' '-----END PGP SIGNATURE-----'\n`);

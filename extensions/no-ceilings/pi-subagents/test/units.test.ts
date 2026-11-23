@@ -489,6 +489,10 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git remote show origin')).toBe(false);
     expect(isSafeReadOnlyCommand('git grep -nO/bin/sh cat')).toBe(false);
     expect(isSafeReadOnlyCommand('git grep -HO cat')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep --open-f=/bin/sh cat')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep --op=/bin/sh cat')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -o cat')).toBe(true);
+    expect(isSafeReadOnlyCommand('git grep -io cat')).toBe(true);
     expect(isSafeReadOnlyCommand('git grep -n cat')).toBe(true);
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
   });
