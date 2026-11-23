@@ -5,6 +5,7 @@ import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, type SubagentsConfig
 import { discoverSubagents, resolveSubagentDefinition } from './discovery.ts';
 import { emitSubagentEvent } from './events.ts';
 import { buildSubagentsContextPrompt } from './formatters.ts';
+import { resolvePackageAgentDirectories } from './package-agents.ts';
 import { runSubagentTask } from './runner.ts';
 import { createSubagentStore, type SubagentStore } from './store.ts';
 import { openTasksOverlay } from './tasks-overlay.ts';
@@ -137,8 +138,6 @@ function registerFlags(pi: ExtensionAPI): void {
 
 export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const store = createSubagentStore();
-  let definitions: readonly SubagentDefinition[] = [];
-  let definitionsKey: string | undefined;
   let config: SubagentsConfig | undefined;
   let configKey: string | undefined;
   let latestCtx: ExtensionContext | undefined;
@@ -173,12 +172,11 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     const nextConfig = loadConfig(ctx);
     config = nextConfig;
     configKey = cacheKey(ctx);
-    definitions = discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx) });
-    definitionsKey = cacheKey(ctx);
-    return definitions;
+    const packageAgentDirs = resolvePackageAgentDirectories(pi.getSettings().packages, ctx.cwd, getAgentDir(), projectTrust(ctx));
+    return discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx), packageAgentDirs });
   };
 
-  const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsKey !== cacheKey(ctx) ? reloadDefinitions(ctx) : definitions);
+  const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => reloadDefinitions(ctx);
 
   const onStateChanged = (options?: { readonly includeTranscriptItems?: boolean }): void => {
     if (extensionShutDown) {

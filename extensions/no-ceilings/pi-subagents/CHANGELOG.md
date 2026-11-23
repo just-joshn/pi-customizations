@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+
+- Discovery of agents shipped in configured Pi packages, including `@justjoshn/pi-pstack-team-kit`, so package agents do not need to be copied into an agent directory.
+
+### Fixed
+
+- The agent catalog refreshes on every lookup, so an agent file added after startup is available without `/agents reload`.
+
 ## 0.2.0
 
 ### Added

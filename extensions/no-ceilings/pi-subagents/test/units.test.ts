@@ -10,6 +10,7 @@ import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, parseSubagentsConfig
 import { computeAgentDirectories, discoverSubagents, normalizeToolNames, parseContextWindow, parseSubagentFile, resolveSubagentDefinition, selectSubagentType } from '../src/discovery.ts';
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
 import { applyDefinitionToModel } from '../src/model-resolution.ts';
+import { resolvePackageAgentDirectories } from '../src/package-agents.ts';
 import { evaluateReadonlySubagentGuard, isSafeReadOnlyCommand, sandboxReadOnlyCommand } from '../src/readonly-guard.ts';
 import { createSubagentStore } from '../src/store.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
@@ -114,6 +115,29 @@ describe('config', () => {
     const parsed = parseSubagentsConfig({ agents: { directories: ['tools/agents', '/abs/agents'], disabled: ['shell'] } }, undefined, { cwd: '/work/repo' });
     expect(parsed.config.extraAgentDirectories).toEqual(['/work/repo/tools/agents', '/abs/agents']);
     expect(parsed.config.disabledAgents).toEqual(['shell']);
+  });
+});
+
+describe('package agent directories', () => {
+  it('loads agents shipped by user and trusted project packages', () => {
+    const agentDir = tempDir('pkg-agent-');
+    const cwd = tempDir('pkg-cwd-');
+    const userAgents = join(agentDir, 'npm', 'node_modules', '@scope', 'pkg', 'agents');
+    const projectAgents = join(cwd, '.pi', 'npm', 'node_modules', 'project-pkg', 'agents');
+    mkdirSync(userAgents, { recursive: true });
+    mkdirSync(projectAgents, { recursive: true });
+
+    expect(resolvePackageAgentDirectories(['npm:@scope/pkg', 'npm:project-pkg'], cwd, agentDir, true)).toEqual([userAgents, projectAgents]);
+    expect(resolvePackageAgentDirectories(['npm:project-pkg'], cwd, agentDir, false)).toEqual([]);
+  });
+
+  it('loads agents shipped by a local package', () => {
+    const agentDir = tempDir('pkg-local-agent-');
+    const cwd = tempDir('pkg-local-cwd-');
+    const agents = join(agentDir, 'local-pkg', 'agents');
+    mkdirSync(agents, { recursive: true });
+
+    expect(resolvePackageAgentDirectories(['./local-pkg'], cwd, agentDir, false)).toEqual([agents]);
   });
 });
 
