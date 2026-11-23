@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Adversarial: measure parent session file growth across repeated delegated runs. */
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +48,7 @@ const server = await startFakeModelServer({
 });
 
 const root = mkdtempSync(join(tmpdir(), 'pi-subagents-disk-'));
+console.log(`evidence root: ${root}`);
 const profile = join(root, 'profile');
 const workspace = join(root, 'workspace');
 const sessions = join(workspace, 'sessions');
@@ -76,11 +77,33 @@ try {
   clearTimeout(timer);
   const files = readdirSync(sessions).filter((n) => n.endsWith('.jsonl'));
   const total = files.reduce((t, n) => t + statSync(join(sessions, n)).size, 0);
-  console.log(`exit=${status} elapsedMs=${Date.now() - started} runs=${parentTasks} childRounds=${childRounds} parentSessionBytes=${total} (${(total / 1048576).toFixed(2)} MiB)`);
+  const parentEntries = files.flatMap((name) =>
+    readFileSync(join(sessions, name), 'utf8')
+      .split('\n')
+      .filter((line) => line.trim().length > ZERO)
+      .map((line) => JSON.parse(line)),
+  );
+  const stateRecords = new Map();
+  for (const entry of parentEntries) {
+    if (entry.customType !== 'pi-subagents-state') {
+      continue;
+    }
+    for (const record of entry.data.sessions ?? []) {
+      stateRecords.set(record.agentId, record);
+    }
+  }
+  const successful = [...stateRecords.values()].filter((record) => record.status === 'success' && typeof record.transcriptPath === 'string');
+  const childDir = join(sessions, 'subagents');
+  const childFiles = existsSync(childDir) ? readdirSync(childDir).filter((name) => name.endsWith('.jsonl')) : [];
+  const childText = childFiles.map((name) => readFileSync(join(childDir, name), 'utf8')).join('\n');
+  const childRead = childText.includes('"name":"read"') || childText.includes('"name": "read"');
+  console.log(
+    `exit=${status} elapsedMs=${Date.now() - started} runs=${parentTasks} childRounds=${childRounds} successRecords=${successful.length} childTranscripts=${childFiles.length} childRead=${childRead} parentSessionBytes=${total} (${(total / 1048576).toFixed(2)} MiB)`,
+  );
   console.log('stdoutTail:', JSON.stringify(stdout.trim().slice(-120)));
-  const passed = status === 0 && parentTasks === RUNS && total < 2_000_000;
+  const passed = status === ZERO && parentTasks === RUNS && childRounds >= RUNS && successful.length >= RUNS && childRead && total < 2_000_000;
   if (!passed) {
-    console.error(`FAIL: expected ${RUNS} runs, exit 0, and a parent session under 2 MB`);
+    console.error(`FAIL: expected ${RUNS} successful runs, ${RUNS} child rounds, a child read call, and a parent session under 2 MB`);
     process.exitCode = 1;
   } else {
     console.log(`PASS: ${RUNS} runs kept the parent session under 2 MB`);

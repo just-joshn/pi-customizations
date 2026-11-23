@@ -484,9 +484,12 @@ describe('worktree helpers', () => {
 });
 
 describe('adversary regressions', () => {
-  it('blocks git help viewers and remote-show helpers', () => {
+  it('blocks git help viewers, remote-show helpers, and clustered grep pagers', () => {
     expect(isSafeReadOnlyCommand('git status --help')).toBe(false);
     expect(isSafeReadOnlyCommand('git remote show origin')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -nO/bin/sh cat')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -HO cat')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -n cat')).toBe(true);
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
   });
 

