@@ -220,6 +220,8 @@ const READONLY_GIT_CONFIG: readonly (readonly [string, string])[] = [
   ['diff.external', ''],
   ['core.pager', 'cat'],
   ['credential.helper', ''],
+  ['core.attributesFile', '/dev/null'],
+  ['protocol.ext.allow', 'never'],
 ];
 
 function isGitWordChar(char: string | undefined): boolean {
@@ -271,7 +273,7 @@ function hardenReadOnlyGitCommand(command: string): string {
   return hardened;
 }
 
-const FILTER_DISABLE_SHELL = `_pi_empty=$(git -c core.fsmonitor=false hash-object -t tree --stdin </dev/null 2>/dev/null || true); case $_pi_empty in [0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) export GIT_ATTR_SOURCE=$_pi_empty ;; esac; _pi_n=${READONLY_GIT_CONFIG.length}; _pi_drivers=$(git -c core.fsmonitor=false config --get-regexp '^filter\..*\.(clean|smudge|process)$' 2>/dev/null | sed 's/[[:space:]].*//; s/\.[^.]*$//' | sort -u || true); for _pi_driver in $_pi_drivers; do case $_pi_driver in filter.[A-Za-z0-9._-]*) ;; *) continue ;; esac; export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.clean"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.smudge"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.process"; export "GIT_CONFIG_VALUE_\${_pi_n}="; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.required"; export "GIT_CONFIG_VALUE_\${_pi_n}=false"; _pi_n=$((_pi_n + 1)); done`;
+const FILTER_DISABLE_SHELL = `_pi_empty=$(git -c core.fsmonitor=false hash-object -t tree --stdin </dev/null 2>/dev/null || true); case $_pi_empty in [0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) export GIT_ATTR_SOURCE=$_pi_empty ;; esac; _pi_n=${READONLY_GIT_CONFIG.length}; _pi_drivers=$(git -c core.fsmonitor=false config --get-regexp '^filter\..*\.(clean|smudge|process)$' 2>/dev/null | sed 's/[[:space:]].*//; s/\.[^.]*$//' | sort -u || true); for _pi_driver in $_pi_drivers; do case $_pi_driver in filter.*) ;; *) continue ;; esac; export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.clean"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.smudge"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.process"; export "GIT_CONFIG_VALUE_\${_pi_n}="; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.required"; export "GIT_CONFIG_VALUE_\${_pi_n}=false"; _pi_n=$((_pi_n + 1)); done`;
 
 function gitSafetyPrelude(): string {
   const configExports = READONLY_GIT_CONFIG.map(([key, value], index) => `export GIT_CONFIG_KEY_${index}=${key}; export GIT_CONFIG_VALUE_${index}='${value}'`).join('; ');
