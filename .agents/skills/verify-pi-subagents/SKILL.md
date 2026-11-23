@@ -114,13 +114,13 @@ Proof standards:
 
 ## Cleanup
 
-There is no daemon to kill. Each harness owns one `pi` child and one fake server and closes both when it exits. After copying evidence:
+There is no daemon to kill. Each harness owns one `pi` child and one fake server and closes both when it exits. After copying evidence, remove the temp root the harness printed:
 
 ```bash
 rm -rf "$RIG_ROOT"
 ```
 
-For the TUI, the cleanup is `tmux kill-session -t "$SESSION"`. Never kill by process name; kill only the session or process you started. Do not delete the evidence directory.
+For the TUI, the cleanup is `rm -rf "$RIG"` and `tmux kill-session -t "$SESSION"`. Never kill by process name; kill only the session or process you started. Do not delete the evidence directory.
 
 If a run is interrupted, remove only its printed temp root. Do not remove the shared `/tmp/pi-subagents-readonly` directory while another read-only drive is active.
 

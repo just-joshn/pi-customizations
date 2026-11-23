@@ -10,6 +10,8 @@ const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const SANDBOX_SHELL = '/bin/ksh';
 const READONLY_TEMP_ROOT = '/tmp/pi-subagents-readonly';
 
+const GIT_GREP_PAGER_PATTERN = /\bgit\s+grep\b.*(?:\s-[A-Za-z]*O|--open-files-in-pager(?:=|\s|$))/i;
+
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brm\b/i,
   /\brmdir\b/i,
@@ -35,7 +37,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bgit\s+reflog\s+(?:expire|delete)\b/i,
-  /\bgit\s+grep\b.*(?:\s-O|--open-files-in-pager(?:=|\s|$))/,
+  GIT_GREP_PAGER_PATTERN,
   /\bgit\b.*\s--(?:ext-diff|textconv)\b/,
   /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
   /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s])(?:\\[\s\S]|.)*?\1(?:\\[\s\S]|.)*?\1[^\s'"\\]*[wWeE]|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
@@ -300,11 +302,11 @@ function readonlySandboxInvocation(command: string, tempRoot: string): string {
 }
 
 function blocksExternalViewer(command: string): boolean {
-  return /\bgit\b[^|;&\n]*\s--help\b/i.test(command) || /\bgit\s+remote\s+show\b/i.test(command);
+  return /\bgit\b[^|;&\n]*\s--help\b/i.test(command) || /\bgit\s+remote\s+show\b/i.test(command) || GIT_GREP_PAGER_PATTERN.test(command);
 }
 
 function blockedReadonlyCommand(): string {
-  return `printf '%s\\n' ${shellQuote('read-only Git help and remote-show commands are blocked')} >&2; exit 1`;
+  return `printf '%s\\n' ${shellQuote('read-only Git help, remote-show, and grep pager commands are blocked')} >&2; exit 1`;
 }
 
 /** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Git helper neutralization runs on every platform. */

@@ -25,7 +25,7 @@ node test/e2e/verify-delegation-fake-model.mjs
 node test/e2e/verify-state-growth.mjs 12 50
 ```
 
-The deterministic delegation script asserts the parent session has a `task` call, the child transcript has the `read` call and marker, and the persisted state has a `success` record with a transcript path. The growth script exercises twelve runs and checks the parent session stays under 2 MB.
+The deterministic delegation script asserts the parent session has a `task` call, the child transcript has the `read` call and marker, and the persisted state has a `success` record with a transcript path. The growth script exercises twelve runs, prints its evidence root, asserts twelve successful records with transcript paths and a child read call, and checks the parent session stays under 2 MB.
 
 For the pager, use the TUI recipe in the main `SKILL.md`. Capture the tmux pane before and after `/tasks`; the pager row is the evidence.
 
