@@ -560,7 +560,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
     return false;
   }
-  if (subcommand === 'show' && hasSignatureFormat(args.slice(1))) {
+  if (subcommand === 'show' && (hasSignatureFormat(args.slice(1)) || hasLongFlag(args.slice(1), ['--show-signature']))) {
     return false;
   }
   if (subcommand === 'diff') {
@@ -575,6 +575,9 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'describe') {
     return noOptionalLocks && fsmonitorOff && !hasLongFlag(args.slice(1), ['--dirty', '--broken']);
+  }
+  if (subcommand === 'diff-tree') {
+    return noOptionalLocks && fsmonitorOff && !hasLongFlag(args.slice(1), ['--show-signature']) && isAllowedDiffArgs(args);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
@@ -630,12 +633,6 @@ function isAllowedGit(words: readonly string[]): boolean {
     }
     const flags = args.slice(TWO);
     return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
-  }
-  if (subcommand === 'apply') {
-    const flags = args.slice(1);
-    const inspects = flags.includes('--check') || flags.includes('--stat') || flags.includes('--numstat');
-    const writes = hasLongFlag(flags, ['--apply', '--index', '--cached', '--3way', '--build-fake-ancestor']);
-    return inspects && !writes;
   }
   if (subcommand === 'worktree') {
     return args[1] === 'list';
