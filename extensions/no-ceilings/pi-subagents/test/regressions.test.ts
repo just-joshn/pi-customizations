@@ -52,7 +52,9 @@ function createMockSession(plan: MockPlan) {
     dispose: () => undefined,
     getLastAssistantText: () => plan.finalText,
     getCallableToolNames: () => ['read', 'bash', 'edit', 'write'],
+    getAllTools: () => [{ name: 'read' }, { name: 'bash' }, { name: 'powershell' }, { name: 'edit' }, { name: 'write' }, { name: 'grep' }, { name: 'find' }, { name: 'ls' }],
     setActiveToolsByName: () => undefined,
+    agent: { state: { model: undefined } },
   };
 }
 

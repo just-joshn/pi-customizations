@@ -43,6 +43,13 @@ describe('sampling injection', () => {
     expect(result).toEqual(payload);
   });
 
+  it('leaves an Anthropic payload alone when adaptive thinking is enabled', async () => {
+    const handler = captureRequestHandler('anthropic-messages', { temperature: 0.2, topP: 0.5, topK: 8 });
+    const payload = { model: 'm', thinking: { type: 'adaptive', display: 'summarized' }, messages: [] };
+    const result = (await handler?.({ type: 'before_provider_request', payload }, double<ExtensionContext>({}))) as Record<string, unknown>;
+    expect(result).toEqual(payload);
+  });
+
   it('writes Google sampling into config', async () => {
     const handler = captureRequestHandler('google-generative-ai', { temperature: 0.1, topP: 0.2, topK: 3 });
     const result = (await handler?.({ type: 'before_provider_request', payload: { model: 'm', contents: [], config: { maxOutputTokens: 100 } } }, double<ExtensionContext>({}))) as Record<string, unknown>;

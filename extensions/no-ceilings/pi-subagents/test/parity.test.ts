@@ -39,6 +39,9 @@ let captured: readonly CapturedCreate[] = [];
 let loaderOptions: Readonly<Record<string, unknown>> = {};
 let loaderSettingsTrust: boolean | undefined;
 let activeToolsCalls: readonly (readonly string[])[] = [];
+let creationGate: Promise<void> | undefined;
+let promptCalls = 0;
+let createdSessions: readonly { readonly agent: { readonly state: { model: unknown } } }[] = [];
 
 function enqueuePlan(plan: MockPlan): void {
   plans = [...plans, plan];
@@ -54,6 +57,7 @@ function createMockSession(plan: MockPlan) {
   let listeners: readonly ((event: AgentSessionEvent) => void)[] = [];
   let aborted = false;
   const prompt = async (): Promise<void> => {
+    promptCalls += 1;
     for (const event of plan.events ?? []) {
       for (const listener of listeners) {
         listener(event);
@@ -69,7 +73,7 @@ function createMockSession(plan: MockPlan) {
       throw new Error(plan.throwError);
     }
   };
-  return {
+  const session = {
     subscribe: (listener: (event: AgentSessionEvent) => void) => {
       listeners = [...listeners, listener];
       return () => {
@@ -82,11 +86,15 @@ function createMockSession(plan: MockPlan) {
     },
     dispose: () => undefined,
     getLastAssistantText: () => plan.finalText,
-    getCallableToolNames: () => ['read', 'bash', 'edit', 'write', 'grep', 'powershell'],
+    getCallableToolNames: () => ['read', 'bash', 'edit', 'write'],
+    getAllTools: () => [{ name: 'read' }, { name: 'bash' }, { name: 'powershell' }, { name: 'edit' }, { name: 'write' }, { name: 'grep' }, { name: 'find' }, { name: 'ls' }],
     setActiveToolsByName: (names: readonly string[]) => {
       activeToolsCalls = [...activeToolsCalls, names];
     },
+    agent: { state: { model: { provider: 'test-provider', id: 'model-sonnet', api: 'anthropic-messages', maxTokens: 8192, contextWindow: 200_000 } } },
   };
+  createdSessions = [...createdSessions, session];
+  return session;
 }
 
 vi.mock('@earendil-works/pi-coding-agent', async () => {
@@ -125,6 +133,9 @@ vi.mock('@earendil-works/pi-coding-agent', async () => {
           ...(loaderSettingsTrust !== undefined ? { loaderTrust: loaderSettingsTrust } : {}),
         },
       ];
+      if (creationGate !== undefined) {
+        await creationGate;
+      }
       return { session: createMockSession(dequeuePlan()) };
     },
   };
@@ -153,6 +164,9 @@ beforeEach(() => {
   loaderOptions = {};
   loaderSettingsTrust = undefined;
   activeToolsCalls = [];
+  creationGate = undefined;
+  promptCalls = 0;
+  createdSessions = [];
 });
 
 afterEach(() => {
@@ -161,6 +175,9 @@ afterEach(() => {
   loaderOptions = {};
   loaderSettingsTrust = undefined;
   activeToolsCalls = [];
+  creationGate = undefined;
+  promptCalls = 0;
+  createdSessions = [];
 });
 
 describe('delegation: automatic and explicit selection', () => {
@@ -363,6 +380,54 @@ describe('failure codes and resume safety', () => {
     }
   });
 
+  it('restores valid runs when a sibling record is invalid', async () => {
+    const persisted = {
+      sessions: [
+        {
+          agentId: '11111111-2222-4333-8444-555555555555',
+          parentSessionId: 'previous-session',
+          toolCallId: 'call-restored',
+          subagentType: 'general-purpose',
+          description: 'Restored run',
+          prompt: 'Do the restored work',
+          readonly: false,
+          status: 'error',
+          isBackground: false,
+          backgroundReason: 'unspecified',
+          error: 'boom',
+          toolCallCount: ZERO,
+          startedAt: 1,
+          updatedAt: 2,
+        },
+        {
+          agentId: '99999999-8888-4777-8666-555555555555',
+          parentSessionId: 'previous-session',
+          toolCallId: 'call-invalid',
+          subagentType: 'general-purpose',
+          description: 'Invalid run',
+          prompt: 'Never ran',
+          readonly: false,
+          status: 'bogus',
+          isBackground: false,
+          backgroundReason: 'unspecified',
+          toolCallCount: ZERO,
+          startedAt: 1,
+          updatedAt: 2,
+        },
+      ],
+    };
+    const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'recovered' });
+      await h.runCommand('tasks', 'retry 11111111-2222-4333-8444-555555555555');
+      await h.runCommand('tasks', 'list');
+      expect(h.getNotifications().at(-ONE)?.message).toContain('[success/fg]');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('persists the run record before the subagent finishes', async () => {
     const h = createTestHarness();
     try {
@@ -408,6 +473,18 @@ describe('trust and tool inheritance', () => {
       enqueuePlan({ finalText: 'ok' });
       await h.callTool('task', { description: 'Restricted parent', prompt: 'go', subagent_type: 'general-purpose' });
       expect(activeToolsCalls[ZERO]).toEqual([]);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('gives the child every parent tool, including ones outside the default set', async () => {
+    const h = createTestHarness({ activeTools: ['read', 'bash', 'grep', 'find', 'ls'] });
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'ok' });
+      await h.callTool('task', { description: 'Inventory', prompt: 'go', subagent_type: 'general-purpose' });
+      expect(activeToolsCalls[ZERO]).toEqual(['read', 'bash', 'grep', 'find', 'ls']);
     } finally {
       await h.cleanup();
     }
@@ -913,6 +990,26 @@ describe('abort handling and pre-aborted worktrees', () => {
       expect(result.details?.worktreePath).toBeUndefined();
       const branches = execFileSync('git', ['branch', '--list', 'pi-subagents/*'], { cwd: h.cwd, encoding: 'utf8' });
       expect(branches.trim()).toBe('');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('never prompts a child when the call aborts during session creation', async () => {
+    const gate = createGate();
+    creationGate = gate.promise;
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'should not run' });
+      const controller = new AbortController();
+      const pending = h.callTool('task', { description: 'Cancel during create', prompt: 'go', subagent_type: 'general-purpose' }, { signal: controller.signal });
+      await vi.waitFor(() => expect(captured.length).toBe(ONE));
+      controller.abort();
+      gate.release();
+      const result = await pending;
+      expect(promptCalls).toBe(ZERO);
+      expect(result.details?.status).toBe('cancelled');
     } finally {
       await h.cleanup();
     }
@@ -1553,6 +1650,21 @@ describe('custom agent model parameters', () => {
     expect(tuned.maxTokens).toBe(2048);
     expect(tuned.samplingParams).toMatchObject({ top_k: 5, temperature: 0.1, top_p: 0.8 });
     expect(model.contextWindow).toBe(200_000);
+  });
+
+  it('keeps the capped model when a provider is registered', async () => {
+    const h = createTestHarness({ registeredProviderConfigs: { dummy: { name: 'Dummy', baseUrl: 'https://example.invalid/v1', apiKey: 'test-key', api: 'openai-completions' } } });
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'capped.md', ['---', 'name: capped', 'description: Capped', 'max-tokens: 1234', 'context-window: 4321', '---', 'Body.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'ok' });
+      await h.callTool('task', { description: 'Capped', prompt: 'go', subagent_type: 'capped' });
+      const model = createdSessions.at(-ONE)?.agent.state.model as { readonly maxTokens?: number; readonly contextWindow?: number } | undefined;
+      expect(model?.maxTokens).toBe(1234);
+      expect(model?.contextWindow).toBe(4321);
+    } finally {
+      await h.cleanup();
+    }
   });
 });
 

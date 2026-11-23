@@ -351,6 +351,38 @@ describe('transcript reducer', () => {
     expect(ended.record.activeToolVerb).toBeUndefined();
   });
 
+  it('records every thinking block once when a message carries two', () => {
+    const first = reduceSubagentEvent(
+      base,
+      double<AgentSessionEvent>({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_end', contentIndex: ZERO, content: 'first block', partial: {} } }),
+      { toolCallCount: ZERO, finalMessage: undefined },
+      1,
+    );
+    const second = reduceSubagentEvent(
+      first.record,
+      double<AgentSessionEvent>({ type: 'message_update', message: {}, assistantMessageEvent: { type: 'thinking_end', contentIndex: ONE, content: 'second block', partial: {} } }),
+      first.progress,
+      2,
+    );
+    const ended = reduceSubagentEvent(
+      second.record,
+      double<AgentSessionEvent>({
+        type: 'message_end',
+        message: {
+          role: 'assistant',
+          content: [
+            { type: 'thinking', thinking: 'first block' },
+            { type: 'thinking', thinking: 'second block' },
+            { type: 'text', text: 'done' },
+          ],
+        },
+      }),
+      second.progress,
+      3,
+    );
+    expect(ended.record.transcriptItems.map((item) => `${item.role}:${item.text}`)).toEqual(['thinking:first block', 'thinking:second block', 'assistant:done']);
+  });
+
   it('handles anonymous tool results and turn boundaries', () => {
     const started = reduceSubagentEvent(base, double<AgentSessionEvent>({ type: 'tool_execution_start', toolCallId: 't2', toolName: 'mystery', args: 'not-an-object' }), { toolCallCount: ZERO, finalMessage: undefined }, 1);
     const ended = reduceSubagentEvent(started.record, double<AgentSessionEvent>({ type: 'tool_execution_end', toolCallId: 't2', toolName: 'mystery', result: {}, isError: false }), started.progress, 2);
@@ -415,6 +447,49 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand("echo 'note: x > y'")).toBe(true);
     expect(isSafeReadOnlyCommand('echo hi > out.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('echo hi >> out.txt')).toBe(false);
+  });
+
+  it('blocks every redirect form that writes a file', () => {
+    expect(isSafeReadOnlyCommand('echo hi >& out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('echo hi &> out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('printf hi 1<>out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('printf hi <> out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('echo pwned \\" > out.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('cat /etc/hosts 2>&1')).toBe(true);
+    expect(isSafeReadOnlyCommand('echo hi >&2')).toBe(true);
+  });
+
+  it('blocks sort programs that execute other programs', () => {
+    expect(isSafeReadOnlyCommand('sort --compress-program=/bin/true input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort --compress-program /bin/true input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
+  });
+
+  it('resolves documented subagent type aliases', () => {
+    const definitions = [makeDefinition({ name: 'shell' }), makeDefinition({ name: 'general-purpose' }), makeDefinition({ name: 'explore' })];
+    expect(resolveSubagentDefinition(definitions, 'bash')?.name).toBe('shell');
+    expect(resolveSubagentDefinition(definitions, 'generalpurpose')?.name).toBe('general-purpose');
+    expect(resolveSubagentDefinition(definitions, 'unspecified')?.name).toBe('general-purpose');
+    expect(resolveSubagentDefinition(definitions, 'explore')?.name).toBe('explore');
+  });
+
+  it('falls back when the task names two agents', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases' }),
+      makeDefinition({ name: 'shell', description: 'Command execution specialist for running bash commands, git operations, builds, and test suites.' }),
+      makeDefinition({ name: 'general-purpose', description: 'General-purpose agent' }),
+    ];
+    expect(selectSubagentType(definitions, { description: 'ask explore and shell to run the tests', prompt: '' })).toBe('general-purpose');
+  });
+
+  it('does not auto-select a read-only agent when the task asks for a change', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, and searching code', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'shell', description: 'Command execution specialist for running bash commands and builds' }),
+      makeDefinition({ name: 'general-purpose', description: 'General-purpose agent for researching questions and executing multi-step tasks' }),
+    ];
+    expect(selectSubagentType(definitions, { description: '', prompt: 'explore the repo and fix the bug' })).toBe('general-purpose');
+    expect(selectSubagentType(definitions, { description: '', prompt: 'use explore to find where the bug is' })).toBe('explore');
   });
 
   it('keeps read-only git inspection available', () => {
