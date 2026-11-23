@@ -194,13 +194,21 @@ describe('pi-modes regression guards', () => {
 });
 
 describe('pi-modes read-only shell escape guards', () => {
-  it.for(['env node -e "console.log(1)"', 'awk \'BEGIN { system("id") }\'', "sed -n '1w /tmp/out.txt' package.json"])('blocks %s in read-only mode', async (command) => {
+  it.for([
+    'env node -e "console.log(1)"',
+    'awk \'BEGIN { system("id") }\'',
+    "sed -n '1w /tmp/out.txt' package.json",
+    "sed -n -e'1w /tmp/out.txt' package.json",
+    'GIT_EXTERNAL_DIFF="touch /tmp/out.txt" git diff',
+    'bat --paging=always --pager "touch /tmp/out.txt" package.json',
+    'git branch --delete-merged=main',
+  ])('blocks %s in read-only mode', async (command) => {
     const h = await enterReadOnly('ask');
     const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
     expect(result?.block).toBe(true);
   });
 
-  it.for(['env', "awk '{print $1}' package.json", "sed -n '1,5p' package.json"])('allows %s in read-only mode', async (command) => {
+  it.for(['env', "awk '{print $1}' package.json", "sed -n '1,5p' package.json", "sed -n -e'1,5p' package.json", 'uniq -f 1 package.json', 'uniq -w 3 package.json', 'git show-ref'])('allows %s in read-only mode', async (command) => {
     const h = await enterReadOnly('ask');
     expect(await bashCall(h, command)).toBeUndefined();
   });

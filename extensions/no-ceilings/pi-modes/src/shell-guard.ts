@@ -1,4 +1,4 @@
-import { TWO, ZERO } from './types.ts';
+import { ONE, TWO, ZERO } from './types.ts';
 
 const SEGMENT_SEPARATORS = new Set<string>([';', '\n', '|', '&']);
 const WHITESPACE = /\s/;
@@ -74,6 +74,7 @@ const GIT_READ_SUBCOMMANDS = new Set<string>([
   'diff-files',
   'diff-index',
   'name-rev',
+  'show-ref',
 ]);
 
 /** Flags that make an otherwise read-only command write or execute. */
@@ -84,6 +85,7 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   tree: ['--output'],
   awk: ['--file'],
   sed: ['--in-place', '--file'],
+  bat: ['--pager', '--config-file'],
 };
 
 /** Short options whose letter inside a cluster writes, runs a program, or names an unread script, as in `sort -nro out` or `sed -nf`. */
@@ -91,7 +93,6 @@ const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
   sort: ['o'],
   tree: ['o'],
   fd: ['x', 'X'],
-  sed: ['i', 'f'],
   awk: ['f'],
 };
 
@@ -101,6 +102,12 @@ const DENIED_SHORT_WORDS: Readonly<Record<string, readonly string[]>> = {
 };
 
 const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const SAFE_ENV_NAMES = new Set<string>(['LANG', 'LANGUAGE', 'TZ', 'TERM', 'COLORTERM', 'NO_COLOR', 'CLICOLOR', 'CLICOLOR_FORCE', 'FORCE_COLOR', 'COLUMNS', 'LINES']);
+
+function isSafeEnvAssignment(word: string): boolean {
+  const name = word.slice(ZERO, word.indexOf('='));
+  return name.startsWith('LC_') || SAFE_ENV_NAMES.has(name);
+}
 
 interface LexedCommand {
   readonly segments: readonly (readonly string[])[];
@@ -248,8 +255,27 @@ function hasExactWord(words: readonly string[], flags: readonly string[]): boole
   return words.some((word) => flags.includes(word));
 }
 
+/** `-e` ends the option cluster; the rest of that word is the sed script, not option letters. */
+function hasDeniedSedOption(words: readonly string[]): boolean {
+  return words.some((word) => {
+    if (!word.startsWith('-') || word.startsWith('--')) {
+      return false;
+    }
+    for (const letter of word.slice(1)) {
+      if (letter === 'e') {
+        return false;
+      }
+      if (letter === 'i' || letter === 'f') {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
 function hasDeniedFlag(command: string, words: readonly string[]): boolean {
-  return hasLongFlag(words, DENIED_LONG_FLAGS[command] ?? []) || hasShortLetter(words, DENIED_SHORT_LETTERS[command] ?? []) || hasExactWord(words, DENIED_SHORT_WORDS[command] ?? []);
+  const shortDenied = command === 'sed' ? hasDeniedSedOption(words) : hasShortLetter(words, DENIED_SHORT_LETTERS[command] ?? []);
+  return hasLongFlag(words, DENIED_LONG_FLAGS[command] ?? []) || shortDenied || hasExactWord(words, DENIED_SHORT_WORDS[command] ?? []);
 }
 
 function skipBlank(script: string, start: number): number {
@@ -408,24 +434,45 @@ function isSafeSedScript(script: string): boolean {
 
 function sedScripts(words: readonly string[]): readonly string[] {
   const scripts: string[] = [];
+  let hasExpressionOption = false;
   for (let index = 1; index < words.length; index += 1) {
     const word = words[index] ?? '';
-    if (word === '-e' || word === '--expression') {
+    if (word === '--expression') {
       const value = words[index + 1];
       if (value !== undefined) {
         scripts.push(value);
       }
+      hasExpressionOption = true;
       index += 1;
       continue;
     }
     if (word.startsWith('--expression=')) {
       scripts.push(word.slice('--expression='.length));
+      hasExpressionOption = true;
+      continue;
+    }
+    if (word.startsWith('-') && !word.startsWith('--')) {
+      const cluster = word.slice(1);
+      const expression = cluster.indexOf('e');
+      if (expression >= ZERO) {
+        const attached = cluster.slice(expression + 1);
+        hasExpressionOption = true;
+        if (attached.length > ZERO) {
+          scripts.push(attached);
+        } else {
+          const value = words[index + 1];
+          if (value !== undefined) {
+            scripts.push(value);
+          }
+          index += 1;
+        }
+      }
       continue;
     }
     if (word.startsWith('-')) {
       continue;
     }
-    if (scripts.length === ZERO) {
+    if (!hasExpressionOption && scripts.length === ZERO) {
       scripts.push(word);
     }
   }
@@ -497,20 +544,30 @@ function isAllowedTagArgs(args: readonly string[]): boolean {
   return !positional || listMode || verifyMode;
 }
 
+const BRANCH_DENIED_LONG = ['--delete', '--delete-merged', '--move', '--copy', '--force', '--set-upstream-to', '--unset-upstream', '--edit-description'];
+const BRANCH_DENIED_SHORT = new Set<string>(['d', 'D', 'm', 'M', 'c', 'C', 'f', 'u']);
+
+/** Git accepts unambiguous long-option prefixes, so every prefix of a denied option is denied too. */
 function isAllowedBranchArgs(args: readonly string[]): boolean {
-  const denied = new Set(['-d', '-D', '-m', '-M', '-c', '-C', '-f', '-u', '--delete', '--move', '--copy', '--force', '--set-upstream-to', '--unset-upstream', '--edit-description']);
   const valueFlags = new Set(['--merged', '--no-merged', '--contains', '--points-at', '--sort', '--format', '--color', '--list']);
   let expectsValue = false;
   for (const arg of args) {
-    if (arg.startsWith('-')) {
-      if (denied.has(arg.split('=')[0] ?? '')) {
+    const option = arg.split('=')[0] ?? '';
+    if (arg.startsWith('--')) {
+      if (BRANCH_DENIED_LONG.some((denied) => denied.startsWith(option))) {
         return false;
       }
-      expectsValue = valueFlags.has(arg.split('=')[0] ?? '') && !arg.includes('=');
-      continue;
+    } else if (arg.startsWith('-') && arg.length > ONE) {
+      if ([...arg.slice(1)].some((letter) => BRANCH_DENIED_SHORT.has(letter))) {
+        return false;
+      }
     }
     if (expectsValue) {
       expectsValue = false;
+      continue;
+    }
+    if (arg.startsWith('-')) {
+      expectsValue = valueFlags.has(option) && !arg.includes('=');
       continue;
     }
     return false;
@@ -592,14 +649,49 @@ function isAllowedGit(words: readonly string[]): boolean {
   return false;
 }
 
-function isAllowedPositionalCount(words: readonly string[], limit: number): boolean {
-  const positional = words.slice(1).filter((word) => !word.startsWith('-'));
-  return positional.length <= limit;
+const UNIQ_VALUE_FLAGS = new Set<string>(['-f', '--skip-fields', '-s', '--skip-chars', '-w', '--check-chars']);
+
+function isAllowedUniqArgs(words: readonly string[]): boolean {
+  let positional = ZERO;
+  let expectsValue = false;
+  let options = true;
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index] ?? '';
+    if (expectsValue) {
+      expectsValue = false;
+      continue;
+    }
+    if (options && word === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.startsWith('-') && word !== '-') {
+      if (UNIQ_VALUE_FLAGS.has(word)) {
+        expectsValue = true;
+        continue;
+      }
+      if (!word.startsWith('--')) {
+        const last = word.at(-1);
+        if (last === 'f' || last === 's' || last === 'w') {
+          expectsValue = true;
+        }
+      }
+      continue;
+    }
+    positional += 1;
+  }
+  return positional <= ONE;
 }
 
 function isAllowedSegment(words: readonly string[]): boolean {
-  const commandIndex = words.findIndex((word) => !ENV_ASSIGNMENT.test(word));
-  if (commandIndex < ZERO) {
+  let commandIndex = ZERO;
+  while (commandIndex < words.length && ENV_ASSIGNMENT.test(words[commandIndex] ?? '')) {
+    if (!isSafeEnvAssignment(words[commandIndex] ?? '')) {
+      return false;
+    }
+    commandIndex += 1;
+  }
+  if (commandIndex >= words.length) {
     return false;
   }
   const args = words.slice(commandIndex);
@@ -636,7 +728,7 @@ function isAllowedSegment(words: readonly string[]): boolean {
     return sedScripts(args).every(isSafeSedScript);
   }
   if (command === 'uniq') {
-    return isAllowedPositionalCount(args, 1);
+    return isAllowedUniqArgs(args);
   }
   if (command === 'awk') {
     // A quoted program can still pipe to a command or redirect to a file of its own.
