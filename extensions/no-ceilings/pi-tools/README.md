@@ -140,18 +140,21 @@ operand or redirect target.
   `PS4` (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a
   `trap` with an action, a git `-c` value that starts a shell command or names a command key such as
   `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*` or `GIT_EXTERNAL_DIFF` in the command
-  environment, a wrapper that runs another command (`sudo`, `doas`, `su`, `runuser`, `xargs`,
-  `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a login shell that would
-  source a profile, a shell fed a script through a pipe, and a shell function definition. Literal
+  environment, `printf -v` of one of those names, a wrapper that runs another command (`sudo`,
+  `doas`, `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `caffeinate`, `strace`,
+  `bwrap`, and similar), a login shell that would source a profile, a shell fed a script through a
+  pipe, and a shell function definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
-  deny-checked too, `git -C`, `--git-dir`, and `--work-tree` outside the workspace need approval, and
-  a `git config` that sets a value is refused because it can persist a command. A redirect target
-  ends at the next `<` or `>`, and digits before a redirect stay with the word they continue. A
-  write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`,
-  `truncate`, `install`, `sed -i`, `perl -i`, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`,
-  `sort -o`, `rsync`'s destination) or `>`/`>>` target outside the workspace needs the same approval
-  as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
+  deny-checked too, `git -C`, `--git-dir`, and `--work-tree` outside the workspace need approval, a
+  git destination (`init`, `apply --directory`, `archive -o`, `clone`, `worktree add`,
+  `format-patch -o`, `bundle create`) is a write, and a `git config` that sets a value is refused
+  because it can persist a command. A redirect target ends at the next `<` or `>`, `>|` is one
+  redirect, and digits stay with the word or file name around a redirect rather than becoming a file
+  descriptor. A write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`,
+  `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
+  `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`, `sort -o`, `rsync`'s destination) or
+  `>`/`>>`/`>|` target outside the workspace needs the same approval as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
   destination, and every `ln` target counts because a link is the path a later use escapes through.
   `/dev/null` is a discard sink, so a redirect there carries no outside-write approval. Every spawned
   shell drops `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions,

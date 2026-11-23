@@ -60,6 +60,12 @@
 - A pure move copies the exact bytes of a binary file, a patch rollback restores exact bytes, and an
   edit or hunk application on a non-UTF-8 file is refused instead of rewriting it.
 - A URL rule covers a trailing-dot host and a percent-encoded path.
+- `>|` is one redirect and digits stay with the word or file name around a redirect. `printf -v` of a
+  resolution variable is refused. `git bisect run` is refused, and git destinations (`init`,
+  `apply --directory`, `archive -o`, `clone`, `worktree add`, `format-patch -o`, `bundle create`)
+  are writes.
+- `ditto`, `zip`, `unlink`, `rmdir`, and `shred` destinations are writes. `web_fetch` requires every
+  redirect hop to be http or https, so a `file:` redirect is rejected before any request.
 
 ## 0.1.0
 
