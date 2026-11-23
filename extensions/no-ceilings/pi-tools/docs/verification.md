@@ -1,6 +1,6 @@
 # Verification
 
-Recorded on 2026-11-22 against Pi 1.6.0 on macOS arm64. Each run used an isolated profile
+Recorded on 2026-11-23 against Pi 1.6.0 on macOS arm64. Each run used an isolated profile
 (`PI_CODING_AGENT_DIR=/tmp/pi-tools-verify/agent`) and a throwaway workspace, with the extension loaded
 from source through `-e`.
 
@@ -8,8 +8,8 @@ from source through `-e`.
 
 ```
 bunx tsc --noEmit -p tsconfig.json          # no output, exit 0
-bunx vitest run                             # 18 files, 290 passed, 1 live test skipped
-bunx vitest run --coverage                  # statements 91.26, branches 82.76, functions 95.36, lines 91.25
+bunx vitest run                             # 19 files passed, 1 skipped; 313 passed, 1 live test skipped
+bunx vitest run --coverage                  # statements 90.53, branches 82.37, functions 94.60, lines 90.57
 bunx biome check . --error-on-warnings      # no diagnostics
 ```
 

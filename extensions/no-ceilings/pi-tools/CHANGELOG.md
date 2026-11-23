@@ -19,6 +19,20 @@
 - `read` reports the lines it returned without parsing `\n\n[` in the file; `grep` sets each match's
   `truncated` flag; `edit` counts replaced occurrences; `find` names a file root instead of `.`;
   `write` refuses malformed base64; concurrent session builds are keyed by directory.
+- Shell analysis skips reserved words, joins backslash-newline continuations, skips `--` before
+  `sh -c`/`eval` bodies, resolves `~currentuser`, and refuses brace expansion, an unquoted command
+  substitution or backtick anywhere (including a here-string), and `~otheruser`. Assignments after
+  `env` get the same startup-variable checks as leading ones. Literal path operands and redirection
+  targets obey read and write deny rules, and write-like commands or targets outside the workspace
+  need approval.
+- A symlink is followed even when its target does not exist, so containment, deny rules, and ignore
+  files see the file a writer would create.
+- The read fence is keyed by canonical file identity, so a symlink or case alias shares one record;
+  a ranged read no longer clears a full-read record; `edit` treats a file recreated after `delete`
+  as stale.
+- A `dir/` ignore pattern matches only a directory, the first line of a BOM file is editable with the
+  text `read` returned, an empty patch is refused, a failed add removes the directories it created,
+  a base64 write reports the decoded line count, and a tail read of an empty file invents no line.
 
 ## 0.1.0
 

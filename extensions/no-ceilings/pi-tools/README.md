@@ -30,7 +30,7 @@ when the model needs them.
 | `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit, line truncation, output caps, and partial results on timeout. |
 | `write` | Creates or overwrites a file with parent directories (UTF-8 or validated base64), refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
 | `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. |
-| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, and a write failure rolls back the files already changed. |
+| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, and a write failure rolls back the files and directories the call created. |
 | `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, protected ignore files, and files that changed after the check. |
 | `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
 | `git` *(loads on demand)* | Runs a git subcommand through the local executable with captured output and an exit code. |
@@ -96,16 +96,19 @@ outside root.
 
 `.gitignore`, `.ignore`, and `.piignore` are read from each workspace root and its ancestors.
 `.gitignore` and `.ignore` are honored by ripgrep directly and by the layer's own resolver; `.piignore`
-is applied by the resolver as a post-filter, so it applies outside a git repository too. Listing and
-reading use the same verdict. A tool call that names an ignored path directly is refused with the ignore file that matched.
+is applied by the resolver as a post-filter, so it applies outside a git repository too. A pattern that
+ends in `/` matches only a directory. Listing and reading use the same verdict. A tool call that names
+an ignored path directly is refused with the ignore file that matched.
 
 ## Behavior worth knowing
 
-- **Writes are fenced.** A full-file `read` records a fingerprint for that session. A later `write`
-  or `edit` in the same session refuses to proceed if the file changed on disk and says nothing was
-  written. Ranged reads do not record a fingerprint, and every mutation holds the per-file queue from
-  the read through the verification. `apply_patch` holds the queues for every file it touches for the
-  whole operation.
+- **Writes are fenced.** A full-file `read` records a fingerprint for that session, keyed by the file's
+  canonical identity, so a read through a symlink or another case spelling fences the same file. A later
+  `write` or `edit` in the same session refuses to proceed if the file changed on disk and says nothing
+  was written. `delete` records the file as absent, so a recreated file is stale for both `write` and
+  `edit`. Ranged reads record nothing and leave an earlier full-file record in place, and every mutation
+  holds the per-file queue from the read through the verification. `apply_patch` holds the queues for
+  every file it touches for the whole operation.
 - **Search results stay in bounds.** Every hit is resolved to its canonical path and must stay inside
   the workspace or a directory the caller named explicitly. A symlink cannot pull outside content into
   `grep`, `find`, or `ls`, and a search rooted at a workspace path that resolves outside is refused the
@@ -121,25 +124,32 @@ reading use the same verdict. A tool call that names an ignored path directly is
   2000 lines or 50KB and spills the full output to a file.
 - **Time budgets return partial results.** `grep` and `find` default to 25 seconds and return what
   they have, marked `timedOut` in the details, when the budget expires.
-- **Commands are analyzed, not trusted.** Exec rules see each segment with quoting removed, ANSI-C
-  escapes (`$'\x73ecret'`) decoded, leading assignments stripped (`PATH=/usr/bin cmd`), the flags of the
-  wrappers this layer unwraps (`env`, `command`, `nohup`, `time`, `exec`, `builtin`, `timeout`, `nice`,
-  `stdbuf`, `setsid`), and `sh -c`, `eval`, `$(...)`, and backticks expanded. A `cd` target resolves
-  `~`, `$HOME`, `$PWD`, and `$OLDPWD`. Anything the analyzer cannot vouch for is refused before it runs,
-  because the policy cannot see what it would execute: a command word built by an expansion, an
-  unresolvable `cd` target, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS`, a wrapper that runs
-  another command (`sudo`, `xargs`, `find -exec`, `env -S`), a shell fed a script through a pipe, and a
-  shell function definition. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`,
-  `BASHOPTS`, and exported functions, then pins `PWD` and `OLDPWD` to the working directory. Allowlist
-  mode requires every segment to be allowed. A `cd` to a directory outside the workspace needs
-  approval. Code a scanner cannot see, such as a script invoked by name or another interpreter's `-c`
-  string, is out of reach.
+- **Commands are analyzed, not trusted.** Exec rules see each segment with quoting removed, backslash
+  line continuations joined, ANSI-C escapes (`$'\x73ecret'`) decoded, leading assignments stripped
+  (`PATH=/usr/bin cmd`), and the flags of the wrappers this layer unwraps (`env`, `command`, `nohup`,
+  `time`, `exec`, `builtin`, `timeout`, `nice`, `stdbuf`, `setsid`). Reserved words (`if`, `for`,
+  `while`, `case`, `!`, braces) are skipped so a rule sees the body, `--` is skipped before `sh -c` and
+  `eval` bodies, and a `cd` target resolves `~`, `~currentuser`, `$HOME`, `$PWD`, and `$OLDPWD`.
+  Anything the analyzer cannot vouch for is refused before it runs, because the policy cannot see what
+  it would execute: a command word built by an expansion, an unquoted command substitution or backtick
+  anywhere in the command (including a here-string), brace expansion, an unresolvable `cd` target such
+  as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS` (including after `env`), a wrapper
+  that runs another command (`sudo`, `xargs`, `find -exec`, `env -S`), a shell fed a script through a
+  pipe, and a shell function definition. Literal path operands and redirection targets are matched
+  against read and write deny rules, and a write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`,
+  `dd`, `ln`, `tee`, `chmod`, `chown`) or `>`/`>>` target outside the workspace needs the same
+  approval as `write`. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`, `BASHOPTS`,
+  and exported functions, then pins `PWD` and `OLDPWD` to the working directory. Allowlist mode
+  requires every segment to be allowed. A `cd` to a directory outside the workspace needs approval.
+  Code a scanner cannot see, such as a script invoked by name, another interpreter's `-c` string, or a
+  path built by a variable, is out of reach.
 - **Patches validate before writing.** All touched files are locked, then every file is read and every
   hunk checked before the first write, so a failure on the second file leaves the first untouched. A
   write that still fails while applying restores every file the patch already changed and removes the
-  ones it created, so the call keeps its "nothing was written" contract. Delete hunks must remove the
-  whole file, hunks apply in file order and honor zero-context insertions, git-style headers and the
-  no-newline marker are honored, a pure move renames, and a no-op is refused.
+  files and directories it created, so the call keeps its "nothing was written" contract. Delete hunks
+  must remove the whole file, hunks apply in file order and honor zero-context insertions, git-style
+  headers and the no-newline marker are honored, a pure move renames, and a no-op, including a patch
+  with no file sections, is refused.
 - **Errors reach the model as error results.** A failing tool returns `isError` with a message, a hint
   when there is one, and typed details; Pi never sees a thrown error from the layer, so one failure does
   not abort a batch.
