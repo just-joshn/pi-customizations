@@ -74,14 +74,14 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | Frontmatter | Meaning |
 | --- | --- |
 | `name`, `description` | Identity and delegation text. Missing `name` falls back to the file name. |
-| `tools` | Comma or space separated tool allowlist. Omit the key to inherit the parent's active tools. An empty list, including `tools: []`, grants no tools. Claude names such as `Read`, `Grep`, and `Glob` map to Pi's `read`, `grep`, and `find`. |
+| `tools` | Comma or space separated tool allowlist. Omit the key to inherit the parent's active tools. An empty list, including `tools: []`, grants no tools. A leading `+` is removed and the name is kept. Entries that start with `-` are dropped. Entries that contain `*` are dropped, except a scoped `mcp__<server>__*` allowlist. If the list is present but nothing remains, the child gets no tools and does not inherit the parent tools. Claude names such as `Read`, `Grep`, and `Glob` map to Pi's `read`, `grep`, and `find`. Names are deduplicated. |
 | `model` | `inherit`, `fast`, a model id, or `provider/id`. Claude aliases `haiku`, `sonnet`, and `opus` map to `fast` and `inherit`. |
 | `force-default-model` | Ignore `model` and any caller override. |
 | `thinking`, `reasoning-effort` | Pi thinking level: `off` through `max`. |
 | `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. OpenAI and other flat adapters get `temperature` and `top_p`. Anthropic also gets `top_k`, except when extended thinking is enabled, which leaves the request unchanged. Google writes `temperature`, `topP`, and `topK` into `config`. Bedrock writes `temperature` and `topP` into `inferenceConfig` and does not send `topK`. `max_tokens` caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
-| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. On macOS, an allowed bash command runs under `sandbox-exec` with filesystem writes allowed only under the private temp root `/tmp/pi-subagents-readonly` and `/dev/null`. The wrapper sets `TMPDIR` to a fresh directory under that root, runs the command with `/bin/ksh` so here-documents stay there, and removes the directory when the command finishes. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked. Elsewhere, the command guard applies. |
+| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. On macOS, an allowed bash command runs under `sandbox-exec`. The wrapper creates a fresh directory under `/tmp/pi-subagents-readonly`, then builds a profile that allows filesystem writes only inside that directory and `/dev/null`. Writes to the shared temp root and to sibling directories stay denied. The command runs with `/bin/ksh` and `TMPDIR` set to that directory, so here-documents stay there, and the directory is removed when the command finishes. `core.fsmonitor` is forced off, `diff.external` and `GIT_EXTERNAL_DIFF` are cleared, and `core.pager` is `cat`, so a read-only `git` command does not run repository helpers. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked. Elsewhere, the command guard applies. |
 | `background`, `is_background` | Start in background by default. |
 | `nested-tasks` | Let this child delegate one level deeper, up to `nesting.maxDepth`. |
 | `worktree` | Run in an isolated git worktree by default. |
@@ -136,7 +136,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
-- Persisted session state keeps transcripts for the three most recently updated finished runs. Success, error, and cancelled runs are eligible. That includes mid-run snapshots and saves when a run finishes. Older finished runs keep their metadata, transcript path, and checkpoints.
+- A completion save keeps transcript bodies for the three most recently updated finished runs. Success, error, and cancelled runs are eligible. Mid-run snapshots keep metadata and transcript paths only. Older finished runs keep their metadata, transcript path, and checkpoints.
 - A persisted run keeps at most 50 transcript items. Each item's text is truncated to 4,000 characters.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect. The pager does not render checkpoints.

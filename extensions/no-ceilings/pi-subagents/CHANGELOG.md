@@ -38,8 +38,8 @@
 - A change request does not select a read-only agent when no writable agent is available. The selection is `general-purpose`, and the call fails with `type-unknown`.
 - A discovered agent whose name matches a built-in alias, such as `bash`, resolves to that agent. The alias applies only when no discovered agent has that name.
 - Negated write lists cover slashes, dashes, parentheses, and `under no circumstances`, including a negation split by extra words in the same sentence.
-- Persisted transcripts are kept for the three most recently updated finished runs. Success, error, and cancelled runs are eligible, including mid-run snapshots and completion saves.
-- Read-only bash on macOS runs under `sandbox-exec`, which allows filesystem writes only under a private temp directory at `/tmp/pi-subagents-readonly` and `/dev/null`. The wrapper sets `TMPDIR` to a fresh directory under that root, runs the command with `/bin/ksh`, and removes the directory after the command. Writes outside those paths stay denied. `git grep -O` and `--open-files-in-pager` are blocked.
+- A completion save keeps transcript bodies for the three most recently updated finished runs. Success, error, and cancelled runs are eligible. Mid-run snapshots keep metadata and transcript paths only.
+- Read-only bash on macOS runs under `sandbox-exec`. The profile is built after the per-command temp directory is created and allows filesystem writes only inside that directory and `/dev/null`, not the shared `/tmp/pi-subagents-readonly` root. The wrapper sets `TMPDIR` to that directory, runs the command with `/bin/ksh`, and removes the directory after the command. `core.fsmonitor` is forced off, `diff.external` and `GIT_EXTERNAL_DIFF` are cleared, and `core.pager` is `cat`. `git grep -O` and `--open-files-in-pager` stay blocked.
 - `/tasks abort` cancels a foreground launch during `git worktree add` and discards the worktree and branch.
 - Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, converting, replacing, setting, inserting, applying, generating, simplifying, cleaning up, swapping, dropping, and stripping as write intent, and prefers the longest overlapping agent name. A negation covers a coordinated verb list such as `do not edit, add, or delete`. `what to change` is not write intent. Description keywords are counted once. Agent names that differ only by case collapse to one definition.
 - Restoring an in-flight run marks it cancelled and stores a failure id. The status widget header keeps completed-run counts while another run is active.
@@ -81,7 +81,7 @@
 - Terminal failures such as `resume-unavailable` and `worktree-failed` are not retried into a fresh run.
 - Read-only shell enforcement blocks sed and awk program files, attached sed `w` forms, and awk redirection.
 - YAML `yes` and `on` are read as true for `readonly`, `enabled`, `disabled`, and `nested-tasks`.
-- A mid-run snapshot keeps the transcripts of finished runs (success, error, or cancelled) and omits only the running record.
+- A mid-run snapshot keeps metadata and the transcript path for every run, including a finished run, and omits transcript bodies.
 - `model-params` sampling reaches the provider request for every adapter, including Anthropic and Google.
 - A failed worktree run emits `subagents:run_end`.
 - Read-only shell enforcement blocks `>&` and `<>` redirects, backslash-escaped redirects, and `sort --compress-program`.
@@ -117,13 +117,14 @@
 - A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
 - Read-only shell enforcement rejects a lone `&`, command substitution, and unclosed quotes. It allows `git grep`, quoted pipes, `|&`, and redirects to `/dev/null` such as `2>/dev/null`. `date -d` and `date --date` stay allowed; `date -s` stays blocked.
 - Unknown `subagents.json` sections and unknown keys inside a section are reported instead of ignored.
-- A mid-run snapshot keeps transcripts for the three most recently updated finished runs, including success, error, and cancelled runs. Older finished runs keep metadata, the transcript path, and checkpoints.
+- A mid-run snapshot keeps metadata and transcript paths only. A completion save keeps transcript bodies for the three most recently updated finished runs, including success, error, and cancelled runs. Older finished runs keep metadata, the transcript path, and checkpoints.
 - A worktree run started in a repository subdirectory uses that subdirectory inside the worktree.
 - Resuming a run that never recorded a transcript fails with `resume-unavailable`. Retry still starts a fresh session.
 - A resume keeps background mode when the caller omits `run_in_background`.
 - A child session prepends the agent prompt and still inherits project and user `APPEND_SYSTEM.md`.
 - The tasks pager `k` aborts a foreground run as well as a background run. `b` still backgrounds only a foreground run.
-- Read-only sandbox writes are allowed only in the private temp root and `/dev/null`. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked.
+- Read-only sandbox writes are allowed only in the per-command temp directory and `/dev/null`. The shared temp root and sibling directories stay denied. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked.
+- A `tools` list is an allowlist passed to the child session. Entries that start with `-` are dropped, a leading `+` is removed, and entries that contain `*` are dropped except a scoped `mcp__<server>__*` pattern. A list that sanitizes to empty grants no tools instead of editing the default tool set. Claude names are still mapped, and the result is deduplicated.
 - Retry backoff and `await_subagent` timeouts stay referenced, so `pi -p` waits for a retried child instead of exiting 0 with no result.
 
 ## 0.1.4

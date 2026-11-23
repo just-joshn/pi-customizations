@@ -211,21 +211,29 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-function sandboxProfile(tempRoot: string): string {
-  const devNull = `(allow file-write* (literal "${DEV_NULL}"))`;
-  const temp = `(allow file-write* (subpath "${tempRoot}"))`;
-  return `(version 1)(allow default)(deny file-write*)${devNull}${temp}`;
+const READONLY_GIT_CONFIG: readonly (readonly [string, string])[] = [
+  ['core.fsmonitor', 'false'],
+  ['diff.external', ''],
+  ['core.pager', 'cat'],
+];
+
+function readonlyGitEnv(): string {
+  const assignments = READONLY_GIT_CONFIG.flatMap(([key, value], index) => [`GIT_CONFIG_KEY_${index}=${key}`, `GIT_CONFIG_VALUE_${index}=${value}`]);
+  return [`GIT_CONFIG_COUNT=${READONLY_GIT_CONFIG.length}`, ...assignments, 'GIT_EXTERNAL_DIFF='].join(' ');
+}
+
+function readonlyProfileAssignment(): string {
+  return `_pi_profile="(version 1)(allow default)(deny file-write*)(allow file-write* (literal \\"${DEV_NULL}\\"))(allow file-write* (subpath \\"$_pi_tmp\\"))"`;
 }
 
 function readonlySandboxInvocation(command: string, tempRoot: string): string {
-  const profile = shellQuote(sandboxProfile(tempRoot));
   const template = shellQuote(`${tempRoot}/tmp.XXXXXX`);
   const quoted = shellQuote(command);
-  const run = `TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p ${profile} ${SANDBOX_SHELL} -c ${quoted}`;
-  return `_pi_tmp=$(mktemp -d ${template}) || exit 1; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
+  const run = `${readonlyGitEnv()} TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p "$_pi_profile" ${SANDBOX_SHELL} -c ${quoted}`;
+  return `_pi_tmp=$(mktemp -d ${template}) || exit 1; ${readonlyProfileAssignment()}; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
 }
 
-/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and a private temp directory. Other platforms return the command unchanged. */
+/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Other platforms return the command unchanged. */
 export function sandboxReadOnlyCommand(command: string): string {
   if (process.platform !== 'darwin' || !existsSync(SANDBOX_EXEC)) {
     return command;

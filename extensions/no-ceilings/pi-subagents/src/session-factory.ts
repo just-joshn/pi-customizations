@@ -19,7 +19,7 @@ import { normalizeToolNames } from './discovery.ts';
 import { SubagentRunError } from './failures.ts';
 import { createReadonlySubagentExtension, READONLY_BLOCKED_TOOLS } from './readonly-guard.ts';
 import { createSamplingExtension } from './sampling.ts';
-import { type NestedScope, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
+import { type NestedScope, ONE, SUBAGENT_TOOL_NAMES, SUBAGENTS_DIR_NAME, type SubagentDefinition, type SubagentThinkingLevel, ZERO } from './types.ts';
 
 export interface NestedExtensionFactory {
   (scope: NestedScope): ExtensionFactory;
@@ -120,12 +120,35 @@ function buildExtensionFactories(request: ChildSessionRequest): readonly Extensi
   return [providerBridge, ...samplingFactories, ...mcp, ...nested];
 }
 
-function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedScope | undefined): readonly string[] | undefined {
-  if (definition.tools.length === ZERO) {
-    return definition.hasToolsField === true ? [] : undefined;
+/** Browser's server allowlist. Any other `*` entry is Pi modifier or wildcard syntax. */
+const SCOPED_MCP_ALLOWLIST = /^mcp__[A-Za-z0-9_]+__\*$/;
+
+function allowlistedToolName(entry: string): string | undefined {
+  const trimmed = entry.trim();
+  if (trimmed.length === ZERO || trimmed.startsWith('-')) {
+    return undefined;
   }
-  const tools = normalizeToolNames(definition.tools);
-  return nestedScope === undefined ? [...tools] : [...new Set([...tools, SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent])];
+  const name = trimmed.startsWith('+') ? trimmed.slice(ONE).trim() : trimmed;
+  if (name.length === ZERO || name.startsWith('+') || name.startsWith('-') || (name.includes('*') && !SCOPED_MCP_ALLOWLIST.test(name))) {
+    return undefined;
+  }
+  return name;
+}
+
+function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedScope | undefined): readonly string[] | undefined {
+  if (definition.tools.length === ZERO && definition.hasToolsField !== true) {
+    return undefined;
+  }
+  const names = definition.tools.flatMap((entry) => {
+    const name = allowlistedToolName(entry);
+    return name === undefined ? [] : [name];
+  });
+  const unique = [...new Set(normalizeToolNames(names))];
+  if (unique.length === ZERO) {
+    return [];
+  }
+  const nested = nestedScope === undefined ? [] : [SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent];
+  return [...new Set([...unique, ...nested])];
 }
 
 const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent]);

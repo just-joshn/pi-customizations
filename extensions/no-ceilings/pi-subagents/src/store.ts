@@ -94,6 +94,9 @@ function keepSnapshotTranscript(record: SubagentSessionRecord, includeTranscript
   if (includeTranscriptItems === true) {
     return true;
   }
+  if (includeTranscriptItems === false) {
+    return false;
+  }
   return recentCompleted.has(record.agentId);
 }
 
