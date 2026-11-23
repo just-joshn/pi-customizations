@@ -72,7 +72,8 @@ export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, optio
     return container;
   }
   const durationLabel = formatDurationMs(details.durationMs);
-  const noteParts = [details.subagentType, details.isBackground ? 'background' : undefined, durationLabel].filter((part): part is string => part !== undefined);
+  const attemptsLabel = details.attempts > ONE ? `attempt ${details.attempts}/${details.maxAttempts}` : undefined;
+  const noteParts = [details.subagentType, details.isBackground ? 'background' : undefined, details.worktreePath ? 'worktree' : undefined, attemptsLabel, durationLabel].filter((part): part is string => part !== undefined);
   const note = noteParts.length > ZERO ? noteParts.join(BULLET_SEPARATOR) : undefined;
   const headerStatus = options.isPartial ? 'pending' : details.status;
   container.addChild(new Text(formatHeaderLine(theme, details.description || DEFAULT_TASK_DESCRIPTION, headerStatus, note), PADDING_ZERO, PADDING_ZERO));
@@ -87,8 +88,12 @@ export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, optio
   }
   if (details.status === 'error' || details.status === 'cancelled') {
     const errorMsg = details.error || 'Unknown error';
-    container.addChild(new Text(`  ${theme.fg('error', `Error: ${errorMsg}`)}`, PADDING_ZERO, PADDING_ZERO));
+    const identifier = details.failureId ? ` [${details.failureId}${details.errorCode ? ` ${details.errorCode}` : ''}]` : '';
+    container.addChild(new Text(`  ${theme.fg('error', `Error${identifier}: ${errorMsg}`)}`, PADDING_ZERO, PADDING_ZERO));
     return container;
+  }
+  if (details.worktreePath !== undefined) {
+    container.addChild(new Text(`  ${theme.fg('dim', `worktree ${details.branch ?? ''} at ${details.worktreePath}`)}`, PADDING_ZERO, PADDING_ZERO));
   }
   if (details.finalMessage && details.finalMessage.trim().length > ZERO) {
     container.addChild(new Spacer(ONE));
@@ -137,7 +142,7 @@ export function syncSubagentsUi(ctx: ExtensionContext, store: SubagentStore): vo
   }
   const statusLabel = active.length === ONE ? '1 task running (/tasks)' : `${active.length} tasks running (/tasks)`;
   ctx.ui.setStatus(SUBAGENTS_STATUS_KEY, ctx.ui.theme.fg('accent', statusLabel));
-  const header = ctx.ui.theme.bold(formatRunningAgentsSummaryHeader(active));
+  const header = ctx.ui.theme.bold(formatRunningAgentsSummaryHeader(store.listSessions()));
   const body = active.flatMap((session) => formatAgentWidgetLines(ctx.ui.theme, session));
   ctx.ui.setWidget(SUBAGENTS_WIDGET_KEY, [header, ...body]);
 }

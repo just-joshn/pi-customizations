@@ -199,20 +199,31 @@ export function formatBackgroundCompletionHeader(completions: readonly Backgroun
   return title && title.length > ZERO ? { label: 'Finished', title, isGrouped: false } : { label: 'Finished', isGrouped: false };
 }
 
-export function buildSubagentsContextPrompt(definitions: readonly SubagentDefinition[]): string {
-  const lines = definitions.map((def) => {
-    const flags = [def.permissionMode === 'readonly' ? 'readonly' : undefined, def.isBackground ? 'background-by-default' : undefined, def.model !== 'inherit' ? `model=${def.model}` : undefined].filter(
-      (item): item is string => item !== undefined,
-    );
+export function buildSubagentsContextPrompt(definitions: readonly SubagentDefinition[], config?: { readonly maxNestingDepth: number }): string {
+  const lines = definitions.map((definition) => {
+    const flags = [
+      definition.permissionMode === 'readonly' ? 'readonly' : undefined,
+      definition.isBackground ? 'background-by-default' : undefined,
+      definition.worktree ? 'isolated-worktree' : undefined,
+      definition.mcp ? 'mcp-tools' : undefined,
+      definition.thinking !== undefined ? `thinking=${definition.thinking}` : undefined,
+      definition.model !== 'inherit' ? `model=${definition.model}` : undefined,
+    ].filter((item): item is string => item !== undefined);
     const suffix = flags.length > ZERO ? ` (${flags.join(', ')})` : '';
-    const desc = def.description.trim() || `Custom subagent (${def.source})`;
-    return `- \`${def.name}\`${suffix}: ${desc}`;
+    const description = definition.description.trim() || `Custom subagent (${definition.source})`;
+    return `- \`${definition.name}\`${suffix}: ${description}`;
   });
+  const depthLine = config === undefined ? 'Subagents may delegate one level deeper when their definition allows it.' : `Subagents may delegate at most ${config.maxNestingDepth} level(s) deep.`;
   return [
     '[SUBAGENTS AVAILABLE]',
-    'You can delegate isolated work to subagents using the `task` tool and wait on background subagents using `await_subagent`.',
+    'You can delegate isolated work to subagents with the `task` tool and wait on background subagents with `await_subagent`.',
+    'Each subagent runs in its own context window with its own transcript, so pass everything it needs in `prompt`.',
     'Available `subagent_type` values:',
     ...lines,
-    'Use `run_in_background: true` to launch independent work without blocking, and `resume: "<agent_id>"` to continue an existing subagent session.',
+    'Omit `subagent_type` to let the harness pick the subagent whose description best matches `description` and `prompt`.',
+    'Use `run_in_background: true` for independent work and `await_subagent` with the returned `agent_id` to collect it.',
+    'Use `worktree: true` when two subagents may edit the same repository, then merge the returned branch.',
+    'Use `resume: "<agent_id>"` to continue a subagent and `max_attempts` above 1 to retry a failing one.',
+    depthLine,
   ].join('\n');
 }

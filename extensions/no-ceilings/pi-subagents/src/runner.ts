@@ -1,49 +1,45 @@
 import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync } from 'node:fs';
 
-import type { ThinkingLevel } from '@earendil-works/pi-agent-core';
 import type { Api, Model } from '@earendil-works/pi-ai';
+import type { AgentSession, AgentSessionEvent, ExtensionContext, ExtensionFactory } from '@earendil-works/pi-coding-agent';
+import type { SubagentsConfig } from './config.ts';
+import type { SubagentEventName, SubagentEventPayload } from './events.ts';
+import { errorMessage, failureCode, SubagentRunError } from './failures.ts';
+import { formatSessionTitle } from './formatters.ts';
+import { applyDefinitionToModel, describeModel, resolveSubagentModel } from './model-resolution.ts';
+import { cancelPreparedRun, runDetachedTask, runForegroundTask } from './run-launch.ts';
+import { createChildSession, materializeTranscriptFile } from './session-factory.ts';
+import { createFailureId, isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
+import { type RunProgress, reduceSubagentEvent } from './transcript.ts';
 import {
-  type AgentSession,
-  type AgentSessionEvent,
-  createAgentSession,
-  DefaultResourceLoader,
-  type ExtensionAPI,
-  type ExtensionContext,
-  type ExtensionFactory,
-  getAgentDir,
-  type ProviderConfig,
-  SessionManager,
-} from '@earendil-works/pi-coding-agent';
-import { formatSessionTitle, formatToolActivity } from './formatters.ts';
-import { createReadonlySubagentExtension } from './readonly-guard.ts';
-import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
-import {
-  AWAIT_TIMEOUT_ERROR,
   type BackgroundCompletionPayload,
+  type BackgroundReason,
   DEFAULT_TASK_DESCRIPTION,
-  MAX_NESTED_TASK_DEPTH,
+  isActiveSubagentStatus,
   type NestedScope,
   ONE,
   SUBAGENT_ABORTED_ERROR,
-  SUBAGENT_BUSY_ERROR,
-  SUBAGENT_TOOL_NAMES,
+  SUBAGENT_FAILURE_MESSAGES,
   type SubagentDefinition,
+  type SubagentFailureCode,
   type SubagentSessionRecord,
+  type SubagentThinkingLevel,
   type TaskToolDetails,
   type TaskToolInput,
   ZERO,
 } from './types.ts';
 
-const FAST_MODEL_HINTS = ['haiku', 'flash', 'mini', 'nano', 'fast', 'lite'] as const;
-const SUBAGENTS_DIR_NAME = 'subagents';
-const SLASH_CHAR = '/';
+const MAX_RETRY_ATTEMPTS_CAP = 10;
+const NON_RETRYABLE_FAILURES: ReadonlySet<SubagentFailureCode> = new Set(['resume-unavailable', 'worktree-failed', 'nesting-limit', 'invalid-id', 'empty-prompt', 'type-unknown', 'model-unknown', 'resume-not-owned', 'busy']);
 
 export interface RunnerCallbacks {
   readonly store: SubagentStore;
   readonly onBackgroundCompleted: (payload: BackgroundCompletionPayload) => void;
-  readonly onStateChanged: () => void;
+  readonly onStateChanged: (options?: { readonly includeTranscriptItems?: boolean }) => void;
+  readonly emit: (event: SubagentEventName, record: SubagentSessionRecord, extra?: Partial<SubagentEventPayload>) => void;
+  readonly getParentActiveTools: () => readonly string[];
+  readonly getConfig: (ctx: ExtensionContext) => SubagentsConfig;
 }
 
 export interface RunTaskOptions {
@@ -55,75 +51,10 @@ export interface RunTaskOptions {
   readonly scope?: NestedScope;
   readonly createNestedExtension: (scope: NestedScope) => ExtensionFactory;
   readonly onUpdate?: (details: TaskToolDetails) => void;
+  readonly retry?: boolean;
 }
 
-interface ModelIdentity {
-  readonly id: string;
-  readonly provider: string;
-}
-
-interface ModelResolutionContext<M extends ModelIdentity> {
-  readonly model: M | undefined;
-  readonly modelRegistry: {
-    getAvailable(): readonly M[];
-    getAll(): readonly M[];
-    find(provider: string, id: string): M | undefined;
-  };
-}
-
-export function resolveModelForSubagent<M extends ModelIdentity>(requestedModel: string | undefined, definition: SubagentDefinition, ctx: ModelResolutionContext<M>): M | undefined {
-  const requested = (requestedModel ?? '').trim();
-  const effective = requested || definition.model;
-  if (definition.forceDefaultModel || effective.length === ZERO || effective === 'inherit' || effective === 'default' || effective === 'auto' || effective === 'inherit-parent') {
-    return ctx.model;
-  }
-  const available = ctx.modelRegistry.getAvailable();
-  if (effective === 'fast') {
-    const fastHit = available.find((m) => FAST_MODEL_HINTS.some((hint) => m.id.toLowerCase().includes(hint)));
-    return fastHit ?? ctx.model;
-  }
-  const slashIndex = effective.indexOf(SLASH_CHAR);
-  if (slashIndex > ZERO) {
-    const provider = effective.slice(ZERO, slashIndex);
-    const id = effective.slice(slashIndex + ONE);
-    const exact = ctx.modelRegistry.find(provider, id);
-    if (exact) {
-      return exact;
-    }
-  }
-  const byId = available.find((m) => m.id === effective) ?? ctx.modelRegistry.getAll().find((m) => m.id === effective);
-  if (!byId) {
-    if (requested.length > ZERO) {
-      throw new Error(`Unknown model "${effective}". Pass a registered model id from pi --list-models, or "inherit".`);
-    }
-    return ctx.model;
-  }
-  return byId;
-}
-
-function resolveSubagentSessionDir(ctx: ExtensionContext): string | undefined {
-  const sessionDir = ctx.sessionManager.getSessionDir();
-  if (!sessionDir || sessionDir.trim().length === ZERO) {
-    return undefined;
-  }
-  const targetDir = join(sessionDir, SUBAGENTS_DIR_NAME);
-  if (!existsSync(targetDir)) {
-    mkdirSync(targetDir, { recursive: true });
-  }
-  return targetDir;
-}
-
-function createChildSessionManager(cwd: string, transcriptPath: string | undefined, isResume: boolean, sessionDir: string | undefined): SessionManager {
-  if (isResume && transcriptPath && existsSync(transcriptPath)) {
-    return SessionManager.open(transcriptPath, sessionDir);
-  }
-  if (sessionDir) {
-    return SessionManager.create(cwd, sessionDir);
-  }
-  return SessionManager.inMemory(cwd);
-}
-
-function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails {
+export function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails {
   const transcriptText = record.transcriptItems
     .filter((item) => item.role === 'assistant' && item.text.trim().length > ZERO)
     .map((item) => item.text.trimEnd())
@@ -133,11 +64,15 @@ function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails 
     description: record.description,
     subagentType: record.subagentType,
     ...(record.model !== undefined ? { model: record.model } : {}),
+    ...(record.thinking !== undefined ? { thinking: record.thinking } : {}),
     readonly: record.readonly,
     status: record.status,
     isBackground: record.isBackground,
     backgroundReason: record.backgroundReason,
+    attempts: record.attempts,
+    maxAttempts: record.maxAttempts,
     toolCallCount: record.toolCallCount,
+    checkpoints: record.checkpoints.length,
     ...(record.durationMs !== undefined ? { durationMs: record.durationMs } : {}),
     ...(record.currentStep !== undefined ? { currentStep: record.currentStep } : {}),
     ...(record.activeToolVerb !== undefined ? { activeToolVerb: record.activeToolVerb } : {}),
@@ -147,92 +82,28 @@ function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails 
     ...(transcriptText.length > ZERO ? { transcriptText } : {}),
     ...(record.lastMessage !== undefined ? { finalMessage: record.lastMessage } : {}),
     ...(record.error !== undefined ? { error: record.error } : {}),
+    ...(record.errorCode !== undefined ? { errorCode: record.errorCode } : {}),
+    ...(record.failureId !== undefined ? { failureId: record.failureId } : {}),
     ...(record.transcriptPath !== undefined ? { transcriptPath: record.transcriptPath } : {}),
+    ...(record.worktree !== undefined ? { worktreePath: record.worktree.path, branch: record.worktree.branch } : {}),
+    ...(record.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}),
   };
 }
 
-function extractRecordArgs(args: unknown): Readonly<Record<string, unknown>> {
-  if (args && typeof args === 'object' && !Array.isArray(args)) {
-    return Object.fromEntries(Object.entries(args));
-  }
-  return {};
-}
-
-interface StreamProgressState {
-  readonly toolCallCount: number;
-  readonly finalMessage?: string;
-}
-
-function handleSubagentEvent(agentId: string, event: AgentSessionEvent, store: SubagentStore, progress: StreamProgressState): StreamProgressState {
-  const now = Date.now();
-  if (event.type === 'turn_start') {
-    store.updateSession(agentId, (rec) => ({ ...rec, streamingText: undefined, streamingThinking: undefined, updatedAt: now }));
-    return progress;
-  }
-  if (event.type === 'message_update') {
-    const sub = event.assistantMessageEvent;
-    if (sub.type === 'text_delta') {
-      const prev = store.getSession(agentId);
-      const nextText = `${prev?.streamingText ?? ''}${sub.delta}`;
-      store.updateSession(agentId, (rec) => ({ ...rec, status: 'running', streamingText: nextText, currentStep: 'Responding…', updatedAt: now }));
-      return { ...progress, finalMessage: nextText };
+function delay(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (ms <= ZERO || signal.aborted) {
+      resolve();
+      return;
     }
-    if (sub.type === 'thinking_delta') {
-      const prev = store.getSession(agentId);
-      const nextThinking = `${prev?.streamingThinking ?? ''}${sub.delta}`;
-      store.updateSession(agentId, (rec) => ({ ...rec, status: 'running', streamingThinking: nextThinking, currentStep: 'Thinking…', updatedAt: now }));
-    }
-    return progress;
-  }
-  if (event.type === 'tool_execution_start') {
-    const { verb, detail, stepLabel } = formatToolActivity(event.toolName, extractRecordArgs(event.args));
-    store.updateSession(agentId, (rec) => ({ ...rec, status: 'running', activeToolVerb: verb, activeToolDetail: detail, currentStep: stepLabel, updatedAt: now }));
-    store.appendTranscriptItem(agentId, { id: event.toolCallId, role: 'tool', text: stepLabel, toolName: event.toolName, toolSummary: stepLabel, completed: false, timestamp: now });
-    return progress;
-  }
-  if (event.type === 'tool_execution_end') {
-    const nextCount = progress.toolCallCount + ONE;
-    store.updateSession(agentId, (rec) => ({
-      ...rec,
-      toolCallCount: nextCount,
-      activeToolVerb: undefined,
-      activeToolDetail: undefined,
-      currentStep: 'Working…',
-      transcriptItems: rec.transcriptItems.map((item) => (item.id === event.toolCallId ? { ...item, completed: true } : item)),
-      updatedAt: now,
-    }));
-    return { ...progress, toolCallCount: nextCount };
-  }
-  return progress;
-}
-
-function isExtensionProviderConfig(config: unknown): config is ProviderConfig {
-  return typeof config === 'object' && config !== null;
-}
-
-function createInheritedProvidersExtension(modelRegistry: ExtensionContext['modelRegistry']): ExtensionFactory {
-  return (pi: ExtensionAPI): void => {
-    const providerIds = modelRegistry.getRegisteredProviderIds?.() ?? [];
-    for (const providerId of providerIds) {
-      const nativeProvider = modelRegistry.getRegisteredNativeProvider?.(providerId);
-      if (nativeProvider !== undefined) {
-        pi.registerProvider(nativeProvider);
-        continue;
-      }
-      const config = modelRegistry.getRegisteredProviderConfig?.(providerId);
-      if (isExtensionProviderConfig(config)) {
-        pi.registerProvider(providerId, config);
-      }
-    }
-  };
-}
-
-const NESTED_TOOL_NAMES = [SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent] as const;
-
-function abortNestedRuns(scope: NestedScope | undefined, store: SubagentStore): void {
-  for (const id of scope?.agentIds ?? []) {
-    store.abortRun(id);
-  }
+    const finish = (): void => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    signal.addEventListener('abort', finish, { once: true });
+  });
 }
 
 function resolveChildDepth(existing: SubagentSessionRecord | undefined, scope: NestedScope | undefined, store: SubagentStore): number {
@@ -250,63 +121,14 @@ function resolveChildDepth(existing: SubagentSessionRecord | undefined, scope: N
   return depth;
 }
 
-async function createChildSession(
-  options: RunTaskOptions,
-  agentId: string,
-  parentSessionId: string,
-  childDepth: number,
-  ownedAgentIds: readonly string[],
-  model: Model<Api> | undefined,
-  thinkingLevel: ThinkingLevel | undefined,
-  readonly: boolean,
-  existingTranscriptPath: string | undefined,
-  isResume: boolean,
-): Promise<{ readonly session: AgentSession; readonly transcriptPath?: string; readonly nestedScope?: NestedScope }> {
-  const sessionDir = resolveSubagentSessionDir(options.ctx);
-  const sessionManager = createChildSessionManager(options.ctx.cwd, existingTranscriptPath, isResume, sessionDir);
-  const providerBridge = createInheritedProvidersExtension(options.ctx.modelRegistry);
-  const nestedScope: NestedScope | undefined =
-    !readonly && options.definition.nestedTasks && childDepth <= MAX_NESTED_TASK_DEPTH ? { depth: childDepth, ownerAgentId: agentId, rootSessionId: parentSessionId, agentIds: new Set(ownedAgentIds) } : undefined;
-  const extensionFactories = readonly ? [createReadonlySubagentExtension(), providerBridge] : [providerBridge, ...(nestedScope ? [options.createNestedExtension(nestedScope)] : [])];
-  const resourceLoader = new DefaultResourceLoader({
-    cwd: options.ctx.cwd,
-    agentDir: getAgentDir(),
-    noExtensions: true,
-    noPromptTemplates: true,
-    noThemes: true,
-    extensionFactories,
-    appendSystemPrompt: [options.definition.prompt],
-  });
-  await resourceLoader.reload();
-  const baseTools = options.definition.tools.length > ZERO ? [...options.definition.tools] : undefined;
-  const tools = baseTools && nestedScope ? [...new Set([...baseTools, ...NESTED_TOOL_NAMES])] : baseTools;
-  const { session } = await createAgentSession({
-    cwd: options.ctx.cwd,
-    agentDir: getAgentDir(),
-    ...(model ? { model } : {}),
-    ...(thinkingLevel ? { thinkingLevel } : {}),
-    ...(tools ? { tools } : {}),
-    sessionManager,
-    resourceLoader,
-  });
-  const transcriptPath = sessionManager.getSessionFile() ?? existingTranscriptPath;
-  if (transcriptPath) {
-    const parentDir = dirname(transcriptPath);
-    if (!existsSync(parentDir)) {
-      mkdirSync(parentDir, { recursive: true });
-    }
-  }
-  return { session, ...(transcriptPath ? { transcriptPath } : {}), ...(nestedScope ? { nestedScope } : {}) };
-}
-
-function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome: SubagentRunOutcome, startedAt: number): SubagentSessionRecord | undefined {
+export function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome: SubagentRunOutcome, startedAt: number): SubagentSessionRecord | undefined {
   const now = Date.now();
   const durationMs = Math.max(ZERO, now - startedAt);
   if (outcome.status === 'completed') {
-    return store.updateSession(agentId, (rec) => ({
-      ...rec,
+    return store.updateSession(agentId, (record) => ({
+      ...record,
       status: 'success',
-      lastMessage: outcome.finalMessage ?? rec.lastMessage,
+      lastMessage: outcome.finalMessage ?? record.lastMessage,
       toolCallCount: outcome.toolCallCount,
       durationMs,
       currentStep: 'Done',
@@ -319,10 +141,12 @@ function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome:
     }));
   }
   const isAborted = outcome.status === 'aborted';
-  return store.updateSession(agentId, (rec) => ({
-    ...rec,
+  return store.updateSession(agentId, (record) => ({
+    ...record,
     status: isAborted ? 'cancelled' : 'error',
     error: outcome.error,
+    errorCode: outcome.errorCode,
+    failureId: record.failureId ?? createFailureId(),
     durationMs,
     currentStep: isAborted ? 'Cancelled' : 'Failed',
     closedAt: now,
@@ -341,84 +165,193 @@ function buildBackgroundPayload(record: SubagentSessionRecord, outcome: Subagent
     title: formatSessionTitle(record.description, record.prompt, record.agentId),
     ...(detail ? { detail } : {}),
     ...(record.transcriptPath ? { outputPath: record.transcriptPath } : {}),
+    ...(record.failureId ? { failureId: record.failureId } : {}),
+    attempts: record.attempts,
+    ...(record.worktree ? { worktreePath: record.worktree.path, branch: record.worktree.branch, ...(record.worktreeSummary !== undefined ? { worktreeSummary: record.worktreeSummary } : {}) } : {}),
   };
 }
 
-function executeSessionLifecycle(
-  session: AgentSession,
-  agentId: string,
-  prompt: string,
-  startedAt: number,
-  abortController: AbortController,
-  store: SubagentStore,
-  nestedScope: NestedScope | undefined,
-  onUpdate?: (details: TaskToolDetails) => void,
-): Promise<SubagentRunOutcome> {
-  let progress: StreamProgressState = { toolCallCount: ZERO };
-  const unsubscribe = session.subscribe((event) => {
-    progress = handleSubagentEvent(agentId, event, store, progress);
-    const updated = store.getSession(agentId);
-    if (updated && onUpdate) {
-      onUpdate(buildDetailsFromRecord(updated));
+interface LifecycleRequest {
+  readonly session: AgentSession;
+  readonly agentId: string;
+  readonly prompt: string;
+  readonly startedAt: number;
+  readonly abortController: AbortController;
+  readonly transcriptPath: string | undefined;
+  readonly nestedScope: NestedScope | undefined;
+  readonly store: SubagentStore;
+  readonly callbacks: RunnerCallbacks;
+  readonly onUpdate?: (details: TaskToolDetails) => void;
+}
+
+function ensureFinalAssistantItem(store: SubagentStore, agentId: string, finalText: string): void {
+  const trimmed = finalText.trim();
+  const record = store.getSession(agentId);
+  const lastAssistant = [...(record?.transcriptItems ?? [])].reverse().find((item) => item.role === 'assistant');
+  if (lastAssistant?.text.trim() === trimmed) {
+    return;
+  }
+  store.appendTranscriptItem(agentId, { id: randomUUID(), role: 'assistant', text: trimmed, completed: true, timestamp: Date.now() });
+}
+
+function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, progress: RunProgress): RunProgress {
+  const previous = request.store.getSession(request.agentId);
+  if (!previous) {
+    return progress;
+  }
+  const reduced = reduceSubagentEvent(previous, event, progress, Date.now());
+  request.store.upsertSession(reduced.record);
+  if (reduced.checkpoint) {
+    const before = previous.checkpoints.length;
+    const checkpoint = request.store.withCheckpoint(request.agentId, { transcriptPath: request.transcriptPath });
+    const after = request.store.getSession(request.agentId)?.checkpoints.length ?? before;
+    if (checkpoint && after > before) {
+      request.callbacks.emit('checkpoint', request.store.getSession(request.agentId) ?? reduced.record, { checkpointSeq: checkpoint.seq });
     }
+  }
+  if (event.type === 'tool_execution_start') {
+    request.callbacks.emit('toolCall', request.store.getSession(request.agentId) ?? reduced.record, { toolName: event.toolName });
+  }
+  request.onUpdate?.(buildDetailsFromRecord(reduced.record));
+  return reduced.progress;
+}
+
+function abortNestedRuns(scope: NestedScope | undefined, store: SubagentStore): void {
+  for (const agentId of scope?.agentIds ?? []) {
+    store.abortRun(agentId);
+  }
+}
+
+const MODEL_REQUEST_FAILED = 'Subagent model request failed';
+
+interface AssistantStop {
+  readonly stopReason: string;
+  readonly errorMessage?: string;
+}
+
+function readAssistantStop(message: { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }): AssistantStop | undefined {
+  if (message.role !== 'assistant' || typeof message.stopReason !== 'string') {
+    return undefined;
+  }
+  const errorMessage = typeof message.errorMessage === 'string' ? message.errorMessage : undefined;
+  return { stopReason: message.stopReason, ...(errorMessage !== undefined ? { errorMessage } : {}) };
+}
+
+function listedMessages(session: AgentSession): readonly { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }[] | undefined {
+  if (!('messages' in session)) {
+    return undefined;
+  }
+  const messages = session.messages;
+  return Array.isArray(messages) ? messages : undefined;
+}
+
+function lastAssistantStop(messages: readonly { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }[], start: number): AssistantStop | undefined {
+  let found: AssistantStop | undefined;
+  for (const message of messages.slice(start)) {
+    const stop = readAssistantStop(message);
+    if (stop !== undefined) {
+      found = stop;
+    }
+  }
+  return found;
+}
+
+export function abortedOutcome(durationMs: number): SubagentRunOutcome {
+  return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs };
+}
+
+function promptOutcome(request: LifecycleRequest, progress: RunProgress, fromEvents: AssistantStop | undefined, messageStart: number): SubagentRunOutcome {
+  const durationMs = Math.max(ZERO, Date.now() - request.startedAt);
+  if (request.abortController.signal.aborted) {
+    return abortedOutcome(durationMs);
+  }
+  const assistant = lastAssistantStop(listedMessages(request.session) ?? [], messageStart) ?? fromEvents;
+  if (assistant?.stopReason === 'aborted') {
+    return abortedOutcome(durationMs);
+  }
+  if (assistant?.stopReason === 'error') {
+    return { status: 'error', error: assistant.errorMessage || MODEL_REQUEST_FAILED, errorCode: 'failed', durationMs };
+  }
+  const finalText = (request.session.getLastAssistantText() ?? progress.finalMessage ?? '').trim();
+  if (finalText.length > ZERO) {
+    ensureFinalAssistantItem(request.store, request.agentId, finalText);
+  }
+  return { status: 'completed', ...(finalText.length > ZERO ? { finalMessage: finalText } : {}), toolCallCount: progress.toolCallCount, durationMs };
+}
+
+function runSession(request: LifecycleRequest): Promise<SubagentRunOutcome> {
+  if (request.abortController.signal.aborted) {
+    request.session.dispose();
+    return Promise.resolve(abortedOutcome(Math.max(ZERO, Date.now() - request.startedAt)));
+  }
+  let progress: RunProgress = { toolCallCount: request.store.getSession(request.agentId)?.toolCallCount ?? ZERO, finalMessage: undefined };
+  let fromEvents: AssistantStop | undefined;
+  const messageStart = listedMessages(request.session)?.length ?? ZERO;
+  const unsubscribe = request.session.subscribe((event) => {
+    if (event.type === 'message_end') {
+      fromEvents = readAssistantStop(event.message) ?? fromEvents;
+    }
+    progress = applyChildEvent(request, event, progress);
   });
   const onAbort = (): void => {
-    void session.abort();
+    void request.session.abort();
   };
-  abortController.signal.addEventListener('abort', onAbort, { once: true });
+  request.abortController.signal.addEventListener('abort', onAbort, { once: true });
 
-  return session
-    .prompt(prompt)
-    .then((): SubagentRunOutcome => {
-      const durationMs = Math.max(ZERO, Date.now() - startedAt);
-      if (abortController.signal.aborted) {
-        return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, durationMs };
-      }
-      const finalText = session.getLastAssistantText() || progress.finalMessage;
-      if (finalText && finalText.trim().length > ZERO) {
-        store.appendTranscriptItem(agentId, { id: randomUUID(), role: 'assistant', text: finalText, completed: true, timestamp: Date.now() });
-      }
-      return { status: 'completed', ...(finalText ? { finalMessage: finalText } : {}), toolCallCount: progress.toolCallCount, durationMs };
-    })
+  return request.session
+    .prompt(request.prompt)
+    .then((): SubagentRunOutcome => promptOutcome(request, progress, fromEvents, messageStart))
     .catch((error: unknown): SubagentRunOutcome => {
-      const durationMs = Math.max(ZERO, Date.now() - startedAt);
-      if (abortController.signal.aborted) {
-        return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, durationMs };
+      const durationMs = Math.max(ZERO, Date.now() - request.startedAt);
+      if (request.abortController.signal.aborted) {
+        return abortedOutcome(durationMs);
       }
-      const message = error instanceof Error ? error.message : String(error);
-      return { status: 'error', error: message, durationMs };
+      return { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs };
     })
     .finally(() => {
-      abortController.signal.removeEventListener('abort', onAbort);
+      request.abortController.signal.removeEventListener('abort', onAbort);
       unsubscribe();
-      abortNestedRuns(nestedScope, store);
-      session.dispose();
+      request.session.dispose();
+      abortNestedRuns(request.nestedScope, request.store);
     });
 }
 
-function validateResumeRequest(resumeId: string, prompt: string, parentSessionId: string, store: SubagentStore): SubagentSessionRecord {
+function validateResumeRequest(resumeId: string, prompt: string, parentSessionId: string, store: SubagentStore, allowMissingTranscript = false): SubagentSessionRecord {
   if (!isValidSubagentId(resumeId)) {
-    throw new Error(`Invalid resumeAgentId format: ${resumeId}`);
+    throw new SubagentRunError('invalid-id', resumeId);
   }
-  if (prompt.trim().length > ZERO && store.isRunBusy(resumeId)) {
-    throw new Error(SUBAGENT_BUSY_ERROR);
+  const running = store.isRunBusy(resumeId);
+  if (prompt.trim().length > ZERO && running) {
+    throw new SubagentRunError('busy');
   }
   const existing = store.getSession(resumeId);
   if (!isMatchingLineage(existing, parentSessionId) || !existing) {
-    throw new Error(`Cannot resume subagent ${resumeId}: its conversation state is no longer available. Start a new subagent instead.`);
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  if (existing.worktree !== undefined && !existsSync(existing.worktree.path)) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  // The path is recorded when the child starts, and the file is flushed when the run ends.
+  if (!running && existing.transcriptPath !== undefined && !existsSync(existing.transcriptPath)) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  if (!running && existing.transcriptPath === undefined && !allowMissingTranscript) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
   }
   return existing;
 }
 
-export async function awaitBackgroundSubagent(
-  agentId: string,
-  store: SubagentStore,
-  timeoutMs: number | undefined,
-  signal?: AbortSignal,
-): Promise<{ readonly outcome: 'complete' | 'still_running' | 'not_found' | 'error'; readonly record?: SubagentSessionRecord; readonly error?: string }> {
+export interface AwaitSubagentResult {
+  readonly outcome: 'complete' | 'still_running' | 'not_found' | 'error';
+  readonly record?: SubagentSessionRecord;
+  readonly error?: string;
+  readonly errorCode?: 'await-timeout' | 'await-not-found' | 'aborted';
+}
+
+export async function awaitBackgroundSubagent(agentId: string, store: SubagentStore, timeoutMs: number | undefined, signal?: AbortSignal): Promise<AwaitSubagentResult> {
   const existing = store.getSession(agentId);
   if (!existing) {
-    return { outcome: 'not_found', error: `No background subagent found for id: ${agentId}` };
+    return { outcome: 'not_found', error: `${SUBAGENT_FAILURE_MESSAGES['await-not-found']}: ${agentId}`, errorCode: 'await-not-found' };
   }
   const active = store.getActiveRun(agentId);
   if (!active) {
@@ -426,12 +359,13 @@ export async function awaitBackgroundSubagent(
     return { outcome: 'complete', record: existing };
   }
   if (signal?.aborted) {
-    return { outcome: 'error', error: AWAIT_TIMEOUT_ERROR };
+    return { outcome: 'error', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted' };
   }
   store.suppressWakeup(agentId);
   const raceResult = await new Promise<'done' | 'timeout' | 'aborted'>((resolveRace) => {
     let settled = false;
-    const finish = (val: 'done' | 'timeout' | 'aborted'): void => {
+    const timer = timeoutMs !== undefined && Number.isFinite(timeoutMs) ? setTimeout(() => finish('timeout'), timeoutMs) : undefined;
+    function finish(value: 'done' | 'timeout' | 'aborted'): void {
       if (settled) {
         return;
       }
@@ -440,47 +374,182 @@ export async function awaitBackgroundSubagent(
         clearTimeout(timer);
       }
       signal?.removeEventListener('abort', onAbort);
-      resolveRace(val);
-    };
-    const onAbort = (): void => finish('aborted');
-    const timer = timeoutMs !== undefined && Number.isFinite(timeoutMs) ? setTimeout(() => finish('timeout'), timeoutMs) : undefined;
-    timer?.unref?.();
+      resolveRace(value);
+    }
+    function onAbort(): void {
+      finish('aborted');
+    }
     signal?.addEventListener('abort', onAbort, { once: true });
-    void active.completionPromise.then(() => finish('done'));
+    void active.completionPromise.then(
+      () => finish('done'),
+      () => finish('done'),
+    );
   });
   if (raceResult === 'done') {
+    store.unsuppressWakeup(agentId);
     const updated = store.getSession(agentId);
     return { outcome: 'complete', ...(updated ? { record: updated } : {}) };
   }
   store.unsuppressWakeup(agentId);
   if (raceResult === 'aborted') {
-    return { outcome: 'error', error: AWAIT_TIMEOUT_ERROR };
+    return { outcome: 'error', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted' };
   }
   const current = store.getSession(agentId);
   return { outcome: 'still_running', ...(current ? { record: current } : {}) };
 }
 
-function attachBackgroundCompletionHandler(agentId: string, startedAt: number, runPromise: Promise<SubagentRunOutcome>, callbacks: RunnerCallbacks): Promise<SubagentRunOutcome> {
-  return runPromise.then((outcome) => {
-    callbacks.store.clearActiveRun(agentId);
-    const finalized = finalizeSubagentSession(callbacks.store, agentId, outcome, startedAt);
-    if (finalized) {
-      const payload = buildBackgroundPayload(finalized, outcome);
-      if (callbacks.store.enqueueWakeup(payload)) {
-        callbacks.onBackgroundCompleted(payload);
-      }
-    }
-    callbacks.onStateChanged();
-    return outcome;
-  });
+export interface AttemptPlan {
+  readonly agentId: string;
+  readonly prompt: string;
+  readonly parentSessionId: string;
+  readonly startedAt: number;
+  readonly existing: SubagentSessionRecord | undefined;
+  readonly isResume: boolean;
+  readonly childDepth: number;
+  readonly ownedAgentIds: readonly string[];
+  readonly nestedScope: NestedScope | undefined;
+  readonly abortController: AbortController;
+  readonly childCwd: string;
+  readonly maxAttempts: number;
+  readonly retryDelayMs: number;
+  readonly model: Model<Api> | undefined;
+  readonly thinking: SubagentThinkingLevel | undefined;
+  readonly readonly: boolean;
 }
 
-async function runForegroundSubagent(options: RunTaskOptions, initialRecord: SubagentSessionRecord, runPromise: Promise<SubagentRunOutcome>, abortController: AbortController, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
+function failedOutcome(plan: AttemptPlan, error: string, code: SubagentFailureCode): SubagentRunOutcome {
+  return { status: 'error', error, errorCode: code, durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
+}
+
+async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan, attempt: number): Promise<SubagentRunOutcome> {
+  const attemptRecord = callbacks.store.updateSession(plan.agentId, (record) => ({
+    ...record,
+    attempts: attempt,
+    status: 'running',
+    error: undefined,
+    errorCode: undefined,
+    streamingText: undefined,
+    streamingThinking: undefined,
+    currentStep: attempt === ONE ? 'Starting…' : `Retry ${attempt}/${plan.maxAttempts}`,
+    updatedAt: Date.now(),
+  }));
+  if (attemptRecord) {
+    callbacks.emit('status', attemptRecord);
+  }
+  try {
+    const child = await createChildSession(
+      {
+        ctx: options.ctx,
+        definition: options.definition,
+        agentId: plan.agentId,
+        parentSessionId: plan.parentSessionId,
+        childDepth: plan.childDepth,
+        ownedAgentIds: plan.ownedAgentIds,
+        model: plan.model,
+        thinking: plan.thinking,
+        readonly: plan.readonly,
+        existingTranscriptPath: attempt === ONE ? plan.existing?.transcriptPath : undefined,
+        isResume: attempt === ONE && plan.isResume,
+        cwd: plan.childCwd,
+        projectTrusted: options.ctx.isProjectTrusted(),
+        nestedScope: plan.nestedScope,
+        createNestedExtension: options.createNestedExtension,
+      },
+      callbacks.getParentActiveTools(),
+    );
+    callbacks.store.updateSession(plan.agentId, (record) => ({ ...record, ...(child.transcriptPath !== undefined ? { transcriptPath: child.transcriptPath } : {}) }));
+    callbacks.onStateChanged({ includeTranscriptItems: false });
+    try {
+      return await runSession({
+        session: child.session,
+        agentId: plan.agentId,
+        prompt: plan.prompt,
+        startedAt: plan.startedAt,
+        abortController: plan.abortController,
+        transcriptPath: child.transcriptPath,
+        nestedScope: plan.nestedScope,
+        store: callbacks.store,
+        callbacks,
+        ...(options.onUpdate ? { onUpdate: options.onUpdate } : {}),
+      });
+    } finally {
+      try {
+        materializeTranscriptFile(child.sessionManager);
+      } catch {
+        // Best-effort repair. A transcript write must not turn a finished run into a failure.
+      }
+    }
+  } catch (error) {
+    return { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
+  }
+}
+
+export async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan): Promise<SubagentRunOutcome> {
+  let lastOutcome: SubagentRunOutcome = failedOutcome(plan, 'Subagent did not run', 'failed');
+  for (let attempt: number = ONE; attempt <= plan.maxAttempts; attempt += ONE) {
+    if (attempt > ONE) {
+      await delay(plan.retryDelayMs, plan.abortController.signal);
+    }
+    if (plan.abortController.signal.aborted) {
+      return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs: Math.max(ZERO, Date.now() - plan.startedAt) };
+    }
+    lastOutcome = await runOneAttempt(options, callbacks, plan, attempt);
+    if (lastOutcome.status !== 'error' || plan.abortController.signal.aborted) {
+      return lastOutcome;
+    }
+    if (NON_RETRYABLE_FAILURES.has(lastOutcome.errorCode)) {
+      return lastOutcome;
+    }
+  }
+  return lastOutcome;
+}
+
+function shutdownCancelled(record: SubagentSessionRecord | undefined): boolean {
+  return record?.status === 'cancelled' && record.failureId !== undefined;
+}
+
+function needsBackgroundFinalize(record: SubagentSessionRecord | undefined): boolean {
+  if (record === undefined || isActiveSubagentStatus(record.status)) {
+    return true;
+  }
+  return record.status === 'cancelled' && record.failureId === undefined;
+}
+
+function settleBackgroundRun(agentId: string, startedAt: number, outcome: SubagentRunOutcome, callbacks: RunnerCallbacks): SubagentRunOutcome {
+  callbacks.store.clearActiveRun(agentId);
+  const current = callbacks.store.getSession(agentId);
+  if (shutdownCancelled(current)) {
+    callbacks.onStateChanged();
+    return outcome;
+  }
+  const shouldFinalize = needsBackgroundFinalize(current);
+  const finalized = shouldFinalize ? finalizeSubagentSession(callbacks.store, agentId, outcome, startedAt) : current;
+  if (shouldFinalize && finalized) {
+    callbacks.emit('runEnd', finalized);
+  }
+  if (finalized) {
+    const payload = buildBackgroundPayload(finalized, outcome);
+    if (callbacks.store.enqueueWakeup(payload)) {
+      callbacks.onBackgroundCompleted(payload);
+    }
+  }
+  callbacks.onStateChanged();
+  return outcome;
+}
+
+function attachBackgroundCompletionHandler(agentId: string, startedAt: number, runPromise: Promise<SubagentRunOutcome>, callbacks: RunnerCallbacks): Promise<SubagentRunOutcome> {
+  return runPromise.then(
+    (outcome) => settleBackgroundRun(agentId, startedAt, outcome, callbacks),
+    (error: unknown) => settleBackgroundRun(agentId, startedAt, { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - startedAt) }, callbacks),
+  );
+}
+
+export async function runForegroundSubagent(options: RunTaskOptions, initialRecord: SubagentSessionRecord, runPromise: Promise<SubagentRunOutcome>, abortController: AbortController, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
   const { agentId, startedAt } = initialRecord;
   let backgrounded = false;
   let triggerBackground: (() => void) | undefined;
-  const backgroundPromise = new Promise<'backgrounded'>((resolveBg) => {
-    triggerBackground = () => resolveBg('backgrounded');
+  const backgroundPromise = new Promise<'backgrounded'>((resolveBackground) => {
+    triggerBackground = () => resolveBackground('backgrounded');
   });
   const onParentAbort = (): void => {
     if (!backgrounded) {
@@ -497,8 +566,9 @@ async function runForegroundSubagent(options: RunTaskOptions, initialRecord: Sub
     }
     backgrounded = true;
     options.signal?.removeEventListener('abort', onParentAbort);
-    callbacks.store.updateSession(agentId, (rec) => ({ ...rec, isBackground: true, backgroundReason: 'user_request', currentStep: 'Running in background', updatedAt: Date.now() }));
+    callbacks.store.updateSession(agentId, (record) => ({ ...record, isBackground: true, backgroundReason: 'user_request', currentStep: 'Running in background', updatedAt: Date.now() }));
     const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
+    void settledPromise.catch(() => undefined);
     callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
     triggerBackground?.();
     return true;
@@ -513,93 +583,199 @@ async function runForegroundSubagent(options: RunTaskOptions, initialRecord: Sub
   options.signal?.removeEventListener('abort', onParentAbort);
   callbacks.store.clearActiveRun(agentId);
   const finalized = finalizeSubagentSession(callbacks.store, agentId, winner.outcome, startedAt) ?? initialRecord;
+  callbacks.emit('runEnd', finalized);
   callbacks.onStateChanged();
   return buildDetailsFromRecord(finalized);
 }
 
-function buildInitialSessionRecord(
-  options: RunTaskOptions,
-  agentId: string,
-  parentSessionId: string,
-  existing: SubagentSessionRecord | undefined,
-  resolvedModel: Model<Api> | undefined,
-  isReadonly: boolean,
-  wantBackground: boolean,
-  startedAt: number,
-  transcriptPath: string | undefined,
-): SubagentSessionRecord {
-  const prompt = options.input.prompt.trim();
-  const description = options.input.description.trim() || existing?.description || DEFAULT_TASK_DESCRIPTION;
-  const ownerAgentId = options.scope?.ownerAgentId ?? existing?.ownerAgentId;
+interface InitialRecordRequest {
+  readonly options: RunTaskOptions;
+  readonly agentId: string;
+  readonly parentSessionId: string;
+  readonly existing: SubagentSessionRecord | undefined;
+  readonly resolvedModel: string | undefined;
+  readonly thinking: SubagentThinkingLevel | undefined;
+  readonly readonly: boolean;
+  readonly wantBackground: boolean;
+  readonly backgroundReason: BackgroundReason;
+  readonly startedAt: number;
+  readonly maxAttempts: number;
+}
+
+function buildInitialSessionRecord(request: InitialRecordRequest): SubagentSessionRecord {
+  const prompt = request.options.input.prompt.trim();
+  const description = request.options.input.description.trim() || request.existing?.description || DEFAULT_TASK_DESCRIPTION;
+  const ownerAgentId = request.options.scope?.ownerAgentId ?? request.existing?.ownerAgentId;
   return {
-    agentId,
-    parentSessionId,
+    agentId: request.agentId,
+    parentSessionId: request.parentSessionId,
     ...(ownerAgentId !== undefined ? { ownerAgentId } : {}),
-    toolCallId: options.toolCallId,
-    subagentType: options.definition.name,
+    toolCallId: request.options.toolCallId,
+    subagentType: request.options.definition.name,
     description,
     prompt,
-    ...(resolvedModel ? { model: `${resolvedModel.provider}/${resolvedModel.id}` } : {}),
-    readonly: isReadonly,
+    ...(request.resolvedModel !== undefined ? { model: request.resolvedModel } : {}),
+    ...(request.thinking !== undefined ? { thinking: request.thinking } : {}),
+    readonly: request.readonly,
     status: 'running',
-    isBackground: wantBackground,
-    backgroundReason: wantBackground ? 'agent_request' : 'unspecified',
-    currentStep: wantBackground ? 'Running in background' : 'Starting…',
-    toolCallCount: existing?.toolCallCount ?? ZERO,
-    startedAt,
-    updatedAt: startedAt,
-    ...(transcriptPath ? { transcriptPath } : {}),
-    transcriptItems: [...(existing?.transcriptItems ?? []), { id: randomUUID(), role: 'user', text: prompt, completed: true, timestamp: startedAt }],
+    isBackground: request.wantBackground,
+    backgroundReason: request.backgroundReason,
+    attempts: ONE,
+    maxAttempts: request.maxAttempts,
+    currentStep: request.wantBackground ? 'Running in background' : 'Starting…',
+    toolCallCount: request.existing?.toolCallCount ?? ZERO,
+    startedAt: request.startedAt,
+    updatedAt: request.startedAt,
+    checkpoints: request.existing?.checkpoints ?? [],
+    ...(request.existing?.worktree !== undefined ? { worktree: request.existing.worktree } : {}),
+    ...(request.existing?.worktreeSummary !== undefined ? { worktreeSummary: request.existing.worktreeSummary } : {}),
+    ...(request.existing?.transcriptPath !== undefined ? { transcriptPath: request.existing.transcriptPath } : {}),
+    transcriptItems: [...(request.existing?.transcriptItems ?? []), { id: randomUUID(), role: 'user', text: prompt, completed: true, timestamp: request.startedAt }],
   };
 }
 
+export interface RunSetup {
+  readonly parentSessionId: string;
+  readonly prompt: string;
+  readonly existing: SubagentSessionRecord | undefined;
+  readonly isReadonly: boolean;
+  readonly wantBackground: boolean;
+  readonly detach: boolean;
+  readonly backgroundReason: BackgroundReason;
+  readonly maxAttempts: number;
+  readonly model: Model<Api> | undefined;
+  readonly thinking: SubagentThinkingLevel | undefined;
+}
+
+function resolveReadOnly(permissionMode: SubagentDefinition['permissionMode'], requested: boolean | undefined, existingReadonly: boolean | undefined): boolean {
+  return permissionMode === 'readonly' || requested === true || existingReadonly === true;
+}
+
+function resolveBackground(
+  requested: boolean | undefined,
+  definitionBackground: boolean | undefined,
+  existing: SubagentSessionRecord | undefined,
+  configDefault: boolean,
+): { readonly wantBackground: boolean; readonly backgroundReason: BackgroundReason } {
+  if (requested !== undefined) {
+    return { wantBackground: requested, backgroundReason: requested ? 'agent_request' : 'unspecified' };
+  }
+  const existingBackground = existing?.isBackground;
+  if (existing !== undefined && existingBackground !== undefined) {
+    return { wantBackground: existingBackground, backgroundReason: existing.backgroundReason };
+  }
+  const wantBackground = definitionBackground ?? configDefault;
+  const backgroundReason: BackgroundReason = wantBackground && definitionBackground !== undefined ? 'agent_request' : 'unspecified';
+  return { wantBackground, backgroundReason };
+}
+
+function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
+  const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
+  const resolved = resolveSubagentModel({ model: options.input.model ?? existing?.model, thinking: options.input.thinking ?? existing?.thinking }, options.definition, options.ctx);
+  const background = resolveBackground(options.input.run_in_background, options.definition.isBackground, existing, config.defaultBackground);
+  return {
+    parentSessionId,
+    prompt,
+    existing,
+    isReadonly: resolveReadOnly(options.definition.permissionMode, options.input.readonly, existing?.readonly),
+    wantBackground: background.wantBackground,
+    detach: background.wantBackground,
+    backgroundReason: background.backgroundReason,
+    maxAttempts: Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts)),
+    model: resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition),
+    thinking: resolved.thinking,
+  };
+}
+
+function buildNestedScope(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, setup: RunSetup, agentId: string): NestedScope | undefined {
+  const childDepth = resolveChildDepth(setup.existing, options.scope, callbacks.store);
+  const ownedAgentIds = setup.existing
+    ? callbacks.store
+        .listSessions()
+        .filter((session) => session.ownerAgentId === agentId)
+        .map((session) => session.agentId)
+    : [];
+  if (setup.isReadonly || !options.definition.nestedTasks || childDepth >= config.maxNestingDepth) {
+    return undefined;
+  }
+  return { depth: childDepth, maxDepth: config.maxNestingDepth, ownerAgentId: agentId, rootSessionId: setup.parentSessionId, agentIds: new Set(ownedAgentIds) };
+}
+
+function startBackgroundRun(
+  options: RunTaskOptions,
+  callbacks: RunnerCallbacks,
+  agentId: string,
+  initialRecord: SubagentSessionRecord,
+  startedAt: number,
+  runPromise: Promise<SubagentRunOutcome>,
+  abortController: AbortController,
+): TaskToolDetails {
+  const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
+  void settledPromise.catch(() => undefined);
+  callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
+  callbacks.onStateChanged();
+  return buildDetailsFromRecord(callbacks.store.getSession(agentId) ?? initialRecord);
+}
+
+async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, setup: RunSetup, agentId: string, startedAt: number): Promise<TaskToolDetails> {
+  const nestedScope = buildNestedScope(options, callbacks, config, setup, agentId);
+  const childDepth = resolveChildDepth(setup.existing, options.scope, callbacks.store);
+  const initialRecord = buildInitialSessionRecord({
+    options,
+    agentId,
+    parentSessionId: setup.parentSessionId,
+    existing: setup.existing,
+    resolvedModel: describeModel(setup.model),
+    thinking: setup.thinking,
+    readonly: setup.isReadonly,
+    wantBackground: setup.wantBackground,
+    backgroundReason: setup.backgroundReason,
+    startedAt,
+    maxAttempts: setup.maxAttempts,
+  });
+  callbacks.store.upsertSession(initialRecord);
+  options.scope?.agentIds.add(agentId);
+  callbacks.emit('runStart', initialRecord);
+  callbacks.onStateChanged();
+  if (options.signal?.aborted) {
+    return cancelPreparedRun(callbacks, agentId, initialRecord, startedAt);
+  }
+  const abortController = new AbortController();
+  const requestedWorktree = Boolean(options.input.worktree ?? options.definition.worktree);
+  if (setup.detach) {
+    const runPromise = runDetachedTask(options, callbacks, config, setup, agentId, startedAt, abortController, nestedScope, childDepth, initialRecord.description, requestedWorktree);
+    options.onUpdate?.(buildDetailsFromRecord(initialRecord));
+    return startBackgroundRun(options, callbacks, agentId, initialRecord, startedAt, runPromise, abortController);
+  }
+  return runForegroundTask(options, callbacks, config, setup, agentId, startedAt, initialRecord, abortController, nestedScope, childDepth, requestedWorktree);
+}
+
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
+  const config = callbacks.getConfig(options.ctx);
+  if (config.maxNestingDepth < ONE) {
+    throw new SubagentRunError('nesting-limit');
+  }
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
-  const isReadonly = options.input.readonly ?? options.definition.permissionMode === 'readonly';
+  const resumed = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
+  const provisionalReadonly = resolveReadOnly(options.definition.permissionMode, options.input.readonly, resumed?.readonly);
 
-  if (resumeId && prompt.length === ZERO && isReadonly && options.input.run_in_background !== true) {
+  if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {
     const awaited = await awaitBackgroundSubagent(resumeId, callbacks.store, undefined, options.signal);
     if (awaited.outcome === 'complete' && awaited.record) {
       return buildDetailsFromRecord(awaited.record);
     }
-    throw new Error(awaited.error ?? AWAIT_TIMEOUT_ERROR);
+    if (awaited.errorCode === 'aborted') {
+      throw new SubagentRunError('aborted');
+    }
+    throw new SubagentRunError('await-timeout', resumeId);
   }
   if (prompt.length === ZERO) {
-    throw new Error('Subagent task requires a non-empty prompt.');
+    throw new SubagentRunError('empty-prompt');
   }
 
-  const wantBackground = options.input.run_in_background ?? options.definition.isBackground;
-  const existing = resumeId ? validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store) : undefined;
-  const agentId = existing ? existing.agentId : randomUUID();
-  const startedAt = Date.now();
-  const resolvedModel = resolveModelForSubagent(options.input.model, options.definition, options.ctx);
-  const thinkingLevel = options.input.thinking;
-  const childDepth = resolveChildDepth(existing, options.scope, callbacks.store);
-  const ownedAgentIds = existing
-    ? callbacks.store
-        .listSessions()
-        .filter((s) => s.ownerAgentId === agentId)
-        .map((s) => s.agentId)
-    : [];
-  const { session, transcriptPath, nestedScope } = await createChildSession(options, agentId, parentSessionId, childDepth, ownedAgentIds, resolvedModel, thinkingLevel, isReadonly, existing?.transcriptPath, existing !== undefined);
-  const initialRecord = buildInitialSessionRecord(options, agentId, parentSessionId, existing, resolvedModel, isReadonly, wantBackground, startedAt, transcriptPath);
-  callbacks.store.upsertSession(initialRecord);
-  options.scope?.agentIds.add(agentId);
-  options.onUpdate?.(buildDetailsFromRecord(initialRecord));
-
-  const abortController = new AbortController();
-  if (!wantBackground && options.signal?.aborted) {
-    abortController.abort();
-  }
-  const runPromise = executeSessionLifecycle(session, agentId, prompt, startedAt, abortController, callbacks.store, nestedScope, wantBackground ? undefined : options.onUpdate);
-
-  if (wantBackground) {
-    const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
-    callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
-    callbacks.onStateChanged();
-    return buildDetailsFromRecord(initialRecord);
-  }
-  return runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
+  const setup = resolveRunSetup(options, callbacks, config, parentSessionId, prompt, resumeId);
+  const agentId = setup.existing ? setup.existing.agentId : randomUUID();
+  return launchRun(options, callbacks, config, setup, agentId, Date.now());
 }

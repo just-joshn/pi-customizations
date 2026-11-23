@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-subagents",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Pi-native subagents extension with built-in and custom subagent discovery, foreground/background execution, resumption, read-only enforcement, live streaming TUI, background completion wakeups, and interactive tasks/transcript pager.",
   "type": "module",
   "license": "MIT",
@@ -38,7 +38,17 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:e2e": "node test/e2e/verify-subagents.mjs",
+    "test:e2e:fake": "node test/e2e/verify-delegation-fake-model.mjs",
+    "test:e2e:retry": "node test/e2e/verify-retry-timer.mjs retry",
+    "test:e2e:tools": "node test/e2e/verify-crafted-tools.mjs",
+    "test:e2e:git": "node test/e2e/verify-git-helpers.mjs",
+    "test:e2e:growth": "node test/e2e/verify-state-growth.mjs 4 25",
+    "test:e2e:growth-heavy": "node test/e2e/verify-state-growth.mjs 12 50",
+    "test:e2e:append-failure": "node test/e2e/verify-append-failure.mjs",
+    "test:e2e:readonly-commands": "node test/e2e/verify-readonly-commands.mjs",
+    "test:e2e:worktree-cancel": "bun test/e2e/verify-worktree-cancel.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

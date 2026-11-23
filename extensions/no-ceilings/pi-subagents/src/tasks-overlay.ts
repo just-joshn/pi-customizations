@@ -31,7 +31,9 @@ function renderTaskListLines(sessions: readonly SubagentSessionRecord[], selecte
     const isRunning = isActiveSubagentStatus(session.status);
     const elapsed = selected && isRunning ? `  ${formatElapsedCompact(Math.max(ZERO, now - session.startedAt))}` : '';
     const badge = session.isBackground ? ' [bg]' : isRunning ? ' [fg]' : ` [${session.status}]`;
-    const suffix = `${badge}${elapsed}`;
+    const retry = session.attempts > ONE ? ` [try ${session.attempts}/${session.maxAttempts}]` : '';
+    const failure = session.failureId === undefined ? '' : ` ${session.failureId}`;
+    const suffix = `${badge}${retry}${failure}${elapsed}`;
     const maxTitleLen = Math.max(ONE, innerWidth - pointer.length - suffix.length);
     const title = truncateEnd(formatSessionTitle(session.description, session.prompt, session.agentId), maxTitleLen);
     const line = `${pointer}${selected ? theme.bold(title) : title}${theme.fg('dim', suffix)}`;
@@ -40,7 +42,7 @@ function renderTaskListLines(sessions: readonly SubagentSessionRecord[], selecte
 
   const active = sessions[selectedIndex];
   const activeRunning = active !== undefined && isActiveSubagentStatus(active.status);
-  const canKill = activeRunning && active.isBackground;
+  const canKill = activeRunning;
   const canBg = activeRunning && !active.isBackground;
   const hints = [sessions.length > ONE ? '↑/↓ navigate' : undefined, 'Enter to view', canKill ? 'k to abort' : undefined, canBg ? 'b to background' : undefined, 'Esc to close'].filter((h): h is string => h !== undefined).join('  ·  ');
 
@@ -59,10 +61,19 @@ function renderTranscriptLines(session: SubagentSessionRecord | undefined, theme
     if (item.role === 'tool') {
       return [theme.fg('dim', `  → ${item.toolSummary || item.text}`)];
     }
+    if (item.role === 'result') {
+      return [theme.fg('dim', `    ${item.text.split('\n').join('\n    ')}`)];
+    }
+    if (item.role === 'thinking') {
+      return [theme.fg('dim', item.text)];
+    }
     return item.text.split('\n');
   });
-  const liveLines = [...(session.streamingText ? session.streamingText.split('\n') : []), ...(isActiveSubagentStatus(session.status) ? ['', `${theme.fg('success', '●')} ${theme.bold('Working')}`] : [])];
-  const combined = [...itemLines, ...liveLines].slice(-MAX_TRANSCRIPT_LINES);
+  const liveThinking = session.streamingThinking ? session.streamingThinking.split('\n').map((line) => theme.fg('dim', line)) : [];
+  const liveLines = [...liveThinking, ...(session.streamingText ? session.streamingText.split('\n') : []), ...(isActiveSubagentStatus(session.status) ? ['', `${theme.fg('success', '●')} ${theme.bold('Working')}`] : [])];
+  const retained =
+    session.transcriptItems.length === ZERO && session.transcriptPath !== undefined && !isActiveSubagentStatus(session.status) ? [theme.fg('dim', 'The live transcript is no longer retained.'), theme.fg('dim', session.transcriptPath)] : [];
+  const combined = [...retained, ...itemLines, ...liveLines].slice(-MAX_TRANSCRIPT_LINES);
   const footer = theme.fg('dim', `Subagent · ${title}  ·  esc to go back`);
   return [...combined, '', footer];
 }
@@ -106,7 +117,7 @@ function reduceListInput(data: string, prev: OverlayViewState, store: SubagentSt
   if (matchesKey(data, Key.enter)) {
     return { ...prev, view: 'transcript', activeAgentId: current.agentId };
   }
-  if (data === 'k' && current.isBackground) {
+  if (data === 'k' && current !== undefined && isActiveSubagentStatus(current.status)) {
     store.abortRun(current.agentId);
   } else if (data === 'b' && !current.isBackground) {
     store.getActiveRun(current.agentId)?.requestBackground?.();
