@@ -126,6 +126,8 @@
 - Read-only sandbox writes are allowed only in the per-command temp directory and `/dev/null`. The shared temp root and sibling directories stay denied. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked.
 - A `tools` list is an allowlist passed to the child session. Entries that start with `-` are dropped, a leading `+` is removed, and entries that contain `*` are dropped except a scoped `mcp__<server>__*` pattern. A list that sanitizes to empty grants no tools instead of editing the default tool set. Claude names are still mapped, and the result is deduplicated.
 - Retry backoff and `await_subagent` timeouts stay referenced, so `pi -p` waits for a retried child instead of exiting 0 with no result.
+- Checkpoints stay in memory and on `subagents:checkpoint` during a run. The parent session persists them at the next run boundary and on shutdown when a run was still active, not on every tool call. A crash can lose the latest mid-run checkpoint. Shutdown does not append another state entry when nothing was active.
+- Read-only Git disables diff drivers, textconv, external diffs, SSH commands, and credential helpers. `git diff`, `git log`, `git show`, and `git blame` receive `--no-ext-diff --no-textconv`. `GIT_SSH_COMMAND`, `GIT_SSH`, `GIT_ASKPASS`, and `SSH_ASKPASS` are `/usr/bin/false`, `GIT_TERMINAL_PROMPT` is `0`, and `credential.helper` is empty.
 
 ## 0.1.4
 

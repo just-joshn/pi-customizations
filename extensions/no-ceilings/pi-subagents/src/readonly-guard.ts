@@ -211,15 +211,70 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+const DISABLED_GIT_HELPER = '/usr/bin/false';
+const GIT_NO_HELPER_FLAGS = '--no-ext-diff --no-textconv';
+const GIT_DIFF_COMMANDS = ['diff', 'log', 'show', 'blame'] as const;
+
 const READONLY_GIT_CONFIG: readonly (readonly [string, string])[] = [
   ['core.fsmonitor', 'false'],
   ['diff.external', ''],
   ['core.pager', 'cat'],
+  ['credential.helper', ''],
 ];
+
+function isGitWordChar(char: string | undefined): boolean {
+  return char !== undefined && /[A-Za-z0-9_.-]/.test(char);
+}
+
+function startsWord(command: string, index: number, word: string): boolean {
+  return command.startsWith(word, index) && !isGitWordChar(command[index + word.length]);
+}
+
+function gitDiffCommandEnd(command: string, index: number): number | undefined {
+  if (isGitWordChar(command[index - 1]) || !startsWord(command, index, 'git')) {
+    return undefined;
+  }
+  const subIndex = skipWhitespace(command, index + 'git'.length);
+  const subcommand = GIT_DIFF_COMMANDS.find((name) => startsWord(command, subIndex, name));
+  return subcommand === undefined ? undefined : subIndex + subcommand.length;
+}
+
+/** Disables diff drivers and textconv for git diff, log, show, and blame, including pipeline segments. Quoted text is left unchanged. */
+function hardenReadOnlyGitCommand(command: string): string {
+  let quote: "'" | '"' | undefined;
+  let hardened = '';
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index] ?? '';
+    if (char === '\\' && quote !== "'") {
+      hardened += char + (command[index + 1] ?? '');
+      index += 1;
+      continue;
+    }
+    if (quote !== undefined) {
+      hardened += char;
+      quote = char === quote ? undefined : quote;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      hardened += char;
+      continue;
+    }
+    const end = gitDiffCommandEnd(command, index);
+    if (end !== undefined) {
+      hardened += `${command.slice(index, end)} ${GIT_NO_HELPER_FLAGS}`;
+      index = end - 1;
+      continue;
+    }
+    hardened += char;
+  }
+  return hardened;
+}
 
 function readonlyGitEnv(): string {
   const assignments = READONLY_GIT_CONFIG.flatMap(([key, value], index) => [`GIT_CONFIG_KEY_${index}=${key}`, `GIT_CONFIG_VALUE_${index}=${value}`]);
-  return [`GIT_CONFIG_COUNT=${READONLY_GIT_CONFIG.length}`, ...assignments, 'GIT_EXTERNAL_DIFF='].join(' ');
+  const blocked = ['GIT_SSH_COMMAND', 'GIT_SSH', 'GIT_ASKPASS', 'SSH_ASKPASS'].map((key) => `${key}=${DISABLED_GIT_HELPER}`);
+  return [`GIT_CONFIG_COUNT=${READONLY_GIT_CONFIG.length}`, ...assignments, 'GIT_EXTERNAL_DIFF=', ...blocked, 'GIT_TERMINAL_PROMPT=0'].join(' ');
 }
 
 function readonlyProfileAssignment(): string {
@@ -239,7 +294,7 @@ export function sandboxReadOnlyCommand(command: string): string {
     return command;
   }
   mkdirSync(READONLY_TEMP_ROOT, { recursive: true });
-  return readonlySandboxInvocation(command, realpathSync(READONLY_TEMP_ROOT));
+  return readonlySandboxInvocation(hardenReadOnlyGitCommand(command), realpathSync(READONLY_TEMP_ROOT));
 }
 
 export function evaluateReadonlySubagentGuard(event: ToolCallEvent): { block: true; reason: string } | undefined {

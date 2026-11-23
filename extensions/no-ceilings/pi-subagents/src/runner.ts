@@ -212,7 +212,6 @@ function applyChildEvent(request: LifecycleRequest, event: AgentSessionEvent, pr
     const after = request.store.getSession(request.agentId)?.checkpoints.length ?? before;
     if (checkpoint && after > before) {
       request.callbacks.emit('checkpoint', request.store.getSession(request.agentId) ?? reduced.record, { checkpointSeq: checkpoint.seq });
-      request.callbacks.onStateChanged({ includeTranscriptItems: false });
     }
   }
   if (event.type === 'tool_execution_start') {

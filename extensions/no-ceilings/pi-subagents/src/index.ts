@@ -326,8 +326,9 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   });
 
   pi.on('session_shutdown', async () => {
-    store.abortAllRuns();
-    onStateChanged();
+    if (store.abortAllRuns() > ZERO) {
+      onStateChanged();
+    }
     latestCtx = undefined;
     extensionShutDown = true;
   });
