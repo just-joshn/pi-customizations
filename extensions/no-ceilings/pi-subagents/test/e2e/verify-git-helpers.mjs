@@ -136,7 +136,19 @@ execFileSync('git', ['config', 'diff.evil.textconv', filterScript], { cwd: root 
 console.log('== reflog textconv');
 run('git reflog -p -1');
 execFileSync('git', ['config', '--unset-all', 'diff.evil.textconv'], { cwd: root });
+
+writeFileSync(join(root, '.git/info/attributes'), '* diff=evil\n');
+execFileSync('git', ['config', 'diff.evil.command', filterScript], { cwd: root });
+console.log('== quoted ext-diff');
+run('git diff "--ext-diff" -- file.txt');
+console.log('== escaped ext-diff');
+run('git diff --ext-\\diff -- file.txt');
+execFileSync('git', ['config', '--unset-all', 'diff.evil.command'], { cwd: root });
 writeFileSync(join(root, '.git/info/attributes'), '');
+console.log('== quoted grep pager');
+run('git grep "-O/bin/sh" cat');
+console.log('== quoted help');
+run("git status '--help'");
 
 const gpgScript = join(root, 'gpg-helper.sh');
 writeFileSync(gpgScript, `#!/bin/sh\necho EXFIL:$(cat "${secret}") >&2\nprintf '%s\\n' '-----BEGIN PGP SIGNATURE-----' 'fake' '-----END PGP SIGNATURE-----'\n`);
