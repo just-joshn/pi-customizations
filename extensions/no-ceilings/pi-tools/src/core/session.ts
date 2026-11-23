@@ -499,18 +499,47 @@ export async function protectedFileReason(session: LayerSession, target: string,
   return undefined;
 }
 
+const GIT_CONFIG_REASON = 'is git config, which names hooks and fsmonitor commands that run later, and cannot be changed by the agent';
+const GIT_HOOK_REASON = 'is a git hook, which git runs later, and cannot be changed by the agent';
+
 /**
  * Git reads `config` and runs whatever `hooks/` holds on a later command, so a write there takes effect
- * outside the call that made it. Matched by canonical path inside each workspace root's git directory.
+ * outside the call that made it. Matched by canonical path inside each workspace root's git directory,
+ * and under any `.git` component below a workspace root, so a repository nested in the workspace gets
+ * the same refusal as the root one.
  */
 async function gitMetadataReason(session: LayerSession, canonical: string): Promise<string | undefined> {
   for (const root of new Set([session.cwd, ...session.policy.workspaceRoots])) {
     const gitDir = await canonicalPath(path.join(root, '.git'));
     if (canonical === path.join(gitDir, 'config')) {
-      return 'is git config, which names hooks and fsmonitor commands that run later, and cannot be changed by the agent';
+      return GIT_CONFIG_REASON;
     }
     if (isInside(path.join(gitDir, 'hooks'), canonical)) {
-      return 'is a git hook, which git runs later, and cannot be changed by the agent';
+      return GIT_HOOK_REASON;
+    }
+    const canonicalRoot = await canonicalPath(root);
+    if (!isInside(canonicalRoot, canonical)) {
+      continue;
+    }
+    const reason = gitMetadataSegments(path.relative(canonicalRoot, canonical).split(path.sep));
+    if (reason !== undefined) {
+      return reason;
+    }
+  }
+  return undefined;
+}
+
+/** The refusal for a workspace-relative path whose `.git` component names config or a hook. */
+function gitMetadataSegments(segments: readonly string[]): string | undefined {
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    if (segments[index] !== '.git') {
+      continue;
+    }
+    if (segments[index + 1] === 'config') {
+      return GIT_CONFIG_REASON;
+    }
+    if (segments[index + 1] === 'hooks') {
+      return GIT_HOOK_REASON;
     }
   }
   return undefined;

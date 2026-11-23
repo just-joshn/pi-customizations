@@ -214,9 +214,14 @@ describe('finding 4: git --output writes outside the workspace', () => {
       const init = await h.call('bash', { command: 'git init -q . && git add plain.txt && git -c user.email=a@b -c user.name=n commit -qm init' });
       expect(init.isError).toBeUndefined();
 
-      const fromBash = await h.call('bash', { command: `git show --output=${outside}/show.txt HEAD` });
+      // A `show` with no path operand is refused for printing the whole commit diff, so name a path
+      // and keep the outside `--output` destination as the thing this assertion checks.
+      const fromBash = await h.call('bash', { command: `git show --output=${outside}/show.txt HEAD -- plain.txt` });
       expect(fromBash.isError).toBe(true);
       expect(textOf(fromBash)).toContain('outside the workspace');
+      const unpathed = await h.call('bash', { command: `git show --output=${outside}/show.txt HEAD` });
+      expect(unpathed.isError).toBe(true);
+      expect(textOf(unpathed)).toContain('commit diff prints the body');
 
       const fromTool = await h.call('git', { subcommand: 'log', args: [`--output=${outside}/log.txt`, '-1'] });
       expect(fromTool.isError).toBe(true);

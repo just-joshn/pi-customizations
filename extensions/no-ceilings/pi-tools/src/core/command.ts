@@ -73,6 +73,36 @@ const RECURSIVE_READERS = new Set(['rg', 'ag', 'ack']);
 /** `grep` spellings, which recurse only behind a flag. */
 const GREP_COMMANDS = new Set(['grep', 'egrep', 'fgrep']);
 
+/**
+ * Tools that read the paths they write from a patch file. The analyzer would have to parse the
+ * patch, so the patch file stays an unseen source and the command is refused instead of guessed.
+ */
+const PATCH_APPLIERS = new Set(['patch']);
+
+/** Why a patch applier is refused: the patch file names the paths it writes. */
+const PATCH_REASON = 'the patch file names the paths this command writes, and the analyzer does not read it';
+
+/** Why a git reader that prints a whole commit diff is refused: every file body in it is unread by rule. */
+const GIT_DIFF_REASON = 'the commit diff prints the body of every file it touches, so the analyzer cannot see which files it reads';
+
+/** Why `git grep` is refused: it picks the files itself, so no rule sees the paths it opens. */
+const GIT_GREP_REASON = 'git grep walks the files git chooses, so the analyzer cannot see which files it reads';
+
+/** Why `git init --template` is refused: the template installs hooks this layer never reads. */
+const GIT_TEMPLATE_REASON = 'a template installs hooks the analyzer does not read';
+
+/** `git log` and `git show` long options that print the whole commit diff. */
+const GIT_PATCH_FLAGS = new Set(['--patch', '--full-diff']);
+
+/** `git log` and `git show` short letters that print the whole commit diff. */
+const GIT_PATCH_LETTERS = new Set(['p', 'u']);
+
+/** `git show` long options whose output is a summary instead of file bodies. */
+const GIT_SUMMARY_FLAGS = new Set(['--stat', '--name-only', '--name-status', '--numstat', '--shortstat', '--summary']);
+
+/** `git log` and `git show` short options that consume a value, so the letters after one are that value. */
+const GIT_COMMIT_OUTPUT_VALUE_SHORT = new Set(['n', 'S', 'G', 'L', 'O']);
+
 /** `grep` short options that consume a value, so the rest of the cluster is that value. */
 const GREP_VALUE_FLAGS = new Set(['e', 'f', 'm', 'A', 'B', 'C', 'd']);
 
@@ -1572,7 +1602,11 @@ function gitConfigUntrusted(args: readonly Word[]): string | undefined {
     }
     positionals.push(value);
   }
-  if (read || (!opaque && positionals.length < 2)) {
+  // `git config key value --get` still writes the value: the read flag only picks what git prints after.
+  if (positionals.length >= 2) {
+    return GIT_CONFIG_REASON;
+  }
+  if (read || !opaque) {
     return undefined;
   }
   return GIT_CONFIG_REASON;
@@ -1705,6 +1739,106 @@ function gitOutputWrites(args: readonly Word[]): GitOperands {
     }
   }
   return { reads: gitReadOperands(args), writes, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** The path half of a `<rev>:<path>` operand, which is the blob that git opens. */
+function gitRevisionPath(value: string): string | undefined {
+  if (value.startsWith(':/')) {
+    const rooted = value.slice(2);
+    return rooted === '' ? undefined : rooted;
+  }
+  if (value.startsWith(':') || value.startsWith('/') || value.startsWith('./') || value.startsWith('../')) {
+    return undefined;
+  }
+  // A URL or an scp-style remote is not a revision; its colon is part of the transport.
+  if (value.includes('://') || /^[^/:]+@[^/:]+:/.test(value)) {
+    return undefined;
+  }
+  const colon = value.indexOf(':');
+  if (colon <= 0 || colon === value.length - 1) {
+    return undefined;
+  }
+  const pathPart = value.slice(colon + 1);
+  return pathPart.startsWith('//') ? undefined : pathPart;
+}
+
+/** True when `git init` copies a template, which installs hooks this layer never reads. */
+function gitTemplateFlag(args: readonly Word[]): boolean {
+  return args.some((word) => word.literal && !word.hidesCommand && (word.value === '--template' || word.value.startsWith('--template=')));
+}
+
+/** What `git log` or `git show` prints: the whole commit diff unless a path narrows it. */
+function gitCommitOutput(args: readonly Word[]): { readonly patch: boolean; readonly summary: boolean; readonly narrowed: boolean } {
+  let patch = false;
+  let summary = false;
+  let narrowed = false;
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--') && value.length > 2) {
+      const eq = value.indexOf('=');
+      const name = eq === -1 ? value : value.slice(0, eq);
+      if (GIT_PATCH_FLAGS.has(name)) {
+        patch = true;
+      }
+      if (GIT_SUMMARY_FLAGS.has(name)) {
+        summary = true;
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const letter = body[cursor] ?? '';
+        if (GIT_PATCH_LETTERS.has(letter)) {
+          patch = true;
+        }
+        if (!GIT_COMMIT_OUTPUT_VALUE_SHORT.has(letter)) {
+          continue;
+        }
+        if (body.slice(cursor + 1) === '') {
+          index++;
+        }
+        break;
+      }
+      continue;
+    }
+    // A revision prints the whole commit; a pathspec, an explicit path, or a `rev:path` names a file the layer can check.
+    const explicitPath = value.startsWith('./') || value.startsWith('../') || value.startsWith('/');
+    if (!options || explicitPath || gitPathspecPath(value) !== value || gitRevisionPath(value) !== undefined) {
+      narrowed = true;
+    }
+  }
+  return { patch, summary, narrowed };
+}
+
+/** Why a git reader prints file bodies the analyzer cannot check, or undefined when its output is narrow. */
+function gitOutputRefusal(subcommand: string, args: readonly Word[]): string | undefined {
+  if (subcommand === 'grep') {
+    return GIT_GREP_REASON;
+  }
+  if (subcommand === 'init') {
+    return gitTemplateFlag(args) ? GIT_TEMPLATE_REASON : undefined;
+  }
+  if (subcommand !== 'log' && subcommand !== 'show') {
+    return undefined;
+  }
+  const output = gitCommitOutput(args);
+  if (subcommand === 'log') {
+    return output.patch && !output.narrowed ? GIT_DIFF_REASON : undefined;
+  }
+  return output.narrowed || output.summary ? undefined : GIT_DIFF_REASON;
 }
 
 /** A git pathspec with its index and magic prefix removed, so a rule sees the path git opens. */
@@ -2045,10 +2179,14 @@ function inspectGit(args: readonly Word[]): GitCommand {
     untrusted = 'the git subcommand comes from an expansion';
   } else if (subcommand?.value === 'config') {
     untrusted = gitConfigUntrusted(rest);
+  } else if (subcommand?.value === 'apply') {
+    untrusted = PATCH_REASON;
   } else if (subcommand?.value === 'bisect' && gitBisectRun(rest)) {
     untrusted = 'git bisect run runs a command the analyzer does not follow';
   } else if (subcommand !== undefined && gitStagesEverything(subcommand.value, rest)) {
     untrusted = GIT_STAGE_REASON;
+  } else if (subcommand !== undefined) {
+    untrusted = gitOutputRefusal(subcommand.value, rest);
   }
   const planned = gitDestinationPlan(subcommand, rest);
   if (planned?.untrusted !== undefined) {
@@ -2069,6 +2207,8 @@ function inspectGit(args: readonly Word[]): GitCommand {
 interface PathNote {
   readonly path: string;
   readonly write: boolean;
+  /** The word carries an unquoted glob the analyzer cannot expand. */
+  readonly glob?: boolean;
 }
 
 /** Archive and `-C` destinations for tar. A create, append, update, or concatenate writes the archive. */
@@ -2247,14 +2387,279 @@ function splitPaths(args: readonly Word[]): { readonly paths: readonly PathNote[
     }
     positional.push(word);
   }
+  const paths: PathNote[] = [];
+  // `split` reads the first operand and writes files whose names start with the second one, so the
+  // read deny, ignore, hardlink, and outside checks see the input the same way they see a `cp` source.
+  const input = positional[0];
+  if (input !== undefined && input.literal && !input.hidesCommand && input.value !== '') {
+    paths.push({ path: input.value, write: false, ...(input.glob ? { glob: true } : {}) });
+  }
   const prefix = positional[1];
   if (prefix === undefined) {
-    return { paths: [] };
+    return { paths };
   }
   if (!prefix.literal || prefix.hidesCommand) {
-    return { paths: [], untrusted: 'the write target is built by an expansion' };
+    return { paths, untrusted: 'the write target is built by an expansion' };
   }
-  return { paths: [{ path: prefix.value, write: true }] };
+  return { paths: [...paths, { path: prefix.value, write: true, ...(prefix.glob ? { glob: true } : {}) }] };
+}
+
+/** Why a `curl` config file is refused: it sets output paths and URLs this layer never reads. */
+const CURL_CONFIG_REASON = 'the curl config file sets output paths and URLs, which the analyzer does not read';
+
+/** `curl` long options whose value is a path the command writes. */
+const CURL_WRITE_LONG = new Set(['--output', '--output-dir', '--dump-header', '--cookie-jar', '--trace', '--trace-ascii']);
+
+/** `curl` short letters whose value is a path the command writes. */
+const CURL_WRITE_SHORT = new Set(['o', 'c', 'D']);
+
+/** `curl` long options whose value is a file the command reads. */
+const CURL_READ_LONG = new Set([
+  '--cacert',
+  '--capath',
+  '--cert',
+  '--cookie',
+  '--crlfile',
+  '--egd-file',
+  '--etag-compare',
+  '--key',
+  '--netrc-file',
+  '--proxy-cacert',
+  '--proxy-capath',
+  '--proxy-cert',
+  '--proxy-crlfile',
+  '--proxy-key',
+  '--upload-file',
+]);
+
+/** `curl` long options whose value names a file only after `@`, as in `--data @body`. */
+const CURL_AT_LONG = new Set(['--data', '--data-ascii', '--data-binary', '--data-raw', '--data-urlencode', '--form', '--header', '--json']);
+
+/** `curl` short letters whose value is a file the command reads. */
+const CURL_READ_SHORT = new Set(['T', 'b', 'E', 'd', 'F', 'H']);
+
+/** `curl` short letters that consume a value, so the first one ends a cluster and the rest is its value. */
+const CURL_SHORT_VALUES = new Set(['A', 'b', 'c', 'C', 'd', 'D', 'e', 'E', 'F', 'H', 'K', 'm', 'o', 'P', 'Q', 'r', 't', 'T', 'u', 'U', 'w', 'x', 'X', 'y', 'Y', 'z']);
+
+/** `curl` long options that consume the next word, so it is a value and not a URL operand. */
+const CURL_LONG_VALUES = new Set([
+  '--abstract-unix-socket',
+  '--alt-svc',
+  '--aws-sigv4',
+  '--cacert',
+  '--capath',
+  '--cert',
+  '--cert-type',
+  '--ciphers',
+  '--connect-timeout',
+  '--connect-to',
+  '--continue-at',
+  '--cookie',
+  '--create-file-mode',
+  '--crlfile',
+  '--curves',
+  '--data',
+  '--data-ascii',
+  '--data-binary',
+  '--data-raw',
+  '--data-urlencode',
+  '--delegation',
+  '--dns-interface',
+  '--dns-ipv4-addr',
+  '--dns-ipv6-addr',
+  '--dns-servers',
+  '--doh-url',
+  '--egd-file',
+  '--engine',
+  '--etag-compare',
+  '--etag-save',
+  '--expect100-timeout',
+  '--form',
+  '--form-string',
+  '--ftp-account',
+  '--ftp-alternative-to-user',
+  '--ftp-method',
+  '--ftp-port',
+  '--happy-eyeballs-timeout-ms',
+  '--haproxy-clientip',
+  '--header',
+  '--hostpubmd5',
+  '--hostpubsha256',
+  '--hsts',
+  '--interface',
+  '--json',
+  '--keepalive-time',
+  '--key',
+  '--key-type',
+  '--krb',
+  '--libcurl',
+  '--limit-rate',
+  '--local-port',
+  '--login-options',
+  '--mail-auth',
+  '--mail-from',
+  '--mail-rcpt',
+  '--max-filesize',
+  '--max-redirs',
+  '--max-time',
+  '--netrc-file',
+  '--noproxy',
+  '--oauth2-bearer',
+  '--parallel-max',
+  '--pass',
+  '--pinnedpubkey',
+  '--proto',
+  '--proto-default',
+  '--proto-redir',
+  '--proxy',
+  '--proxy-cacert',
+  '--proxy-capath',
+  '--proxy-cert',
+  '--proxy-cert-type',
+  '--proxy-ciphers',
+  '--proxy-crlfile',
+  '--proxy-header',
+  '--proxy-key',
+  '--proxy-key-type',
+  '--proxy-pass',
+  '--proxy-service-name',
+  '--proxy-tls13-ciphers',
+  '--proxy-user',
+  '--proxy1.0',
+  '--pubkey',
+  '--quote',
+  '--range',
+  '--rate',
+  '--referer',
+  '--request',
+  '--request-target',
+  '--resolve',
+  '--retry',
+  '--retry-delay',
+  '--retry-max-time',
+  '--sasl-authzid',
+  '--service-name',
+  '--socks4',
+  '--socks4a',
+  '--socks5',
+  '--socks5-gssapi-service',
+  '--socks5-hostname',
+  '--speed-limit',
+  '--speed-time',
+  '--stderr',
+  '--telnet-option',
+  '--tftp-blksize',
+  '--time-cond',
+  '--tls-max',
+  '--tls13-ciphers',
+  '--unix-socket',
+  '--upload-file',
+  '--url',
+  '--url-query',
+  '--user',
+  '--user-agent',
+  '--variable',
+  '--write-out',
+]);
+
+/**
+ * `curl` operands: every destination flag in its spaced, `=`, and glued forms, plus the URLs it reads.
+ * A short cluster is read left to right with curl's value-taking letters, so the first such letter
+ * ends the cluster and the rest of the word is its value. `-K`/`--config` is refused because the
+ * config file sets output paths and URLs the analyzer cannot see.
+ */
+function curlPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const paths: PathNote[] = [];
+  let untrusted: string | undefined;
+  const distrust = (reason: string): void => {
+    untrusted ??= reason;
+  };
+  const take = (word: Word | undefined, write: boolean): void => {
+    if (word === undefined) {
+      return;
+    }
+    if (!word.literal || word.hidesCommand) {
+      if (write) {
+        distrust('the write target is built by an expansion');
+      }
+      return;
+    }
+    // A leading `@` on a value is curl reading a file, as in `--data @body` and `--header @file`.
+    const value = !write && word.value.startsWith('@') ? word.value.slice(1) : word.value;
+    if (value === '') {
+      return;
+    }
+    paths.push({ path: value, write, ...(word.glob ? { glob: true } : {}) });
+  };
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('--')) {
+      const eq = word.value.indexOf('=');
+      const flag = eq === -1 ? word.value : word.value.slice(0, eq);
+      if (flag === '--config') {
+        distrust(CURL_CONFIG_REASON);
+        continue;
+      }
+      if (CURL_WRITE_LONG.has(flag)) {
+        if (eq === -1) {
+          take(args[index + 1], true);
+          index++;
+        } else {
+          take({ ...word, value: word.value.slice(eq + 1) }, true);
+        }
+        continue;
+      }
+      if (CURL_LONG_VALUES.has(flag)) {
+        const next = eq === -1 ? args[index + 1] : { ...word, value: word.value.slice(eq + 1) };
+        if (CURL_READ_LONG.has(flag)) {
+          take(next, false);
+        } else if (CURL_AT_LONG.has(flag) && next?.literal && !next.hidesCommand && next.value.includes('@')) {
+          take({ ...next, value: next.value.slice(next.value.indexOf('@') + 1) }, false);
+        }
+        if (eq === -1) {
+          index++;
+        }
+      }
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('-') && word.value !== '-') {
+      const body = word.value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const letter = body[cursor] ?? '';
+        if (letter === 'K') {
+          distrust(CURL_CONFIG_REASON);
+          break;
+        }
+        if (!CURL_SHORT_VALUES.has(letter)) {
+          continue;
+        }
+        const attached = body.slice(cursor + 1);
+        const next = attached !== '' ? { ...word, value: attached } : args[index + 1];
+        if (CURL_WRITE_SHORT.has(letter)) {
+          take(next, true);
+        } else if (CURL_READ_SHORT.has(letter) && next?.literal && !next.hidesCommand && next.value.includes('@')) {
+          take({ ...next, value: next.value.slice(next.value.indexOf('@') + 1) }, false);
+        } else if (CURL_READ_SHORT.has(letter)) {
+          take(next, false);
+        }
+        if (attached === '') {
+          index++;
+        }
+        break;
+      }
+      continue;
+    }
+    take(word, false);
+  }
+  return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
 }
 
 export interface ShellPath {
@@ -2323,7 +2728,17 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         distrust(noted.untrusted);
       }
       for (const entry of noted.paths) {
-        notePath(entry.path, entry.write, base);
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
+    if (name === 'curl') {
+      const noted = curlPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
       }
       return;
     }
@@ -2391,23 +2806,13 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         targetDir = { value: value.slice(2), glob: word.glob };
         continue;
       }
-      if (options && name === 'curl' && (value.startsWith('--output=') || value.startsWith('--output-dir='))) {
-        notePath(value.slice(value.indexOf('=') + 1), true, base, word.glob);
+      if (options && name === 'rsync' && value.startsWith('--log-file=')) {
+        notePath(value.slice('--log-file='.length), true, base, word.glob);
         continue;
       }
-      if (options && name === 'curl' && (value === '-o' || value === '--output' || value === '--output-dir')) {
+      if (options && name === 'rsync' && value === '--log-file') {
         noteWriteArg(args[index + 1]);
         index++;
-        continue;
-      }
-      if (options && name === 'curl' && value.startsWith('-') && !value.startsWith('--') && value.includes('o')) {
-        const rest = value.slice(value.indexOf('o') + 1);
-        if (rest !== '') {
-          notePath(rest, true, base, word.glob);
-        } else {
-          noteWriteArg(args[index + 1]);
-          index++;
-        }
         continue;
       }
       if (options && name === 'wget' && (value === '-O' || value === '--output-document' || value === '-P' || value === '--directory-prefix')) {
@@ -2624,6 +3029,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (INDIRECT.has(name)) {
           distrust(`${name} runs a command the analyzer does not follow`);
         }
+        if (PATCH_APPLIERS.has(name)) {
+          distrust(PATCH_REASON);
+        }
         if (RECURSIVE_READERS.has(name)) {
           distrust(`${name} walks directories by default, so the analyzer cannot see which files it reads`);
         }
@@ -2704,6 +3112,11 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           }
           for (const operand of inspected.operands) {
             notePath(gitPathspecPath(operand), false, cwd);
+            // `<rev>:<path>` opens that blob, so the path after the colon is what the rules must judge.
+            const revisionPath = gitRevisionPath(operand);
+            if (revisionPath !== undefined) {
+              notePath(revisionPath, false, cwd);
+            }
           }
           for (const target of inspected.writes) {
             notePath(target, true, cwd);

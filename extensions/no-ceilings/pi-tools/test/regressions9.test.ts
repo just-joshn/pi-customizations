@@ -135,6 +135,8 @@ describe('finding 3: git destination operands are writes', () => {
     expect(analyzeShellCommand(`git apply --directory=${outside} p.diff`).paths).toContainEqual({ path: outside, write: true });
     expect(analyzeShellCommand(`git apply --directory ${outside} p.diff`).paths).toContainEqual({ path: outside, write: true });
     expect(analyzeShellCommand(`git apply --unsafe-paths --directory=${outside} p.diff`).paths).toContainEqual({ path: 'p.diff', write: false });
+    // `git apply` reads the paths it writes from the patch file, so it is refused outright.
+    expect(analyzeShellCommand('git apply p.diff').untrusted).toContain('patch file');
     expect(analyzeShellCommand(`git init ${outside}/repo`).paths).toContainEqual({ path: `${outside}/repo`, write: true });
     expect(analyzeShellCommand(`git init -q --template=/tmp/tmpl ${outside}/repo`).paths).toContainEqual({ path: `${outside}/repo`, write: true });
     expect(analyzeShellCommand(`git init --shared ${outside}/repo`).paths).toContainEqual({ path: `${outside}/repo`, write: true });
@@ -184,7 +186,7 @@ describe('finding 3: git destination operands are writes', () => {
       );
       const applied = await h.call('bash', { command: `git apply --unsafe-paths --directory=${h.root} p.diff` });
       expect(applied.isError).toBe(true);
-      expect(textOf(applied)).toContain('outside the workspace');
+      expect(textOf(applied)).toContain('patch file');
       expect(await readFile(dest, 'utf8')).toBe('old\n');
 
       const init = await h.call('bash', { command: `git init -q ${repo}` });
