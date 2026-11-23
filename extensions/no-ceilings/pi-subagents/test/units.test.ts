@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -403,6 +403,18 @@ describe('worktree helpers', () => {
     expect(resolveWorktreeChildCwd({ repoRoot: '/repo', path: '/wt' }, '/outside')).toBe('/wt');
   });
 
+  it('falls back to an existing directory for an untracked parent subdirectory', () => {
+    const repo = tempDir('worktree-cwd-repo-');
+    const worktree = tempDir('worktree-cwd-wt-');
+    mkdirSync(join(repo, 'pkg', 'app'), { recursive: true });
+    mkdirSync(join(worktree, 'pkg', 'app'), { recursive: true });
+    mkdirSync(join(repo, 'scratch', 'untracked'), { recursive: true });
+    expect(resolveWorktreeChildCwd({ repoRoot: repo, path: worktree }, join(repo, 'pkg', 'app'))).toBe(join(worktree, 'pkg', 'app'));
+    const fallback = resolveWorktreeChildCwd({ repoRoot: repo, path: worktree }, join(repo, 'scratch', 'untracked'));
+    expect(fallback).toBe(worktree);
+    expect(existsSync(fallback)).toBe(true);
+  });
+
   it('bounds completed transcripts in mid-run snapshots', () => {
     const store = createSubagentStore();
     for (let index = ZERO; index < 5; index += 1) {
@@ -678,6 +690,12 @@ describe('adversary regressions', () => {
     for (const text of ['Please ask code-reviewer to inspect the pull request', 'use code-reviewer to run the test suite', 'Have the code-reviewer look at this']) {
       expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('code-reviewer');
     }
+  });
+
+  it('selects a multi-word agent named in the task text', () => {
+    const definitions = [makeDefinition({ name: 'Code Reviewer', description: 'Reviews patches for correctness' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    expect(selectSubagentType(definitions, { description: 'Ask Code Reviewer to inspect the patch', prompt: '' })).toBe('Code Reviewer');
+    expect(selectSubagentType(definitions, { description: 'Ask Code Reviewers to inspect the patch', prompt: '' })).toBe('general-purpose');
   });
 
   it('applies a top-level max-tokens cap to the child model', () => {

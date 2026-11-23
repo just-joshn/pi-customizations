@@ -354,6 +354,51 @@ describe('tasks overlay', () => {
     }
   });
 
+  it('shows a failure id in the tasks list', async () => {
+    let list = '';
+    const h = createTestHarness({
+      onCustomOverlay: async (factory) => {
+        const comp = factory({ requestRender: () => undefined }, createTheme(), {}, () => undefined);
+        list = comp.render(WIDTH).join('\n');
+        comp.dispose?.();
+      },
+    });
+    try {
+      const store = createSubagentStore();
+      store.upsertSession(record({ status: 'error', error: 'boom', errorCode: 'failed', failureId: 'deadbeefcafe' }));
+      const { openTasksOverlay } = await import('../src/tasks-overlay.ts');
+      await openTasksOverlay(h.ctx, store);
+      expect(list).toContain('deadbeefcafe');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('points at the stored transcript when a restored run has no in-memory items', async () => {
+    const transcriptPath = '/tmp/pi-subagents-restored-transcript.jsonl';
+    let transcript = '';
+    const h = createTestHarness({
+      onCustomOverlay: async (factory) => {
+        const comp = factory({ requestRender: () => undefined }, createTheme(), {}, () => undefined);
+        comp.handleInput?.('\r');
+        transcript = comp.render(WIDTH).join('\n');
+        comp.dispose?.();
+      },
+    });
+    try {
+      const store = createSubagentStore();
+      store.upsertSession(record({ status: 'success', transcriptPath, transcriptItems: [] }));
+      const restored = createSubagentStore();
+      restored.restoreFromPersisted(JSON.parse(JSON.stringify(store.toPersistedState({ includeTranscriptItems: false }))), 'parent-1');
+      const { openTasksOverlay } = await import('../src/tasks-overlay.ts');
+      await openTasksOverlay(h.ctx, restored);
+      expect(transcript).toContain(transcriptPath);
+      expect(transcript).toContain('no longer retained');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('shows live thinking in the transcript view', async () => {
     const theme = createTheme();
     let transcript = '';
@@ -367,10 +412,11 @@ describe('tasks overlay', () => {
     });
     try {
       const store = createSubagentStore();
-      store.upsertSession(record({ streamingThinking: 'LIVE_THINKING' }));
+      store.upsertSession(record({ streamingThinking: 'LIVE_THINKING', transcriptPath: '/tmp/live-transcript.jsonl' }));
       const { openTasksOverlay } = await import('../src/tasks-overlay.ts');
       await openTasksOverlay(h.ctx, store);
       expect(transcript).toContain('LIVE_THINKING');
+      expect(transcript).not.toContain('no longer retained');
     } finally {
       await h.cleanup();
     }

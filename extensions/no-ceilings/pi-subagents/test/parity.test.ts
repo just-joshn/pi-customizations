@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -10,7 +10,7 @@ import { discoverSubagents } from '../src/discovery.ts';
 import { applyDefinitionToModel } from '../src/model-resolution.ts';
 import { SUBAGENTS_CONFIG_FILE_NAME, type TaskToolDetails } from '../src/types.ts';
 import { createSubagentWorktree, summarizeWorktreeDiff } from '../src/worktree.ts';
-import { createGate, createTestHarness, double, makeDefinition } from './harness.ts';
+import { createGate, createTestHarness, delay, double, makeDefinition, type SubagentsTestHarness } from './harness.ts';
 
 const ZERO = 0;
 const ONE = 1;
@@ -52,6 +52,34 @@ function dequeuePlan(): MockPlan {
   const [first, ...rest] = plans;
   plans = rest;
   return first ?? { finalText: 'default response' };
+}
+
+function initRepo(cwd: string): void {
+  execFileSync('git', ['init'], { cwd });
+  execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'Test'], { cwd });
+  writeFileSync(join(cwd, 'README.md'), 'base\n');
+  execFileSync('git', ['add', '.'], { cwd });
+  execFileSync('git', ['commit', '-m', 'base'], { cwd });
+}
+
+function installSlowGit(bin: string, match: string, flag: string): void {
+  mkdirSync(bin, { recursive: true });
+  const wrapper = join(bin, 'git');
+  writeFileSync(wrapper, ['#!/bin/sh', 'for arg in "$@"; do', `  if [ "$arg" = "${match}" ]; then touch "${flag}"; sleep 2; break; fi`, 'done', 'exec /usr/bin/git "$@"', ''].join('\n'));
+  chmodSync(wrapper, 0o755);
+}
+
+function persistedWorktreePath(h: SubagentsTestHarness, agentId: string): string | undefined {
+  const state = h
+    .getEntries()
+    .filter((entry) => entry.customType === 'pi-subagents-state')
+    .at(-ONE);
+  if (state === undefined) {
+    return undefined;
+  }
+  const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly worktree?: { readonly path: string } }[] }>(state.data).sessions;
+  return sessions.find((session) => session.agentId === agentId)?.worktree?.path;
 }
 
 function createMockSession(plan: MockPlan) {
@@ -759,20 +787,96 @@ describe('worktree and transcript durability', () => {
       const gate = createGate();
       enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
       const launched = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
-      const worktreePath = launched.details?.worktreePath;
-      expect(worktreePath).toBeTypeOf('string');
+      const agentId = launched.details?.agentId ?? '';
+      await expect.poll(() => persistedWorktreePath(h, agentId)).toBeTypeOf('string');
+      const worktreePath = persistedWorktreePath(h, agentId);
       expect(typeof worktreePath === 'string' && existsSync(worktreePath)).toBe(true);
       if (worktreePath !== undefined) {
         writeFileSync(join(worktreePath, 'notes.txt'), 'changed\n');
       }
       gate.release();
-      const awaited = await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      const awaited = await h.callTool('await_subagent', { agent_id: agentId });
       const text = (awaited.content[ZERO] as { readonly text?: string }).text ?? '';
       expect(text).toContain('notes.txt');
+      expect(awaited.details?.worktreePath).toBe(worktreePath);
     } finally {
       await h.cleanup();
     }
   });
+});
+
+describe('round-eight background worktree lifecycle', () => {
+  it('returns a background worktree launch before git worktree add finishes', async () => {
+    const h = createTestHarness();
+    const bin = join(h.cwd, 'bin');
+    const flag = join(h.cwd, 'worktree-add-started');
+    installSlowGit(bin, 'worktree', flag);
+    const previousPath = process.env['PATH'];
+    process.env['PATH'] = `${bin}:${previousPath ?? ''}`;
+    try {
+      initRepo(h.cwd);
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'background worktree done' });
+      const started = Date.now();
+      const launched = await h.callTool('task', { description: 'Background worktree', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
+      const elapsed = Date.now() - started;
+      expect(launched.details?.status).toBe('running');
+      expect(launched.details?.isBackground).toBe(true);
+      expect(elapsed).toBeLessThan(1000);
+      const awaited = await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      expect(awaited.details?.status).toBe('success');
+      expect(awaited.details?.worktreePath).toBeTypeOf('string');
+    } finally {
+      process.env['PATH'] = previousPath;
+      await h.cleanup();
+    }
+  }, 30_000);
+
+  it('does not launch a background worktree when the call is already aborted', async () => {
+    const h = createTestHarness();
+    try {
+      initRepo(h.cwd);
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'should not run' });
+      const controller = new AbortController();
+      controller.abort();
+      const result = await h.callTool('task', { description: 'Aborted background worktree', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true }, { signal: controller.signal });
+      expect(result.details?.status).toBe('cancelled');
+      expect(result.details?.worktreePath).toBeUndefined();
+      const branches = execFileSync('git', ['branch', '--list', 'pi-subagents/*'], { cwd: h.cwd, encoding: 'utf8' }).trim();
+      expect(branches).toBe('');
+      expect(promptCalls).toBe(ZERO);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('removes the worktree and branch when a call aborts during git worktree add', async () => {
+    const h = createTestHarness();
+    const bin = join(h.cwd, 'bin');
+    const flag = join(h.cwd, 'worktree-add-started');
+    installSlowGit(bin, 'worktree', flag);
+    const previousPath = process.env['PATH'];
+    process.env['PATH'] = `${bin}:${previousPath ?? ''}`;
+    try {
+      initRepo(h.cwd);
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'should not run' });
+      const controller = new AbortController();
+      const pending = h.callTool('task', { description: 'Abort during worktree', prompt: 'go', subagent_type: 'general-purpose', worktree: true }, { signal: controller.signal });
+      await vi.waitFor(() => expect(existsSync(flag)).toBe(true));
+      controller.abort();
+      const result = await pending;
+      expect(result.details?.status).toBe('cancelled');
+      expect(result.details?.worktreePath).toBeUndefined();
+      const branches = execFileSync('git', ['branch', '--list', 'pi-subagents/*'], { cwd: h.cwd, encoding: 'utf8' }).trim();
+      expect(branches).toBe('');
+      expect(promptCalls).toBe(ZERO);
+    } finally {
+      process.env['PATH'] = previousPath;
+      await h.cleanup();
+    }
+  }, 30_000);
 });
 
 describe('state growth and disabled defaults', () => {
@@ -892,6 +996,61 @@ describe('state snapshots and shutdown', () => {
       await h.cleanup();
     }
   });
+
+  it('persists a failure id when shutdown cancels a background run', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Shutdown job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      await h.emit('session_shutdown', {});
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string; readonly failureId?: string }[] }>(state?.data).sessions;
+      const record = sessions.find((session) => session.agentId === launched.details?.agentId);
+      expect(record?.status).toBe('cancelled');
+      expect(record?.failureId).toMatch(/^[0-9a-f]{12}$/);
+      gate.release();
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('keeps a shutdown cancellation and skips the wakeup when a worktree summary finishes late', async () => {
+    const h = createTestHarness();
+    const bin = join(h.cwd, 'bin');
+    const flag = join(h.cwd, 'diff-started');
+    installSlowGit(bin, 'diff', flag);
+    const previousPath = process.env['PATH'];
+    process.env['PATH'] = `${bin}:${previousPath ?? ''}`;
+    try {
+      initRepo(h.cwd);
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'finished after shutdown', waitForRelease: gate.promise });
+      const launched = await h.callTool('task', { description: 'Summary race', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
+      gate.release();
+      await expect.poll(() => existsSync(flag)).toBe(true);
+      await h.emit('session_shutdown', {});
+      await h.emit('session_start', {});
+      await delay(2500);
+      const state = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly status: string; readonly failureId?: string }[] }>(state?.data).sessions;
+      const record = sessions.find((session) => session.agentId === launched.details?.agentId);
+      expect(record?.status).toBe('cancelled');
+      expect(record?.failureId).toMatch(/^[0-9a-f]{12}$/);
+      expect(h.getSentMessages()).toHaveLength(ZERO);
+    } finally {
+      process.env['PATH'] = previousPath;
+      await h.cleanup();
+    }
+  }, 30_000);
 
   it('does not touch a stale UI context when a background run settles after session shutdown', async () => {
     const h = createTestHarness();
@@ -1560,10 +1719,11 @@ describe('isolation and observability', () => {
       const gate = createGate();
       enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
       const launched = await h.callTool('task', { description: 'Isolated job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true, worktree: true });
-      const worktreePath = launched.details?.worktreePath;
-      expect(worktreePath).toBeTypeOf('string');
+      const agentId = launched.details?.agentId ?? '';
+      await expect.poll(() => persistedWorktreePath(h, agentId)).toBeTypeOf('string');
+      const worktreePath = persistedWorktreePath(h, agentId);
       expect(typeof worktreePath === 'string' && existsSync(worktreePath)).toBe(true);
-      await h.runCommand('tasks', `prune ${launched.details?.agentId ?? ''}`);
+      await h.runCommand('tasks', `prune ${agentId}`);
       expect(h.getNotifications().at(-ONE)?.message).toContain('still running');
       gate.release();
       await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
