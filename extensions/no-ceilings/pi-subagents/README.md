@@ -157,10 +157,13 @@ A child gets `task` and `await_subagent` only when its definition sets `nested-t
 ## Tests
 
 ```bash
-bunx vitest run            # unit and behaviour tests
+bunx vitest run            # unit, integration, and behaviour tests
 bunx vitest run --coverage # coverage gate
 bunx tsc --noEmit          # types
+node test/e2e/verify-delegation-fake-model.mjs # real `pi` binary, deterministic fake model
 node test/e2e/verify-subagents.mjs # real `pi` binary, needs a logged-in model
 ```
 
-The end-to-end script runs the extension from source in a throwaway profile, exercises a foreground subagent, a background subagent in its own worktree, `await_subagent`, and the persisted checkpoints and transcripts. It exits 77 when `pi` or a model credential is missing.
+The deterministic end-to-end script runs the real `pi` binary, config loader, parent and child `AgentSession`s, and tools against a local OpenAI-compatible server. The server always returns the same `task` and `read` calls, so the check needs no credentials and cannot flake on model output. It asserts the parent reply, the parent session trace, the child transcript, and the persisted run.
+
+The real-model end-to-end script runs the extension from source in a throwaway profile and exercises a foreground subagent, a background subagent in its own worktree, `await_subagent`, and the persisted checkpoints and transcripts. It exits 77 when `pi` or a model credential is missing.

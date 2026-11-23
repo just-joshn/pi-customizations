@@ -489,6 +489,21 @@ describe('trust and tool inheritance', () => {
       await h.cleanup();
     }
   });
+
+  it('creates a fresh child session for every delegation', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      enqueuePlan({ finalText: 'second' });
+      await h.callTool('task', { description: 'First', prompt: 'one', subagent_type: 'general-purpose' });
+      await h.callTool('task', { description: 'Second', prompt: 'two', subagent_type: 'general-purpose' });
+      expect(createdSessions.length).toBe(TWO);
+      expect(createdSessions[ZERO]).not.toBe(createdSessions[ONE]);
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('retry, resume, and persistence', () => {

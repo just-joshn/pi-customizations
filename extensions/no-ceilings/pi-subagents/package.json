@@ -39,7 +39,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test:e2e": "node test/e2e/verify-subagents.mjs"
+    "test:e2e": "node test/e2e/verify-subagents.mjs",
+    "test:e2e:fake": "node test/e2e/verify-delegation-fake-model.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",
