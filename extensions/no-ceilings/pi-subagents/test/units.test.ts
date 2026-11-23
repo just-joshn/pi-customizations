@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -785,6 +785,30 @@ describe('adversary regressions', () => {
     if (process.platform === 'darwin' && existsSync('/usr/bin/sandbox-exec')) {
       expect(safeEvent.input.command).toContain('sandbox-exec');
     }
+  });
+
+  it('blocks awk programs that pipe into another program', () => {
+    const command = `awk 'BEGIN { print "x" | "python3 -c \"print(1)\"" }'`;
+    expect(isSafeReadOnlyCommand(command)).toBe(false);
+    const event = double<{ readonly type: 'tool_call'; readonly toolCallId: string; readonly toolName: string; input: { command: string } }>({
+      type: 'tool_call',
+      toolCallId: 'call-awk',
+      toolName: 'bash',
+      input: { command },
+    });
+    expect(evaluateReadonlySubagentGuard(event)?.block).toBe(true);
+  });
+
+  it('denies writes to arbitrary /var/tmp here-document names', () => {
+    const command = sandboxReadOnlyCommand('printf x > /var/tmp/sh-thd-424242');
+    if (process.platform !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
+      expect(command).toContain('/var/tmp/sh-thd-424242');
+      return;
+    }
+    const target = '/var/tmp/sh-thd-424242';
+    rmSync(target, { force: true });
+    expect(() => execFileSync('/bin/sh', ['-c', command], { stdio: 'pipe' })).toThrow();
+    expect(existsSync(target)).toBe(false);
   });
 
   it('denies writes when the read-only sandbox is available', () => {
