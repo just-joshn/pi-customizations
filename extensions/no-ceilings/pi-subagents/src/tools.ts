@@ -145,11 +145,11 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
       const details = await runSubagentTask(runOptions, callbacks);
       return { content: [{ type: 'text', text: formatTaskResultText(details) }], details };
     },
-    renderCall(args, theme) {
-      return renderTaskCall(args, theme);
+    renderCall(args, theme, context) {
+      return renderTaskCall(args, theme, context);
     },
-    renderResult(result, options, theme) {
-      return renderTaskResult(result, options, theme);
+    renderResult(result, options, theme, context) {
+      return renderTaskResult(result, options, theme, context);
     },
   });
 }

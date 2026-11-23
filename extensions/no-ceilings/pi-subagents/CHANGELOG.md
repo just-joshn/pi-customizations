@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+
+- The tasks overlay pads every line to the overlay width, so underlying task rows no longer bleed through.
+- A task result reuses the call row instead of rendering a second header for the same task.
+
 ## 0.3.0
 
 ### Added

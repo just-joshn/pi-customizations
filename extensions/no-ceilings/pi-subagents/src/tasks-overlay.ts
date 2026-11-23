@@ -142,7 +142,7 @@ function createTasksOverlayComponent(store: SubagentStore, theme: Theme, request
 
   return {
     render(width: number): string[] {
-      return renderCurrentOverlayView(viewState, store, width, theme).map((line) => truncateToWidth(line, width));
+      return renderCurrentOverlayView(viewState, store, width, theme).map((line) => truncateToWidth(line, width, undefined, true));
     },
     handleInput(data: string): void {
       if (viewState.view === 'transcript' && !isEscapeOrQuit(data)) {

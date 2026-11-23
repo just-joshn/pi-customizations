@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-subagents",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Pi-native subagents extension with built-in and custom subagent discovery, foreground/background execution, resumption, read-only enforcement, live streaming TUI, background completion wakeups, and interactive tasks/transcript pager.",
   "type": "module",
   "license": "MIT",
