@@ -213,7 +213,11 @@ function splitReadOnlyPipeline(command: string): readonly string[] | undefined {
   for (let index = 0; index < command.length; index += 1) {
     const char = command[index] ?? '';
     if (char === '\\' && quote !== "'") {
-      current += char + (command[index + 1] ?? '');
+      const next = command[index + 1] ?? '';
+      if (next === '\n' || next === '\r') {
+        return undefined;
+      }
+      current += char + next;
       index += 1;
       continue;
     }
@@ -346,8 +350,35 @@ function readonlySandboxInvocation(command: string, tempRoot: string): string {
   return `${gitSafetyPrelude()}_pi_tmp=$(mktemp -d ${template}) || exit 1; ${readonlyProfileAssignment()}; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
 }
 
+function hasUnquotedLineContinuation(command: string): boolean {
+  let quote: "'" | '"' | undefined;
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index] ?? '';
+    if (char === '\\' && quote !== "'") {
+      const next = command[index + 1] ?? '';
+      if (next === '\n' || next === '\r') {
+        return true;
+      }
+      index += 1;
+      continue;
+    }
+    if (quote === "'") {
+      quote = char === "'" ? undefined : quote;
+      continue;
+    }
+    if (quote === '"') {
+      quote = char === '"' ? undefined : quote;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+    }
+  }
+  return false;
+}
+
 function blocksExternalViewer(command: string): boolean {
-  return hasDangerousGitOption(command) || (/\bgit\b/.test(command) && hasUnquotedShellExpansion(command));
+  return hasUnquotedLineContinuation(command) || hasDangerousGitOption(command) || (/\bgit\b/.test(command) && hasUnquotedShellExpansion(command));
 }
 
 function blockedReadonlyCommand(): string {
