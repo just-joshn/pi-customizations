@@ -92,6 +92,11 @@
   because they print whole file bodies.
 - A git revision path such as `HEAD:file` is checked as the file it opens, and a `git config` with a
   key and a value is refused even when a read flag is present.
+- `git checkout-index`, `git fast-export`, and a raw-object or batch `git cat-file` are refused
+  because they write or print files and objects the argv does not name. A directory, glob, or
+  exclusion pathspec no longer narrows a `git log --patch` or `git show` refusal.
+- The destination of `git mv` and `git init --separate-git-dir` are writes, `uniq` and `xxd` write
+  their second operand, and `apply_patch` applies the read deny to every source it opens.
 
 ## 0.1.0
 

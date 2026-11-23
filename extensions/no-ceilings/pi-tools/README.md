@@ -30,7 +30,7 @@ when the model needs them.
 | `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit over matched lines, line truncation, output caps, and partial results on timeout. |
 | `write` | Creates or overwrites a file with parent directories (UTF-8 or validated base64), refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
 | `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. A file that is not valid UTF-8 is refused instead of rewritten. |
-| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, untouched lines keep their endings, a write failure rolls back the files and directories the call created. |
+| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. A read-denied source is refused, every hunk is validated before anything is written, untouched lines keep their endings, and a write failure rolls back the files and directories the call created. |
 | `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, protected ignore files, and files that changed after the check. |
 | `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
 | `git` *(loads on demand)* | Runs a git subcommand through the local executable with captured output and an exit code. |
@@ -149,27 +149,30 @@ operand or redirect target.
   `grep` or a directory-walking `rg`/`ag`/`ack`, a wrapper that runs another command (`sudo`, `doas`,
   `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `flock`, `arch`, `xcrun`,
   `unshare`, `setarch`, `busybox`, `nsenter`, `docker`, `podman`, `ssh`, `caffeinate`, `strace`,
-  `bwrap`, and similar), `git grep`, `patch`, and `git apply` (each chooses the files it reads or
-  writes), a login shell that would source a profile, a shell or interpreter fed a script through a
-  pipe or a stdin redirect, and a shell function definition. Literal
+  `bwrap`, and similar), `git grep`, `git checkout-index`, `git fast-export`, a raw-object or batch
+  `git cat-file`, `patch`, and `git apply` (each chooses the files or objects it reads or writes), a
+  login shell that would source a profile, a shell or interpreter fed a script through a pipe or a
+  stdin redirect, and a shell function definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
   deny-checked too, an index pathspec such as `:file` and a revision path such as `HEAD:file` are
   checked as the files they open, a directory-wide stage (`git add -A`, `-u`, `.`) and `git commit -a`
-  are refused because the layer cannot see the staged files, `git log --patch` without a path and
-  `git show` without a path or summary flag are refused because they print whole file bodies, and
-  `git init --template` is refused because the template installs a hook. `git -C`, `--git-dir`, and
-  `--work-tree` outside the workspace need approval, a git destination (`init`, `archive -o`,
-  `show`/`log`/`diff` `--output`, `clone`, `worktree add`, `format-patch -o`, `bundle create`) is a
-  write, and a `git config` with a key and a value is refused even when a read flag is
+  are refused because the layer cannot see the staged files, `git log --patch` and `git show` are
+  refused unless a path that cannot name a directory narrows them or a summary flag replaces the
+  bodies, the destination of `git mv` is a write, and `git init --template` is refused because the
+  template installs a hook. `git -C`, `--git-dir`, and
+  `--work-tree` outside the workspace need approval, a git destination (`init` and
+  `--separate-git-dir`, `archive -o`, `show`/`log`/`diff` `--output`, `clone`, `worktree add`,
+  `format-patch -o`, `bundle create`) is a write, the last operand of `git mv` is a write, and a `git config` with a key and a value is refused even when a read flag is
   present, because it can persist a command. A redirect target ends at the next `<` or `>`, `>|` is one
   redirect, and digits stay with the word or file name around a redirect rather than becoming a file
   descriptor. A write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`,
   `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
   `gzip`, `gunzip`, `bzip2`, `xz`, `split`, `openssl -out`, `unzip -d`, a `sed` `w`/`W` script or
   `s///w` flag, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`/`-D`/`-c`/`--trace`, `wget -O`,
-  `sort -o`, `rsync`'s destination and `--log-file`) or `>`/`>>`/`>|` target outside the workspace needs
-  the same approval as `write`; `split` reads its input and writes its prefix, `curl -K` is refused
+  `sort -o`, `uniq`/`xxd`'s second operand, `rsync`'s destination and `--log-file`) or a `>`/`>>`/`>|`
+  target outside the workspace needs the same approval as `write`; `split` reads its input and writes
+  its prefix, `curl -K` is refused
   because its config names outputs and URLs, `cp`/`mv`/`ln` destination flags such as `-t` and
   `--target-directory` count as the destination, and every `ln` target counts because a link is the
   path a later use escapes through.
