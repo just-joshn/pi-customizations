@@ -53,7 +53,6 @@ const READ_ONLY_COMMANDS = new Set<string>([
   'uptime',
   'ps',
   'jq',
-  'awk',
   'sed',
 ]);
 
@@ -86,7 +85,6 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   sort: ['--output', '--compress-program'],
   rg: ['--pre', '--pre-glob', '--hostname-bin'],
   tree: ['--output'],
-  awk: ['--file', '--include'],
   sed: ['--in-place', '--file'],
   bat: ['--pager', '--config-file', '--generate-config-file'],
   file: ['--compile'],
@@ -97,7 +95,6 @@ const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
   sort: ['o'],
   tree: ['o'],
   fd: ['x', 'X'],
-  awk: ['f', 'i'],
   file: ['C'],
 };
 
@@ -548,7 +545,7 @@ function isAllowedGit(words: readonly string[]): boolean {
       subcommandIndex += 2;
       continue;
     }
-    if (word === '--no-pager' || word === '--no-optional-locks' || word === '--paginate' || word === '-P') {
+    if (word === '--no-pager' || word === '--paginate' || word === '-P') {
       subcommandIndex += 1;
       continue;
     }
@@ -564,7 +561,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'status') {
     const options = gitOptionWords(args.slice(1));
-    return !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
+    return options.includes('--no-optional-locks') && !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
@@ -736,10 +733,6 @@ function isAllowedSegment(words: readonly string[]): boolean {
   }
   if (command === 'uniq') {
     return isAllowedUniqArgs(args);
-  }
-  if (command === 'awk') {
-    // A quoted program can still pipe to a command or redirect to a file of its own.
-    return !args.slice(1).some((word) => /[>|]/.test(word) || /\b(?:system|getline|close)\b/.test(word) || /@(?:include|load)\b/.test(word));
   }
   return true;
 }

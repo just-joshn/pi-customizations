@@ -56,7 +56,7 @@ describe('pi-modes cycling and guards', () => {
 
   it('allows safe bash commands in Ask mode', async () => {
     const h = await enterReadOnly('ask');
-    expect(await bashCall(h, 'git status')).toBeUndefined();
+    expect(await bashCall(h, 'git status --no-optional-locks')).toBeUndefined();
   });
 
   it('allows mutating bash again after restoring Agent mode', async () => {
@@ -203,7 +203,7 @@ describe('pi-modes regression guards', () => {
 
   it('allows a safe pipe in read-only mode', async () => {
     const h = await enterReadOnly('ask');
-    expect(await bashCall(h, 'git status | head -n 5')).toBeUndefined();
+    expect(await bashCall(h, 'git status --no-optional-locks | head -n 5')).toBeUndefined();
   });
 
   it('preserves user-configured active tools when starting in Agent mode', async () => {
@@ -222,6 +222,7 @@ describe('pi-modes read-only shell escape guards', () => {
   it.for([
     'env node -e "console.log(1)"',
     'awk \'BEGIN { system("id") }\'',
+    "awk '{print $1}' package.json",
     "sed -n '1w /tmp/out.txt' package.json",
     "sed -n -e'1w /tmp/out.txt' package.json",
     'GIT_EXTERNAL_DIFF="touch /tmp/out.txt" git diff',
@@ -233,7 +234,7 @@ describe('pi-modes read-only shell escape guards', () => {
     expect(result?.block).toBe(true);
   });
 
-  it.for(['env', "awk '{print $1}' package.json", "sed -n '1,5p' package.json", "sed -n -e'1,5p' package.json", 'uniq -f 1 package.json', 'uniq -w 3 package.json', 'git show-ref'])('allows %s in read-only mode', async (command) => {
+  it.for(['env', "sed -n '1,5p' package.json", "sed -n -e'1,5p' package.json", 'uniq -f 1 package.json', 'uniq -w 3 package.json', 'git show-ref'])('allows %s in read-only mode', async (command) => {
     const h = await enterReadOnly('ask');
     expect(await bashCall(h, command)).toBeUndefined();
   });
@@ -286,7 +287,7 @@ describe('pi-modes read-only shell write forms', () => {
     expect(result?.block).toBe(true);
   });
 
-  it.for(["sed -n '1,5p' package.json", 'git branch -a', 'git remote -v', 'git status'])('allows %s in read-only mode', async (command) => {
+  it.for(["sed -n '1,5p' package.json", 'git branch -a', 'git remote -v', 'git status --no-optional-locks'])('allows %s in read-only mode', async (command) => {
     const h = await enterReadOnly('ask');
     expect(await bashCall(h, command)).toBeUndefined();
   });
