@@ -50,8 +50,8 @@ const INTRODUCERS = new Set(['if', 'then', 'else', 'elif', 'while', 'until', 'do
 /** Reserved words that carry no command of their own. The body is a later segment. */
 const STRUCTURAL = new Set(['for', 'case', 'select', 'function', 'fi', 'done', 'esac', '}', 'in']);
 
-/** Commands whose literal operands create or modify a file. Git path operands are deny-checked and are not writes. */
-const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown', 'truncate']);
+/** Commands whose literal operands create or modify a file. Git destinations are classified separately. */
+const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown', 'truncate', 'unlink', 'rmdir', 'shred']);
 
 /** Variables a `cd` target may name, resolved from the session instead of the shell. */
 const DIR_VARIABLES = new Map([
@@ -613,10 +613,20 @@ function splitCommandSegments(command: string): CommandSegment[] {
       flush();
       continue;
     }
+    if (char === '&' && command[index + 1] === '>') {
+      // `&>` is one redirect, including when it is glued to the previous word.
+      current += char;
+      continue;
+    }
     if (char === ';' || char === '\n' || char === '|' || char === '&') {
       // `>&` and `<&` belong to a redirection, not to the command separator.
+      // An adjacent `>|` is the noclobber redirect. `cmd > file | next` still splits.
       const trimmed = current.trimEnd();
       if (char === '&' && (trimmed.endsWith('>') || trimmed.endsWith('<'))) {
+        current += char;
+        continue;
+      }
+      if (char === '|' && current.endsWith('>')) {
         current += char;
         continue;
       }
@@ -787,13 +797,24 @@ function stripRedirects(segment: string): { readonly text: string; readonly redi
     }
     if (char === '<' || char === '>') {
       out = withoutRedirectFd(out);
-      const operatorStart = index;
+      let operatorStart = index;
+      // `&>` was copied into the text. It is one operator, so the `&` is not an argument.
+      if (char === '>' && index > 0 && segment[index - 1] === '&') {
+        operatorStart = index - 1;
+        if (out.endsWith('&')) {
+          out = out.slice(0, -1);
+        }
+      }
       index++;
       while (index < segment.length && '<>&|'.includes(segment[index] ?? '')) {
         index++;
       }
       const operator = segment.slice(operatorStart, index);
-      const attached = /^&?-?[0-9]+|^&/.exec(segment.slice(index))?.[0];
+      const after = segment.slice(index);
+      // Digits are a file descriptor only for `>&2`, `&>2`, `<&2`, or a word that starts with `&`.
+      // `>2secret.txt` and `>|2secret.txt` name those files.
+      const digitsAreFd = operator.includes('&') || after.startsWith('&');
+      const attached = digitsAreFd ? /^&?-?[0-9]+|^&/.exec(after)?.[0] : undefined;
       if (attached !== undefined) {
         index += attached.length;
       } else {
@@ -918,6 +939,36 @@ function assignmentReason(name: string): string {
     return `${name} sets git config the analyzer does not follow`;
   }
   return `${name} changes how the shell finds commands`;
+}
+
+/** Name assigned by `printf -v`, when the analyzer cannot vouch for it. `printf -vNAME` is the same option. */
+function printfAssignment(args: readonly Word[]): string | undefined {
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      return undefined;
+    }
+    const value = word.value;
+    if (value === '--') {
+      return undefined;
+    }
+    let candidate: string | undefined;
+    if (value === '-v') {
+      const next = args[index + 1];
+      if (next === undefined || !next.literal || next.hidesCommand) {
+        return undefined;
+      }
+      candidate = next.value;
+    } else if (value.startsWith('-v') && !value.startsWith('--') && value.length > 2) {
+      candidate = value.slice(2);
+    } else if (value.startsWith('-')) {
+      continue;
+    } else {
+      return undefined;
+    }
+    return unvouchedAssignment(candidate) ? candidate : undefined;
+  }
+  return undefined;
 }
 
 /** Name assigned by `export`, `declare`, `typeset`, or `readonly` when it is one the analyzer cannot vouch for. */
@@ -1200,7 +1251,278 @@ interface GitDirectory {
 interface GitCommand {
   readonly directories: readonly GitDirectory[];
   readonly operands: readonly string[];
+  /** Destination operands. These are writes; other operands stay reads. */
+  readonly writes: readonly string[];
   readonly untrusted?: string;
+}
+
+interface GitDestinationSpec {
+  /** Long options whose value is a path the command writes. */
+  readonly writeLong: readonly string[];
+  /** Short option letters whose value is a path the command writes. */
+  readonly writeShort: readonly string[];
+  /** Long options that consume a value which is not a destination. */
+  readonly valueLong: readonly string[];
+  /** Short option letters that consume a value which is not a destination. */
+  readonly valueShort: readonly string[];
+  /** Which positional operand is the destination, after options are removed. */
+  readonly positional: 'none' | 'first' | 'second';
+}
+
+interface GitOperands {
+  readonly reads: readonly string[];
+  readonly writes: readonly string[];
+  readonly untrusted?: string;
+}
+
+const GIT_DESTINATIONS: ReadonlyMap<string, GitDestinationSpec> = new Map([
+  ['apply', { writeLong: ['--directory'], writeShort: [], valueLong: ['--exclude', '--include', '--whitespace', '--build-fake-ancestor'], valueShort: ['p', 'C'], positional: 'none' }],
+  ['init', { writeLong: [], writeShort: [], valueLong: ['--template', '--separate-git-dir', '--object-format', '--ref-format', '--initial-branch'], valueShort: ['b'], positional: 'first' }],
+  ['archive', { writeLong: ['--output'], writeShort: ['o'], valueLong: ['--format', '--prefix', '--add-file', '--add-virtual-file', '--mtime', '--remote', '--exec'], valueShort: [], positional: 'none' }],
+  [
+    'clone',
+    {
+      writeLong: [],
+      writeShort: [],
+      valueLong: [
+        '--jobs',
+        '--template',
+        '--reference',
+        '--reference-if-able',
+        '--origin',
+        '--branch',
+        '--revision',
+        '--upload-pack',
+        '--depth',
+        '--shallow-since',
+        '--shallow-exclude',
+        '--separate-git-dir',
+        '--ref-format',
+        '--config',
+        '--server-option',
+        '--filter',
+        '--bundle-uri',
+      ],
+      valueShort: ['j', 'o', 'b', 'u', 'c'],
+      positional: 'second',
+    },
+  ],
+  [
+    'format-patch',
+    {
+      writeLong: ['--output-directory'],
+      writeShort: ['o'],
+      valueLong: ['--suffix', '--start-number', '--subject-prefix', '--filename-max-length', '--reroll-count', '--base', '--to', '--cc', '--in-reply-to', '--signature', '--signature-file'],
+      valueShort: ['v'],
+      positional: 'none',
+    },
+  ],
+]);
+
+const WORKTREE_ADD_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--reason'], valueShort: ['b', 'B'], positional: 'first' };
+const BUNDLE_CREATE_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--version'], valueShort: [], positional: 'first' };
+
+/** Literal operands that are not options. Option values that do not start with `-` stay operands, as before. */
+function gitReadOperands(args: readonly Word[]): string[] {
+  const operands: string[] = [];
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    if (options && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.value.startsWith('-') && word.value !== '-') {
+      continue;
+    }
+    if (word.value !== '') {
+      operands.push(word.value);
+    }
+  }
+  return operands;
+}
+
+/** First positional word, so `git bisect run` is distinct from `git bisect start`. */
+function gitBisectRun(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      return false;
+    }
+    if (options && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.value.startsWith('-') && word.value !== '-') {
+      continue;
+    }
+    return word.value === 'run';
+  }
+  return false;
+}
+
+function peelGitVerb(args: readonly Word[]): { verb: string; rest: readonly Word[] } | undefined {
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      return undefined;
+    }
+    if (options && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.value.startsWith('-') && word.value !== '-') {
+      continue;
+    }
+    return { verb: word.value, rest: args.slice(index + 1) };
+  }
+  return undefined;
+}
+
+function takeGitOption(spec: GitDestinationSpec, value: string, next: Word | undefined): { write?: string; consumeNext: boolean; untrusted?: string } {
+  const fromWord = (word: Word | undefined, write: boolean, consumeNext: boolean): { write?: string; consumeNext: boolean; untrusted?: string } => {
+    if (!write) {
+      return { consumeNext };
+    }
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      return { consumeNext, untrusted: 'the write target is built by an expansion' };
+    }
+    return { consumeNext, write: word.value };
+  };
+  if (value.startsWith('--')) {
+    const eq = value.indexOf('=');
+    const name = eq === -1 ? value : value.slice(0, eq);
+    const write = spec.writeLong.includes(name);
+    if (!write && !spec.valueLong.includes(name)) {
+      return { consumeNext: false };
+    }
+    if (eq !== -1) {
+      const attached = value.slice(eq + 1);
+      return write ? { consumeNext: false, write: attached } : { consumeNext: false };
+    }
+    return fromWord(next, write, next !== undefined);
+  }
+  const body = value.slice(1);
+  for (let cursor = 0; cursor < body.length; cursor++) {
+    const letter = body[cursor] ?? '';
+    const write = spec.writeShort.includes(letter);
+    if (!write && !spec.valueShort.includes(letter)) {
+      continue;
+    }
+    const attached = body.slice(cursor + 1);
+    if (attached !== '') {
+      return write ? { consumeNext: false, write: attached } : { consumeNext: false };
+    }
+    return fromWord(next, write, next !== undefined);
+  }
+  return { consumeNext: false };
+}
+
+function gitDestinationPaths(spec: GitDestinationSpec, args: readonly Word[]): GitOperands {
+  const reads: string[] = [];
+  const writes: string[] = [];
+  const positionals: Array<{ value: string; literal: boolean }> = [];
+  let untrusted: string | undefined;
+  let options = true;
+  const opaque = (): void => {
+    untrusted ??= 'the write target is built by an expansion';
+  };
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      const optionShaped = options && word.value.startsWith('-') && word.value !== '-';
+      const namesWrite = spec.writeLong.some((flag) => word.value === flag || word.value.startsWith(`${flag}=`)) || spec.writeShort.some((letter) => word.value.startsWith(`-${letter}`));
+      if (optionShaped && namesWrite) {
+        opaque();
+      }
+      if (!optionShaped) {
+        positionals.push({ value: word.value, literal: false });
+      }
+      continue;
+    }
+    if (options && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.value.startsWith('-') && word.value !== '-') {
+      const taken = takeGitOption(spec, word.value, args[index + 1]);
+      if (taken.untrusted !== undefined) {
+        opaque();
+      }
+      if (taken.write !== undefined && taken.write !== '') {
+        writes.push(taken.write);
+      }
+      if (taken.consumeNext) {
+        index++;
+      }
+      continue;
+    }
+    if (word.value !== '') {
+      positionals.push({ value: word.value, literal: true });
+    }
+  }
+  const noteRead = (entry: { value: string; literal: boolean } | undefined): void => {
+    if (entry?.literal === true && entry.value !== '') {
+      reads.push(entry.value);
+    }
+  };
+  const noteWrite = (entry: { value: string; literal: boolean } | undefined): void => {
+    if (entry === undefined) {
+      return;
+    }
+    if (!entry.literal) {
+      opaque();
+      return;
+    }
+    if (entry.value !== '') {
+      writes.push(entry.value);
+    }
+  };
+  if (spec.positional === 'first') {
+    noteWrite(positionals[0]);
+    for (const entry of positionals.slice(1)) {
+      noteRead(entry);
+    }
+  } else if (spec.positional === 'second') {
+    noteRead(positionals[0]);
+    if (positionals.length >= 2) {
+      noteWrite(positionals[1]);
+      for (const entry of positionals.slice(2)) {
+        noteRead(entry);
+      }
+    }
+  } else {
+    for (const entry of positionals) {
+      noteRead(entry);
+    }
+  }
+  return { reads, writes, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+function gitDestinationPlan(subcommand: Word | undefined, args: readonly Word[]): GitOperands | undefined {
+  if (subcommand === undefined || !subcommand.literal || subcommand.hidesCommand) {
+    return undefined;
+  }
+  if (subcommand.value === 'worktree' || subcommand.value === 'bundle') {
+    const peeled = peelGitVerb(args);
+    const verb = subcommand.value === 'worktree' ? 'add' : 'create';
+    if (peeled?.verb !== verb) {
+      return undefined;
+    }
+    const spec = subcommand.value === 'worktree' ? WORKTREE_ADD_DESTINATION : BUNDLE_CREATE_DESTINATION;
+    return gitDestinationPaths(spec, peeled.rest);
+  }
+  const spec = GIT_DESTINATIONS.get(subcommand.value);
+  if (spec === undefined) {
+    return undefined;
+  }
+  return gitDestinationPaths(spec, args);
 }
 
 /** Global git options, the config-write verdict, and literal operands after the subcommand. */
@@ -1260,25 +1582,19 @@ function inspectGit(args: readonly Word[]): GitCommand {
     untrusted = 'the git subcommand comes from an expansion';
   } else if (subcommand?.value === 'config') {
     untrusted = gitConfigUntrusted(rest);
+  } else if (subcommand?.value === 'bisect' && gitBisectRun(rest)) {
+    untrusted = 'git bisect run runs a command the analyzer does not follow';
   }
-  const operands: string[] = [];
-  let options = true;
-  for (const word of rest) {
-    if (!word.literal || word.hidesCommand) {
-      continue;
-    }
-    if (options && word.value === '--') {
-      options = false;
-      continue;
-    }
-    if (options && word.value.startsWith('-') && word.value !== '-') {
-      continue;
-    }
-    if (word.value !== '') {
-      operands.push(word.value);
-    }
+  const planned = gitDestinationPlan(subcommand, rest);
+  if (planned?.untrusted !== undefined) {
+    untrusted ??= planned.untrusted;
   }
-  return { directories, operands, ...(untrusted === undefined ? {} : { untrusted }) };
+  return {
+    directories,
+    operands: planned?.reads ?? gitReadOperands(rest),
+    writes: planned?.writes ?? [],
+    ...(untrusted === undefined ? {} : { untrusted }),
+  };
 }
 
 interface PathNote {
@@ -1392,6 +1708,31 @@ function tarPaths(args: readonly Word[]): { readonly paths: readonly PathNote[];
     paths.push({ path: entry, write: false });
   }
   return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** Extra words a zip or ditto option consumes, so the archive or destination stays in the right place. */
+function archiveOptionSkip(command: string, value: string): number | undefined {
+  const longs = command === 'zip' ? ['--password', '--temp-path', '--temp-dir', '--suffixes'] : ['--arch', '--bom', '--lang', '--outBom', '--zlibCompressionLevel'];
+  const shorts = command === 'zip' ? ['b', 'n', 't', 'P'] : [];
+  if (value.startsWith('--')) {
+    const eq = value.indexOf('=');
+    const flag = eq === -1 ? value : value.slice(0, eq);
+    if (!longs.includes(flag)) {
+      return undefined;
+    }
+    return eq === -1 ? 1 : 0;
+  }
+  if (!value.startsWith('-') || value === '-') {
+    return undefined;
+  }
+  const body = value.slice(1);
+  for (let cursor = 0; cursor < body.length; cursor++) {
+    if (!shorts.includes(body[cursor] ?? '')) {
+      continue;
+    }
+    return body.slice(cursor + 1) === '' ? 1 : 0;
+  }
+  return undefined;
 }
 
 export interface ShellPath {
@@ -1544,6 +1885,13 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         index += value === '-fprintf' ? 2 : 1;
         continue;
       }
+      if (options && (name === 'zip' || name === 'ditto')) {
+        const skip = archiveOptionSkip(name, value);
+        if (skip !== undefined) {
+          index += skip;
+          continue;
+        }
+      }
       if (options && value.startsWith('-') && value !== '-') {
         continue;
       }
@@ -1567,9 +1915,13 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     const findDelete = name === 'find' && args.some((word) => word.literal && word.value === '-delete');
     const write = WRITE_COMMANDS.has(name) || findDelete;
     const rsyncListOnly = name === 'rsync' && args.some((word) => word.literal && !word.hidesCommand && word.value === '--list-only');
-    const writesLast = name === 'cp' || (name === 'install' && !directoryInstall) || (name === 'rsync' && !rsyncListOnly);
+    // `ditto` with only a source has no destination. `zip` writes the archive, which is its first operand.
+    const writesLast = name === 'cp' || (name === 'install' && !directoryInstall) || (name === 'rsync' && !rsyncListOnly) || (name === 'ditto' && positional.length > 1);
+    // `zip -l` lists an archive and writes nothing.
+    const zipLists = name === 'zip' && args.some((word) => word.literal === true && !word.hidesCommand && (word.value === '-l' || word.value === '--list'));
+    const writesFirst = name === 'zip' && !zipLists;
     for (const [index, value] of positional.entries()) {
-      const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesLast ? index === positional.length - 1 : write;
+      const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesFirst ? index === 0 : writesLast ? index === positional.length - 1 : write;
       notePath(value, isWrite, base);
     }
   };
@@ -1684,6 +2036,12 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
             distrust(assignmentReason(assigned));
           }
         }
+        if (name === 'printf') {
+          const assigned = printfAssignment(words.slice(headIndex + 1));
+          if (assigned !== undefined) {
+            distrust(assignmentReason(assigned));
+          }
+        }
         if (name === 'trap' && trapRunsCommand(tail)) {
           distrust('trap runs a command the analyzer does not follow');
         }
@@ -1732,6 +2090,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           }
           for (const operand of inspected.operands) {
             notePath(operand, false, cwd);
+          }
+          for (const target of inspected.writes) {
+            notePath(target, true, cwd);
           }
         } else {
           collectOperands(name, words.slice(headIndex + 1), cwd);

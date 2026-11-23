@@ -173,6 +173,7 @@ async function fetchGated(
         throw layerError('error', `Too many redirects starting at ${url.toString()}`);
       }
       current = new URL(location, current);
+      assertHttpScheme(current);
     }
     if (response === undefined) {
       throw layerError('error', `Fetch failed: no response for ${url.toString()}`);
@@ -191,10 +192,14 @@ function validateUrl(raw: string): URL {
   } catch {
     throw layerError('invalid_arguments', `Invalid URL: ${raw}`, { hint: 'Pass an absolute http or https URL.' });
   }
+  assertHttpScheme(parsed);
+  return parsed;
+}
+
+function assertHttpScheme(parsed: URL): void {
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw layerError('invalid_arguments', `Unsupported URL scheme: ${parsed.protocol}`, { hint: 'Only http and https are fetched.' });
   }
-  return parsed;
 }
 
 export function createWebFetchLayerTool(options: WebContext) {
