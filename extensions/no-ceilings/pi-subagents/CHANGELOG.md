@@ -95,6 +95,14 @@
 - A per-agent command resolves the agent at invocation. A removed agent warns `Unknown subagent "<name>"` and sends nothing.
 - A nested child receives the agent catalog in its system prompt.
 - A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
+- Read-only shell enforcement rejects a lone `&`, command substitution, and unclosed quotes. It allows `git grep`, quoted pipes, `|&`, and redirects to `/dev/null` such as `2>/dev/null`. `date -d` and `date --date` stay allowed; `date -s` stays blocked.
+- Unknown `subagents.json` sections and unknown keys inside a section are reported instead of ignored.
+- A mid-run snapshot keeps transcripts for the three most recently updated completed runs. Older completed runs keep metadata, the transcript path, and checkpoints.
+- A worktree run started in a repository subdirectory uses that subdirectory inside the worktree.
+- Resuming a run that never recorded a transcript fails with `resume-unavailable`. Retry still starts a fresh session.
+- A resume keeps background mode when the caller omits `run_in_background`.
+- A child session prepends the agent prompt and still inherits project and user `APPEND_SYSTEM.md`.
+- The tasks pager `k` aborts a foreground run as well as a background run. `b` still backgrounds only a foreground run.
 
 ## 0.1.4
 

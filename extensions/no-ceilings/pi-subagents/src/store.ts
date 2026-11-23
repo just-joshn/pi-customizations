@@ -19,6 +19,7 @@ import {
 const FAILURE_ID_CHARS = 12;
 const MAX_PERSISTED_TRANSCRIPT_ITEMS = 50;
 const MAX_PERSISTED_ITEM_CHARS = 4000;
+const MAX_SNAPSHOT_TRANSCRIPTS = 3;
 
 export interface ActiveRunHandle {
   readonly agentId: string;
@@ -76,6 +77,18 @@ function createEmptyState(): SubagentStoreState {
 
 function omitKey<T>(record: Readonly<Record<string, T>>, keyToOmit: string): Readonly<Record<string, T>> {
   return Object.fromEntries(Object.entries(record).filter(([key]) => key !== keyToOmit));
+}
+
+function recentCompletedIds(records: readonly SubagentSessionRecord[]): ReadonlySet<string> {
+  const recent = records
+    .filter((record) => !isActiveSubagentStatus(record.status))
+    .toSorted((left, right) => right.updatedAt - left.updatedAt || right.agentId.localeCompare(left.agentId))
+    .slice(ZERO, MAX_SNAPSHOT_TRANSCRIPTS);
+  return new Set(recent.map((record) => record.agentId));
+}
+
+function keepSnapshotTranscript(record: SubagentSessionRecord, includeTranscriptItems: boolean | undefined, recentCompleted: ReadonlySet<string>): boolean {
+  return includeTranscriptItems !== false || recentCompleted.has(record.agentId);
 }
 
 function toPersistedRecord(record: SubagentSessionRecord, includeTranscriptItems: boolean): PersistedSubagentRecord {
@@ -322,9 +335,11 @@ export function createSubagentStore(): SubagentStore {
       }, {});
       cell.commit({ ...state, sessions: restored });
     },
-    toPersistedState: (options) => ({
-      sessions: sessionOps.listSessions().map((record) => toPersistedRecord(record, options?.includeTranscriptItems !== false || !isActiveSubagentStatus(record.status))),
-    }),
+    toPersistedState: (options) => {
+      const records = sessionOps.listSessions();
+      const recentCompleted = recentCompletedIds(records);
+      return { sessions: records.map((record) => toPersistedRecord(record, keepSnapshotTranscript(record, options?.includeTranscriptItems, recentCompleted))) };
+    },
     reset: () => {
       runOps.abortAllRuns();
       cell.commit({ ...createEmptyState(), listeners: state.listeners });

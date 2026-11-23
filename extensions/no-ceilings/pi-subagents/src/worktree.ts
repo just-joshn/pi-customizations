@@ -1,8 +1,8 @@
 import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 import { type SubagentWorktree, WORKTREE_SLUG_CHARS, WORKTREE_SUFFIX_CHARS, ZERO } from './types.ts';
@@ -53,6 +53,18 @@ export function slugifyWorktreeLabel(description: string): string {
 export function buildWorktreeNames(description: string, randomSuffix: string, branchPrefix: string): { readonly slug: string; readonly branch: string } {
   const slug = `${slugifyWorktreeLabel(description)}-${randomSuffix.slice(ZERO, WORKTREE_SUFFIX_CHARS)}`;
   return { slug, branch: `${branchPrefix}/${slug}` };
+}
+
+function realPath(target: string): string {
+  return existsSync(target) ? realpathSync(target) : resolve(target);
+}
+
+export function resolveWorktreeChildCwd(worktree: Pick<SubagentWorktree, 'repoRoot' | 'path'>, parentCwd: string): string {
+  const inside = relative(realPath(worktree.repoRoot), realPath(parentCwd));
+  if (inside === '' || (!inside.startsWith('..') && !isAbsolute(inside))) {
+    return join(worktree.path, inside);
+  }
+  return worktree.path;
 }
 
 export function resolveWorktreeRoot(request: Pick<WorktreeRequest, 'root' | 'sessionDir'>): string {

@@ -253,6 +253,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
           definition,
           ctx,
           createNestedExtension,
+          retry: true,
         },
         runnerCallbacks,
       );

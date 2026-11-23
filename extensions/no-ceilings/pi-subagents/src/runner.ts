@@ -23,11 +23,12 @@ import {
   type SubagentFailureCode,
   type SubagentSessionRecord,
   type SubagentThinkingLevel,
+  type SubagentWorktree,
   type TaskToolDetails,
   type TaskToolInput,
   ZERO,
 } from './types.ts';
-import { createSubagentWorktree, summarizeWorktreeDiff } from './worktree.ts';
+import { createSubagentWorktree, resolveWorktreeChildCwd, summarizeWorktreeDiff } from './worktree.ts';
 
 const MAX_FAILURE_ID_CHARS = 12;
 const MAX_RETRY_ATTEMPTS_CAP = 10;
@@ -51,6 +52,7 @@ export interface RunTaskOptions {
   readonly scope?: NestedScope;
   readonly createNestedExtension: (scope: NestedScope) => ExtensionFactory;
   readonly onUpdate?: (details: TaskToolDetails) => void;
+  readonly retry?: boolean;
 }
 
 function createFailureId(): string {
@@ -321,7 +323,7 @@ function runSession(request: LifecycleRequest): Promise<SubagentRunOutcome> {
     });
 }
 
-function validateResumeRequest(resumeId: string, prompt: string, parentSessionId: string, store: SubagentStore): SubagentSessionRecord {
+function validateResumeRequest(resumeId: string, prompt: string, parentSessionId: string, store: SubagentStore, allowMissingTranscript = false): SubagentSessionRecord {
   if (!isValidSubagentId(resumeId)) {
     throw new SubagentRunError('invalid-id', resumeId);
   }
@@ -338,6 +340,9 @@ function validateResumeRequest(resumeId: string, prompt: string, parentSessionId
   }
   // The path is recorded when the child starts, and the file is flushed when the run ends.
   if (!running && existing.transcriptPath !== undefined && !existsSync(existing.transcriptPath)) {
+    throw new SubagentRunError('resume-unavailable', resumeId);
+  }
+  if (!running && existing.transcriptPath === undefined && !allowMissingTranscript) {
     throw new SubagentRunError('resume-unavailable', resumeId);
   }
   return existing;
@@ -609,7 +614,7 @@ function buildInitialSessionRecord(request: InitialRecordRequest): SubagentSessi
   };
 }
 
-async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbacks, agentId: string, config: SubagentsConfig, description: string): Promise<string> {
+async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbacks, agentId: string, config: SubagentsConfig, description: string): Promise<SubagentWorktree> {
   const created = await createSubagentWorktree({
     cwd: options.ctx.cwd,
     description,
@@ -631,7 +636,7 @@ async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbac
     callbacks.emit('worktree', updated);
   }
   callbacks.onStateChanged();
-  return created.worktree.path;
+  return created.worktree;
 }
 
 async function attachWorktreeSummary(agentId: string, callbacks: RunnerCallbacks): Promise<void> {
@@ -649,6 +654,7 @@ interface RunSetup {
   readonly existing: SubagentSessionRecord | undefined;
   readonly isReadonly: boolean;
   readonly wantBackground: boolean;
+  readonly detach: boolean;
   readonly backgroundReason: BackgroundReason;
   readonly maxAttempts: number;
   readonly model: Model<Api> | undefined;
@@ -656,16 +662,18 @@ interface RunSetup {
 }
 
 function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
-  const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store);
+  const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
   const resolved = resolveSubagentModel({ model: options.input.model ?? existing?.model, thinking: options.input.thinking ?? existing?.thinking }, options.definition, options.ctx);
-  const wantBackground = options.input.run_in_background ?? options.definition.isBackground ?? config.defaultBackground;
-  const backgroundReason: BackgroundReason = wantBackground && (options.input.run_in_background !== undefined || options.definition.isBackground !== undefined) ? 'agent_request' : 'unspecified';
+  const explicitBackground = options.input.run_in_background ?? options.definition.isBackground;
+  const wantBackground = explicitBackground ?? existing?.isBackground ?? config.defaultBackground;
+  const backgroundReason: BackgroundReason = wantBackground && explicitBackground !== undefined ? 'agent_request' : 'unspecified';
   return {
     parentSessionId,
     prompt,
     existing,
     isReadonly: options.definition.permissionMode === 'readonly' || (options.input.readonly ?? existing?.readonly ?? false),
     wantBackground,
+    detach: wantBackground,
     backgroundReason,
     maxAttempts: Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts)),
     model: resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition),
@@ -724,12 +732,12 @@ async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, co
   callbacks.onStateChanged();
 
   const abortController = new AbortController();
-  if (!setup.wantBackground && options.signal?.aborted) {
+  if (!setup.detach && options.signal?.aborted) {
     abortController.abort();
   }
   const requestedWorktree = options.input.worktree ?? options.definition.worktree;
-  const childCwd =
-    setup.existing?.worktree !== undefined ? setup.existing.worktree.path : requestedWorktree && !abortController.signal.aborted ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : options.ctx.cwd;
+  const worktree = setup.existing?.worktree ?? (requestedWorktree && !abortController.signal.aborted ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : undefined);
+  const childCwd = worktree === undefined ? options.ctx.cwd : resolveWorktreeChildCwd(worktree, options.ctx.cwd);
   const plan: AttemptPlan = {
     agentId,
     prompt: setup.prompt,
@@ -754,7 +762,7 @@ async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, co
   });
   options.onUpdate?.(buildDetailsFromRecord(initialRecord));
 
-  if (!setup.wantBackground) {
+  if (!setup.detach) {
     return runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
   }
   return startBackgroundRun(options, callbacks, agentId, initialRecord, startedAt, runPromise, abortController);
@@ -768,7 +776,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const parentSessionId = options.scope?.rootSessionId ?? options.ctx.sessionManager.getSessionId();
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
-  const resumed = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store);
+  const resumed = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
   const provisionalReadonly = options.definition.permissionMode === 'readonly' || (options.input.readonly ?? resumed?.readonly ?? false);
 
   if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {

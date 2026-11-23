@@ -81,7 +81,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. OpenAI and other flat adapters get `temperature` and `top_p`. Anthropic also gets `top_k`, except when extended thinking is enabled, which leaves the request unchanged. Google writes `temperature`, `topP`, and `topK` into `config`. Bedrock writes `temperature` and `topP` into `inferenceConfig` and does not send `topK`. `max_tokens` caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
-| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. |
+| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. |
 | `background`, `is_background` | Start in background by default. |
 | `nested-tasks` | Let this child delegate one level deeper, up to `nesting.maxDepth`. |
 | `worktree` | Run in an isolated git worktree by default. |
@@ -126,15 +126,16 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Branch: `<branchPrefix>/<slug>-<3 hex>`.
 - Path: `worktrees.root` when set, else `<session dir>/worktrees/`.
 - The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge. Background completions and `await_subagent` results include the same summary.
-- A resume stays in its worktree. If the worktree or the child transcript file is gone or unreadable, the resume fails with `resume-unavailable` instead of starting over in the shared checkout.
+- A resume stays in its worktree. If the run has no transcript, or the worktree or the child transcript file is gone or unreadable, the resume fails with `resume-unavailable` instead of starting over in the shared checkout.
 - `/tasks prune <id>` removes the worktree directory. It refuses while the subagent still runs and does not force a dirty worktree. The branch stays for merging.
 
 ## Observability
 
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
+- A mid-run snapshot keeps transcripts for the three most recently updated completed runs. Older completed runs keep their metadata, transcript path, and checkpoints.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
-- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
+- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.
 
 ### Hook events

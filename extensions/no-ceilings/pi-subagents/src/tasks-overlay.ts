@@ -41,7 +41,7 @@ function renderTaskListLines(sessions: readonly SubagentSessionRecord[], selecte
 
   const active = sessions[selectedIndex];
   const activeRunning = active !== undefined && isActiveSubagentStatus(active.status);
-  const canKill = activeRunning && active.isBackground;
+  const canKill = activeRunning;
   const canBg = activeRunning && !active.isBackground;
   const hints = [sessions.length > ONE ? '↑/↓ navigate' : undefined, 'Enter to view', canKill ? 'k to abort' : undefined, canBg ? 'b to background' : undefined, 'Esc to close'].filter((h): h is string => h !== undefined).join('  ·  ');
 
@@ -114,7 +114,7 @@ function reduceListInput(data: string, prev: OverlayViewState, store: SubagentSt
   if (matchesKey(data, Key.enter)) {
     return { ...prev, view: 'transcript', activeAgentId: current.agentId };
   }
-  if (data === 'k' && current.isBackground) {
+  if (data === 'k' && current !== undefined && isActiveSubagentStatus(current.status)) {
     store.abortRun(current.agentId);
   } else if (data === 'b' && !current.isBackground) {
     store.getActiveRun(current.agentId)?.requestBackground?.();

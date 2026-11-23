@@ -156,7 +156,7 @@ export async function createChildSession(request: ChildSessionRequest, parentAct
     noPromptTemplates: true,
     noThemes: true,
     extensionFactories: [...buildExtensionFactories(request)],
-    appendSystemPrompt: [request.definition.prompt],
+    appendSystemPromptOverride: (base) => [request.definition.prompt, ...base],
   });
   await resourceLoader.reload();
   disableChildAgentRetry(settingsManager);

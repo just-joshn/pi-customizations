@@ -6,38 +6,54 @@ import { DEFAULT_RETRY_ATTEMPTS, DEFAULT_RETRY_DELAY_MS, DEFAULT_WORKTREE_BRANCH
 
 export const DEFAULT_BROWSER_SERVER_HINTS = ['playwright', 'puppeteer', 'browser', 'chrome', 'chromium', 'firefox', 'webkit', 'selenium', 'cdp'] as const;
 
-const ExploreConfigSchema = z.object({
-  enabled: z.boolean().default(true),
-  model: z.string().default('default'),
-});
+const ExploreConfigSchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    model: z.string().default('default'),
+  })
+  .strict();
 
-const BrowserConfigSchema = z.object({
-  enabled: z.boolean().default(true),
-  serverHints: z.array(z.string()).default([...DEFAULT_BROWSER_SERVER_HINTS]),
-});
+const BrowserConfigSchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    serverHints: z.array(z.string()).default([...DEFAULT_BROWSER_SERVER_HINTS]),
+  })
+  .strict();
 
-const AgentsConfigSchema = z.object({
-  disabled: z.array(z.string()).default([]),
-  directories: z.array(z.string()).default([]),
-});
+const AgentsConfigSchema = z
+  .object({
+    disabled: z.array(z.string()).default([]),
+    directories: z.array(z.string()).default([]),
+  })
+  .strict();
 
-const NestingConfigSchema = z.object({
-  maxDepth: z.number().int().min(ZERO).max(HARD_MAX_NESTED_TASK_DEPTH).default(MAX_NESTED_TASK_DEPTH),
-});
+const NestingConfigSchema = z
+  .object({
+    maxDepth: z.number().int().min(ZERO).max(HARD_MAX_NESTED_TASK_DEPTH).default(MAX_NESTED_TASK_DEPTH),
+  })
+  .strict();
 
-const DefaultsConfigSchema = z.object({
-  background: z.boolean().default(false),
-});
+const DefaultsConfigSchema = z
+  .object({
+    background: z.boolean().default(false),
+  })
+  .strict();
 
-const RetryConfigSchema = z.object({
-  maxAttempts: z.number().int().min(ONE).max(10).default(DEFAULT_RETRY_ATTEMPTS),
-  delayMs: z.number().int().min(ZERO).max(60_000).default(DEFAULT_RETRY_DELAY_MS),
-});
+const RetryConfigSchema = z
+  .object({
+    maxAttempts: z.number().int().min(ONE).max(10).default(DEFAULT_RETRY_ATTEMPTS),
+    delayMs: z.number().int().min(ZERO).max(60_000).default(DEFAULT_RETRY_DELAY_MS),
+  })
+  .strict();
 
-const WorktreesConfigSchema = z.object({
-  root: z.string().min(ONE).optional(),
-  branchPrefix: z.string().min(ONE).default(DEFAULT_WORKTREE_BRANCH_PREFIX),
-});
+const WorktreesConfigSchema = z
+  .object({
+    root: z.string().min(ONE).optional(),
+    branchPrefix: z.string().min(ONE).default(DEFAULT_WORKTREE_BRANCH_PREFIX),
+  })
+  .strict();
+
+const CONFIG_SECTION_KEYS = new Set<string>(['explore', 'browser', 'agents', 'nesting', 'defaults', 'retry', 'worktrees']);
 
 export interface ExploreConfig {
   readonly enabled: boolean;
@@ -106,6 +122,12 @@ function mergeRawConfigs(userRaw: unknown, projectRaw: unknown): unknown {
   );
 }
 
+function unknownSectionErrors(merged: Record<string, unknown>): readonly string[] {
+  return Object.keys(merged)
+    .filter((key) => !CONFIG_SECTION_KEYS.has(key))
+    .map((key) => `${key}: unrecognized section`);
+}
+
 function parseDepthOverride(raw: string | undefined): number | undefined {
   if (raw === undefined || raw.trim().length === ZERO) {
     return undefined;
@@ -135,7 +157,7 @@ function parseSection<T>(schema: z.ZodType<T>, raw: unknown, key: string, errors
 
 export function parseSubagentsConfig(userRaw: unknown, projectRaw: unknown, options: { readonly cwd: string; readonly flags?: ConfigFlagOverrides }): { readonly config: SubagentsConfig; readonly errors: readonly string[] } {
   const merged = asRecord(mergeRawConfigs(userRaw, projectRaw));
-  const errors: string[] = [];
+  const errors: string[] = [...unknownSectionErrors(merged)];
   const explore = parseSection(ExploreConfigSchema, merged['explore'], 'explore', errors);
   const browser = parseSection(BrowserConfigSchema, merged['browser'], 'browser', errors);
   const agents = parseSection(AgentsConfigSchema, merged['agents'], 'agents', errors);
