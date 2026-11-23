@@ -99,8 +99,17 @@ const GIT_OBJECT_ID = /^[0-9a-fA-F]{4,40}(?:\^\{[^}]*\})?$/;
 /** Why `git grep` is refused: it picks the files itself, so no rule sees the paths it opens. */
 const GIT_GREP_REASON = 'git grep walks the files git chooses, so the analyzer cannot see which files it reads';
 
-/** Why `git init --template` is refused: the template installs hooks this layer never reads. */
+/** Why `git init --template` and `git clone --template` are refused: the template installs hooks this layer never reads. */
 const GIT_TEMPLATE_REASON = 'a template installs hooks the analyzer does not read';
+
+/** Why `git rebase --exec` is refused: the body it runs is never in the argv this layer reads. */
+const GIT_REBASE_EXEC_REASON = 'git rebase --exec runs a command the analyzer does not follow';
+
+/** `git reset` modes that rewrite every tracked file, not only the ones the argv names. */
+const GIT_RESET_REWRITE_REASON = 'the reset mode rewrites every tracked file the argv does not name';
+
+/** Why an archive extraction is refused: the member names, not the argv, name the paths it writes. */
+const ARCHIVE_MEMBERS_REASON = 'the archive members name the paths this command writes, and the analyzer does not read them';
 
 /** Why `git checkout-index` is refused: it writes the files its index names, and no operand names them. */
 const GIT_CHECKOUT_INDEX_REASON = 'the command writes the files its index names, so the analyzer cannot see which files it writes';
@@ -168,8 +177,37 @@ const DIR_VARIABLES = new Map([
 /** Environment variables a shell sources, or that redirect path resolution, which a rule cannot see. */
 export const SHELL_STARTUP_ENV = ['BASH_ENV', 'ENV'] as const;
 
+/**
+ * Variables that point git at another repository, index, object store, hook, editor, pager, or helper.
+ * Each one changes which paths or commands a git call opens, and no policy rule ever sees that name.
+ */
+export const GIT_ENV_NAMES = [
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_INDEX_FILE',
+  'GIT_COMMON_DIR',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_NAMESPACE',
+  'GIT_EDITOR',
+  'GIT_SEQUENCE_EDITOR',
+  'GIT_PAGER',
+  'GIT_ASKPASS',
+  'GIT_SSH',
+  'GIT_SSH_COMMAND',
+  'GIT_PROXY_COMMAND',
+  'GIT_TEMPLATE_DIR',
+  'GIT_EXEC_PATH',
+  'GIT_CEILING_DIRECTORIES',
+] as const;
+
+/** Which of those variables a name spells, or undefined when it is a name the analyzer can vouch for. */
+export function gitEnvName(name: string): string | undefined {
+  return GIT_ENV_NAMES.find((candidate) => candidate === name);
+}
+
 /** Variables removed from every spawned shell, so a rule verdict matches the command that runs. */
-export const SHELL_ENV_SCRUB = [...SHELL_STARTUP_ENV, 'CDPATH', 'SHELLOPTS', 'BASHOPTS', 'PS4'] as const;
+export const SHELL_ENV_SCRUB = [...SHELL_STARTUP_ENV, 'CDPATH', 'SHELLOPTS', 'BASHOPTS', 'PS4', ...GIT_ENV_NAMES] as const;
 
 /** The form a rule should match: collapsed whitespace, no quoting, no subshell wrapper. */
 export function normalizeCommand(command: string): string {
@@ -1053,14 +1091,20 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
   return { target: value };
 }
 
-/** True when an assignment changes command lookup or hands git a config value the analyzer cannot see. */
+/**
+ * True when an assignment changes command lookup, hands git a config value the analyzer cannot see, or
+ * points git at a repository, editor, or helper the analyzer does not follow.
+ */
 function unvouchedAssignment(name: string): boolean {
-  return RESOLUTION_ASSIGNMENTS.has(name) || name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF';
+  return RESOLUTION_ASSIGNMENTS.has(name) || name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF' || gitEnvName(name) !== undefined;
 }
 
 function assignmentReason(name: string): string {
   if (name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF') {
     return `${name} sets git config the analyzer does not follow`;
+  }
+  if (gitEnvName(name) !== undefined) {
+    return `${name} points git at a repository, index, editor, or helper the analyzer does not follow`;
   }
   return `${name} changes how the shell finds commands`;
 }
@@ -1655,6 +1699,8 @@ interface GitDestinationSpec {
   readonly valueShort: readonly string[];
   /** Which positional operand is the destination, after options are removed. */
   readonly positional: 'none' | 'first' | 'second' | 'last';
+  /** True when every positional operand is written as well as read, as for `git checkout` and `git restore`. */
+  readonly positionalWrite?: boolean;
 }
 
 interface GitOperands {
@@ -1710,6 +1756,34 @@ const GIT_DESTINATIONS: ReadonlyMap<string, GitDestinationSpec> = new Map([
 
 const WORKTREE_ADD_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--reason'], valueShort: ['b', 'B'], positional: 'first' };
 const BUNDLE_CREATE_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--version'], valueShort: [], positional: 'first' };
+
+/**
+ * `git checkout` and `git restore` write every path operand back into the worktree or the index, so each
+ * operand is both a read and a write: the protected-file, deny, and outside checks must see the path.
+ * The option values they consume are branch names, sources, and conflict styles, never destinations.
+ */
+const CHECKOUT_OPERANDS: GitDestinationSpec = {
+  writeLong: [],
+  writeShort: [],
+  valueLong: ['--conflict', '--orphan', '--pathspec-from-file', '--track'],
+  valueShort: ['b', 'B'],
+  positional: 'none',
+  positionalWrite: true,
+};
+const RESTORE_OPERANDS: GitDestinationSpec = {
+  writeLong: [],
+  writeShort: [],
+  valueLong: ['--source', '--conflict', '--pathspec-from-file'],
+  valueShort: ['s'],
+  positional: 'none',
+  positionalWrite: true,
+};
+
+/** Subcommands whose every path operand is written, even though the argv spells no destination flag. */
+const OPERAND_WRITE_COMMANDS: ReadonlyMap<string, GitDestinationSpec> = new Map([
+  ['checkout', CHECKOUT_OPERANDS],
+  ['restore', RESTORE_OPERANDS],
+]);
 
 /** Commands whose only write destination is `--output`, which the table above does not cover. */
 const GIT_OUTPUT_COMMANDS = new Set(['show', 'log', 'diff', 'diff-tree', 'whatchanged']);
@@ -1780,9 +1854,91 @@ function gitRevisionPath(value: string): string | undefined {
   return pathPart.startsWith('//') ? undefined : pathPart;
 }
 
-/** True when `git init` copies a template, which installs hooks this layer never reads. */
+/** The shortest prefix git resolves to `--template`, so `--te` and `--temp` copy a template too. */
+const GIT_TEMPLATE_PREFIX = '--te';
+
+/** The shortest prefix git resolves to `--exec`; `--ex` runs a body the analyzer never sees. */
+const GIT_EXEC_PREFIX = '--ex';
+
+/** True when `git init` or `git clone` copies a template, which installs hooks this layer never reads. */
 function gitTemplateFlag(args: readonly Word[]): boolean {
-  return args.some((word) => word.literal && !word.hidesCommand && (word.value === '--template' || word.value.startsWith('--template=')));
+  return args.some((word) => {
+    if (!word.literal || word.hidesCommand || !word.value.startsWith('--')) {
+      return false;
+    }
+    const name = word.value.includes('=') ? word.value.slice(0, word.value.indexOf('=')) : word.value;
+    return name.length >= GIT_TEMPLATE_PREFIX.length && '--template'.startsWith(name);
+  });
+}
+
+/** `git rebase` short options that consume a value, so the rest of the cluster is that value. */
+const GIT_REBASE_VALUE_SHORT = new Set(['s', 'X']);
+
+/** True when `git rebase` runs an exec body: `--exec`, its prefixes, or `-x` inside a cluster. */
+function gitRebaseExec(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      if (name.length >= GIT_EXEC_PREFIX.length && '--exec'.startsWith(name)) {
+        return true;
+      }
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      for (const letter of value.slice(1)) {
+        if (letter === 'x') {
+          return true;
+        }
+        if (GIT_REBASE_VALUE_SHORT.has(letter)) {
+          break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/** `git reset` modes that rewrite every tracked file in the worktree. */
+const GIT_RESET_REWRITE = ['--hard', '--merge', '--keep'];
+
+/** True when `git reset` takes a mode that rewrites files the argv never names. */
+function gitResetRewrites(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      // An expansion can spell `--hard`, which rewrites every tracked file.
+      if (options && word.value.startsWith('-')) {
+        return true;
+      }
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options || !value.startsWith('--')) {
+      continue;
+    }
+    const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+    // git accepts any unambiguous prefix, so `--har` selects `--hard`.
+    if (GIT_RESET_REWRITE.some((flag) => flag.startsWith(name))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** True when pathspec magic only removes a path, which leaves every other file body in the diff. */
@@ -1808,21 +1964,82 @@ function gitPathspecNarrows(value: string, dir: string | undefined): boolean {
   if (dir === undefined || gitPathspecExcludes(value)) {
     return false;
   }
+  return !gitPathspecNamesDirectory(value, dir);
+}
+
+/**
+ * True when a pathspec can name a directory: a trailing slash, a glob, `.`/`..`, or a path that stats as
+ * one. Such a pathspec rewrites or prints every file beneath it, which no operand rule can check.
+ */
+function gitPathspecNamesDirectory(value: string, dir: string): boolean {
   const target = gitPathspecPath(value);
   if (target === '' || target.endsWith('/') || /[*?[]/.test(target)) {
-    return false;
+    return true;
   }
-  // `.` and `..` name a directory whatever the filesystem says, and both resolve to git's root form.
   const normalized = path.normalize(target);
   if (normalized === '.' || normalized === '..') {
-    return false;
+    return true;
   }
   try {
-    return !statSync(path.resolve(dir, normalized)).isDirectory();
-  } catch (error) {
-    // A path that is only in history is not on disk, and it cannot name a directory either.
-    return (error as NodeJS.ErrnoException).code === 'ENOENT';
+    return statSync(path.resolve(dir, normalized)).isDirectory();
+  } catch {
+    return false;
   }
+}
+
+/** Why a checkout or restore rewrites a directory: every tracked file beneath it changes unnamed. */
+const GIT_WORKTREE_DIRECTORY_REASON = 'the command rewrites every file under a directory or glob the analyzer cannot name';
+
+/** Value-taking options of `git checkout` and `git restore`, whose values are not paths. */
+const GIT_WORKTREE_VALUE_SHORT = new Set(['b', 'B', 's']);
+const GIT_WORKTREE_VALUE_LONG = new Set(['--conflict', '--orphan', '--pathspec-from-file', '--source', '--track']);
+
+/** True when a checkout or restore pathspec names a directory, so the rewrite touches files the argv never spells. */
+function gitWorktreeDirectoryRewrite(args: readonly Word[], dir: string | undefined): boolean {
+  if (dir === undefined) {
+    return false;
+  }
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      if (GIT_WORKTREE_VALUE_LONG.has(name) && !value.includes('=')) {
+        index++;
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const letter = body[cursor] ?? '';
+        if (!GIT_WORKTREE_VALUE_SHORT.has(letter)) {
+          continue;
+        }
+        // An attached value (`-bmain`) stays in the word; a bare letter takes the next word.
+        if (body.slice(cursor + 1) === '') {
+          index++;
+        }
+        break;
+      }
+      continue;
+    }
+    if (gitPathspecNamesDirectory(value, dir)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** What `git log` or `git show` prints: the whole commit diff unless a path narrows it. */
@@ -1971,8 +2188,25 @@ function gitOpaqueReason(subcommand: string, args: readonly Word[], dir: string 
   if (subcommand === 'mv') {
     return gitMoveTargetDirectory(args) ? GIT_MOVE_TARGET_REASON : undefined;
   }
-  if (subcommand === 'init') {
+  if (subcommand === 'init' || subcommand === 'clone') {
     return gitTemplateFlag(args) ? GIT_TEMPLATE_REASON : undefined;
+  }
+  if (subcommand === 'rebase') {
+    return gitRebaseExec(args) ? GIT_REBASE_EXEC_REASON : undefined;
+  }
+  if (subcommand === 'reset') {
+    return gitResetRewrites(args) ? GIT_RESET_REWRITE_REASON : undefined;
+  }
+  if ((subcommand === 'checkout' || subcommand === 'restore') && gitWorktreeDirectoryRewrite(args, dir)) {
+    return GIT_WORKTREE_DIRECTORY_REASON;
+  }
+  if (subcommand === 'stash') {
+    const peeled = peelGitVerb(args);
+    if (peeled?.verb !== 'show') {
+      return undefined;
+    }
+    const output = gitCommitOutput(peeled.rest, dir);
+    return output.patch && !output.narrowed ? GIT_DIFF_REASON : undefined;
   }
   if (subcommand !== 'log' && subcommand !== 'show') {
     return undefined;
@@ -2245,6 +2479,9 @@ function gitDestinationPaths(spec: GitDestinationSpec, args: readonly Word[]): G
   } else {
     for (const entry of positionals) {
       noteRead(entry);
+      if (spec.positionalWrite === true) {
+        noteWrite(entry);
+      }
     }
   }
   return { reads, writes, ...(untrusted === undefined ? {} : { untrusted }) };
@@ -2263,7 +2500,7 @@ function gitDestinationPlan(subcommand: Word | undefined, args: readonly Word[])
     const spec = subcommand.value === 'worktree' ? WORKTREE_ADD_DESTINATION : BUNDLE_CREATE_DESTINATION;
     return gitDestinationPaths(spec, peeled.rest);
   }
-  const spec = GIT_DESTINATIONS.get(subcommand.value);
+  const spec = OPERAND_WRITE_COMMANDS.get(subcommand.value) ?? GIT_DESTINATIONS.get(subcommand.value);
   if (spec === undefined) {
     return GIT_OUTPUT_COMMANDS.has(subcommand.value) ? gitOutputWrites(args) : undefined;
   }
@@ -2487,6 +2724,155 @@ function tarPaths(args: readonly Word[]): { readonly paths: readonly PathNote[];
   }
   for (const entry of positionals) {
     paths.push({ path: entry, write: false });
+  }
+  return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** `zstd` short letters that consume a value, so the rest of the cluster is that value and not a flag. */
+const ZSTD_VALUE_LETTERS = new Set(['B', 'D', 'i', 'M', 'o', 'p', 's', 'T']);
+
+/** `pax` short letters that consume a value, so the rest of the cluster is that value and not a flag. */
+const PAX_VALUE_LETTERS = new Set(['f', 's', 'o', 'X']);
+
+interface DestinationFlag {
+  /** The long option whose value is the file the command writes. */
+  readonly long: string;
+  /** The short letter whose value is that file. */
+  readonly short: string;
+  /** Every short letter that consumes a value, so the rest of a cluster is that value. */
+  readonly valueShort: ReadonlySet<string>;
+  /** True when the destination word may carry a glob the shell expands before the command sees it. */
+  readonly glob: boolean;
+}
+
+const ZSTD_DESTINATION: DestinationFlag = { long: '--output', short: 'o', valueShort: ZSTD_VALUE_LETTERS, glob: true };
+const PAX_DESTINATION: DestinationFlag = { long: '--file', short: 'f', valueShort: PAX_VALUE_LETTERS, glob: false };
+
+/**
+ * `zstd` and `pax` destinations: the `-o`/`-f` file in its spaced, attached, and `--long=FILE` forms. Every
+ * other operand is an input, and a `-` destination is standard output, which is no path in the workspace.
+ */
+function destinationPaths(flag: DestinationFlag, args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const paths: PathNote[] = [];
+  let untrusted: string | undefined;
+  const destination = (raw: string, glob: boolean): void => {
+    if (raw === '' || raw === '-') {
+      return;
+    }
+    paths.push({ path: raw, write: true, ...(glob ? { glob: true } : {}) });
+  };
+  const destinationAt = (index: number): void => {
+    const word = args[index];
+    if (word === undefined) {
+      return;
+    }
+    if (!word.literal || word.hidesCommand) {
+      untrusted ??= 'the write target is built by an expansion';
+      return;
+    }
+    destination(word.value, flag.glob && word.glob);
+  };
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    const literal = word.literal && !word.hidesCommand;
+    if (options && literal && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && literal && word.value.startsWith('--')) {
+      if (word.value === flag.long) {
+        index++;
+        destinationAt(index);
+      } else if (word.value.startsWith(`${flag.long}=`)) {
+        destination(word.value.slice(flag.long.length + 1), flag.glob && word.glob);
+      }
+      continue;
+    }
+    if (options && literal && word.value.startsWith('-') && word.value !== '-') {
+      const body = word.value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const letter = body[cursor] ?? '';
+        if (!flag.valueShort.has(letter)) {
+          continue;
+        }
+        const attached = body.slice(cursor + 1);
+        if (letter === flag.short) {
+          if (attached !== '') {
+            destination(attached, flag.glob && word.glob);
+          } else {
+            index++;
+            destinationAt(index);
+          }
+        } else if (attached === '') {
+          index++;
+        }
+        break;
+      }
+      continue;
+    }
+    if (literal && word.value !== '') {
+      paths.push({ path: word.value, write: false, ...(word.glob ? { glob: true } : {}) });
+    }
+  }
+  return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** Commands that create a filesystem node: `mkfifo` makes a FIFO, `mknod` makes any node type. */
+const NODE_COMMANDS = new Set(['mkfifo', 'mknod']);
+
+/** `mkfifo` and `mknod` short letters and long options that consume a value instead of naming a node. */
+const NODE_VALUE_SHORT = new Set(['m']);
+const NODE_VALUE_LONG = new Set(['--mode']);
+
+/**
+ * `mkfifo` and `mknod` destinations: the nodes they create. Every `mkfifo` operand is one; only the first
+ * `mknod` operand is, because its type and device numbers follow it and name no path.
+ */
+function nodePaths(name: string, args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const paths: PathNote[] = [];
+  let untrusted: string | undefined;
+  const everyOperand = name === 'mkfifo';
+  let seen = false;
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    const literal = word.literal && !word.hidesCommand;
+    if (options && literal && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && literal && word.value.startsWith('--')) {
+      const eq = word.value.indexOf('=');
+      if (NODE_VALUE_LONG.has(eq === -1 ? word.value : word.value.slice(0, eq)) && eq === -1) {
+        index++;
+      }
+      continue;
+    }
+    if (options && literal && word.value.startsWith('-') && word.value !== '-') {
+      const body = word.value.slice(1);
+      if (NODE_VALUE_SHORT.has(body[0] ?? '') && body.length === 1) {
+        index++;
+      }
+      continue;
+    }
+    if (!everyOperand && seen) {
+      continue;
+    }
+    seen = true;
+    if (!literal) {
+      untrusted ??= 'the write target is built by an expansion';
+      continue;
+    }
+    if (word.value !== '') {
+      paths.push({ path: word.value, write: true, ...(word.glob ? { glob: true } : {}) });
+    }
   }
   return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
 }
@@ -2900,6 +3286,123 @@ function curlPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]
   return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
 }
 
+/** Archive extractors that write the member names an archive holds instead of paths the argv spells out. */
+const ARCHIVE_EXTRACTORS = new Set(['tar', 'bsdtar', 'gtar']);
+
+/** tar short letters that consume a value, so the rest of the cluster is that value and not a flag. */
+const TAR_VALUE_LETTERS = new Set(['b', 'C', 'f', 'F', 'g', 'H', 'I', 'K', 'L', 'N', 'T', 'V', 'X']);
+
+/** unzip short letters that consume a value, so the rest of the cluster is that value and not a flag. */
+const UNZIP_VALUE_LETTERS = new Set(['d', 'I', 'P', 'x']);
+
+/** unzip short flags that only list or inspect an archive, so no member is written. */
+const UNZIP_LIST_LETTERS = new Set(['l', 'v', 't']);
+
+/** True when a tar word spells an old-style extract mode such as `x`, `xf`, or `xvf`. */
+function tarOldStyleExtract(value: string): boolean {
+  return /^[A-Za-z]+$/.test(value) && /[crtxuA]/.test(value) && value.includes('x');
+}
+
+/** True when tar extracts: `-x`, an old-style mode word, `--extract`, `--get`, or `--to-command`. */
+function tarExtracts(args: readonly Word[]): boolean {
+  const first = args[0];
+  if (first !== undefined && first.literal && !first.hidesCommand && tarOldStyleExtract(first.value)) {
+    return true;
+  }
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      // tar accepts any unambiguous prefix, so `--ext` extracts and `--to-c` runs a command.
+      const extracts = name.length >= '--ext'.length && '--extract'.startsWith(name);
+      const gets = name.length >= '--ge'.length && '--get'.startsWith(name);
+      const pipes = name.length >= '--to-c'.length && '--to-command'.startsWith(name);
+      if (extracts || gets || pipes) {
+        return true;
+      }
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      for (const letter of value.slice(1)) {
+        if (letter === 'x') {
+          return true;
+        }
+        if (TAR_VALUE_LETTERS.has(letter)) {
+          break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/** True when pax reads an archive, which writes the member names the argv never spells out. */
+function paxExtracts(args: readonly Word[]): boolean {
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (value === '--read' || value.startsWith('--read=')) {
+      return true;
+    }
+    if (value.startsWith('-') && !value.startsWith('--') && value !== '-') {
+      for (const letter of value.slice(1)) {
+        if (letter === 'r') {
+          return true;
+        }
+        if (PAX_VALUE_LETTERS.has(letter)) {
+          break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/** True when unzip only lists or inspects an archive, so it writes no member. */
+function unzipLists(args: readonly Word[]): boolean {
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand || !word.value.startsWith('-') || word.value.startsWith('--') || word.value === '-') {
+      continue;
+    }
+    for (const letter of word.value.slice(1)) {
+      if (UNZIP_LIST_LETTERS.has(letter) || letter === 'Z') {
+        return true;
+      }
+      if (UNZIP_VALUE_LETTERS.has(letter)) {
+        break;
+      }
+    }
+  }
+  return false;
+}
+
+/** Why an archive command is refused, or undefined when it creates, updates, or only lists. */
+function archiveExtractionReason(name: string, args: readonly Word[]): string | undefined {
+  if (ARCHIVE_EXTRACTORS.has(name)) {
+    return tarExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
+  }
+  if (name === 'pax') {
+    return paxExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
+  }
+  if (name === 'unzip') {
+    return unzipLists(args) ? undefined : ARCHIVE_MEMBERS_REASON;
+  }
+  return undefined;
+}
+
 export interface ShellPath {
   /** Spawn-relative or absolute literal path. */
   readonly path: string;
@@ -2983,6 +3486,27 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     }
     if (name === 'curl') {
       const noted = curlPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
+    if (NODE_COMMANDS.has(name)) {
+      const noted = nodePaths(name, args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
+    // `zstd -o` and `pax -f` name the file these commands write, and a policy rule never sees it.
+    if (name === 'zstd' || name === 'pax') {
+      const noted = destinationPaths(name === 'zstd' ? ZSTD_DESTINATION : PAX_DESTINATION, args);
       if (noted.untrusted !== undefined) {
         distrust(noted.untrusted);
       }
@@ -3281,6 +3805,10 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
         if (PATCH_APPLIERS.has(name)) {
           distrust(PATCH_REASON);
         }
+        const archiveReason = archiveExtractionReason(name, words.slice(headIndex + 1));
+        if (archiveReason !== undefined) {
+          distrust(archiveReason);
+        }
         if (RECURSIVE_READERS.has(name)) {
           distrust(`${name} walks directories by default, so the analyzer cannot see which files it reads`);
         }
@@ -3370,7 +3898,8 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
             }
           }
           for (const target of inspected.writes) {
-            notePath(target, true, cwd);
+            // A write destination can be a pathspec, as `git checkout -- :(top)file` is.
+            notePath(gitPathspecPath(target), true, cwd);
           }
         } else {
           collectOperands(name, words.slice(headIndex + 1), cwd);

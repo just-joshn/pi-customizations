@@ -204,8 +204,6 @@ describe('finding 3: tar, curl, sort, rsync, and find destinations are writes', 
       const packed = await h.call('bash', { command: 'tar -cf payload.tar payload.txt' });
       expect(packed.isError).toBeUndefined();
       const cases = [
-        [`tar -xf payload.tar -C ${tarDest}`, path.join(tarDest, 'payload.txt')],
-        [`tar -xf payload.tar -C${tarAttached}`, path.join(tarAttached, 'payload.txt')],
         [`tar -cf ${archive} payload.txt`, archive],
         [`curl -fsS -o ${curlDest} file://${h.file('payload.txt')}`, curlDest],
         [`sort -o ${sortDest} payload.txt`, sortDest],
@@ -216,6 +214,16 @@ describe('finding 3: tar, curl, sort, rsync, and find destinations are writes', 
         const result = await h.call('bash', { command });
         expect(result.isError, command).toBe(true);
         expect(textOf(result), command).toContain('outside the workspace');
+        expect(existsSync(file), command).toBe(false);
+      }
+      // Extraction is refused outright now, because the archive members name the paths it writes.
+      for (const [command, file] of [
+        [`tar -xf payload.tar -C ${tarDest}`, path.join(tarDest, 'payload.txt')],
+        [`tar -xf payload.tar -C${tarAttached}`, path.join(tarAttached, 'payload.txt')],
+      ] as const) {
+        const result = await h.call('bash', { command });
+        expect(result.isError, command).toBe(true);
+        expect(textOf(result), command).toContain('the archive members name the paths');
         expect(existsSync(file), command).toBe(false);
       }
       const copied = await h.call('bash', { command: `cp payload.txt ${path.join(root, 'cp-out')}` });

@@ -119,13 +119,17 @@ describe('finding 2: writers outside the write table skip the outside and deny c
         `split -l 1 plain.txt ${outside}/chunk-`,
         `openssl base64 -in plain.txt -out ${outside}/openssl.txt`,
         `openssl base64 -in plain.txt --out ${outside}/openssl-long.txt`,
-        `unzip -o -q pkg.zip -d ${outside}/unzipped`,
-        `unzip -o -q pkg.zip --directory ${outside}/unzipped-long`,
       ];
       for (const command of outsideWrites) {
         const result = await h.call('bash', { command });
         expect(result.isError, command).toBe(true);
         expect(textOf(result), command).toContain('outside the workspace');
+      }
+      // An unzip extraction is refused outright now, before the outside check can run.
+      for (const command of [`unzip -o -q pkg.zip -d ${outside}/unzipped`, `unzip -o -q pkg.zip --directory ${outside}/unzipped-long`]) {
+        const result = await h.call('bash', { command });
+        expect(result.isError, command).toBe(true);
+        expect(textOf(result), command).toContain('the archive members name the paths');
       }
       expect(await readdir(outside)).toEqual([]);
 

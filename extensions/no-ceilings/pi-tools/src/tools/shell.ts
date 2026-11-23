@@ -2,7 +2,7 @@ import { stat } from 'node:fs/promises';
 
 import { createBashToolDefinition, createLocalBashOperations } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { SHELL_ENV_SCRUB, SHELL_STARTUP_ENV } from '../core/command.ts';
+import { gitEnvName, SHELL_ENV_SCRUB, SHELL_STARTUP_ENV } from '../core/command.ts';
 import { layerError } from '../core/errors.ts';
 import { displayPath, resolveToolPath } from '../core/paths.ts';
 import { prepareWith } from '../core/repair.ts';
@@ -58,6 +58,10 @@ export function createShellLayerTool(options: ShellToolOptions) {
         if (blockedEnv !== undefined) {
           throw layerError('permission_denied', `Blocked by permissions configuration: ${blockedEnv} sets git config the analyzer does not follow`);
         }
+        const gitEnv = Object.keys(params.env ?? {}).find((key) => gitEnvName(key) !== undefined);
+        if (gitEnv !== undefined) {
+          throw layerError('permission_denied', `Blocked by permissions configuration: ${gitEnv} points git at a repository, index, editor, or helper the analyzer does not follow`);
+        }
 
         const cwd = params.cwd === undefined ? ctx.cwd : resolveToolPath(params.cwd, ctx.cwd, session.home);
         const info = await stat(cwd).catch(() => undefined);
@@ -75,7 +79,8 @@ export function createShellLayerTool(options: ShellToolOptions) {
         }
         const env: NodeJS.ProcessEnv = { ...process.env, ...overrides, PWD: cwd, OLDPWD: cwd };
         // The analyzer decides against the command that runs, so drop every variable that changes
-        // where the shell finds a command, which startup file it sources, or how it splits words.
+        // where the shell finds a command, which startup file it sources, or how it splits words, and
+        // every variable that points git at a repository, index, editor, or helper it never reads.
         for (const key of SHELL_ENV_SCRUB) {
           delete env[key];
         }
