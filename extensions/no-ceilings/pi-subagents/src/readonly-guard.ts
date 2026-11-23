@@ -10,7 +10,7 @@ const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const SANDBOX_SHELL = '/bin/ksh';
 const READONLY_TEMP_ROOT = '/tmp/pi-subagents-readonly';
 
-const GIT_GREP_PAGER_PATTERN = /\bgit\s+grep\b.*(?:\s-[A-Za-z]*O|--open-files-in-pager(?:=|\s|$))/i;
+const GIT_GREP_PAGER_PATTERN = /\bgit\s+grep\b.*(?:\s-[A-Za-z]*O|\s--(?:op|ope|open(?:-[a-z]*)*)(?:=|\s|$))/;
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brm\b/i,
@@ -217,7 +217,7 @@ function shellQuote(value: string): string {
 
 const DISABLED_GIT_HELPER = '/usr/bin/false';
 const GIT_NO_HELPER_FLAGS = '--no-ext-diff --no-textconv';
-const GIT_DIFF_COMMANDS = ['diff', 'log', 'show', 'blame'] as const;
+const GIT_DIFF_COMMANDS = ['diff', 'log', 'show', 'blame', 'reflog'] as const;
 
 const READONLY_GIT_CONFIG: readonly (readonly [string, string])[] = [
   ['core.fsmonitor', 'false'],
