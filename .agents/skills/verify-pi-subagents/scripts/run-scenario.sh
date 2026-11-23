@@ -19,6 +19,7 @@ case "${1:-}" in
   security)
     node test/e2e/verify-git-helpers.mjs
     node test/e2e/verify-crafted-tools.mjs
+    node test/e2e/verify-readonly-commands.mjs
     ;;
   growth)
     exec node test/e2e/verify-state-growth.mjs 12 50

@@ -126,12 +126,12 @@ export async function createSubagentWorktree(request: WorktreeRequest): Promise<
   const worktree: SubagentWorktree = { repoRoot, path: worktreePath, branch: names.branch, baseRef };
   mkdirSync(root, { recursive: true });
   const added = await git(repoRoot, ['worktree', 'add', '--no-track', '-b', names.branch, worktreePath, baseRef]);
+  if (!added.ok) {
+    return { ok: false, ...(request.signal?.aborted ? { aborted: true } : {}), error: `Cannot isolate worktree: ${added.stderr.trim() || 'git worktree add failed'}` };
+  }
   if (request.signal?.aborted) {
     await discardSubagentWorktree(worktree);
     return { ok: false, aborted: true, error: 'Worktree creation was cancelled.' };
-  }
-  if (!added.ok) {
-    return { ok: false, error: `Cannot isolate worktree: ${added.stderr.trim() || 'git worktree add failed'}` };
   }
   return { ok: true, worktree };
 }

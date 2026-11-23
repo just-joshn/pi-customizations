@@ -33,9 +33,10 @@ Ask the auditor to inspect a file. It can read and run allowed commands. A write
 cd "$(git rev-parse --show-toplevel)/extensions/no-ceilings/pi-subagents"
 node test/e2e/verify-git-helpers.mjs
 node test/e2e/verify-crafted-tools.mjs
+node test/e2e/verify-readonly-commands.mjs
 ```
 
-`verify-git-helpers.mjs` builds real repositories with diff drivers, textconv, filters, fsmonitor, SSH, credential helpers, signed commits, man viewers, upload-pack, proxy, and `ext::` remotes. It calls `sandboxReadOnlyCommand` and asserts no secret appears and no marker file is written. `verify-crafted-tools.mjs` launches a real read-only child with a crafted `tools` list and asserts no write or bash tool was granted and no file was created.
+`verify-git-helpers.mjs` builds real repositories with diff drivers, textconv, filters, fsmonitor, SSH, credential helpers, signed commits, man viewers, upload-pack, proxy, and `ext::` remotes. It calls `sandboxReadOnlyCommand` and asserts no secret appears and no marker file is written. `verify-crafted-tools.mjs` launches a real read-only child with a crafted `tools` list and asserts no write or bash tool was granted and no file was created. `verify-readonly-commands.mjs` checks quoted, escaped, and encoded non-Git options, including sort compressors and lesskey startup.
 
 Expected signals:
 

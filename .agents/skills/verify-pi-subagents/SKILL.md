@@ -59,7 +59,7 @@ Use the scenario runner. It changes to the package and runs the repo's real harn
 | `delegation` | Parent calls `task`, custom `worker` reads a file, parent reports the child result, persisted state has a completed transcript | `node test/e2e/verify-delegation-fake-model.mjs` |
 | `custom` | Custom `probe` agent, foreground result, background worktree, `await_subagent`, persisted checkpoints | `node test/e2e/verify-subagents.mjs` (real model; exit 77 if absent) |
 | `background` | Background task, `await_subagent`, worktree branch, parent exit while a child runs | the delegation and custom scenarios together |
-| `security` | Read-only Git helper refusal, crafted tools sanitization | `verify-git-helpers.mjs` and `verify-crafted-tools.mjs` |
+| `security` | Read-only Git helper refusal, crafted tools sanitization, quoted and encoded non-Git options | `verify-git-helpers.mjs`, `verify-crafted-tools.mjs`, and `verify-readonly-commands.mjs` |
 | `growth` | Parent-session patch size under repeated runs | `verify-state-growth.mjs 12 50` |
 
 The deterministic fake model is a production-boundary substitute, not an internal setter. It receives the real parent request, returns a real `task` tool call, the child session executes the real `read` tool, and the parent receives the real result. Changing the model server is appropriate only when the feature itself is the model protocol.
