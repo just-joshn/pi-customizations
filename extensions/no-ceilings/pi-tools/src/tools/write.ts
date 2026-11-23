@@ -4,11 +4,11 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
-import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, multiLinkReason, nonRegularKind, resolveToolPath, statOrUndefined } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
+import { guard, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
 import { countLines, decodeBase64, looksBinary, sha256Hex } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { FileMetadata, ToolFailure, ToolOutcome } from '../types.ts';
@@ -92,8 +92,9 @@ export function createWriteLayerTool(options: WriteToolOptions) {
         if (ignoreFile !== undefined) {
           throw layerError('permission_denied', `Path ${displayPath(ctx.cwd, target)} is filtered out by ${path.basename(ignoreFile)}`, { path: target });
         }
-        if (await isProtectedIgnoreFile(session, target)) {
-          throw layerError('permission_denied', `Blocked: ${path.basename(target)} is protected and cannot be changed by the agent`, { path: target });
+        const protectedReason = await protectedFileReason(session, target);
+        if (protectedReason !== undefined) {
+          throw layerError('permission_denied', `Blocked: ${protectedReason}`, { path: target });
         }
 
         const buffer = decodeContent(params);
@@ -102,6 +103,14 @@ export function createWriteLayerTool(options: WriteToolOptions) {
         // The whole read-modify-write runs inside the per-file queue, so a concurrent call cannot slip
         // between the check, the write, and the verification.
         const written = await withFileQueue(target, async () => {
+          const kind = await nonRegularKind(target);
+          if (kind !== undefined) {
+            throw layerError('invalid_file', `Cannot write ${displayPath(ctx.cwd, target)}: it is ${kind}, not a regular file. Nothing was written.`, { path: target });
+          }
+          const linked = multiLinkReason(await statOrUndefined(target));
+          if (linked !== undefined) {
+            throw layerError('permission_denied', `Cannot write ${displayPath(ctx.cwd, target)}: ${linked}. Nothing was written.`, { path: target });
+          }
           const collision = await findCaseCollision(target);
           if (collision !== undefined) {
             throw layerError('error', `${displayPath(ctx.cwd, target)} names the existing file ${collision}: this volume does not tell names apart by case, so writing it would replace ${collision}. Nothing was written.`, {

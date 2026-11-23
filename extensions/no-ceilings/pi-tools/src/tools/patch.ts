@@ -4,11 +4,11 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { LayerError, layerError } from '../core/errors.ts';
 import { applyHunks, countHunkChanges, PatchError, type PatchFile, parsePatch, rebuildPatched, splitLines } from '../core/patch.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, multiLinkReason, resolveToolPath, statOrUndefined } from '../core/paths.ts';
 import { withFileQueues } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
+import { guard, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
 import { decodeUtf8 } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
@@ -68,6 +68,20 @@ async function verifyBytes(target: string, expected: Uint8Array, cwd: string): P
   }
 }
 
+/**
+ * A move must not land on a path that already exists. Writing over it would destroy a file the patch
+ * never named as a source, and the success result would not say so.
+ */
+function assertMoveDestinationFree(destination: string, existing: Buffer | undefined, cwd: string): void {
+  if (existing === undefined) {
+    return;
+  }
+  throw layerError('error', `Cannot move a file to ${displayPath(cwd, destination)}: it already exists. Nothing was written.`, {
+    path: destination,
+    hint: 'Delete or rename the destination first, or choose a path that does not exist.',
+  });
+}
+
 async function readExisting(target: string): Promise<Buffer | undefined> {
   try {
     return await readFile(target);
@@ -76,6 +90,17 @@ async function readExisting(target: string): Promise<Buffer | undefined> {
       return undefined;
     }
     throw error;
+  }
+}
+
+/**
+ * A patch reads a file and writes it back, or unlinks it on a move. A file with more than one name
+ * reaches paths the patch never named, so it is refused before anything is planned.
+ */
+async function refuseLinkedFile(target: string, cwd: string): Promise<void> {
+  const reason = multiLinkReason(await statOrUndefined(target));
+  if (reason !== undefined) {
+    throw layerError('permission_denied', `Cannot patch ${displayPath(cwd, target)}: ${reason}. Nothing was written.`, { path: target });
   }
 }
 
@@ -143,8 +168,9 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
             if (ignoreFile !== undefined) {
               throw layerError('permission_denied', `Path ${displayPath(ctx.cwd, candidate)} is filtered out by ${path.basename(ignoreFile)}`, { path: candidate });
             }
-            if (await isProtectedIgnoreFile(session, candidate)) {
-              throw layerError('permission_denied', `Blocked: ${path.basename(candidate)} is protected and cannot be changed by the agent`, { path: candidate });
+            const protectedReason = await protectedFileReason(session, candidate);
+            if (protectedReason !== undefined) {
+              throw layerError('permission_denied', `Blocked: ${protectedReason}`, { path: candidate });
             }
           }
           guarded.push({ file, target, destination });
@@ -160,6 +186,10 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
             for (const item of guarded) {
               const { file, target, destination } = item;
               const { added, removed } = countHunkChanges(file.hunks);
+              await refuseLinkedFile(target, ctx.cwd);
+              if (destination !== target) {
+                await refuseLinkedFile(destination, ctx.cwd);
+              }
               const original = await readExisting(target);
 
               if (file.kind === 'delete') {
@@ -200,6 +230,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                   throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
                 }
                 const destinationOriginal = await readExisting(destination);
+                assertMoveDestinationFree(destination, destinationOriginal, ctx.cwd);
                 actions.push({ file, target, destination, added, removed, action: 'write', bytes: original, createsParent: true, original, ...(destinationOriginal === undefined ? {} : { destinationOriginal }) });
                 continue;
               }
@@ -215,6 +246,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                 throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
               }
               const destinationOriginal = destination === target ? original : await readExisting(destination);
+              assertMoveDestinationFree(destination, destination === target ? undefined : destinationOriginal, ctx.cwd);
               actions.push({ file, target, destination, added, removed, action: 'write', content, createsParent: destination !== target, original, ...(destinationOriginal === undefined ? {} : { destinationOriginal }) });
             }
 

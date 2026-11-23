@@ -5,7 +5,7 @@ import { createReadToolDefinition } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata, readHead } from '../core/metadata.ts';
-import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, multiLinkReason, resolveToolPath } from '../core/paths.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, type LayerSession, subjectsFor } from '../core/session.ts';
@@ -116,6 +116,10 @@ export function createReadLayerTool(options: ReadToolOptions) {
         }
         if (!stats.isFile()) {
           throw layerError('invalid_file', `Path is neither a file nor a directory: ${displayPath(ctx.cwd, target)}`, { path: target });
+        }
+        const linked = multiLinkReason(stats);
+        if (linked !== undefined) {
+          throw layerError('permission_denied', `Cannot read ${displayPath(ctx.cwd, target)}: ${linked}.`, { path: target });
         }
         const extension = path.extname(target).toLowerCase();
         const isImage = IMAGE_EXTENSIONS.has(extension);

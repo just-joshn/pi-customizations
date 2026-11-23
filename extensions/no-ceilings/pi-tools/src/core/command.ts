@@ -33,7 +33,7 @@ const WRAPPERS: ReadonlyMap<string, WrapperSpec> = new Map([
 ]);
 
 /** Wrappers that run another command, which this analyzer does not follow. */
-const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'parallel', 'watch', 'script', 'caffeinate', 'strace', 'ltrace', 'chrt', 'taskset', 'numactl', 'eatmydata', 'fakeroot', 'firejail', 'bwrap']);
+const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'parallel', 'watch', 'script', 'caffeinate', 'strace', 'ltrace', 'chrt', 'taskset', 'numactl', 'eatmydata', 'fakeroot', 'firejail', 'bwrap', 'flock']);
 
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
 const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
@@ -52,6 +52,12 @@ const STRUCTURAL = new Set(['for', 'case', 'select', 'function', 'fi', 'done', '
 
 /** Commands whose literal operands create or modify a file. Git destinations are classified separately. */
 const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown', 'truncate', 'unlink', 'rmdir', 'shred']);
+
+/** Compressors that replace or delete each operand, unless `-c`/`--stdout` sends the result to stdout. */
+const COMPRESS_COMMANDS = new Set(['gzip', 'gunzip', 'bzip2', 'xz']);
+
+/** Why a word the shell glob-expands cannot be matched against a path rule. */
+const GLOB_REASON = 'a glob hides the paths the shell opens';
 
 /** Variables a `cd` target may name, resolved from the session instead of the shell. */
 const DIR_VARIABLES = new Map([
@@ -78,6 +84,8 @@ interface Word {
   readonly literal: boolean;
   /** True when an unquoted command substitution or backtick contributed to the word. */
   readonly hidesCommand: boolean;
+  /** True when an unquoted glob character lets the shell choose the paths the word becomes. */
+  readonly glob: boolean;
 }
 
 interface Lexed {
@@ -93,6 +101,8 @@ interface Redirect {
   readonly write: boolean;
   /** A `<<<` here-string carries data, but a substitution inside it still runs. */
   readonly hereString?: boolean;
+  /** True when the operator opens the target on standard input, so a shell reads its script from it. */
+  readonly readStdin?: boolean;
 }
 
 /** Resolve a leading `~`, `~/`, or `~user`. Anything else is unchanged. */
@@ -394,6 +404,8 @@ function lexSegment(segment: string): Lexed {
   let value = '';
   let literal = true;
   let hidesCommand = false;
+  let glob = false;
+  let bracket = false;
   let started = false;
   let state: 'plain' | 'single' | 'double' | 'ansi' = 'plain';
   let unbalanced = false;
@@ -412,11 +424,14 @@ function lexSegment(segment: string): Lexed {
   };
   const push = (): void => {
     if (started) {
-      words.push({ value, literal, hidesCommand });
+      // `[` only globs as part of a bracket expression, so a bare `[` or `[[` stays literal text.
+      words.push({ value, literal, hidesCommand, glob: glob || (bracket && value.includes(']')) });
     }
     value = '';
     literal = true;
     hidesCommand = false;
+    glob = false;
+    bracket = false;
     started = false;
   };
 
@@ -522,6 +537,12 @@ function lexSegment(segment: string): Lexed {
     }
     if (state === 'plain' && char === '{' && opensBraceExpansion(segment, index)) {
       brace = true;
+    }
+    if (state === 'plain' && (char === '*' || char === '?')) {
+      glob = true;
+    }
+    if (state === 'plain' && char === '[') {
+      bracket = true;
     }
     value += char;
     begin();
@@ -829,7 +850,7 @@ function stripRedirects(segment: string): { readonly text: string; readonly redi
         if (operator === '<<<') {
           redirects.push({ raw, write: false, hereString: true });
         } else if (!operator.includes('<<') && raw !== '') {
-          redirects.push({ raw, write: operator.includes('>') });
+          redirects.push({ raw, write: operator.includes('>'), readStdin: attached === undefined && operator.startsWith('<') });
         }
       }
       out += ' ';
@@ -1062,10 +1083,10 @@ function sedConsumesSuffix(args: readonly Word[], index: number): boolean {
 }
 
 /** Files `sed` will rewrite, or undefined when this invocation is not in-place. */
-function sedInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
+function sedInplaceFiles(args: readonly Word[]): readonly Word[] | undefined {
   let inplace = false;
   let hasProgram = false;
-  const positional: string[] = [];
+  const positional: Word[] = [];
   let options = true;
   for (let index = 0; index < args.length; index++) {
     const word = args[index];
@@ -1113,7 +1134,7 @@ function sedInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
       }
       continue;
     }
-    positional.push(value);
+    positional.push(word);
   }
   if (!inplace) {
     return undefined;
@@ -1122,10 +1143,10 @@ function sedInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
 }
 
 /** Files `perl -i` will rewrite, or undefined when this invocation is not in-place. */
-function perlInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
+function perlInplaceFiles(args: readonly Word[]): readonly Word[] | undefined {
   let inplace = false;
   let hasProgram = false;
-  const positional: string[] = [];
+  const positional: Word[] = [];
   for (let index = 0; index < args.length; index++) {
     const word = args[index];
     if (word === undefined || !word.literal || word.hidesCommand) {
@@ -1135,14 +1156,14 @@ function perlInplaceFiles(args: readonly Word[]): readonly string[] | undefined 
     if (value === '--') {
       for (const rest of args.slice(index + 1)) {
         if (rest?.literal === true && !rest.hidesCommand && rest.value !== '') {
-          positional.push(rest.value);
+          positional.push(rest);
         }
       }
       break;
     }
     if (!value.startsWith('-') || value === '-') {
       if (value !== '') {
-        positional.push(value);
+        positional.push(word);
       }
       continue;
     }
@@ -1589,6 +1610,10 @@ function inspectGit(args: readonly Word[]): GitCommand {
   if (planned?.untrusted !== undefined) {
     untrusted ??= planned.untrusted;
   }
+  // Git operands and destinations are paths, and the shell expands a glob before git sees it.
+  if (untrusted === undefined && args.some((word) => word.glob)) {
+    untrusted = GLOB_REASON;
+  }
   return {
     directories,
     operands: planned?.reads ?? gitReadOperands(rest),
@@ -1605,6 +1630,10 @@ interface PathNote {
 /** Archive and `-C` destinations for tar. A create, append, update, or concatenate writes the archive. */
 function tarPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
   const paths: PathNote[] = [];
+  // Every tar operand is either the archive or a path it reads, so a glob word hides which one runs.
+  if (args.some((word) => word.glob)) {
+    return { paths, untrusted: GLOB_REASON };
+  }
   let archive: string | undefined;
   let writesArchive = false;
   let untrusted: string | undefined;
@@ -1766,7 +1795,11 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
   const distrust = (reason: string): void => {
     untrusted ??= reason;
   };
-  const notePath = (raw: string, write: boolean, base: string | undefined): void => {
+  const notePath = (raw: string, write: boolean, base: string | undefined, glob = false): void => {
+    if (glob) {
+      distrust(GLOB_REASON);
+      return;
+    }
     const resolved = literalPath(raw, home);
     if (resolved.unknown !== undefined) {
       distrust(resolved.unknown);
@@ -1794,15 +1827,15 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     if (name === 'sed' || name === 'perl') {
       const edited = name === 'sed' ? sedInplaceFiles(args) : perlInplaceFiles(args);
       if (edited !== undefined) {
-        for (const value of edited) {
-          notePath(value, true, base);
+        for (const word of edited) {
+          notePath(word.value, true, base, word.glob);
         }
         return;
       }
     }
     let options = true;
-    const positional: string[] = [];
-    let targetDir: string | undefined;
+    const positional: Word[] = [];
+    let targetDir: { readonly value: string; readonly glob: boolean } | undefined;
     const takesTarget = name === 'cp' || name === 'mv' || name === 'ln' || name === 'install';
     const directoryInstall = name === 'install' && args.some((word) => word.literal && !word.hidesCommand && (word.value === '-d' || word.value === '--directory'));
     const noteWriteArg = (word: Word | undefined): void => {
@@ -1813,7 +1846,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         distrust('the write target is built by an expansion');
         return;
       }
-      notePath(word.value, true, base);
+      notePath(word.value, true, base, word.glob);
     };
     for (let index = 0; index < args.length; index++) {
       const word = args[index];
@@ -1824,7 +1857,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       if (name === 'dd') {
         const io = /^(if|of)=(.+)$/.exec(value);
         if (io?.[2] !== undefined) {
-          notePath(io[2], io[1] === 'of', base);
+          notePath(io[2], io[1] === 'of', base, word.glob);
         }
         continue;
       }
@@ -1835,21 +1868,21 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       if (options && takesTarget && (value === '--target-directory' || value === '-t')) {
         const next = args[index + 1];
         if (next?.literal === true && next.hidesCommand !== true) {
-          targetDir = next.value;
+          targetDir = next;
         }
         index++;
         continue;
       }
       if (options && takesTarget && value.startsWith('--target-directory=')) {
-        targetDir = value.slice('--target-directory='.length);
+        targetDir = { value: value.slice('--target-directory='.length), glob: word.glob };
         continue;
       }
       if (options && takesTarget && value.startsWith('-t') && value.length > 2) {
-        targetDir = value.slice(2);
+        targetDir = { value: value.slice(2), glob: word.glob };
         continue;
       }
       if (options && name === 'curl' && (value.startsWith('--output=') || value.startsWith('--output-dir='))) {
-        notePath(value.slice(value.indexOf('=') + 1), true, base);
+        notePath(value.slice(value.indexOf('=') + 1), true, base, word.glob);
         continue;
       }
       if (options && name === 'curl' && (value === '-o' || value === '--output' || value === '--output-dir')) {
@@ -1860,15 +1893,28 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       if (options && name === 'curl' && value.startsWith('-') && !value.startsWith('--') && value.includes('o')) {
         const rest = value.slice(value.indexOf('o') + 1);
         if (rest !== '') {
-          notePath(rest, true, base);
+          notePath(rest, true, base, word.glob);
         } else {
           noteWriteArg(args[index + 1]);
           index++;
         }
         continue;
       }
+      if (options && name === 'wget' && (value === '-O' || value === '--output-document' || value === '-P' || value === '--directory-prefix')) {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'wget' && (value.startsWith('--output-document=') || value.startsWith('--directory-prefix='))) {
+        notePath(value.slice(value.indexOf('=') + 1), true, base, word.glob);
+        continue;
+      }
+      if (options && name === 'wget' && (value.startsWith('-O') || value.startsWith('-P')) && value.length > 2) {
+        notePath(value.slice(2), true, base, word.glob);
+        continue;
+      }
       if (options && name === 'sort' && value.startsWith('--output=')) {
-        notePath(value.slice('--output='.length), true, base);
+        notePath(value.slice('--output='.length), true, base, word.glob);
         continue;
       }
       if (options && name === 'sort' && (value === '-o' || value === '--output')) {
@@ -1877,7 +1923,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         continue;
       }
       if (options && name === 'sort' && value.startsWith('-o') && value.length > 2) {
-        notePath(value.slice(2), true, base);
+        notePath(value.slice(2), true, base, word.glob);
         continue;
       }
       if (options && name === 'find' && (value === '-fprint' || value === '-fprint0' || value === '-fls' || value === '-fprintf')) {
@@ -1895,16 +1941,16 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       if (options && value.startsWith('-') && value !== '-') {
         continue;
       }
-      positional.push(value);
+      positional.push(word);
     }
     if (targetDir !== undefined) {
-      notePath(targetDir, true, base);
-      for (const value of positional) {
-        notePath(value, name === 'mv', base);
-        const slash = value.lastIndexOf('/');
-        const baseName = slash === -1 ? value : value.slice(slash + 1);
+      notePath(targetDir.value, true, base, targetDir.glob);
+      for (const word of positional) {
+        notePath(word.value, name === 'mv', base, word.glob);
+        const slash = word.value.lastIndexOf('/');
+        const baseName = slash === -1 ? word.value : word.value.slice(slash + 1);
         if (baseName !== '' && baseName !== '.' && baseName !== '..') {
-          notePath(targetDir.endsWith('/') ? `${targetDir}${baseName}` : `${targetDir}/${baseName}`, true, base);
+          notePath(targetDir.value.endsWith('/') ? `${targetDir.value}${baseName}` : `${targetDir.value}/${baseName}`, true, base, targetDir.glob || word.glob);
         }
       }
       return;
@@ -1913,16 +1959,19 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     // operand is a write, because the source is the path a later use of the link would escape through.
     // `find -delete` writes the paths it was given.
     const findDelete = name === 'find' && args.some((word) => word.literal && word.value === '-delete');
-    const write = WRITE_COMMANDS.has(name) || findDelete;
+    // A compressor replaces or deletes each operand, unless `-c`/`--stdout` sends the result to stdout.
+    const compressStdout =
+      COMPRESS_COMMANDS.has(name) && args.some((word) => word.literal && !word.hidesCommand && (word.value === '--stdout' || (word.value.startsWith('-') && !word.value.startsWith('--') && word.value.slice(1).includes('c'))));
+    const write = WRITE_COMMANDS.has(name) || findDelete || (COMPRESS_COMMANDS.has(name) && !compressStdout);
     const rsyncListOnly = name === 'rsync' && args.some((word) => word.literal && !word.hidesCommand && word.value === '--list-only');
     // `ditto` with only a source has no destination. `zip` writes the archive, which is its first operand.
     const writesLast = name === 'cp' || (name === 'install' && !directoryInstall) || (name === 'rsync' && !rsyncListOnly) || (name === 'ditto' && positional.length > 1);
     // `zip -l` lists an archive and writes nothing.
     const zipLists = name === 'zip' && args.some((word) => word.literal === true && !word.hidesCommand && (word.value === '-l' || word.value === '--list'));
     const writesFirst = name === 'zip' && !zipLists;
-    for (const [index, value] of positional.entries()) {
+    for (const [index, word] of positional.entries()) {
       const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesFirst ? index === 0 : writesLast ? index === positional.length - 1 : write;
-      notePath(value, isWrite, base);
+      notePath(word.value, isWrite, base, word.glob);
     }
   };
 
@@ -1958,7 +2007,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           continue;
         }
         if (word !== undefined && word.literal) {
-          notePath(word.value, redirect.write, cwd);
+          notePath(word.value, redirect.write, cwd, word.glob);
         }
       }
       const { rest, names } = stripAssignments(lexed.words);
@@ -2021,6 +2070,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (!head.literal) {
           distrust('the command word comes from an expansion');
         }
+        if (head.glob) {
+          distrust(GLOB_REASON);
+        }
         const tail = words.slice(headIndex + 1).map((word) => word.value);
         segments.add([name, ...tail].join(' '));
 
@@ -2058,7 +2110,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           const inline = inlineShellBody([name, ...tail]);
           if (inline !== undefined && inline !== '') {
             visit(inline, depth + 1, cwd);
-          } else if (segment.piped || segment.text.includes('<<') || /(^|\s)</.test(segment.text)) {
+          } else if (segment.piped || segment.text.includes('<<') || stripped.redirects.some((redirect) => redirect.readStdin === true)) {
             distrust(`${name} reads a script from standard input, which the analyzer cannot see`);
           }
         }

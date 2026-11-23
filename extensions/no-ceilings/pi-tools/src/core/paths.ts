@@ -1,4 +1,5 @@
-import { readlink, realpath } from 'node:fs/promises';
+import type { Stats } from 'node:fs';
+import { readlink, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -176,4 +177,52 @@ export function displayPath(cwd: string, target: string): string {
 /** Directory that contains the given path. */
 export function parentOf(target: string): string {
   return path.dirname(path.resolve(target));
+}
+
+/** Stat a path, or undefined when it does not exist or cannot be reached. */
+export async function statOrUndefined(target: string): Promise<Stats | undefined> {
+  return stat(target).catch(() => undefined);
+}
+
+/**
+ * Why a file's other names defeat path rules, or undefined when the file has one name.
+ *
+ * A hardlink is a second directory entry for the same inode, so the canonical path of the alias is the
+ * alias itself. Deny rules, ignore rules, and allow rules then see only the name the caller used and
+ * never the file behind it. A regular file with more than one link is refused instead of checked by
+ * name, because no path-based check can see the other names.
+ */
+export function multiLinkReason(info: Stats | undefined): string | undefined {
+  if (info === undefined || !info.isFile() || info.nlink <= 1) {
+    return undefined;
+  }
+  return `it has ${info.nlink} hard links, so path rules cannot see its other names`;
+}
+
+/**
+ * Describe an existing path that is not a regular file, or undefined when it is a regular file or does
+ * not exist. Writing through a FIFO, socket, or device blocks or fails in ways a caller cannot recover
+ * from, so the tools refuse it before opening anything.
+ */
+export async function nonRegularKind(target: string): Promise<string | undefined> {
+  const info = await stat(target).catch(() => undefined);
+  if (info === undefined || info.isFile()) {
+    return undefined;
+  }
+  if (info.isDirectory()) {
+    return 'a directory';
+  }
+  if (info.isFIFO()) {
+    return 'a FIFO';
+  }
+  if (info.isSocket()) {
+    return 'a socket';
+  }
+  if (info.isCharacterDevice()) {
+    return 'a character device';
+  }
+  if (info.isBlockDevice()) {
+    return 'a block device';
+  }
+  return 'not a regular file';
 }

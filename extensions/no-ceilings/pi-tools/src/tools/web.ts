@@ -4,11 +4,11 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { RESOURCE_MAX_BYTES, WEB_FETCH_MAX_BYTES } from '../constants.ts';
 import { LayerError, layerError } from '../core/errors.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, multiLinkReason, nonRegularKind, resolveToolPath, statOrUndefined } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, guardEgress, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
+import { guard, guardEgress, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
 import { decodeBase64, sha256Hex } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
@@ -19,8 +19,9 @@ async function assertWritableTarget(session: LayerSession, target: string, cwd: 
   if (ignoreFile !== undefined) {
     throw layerError('permission_denied', `Path ${displayPath(cwd, target)} is filtered out by ${path.basename(ignoreFile)}`, { path: target });
   }
-  if (await isProtectedIgnoreFile(session, target)) {
-    throw layerError('permission_denied', `Blocked: ${path.basename(target)} is protected and cannot be changed by the agent`, { path: target });
+  const protectedReason = await protectedFileReason(session, target);
+  if (protectedReason !== undefined) {
+    throw layerError('permission_denied', `Blocked: ${protectedReason}`, { path: target });
   }
 }
 
@@ -251,6 +252,14 @@ export function createWebFetchLayerTool(options: WebContext) {
           await assertWritableTarget(session, target, ctx.cwd);
           await mkdir(path.dirname(target), { recursive: true });
           await withFileQueue(target, async () => {
+            const kind = await nonRegularKind(target);
+            if (kind !== undefined) {
+              throw layerError('invalid_file', `Cannot write ${displayPath(ctx.cwd, target)}: it is ${kind}, not a regular file. Nothing was written.`, { path: target });
+            }
+            const linked = multiLinkReason(await statOrUndefined(target));
+            if (linked !== undefined) {
+              throw layerError('permission_denied', `Cannot write ${displayPath(ctx.cwd, target)}: ${linked}. Nothing was written.`, { path: target });
+            }
             await writeFile(target, text, 'utf-8');
             const after = await readFile(target);
             if (sha256Hex(after) !== sha256Hex(Buffer.from(text, 'utf-8'))) {
@@ -460,6 +469,14 @@ export function createSaveResourceLayerTool(options: WebContext) {
         }
         const digest = sha256Hex(buffer);
         await withFileQueue(target, async () => {
+          const kind = await nonRegularKind(target);
+          if (kind !== undefined) {
+            throw layerError('invalid_file', `Cannot write ${displayPath(ctx.cwd, target)}: it is ${kind}, not a regular file. Nothing was written.`, { path: target });
+          }
+          const linked = multiLinkReason(await statOrUndefined(target));
+          if (linked !== undefined) {
+            throw layerError('permission_denied', `Cannot write ${displayPath(ctx.cwd, target)}: ${linked}. Nothing was written.`, { path: target });
+          }
           const existing = await stat(target).catch(() => undefined);
           if (existing !== undefined && params.overwrite !== true) {
             throw layerError('error', `${displayPath(ctx.cwd, target)} already exists. Nothing was written.`, { path: target, hint: 'Set overwrite to true to replace it.' });

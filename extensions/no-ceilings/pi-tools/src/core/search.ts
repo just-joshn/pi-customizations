@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import { GREP_MAX_LINE_LENGTH } from '../constants.ts';
 import { layerError } from './errors.ts';
-import { canonicalPath, displayPath, isInside } from './paths.ts';
+import { canonicalPath, displayPath, isInside, multiLinkReason, statOrUndefined } from './paths.ts';
 import { isInsideWorkspace, ruleMatches } from './policy.ts';
 import { resolveBinary } from './proc.ts';
 import type { LayerSession } from './session.ts';
@@ -50,6 +50,11 @@ export async function allowedPaths(session: LayerSession, candidates: readonly (
       batch.map(async (entry) => {
         const candidate = entry.path;
         const canonical = await canonicalPath(candidate);
+        // A file with more than one name is reachable by paths this filter never sees, in every mode
+        // including allowlist, so it is dropped from results rather than judged by the name it used.
+        if (multiLinkReason(await statOrUndefined(candidate)) !== undefined) {
+          return undefined;
+        }
         const subjects = canonical === candidate ? [candidate] : [candidate, canonical];
         // Containment uses the resolved target, so a symlink cannot return a file outside the
         // workspace or outside a search root the caller named explicitly.

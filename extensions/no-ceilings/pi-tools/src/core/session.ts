@@ -2,13 +2,13 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 
 import { minimatch } from 'minimatch';
-import { SPILL_DIR } from '../constants.ts';
+import { PROJECT_CONFIG_FILE, SPILL_DIR } from '../constants.ts';
 import type { Decision, Policy, RuleKind, ToolFailure } from '../types.ts';
 import { analyzeShellCommand } from './command.ts';
 import { type LoadedConfig, loadConfig, type PiToolsConfig } from './config.ts';
 import { LayerError } from './errors.ts';
 import { createIgnoreResolver, type IgnoreResolver, ignoreRefusal } from './ignore.ts';
-import { canonicalPath, displayPath, policySubjects } from './paths.ts';
+import { canonicalPath, displayPath, multiLinkReason, policySubjects, statOrUndefined, toPosix } from './paths.ts';
 import { decideMany, isInsideWorkspace, ruleMatches } from './policy.ts';
 import { createReadFence, type ReadFence } from './read-fence.ts';
 
@@ -291,8 +291,16 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
     if (ignoreFile !== undefined) {
       throw denial({ kind: 'permission_denied', message: ignoreRefusal(ctx?.cwd ?? cwd, spelled, ignoreFile), path: spelled });
     }
-    if (use.write && (await isProtectedIgnoreFile(session, named))) {
-      throw denial({ kind: 'permission_denied', message: `Blocked: ${path.basename(named)} is protected and cannot be changed by the agent`, path: named });
+    if (use.write) {
+      const protectedReason = await protectedFileReason(session, named, spelled);
+      if (protectedReason !== undefined) {
+        throw denial({ kind: 'permission_denied', message: `Blocked: ${protectedReason}`, path: named });
+      }
+    }
+    // A hardlink has another name this policy never sees, so judge it as unvouchable.
+    const linked = multiLinkReason(await statOrUndefined(named));
+    if (linked !== undefined) {
+      throw denial({ kind: 'permission_denied', message: `Blocked: ${path.basename(spelled)} ${linked}`, path: spelled });
     }
     if (!use.write) {
       continue;
@@ -447,12 +455,44 @@ export async function guardEgress(session: LayerSession, url: string, ctx?: Laye
   }
 }
 
-/** True when a path names one of the configured ignore files inside the workspace. */
+/**
+ * True when a path names one of the configured ignore files, or the project policy file, inside the
+ * workspace. Both the named path and its canonical target are checked, so a symlink does not hide the
+ * protected file it points at.
+ */
 export async function isProtectedIgnoreFile(session: LayerSession, target: string): Promise<boolean> {
-  if (!session.policy.ignoreFiles.includes(path.basename(target))) {
-    return false;
+  return (await protectedFileReason(session, target)) !== undefined;
+}
+
+/**
+ * Why the agent may not change this path, or undefined when it may. A protected ignore file is matched
+ * by basename on the named path and on the file the name resolves to, so a symlink alias is refused
+ * too. The project policy file is matched by canonical path inside each workspace root. `display` is
+ * the spelling to show the caller, for a canonical target reached through a symlinked parent.
+ */
+export async function protectedFileReason(session: LayerSession, target: string, display?: string): Promise<string | undefined> {
+  const named = path.resolve(target);
+  const canonical = await canonicalPath(named);
+  const ignoreFile = [named, canonical].some((candidate) => session.policy.ignoreFiles.includes(path.basename(candidate)));
+  if (ignoreFile && isInsideWorkspace(session.policy, canonical)) {
+    return `${path.basename(canonical)} is protected and cannot be changed by the agent`;
   }
-  return isInsideWorkspace(session.policy, await canonicalPath(target));
+  if (await isProjectPolicyFile(session, canonical)) {
+    return `${toPosix(displayPath(session.cwd, display ?? named))} is the project policy file and cannot be changed by the agent`;
+  }
+  return undefined;
+}
+
+/** True when the canonical path is the policy file the layer loads for this session. */
+async function isProjectPolicyFile(session: LayerSession, canonical: string): Promise<boolean> {
+  // The loader reads `<cwd>/.pi/pi-tools.json`; the workspace roots cover a policy file reached through
+  // any other configured root. Both are protected, so a narrowed cwd cannot be used to rewrite policy.
+  for (const root of new Set([session.cwd, ...session.policy.workspaceRoots])) {
+    if ((await canonicalPath(path.join(root, PROJECT_CONFIG_FILE))) === canonical) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Subjects for a path a tool is about to touch. */

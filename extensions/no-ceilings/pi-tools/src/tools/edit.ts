@@ -5,7 +5,7 @@ import { generateDiffString, generateUnifiedPatch } from '@earendil-works/pi-cod
 import { Type } from 'typebox';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
-import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, multiLinkReason, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, repairArguments } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -222,6 +222,10 @@ export function createEditLayerTool(options: EditToolOptions) {
             const info = await stat(target).catch(() => undefined);
             if (info === undefined || !info.isFile()) {
               throw layerError('file_not_found', `Cannot edit file: ${displayPath(ctx.cwd, target)} does not exist or is not a file.`, { path: target });
+            }
+            const linked = multiLinkReason(info);
+            if (linked !== undefined) {
+              throw layerError('permission_denied', `Cannot edit ${displayPath(ctx.cwd, target)}: ${linked}. Nothing was written.`, { path: target });
             }
             const identity = await fileIdentity(target);
             const readRecord = session.fence.take(identity);

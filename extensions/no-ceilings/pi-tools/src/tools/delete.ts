@@ -4,7 +4,7 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { MAX_SNAPSHOT_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
-import { canonicalName, displayPath, resolveToolPath } from '../core/paths.ts';
+import { canonicalName, displayPath, multiLinkReason, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -69,6 +69,10 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
             }
             if (!snapshot.isFile()) {
               throw layerError('not_file', `Not a file: ${displayPath(ctx.cwd, target)}`, { path: target });
+            }
+            const linked = multiLinkReason(snapshot);
+            if (linked !== undefined) {
+              throw layerError('permission_denied', `Cannot delete ${displayPath(ctx.cwd, target)}: ${linked}. Nothing was deleted.`, { path: target });
             }
 
             previousContent = snapshot.size <= MAX_SNAPSHOT_BYTES ? (await readFile(target)).toString('utf-8') : undefined;
