@@ -271,10 +271,12 @@ function hardenReadOnlyGitCommand(command: string): string {
   return hardened;
 }
 
-function readonlyGitEnv(): string {
-  const assignments = READONLY_GIT_CONFIG.flatMap(([key, value], index) => [`GIT_CONFIG_KEY_${index}=${key}`, `GIT_CONFIG_VALUE_${index}=${value}`]);
-  const blocked = ['GIT_SSH_COMMAND', 'GIT_SSH', 'GIT_ASKPASS', 'SSH_ASKPASS'].map((key) => `${key}=${DISABLED_GIT_HELPER}`);
-  return [`GIT_CONFIG_COUNT=${READONLY_GIT_CONFIG.length}`, ...assignments, 'GIT_EXTERNAL_DIFF=', ...blocked, 'GIT_TERMINAL_PROMPT=0'].join(' ');
+const FILTER_DISABLE_SHELL = `_pi_empty=$(git -c core.fsmonitor=false hash-object -t tree --stdin </dev/null 2>/dev/null || true); case $_pi_empty in [0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) export GIT_ATTR_SOURCE=$_pi_empty ;; esac; _pi_n=${READONLY_GIT_CONFIG.length}; _pi_drivers=$(git -c core.fsmonitor=false config --get-regexp '^filter\..*\.(clean|smudge|process)$' 2>/dev/null | sed 's/[[:space:]].*//; s/\.[^.]*$//' | sort -u || true); for _pi_driver in $_pi_drivers; do case $_pi_driver in filter.[A-Za-z0-9._-]*) ;; *) continue ;; esac; export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.clean"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.smudge"; export "GIT_CONFIG_VALUE_\${_pi_n}=/bin/cat"; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.process"; export "GIT_CONFIG_VALUE_\${_pi_n}="; _pi_n=$((_pi_n + 1)); export "GIT_CONFIG_KEY_\${_pi_n}=\${_pi_driver}.required"; export "GIT_CONFIG_VALUE_\${_pi_n}=false"; _pi_n=$((_pi_n + 1)); done`;
+
+function gitSafetyPrelude(): string {
+  const configExports = READONLY_GIT_CONFIG.map(([key, value], index) => `export GIT_CONFIG_KEY_${index}=${key}; export GIT_CONFIG_VALUE_${index}='${value}'`).join('; ');
+  const blocked = ['GIT_SSH_COMMAND', 'GIT_SSH', 'GIT_ASKPASS', 'SSH_ASKPASS'].map((key) => `export ${key}=${DISABLED_GIT_HELPER}`).join('; ');
+  return `_pi_apply_git_safety() { export GIT_CONFIG_COUNT=${READONLY_GIT_CONFIG.length}; ${configExports}; export GIT_EXTERNAL_DIFF=; ${blocked}; export GIT_TERMINAL_PROMPT=0; ${FILTER_DISABLE_SHELL}; export GIT_CONFIG_COUNT=$_pi_n; }\n_pi_apply_git_safety; `;
 }
 
 function readonlyProfileAssignment(): string {
@@ -284,17 +286,18 @@ function readonlyProfileAssignment(): string {
 function readonlySandboxInvocation(command: string, tempRoot: string): string {
   const template = shellQuote(`${tempRoot}/tmp.XXXXXX`);
   const quoted = shellQuote(command);
-  const run = `${readonlyGitEnv()} TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p "$_pi_profile" ${SANDBOX_SHELL} -c ${quoted}`;
-  return `_pi_tmp=$(mktemp -d ${template}) || exit 1; ${readonlyProfileAssignment()}; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
+  const run = `TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p "$_pi_profile" ${SANDBOX_SHELL} -c ${quoted}`;
+  return `${gitSafetyPrelude()}_pi_tmp=$(mktemp -d ${template}) || exit 1; ${readonlyProfileAssignment()}; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
 }
 
-/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Other platforms return the command unchanged. */
+/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Git helper neutralization runs on every platform. */
 export function sandboxReadOnlyCommand(command: string): string {
-  if (process.platform !== 'darwin' || !existsSync(SANDBOX_EXEC)) {
-    return command;
+  const hardened = hardenReadOnlyGitCommand(command);
+  if (process.platform === 'darwin' && existsSync(SANDBOX_EXEC)) {
+    mkdirSync(READONLY_TEMP_ROOT, { recursive: true });
+    return readonlySandboxInvocation(hardened, realpathSync(READONLY_TEMP_ROOT));
   }
-  mkdirSync(READONLY_TEMP_ROOT, { recursive: true });
-  return readonlySandboxInvocation(hardenReadOnlyGitCommand(command), realpathSync(READONLY_TEMP_ROOT));
+  return `${gitSafetyPrelude()}${hardened}`;
 }
 
 export function evaluateReadonlySubagentGuard(event: ToolCallEvent): { block: true; reason: string } | undefined {

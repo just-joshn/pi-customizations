@@ -14,7 +14,7 @@
 - Git worktree isolation per run: own branch, diff summary, `worktree_path` and `branch` in the result, and `/tasks prune <id>`.
 - Failure ids and stable failure codes on every failed or cancelled run.
 - `subagents:*` hook events over `pi.events`.
-- Ordered transcripts with prompt, assistant text, tool arguments, tool output, and error flags, persisted up to 50 items per run and 4,000 characters per item.
+- Ordered transcripts with prompt, assistant text, tool arguments, tool output, and error flags, persisted up to 10 items per run and 500 characters per item.
 - `/subagent:<name>` command per discovered agent, plus `--bg` on both invocation forms.
 - Configured nesting depth, with nested runs scoped to the runs a child started.
 - End-to-end script that drives the real `pi` binary.
@@ -117,7 +117,7 @@
 - A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
 - Read-only shell enforcement rejects a lone `&`, command substitution, and unclosed quotes. It allows `git grep`, quoted pipes, `|&`, and redirects to `/dev/null` such as `2>/dev/null`. `date -d` and `date --date` stay allowed; `date -s` stays blocked.
 - Unknown `subagents.json` sections and unknown keys inside a section are reported instead of ignored.
-- A mid-run snapshot keeps metadata and transcript paths only. A completion save keeps transcript bodies for the three most recently updated finished runs, including success, error, and cancelled runs. Older finished runs keep metadata, the transcript path, and checkpoints.
+- A mid-run patch keeps metadata and transcript paths only. A completion patch keeps that run's checkpoints and transcript preview. Success, error, and cancelled runs are eligible.
 - A worktree run started in a repository subdirectory uses that subdirectory inside the worktree.
 - Resuming a run that never recorded a transcript fails with `resume-unavailable`. Retry still starts a fresh session.
 - A resume keeps background mode when the caller omits `run_in_background`.
@@ -127,7 +127,9 @@
 - A `tools` list is an allowlist passed to the child session. Entries that start with `-` are dropped, a leading `+` is removed, and entries that contain `*` are dropped except a scoped `mcp__<server>__*` pattern. A list that sanitizes to empty grants no tools instead of editing the default tool set. Claude names are still mapped, and the result is deduplicated.
 - Retry backoff and `await_subagent` timeouts stay referenced, so `pi -p` waits for a retried child instead of exiting 0 with no result.
 - Checkpoints stay in memory and on `subagents:checkpoint` during a run. The parent session persists them at the next run boundary and on shutdown when a run was still active, not on every tool call. A crash can lose the latest mid-run checkpoint. Shutdown does not append another state entry when nothing was active.
-- Read-only Git disables diff drivers, textconv, external diffs, SSH commands, and credential helpers. `git diff`, `git log`, `git show`, and `git blame` receive `--no-ext-diff --no-textconv`. `GIT_SSH_COMMAND`, `GIT_SSH`, `GIT_ASKPASS`, and `SSH_ASKPASS` are `/usr/bin/false`, `GIT_TERMINAL_PROMPT` is `0`, and `credential.helper` is empty.
+- Read-only Git disables diff drivers, textconv, external diffs, SSH commands, credential helpers, and repository clean, smudge, and process filters. The filter override runs on every platform. `git diff`, `git log`, `git show`, and `git blame` receive `--no-ext-diff --no-textconv`. `GIT_SSH_COMMAND`, `GIT_SSH`, `GIT_ASKPASS`, and `SSH_ASKPASS` are `/usr/bin/false`, `GIT_TERMINAL_PROMPT` is `0`, and `credential.helper` is empty.
+- Parent session state is appended as patches of changed records. Restore folds every patch in order. A persisted transcript preview keeps at most 10 items and 500 characters per item.
+- A configured agent directory is resolved through its real path. An untrusted project skips one whose target is inside the workspace, including a symlink. A broken link does not throw.
 
 ## 0.1.4
 

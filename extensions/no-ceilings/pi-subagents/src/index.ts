@@ -40,16 +40,19 @@ function parsePersistedSessions(data: unknown): PersistedSubagentsState | undefi
   return { sessions };
 }
 
+function isPersistedStateEntry(entry: SessionEntry): entry is SessionEntry & { readonly data: unknown } {
+  return entry.type === 'custom' && 'customType' in entry && entry.customType === SUBAGENTS_ENTRY_CUSTOM_TYPE && 'data' in entry;
+}
+
 function restorePersistedSessions(ctx: ExtensionContext, store: SubagentStore): void {
-  const entries: readonly SessionEntry[] = ctx.sessionManager.getEntries();
-  const lastEntry = entries.filter((entry) => entry.type === 'custom' && 'customType' in entry && entry.customType === SUBAGENTS_ENTRY_CUSTOM_TYPE).at(-ONE);
-  if (!lastEntry || !('data' in lastEntry)) {
+  const sessions = ctx.sessionManager
+    .getEntries()
+    .filter(isPersistedStateEntry)
+    .flatMap((entry) => parsePersistedSessions(entry.data)?.sessions ?? []);
+  if (sessions.length === ZERO) {
     return;
   }
-  const parsed = parsePersistedSessions(lastEntry.data);
-  if (parsed !== undefined) {
-    store.restoreFromPersisted(parsed, ctx.sessionManager.getSessionId());
-  }
+  store.restoreFromPersisted({ sessions }, ctx.sessionManager.getSessionId());
 }
 
 export function buildBackgroundCompletionText(completions: readonly BackgroundCompletionPayload[]): string {
@@ -182,7 +185,11 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     if (extensionShutDown) {
       return;
     }
-    pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState(options));
+    const patch = store.toPersistedPatch(options);
+    if (patch.sessions.length === ZERO) {
+      return;
+    }
+    pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, patch);
   };
 
   const flushWakeups = (): void => {

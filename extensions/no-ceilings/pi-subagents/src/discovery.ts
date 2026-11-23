@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
@@ -379,8 +379,16 @@ function walkAgentFiles(dirPath: string): readonly string[] {
   });
 }
 
+function canonicalPath(target: string): string {
+  try {
+    return realpathSync(target);
+  } catch {
+    return resolve(target);
+  }
+}
+
 function isInsideProject(projectRoot: string, candidate: string): boolean {
-  const relativePath = relative(resolve(projectRoot), resolve(candidate));
+  const relativePath = relative(canonicalPath(projectRoot), canonicalPath(candidate));
   return relativePath === '' || (!relativePath.startsWith(`..${sep}`) && relativePath !== '..' && !isAbsolute(relativePath));
 }
 

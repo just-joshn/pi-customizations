@@ -20,8 +20,8 @@ const FAILURE_ID_CHARS = 12;
 function createFailureId(): string {
   return randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS);
 }
-const MAX_PERSISTED_TRANSCRIPT_ITEMS = 50;
-const MAX_PERSISTED_ITEM_CHARS = 4000;
+const MAX_PERSISTED_TRANSCRIPT_ITEMS = 10;
+const MAX_PERSISTED_ITEM_CHARS = 500;
 const MAX_SNAPSHOT_TRANSCRIPTS = 3;
 
 export interface ActiveRunHandle {
@@ -44,6 +44,7 @@ interface SubagentStoreState {
   readonly pendingWakeups: readonly BackgroundCompletionPayload[];
   readonly suppressedWakeupIds: readonly string[];
   readonly listeners: readonly (() => void)[];
+  readonly dirtyIds: ReadonlySet<string>;
 }
 
 export interface SubagentStore {
@@ -71,11 +72,20 @@ export interface SubagentStore {
   readonly subscribe: (listener: () => void) => () => void;
   readonly restoreFromPersisted: (persisted: PersistedSubagentsState, parentSessionId: string) => void;
   readonly toPersistedState: (options?: { readonly includeTranscriptItems?: boolean }) => PersistedSubagentsState;
+  readonly toPersistedPatch: (options?: { readonly includeTranscriptItems?: boolean }) => PersistedSubagentsState;
   readonly reset: () => void;
 }
 
 function createEmptyState(): SubagentStoreState {
-  return { sessions: {}, activeRuns: {}, pendingWakeups: [], suppressedWakeupIds: [], listeners: [] };
+  return { sessions: {}, activeRuns: {}, pendingWakeups: [], suppressedWakeupIds: [], listeners: [], dirtyIds: new Set() };
+}
+
+function addedDirtyIds(prev: SubagentStoreState, next: SubagentStoreState): ReadonlySet<string> {
+  if (next.sessions === prev.sessions) {
+    return prev.dirtyIds;
+  }
+  const changed = Object.keys(next.sessions).filter((id) => next.sessions[id] !== prev.sessions[id]);
+  return changed.length === ZERO ? prev.dirtyIds : new Set([...prev.dirtyIds, ...changed]);
 }
 
 function omitKey<T>(record: Readonly<Record<string, T>>, keyToOmit: string): Readonly<Record<string, T>> {
@@ -146,7 +156,7 @@ export function isMatchingLineage(record: SubagentSessionRecord | undefined, par
 
 interface StoreCell {
   readonly read: () => SubagentStoreState;
-  readonly commit: (next: SubagentStoreState) => void;
+  readonly commit: (next: SubagentStoreState, trackSessions?: boolean) => void;
 }
 
 function buildSessionOps(cell: StoreCell) {
@@ -331,8 +341,8 @@ export function createSubagentStore(): SubagentStore {
   let state: SubagentStoreState = createEmptyState();
   const cell: StoreCell = {
     read: () => state,
-    commit: (next) => {
-      state = next;
+    commit: (next, trackSessions = true) => {
+      state = { ...next, dirtyIds: trackSessions ? addedDirtyIds(state, next) : new Set() };
       for (const listener of state.listeners) {
         listener();
       }
@@ -356,16 +366,24 @@ export function createSubagentStore(): SubagentStore {
     },
     restoreFromPersisted: (persisted, parentSessionId) => {
       const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>((acc, rec) => ({ ...acc, [rec.agentId]: restoredSession(rec, parentSessionId) }), {});
-      cell.commit({ ...state, sessions: restored });
+      cell.commit({ ...state, sessions: restored }, false);
     },
     toPersistedState: (options) => {
       const records = sessionOps.listSessions();
       const recentCompleted = recentCompletedIds(records);
       return { sessions: records.map((record) => toPersistedRecord(record, keepSnapshotTranscript(record, options?.includeTranscriptItems, recentCompleted))) };
     },
+    toPersistedPatch: (options) => {
+      const dirty = state.dirtyIds;
+      const records = sessionOps.listSessions();
+      const recentCompleted = recentCompletedIds(records);
+      const sessions = records.filter((record) => dirty.has(record.agentId)).map((record) => toPersistedRecord(record, keepSnapshotTranscript(record, options?.includeTranscriptItems, recentCompleted)));
+      state = { ...state, dirtyIds: new Set() };
+      return { sessions };
+    },
     reset: () => {
       runOps.abortAllRuns();
-      cell.commit({ ...createEmptyState(), listeners: state.listeners });
+      cell.commit({ ...createEmptyState(), listeners: state.listeners }, false);
     },
   };
 }
