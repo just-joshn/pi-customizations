@@ -50,7 +50,7 @@ const INTRODUCERS = new Set(['if', 'then', 'else', 'elif', 'while', 'until', 'do
 /** Reserved words that carry no command of their own. The body is a later segment. */
 const STRUCTURAL = new Set(['for', 'case', 'select', 'function', 'fi', 'done', 'esac', '}', 'in']);
 
-/** Commands whose literal operands create or modify a file. `git` is intentionally absent. */
+/** Commands whose literal operands create or modify a file. Git path operands are deny-checked and are not writes. */
 const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown', 'truncate']);
 
 /** Variables a `cd` target may name, resolved from the session instead of the shell. */
@@ -1126,6 +1126,274 @@ function perlInplaceFiles(args: readonly Word[]): readonly string[] | undefined 
   return hasProgram ? positional : positional.slice(1);
 }
 
+/** True when a shell is invoked as a login shell, so it sources a profile the analyzer cannot see. */
+function loginShell(args: readonly string[]): boolean {
+  for (const flag of args) {
+    if (flag === '--' || flag === '-' || !flag.startsWith('-')) {
+      return false;
+    }
+    if (flag === '--login' || /^-[a-zA-Z]*l[a-zA-Z]*$/.test(flag)) {
+      return true;
+    }
+    // `-c` takes the command body. A later `-l` is `$0`, not a login flag.
+    if (/^-[a-zA-Z]*c[a-zA-Z]*$/.test(flag)) {
+      return false;
+    }
+  }
+  return false;
+}
+
+const GIT_CONFIG_REASON = 'git config writes a value the analyzer does not follow';
+const GIT_CONFIG_WRITES = new Set(['--unset', '--unset-all', '--replace-all', '--rename-section', '--remove-section', '--edit', '--add', '-e']);
+const GIT_CONFIG_READS = new Set(['--get', '--get-all', '--get-regexp', '--get-urlmatch', '--list', '-l', '--get-color', '--get-colorbool']);
+const GIT_CONFIG_VALUES = new Set(['--file', '-f', '--type', '--default', '--comment']);
+
+/** A `git config` that changes config, or undefined when this invocation only reads. */
+function gitConfigUntrusted(args: readonly Word[]): string | undefined {
+  let read = false;
+  let opaque = false;
+  const positionals: string[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      opaque = true;
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const eq = value.indexOf('=');
+      const name = eq === -1 ? value : value.slice(0, eq);
+      if (GIT_CONFIG_WRITES.has(name)) {
+        return GIT_CONFIG_REASON;
+      }
+      if (GIT_CONFIG_READS.has(name)) {
+        read = true;
+      }
+      if (eq === -1 && GIT_CONFIG_VALUES.has(name)) {
+        index++;
+      }
+      continue;
+    }
+    positionals.push(value);
+  }
+  if (read || (!opaque && positionals.length < 2)) {
+    return undefined;
+  }
+  return GIT_CONFIG_REASON;
+}
+
+interface GitDirectory {
+  readonly value: string;
+  readonly literal: boolean;
+  /** `-C` moves the pathspec base. `--git-dir` and `--work-tree` only need outside-workspace approval. */
+  readonly kind: 'enter' | 'root';
+}
+
+interface GitCommand {
+  readonly directories: readonly GitDirectory[];
+  readonly operands: readonly string[];
+  readonly untrusted?: string;
+}
+
+/** Global git options, the config-write verdict, and literal operands after the subcommand. */
+function inspectGit(args: readonly Word[]): GitCommand {
+  const directories: GitDirectory[] = [];
+  let index = 0;
+  const pushDirectory = (word: Word | undefined, kind: GitDirectory['kind']): void => {
+    if (word === undefined) {
+      return;
+    }
+    directories.push({ value: word.value, literal: word.literal && !word.hidesCommand, kind });
+  };
+  while (index < args.length) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      break;
+    }
+    const value = word.value;
+    if (value === '--') {
+      index++;
+      break;
+    }
+    if (value === '-C' || value === '--git-dir' || value === '--work-tree') {
+      pushDirectory(args[index + 1], value === '-C' ? 'enter' : 'root');
+      index += 2;
+      continue;
+    }
+    if ((value.startsWith('-C') && value.length > 2) || value.startsWith('--git-dir=') || value.startsWith('--work-tree=')) {
+      const raw = value.startsWith('-C') ? value.slice(2) : value.slice(value.indexOf('=') + 1);
+      directories.push({ value: raw, literal: true, kind: value.startsWith('-C') ? 'enter' : 'root' });
+      index++;
+      continue;
+    }
+    if (value === '-c') {
+      const payload = args[index + 1];
+      index += payload !== undefined && payload.literal && !payload.value.includes('=') ? 3 : 2;
+      continue;
+    }
+    if (value.startsWith('-c') && !value.startsWith('--') && value.length > 2) {
+      index++;
+      continue;
+    }
+    if (value === '--namespace' || value === '--super-prefix' || value === '--config-env') {
+      index += 2;
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      index++;
+      continue;
+    }
+    break;
+  }
+  const subcommand = args[index];
+  const rest = args.slice(index + 1);
+  let untrusted: string | undefined;
+  if (subcommand !== undefined && (!subcommand.literal || subcommand.hidesCommand)) {
+    untrusted = 'the git subcommand comes from an expansion';
+  } else if (subcommand?.value === 'config') {
+    untrusted = gitConfigUntrusted(rest);
+  }
+  const operands: string[] = [];
+  let options = true;
+  for (const word of rest) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    if (options && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.value.startsWith('-') && word.value !== '-') {
+      continue;
+    }
+    if (word.value !== '') {
+      operands.push(word.value);
+    }
+  }
+  return { directories, operands, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+interface PathNote {
+  readonly path: string;
+  readonly write: boolean;
+}
+
+/** Archive and `-C` destinations for tar. A create, append, update, or concatenate writes the archive. */
+function tarPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const paths: PathNote[] = [];
+  let archive: string | undefined;
+  let writesArchive = false;
+  let untrusted: string | undefined;
+  const positionals: string[] = [];
+  let index = 0;
+  const mode = (flag: string): boolean => flag === 'c' || flag === 'r' || flag === 'u' || flag === 'A';
+  const remember = (word: Word | undefined, kind: 'archive' | 'directory'): void => {
+    if (word === undefined) {
+      return;
+    }
+    if (!word.literal || word.hidesCommand) {
+      untrusted ??= 'the write target is built by an expansion';
+      return;
+    }
+    if (kind === 'directory') {
+      paths.push({ path: word.value, write: true });
+      return;
+    }
+    archive = word.value;
+  };
+  const first = args[0];
+  if (first?.literal === true && !first.hidesCommand && /^[A-Za-z]+$/.test(first.value) && /[crtxu]/.test(first.value)) {
+    const pending: Array<'f' | 'C'> = [];
+    for (const flag of first.value) {
+      if (mode(flag)) {
+        writesArchive = true;
+      } else if (flag === 'f' || flag === 'C') {
+        pending.push(flag);
+      }
+    }
+    index = 1;
+    for (const flag of pending) {
+      remember(args[index], flag === 'C' ? 'directory' : 'archive');
+      index++;
+    }
+  }
+  let options = true;
+  while (index < args.length) {
+    const word = args[index];
+    index++;
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--')) {
+      const eq = value.indexOf('=');
+      const flag = eq === -1 ? value : value.slice(0, eq);
+      const attached = eq === -1 ? undefined : value.slice(eq + 1);
+      if (flag === '--create' || flag === '--append' || flag === '--update' || flag === '--concatenate' || flag === '--catenate') {
+        writesArchive = true;
+      }
+      if (flag === '--directory' || flag === '--file') {
+        if (attached !== undefined) {
+          if (flag === '--directory') {
+            paths.push({ path: attached, write: true });
+          } else {
+            archive = attached;
+          }
+        } else {
+          remember(args[index], flag === '--directory' ? 'directory' : 'archive');
+          index++;
+        }
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const flag = body[cursor] ?? '';
+        if (mode(flag)) {
+          writesArchive = true;
+          continue;
+        }
+        if (flag === 'f' || flag === 'C') {
+          const rest = body.slice(cursor + 1);
+          if (rest !== '') {
+            if (flag === 'C') {
+              paths.push({ path: rest, write: true });
+            } else {
+              archive = rest;
+            }
+          } else {
+            remember(args[index], flag === 'C' ? 'directory' : 'archive');
+            index++;
+          }
+          break;
+        }
+      }
+      continue;
+    }
+    positionals.push(value);
+  }
+  if (archive !== undefined) {
+    paths.push({ path: archive, write: writesArchive });
+  }
+  for (const entry of positionals) {
+    paths.push({ path: entry, write: false });
+  }
+  return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
 export interface ShellPath {
   /** Spawn-relative or absolute literal path. */
   readonly path: string;
@@ -1172,6 +1440,16 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     if (name === 'git') {
       return;
     }
+    if (name === 'tar') {
+      const noted = tarPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base);
+      }
+      return;
+    }
     if (name === 'sed' || name === 'perl') {
       const edited = name === 'sed' ? sedInplaceFiles(args) : perlInplaceFiles(args);
       if (edited !== undefined) {
@@ -1186,6 +1464,16 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     let targetDir: string | undefined;
     const takesTarget = name === 'cp' || name === 'mv' || name === 'ln' || name === 'install';
     const directoryInstall = name === 'install' && args.some((word) => word.literal && !word.hidesCommand && (word.value === '-d' || word.value === '--directory'));
+    const noteWriteArg = (word: Word | undefined): void => {
+      if (word === undefined) {
+        return;
+      }
+      if (!word.literal || word.hidesCommand) {
+        distrust('the write target is built by an expansion');
+        return;
+      }
+      notePath(word.value, true, base);
+    };
     for (let index = 0; index < args.length; index++) {
       const word = args[index];
       if (word === undefined || !word.literal || word.hidesCommand) {
@@ -1219,6 +1507,43 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         targetDir = value.slice(2);
         continue;
       }
+      if (options && name === 'curl' && (value.startsWith('--output=') || value.startsWith('--output-dir='))) {
+        notePath(value.slice(value.indexOf('=') + 1), true, base);
+        continue;
+      }
+      if (options && name === 'curl' && (value === '-o' || value === '--output' || value === '--output-dir')) {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'curl' && value.startsWith('-') && !value.startsWith('--') && value.includes('o')) {
+        const rest = value.slice(value.indexOf('o') + 1);
+        if (rest !== '') {
+          notePath(rest, true, base);
+        } else {
+          noteWriteArg(args[index + 1]);
+          index++;
+        }
+        continue;
+      }
+      if (options && name === 'sort' && value.startsWith('--output=')) {
+        notePath(value.slice('--output='.length), true, base);
+        continue;
+      }
+      if (options && name === 'sort' && (value === '-o' || value === '--output')) {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'sort' && value.startsWith('-o') && value.length > 2) {
+        notePath(value.slice(2), true, base);
+        continue;
+      }
+      if (options && name === 'find' && (value === '-fprint' || value === '-fprint0' || value === '-fls' || value === '-fprintf')) {
+        noteWriteArg(args[index + 1]);
+        index += value === '-fprintf' ? 2 : 1;
+        continue;
+      }
       if (options && value.startsWith('-') && value !== '-') {
         continue;
       }
@@ -1241,7 +1566,8 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     // `find -delete` writes the paths it was given.
     const findDelete = name === 'find' && args.some((word) => word.literal && word.value === '-delete');
     const write = WRITE_COMMANDS.has(name) || findDelete;
-    const writesLast = name === 'cp' || (name === 'install' && !directoryInstall);
+    const rsyncListOnly = name === 'rsync' && args.some((word) => word.literal && !word.hidesCommand && word.value === '--list-only');
+    const writesLast = name === 'cp' || (name === 'install' && !directoryInstall) || (name === 'rsync' && !rsyncListOnly);
     for (const [index, value] of positional.entries()) {
       const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesLast ? index === positional.length - 1 : write;
       notePath(value, isWrite, base);
@@ -1367,6 +1693,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (name === 'find' && tail.some((value) => ['-exec', '-execdir', '-ok', '-okdir'].includes(value))) {
           distrust('find -exec runs a command the analyzer does not follow');
         }
+        if (INLINE_SHELLS.has(name) && loginShell(tail)) {
+          distrust(`${name} is a login shell, which sources startup files the analyzer cannot see through`);
+        }
         if (INLINE_SHELLS.has(name)) {
           const inline = inlineShellBody([name, ...tail]);
           if (inline !== undefined && inline !== '') {
@@ -1381,7 +1710,32 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
             visit(args.join(' '), depth + 1, cwd);
           }
         }
-        collectOperands(name, words.slice(headIndex + 1), cwd);
+        if (name === 'git') {
+          const inspected = inspectGit(words.slice(headIndex + 1));
+          if (inspected.untrusted !== undefined) {
+            distrust(inspected.untrusted);
+          }
+          for (const entry of inspected.directories) {
+            if (!entry.literal) {
+              distrust('the directory target is built by an expansion');
+              continue;
+            }
+            const resolved = directoryTarget(entry.value, home, cwd);
+            if (resolved.unknown !== undefined) {
+              distrust(resolved.unknown);
+            } else if (resolved.target !== undefined && resolved.target !== '.') {
+              directories.push(resolved.target);
+              if (entry.kind === 'enter') {
+                cwd = resolved.target.startsWith('/') ? resolved.target : `${cwd ?? '.'}/${resolved.target}`;
+              }
+            }
+          }
+          for (const operand of inspected.operands) {
+            notePath(operand, false, cwd);
+          }
+        } else {
+          collectOperands(name, words.slice(headIndex + 1), cwd);
+        }
         if (name === 'cd' || name === 'pushd') {
           const args = words
             .slice(headIndex + 1)

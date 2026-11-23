@@ -7,7 +7,7 @@ import type { Decision, Policy, RuleKind, ToolFailure } from '../types.ts';
 import { analyzeShellCommand } from './command.ts';
 import { type LoadedConfig, loadConfig, type PiToolsConfig } from './config.ts';
 import { LayerError } from './errors.ts';
-import { createIgnoreResolver, type IgnoreResolver } from './ignore.ts';
+import { createIgnoreResolver, type IgnoreResolver, ignoreRefusal } from './ignore.ts';
 import { canonicalPath, displayPath, policySubjects } from './paths.ts';
 import { decideMany, isInsideWorkspace, ruleMatches } from './policy.ts';
 import { createReadFence, type ReadFence } from './read-fence.ts';
@@ -284,6 +284,16 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
     if (denied) {
       throw denial({ kind: 'permission_denied', message: `Blocked by permissions configuration (rule: ${denied.pattern})`, path: named });
     }
+    // Display against the cwd the tool was given. `named` is canonical, and on macOS that
+    // `/private` prefix stops `displayPath` from matching the workspace spelling the tools use.
+    const spelled = path.resolve(cwd, use.path);
+    const ignoreFile = await session.ignore.describe(named);
+    if (ignoreFile !== undefined) {
+      throw denial({ kind: 'permission_denied', message: ignoreRefusal(ctx?.cwd ?? cwd, spelled, ignoreFile), path: spelled });
+    }
+    if (use.write && (await isProtectedIgnoreFile(session, named))) {
+      throw denial({ kind: 'permission_denied', message: `Blocked: ${path.basename(named)} is protected and cannot be changed by the agent`, path: named });
+    }
     if (!use.write) {
       continue;
     }
@@ -342,9 +352,17 @@ export function egressSubject(raw: string): string {
   }
 }
 
-/** Same path, or a continuation at a `/` boundary. A trailing slash does not create a new segment. */
+/** Same path, or a continuation at a `/` boundary. A trailing slash does not create a new segment. Percent-encoded octets are decoded first. */
 function pathCovers(rulePath: string, subjectPath: string): boolean {
-  const normalize = (value: string): string => (value.length > 1 ? value.replace(/\/+$/, '') : value).toLowerCase();
+  const normalize = (value: string): string => {
+    let decoded = value;
+    try {
+      decoded = decodeURIComponent(value);
+    } catch {
+      // A stray % is not a different path. Compare the text as written.
+    }
+    return (decoded.length > 1 ? decoded.replace(/\/+$/, '') : decoded).toLowerCase();
+  };
   const rule = normalize(rulePath);
   const subject = normalize(subjectPath);
   if (rule === '/' || rule === '') {
@@ -355,9 +373,9 @@ function pathCovers(rulePath: string, subjectPath: string): boolean {
 
 /**
  * A rule with no glob that parses as a URL covers that origin and every path beneath it.
- * Scheme and host must match. A rule that names no port covers any port; a rule that names one
- * covers only that port. The subject's query and fragment are ignored. Returns undefined when
- * either side is not a URL, so wildcard rules stay on minimatch.
+ * Scheme and host must match. A trailing dot on either host is ignored. A rule that names no port
+ * covers any port; a rule that names one covers only that port. The subject's query and fragment are
+ * ignored. Returns undefined when either side is not a URL, so wildcard rules stay on minimatch.
  */
 function urlPrefixCovers(pattern: string, subject: string): boolean | undefined {
   let rule: URL;
@@ -368,7 +386,9 @@ function urlPrefixCovers(pattern: string, subject: string): boolean | undefined 
   } catch {
     return undefined;
   }
-  if (rule.protocol !== target.protocol || rule.hostname !== target.hostname) {
+  const ruleHost = rule.hostname.replace(/\.+$/, '');
+  const targetHost = target.hostname.replace(/\.+$/, '');
+  if (rule.protocol !== target.protocol || ruleHost !== targetHost) {
     return false;
   }
   if (rule.port !== '' && rule.port !== target.port) {

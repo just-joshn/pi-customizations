@@ -10,7 +10,7 @@ import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, repairArguments } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
-import { countLines, detectEol, normalizeEol, sha256Hex, stripBom } from '../core/text.ts';
+import { countLines, decodeUtf8, detectEol, normalizeEol, sha256Hex, stripBom } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { FileMetadata, ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -235,7 +235,11 @@ export function createEditLayerTool(options: EditToolOptions) {
                 }
               }
 
-              const { bom, text: original } = stripBom(before.toString('utf-8'));
+              const decoded = decodeUtf8(before);
+              if (decoded === undefined) {
+                throw layerError('invalid_file', `File content is not valid UTF-8 text: ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
+              }
+              const { bom, text: original } = stripBom(decoded);
               const normalized = normalizeEol(original);
               const { ranges, replaced } = collectRanges(normalized, params.edits, displayPath(ctx.cwd, target));
               const updated = applyRanges(normalized, ranges);

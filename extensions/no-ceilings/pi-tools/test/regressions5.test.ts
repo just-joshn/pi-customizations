@@ -328,7 +328,8 @@ describe('finding 7: literal shell paths obey read and write rules', () => {
       expect(textOf(readable)).toContain('public');
 
       const git = await h.call('bash', { command: 'git add denied.txt' });
-      expect(textOf(git)).not.toContain('Blocked by permissions configuration');
+      expect(git.isError).toBe(true);
+      expect(textOf(git)).toContain('rule: **/denied.txt');
     } finally {
       await h.cleanup();
     }

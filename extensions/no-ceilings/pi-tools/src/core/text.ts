@@ -68,6 +68,18 @@ export function decodeBase64(content: string): Buffer {
   return Buffer.from(compact, 'base64');
 }
 
+/**
+ * UTF-8 text, or undefined when the bytes are not valid UTF-8.
+ * Invalid sequences are rejected instead of being replaced with U+FFFD. A leading BOM is kept.
+ */
+export function decodeUtf8(bytes: Uint8Array): string | undefined {
+  try {
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  } catch {
+    return undefined;
+  }
+}
+
 const BINARY_SAMPLE_BYTES = 8000;
 
 /** Heuristic binary detection: a NUL byte or a high share of control characters in the sample. */

@@ -9,7 +9,7 @@ import { withFileQueues } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
-import { sha256Hex } from '../core/text.ts';
+import { decodeUtf8 } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -52,29 +52,39 @@ interface PlannedFile {
   readonly removed: number;
   readonly action: 'write' | 'delete';
   readonly content?: string;
+  /** Exact bytes for a move that has no hunks. Absent when the patch rewrites text. */
+  readonly bytes?: Buffer;
   readonly createsParent: boolean;
-  /** Content of the target before the patch, for rollback. Undefined when the target did not exist. */
-  readonly original?: string;
-  /** Content of the move destination before the patch, for rollback. Undefined when it did not exist. */
-  readonly destinationOriginal?: string;
+  /** Bytes of the target before the patch, for rollback. Undefined when the target did not exist. */
+  readonly original?: Buffer;
+  /** Bytes of the move destination before the patch, for rollback. Undefined when it did not exist. */
+  readonly destinationOriginal?: Buffer;
 }
 
-async function verifyWrite(target: string, expected: string, cwd: string): Promise<void> {
+async function verifyBytes(target: string, expected: Uint8Array, cwd: string): Promise<void> {
   const after = await readFile(target);
-  if (sha256Hex(after) !== sha256Hex(Buffer.from(expected, 'utf-8'))) {
+  if (!after.equals(expected)) {
     throw layerError('error', `Patch verification failed: ${displayPath(cwd, target)} does not contain the patched text.`, { path: target });
   }
 }
 
-async function readExisting(target: string): Promise<string | undefined> {
+async function readExisting(target: string): Promise<Buffer | undefined> {
   try {
-    return (await readFile(target)).toString('utf-8');
+    return await readFile(target);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return undefined;
     }
     throw error;
   }
+}
+
+function utf8Text(bytes: Buffer, target: string, cwd: string): string {
+  const text = decodeUtf8(bytes);
+  if (text === undefined) {
+    throw layerError('invalid_file', `File content is not valid UTF-8 text: ${displayPath(cwd, target)}. Nothing was written.`, { path: target });
+  }
+  return text;
 }
 
 export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
@@ -157,9 +167,10 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                   throw layerError('file_not_found', `Cannot delete ${displayPath(ctx.cwd, target)}: it does not exist. Nothing was written.`, { path: target });
                 }
                 if (file.hunks.length > 0) {
+                  const text = utf8Text(original, target, ctx.cwd);
                   let remaining: string[];
                   try {
-                    remaining = applyHunks(splitLines(original), file.hunks, displayPath(ctx.cwd, target));
+                    remaining = applyHunks(splitLines(text), file.hunks, displayPath(ctx.cwd, target));
                   } catch (error) {
                     throw staleOrError(error, target, ctx.cwd);
                   }
@@ -183,14 +194,24 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
               if (original === undefined) {
                 throw layerError('file_not_found', `Cannot update ${displayPath(ctx.cwd, target)}: it does not exist. Nothing was written.`, { path: target });
               }
+              // A move with no hunks never decodes the file. The bytes at the destination must match the source.
+              if (file.hunks.length === 0) {
+                if (destination === target) {
+                  throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
+                }
+                const destinationOriginal = await readExisting(destination);
+                actions.push({ file, target, destination, added, removed, action: 'write', bytes: original, createsParent: true, original, ...(destinationOriginal === undefined ? {} : { destinationOriginal }) });
+                continue;
+              }
+              const text = utf8Text(original, target, ctx.cwd);
               let lines: string[];
               try {
-                lines = applyHunks(splitLines(original), file.hunks, displayPath(ctx.cwd, target));
+                lines = applyHunks(splitLines(text), file.hunks, displayPath(ctx.cwd, target));
               } catch (error) {
                 throw staleOrError(error, target, ctx.cwd);
               }
-              const content = rebuildPatched(original, lines, file.noNewlineAtEnd === true);
-              if (destination === target && content === original) {
+              const content = rebuildPatched(text, lines, file.noNewlineAtEnd === true);
+              if (destination === target && content === text) {
                 throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
               }
               const destinationOriginal = destination === target ? original : await readExisting(destination);
@@ -207,9 +228,9 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                 if (action.createsParent) {
                   await createMissingParents(path.dirname(action.destination), created);
                 }
-                const content = action.content ?? '';
-                await writeFile(action.destination, content, 'utf-8');
-                await verifyWrite(action.destination, content, ctx.cwd);
+                const payload = action.bytes ?? Buffer.from(action.content ?? '', 'utf8');
+                await writeFile(action.destination, payload);
+                await verifyBytes(action.destination, payload, ctx.cwd);
                 if (action.destination !== action.target) {
                   await unlink(action.target);
                 }
@@ -259,7 +280,7 @@ async function rollback(actions: readonly PlannedFile[], created: readonly strin
         if (original === undefined) {
           await rm(target, { force: true });
         } else {
-          await writeFile(target, original, 'utf-8');
+          await writeFile(target, original);
         }
       } catch {
         // Best effort: the original error is what the caller needs to see.
