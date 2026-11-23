@@ -1,6 +1,6 @@
 import { TWO, ZERO } from './types.ts';
 
-export const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'diff-files', 'diff-index', 'whatchanged']);
+export const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'whatchanged']);
 
 const DANGEROUS_DIFF_FLAGS = ['--ext-diff', '--textconv'];
 const SAFE_DIFF_FLAGS = ['--no-ext-diff', '--no-textconv'];

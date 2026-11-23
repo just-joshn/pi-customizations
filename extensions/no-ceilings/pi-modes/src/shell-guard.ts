@@ -56,28 +56,7 @@ const READ_ONLY_COMMANDS = new Set<string>([
   'sed',
 ]);
 
-const GIT_READ_SUBCOMMANDS = new Set<string>([
-  'status',
-  'log',
-  'diff',
-  'show',
-  'rev-parse',
-  'rev-list',
-  'describe',
-  'ls-files',
-  'ls-tree',
-  'blame',
-  'shortlog',
-  'merge-base',
-  'cat-file',
-  'for-each-ref',
-  'whatchanged',
-  'diff-tree',
-  'diff-files',
-  'diff-index',
-  'name-rev',
-  'show-ref',
-]);
+const GIT_READ_SUBCOMMANDS = new Set<string>(['log', 'diff', 'show', 'rev-parse', 'rev-list', 'describe', 'ls-files', 'ls-tree', 'shortlog', 'merge-base', 'cat-file', 'for-each-ref', 'whatchanged', 'diff-tree', 'name-rev', 'show-ref']);
 
 /** Flags that make an otherwise read-only command write or execute. */
 const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
@@ -462,7 +441,7 @@ function isSafeSedScript(script: string): boolean {
   return true;
 }
 
-function sedScripts(words: readonly string[]): readonly string[] {
+function sedScripts(words: readonly string[]): readonly string[] | undefined {
   const scripts: string[] = [];
   let hasExpressionOption = false;
   for (let index = 1; index < words.length; index += 1) {
@@ -498,6 +477,9 @@ function sedScripts(words: readonly string[]): readonly string[] {
         }
       }
       continue;
+    }
+    if (word.startsWith('--')) {
+      return undefined;
     }
     if (word.startsWith('-')) {
       continue;
@@ -544,6 +526,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   // Skip the global options that only choose the repository or the pager.
   let subcommandIndex = 1;
   let noOptionalLocks = false;
+  let fsmonitorOff = false;
   while (subcommandIndex < words.length) {
     const word = words[subcommandIndex];
     if (word === '-C') {
@@ -553,6 +536,14 @@ function isAllowedGit(words: readonly string[]): boolean {
     if (word === '--no-optional-locks') {
       noOptionalLocks = true;
       subcommandIndex += 1;
+      continue;
+    }
+    if (word === '-c') {
+      if (words[subcommandIndex + 1] !== 'core.fsmonitor=false') {
+        return false;
+      }
+      fsmonitorOff = true;
+      subcommandIndex += 2;
       continue;
     }
     if (word === '--no-pager' || word === '--paginate' || word === '-P') {
@@ -569,18 +560,21 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
     return false;
   }
-  if (subcommand === 'status') {
-    const options = gitOptionWords(args.slice(1));
-    return noOptionalLocks && !hasShortLetter(options, ['v']) && !hasLongFlag(options, ['--verbose']);
-  }
   if (subcommand === 'show' && hasSignatureFormat(args.slice(1))) {
     return false;
   }
-  if (subcommand === 'diff' || subcommand === 'diff-files' || subcommand === 'diff-index') {
-    return noOptionalLocks && isAllowedDiffArgs(args);
+  if (subcommand === 'diff') {
+    const options = gitOptionWords(args.slice(1));
+    return noOptionalLocks && fsmonitorOff && (options.includes('--cached') || options.includes('--staged')) && isAllowedDiffArgs(args);
+  }
+  if (subcommand === 'diff-files' || subcommand === 'diff-index') {
+    return false;
   }
   if (subcommand === 'ls-files') {
-    return noOptionalLocks;
+    return noOptionalLocks && fsmonitorOff;
+  }
+  if (subcommand === 'describe') {
+    return noOptionalLocks && fsmonitorOff && !hasLongFlag(args.slice(1), ['--dirty', '--broken']);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
@@ -591,10 +585,6 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'cat-file') {
     return !hasLongFlag(args.slice(1), ['--textconv', '--filters']);
-  }
-  if (subcommand === 'blame') {
-    const flags = args.slice(1);
-    return !hasLongFlag(flags, ['--textconv']) && flags.includes('--no-textconv');
   }
   if (GIT_READ_SUBCOMMANDS.has(subcommand)) {
     return true;
@@ -618,7 +608,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'grep') {
     const flags = args.slice(1);
-    return !hasLongFlag(flags, ['--textconv', '--open-files-in-pager']) && !flags.some((arg) => arg.startsWith('-') && !arg.startsWith('--') && arg.slice(ONE).includes('O'));
+    return noOptionalLocks && fsmonitorOff && !hasLongFlag(flags, ['--textconv', '--open-files-in-pager']) && !flags.some((arg) => arg.startsWith('-') && !arg.startsWith('--') && arg.slice(ONE).includes('O'));
   }
   if (subcommand === 'branch') {
     return isAllowedBranchArgs(args.slice(1));
@@ -748,7 +738,8 @@ function isAllowedSegment(words: readonly string[]): boolean {
     return false;
   }
   if (command === 'sed') {
-    return sedScripts(args).every(isSafeSedScript);
+    const scripts = sedScripts(args);
+    return scripts !== undefined && scripts.every(isSafeSedScript);
   }
   if (command === 'uniq') {
     return isAllowedUniqArgs(args);

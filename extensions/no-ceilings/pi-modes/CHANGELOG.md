@@ -33,10 +33,10 @@
 - Read-only shell guard rejects `git branch --color` and cosmetic tag flags as ref creation, zsh `=(...)` process substitution, BSD `sed -I`, and package-manager `audit --fix=...`.
 - Read-only shell guard rejects `>&<digit><suffix>` redirects, while keeping `2>&1` and `>&2`. Startup `--mode` and `--plan` selections now persist their state and tool baseline, so resume restores the mode and `/mode agent` restores edit and write.
 - Read-only shell guard rejects `git grep` pager flags inside short-option clusters. Bun is restricted to its real read-only verbs, so `bun view`, `bun ls`, and `bun search` cannot fall through to package scripts.
-- Read-only shell guard rejects unquoted parentheses, so bash function definitions and subshells cannot hide commands. `less` and `more` are no longer allowlisted. Git diff safe flags must appear before `--`, and `git status -v`/`-vv` is refused because it runs textconv.
+- Read-only shell guard rejects unquoted parentheses, so bash function definitions and subshells cannot hide commands. `less` and `more` are no longer allowlisted. Git diff safe flags must appear before `--`.
 - Read-only shell guard treats `git log -L` and patch-producing `git stash list` options as diff-producing, and refuses gawk `-i`, `--include`, `@include`, and `@load`.
 - Read-only shell guard removes `awk` from the allowlist, closing gawk write and execution paths.
-- Read-only shell guard requires global `git --no-optional-locks` for status and index-refreshing reads, refuses `git tag -v`, `git log --show-signature`, `%G` signature formats, and `git remote show`, and denies `sort -T`.
+- Read-only shell guard requires `-c core.fsmonitor=false` and `--no-optional-locks` for grep, ls-files, and cached diffs; refuses status, worktree diff, blame, dirty or broken describe, tag verification, signature formats, and remote show; and denies sort temporary directories and sed long-option abbreviations.
 - User prompts and extension triggers both start runs with mode guidance. If the transcript is compacted, Pi gets the same entry, exit, and one-message skill instructions for that run.
 - The mode picker disambiguates a custom row that matches a built-in row, and `/mode <title starting with a built-in name>` resolves the full title instead of the built-in.
 - Resuming a custom mode no longer writes a duplicate copy of its state.
