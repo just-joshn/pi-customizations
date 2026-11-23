@@ -17,8 +17,16 @@ const GIT_HELP_PATTERN = /\bgit\b[^|;&\n]*\s--help\b/i;
 const GIT_REMOTE_SHOW_PATTERN = /\bgit\s+remote\s+show\b/i;
 const DANGEROUS_GIT_OPTION_PATTERNS: readonly RegExp[] = [GIT_GREP_PAGER_PATTERN, GIT_EXT_DIFF_PATTERN, GIT_OUTPUT_PATTERN, GIT_HELP_PATTERN, GIT_REMOTE_SHOW_PATTERN];
 
+function normalizeCommandText(command: string): string {
+  return command
+    .replace(/\\([0-7]{1,3})/g, (_match, octal: string) => String.fromCharCode(Number.parseInt(octal, 8)))
+    .replace(/\\x([0-9a-fA-F]{1,2})/g, (_match, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)))
+    .replace(/\\(.)/g, '$1')
+    .replace(/["']/g, '');
+}
+
 function hasDangerousGitOption(command: string): boolean {
-  const normalized = command.replace(/["'\\]/g, '');
+  const normalized = normalizeCommandText(command);
   return DANGEROUS_GIT_OPTION_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
@@ -169,16 +177,13 @@ function hasUnquotedShellExpansion(command: string): boolean {
   return false;
 }
 
-function startsWithGit(segment: string): boolean {
-  return /^\s*git\b/.test(segment);
-}
-
 function isSingleReadOnlySegment(segment: string): boolean {
   const trimmed = segment.trim();
   if (!trimmed) {
     return false;
   }
-  if (hasUnquotedRedirect(trimmed) || hasDangerousGitOption(trimmed) || (startsWithGit(trimmed) && hasUnquotedShellExpansion(trimmed)) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+  const normalized = normalizeCommandText(trimmed);
+  if (hasUnquotedRedirect(trimmed) || hasDangerousGitOption(trimmed) || hasUnquotedShellExpansion(trimmed) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed) || pattern.test(normalized))) {
     return false;
   }
   return SAFE_READONLY_PREFIXES.some((pattern) => pattern.test(trimmed));
@@ -378,11 +383,12 @@ function hasUnquotedLineContinuation(command: string): boolean {
 }
 
 function blocksExternalViewer(command: string): boolean {
-  return hasUnquotedLineContinuation(command) || hasDangerousGitOption(command) || (/\bgit\b/.test(command) && hasUnquotedShellExpansion(command));
+  const normalized = normalizeCommandText(command);
+  return hasUnquotedLineContinuation(command) || hasUnquotedShellExpansion(command) || hasDangerousGitOption(command) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 function blockedReadonlyCommand(): string {
-  return `printf '%s\\n' ${shellQuote('read-only Git helper commands are blocked')} >&2; exit 1`;
+  return `printf '%s\\n' ${shellQuote('read-only command is blocked')} >&2; exit 1`;
 }
 
 /** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Git helper neutralization runs on every platform. */
