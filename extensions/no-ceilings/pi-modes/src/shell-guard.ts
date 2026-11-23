@@ -220,8 +220,16 @@ function lexCommand(command: string): LexedCommand {
     if (char === DOLLAR && command[index + 1] === OPEN_PAREN) {
       safe = false;
     }
-    if (char === LESS_THAN && command[index + 1] === OPEN_PAREN) {
-      safe = false;
+    if (char === LESS_THAN) {
+      if (command[index + 1] === OPEN_PAREN) {
+        safe = false;
+        index += 1;
+        continue;
+      }
+      // Input redirection is read-only, but it must not become part of a flag word.
+      endWord();
+      index += 1;
+      continue;
     }
     if (char === '\n') {
       endSegment();
@@ -677,6 +685,7 @@ function isAllowedUniqArgs(words: readonly string[]): boolean {
       continue;
     }
     positional += 1;
+    options = false;
   }
   return positional <= ONE;
 }

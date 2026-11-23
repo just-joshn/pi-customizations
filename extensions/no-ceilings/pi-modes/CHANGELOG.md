@@ -39,6 +39,7 @@
 - Read-only shell guard requires `-c core.fsmonitor=false` and `--no-optional-locks` for grep, ls-files, and cached diffs; refuses status, worktree diff, blame, dirty or broken describe, tag verification, signature formats, and remote show; and denies sort temporary directories and sed long-option abbreviations.
 - Read-only shell guard refuses `git apply` entirely, requires the fsmonitor guard for `git diff-tree`, and refuses `git show --show-signature`.
 - Read-only shell guard ends the word at a non-numeric `>&<digit>` redirect, closing hidden write and execute flags, and refuses `file -p` and `--preserve-date` timestamp writes.
+- Read-only shell guard ends the word at input redirects and stops uniq option parsing at the first operand, closing `-exec</dev/null` and `-`-prefixed output-file bypasses.
 - User prompts and extension triggers both start runs with mode guidance. If the transcript is compacted, Pi gets the same entry, exit, and one-message skill instructions for that run.
 - The mode picker disambiguates a custom row that matches a built-in row, and `/mode <title starting with a built-in name>` resolves the full title instead of the built-in.
 - Resuming a custom mode no longer writes a duplicate copy of its state.
