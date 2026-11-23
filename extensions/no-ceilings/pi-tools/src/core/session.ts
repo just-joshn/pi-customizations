@@ -282,7 +282,7 @@ function decideExec(policy: Policy, segments: readonly string[]): Decision {
  */
 export async function guardCommand(session: LayerSession, command: string, cwd: string, ctx?: LayerContext, home: string = session.home): Promise<void> {
   const canonicalCwd = await canonicalPath(cwd);
-  const analysis = analyzeShellCommand(command, home);
+  const analysis = analyzeShellCommand(command, home, canonicalCwd);
   if (analysis.untrusted !== undefined) {
     throw denial({
       kind: 'permission_denied',

@@ -108,7 +108,6 @@ describe('finding 7: git log and git show print whole file bodies', () => {
 
     // A path operand narrows the log, and a path operand or a summary flag narrows the show.
     for (const command of [
-      'git log -p -- .',
       'git log -p -- src/file.ts',
       'git log --patch -- keep.txt',
       'git log -n 5',
@@ -126,6 +125,10 @@ describe('finding 7: git log and git show print whole file bodies', () => {
     }
     for (const command of ['git log', 'git log --oneline', 'git log -1', 'git diff', 'git diff -- .env']) {
       expect(untrustedOf(command), command).toBeUndefined();
+    }
+    // Round 13: a pathspec that can name a directory leaves every file body in the diff, so `.` no longer narrows.
+    for (const command of ['git log -p -- .', 'git show HEAD -- .', 'git log -p -- ./.']) {
+      expect(untrustedOf(command), command).toContain('the commit diff prints the body of every file it touches');
     }
 
     const h = await repository();

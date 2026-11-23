@@ -7,7 +7,9 @@
  * Brace expansion and command substitutions are refused rather than guessed. Anything outside that grammar
  * is marked untrusted and the caller refuses the command, so a new spelling cannot slip past a rule.
  */
+import { statSync } from 'node:fs';
 import { homedir, userInfo } from 'node:os';
+import path from 'node:path';
 
 /** Wrappers whose remaining arguments are the command, with the flags that consume a value. */
 interface WrapperSpec {
@@ -85,11 +87,26 @@ const PATCH_REASON = 'the patch file names the paths this command writes, and th
 /** Why a git reader that prints a whole commit diff is refused: every file body in it is unread by rule. */
 const GIT_DIFF_REASON = 'the commit diff prints the body of every file it touches, so the analyzer cannot see which files it reads';
 
+/** Why `git cat-file` is refused: a raw object id or a batch form prints an object no operand names. */
+const GIT_CAT_FILE_REASON = 'the command prints git objects it picks by id or in bulk, so the analyzer cannot see which files it reads';
+
+/** Why `git fast-export` is refused: the stream holds the body of every file the history touched. */
+const GIT_FAST_EXPORT_REASON = 'the export streams the body of every file in the history, so the analyzer cannot see which files it reads';
+
+/** A raw object id, optionally peeled, which names an object instead of a file the rules can match. */
+const GIT_OBJECT_ID = /^[0-9a-fA-F]{4,40}(?:\^\{[^}]*\})?$/;
+
 /** Why `git grep` is refused: it picks the files itself, so no rule sees the paths it opens. */
 const GIT_GREP_REASON = 'git grep walks the files git chooses, so the analyzer cannot see which files it reads';
 
 /** Why `git init --template` is refused: the template installs hooks this layer never reads. */
 const GIT_TEMPLATE_REASON = 'a template installs hooks the analyzer does not read';
+
+/** Why `git checkout-index` is refused: it writes the files its index names, and no operand names them. */
+const GIT_CHECKOUT_INDEX_REASON = 'the command writes the files its index names, so the analyzer cannot see which files it writes';
+
+/** Why `git mv --target-directory` is refused: the moved file lands under a name the command never spells out. */
+const GIT_MOVE_TARGET_REASON = 'the moved file lands under a name the command does not spell out';
 
 /** `git log` and `git show` long options that print the whole commit diff. */
 const GIT_PATCH_FLAGS = new Set(['--patch', '--full-diff']);
@@ -1637,7 +1654,7 @@ interface GitDestinationSpec {
   /** Short option letters that consume a value which is not a destination. */
   readonly valueShort: readonly string[];
   /** Which positional operand is the destination, after options are removed. */
-  readonly positional: 'none' | 'first' | 'second';
+  readonly positional: 'none' | 'first' | 'second' | 'last';
 }
 
 interface GitOperands {
@@ -1648,12 +1665,14 @@ interface GitOperands {
 
 const GIT_DESTINATIONS: ReadonlyMap<string, GitDestinationSpec> = new Map([
   ['apply', { writeLong: ['--directory'], writeShort: [], valueLong: ['--exclude', '--include', '--whitespace', '--build-fake-ancestor'], valueShort: ['p', 'C'], positional: 'none' }],
-  ['init', { writeLong: [], writeShort: [], valueLong: ['--template', '--separate-git-dir', '--object-format', '--ref-format', '--initial-branch'], valueShort: ['b'], positional: 'first' }],
+  ['init', { writeLong: ['--separate-git-dir'], writeShort: [], valueLong: ['--template', '--object-format', '--ref-format', '--initial-branch'], valueShort: ['b'], positional: 'first' }],
+  // `git mv` writes its last operand and reads every source before it.
+  ['mv', { writeLong: [], writeShort: [], valueLong: [], valueShort: [], positional: 'last' }],
   ['archive', { writeLong: ['--output'], writeShort: ['o'], valueLong: ['--format', '--prefix', '--add-file', '--add-virtual-file', '--mtime', '--remote', '--exec'], valueShort: [], positional: 'none' }],
   [
     'clone',
     {
-      writeLong: [],
+      writeLong: ['--separate-git-dir'],
       writeShort: [],
       valueLong: [
         '--jobs',
@@ -1667,7 +1686,6 @@ const GIT_DESTINATIONS: ReadonlyMap<string, GitDestinationSpec> = new Map([
         '--depth',
         '--shallow-since',
         '--shallow-exclude',
-        '--separate-git-dir',
         '--ref-format',
         '--config',
         '--server-option',
@@ -1767,8 +1785,48 @@ function gitTemplateFlag(args: readonly Word[]): boolean {
   return args.some((word) => word.literal && !word.hidesCommand && (word.value === '--template' || word.value.startsWith('--template=')));
 }
 
+/** True when pathspec magic only removes a path, which leaves every other file body in the diff. */
+function gitPathspecExcludes(value: string): boolean {
+  if (!value.startsWith(':')) {
+    return false;
+  }
+  const magic = value.slice(1);
+  if (magic.startsWith('(')) {
+    const close = magic.indexOf(')');
+    const flags = close === -1 ? magic.slice(1) : magic.slice(1, close);
+    return flags.split(',').some((flag) => flag === 'exclude' || flag.startsWith('!') || flag.startsWith('^'));
+  }
+  return magic.startsWith('!') || magic.startsWith('^');
+}
+
+/**
+ * True when a pathspec narrows a commit diff to one file. A directory, a trailing slash, a glob, and an
+ * exclusion pathspec each leave other file bodies in the output, so only a path that stats as a file counts.
+ * A path that does not exist cannot name a directory, so it counts as narrowing.
+ */
+function gitPathspecNarrows(value: string, dir: string | undefined): boolean {
+  if (dir === undefined || gitPathspecExcludes(value)) {
+    return false;
+  }
+  const target = gitPathspecPath(value);
+  if (target === '' || target.endsWith('/') || /[*?[]/.test(target)) {
+    return false;
+  }
+  // `.` and `..` name a directory whatever the filesystem says, and both resolve to git's root form.
+  const normalized = path.normalize(target);
+  if (normalized === '.' || normalized === '..') {
+    return false;
+  }
+  try {
+    return !statSync(path.resolve(dir, normalized)).isDirectory();
+  } catch (error) {
+    // A path that is only in history is not on disk, and it cannot name a directory either.
+    return (error as NodeJS.ErrnoException).code === 'ENOENT';
+  }
+}
+
 /** What `git log` or `git show` prints: the whole commit diff unless a path narrows it. */
-function gitCommitOutput(args: readonly Word[]): { readonly patch: boolean; readonly summary: boolean; readonly narrowed: boolean } {
+function gitCommitOutput(args: readonly Word[], dir: string | undefined): { readonly patch: boolean; readonly summary: boolean; readonly narrowed: boolean } {
   let patch = false;
   let summary = false;
   let narrowed = false;
@@ -1814,19 +1872,104 @@ function gitCommitOutput(args: readonly Word[]): { readonly patch: boolean; read
       }
       continue;
     }
-    // A revision prints the whole commit; a pathspec, an explicit path, or a `rev:path` names a file the layer can check.
-    const explicitPath = value.startsWith('./') || value.startsWith('../') || value.startsWith('/');
-    if (!options || explicitPath || gitPathspecPath(value) !== value || gitRevisionPath(value) !== undefined) {
+    // A revision prints the whole commit. A `rev:path` names the blob git opens. Every other operand is a
+    // pathspec, which narrows only when it names one file instead of a directory, a glob, or an exclusion.
+    if (!options) {
+      narrowed ||= gitPathspecNarrows(value, dir);
+      continue;
+    }
+    if (gitRevisionPath(value) !== undefined) {
       narrowed = true;
+      continue;
+    }
+    const explicitPath = value.startsWith('./') || value.startsWith('../') || value.startsWith('/');
+    if (explicitPath || gitPathspecPath(value) !== value) {
+      narrowed ||= gitPathspecNarrows(value, dir);
     }
   }
   return { patch, summary, narrowed };
 }
 
-/** Why a git reader prints file bodies the analyzer cannot check, or undefined when its output is narrow. */
-function gitOutputRefusal(subcommand: string, args: readonly Word[]): string | undefined {
+/**
+ * True when `git mv` names a target directory. The moved file takes a name from the directory, so the
+ * path the command writes is not in the argv. `-t` is the only `git mv` short flag that takes a value.
+ */
+function gitMoveTargetDirectory(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!options) {
+      return false;
+    }
+    const value = word.value;
+    if (!word.literal || word.hidesCommand) {
+      // An expansion can spell the flag itself, so the name the file lands under is unknown.
+      if (value.startsWith('-')) {
+        return true;
+      }
+      continue;
+    }
+    if (value === '--') {
+      options = false;
+      continue;
+    }
+    if (value.startsWith('--')) {
+      if (value === '--target-directory' || value.startsWith('--target-directory=')) {
+        return true;
+      }
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-' && value.slice(1).includes('t')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Why `git cat-file` is refused: a `--batch` form or a raw object id prints an object the argv does not name,
+ * so a blob behind a read rule reaches the output without a path for a rule to match.
+ */
+function gitCatFileRefusal(args: readonly Word[]): string | undefined {
+  let options = true;
+  for (const word of args) {
+    const value = word.value;
+    if (options && value === '--' && word.literal && !word.hidesCommand) {
+      options = false;
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      // An expansion can spell a `--batch` form or a raw id, and neither one is readable here.
+      return GIT_CAT_FILE_REASON;
+    }
+    if (value.startsWith('--batch')) {
+      return GIT_CAT_FILE_REASON;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      continue;
+    }
+    if (GIT_OBJECT_ID.test(value)) {
+      return GIT_CAT_FILE_REASON;
+    }
+  }
+  return undefined;
+}
+
+/** Why a git subcommand opens or writes paths the argv does not name, or undefined when every path it touches is spelled out. */
+function gitOpaqueReason(subcommand: string, args: readonly Word[], dir: string | undefined): string | undefined {
   if (subcommand === 'grep') {
     return GIT_GREP_REASON;
+  }
+  if (subcommand === 'fast-export') {
+    return GIT_FAST_EXPORT_REASON;
+  }
+  if (subcommand === 'cat-file') {
+    return gitCatFileRefusal(args);
+  }
+  if (subcommand === 'checkout-index') {
+    return GIT_CHECKOUT_INDEX_REASON;
+  }
+  if (subcommand === 'mv') {
+    return gitMoveTargetDirectory(args) ? GIT_MOVE_TARGET_REASON : undefined;
   }
   if (subcommand === 'init') {
     return gitTemplateFlag(args) ? GIT_TEMPLATE_REASON : undefined;
@@ -1834,7 +1977,7 @@ function gitOutputRefusal(subcommand: string, args: readonly Word[]): string | u
   if (subcommand !== 'log' && subcommand !== 'show') {
     return undefined;
   }
-  const output = gitCommitOutput(args);
+  const output = gitCommitOutput(args, dir);
   if (subcommand === 'log') {
     return output.patch && !output.narrowed ? GIT_DIFF_REASON : undefined;
   }
@@ -2094,6 +2237,11 @@ function gitDestinationPaths(spec: GitDestinationSpec, args: readonly Word[]): G
         noteRead(entry);
       }
     }
+  } else if (spec.positional === 'last' && positionals.length >= 2) {
+    for (const entry of positionals.slice(0, -1)) {
+      noteRead(entry);
+    }
+    noteWrite(positionals[positionals.length - 1]);
   } else {
     for (const entry of positionals) {
       noteRead(entry);
@@ -2122,8 +2270,26 @@ function gitDestinationPlan(subcommand: Word | undefined, args: readonly Word[])
   return gitDestinationPaths(spec, args);
 }
 
+/**
+ * The directory a git command runs in: the analyzer's logical `cwd` joined onto the real working directory,
+ * then every `-C` the argv spells. An expansion in a `-C` leaves the directory unknown.
+ */
+function gitWorkingDirectory(dir: string | undefined, enters: readonly GitDirectory[]): string | undefined {
+  let current = dir;
+  for (const entry of enters) {
+    if (entry.kind !== 'enter') {
+      continue;
+    }
+    if (current === undefined || !entry.literal) {
+      return undefined;
+    }
+    current = path.resolve(current, entry.value);
+  }
+  return current;
+}
+
 /** Global git options, the config-write verdict, and literal operands after the subcommand. */
-function inspectGit(args: readonly Word[]): GitCommand {
+function inspectGit(args: readonly Word[], root: string): GitCommand {
   const directories: GitDirectory[] = [];
   let index = 0;
   const pushDirectory = (word: Word | undefined, kind: GitDirectory['kind']): void => {
@@ -2174,6 +2340,8 @@ function inspectGit(args: readonly Word[]): GitCommand {
   }
   const subcommand = args[index];
   const rest = args.slice(index + 1);
+  // A pathspec narrows only if it cannot name a directory, and that needs the directory git runs in.
+  const gitDir = gitWorkingDirectory(root, directories);
   let untrusted: string | undefined;
   if (subcommand !== undefined && (!subcommand.literal || subcommand.hidesCommand)) {
     untrusted = 'the git subcommand comes from an expansion';
@@ -2186,7 +2354,7 @@ function inspectGit(args: readonly Word[]): GitCommand {
   } else if (subcommand !== undefined && gitStagesEverything(subcommand.value, rest)) {
     untrusted = GIT_STAGE_REASON;
   } else if (subcommand !== undefined) {
-    untrusted = gitOutputRefusal(subcommand.value, rest);
+    untrusted = gitOpaqueReason(subcommand.value, rest, gitDir);
   }
   const planned = gitDestinationPlan(subcommand, rest);
   if (planned?.untrusted !== undefined) {
@@ -2402,6 +2570,76 @@ function splitPaths(args: readonly Word[]): { readonly paths: readonly PathNote[
     return { paths, untrusted: 'the write target is built by an expansion' };
   }
   return { paths: [...paths, { path: prefix.value, write: true, ...(prefix.glob ? { glob: true } : {}) }] };
+}
+
+/** `uniq` and `xxd` read their first operand and write their second one. A lone operand only reads. */
+const READ_WRITE_FILE_COMMANDS = new Set(['uniq', 'xxd']);
+
+/** `uniq` short options that consume a value, so the word after one is a count and not a path. */
+const UNIQ_SHORT_VALUES = new Set(['f', 's', 'w']);
+const UNIQ_LONG_VALUES = new Set(['--skip-fields', '--skip-chars', '--check-chars']);
+
+/** `xxd` short options that consume a value. `xxd` also accepts the long spelling behind one or two dashes. */
+const XXD_SHORT_VALUES = new Set(['c', 'g', 'l', 's', 'o', 'n']);
+const XXD_LONG_VALUES = new Set(['-cols', '-groupsize', '-len', '-seek', '-offset', '-name', '--cols', '--groupsize', '--len', '--seek', '--offset', '--name']);
+
+/** `uniq` and `xxd` destinations: the second positional operand is the file the command writes. */
+function fileOutputPaths(name: string, args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const shortValues = name === 'uniq' ? UNIQ_SHORT_VALUES : XXD_SHORT_VALUES;
+  const longValues = name === 'uniq' ? UNIQ_LONG_VALUES : XXD_LONG_VALUES;
+  const positional: Word[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('--')) {
+      if (!word.value.includes('=') && longValues.has(word.value)) {
+        index++;
+      }
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('-') && word.value !== '-') {
+      if (longValues.has(word.value)) {
+        index++;
+        continue;
+      }
+      const body = word.value.slice(1);
+      const flag = body[0] ?? '';
+      // An attached value (`-l5`, `-f2`) stays in the same word, so only a bare flag skips the next word.
+      if (shortValues.has(flag) && body.length === 1) {
+        index++;
+      }
+      continue;
+    }
+    positional.push(word);
+  }
+  const paths: PathNote[] = [];
+  const input = positional[0];
+  if (input === undefined) {
+    return { paths };
+  }
+  if (!input.literal || input.hidesCommand) {
+    // An expansion can be an option word, which shifts every operand after it, so with two or more
+    // operands the analyzer cannot tell which one the command writes.
+    return positional.length < 2 ? { paths } : { paths, untrusted: 'an expansion in the first operand hides which operand the command writes' };
+  }
+  if (input.value !== '') {
+    paths.push({ path: input.value, write: false, ...(input.glob ? { glob: true } : {}) });
+  }
+  const output = positional[1];
+  if (output === undefined) {
+    return { paths };
+  }
+  if (!output.literal || output.hidesCommand) {
+    return { paths, untrusted: 'the write target is built by an expansion' };
+  }
+  return { paths: [...paths, { path: output.value, write: true, ...(output.glob ? { glob: true } : {}) }] };
 }
 
 /** Why a `curl` config file is refused: it sets output paths and URLs this layer never reads. */
@@ -2683,9 +2921,10 @@ export interface ShellAnalysis {
 /**
  * Analyze a shell command. Segments cover each command the shell would run plus the bodies of inline
  * shells, `eval`, and substitutions. `untrusted` reports a construct the analyzer will not vouch for,
- * so the caller can refuse it instead of matching a spelling the shell does not use.
+ * so the caller can refuse it instead of matching a spelling the shell does not use. `root` is the real
+ * directory the command runs in, which a git pathspec is stat'ed against.
  */
-export function analyzeShellCommand(command: string, home: string = homedir()): ShellAnalysis {
+export function analyzeShellCommand(command: string, home: string = homedir(), root: string = process.cwd()): ShellAnalysis {
   const segments = new Set<string>();
   const directories: string[] = [];
   const paths: ShellPath[] = [];
@@ -2724,6 +2963,16 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     }
     if (name === 'split') {
       const noted = splitPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
+    if (READ_WRITE_FILE_COMMANDS.has(name)) {
+      const noted = fileOutputPaths(name, args);
       if (noted.untrusted !== undefined) {
         distrust(noted.untrusted);
       }
@@ -3091,7 +3340,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           }
         }
         if (name === 'git') {
-          const inspected = inspectGit(words.slice(headIndex + 1));
+          // A pathspec narrows only if it cannot name a directory, so the analyzer stats it against the
+          // directory git runs in: the tracked logical cwd joined onto the tool's real working directory.
+          const inspected = inspectGit(words.slice(headIndex + 1), path.resolve(root, cwd ?? '.'));
           if (inspected.untrusted !== undefined) {
             distrust(inspected.untrusted);
           }

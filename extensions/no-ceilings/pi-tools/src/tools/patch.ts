@@ -8,7 +8,7 @@ import { displayPath, multiLinkReason, resolveToolPath, statOrUndefined } from '
 import { withFileQueues } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
+import { guard, guardReadDeny, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
 import { decodeUtf8 } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
@@ -162,6 +162,12 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
         for (const file of mergedFiles) {
           const target = path.resolve(base, file.path);
           const destination = file.moveTo === undefined ? target : path.resolve(base, file.moveTo);
+          // An update or delete opens its source, and a move copies the source bytes to a new name. The
+          // read deny decides first, in the order `edit` and `delete` use it, so a denied body never
+          // reaches a path the patch can read back. An add reads nothing, so it keeps only the write checks.
+          if (file.kind !== 'add') {
+            guardReadDeny(session, await subjectsFor(target));
+          }
           for (const candidate of new Set([target, destination])) {
             await guard(session, { kind: 'write', subjects: await subjectsFor(candidate), action: 'apply patch', ctx });
             const ignoreFile = await session.ignore.describe(candidate);
