@@ -43,6 +43,7 @@
 - Read-only shell guard refuses forced `bat --paging=always` and its unambiguous abbreviations.
 - Read-only shell guard refuses `/dev/tcp/` and `/dev/udp/` paths, requires log/show signature suppression and explicit formats, and refuses rev-list signature formats.
 - Read-only shell guard requires log/show signature flags before `--` and refuses whatchanged signature requests.
+- Read-only shell guard refuses input redirects entirely, refuses `git whatchanged`, and treats short patch clusters such as `-up` as diff-producing.
 - User prompts and extension triggers both start runs with mode guidance. If the transcript is compacted, Pi gets the same entry, exit, and one-message skill instructions for that run.
 - The mode picker disambiguates a custom row that matches a built-in row, and `/mode <title starting with a built-in name>` resolves the full title instead of the built-in.
 - Resuming a custom mode no longer writes a duplicate copy of its state.

@@ -56,7 +56,7 @@ const READ_ONLY_COMMANDS = new Set<string>([
   'sed',
 ]);
 
-const GIT_READ_SUBCOMMANDS = new Set<string>(['log', 'diff', 'show', 'rev-parse', 'rev-list', 'describe', 'ls-files', 'ls-tree', 'shortlog', 'merge-base', 'cat-file', 'for-each-ref', 'whatchanged', 'diff-tree', 'name-rev', 'show-ref']);
+const GIT_READ_SUBCOMMANDS = new Set<string>(['log', 'diff', 'show', 'rev-parse', 'rev-list', 'describe', 'ls-files', 'ls-tree', 'shortlog', 'merge-base', 'cat-file', 'for-each-ref', 'diff-tree', 'name-rev', 'show-ref']);
 
 /** Flags that make an otherwise read-only command write or execute. */
 const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
@@ -222,13 +222,8 @@ function lexCommand(command: string): LexedCommand {
       safe = false;
     }
     if (char === LESS_THAN) {
-      if (command[index + 1] === OPEN_PAREN) {
-        safe = false;
-        index += 1;
-        continue;
-      }
-      // Input redirection is read-only, but it must not become part of a flag word.
-      endWord();
+      // Input redirects can hide argv shifts, process substitution, and network pseudo-files.
+      safe = false;
       index += 1;
       continue;
     }
@@ -621,10 +616,6 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (subcommand === 'diff-tree') {
     const options = gitOptionWords(args.slice(1));
     return noOptionalLocks && fsmonitorOff && !hasLongFlag(options, ['--show-signature']) && !hasSignatureFormat(options) && isAllowedDiffArgs(args);
-  }
-  if (subcommand === 'whatchanged') {
-    const options = gitOptionWords(args.slice(1));
-    return !hasLongFlag(options, ['--show-signature']) && !hasSignatureFormat(options) && isAllowedDiffArgs(args);
   }
   if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
     return isAllowedDiffArgs(args);
