@@ -82,7 +82,7 @@ export type SubagentThinkingLevel = z.infer<typeof ThinkingLevelSchema>;
 
 export type SubagentPermissionMode = 'default' | 'readonly';
 
-export type SubagentSource = 'builtin' | 'workspace' | 'claude-workspace' | 'codex-workspace' | 'shared-workspace' | 'user' | 'claude-user' | 'codex-user' | 'shared-user' | 'configured';
+export type SubagentSource = 'builtin' | 'workspace' | 'claude-workspace' | 'codex-workspace' | 'shared-workspace' | 'user' | 'claude-user' | 'codex-user' | 'shared-user' | 'configured' | 'package';
 
 /** Per-model sampling parameters, copied onto a child model so they apply to every request. */
 const SubagentSamplingSchema = z

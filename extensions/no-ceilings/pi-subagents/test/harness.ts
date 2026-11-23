@@ -39,6 +39,7 @@ export interface HarnessOptions {
   readonly flags?: Readonly<Record<string, string>>;
   readonly projectTrusted?: boolean;
   readonly activeTools?: readonly string[];
+  readonly packages?: readonly string[];
   readonly hasUI?: boolean;
   readonly initialEntries?: readonly Record<string, unknown>[];
   readonly registeredNativeProviders?: Readonly<Record<string, Record<string, unknown>>>;
@@ -184,6 +185,7 @@ function createApiRecorder(options: HarnessOptions): {
       flags[name] ??= options.default;
     },
     getFlag: (name: string) => flags[name],
+    getSettings: () => ({ packages: options.packages ?? [] }),
     getActiveTools: () => options.activeTools ?? ['read', 'bash', 'edit', 'write'],
     getAllTools: () => (options.mcpToolNames ?? []).map((name) => ({ name, exposure: 'direct' as const, sourceInfo: {} })),
     getMcpServers: () => (options.mcpServerNames ?? []).map((name) => ({ name, config: {}, extensionPath: 'test' })),

@@ -145,6 +145,8 @@ export interface DiscoverSubagentsOptions {
   readonly browserIntegration?: string | undefined;
   /** Project agent directories load only for trusted projects. User directories always load. */
   readonly projectTrusted?: boolean;
+  /** Directories of agents shipped by installed packages. */
+  readonly packageAgentDirs?: readonly string[];
 }
 
 function readField(frontmatter: RawFrontmatter, key: keyof typeof FRONTMATTER_KEYS): unknown {
@@ -557,7 +559,10 @@ function dedupeByName(definitions: readonly SubagentDefinition[]): readonly Suba
 
 export function discoverSubagents(cwd: string, options: DiscoverSubagentsOptions = {}): readonly SubagentDefinition[] {
   const config = options.config;
-  const dirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config, options.projectTrusted ?? true);
+  const baseDirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config, options.projectTrusted ?? true);
+  const packageDirs = (options.packageAgentDirs ?? []).map((dirPath): DirectorySpec => ({ dirPath, source: 'package' }));
+  const userIndex = baseDirs.findIndex((spec) => spec.source === 'user');
+  const dirs = userIndex === -1 ? [...baseDirs, ...packageDirs] : [...baseDirs.slice(ZERO, userIndex), ...packageDirs, ...baseDirs.slice(userIndex)];
   const discovered = dirs.flatMap((spec) =>
     walkAgentFiles(spec.dirPath)
       .map((filePath) => parseSubagentFile(filePath, spec.source))

@@ -85,6 +85,22 @@ describe('trust and tool inheritance', () => {
       await h.cleanup();
     }
   });
+
+  it('discovers agents shipped by an installed package', async () => {
+    const h = createTestHarness({ packages: ['npm:@scope/agent-package'] });
+    try {
+      await h.emit('session_start', {});
+      const agents = join(h.cwd, '.agent', 'npm', 'node_modules', '@scope', 'agent-package', 'agents');
+      mkdirSync(agents, { recursive: true });
+      writeFileSync(join(agents, 'packaged.md'), ['---', 'name: package-agent', 'description: Shipped by a package', '---', 'Work from the package.'].join('\n'));
+      enqueuePlan({ finalText: 'packaged' });
+      const result = await h.callTool('task', { description: 'Package agent', prompt: 'go', subagent_type: 'package-agent' });
+      expect(result.details?.subagentType).toBe('package-agent');
+      expect(result.details?.status).toBe('success');
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('nested tool inheritance and shell coverage', () => {

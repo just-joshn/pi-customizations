@@ -27,7 +27,7 @@ Pi does **not** copy skills into `~/.agents/skills`. It loads them from the inst
 | git (user) | under `${PI_CODING_AGENT_DIR:-~/.pi/agent}/git/...` | `<root>/skills/...` |
 | git (project) | under `<repo>/.pi/git/...` | `<root>/skills/...` |
 
-Playbooks and principles stay inside those skill folders. Agents stay under `agents/` but are **not** auto-registered by Pi packages (no agents resource type). See [Install](#install) to register them.
+Playbooks and principles stay inside those skill folders. Agents stay under `agents/`. The companion `@justjoshn/pi-subagents` extension discovers them from the installed package, so keep the package installed and do not copy them.
 
 ## Install
 
@@ -57,7 +57,7 @@ node extensions/no-ceilings/pi-pstack-team-kit/scripts/purge-shadowed-skills.mjs
 
 The script moves them to `${PI_CODING_AGENT_DIR:-~/.pi/agent}/backups/pstack-team-kit-shadows-<timestamp>`. It never deletes a skill.
 
-To register the agents, copy `agents/*.md` into `${PI_CODING_AGENT_DIR:-~/.pi/agent}/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `${PI_CODING_AGENT_DIR:-~/.pi/agent}` and the project's `.pi` directory for npm and git installs. Keep the package installed.
+`@justjoshn/pi-subagents` discovers the packaged agents from `agents/` automatically. Older versions that predate package discovery need a manual copy into `${PI_CODING_AGENT_DIR:-~/.pi/agent}/agents` or `.pi/agents`. A copied agent finds its sibling skills through the `packages` list in Pi's `settings.json` for local-path installs, and by searching `${PI_CODING_AGENT_DIR:-~/.pi/agent}` and the project's `.pi` directory for npm and git installs. Keep the package installed.
 
 `/skill:automate` requires a configured editor that can open an unsaved draft. `/skill:make-bot-ui` also requires an authenticated webhook provider that can wake a Pi run. Neither skill creates or enables an automation without the editor handoff.
 

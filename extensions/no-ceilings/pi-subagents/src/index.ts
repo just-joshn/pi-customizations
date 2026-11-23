@@ -4,6 +4,7 @@ import { type PruneResult, registerAgentCommands, registerSubagentCommands } fro
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, type SubagentsConfig } from './config.ts';
 import { discoverSubagents, resolveSubagentDefinition } from './discovery.ts';
 import { emitSubagentEvent } from './events.ts';
+import { resolvePackageAgentDirectories } from './package-agents.ts';
 import { buildSubagentsContextPrompt } from './formatters.ts';
 import { runSubagentTask } from './runner.ts';
 import { createSubagentStore, type SubagentStore } from './store.ts';
@@ -171,7 +172,8 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     const nextConfig = loadConfig(ctx);
     config = nextConfig;
     configKey = cacheKey(ctx);
-    return discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx) });
+    const packageAgentDirs = resolvePackageAgentDirectories(pi.getSettings().packages, ctx.cwd, getAgentDir(), projectTrust(ctx));
+    return discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx), packageAgentDirs });
   };
 
   const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => reloadDefinitions(ctx);

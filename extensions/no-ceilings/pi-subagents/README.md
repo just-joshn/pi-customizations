@@ -67,6 +67,8 @@ Discovery reads Markdown files with YAML frontmatter from these directories. Pro
 ~/.agents/agents/
 ```
 
+Configured Pi packages are also read from their `agents/` directory. User packages load normally, and project packages load only when the project is trusted. This includes `@justjoshn/pi-pstack-team-kit`; keeping the package installed is enough.
+
 Add more project directories with `agents.directories` in the config file. `.mdc` and `.markdown` files also load. Subdirectories are walked.
 
 Project directories load only for a trusted project, the same gate Pi puts on project skills and MCP configuration. A configured directory is checked after symlink resolution, so an untrusted project skips a directory whose real target is inside the workspace. A broken link does not throw. Approve the project with `--approve` or set `defaultProjectTrust`. User directories always load.
