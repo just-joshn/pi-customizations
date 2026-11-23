@@ -2,7 +2,7 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { Type } from 'typebox';
 import { writePlanFile } from './plan-files.ts';
 import { buildTrackedStepsFromPlanInput } from './plan-progress.ts';
-import { formatModeLabel } from './state.ts';
+import { formatModeLabel, isReadOnlyMode } from './state.ts';
 import { type AskQuestionInput, AskQuestionInputSchema, CreatePlanInputSchema, MODE_TOOL_NAMES, type ModeId, type ModesRuntimeState, ONE, SwitchModeInputSchema, type TrackedPlanStep, ZERO } from './types.ts';
 
 const FREEFORM_OTHER_ID = '__freeform_other__';
@@ -157,7 +157,7 @@ function registerSwitchModeTool(pi: ExtensionAPI, callbacks: ModeToolsCallbacks)
   pi.registerTool({
     name: MODE_TOOL_NAMES.switchMode,
     label: 'SwitchMode',
-    description: 'Propose switching execution mode between agent, plan, debug, and ask. Requests user approval in interactive UI.',
+    description: 'Propose switching execution mode between agent, plan, debug, and ask. Requests user approval in interactive UI; without a UI, escalation from a read-only mode is refused.',
     parameters: SwitchModeParams,
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const parsed = SwitchModeInputSchema.parse(params);
@@ -167,6 +167,10 @@ function registerSwitchModeTool(pi: ExtensionAPI, callbacks: ModeToolsCallbacks)
 
       if (fromMode === toMode) {
         return { content: [{ type: 'text', text: `Already in ${toLabel} mode.` }], details: { status: 'success', fromModeId: fromMode, toModeId: toMode } };
+      }
+      if (!ctx.hasUI && isReadOnlyMode(fromMode) && !isReadOnlyMode(toMode)) {
+        const details = { status: 'rejected', fromModeId: fromMode, toModeId: toMode, reason: 'A read-only mode needs interactive approval to switch to a write-capable mode' };
+        return { content: [{ type: 'text', text: 'A read-only mode needs interactive approval to switch to Agent or Debug mode. Ask the user to switch manually.' }], details };
       }
       const approved = await requestModeSwitchApproval(ctx, toLabel, parsed.explanation);
       if (!approved) {

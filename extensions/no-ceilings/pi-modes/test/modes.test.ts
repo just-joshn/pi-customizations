@@ -112,11 +112,21 @@ describe('pi-modes flags, switch_mode tool, and persistence', () => {
     expect(interactive.getStatuses()['pi-modes']).toContain('Plan');
   });
 
-  it('auto-approves switch_mode when there is no UI', async () => {
+  it('auto-approves a read-only switch_mode when there is no UI', async () => {
     const headless = useTestHarness({ hasUI: false });
     await headless.emit('session_start', {});
     const auto = await headless.callTool('switch_mode', { target_mode_id: 'ask' });
     expect(auto.details?.['status']).toBe('success');
+    expect(headless.getActiveTools()).not.toContain('write');
+  });
+
+  it('rejects a headless escalation from Ask to Agent', async () => {
+    const headless = useTestHarness({ hasUI: false });
+    await headless.emit('session_start', {});
+    await headless.runCommand('ask');
+    const rejected = await headless.callTool('switch_mode', { target_mode_id: 'agent' });
+    expect(rejected.details?.['status']).toBe('rejected');
+    expect(headless.getActiveTools()).not.toContain('edit');
     expect(headless.getActiveTools()).not.toContain('write');
   });
 
@@ -215,13 +225,13 @@ describe('pi-modes read-only shell escape guards', () => {
 });
 
 describe('pi-modes read-only output-flag and process-substitution guards', () => {
-  it.for(['sort -o /tmp/pwn.txt package.json', 'find . -fprint /tmp/pwn.txt', 'git diff --output=/tmp/pwn.txt', 'cat <(node -e "console.log(1)")'])('blocks %s in Plan mode', async (command) => {
+  it.for(['sort -o /tmp/pwn.txt package.json', 'find . -fprint /tmp/pwn.txt', 'git diff --output=/tmp/pwn.txt', 'git diff', 'cat <(node -e "console.log(1)")'])('blocks %s in Plan mode', async (command) => {
     const h = await enterReadOnly('plan');
     const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
     expect(result?.block).toBe(true);
   });
 
-  it.for(['sort package.json', 'git diff'])('allows %s in Plan mode', async (command) => {
+  it.for(['sort package.json', 'git diff --no-ext-diff --no-textconv'])('allows %s in Plan mode', async (command) => {
     const h = await enterReadOnly('plan');
     expect(await bashCall(h, command)).toBeUndefined();
   });
@@ -252,6 +262,9 @@ describe('pi-modes read-only shell write forms', () => {
     'git remote add evil https://example.com/x.git',
     'git branch newbranch',
     'git branch -D main',
+    'sort --out=/tmp/pi-modes-out.txt package.json',
+    'bat cache --build --target /tmp/pi-modes-cache',
+    'file -C -m /tmp/pi-modes-magic',
   ])('blocks %s in read-only mode', async (command) => {
     const h = await enterReadOnly('ask');
     const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));

@@ -16,10 +16,10 @@ Mode guidance applies to runs started by a user prompt or an extension. It stays
 Ask and Plan keep `bash`. The guard checks each command in a chain against an allowlist. It rejects file output redirection, command and process substitution, and ANSI-C quoting. It allows file-descriptor duplication such as `2>&1` and `>&2`. This command policy is not an operating system sandbox.
 
 - `sed` is limited to its printing side. Addresses and `s`/`y` commands are parsed, including scripts attached to `-e` and `-e` inside an option cluster, and `w`, `W`, `e`, `-i`, and `-f` are refused, so `sed -n -e'/pat/p'` reads and `sed -n -e'/pat/w out'` does not.
-- `git` allows the read subcommands (`status`, `log`, `diff`, `show`, `show-ref`, `branch` listings, `remote` listings, `stash show`/`list`, `apply --check`, and similar), including `-C <dir>` and `--no-pager`. `git remote add`, `git branch <name>`, `git branch --delete-merged`, `git stash push`, and `--output` are refused. Branch delete, move, copy, force, and upstream options are refused in long form, abbreviated long form, and short clusters.
+- `git` allows the read subcommands (`status`, `log`, `show-ref`, `branch` listings, `remote` listings, `stash list`, `apply --check`, and similar), including `-C <dir>` and `--no-pager`. Diff-producing commands require `--no-ext-diff --no-textconv`, so `git diff`, `git show`, `git log -p`, and `git stash show -p` are refused without both flags. `--ext-diff` and `--textconv` are refused. `git remote add`, `git branch <name>`, `git branch --delete-merged`, `git stash push`, and `--output` are refused. Branch delete, move, copy, force, and upstream options are refused in long form, abbreviated long form, and short clusters.
 - Leading environment assignments are limited to locale and display names such as `LANG`, `LC_*`, `TERM`, `NO_COLOR`, and `COLUMNS`. Variables that can choose or configure an executing program, such as `GIT_*`, `BAT_PAGER`, `NODE_OPTIONS`, and `PAGER`, are refused.
-- `bat` refuses `--pager` and `--config-file`, so it cannot launch a pager or load a config that does.
-- `find`, `fd`, `sort`, `uniq`, `tree`, `rg`, and `awk` reject their write or execute forms, such as `-exec`, `-delete`, `-oFILE`, `--compress-program`, a second `uniq` path, `-o`, `--pre`, `system(`, `getline`, and quoted `>` or `|` inside an awk program. `uniq` still allows the values of `-f`, `-s`, and `-w`.
+- `bat` refuses `--pager`, `--config-file`, `--generate-config-file`, and the `cache` subcommand, so it cannot launch a pager, load a config, build a cache, or write a config. `file` refuses `-C` and `--compile`.
+- `find`, `fd`, `sort`, `uniq`, `tree`, `rg`, and `awk` reject their write or execute forms, such as `-exec`, `-delete`, `-oFILE`, `--compress-program`, a second `uniq` path, `-o`, `--pre`, `system(`, `getline`, and quoted `>` or `|` inside an awk program. Denied long flags are matched by unambiguous abbreviation, so `sort --out` is refused. `uniq` still allows the values of `-f`, `-s`, and `-w`.
 - Everything else must be on the read-only allowlist (`cat`, `head`, `grep`, `rg`, `ls`, `wc`, `jq`, and similar). Unknown commands are refused.
 
 ## Custom modes
@@ -89,7 +89,7 @@ Plans are written to `plans/` inside Pi's agent directory (`~/.pi/agent/plans` b
 
 ## Tools Registered
 
-- `switch_mode` — Agent-initiated mode switch proposal with interactive user approval
+- `switch_mode` — Agent-initiated mode switch proposal with interactive user approval. Without a UI, a switch from Ask or Plan to Agent or Debug is refused; read-only switches still proceed.
 - `ask_question` — Structured single/multi-select clarifying questions with automatic `"Other"` freeform option
 - `create_plan` — Persists structured markdown plans to Pi's agent directory `plans/` folder; writes YAML `todos` when present and `phases` when given (phases imply a project plan)
 

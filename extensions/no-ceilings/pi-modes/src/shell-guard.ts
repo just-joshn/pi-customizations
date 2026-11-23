@@ -1,3 +1,4 @@
+import { hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
 import { ONE, TWO, ZERO } from './types.ts';
 
 const SEGMENT_SEPARATORS = new Set<string>([';', '\n', '|', '&']);
@@ -85,7 +86,8 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   tree: ['--output'],
   awk: ['--file'],
   sed: ['--in-place', '--file'],
-  bat: ['--pager', '--config-file'],
+  bat: ['--pager', '--config-file', '--generate-config-file'],
+  file: ['--compile'],
 };
 
 /** Short options whose letter inside a cluster writes, runs a program, or names an unread script, as in `sort -nro out` or `sed -nf`. */
@@ -94,6 +96,7 @@ const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
   tree: ['o'],
   fd: ['x', 'X'],
   awk: ['f'],
+  file: ['C'],
 };
 
 /** Short options that are complete words and take a separate argument, as in `find -exec`. */
@@ -244,7 +247,13 @@ function lexCommand(command: string): LexedCommand {
 }
 
 function hasLongFlag(words: readonly string[], flags: readonly string[]): boolean {
-  return words.some((word) => flags.some((flag) => word === flag || word.startsWith(`${flag}=`)));
+  return words.some((word) => {
+    if (!word.startsWith('--')) {
+      return false;
+    }
+    const option = word.split('=')[0] ?? '';
+    return option.length > TWO && flags.some((flag) => flag.startsWith(option));
+  });
 }
 
 function hasShortLetter(words: readonly string[], letters: readonly string[]): boolean {
@@ -575,6 +584,8 @@ function isAllowedBranchArgs(args: readonly string[]): boolean {
   return true;
 }
 
+const DIFF_READ_SUBCOMMANDS = new Set<string>(['diff', 'show', 'diff-tree', 'diff-files', 'diff-index', 'whatchanged']);
+
 function isAllowedGit(words: readonly string[]): boolean {
   // Skip the global options that only choose the repository or the pager.
   let subcommandIndex = 1;
@@ -597,6 +608,13 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
     return false;
+  }
+  if (DIFF_READ_SUBCOMMANDS.has(subcommand)) {
+    return isAllowedDiffArgs(args);
+  }
+  if (subcommand === 'log') {
+    const flags = args.slice(1);
+    return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
   }
   if (GIT_READ_SUBCOMMANDS.has(subcommand)) {
     return true;
@@ -632,7 +650,14 @@ function isAllowedGit(words: readonly string[]): boolean {
     return verb === undefined || verb === 'show' || verb === 'get-url';
   }
   if (subcommand === 'stash') {
-    return args[1] === 'list' || args[1] === 'show';
+    if (args[1] === 'list') {
+      return true;
+    }
+    if (args[1] !== 'show') {
+      return false;
+    }
+    const flags = args.slice(TWO);
+    return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
   }
   if (subcommand === 'apply') {
     const flags = args.slice(1);
@@ -719,6 +744,9 @@ function isAllowedSegment(words: readonly string[]): boolean {
     return verb === 'list' || verb === 'ls' || verb === 'view' || verb === 'info' || verb === 'search' || verb === 'outdated' || verb === 'why';
   }
   if (!READ_ONLY_COMMANDS.has(command)) {
+    return false;
+  }
+  if (command === 'bat' && args[ONE] === 'cache') {
     return false;
   }
   if (hasDeniedFlag(command, args.slice(1))) {
