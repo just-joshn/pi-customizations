@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+- Shell analysis decodes ANSI-C `$'...'` escapes, strips leading assignments before the executable,
+  unwraps `timeout`, `nice`, `stdbuf`, and `setsid`, and resolves `~`, `$HOME`, `$PWD`, and `$OLDPWD`
+  in `cd` targets.
+- A command the analyzer cannot vouch for is refused before it runs: a command word built by an
+  expansion, an unresolvable `cd` target, an inline `BASH_ENV`/`ENV`/`CDPATH`/`IFS`, an indirect
+  wrapper (`sudo`, `xargs`, `find -exec`, `env -S`), a script piped into a shell, and a function
+  definition.
+- Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`, `BASHOPTS`, and exported
+  functions, and pins `PWD`/`OLDPWD`, so the verdict matches the command that runs.
+- A search rooted at a workspace path that resolves outside is refused, like `read` of the same path.
+- `apply_patch` rolls back every file it already changed when a later write fails, and a zero-context
+  insertion keeps its place after earlier hunks.
+- `delete` refuses a protected ignore file, so the ignore set cannot be removed to un-filter a path.
+- A URL rule that names a host or a path prefix also denies every URL beneath it.
+- `read` reports the lines it returned without parsing `\n\n[` in the file; `grep` sets each match's
+  `truncated` flag; `edit` counts replaced occurrences; `find` names a file root instead of `.`;
+  `write` refuses malformed base64; concurrent session builds are keyed by directory.
+
 ## 0.1.0
 
 - Initial release of the Pi-native local tool-execution layer.

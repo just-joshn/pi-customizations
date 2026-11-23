@@ -28,10 +28,10 @@ when the model needs them.
 | `ls` | Lists a directory, optionally to a depth, sorted, with directories suffixed. Applies ignore files, permission rules, extra globs, an entry limit, a name budget, and a five second budget. |
 | `find` | Glob matching for files and paths through ripgrep. Ignore files, permission rules, a result limit, and partial results on timeout. |
 | `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit, line truncation, output caps, and partial results on timeout. |
-| `write` | Creates or overwrites a file with parent directories, refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
+| `write` | Creates or overwrites a file with parent directories (UTF-8 or validated base64), refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
 | `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. |
-| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written. |
-| `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, and files that changed after the check. |
+| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, and a write failure rolls back the files already changed. |
+| `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, protected ignore files, and files that changed after the check. |
 | `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
 | `git` *(loads on demand)* | Runs a git subcommand through the local executable with captured output and an exit code. |
 | `web_fetch` *(loads on demand)* | Fetches an http(s) URL, reduces HTML to text, caps the body, and can save it to a file. |
@@ -84,10 +84,13 @@ settings load only when the project is trusted. Environment overrides:
 Rules are checked in order for a match of the same kind and action. A deny match always wins over an
 allow match. Path rules match the absolute path and each workspace-relative path, with `*` matching a
 path segment and `**` spanning segments; a pattern without `/` matches a file name at any depth. Exec
-rules match the command string as written.
+rules match each analyzed command segment, so an absolute path or a wrapper does not hide the command
+the shell runs. A URL rule that names a host or a path prefix also covers everything beneath it.
 
 Searches are the exception to the outside-workspace prompt: naming a directory explicitly lets the
 layer search it, because that is the point of passing a path. Deny rules and allowlist mode still apply.
+A workspace path that resolves outside the workspace is refused rather than treated as an explicit
+outside root.
 
 ### Ignore files
 
@@ -105,7 +108,8 @@ reading use the same verdict. A tool call that names an ignored path directly is
   whole operation.
 - **Search results stay in bounds.** Every hit is resolved to its canonical path and must stay inside
   the workspace or a directory the caller named explicitly. A symlink cannot pull outside content into
-  `grep`, `find`, or `ls`, and allowlist mode authorizes the canonical target, not the link name.
+  `grep`, `find`, or `ls`, and a search rooted at a workspace path that resolves outside is refused the
+  way `read` of that path is. Allowlist mode authorizes the canonical target, not the link name.
 - **Every mutation is verified.** `write`, `edit`, `apply_patch`, `save_resource`, and `web_fetch`
   saving to disk re-read the file, compare digests inside the locked section, and report a failure when
   the bytes on disk differ. Check-and-write pairs such as `save_resource`'s overwrite guard run inside
@@ -117,14 +121,25 @@ reading use the same verdict. A tool call that names an ignored path directly is
   2000 lines or 50KB and spills the full output to a file.
 - **Time budgets return partial results.** `grep` and `find` default to 25 seconds and return what
   they have, marked `timedOut` in the details, when the budget expires.
-- **Commands are analyzed, not trusted.** Exec rules see the whole command plus each segment with
-  wrappers (`env`, `command`, `nohup`), assignments, `sh -c`, `eval`, `$(...)`, and backticks expanded.
-  Allowlist mode requires every segment to be allowed. A `cd` to a directory outside the workspace needs
-  approval. Code a scanner cannot see, such as a script invoked by name, is out of reach.
+- **Commands are analyzed, not trusted.** Exec rules see each segment with quoting removed, ANSI-C
+  escapes (`$'\x73ecret'`) decoded, leading assignments stripped (`PATH=/usr/bin cmd`), the flags of the
+  wrappers this layer unwraps (`env`, `command`, `nohup`, `time`, `exec`, `builtin`, `timeout`, `nice`,
+  `stdbuf`, `setsid`), and `sh -c`, `eval`, `$(...)`, and backticks expanded. A `cd` target resolves
+  `~`, `$HOME`, `$PWD`, and `$OLDPWD`. Anything the analyzer cannot vouch for is refused before it runs,
+  because the policy cannot see what it would execute: a command word built by an expansion, an
+  unresolvable `cd` target, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS`, a wrapper that runs
+  another command (`sudo`, `xargs`, `find -exec`, `env -S`), a shell fed a script through a pipe, and a
+  shell function definition. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`,
+  `BASHOPTS`, and exported functions, then pins `PWD` and `OLDPWD` to the working directory. Allowlist
+  mode requires every segment to be allowed. A `cd` to a directory outside the workspace needs
+  approval. Code a scanner cannot see, such as a script invoked by name or another interpreter's `-c`
+  string, is out of reach.
 - **Patches validate before writing.** All touched files are locked, then every file is read and every
-  hunk checked before the first write, so a failure on the second file leaves the first untouched. Delete
-  hunks must remove the whole file, hunks apply in file order, git-style headers and the no-newline marker
-  are honored, a pure move renames, and a no-op is refused.
+  hunk checked before the first write, so a failure on the second file leaves the first untouched. A
+  write that still fails while applying restores every file the patch already changed and removes the
+  ones it created, so the call keeps its "nothing was written" contract. Delete hunks must remove the
+  whole file, hunks apply in file order and honor zero-context insertions, git-style headers and the
+  no-newline marker are honored, a pure move renames, and a no-op is refused.
 - **Errors reach the model as error results.** A failing tool returns `isError` with a message, a hint
   when there is one, and typed details; Pi never sees a thrown error from the layer, so one failure does
   not abort a batch.
