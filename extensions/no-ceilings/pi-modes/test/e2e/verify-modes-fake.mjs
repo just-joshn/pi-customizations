@@ -25,6 +25,7 @@ const TIMEOUT_MS = 120_000;
 const SKILL_MARKER = 'FAKE_BODY_MARKER';
 const ENTERED_TEXT = 'The user has entered Reviewer custom mode.';
 const REMINDER_TEXT = 'Reminder: you are still in Reviewer mode.';
+const EXIT_TEXT = 'The user has exited Reviewer custom mode.';
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const extensionPath = resolve(scriptDir, '../../src/index.ts');
@@ -143,6 +144,23 @@ check('custom run attaches the skill block', textOf(custom.requests[ZERO]).inclu
 const later = textOf(custom.requests.at(-1));
 check('the later turn carries the reminder', later.includes(REMINDER_TEXT));
 check('the later turn does not repeat the skill body', !later.includes(SKILL_MARKER));
+
+const exited = await run('custom-exit', { args: ['--mode=reviewer'], prompts: ['Start reviewing.', '/mode off', 'Which custom mode is active? Reply NONE if none.'] });
+const exitedLast = textOf(exited.requests.at(-1));
+check('/mode off states the exit once and stops the reminder', exitedLast.includes(EXIT_TEXT) && !exitedLast.includes(REMINDER_TEXT));
+
+const appearance = await run('custom-appearance', { args: ['--mode=reviewer'], prompts: ['/mode color red', '/mode icon ★', '/mode color chartreuse', 'Reply DONE.'] });
+const savedReviewer = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
+check(
+  '/mode color and /mode icon write validated frontmatter and keep the body',
+  savedReviewer.includes('color: "red"') && savedReviewer.includes('icon: "★"') && !savedReviewer.includes('chartreuse') && savedReviewer.includes(SKILL_MARKER),
+);
+
+const oneMessage = await run('one-message-skill', { prompts: ['The next step uses /reviewer. Reply with the token from that skill.', 'Reply NONE if no skill came with this turn.'] });
+check(
+  '/reviewer attaches the skill to that message only',
+  textOf(oneMessage.requests[ZERO]).includes('<skill name="reviewer"') && textOf(oneMessage.requests[ZERO]).includes(SKILL_MARKER) && !textOf(oneMessage.requests.at(-1)).includes('<skill name="reviewer"'),
+);
 
 const switched = await run('switch-tool', { prompts: ['SWITCH_TO_ASK'] });
 check('switch run sends a second request', switched.requests.length >= 2);

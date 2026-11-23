@@ -3,3 +3,4 @@ node_modules/
 coverage/
 .pi/worktrees/
 extensions/pi-snoop-tui/bench/visual/out/
+.pi/verification-evidence/
