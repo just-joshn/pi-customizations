@@ -13,6 +13,17 @@ const MIN_AUTO_SELECT_SCORE = 2;
 const WORD_SPLIT_REGEX = /[^a-z0-9]+/;
 const NAME_SPLIT_REGEX = /[^a-z0-9_-]+/;
 const YAML_TRUE_SPELLINGS = new Set(['true', 'yes', 'on', 'y', '1']);
+const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
+  unspecified: 'general-purpose',
+  generalpurpose: 'general-purpose',
+  'general-purpose': 'general-purpose',
+  bash: 'shell',
+  shell: 'shell',
+  explore: 'explore',
+  debug: 'debug',
+};
+const WRITE_INTENT_PATTERN =
+  /\b(?:fix(?:ing)?|edit(?:ing)?|change(?:ing)?|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting)\b/i;
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
   Read: 'read',
@@ -526,7 +537,10 @@ export function discoverSubagents(cwd: string, options: DiscoverSubagentsOptions
 
 export function normalizeSubagentTypeName(rawType: string | undefined): string {
   const trimmed = (rawType ?? '').trim();
-  return trimmed.length === ZERO ? DEFAULT_SUBAGENT_TYPE : trimmed;
+  if (trimmed.length === ZERO) {
+    return DEFAULT_SUBAGENT_TYPE;
+  }
+  return SUBAGENT_TYPE_ALIASES[trimmed.toLowerCase()] ?? trimmed;
 }
 
 export function resolveSubagentDefinition(definitions: readonly SubagentDefinition[], rawType: string | undefined): SubagentDefinition | undefined {
@@ -578,15 +592,20 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
     return resolveSubagentDefinition(definitions, named)?.name ?? named;
   }
   const text = `${hint.description} ${hint.prompt}`;
-  const namedMatches = definitions.filter((definition) => mentionsName(text, definition.name));
+  const writable = WRITE_INTENT_PATTERN.test(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
+  const eligible = writable.length > ZERO ? writable : definitions;
+  const namedMatches = eligible.filter((definition) => mentionsName(text, definition.name));
+  if (namedMatches.length > ONE) {
+    return fallbackSubagentType(eligible);
+  }
   const singleMatch = namedMatches[ZERO];
-  if (namedMatches.length === ONE && singleMatch !== undefined) {
+  if (singleMatch !== undefined) {
     return singleMatch.name;
   }
-  const scored = definitions.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
+  const scored = eligible.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
   const best = scored[ZERO];
   const runnerUp = scored[ONE];
-  const fallback = fallbackSubagentType(definitions);
+  const fallback = fallbackSubagentType(eligible);
   if (best === undefined || (runnerUp !== undefined && runnerUp.score >= best.score)) {
     return fallback;
   }

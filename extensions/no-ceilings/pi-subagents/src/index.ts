@@ -15,7 +15,8 @@ import {
   type BackgroundCompletionPayload,
   type NestedScope,
   ONE,
-  PersistedSubagentsStateSchema,
+  PersistedSubagentRecordSchema,
+  type PersistedSubagentsState,
   SUBAGENTS_CONFIG_FILE_NAME,
   SUBAGENTS_ENTRY_CUSTOM_TYPE,
   type SubagentDefinition,
@@ -28,15 +29,26 @@ const EXPLORE_MODEL_FLAG = 'subagent-explore-model';
 const MAX_DEPTH_FLAG = 'subagent-max-depth';
 const MCP_TOOL_PREFIX = 'mcp__';
 
+function parsePersistedSessions(data: unknown): PersistedSubagentsState | undefined {
+  if (typeof data !== 'object' || data === null || !('sessions' in data) || !Array.isArray(data.sessions)) {
+    return undefined;
+  }
+  const sessions = data.sessions.flatMap((entry) => {
+    const parsed = PersistedSubagentRecordSchema.safeParse(entry);
+    return parsed.success ? [parsed.data] : [];
+  });
+  return { sessions };
+}
+
 function restorePersistedSessions(ctx: ExtensionContext, store: SubagentStore): void {
   const entries: readonly SessionEntry[] = ctx.sessionManager.getEntries();
   const lastEntry = entries.filter((entry) => entry.type === 'custom' && 'customType' in entry && entry.customType === SUBAGENTS_ENTRY_CUSTOM_TYPE).at(-ONE);
   if (!lastEntry || !('data' in lastEntry)) {
     return;
   }
-  const parsed = PersistedSubagentsStateSchema.safeParse(lastEntry.data);
-  if (parsed.success) {
-    store.restoreFromPersisted(parsed.data, ctx.sessionManager.getSessionId());
+  const parsed = parsePersistedSessions(lastEntry.data);
+  if (parsed !== undefined) {
+    store.restoreFromPersisted(parsed, ctx.sessionManager.getSessionId());
   }
 }
 

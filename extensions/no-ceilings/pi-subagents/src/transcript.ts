@@ -88,10 +88,17 @@ function appendMessageThinking(record: SubagentSessionRecord, message: AgentMess
   if (!('content' in message) || !Array.isArray(message.content)) {
     return record;
   }
-  return message.content.reduce((current, block) => {
-    const text = thinkingBlockText(block);
-    return text === undefined ? current : rememberThinking(current, text, now);
-  }, record);
+  const texts = message.content
+    .map(thinkingBlockText)
+    .filter((text): text is string => text !== undefined)
+    .map((text) => text.trim())
+    .filter((text) => text.length > ZERO);
+  const tail = record.transcriptItems.slice(-texts.length);
+  const alreadyRecorded = texts.length > ZERO && tail.length === texts.length && tail.every((item, index) => item.role === 'thinking' && item.text.trim() === texts[index]);
+  if (alreadyRecorded) {
+    return record;
+  }
+  return texts.reduce((current, text) => rememberThinking(current, text, now), record);
 }
 
 function appendItem(record: SubagentSessionRecord, item: Omit<SubagentTranscriptItem, 'id'> & { readonly id?: string }): SubagentSessionRecord {

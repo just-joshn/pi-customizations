@@ -228,6 +228,10 @@ function abortNestedRuns(scope: NestedScope | undefined, store: SubagentStore): 
 }
 
 function runSession(request: LifecycleRequest): Promise<SubagentRunOutcome> {
+  if (request.abortController.signal.aborted) {
+    request.session.dispose();
+    return Promise.resolve({ status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs: Math.max(ZERO, Date.now() - request.startedAt) });
+  }
   let progress: RunProgress = { toolCallCount: request.store.getSession(request.agentId)?.toolCallCount ?? ZERO, finalMessage: undefined };
   const unsubscribe = request.session.subscribe((event) => {
     progress = applyChildEvent(request, event, progress);

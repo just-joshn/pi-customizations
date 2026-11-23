@@ -42,6 +42,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bawk\b.*\b(?:system|getline)\b/i,
   /\bawk\b.*\s-i\s+inplace\b/i,
   /^\s*env\s+\S/i,
+  /\bsort\b.*\s(?:--compress-program(?:=|\s|$))/i,
   /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\btree\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\bgit\b.*\s--output(?:=|\s)/i,
@@ -58,11 +59,15 @@ const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
 
 const SUBSHELL_OR_CHAIN_PATTERN = /(?:[\r\n]|;|&&|\|\||`|\$\(|<\()/;
 
-/** True when an unquoted `>` or `>>` redirects output. Quoted `>` and `>&` stay allowed. */
+/** True when the command contains a redirect that writes a file. Quoted redirects, fd duplicates, and read redirection stay allowed. */
 function hasUnquotedRedirect(command: string): boolean {
   let quote: "'" | '"' | undefined;
   for (let index = 0; index < command.length; index += 1) {
     const char = command[index] ?? '';
+    if (char === '\\' && quote !== "'") {
+      index += 1;
+      continue;
+    }
     if (quote !== undefined) {
       if (char === quote) {
         quote = undefined;
@@ -73,8 +78,25 @@ function hasUnquotedRedirect(command: string): boolean {
       quote = char;
       continue;
     }
-    if (char !== '>' || command[index - 1] === '<' || command[index + 1] === '&') {
+    if (char === '<' && command[index + 1] === '>') {
+      return true;
+    }
+    if (char !== '>') {
       continue;
+    }
+    if (command[index + 1] === '>') {
+      return true;
+    }
+    if (command[index + 1] === '&') {
+      let target = index + 2;
+      while (command[target] === ' ' || command[target] === '\t') {
+        target += 1;
+      }
+      const destination = command[target] ?? '';
+      if (destination === '' || destination === '-' || /\d/.test(destination)) {
+        continue;
+      }
+      return true;
     }
     return true;
   }

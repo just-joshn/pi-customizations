@@ -11,7 +11,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function thinkingEnabled(payload: Record<string, unknown>): boolean {
   const thinking = payload['thinking'];
-  return isRecord(thinking) && thinking['type'] === 'enabled';
+  return isRecord(thinking) && (thinking['type'] === 'enabled' || thinking['type'] === 'adaptive');
 }
 
 function withSampling(payload: Record<string, unknown>, api: string, sampling: SubagentSampling): Record<string, unknown> {

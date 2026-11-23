@@ -58,6 +58,15 @@
 - A mid-run snapshot keeps the transcripts of completed runs and omits only the running record.
 - `model-params` sampling reaches the provider request for every adapter, including Anthropic and Google.
 - A failed worktree run emits `subagents:run_end`.
+- Read-only shell enforcement blocks `>&` and `<>` redirects, backslash-escaped redirects, and `sort --compress-program`.
+- Sampling is left out of Anthropic adaptive thinking requests, as it already was for enabled thinking.
+- `max-tokens` and `context-window` survive the provider refresh that follows inherited provider registration.
+- One invalid persisted record no longer drops the other restored runs.
+- Automatic selection skips read-only agents when the task asks for a change, and two named agents fall back to `general-purpose`.
+- The documented `bash` alias resolves to `shell` again.
+- Children inherit parent tools outside Pi's default set, such as `grep`, `find`, and `ls`.
+- Cancelling during child-session creation no longer prompts the child.
+- Multiple thinking blocks in one message are recorded once.
 - Thinking from `thinking_start`, `thinking_end`, and message thinking blocks is stored once in the transcript.
 - An aborted await reports `aborted` instead of `await-timeout`.
 - Read-only mode allows `git branch --show-current`, `git branch --list`, `git remote show`, and `git tag -l` again.

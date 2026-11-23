@@ -131,7 +131,7 @@ function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedS
 const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent]);
 
 function applyInheritedTools(session: AgentSession, parentActiveTools: readonly string[], nestedScope: NestedScope | undefined, readonly: boolean): void {
-  const callable = new Set(session.getCallableToolNames());
+  const callable = new Set([...session.getCallableToolNames(), ...session.getAllTools().map((tool) => tool.name)]);
   const nested = nestedScope === undefined ? [] : [...NESTED_TOOL_SET];
   const inherited = parentActiveTools.filter((name) => (callable.has(name) || nested.includes(name)) && !NESTED_TOOL_SET.has(name) && (!readonly || !READONLY_BLOCKED_TOOLS.has(name)));
   session.setActiveToolsByName([...inherited, ...nested]);
@@ -164,6 +164,12 @@ export async function createChildSession(request: ChildSessionRequest, parentAct
     sessionManager,
     resourceLoader,
   });
+  if (request.model !== undefined) {
+    // Registering inherited providers refreshes the model from the child registry, which drops the
+    // definition's max-tokens and context-window overrides. The passed model is already authorized
+    // by the parent, so restore it after the refresh.
+    session.agent.state.model = request.model;
+  }
   if (tools === undefined) {
     applyInheritedTools(session, parentActiveTools, request.nestedScope, request.readonly);
   }
