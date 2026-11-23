@@ -34,12 +34,12 @@ if (find.safe || find.combined.includes('P0FIND')) {
   failures += 1;
 }
 
-const awkShell = run("awk $'BEGIN { sys\\164em(\"echo AWKEXEC\") }'");
+const awkShell = run('awk $\'BEGIN { sys\\164em("echo AWKEXEC") }\'');
 if (awkShell.safe || awkShell.combined.includes('AWKEXEC')) {
   failures += 1;
 }
 
-const awkLiteral = run("awk 'BEGIN { sys\\164em(\"echo AWKLITERAL\") }'");
+const awkLiteral = run('awk \'BEGIN { sys\\164em("echo AWKLITERAL") }\'');
 if (awkLiteral.safe || awkLiteral.combined.includes('AWKLITERAL')) {
   failures += 1;
 }

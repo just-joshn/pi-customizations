@@ -524,8 +524,8 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('sed -"i" file.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('tree "-o" out.txt .')).toBe(false);
     expect(isSafeReadOnlyCommand('find . "-fprint" /tmp/out')).toBe(false);
-    expect(isSafeReadOnlyCommand("awk $'BEGIN { sys\\164em(\"echo AWKEXEC\") }'")).toBe(false);
-    expect(isSafeReadOnlyCommand("awk 'BEGIN { sys\\164em(\"echo AWKEXEC\") }'")).toBe(false);
+    expect(isSafeReadOnlyCommand('awk $\'BEGIN { sys\\164em("echo AWKEXEC") }\'')).toBe(false);
+    expect(isSafeReadOnlyCommand('awk \'BEGIN { sys\\164em("echo AWKEXEC") }\'')).toBe(false);
     expect(isSafeReadOnlyCommand("grep '*.ts' file")).toBe(true);
     expect(isSafeReadOnlyCommand("find . -name '*.ts'")).toBe(true);
   });
