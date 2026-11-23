@@ -145,7 +145,6 @@ export interface DiscoverSubagentsOptions {
   readonly browserIntegration?: string | undefined;
   /** Project agent directories load only for trusted projects. User directories always load. */
   readonly projectTrusted?: boolean;
-  /** Directories of agents shipped by installed packages. */
   readonly packageAgentDirs?: readonly string[];
 }
 
