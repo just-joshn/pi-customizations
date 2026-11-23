@@ -651,6 +651,10 @@ export interface RunSetup {
   readonly thinking: SubagentThinkingLevel | undefined;
 }
 
+function resolveReadOnly(permissionMode: SubagentDefinition['permissionMode'], requested: boolean | undefined, existingReadonly: boolean | undefined): boolean {
+  return permissionMode === 'readonly' || requested === true || existingReadonly === true;
+}
+
 function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
   const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
   const resolved = resolveSubagentModel({ model: options.input.model ?? existing?.model, thinking: options.input.thinking ?? existing?.thinking }, options.definition, options.ctx);
@@ -661,7 +665,7 @@ function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, co
     parentSessionId,
     prompt,
     existing,
-    isReadonly: options.definition.permissionMode === 'readonly' || (options.input.readonly ?? existing?.readonly ?? false),
+    isReadonly: resolveReadOnly(options.definition.permissionMode, options.input.readonly, existing?.readonly),
     wantBackground,
     detach: wantBackground,
     backgroundReason,
@@ -742,7 +746,7 @@ export async function runSubagentTask(options: RunTaskOptions, callbacks: Runner
   const prompt = options.input.prompt.trim();
   const resumeId = options.input.resume?.trim();
   const resumed = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
-  const provisionalReadonly = options.definition.permissionMode === 'readonly' || (options.input.readonly ?? resumed?.readonly ?? false);
+  const provisionalReadonly = resolveReadOnly(options.definition.permissionMode, options.input.readonly, resumed?.readonly);
 
   if (resumeId && prompt.length === ZERO && provisionalReadonly && options.input.run_in_background !== true) {
     const awaited = await awaitBackgroundSubagent(resumeId, callbacks.store, undefined, options.signal);

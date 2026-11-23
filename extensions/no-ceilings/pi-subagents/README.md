@@ -23,7 +23,7 @@ The extension registers two tools.
 
 Each run gets its own `AgentSession`, so the child has a separate context window and an isolated history. Results and errors return to the parent through the tool result. Errors carry a `failure_id` and a `code` you can branch on.
 
-Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. Repeated words in a description count once. A name mentioned in the task text wins when exactly one agent is named. Overlapping names keep the longest match. Two or more distinct names fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically. A negated change, including a coordinated list such as `do not edit, add, or delete`, keeps a named read-only agent. `report what to change` is not itself a change.
+Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. Repeated words in a description count once. A name mentioned in the task text wins when exactly one agent is named. Overlapping names keep the longest match. Two or more distinct names fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically. If every available agent is read-only, the selection is `general-purpose` and the call fails as an unknown type. Make, address, improve, rework, get, and ensure count as changes. A verb does not count after a determiner or subject pronoun (`the format`, `we update`), in `how to <verb>`, or inside a discovered agent name. A negated change keeps a named read-only agent. That includes comma, slash, dash, and parenthetical lists (`do not edit, add, or delete`, `do not edit/add/delete`) and `under no circumstances`. `report what to change` is not itself a change.
 
 Every run appends the discovered agent catalog to the system prompt, so the model sees each name and description before it decides how to delegate.
 
@@ -43,7 +43,7 @@ Every completed step writes a checkpoint to the run record: sequence, status, to
 | --- | --- |
 | `general-purpose` | Inherits the parent model and tools. |
 | `explore` | Read-only, fast model, file and content search tools. |
-| `shell` | `bash` and `read` (alias `bash`). |
+| `shell` | `bash` and `read`. The name `bash` aliases to `shell` unless a discovered agent is named `bash`. |
 | `debug` | Debugging prompt on an inherited model and tool set. |
 | `browser` | Appears only when an MCP server or `mcp__` tool matches a browser hint. Tools are limited to that server. |
 
@@ -136,12 +136,12 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
-- Persisted session state keeps transcripts for the three most recently updated completed runs, including mid-run snapshots and saves when a run completes. Older completed runs keep their metadata, transcript path, and checkpoints.
+- Persisted session state keeps transcripts for the three most recently updated finished runs. Success, error, and cancelled runs are eligible. That includes mid-run snapshots and saves when a run finishes. Older finished runs keep their metadata, transcript path, and checkpoints.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect. The pager does not render checkpoints.
 - While a run is active, the status widget header counts completed and cancelled runs in the session. The widget clears when nothing is active.
 - Restoring a session cancels runs that were still pending or running and assigns a failure id when the record does not already have one.
-- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
+- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode. Passing `readonly: false` does not clear read-only mode already set by the agent or by an earlier call.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.
 
 ### Hook events

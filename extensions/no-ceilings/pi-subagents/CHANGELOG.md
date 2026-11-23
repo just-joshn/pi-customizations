@@ -29,9 +29,14 @@
 
 ### Fixed
 
+- A resume keeps call-level read-only mode when a later call passes `readonly: false`. Read-only mode from the agent definition, the call, or the existing run is a floor.
+- Automatic selection treats make, address, improve, rework, get, and ensure as write intent. A verb after a determiner or subject pronoun, inside `how to`, or inside a discovered agent name is not write intent.
+- A change request does not select a read-only agent when no writable agent is available. The selection is `general-purpose`, and the call fails with `type-unknown`.
+- A discovered agent whose name matches a built-in alias, such as `bash`, resolves to that agent. The alias applies only when no discovered agent has that name.
+- Negated write lists cover slashes, dashes, parentheses, and `under no circumstances`, including a negation split by extra words in the same sentence.
+- Persisted transcripts are kept for the three most recently updated finished runs. Success, error, and cancelled runs are eligible, including mid-run snapshots and completion saves.
 - Read-only bash on macOS runs under `sandbox-exec`, which denies filesystem writes except `/dev/null`, a private temp directory at `/tmp/pi-subagents-readonly`, and here-document files named `sh-thd-<digits>` in `/var/tmp`. The wrapper sets `TMPDIR` to a fresh directory under that root and removes it after the command. Writes outside those paths stay denied. `git grep -O` and `--open-files-in-pager` are blocked.
 - `/tasks abort` cancels a foreground launch during `git worktree add` and discards the worktree and branch.
-- Completed-run persists keep transcripts for the three most recently updated runs, same as mid-run snapshots.
 - Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, converting, replacing, setting, inserting, applying, generating, simplifying, cleaning up, swapping, dropping, and stripping as write intent, and prefers the longest overlapping agent name. A negation covers a coordinated verb list such as `do not edit, add, or delete`. `what to change` is not write intent. Description keywords are counted once. Agent names that differ only by case collapse to one definition.
 - Restoring an in-flight run marks it cancelled and stores a failure id. The status widget header keeps completed-run counts while another run is active.
 - A background worktree launch returns before `git worktree add` finishes. Aborting during creation removes the worktree and branch, and an already-aborted call does not start the child.
@@ -72,7 +77,7 @@
 - Terminal failures such as `resume-unavailable` and `worktree-failed` are not retried into a fresh run.
 - Read-only shell enforcement blocks sed and awk program files, attached sed `w` forms, and awk redirection.
 - YAML `yes` and `on` are read as true for `readonly`, `enabled`, `disabled`, and `nested-tasks`.
-- A mid-run snapshot keeps the transcripts of completed runs and omits only the running record.
+- A mid-run snapshot keeps the transcripts of finished runs (success, error, or cancelled) and omits only the running record.
 - `model-params` sampling reaches the provider request for every adapter, including Anthropic and Google.
 - A failed worktree run emits `subagents:run_end`.
 - Read-only shell enforcement blocks `>&` and `<>` redirects, backslash-escaped redirects, and `sort --compress-program`.
@@ -108,7 +113,7 @@
 - A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
 - Read-only shell enforcement rejects a lone `&`, command substitution, and unclosed quotes. It allows `git grep`, quoted pipes, `|&`, and redirects to `/dev/null` such as `2>/dev/null`. `date -d` and `date --date` stay allowed; `date -s` stays blocked.
 - Unknown `subagents.json` sections and unknown keys inside a section are reported instead of ignored.
-- A mid-run snapshot keeps transcripts for the three most recently updated completed runs. Older completed runs keep metadata, the transcript path, and checkpoints.
+- A mid-run snapshot keeps transcripts for the three most recently updated finished runs, including success, error, and cancelled runs. Older finished runs keep metadata, the transcript path, and checkpoints.
 - A worktree run started in a repository subdirectory uses that subdirectory inside the worktree.
 - Resuming a run that never recorded a transcript fails with `resume-unavailable`. Retry still starts a fresh session.
 - A resume keeps background mode when the caller omits `run_in_background`.

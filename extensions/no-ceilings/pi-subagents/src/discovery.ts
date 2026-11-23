@@ -24,10 +24,18 @@ const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
   debug: 'debug',
 };
 const WRITE_VERBS =
-  'fix(?:ing)?|edit(?:ing)?|chang(?:e|ing)|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting|split(?:ting)?|move|moving|optimize|optimizing|port(?:ing)?|format(?:ting)?|extract(?:ing)?|convert(?:ing)?|replace(?:ing)?|set(?:ting)?|insert(?:ing)?|apply|applying|generate|generating|simplify|simplifying|clean\\s+up|cleaning\\s+up|swap(?:ping)?|drop(?:ping)?|strip(?:ping)?';
+  'fix(?:ing)?|edit(?:ing)?|chang(?:e|ing)|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting|split(?:ting)?|move|moving|optimize|optimizing|port(?:ing)?|format(?:ting)?|extract(?:ing)?|convert(?:ing)?|replace(?:ing)?|set(?:ting)?|insert(?:ing)?|apply|applying|generate|generating|simplify|simplifying|clean\\s+up|cleaning\\s+up|swap(?:ping)?|drop(?:ping)?|strip(?:ping)?|make|address|improve|rework|get|ensure';
 const WRITE_VERB = `(?:${WRITE_VERBS})`;
-const COORDINATED_WRITE = `${WRITE_VERB}(?:(?:\\s*,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+)${WRITE_VERB})*`;
-const NEGATED_WRITE = `\\b(?:do not|don['\u2019]t|cannot|can['\u2019]t|must not|should not|never|avoid|without)\\b(?:\\s+\\w+){0,4}\\s+${COORDINATED_WRITE}\\b|\\bno(?:\\s+\\w+){0,2}\\s+${COORDINATED_WRITE}\\b`;
+const VERB_GAP = '(?:\\s*,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+|\\s*/\\s*|\\s*[\\u2014\\u2013]\\s*(?:(?:and|or)\\s+)?|\\s*\\(\\s*(?:(?:and|or)\\s+)?)';
+const COORDINATED_WRITE = `${WRITE_VERB}(?:${VERB_GAP}${WRITE_VERB})*`;
+const NEGATION_SPAN_CHARS = 80;
+const BROAD_NEGATION = "\\b(?:under no circumstances|do not|don['\\u2019]t|cannot|can['\\u2019]t|must not|should not)\\b";
+const SHORT_NEGATION = '\\b(?:never|avoid|without|no)\\b(?:\\s+\\w+){0,4}\\s+';
+const NEGATED_WRITE = `${BROAD_NEGATION}[^\\.!?;]{0,${NEGATION_SPAN_CHARS}}?${COORDINATED_WRITE}\\b(?:\\s*\\))?|${SHORT_NEGATION}${COORDINATED_WRITE}\\b(?:\\s*\\))?`;
+const HOW_TO_WRITE = `\\bhow\\s+to\\s+${WRITE_VERB}\\b`;
+const WHAT_TO_WRITE = `\\bwhat\\s+to\\s+${WRITE_VERB}\\b`;
+const DESCRIPTIVE_CUE = '(?:the|a|an|this|that|its|their|our|we|i|they|it|he|she)';
+const DESCRIPTIVE_WRITE = `\\b${DESCRIPTIVE_CUE}\\s+${WRITE_VERB}\\b`;
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
   Read: 'read',
@@ -558,14 +566,22 @@ export function normalizeSubagentTypeName(rawType: string | undefined): string {
   return SUBAGENT_TYPE_ALIASES[trimmed.toLowerCase()] ?? trimmed;
 }
 
-export function resolveSubagentDefinition(definitions: readonly SubagentDefinition[], rawType: string | undefined): SubagentDefinition | undefined {
-  const normalized = normalizeSubagentTypeName(rawType);
-  const exact = definitions.find((definition) => definition.name === normalized);
+function findDefinitionByName(definitions: readonly SubagentDefinition[], name: string): SubagentDefinition | undefined {
+  const exact = definitions.find((definition) => definition.name === name);
   if (exact) {
     return exact;
   }
-  const lower = normalized.toLowerCase();
+  const lower = name.toLowerCase();
   return definitions.find((definition) => definition.name.toLowerCase() === lower);
+}
+
+export function resolveSubagentDefinition(definitions: readonly SubagentDefinition[], rawType: string | undefined): SubagentDefinition | undefined {
+  const trimmed = (rawType ?? '').trim();
+  const discovered = trimmed.length === ZERO ? undefined : findDefinitionByName(definitions, trimmed);
+  if (discovered) {
+    return discovered;
+  }
+  return findDefinitionByName(definitions, normalizeSubagentTypeName(rawType));
 }
 
 const PLURAL_SUFFIX_CHARS = 1;
@@ -610,10 +626,20 @@ function extendsName(text: string, name: string): boolean {
   return pattern !== undefined && pattern.test(text.toLowerCase());
 }
 
-function textHasWriteIntent(text: string): boolean {
-  const withoutNegation = text.replace(new RegExp(NEGATED_WRITE, 'gi'), ' ');
-  const remaining = withoutNegation.replace(new RegExp(String.raw`\bwhat to (?:${WRITE_VERBS})\b`, 'gi'), ' ');
-  return new RegExp(String.raw`\b(?:${WRITE_VERBS})\b`, 'i').test(remaining);
+function stripDiscoveredNames(text: string, names: readonly string[]): string {
+  const ordered = names
+    .map((name) => name.trim())
+    .filter((name) => name.length > ZERO)
+    .toSorted((left, right) => right.length - left.length);
+  return ordered.reduce((current, name) => current.replace(new RegExp(`(?:^|${NAME_BOUNDARY})${escapeRegExp(name)}(?=${NAME_BOUNDARY}|$)`, 'gi'), ' '), text);
+}
+
+function textHasWriteIntent(text: string, names: readonly string[]): boolean {
+  const stripped = stripDiscoveredNames(text, names);
+  const withoutNegation = stripped.replace(new RegExp(NEGATED_WRITE, 'gi'), ' ');
+  const withoutPhrases = withoutNegation.replace(new RegExp(`${HOW_TO_WRITE}|${WHAT_TO_WRITE}`, 'gi'), ' ');
+  const withoutDescriptive = withoutPhrases.replace(new RegExp(DESCRIPTIVE_WRITE, 'gi'), ' ');
+  return new RegExp(`\\b(?:${WRITE_VERBS})\\b`, 'i').test(withoutDescriptive);
 }
 
 function nameContainedIn(name: string, other: string): boolean {
@@ -647,7 +673,7 @@ function isPartOfLongerName(text: string, definition: SubagentDefinition, defini
  * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
  * the definition whose description shares the most keywords with the task. Overlapping names keep the
  * longest match. Two or more distinct names fall back to the general-purpose agent when it is available,
- * otherwise the first available definition.
+ * otherwise the first available definition. A change request with no writable agent returns general-purpose.
  */
 function fallbackSubagentType(definitions: readonly SubagentDefinition[]): string {
   const general = definitions.find((definition) => definition.name.toLowerCase() === DEFAULT_SUBAGENT_TYPE);
@@ -660,8 +686,15 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
     return resolveSubagentDefinition(definitions, named)?.name ?? named;
   }
   const text = `${hint.description} ${hint.prompt}`;
-  const writable = textHasWriteIntent(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
-  const eligible = writable.length > ZERO ? writable : definitions;
+  const asksForChange = textHasWriteIntent(
+    text,
+    definitions.map((definition) => definition.name),
+  );
+  const writable = definitions.filter((definition) => definition.permissionMode !== 'readonly');
+  if (asksForChange && writable.length === ZERO) {
+    return DEFAULT_SUBAGENT_TYPE;
+  }
+  const eligible = asksForChange ? writable : definitions;
   const namedMatches = longestNamedMatches(eligible.filter((definition) => mentionsName(text, definition.name))).filter((definition) => !isPartOfLongerName(text, definition, eligible));
   if (namedMatches.length > ONE) {
     return fallbackSubagentType(eligible);
