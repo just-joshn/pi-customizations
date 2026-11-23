@@ -11,6 +11,16 @@ const SANDBOX_SHELL = '/bin/ksh';
 const READONLY_TEMP_ROOT = '/tmp/pi-subagents-readonly';
 
 const GIT_GREP_PAGER_PATTERN = /\bgit\s+grep\b.*(?:\s-[A-Za-z]*O|\s--(?:op|ope|open(?:-[a-z]*)*)(?:=|\s|$))/;
+const GIT_EXT_DIFF_PATTERN = /\bgit\b.*\s--(?:ext-diff|textconv)\b/;
+const GIT_OUTPUT_PATTERN = /\bgit\b.*\s--output(?:=|\s)/i;
+const GIT_HELP_PATTERN = /\bgit\b[^|;&\n]*\s--help\b/i;
+const GIT_REMOTE_SHOW_PATTERN = /\bgit\s+remote\s+show\b/i;
+const DANGEROUS_GIT_OPTION_PATTERNS: readonly RegExp[] = [GIT_GREP_PAGER_PATTERN, GIT_EXT_DIFF_PATTERN, GIT_OUTPUT_PATTERN, GIT_HELP_PATTERN, GIT_REMOTE_SHOW_PATTERN];
+
+function hasDangerousGitOption(command: string): boolean {
+  const normalized = command.replace(/["'\\]/g, '');
+  return DANGEROUS_GIT_OPTION_PATTERNS.some((pattern) => pattern.test(normalized));
+}
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brm\b/i,
@@ -38,7 +48,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bgit\s+reflog\s+(?:expire|delete)\b/i,
   GIT_GREP_PAGER_PATTERN,
-  /\bgit\b.*\s--(?:ext-diff|textconv)\b/,
+  GIT_EXT_DIFF_PATTERN,
   /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
   /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s])(?:\\[\s\S]|.)*?\1(?:\\[\s\S]|.)*?\1[^\s'"\\]*[wWeE]|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
   /\b(?:sed|awk)\b.*(?:\s-f\b|\s--file\b)/,
@@ -57,9 +67,9 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bsort\b.*\s(?:--compress-program(?:=|\s|$))/i,
   /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\btree\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
-  /\bgit\b.*\s--output(?:=|\s)/i,
-  /\bgit\b[^|;&\n]*\s--help\b/i,
-  /\bgit\s+remote\s+show\b/i,
+  GIT_OUTPUT_PATTERN,
+  GIT_HELP_PATTERN,
+  GIT_REMOTE_SHOW_PATTERN,
 ];
 
 const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
@@ -133,7 +143,7 @@ function isSingleReadOnlySegment(segment: string): boolean {
   if (!trimmed) {
     return false;
   }
-  if (hasUnquotedRedirect(trimmed) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+  if (hasUnquotedRedirect(trimmed) || hasDangerousGitOption(trimmed) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
     return false;
   }
   return SAFE_READONLY_PREFIXES.some((pattern) => pattern.test(trimmed));
@@ -302,11 +312,11 @@ function readonlySandboxInvocation(command: string, tempRoot: string): string {
 }
 
 function blocksExternalViewer(command: string): boolean {
-  return /\bgit\b[^|;&\n]*\s--help\b/i.test(command) || /\bgit\s+remote\s+show\b/i.test(command) || GIT_GREP_PAGER_PATTERN.test(command);
+  return hasDangerousGitOption(command);
 }
 
 function blockedReadonlyCommand(): string {
-  return `printf '%s\\n' ${shellQuote('read-only Git help, remote-show, and grep pager commands are blocked')} >&2; exit 1`;
+  return `printf '%s\\n' ${shellQuote('read-only Git helper commands are blocked')} >&2; exit 1`;
 }
 
 /** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Git helper neutralization runs on every platform. */
