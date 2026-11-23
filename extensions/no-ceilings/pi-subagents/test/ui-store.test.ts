@@ -202,6 +202,18 @@ describe('store', () => {
     expect(restored.getSession('agent-1')?.parentSessionId).toBe('new-parent-session');
   });
 
+  it('keeps a changed record dirty until the patch is acknowledged', () => {
+    const store = createSubagentStore();
+    store.upsertSession(record());
+    const first = store.toPersistedPatch();
+    expect(first.sessions).toHaveLength(ONE);
+    const second = store.toPersistedPatch();
+    expect(second.sessions).toHaveLength(ONE);
+    const acknowledge = (store as typeof store & { acknowledgePatch?: (ids: readonly string[]) => void }).acknowledgePatch;
+    acknowledge?.(first.sessions.map((session) => session.agentId));
+    expect(store.toPersistedPatch().sessions).toHaveLength(ZERO);
+  });
+
   it('assigns a failure id when restoring an in-flight run', () => {
     const store = createSubagentStore();
     store.upsertSession(record({ status: 'running' }));

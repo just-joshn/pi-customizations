@@ -143,10 +143,18 @@ console.log('== quoted ext-diff');
 run('git diff "--ext-diff" -- file.txt');
 console.log('== escaped ext-diff');
 run('git diff --ext-\\diff -- file.txt');
+console.log('== brace ext-diff');
+run('git diff --e{xt-diff,xt-diff} -- file.txt');
+console.log('== parameter ext-diff');
+run('git diff --ext-${__pi_no_such_var:-diff} -- file.txt');
+console.log('== ansi ext-diff');
+run("git diff $'\\055\\055ext-diff' -- file.txt");
 execFileSync('git', ['config', '--unset-all', 'diff.evil.command'], { cwd: root });
 writeFileSync(join(root, '.git/info/attributes'), '');
 console.log('== quoted grep pager');
 run('git grep "-O/bin/sh" cat');
+console.log('== parameter grep pager');
+run('git grep -${__pi_no_such_var:-O}/bin/sh cat');
 console.log('== quoted help');
 run("git status '--help'");
 

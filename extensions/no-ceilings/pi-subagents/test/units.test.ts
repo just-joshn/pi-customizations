@@ -499,6 +499,13 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git grep "-O/bin/sh" cat')).toBe(false);
     expect(isSafeReadOnlyCommand("git grep '--open-files-in-pager=/bin/sh' cat")).toBe(false);
     expect(isSafeReadOnlyCommand("git status '--help'")).toBe(false);
+    expect(isSafeReadOnlyCommand('git diff --e{xt-diff,xt-diff} -- file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('git diff --ext-${__pi_no_such_var:-diff} -- file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand("git diff $'\\055\\055ext-diff' -- file.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -${__pi_no_such_var:-O}/bin/sh cat')).toBe(false);
+    expect(isSafeReadOnlyCommand("git status $'\\055\\055help'")).toBe(false);
+    expect(isSafeReadOnlyCommand('git diff --e* -- file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand("git log --grep='$HOME'")).toBe(true);
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
   });
 
