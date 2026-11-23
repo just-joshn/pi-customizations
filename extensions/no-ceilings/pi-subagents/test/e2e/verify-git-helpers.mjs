@@ -119,6 +119,41 @@ execFileSync('git', ['remote', 'set-url', 'origin', `ext::${extScript}`], { cwd:
 console.log('== ext remote helper');
 run('git remote show origin');
 
+const gpgScript = join(root, 'gpg-helper.sh');
+writeFileSync(gpgScript, `#!/bin/sh\necho EXFIL:$(cat "${secret}") >&2\nprintf '%s\\n' '-----BEGIN PGP SIGNATURE-----' 'fake' '-----END PGP SIGNATURE-----'\n`);
+chmodSync(gpgScript, 0o755);
+execFileSync('git', ['config', 'gpg.program', gpgScript], { cwd: root });
+execFileSync('git', ['config', 'log.showSignature', 'true'], { cwd: root });
+const tree = execFileSync('git', ['write-tree'], { cwd: root, encoding: 'utf8' }).trim();
+const commit = execFileSync('git', ['commit-tree', tree, '-m', 'signed init'], {
+  cwd: root,
+  encoding: 'utf8',
+  env: { ...process.env, GIT_AUTHOR_NAME: 'T', GIT_AUTHOR_EMAIL: 'a@b.c', GIT_AUTHOR_DATE: '1000000000 +0000', GIT_COMMITTER_NAME: 'T', GIT_COMMITTER_EMAIL: 'a@b.c', GIT_COMMITTER_DATE: '1000000000 +0000' },
+}).trim();
+const commitBody = execFileSync('git', ['cat-file', 'commit', commit], { cwd: root, encoding: 'utf8' });
+const [commitHeaders, ...commitMessageParts] = commitBody.split('\n\n');
+const signed = `${commitHeaders}\ngpgsig -----BEGIN PGP SIGNATURE-----\n fake\n -----END PGP SIGNATURE-----\n\n${commitMessageParts.join('\n\n')}`;
+const signedHash = execFileSync('git', ['hash-object', '-t', 'commit', '-w', '--stdin'], { cwd: root, input: signed, encoding: 'utf8' }).trim();
+execFileSync('git', ['update-ref', 'HEAD', signedHash], { cwd: root });
+console.log('== gpg program');
+run('git log -1');
+
+execFileSync('git', ['config', 'man.viewer', 'evil'], { cwd: root });
+execFileSync('git', ['config', 'man.evil.cmd', gpgScript], { cwd: root });
+console.log('== man viewer help');
+run('git status --help');
+
+execFileSync('git', ['remote', 'set-url', 'origin', root], { cwd: root });
+execFileSync('git', ['config', 'remote.origin.uploadpack', gpgScript], { cwd: root });
+console.log('== uploadpack remote show');
+run('git remote show origin');
+
+execFileSync('git', ['config', '--unset-all', 'remote.origin.uploadpack'], { cwd: root });
+execFileSync('git', ['config', 'core.gitProxy', gpgScript], { cwd: root });
+execFileSync('git', ['remote', 'set-url', 'origin', 'git://example.invalid/acme.git'], { cwd: root });
+console.log('== gitProxy remote show');
+run('git remote show origin');
+
 if (failures > 0) {
   console.error('FAIL: a read-only git command executed a repository helper');
   process.exitCode = 1;

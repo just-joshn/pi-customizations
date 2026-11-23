@@ -484,6 +484,12 @@ describe('worktree helpers', () => {
 });
 
 describe('adversary regressions', () => {
+  it('blocks git help viewers and remote-show helpers', () => {
+    expect(isSafeReadOnlyCommand('git status --help')).toBe(false);
+    expect(isSafeReadOnlyCommand('git remote show origin')).toBe(false);
+    expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
+  });
+
   it('blocks sed write commands and sort output flags in read-only mode', () => {
     expect(isSafeReadOnlyCommand("sed 's/a/b/woutfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed 's/a/b/Woutfile'")).toBe(false);
@@ -692,7 +698,7 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git branch --show-current')).toBe(true);
     expect(isSafeReadOnlyCommand('git branch --list')).toBe(true);
     expect(isSafeReadOnlyCommand('git branch -a')).toBe(true);
-    expect(isSafeReadOnlyCommand('git remote show origin')).toBe(true);
+    expect(isSafeReadOnlyCommand('git remote show origin')).toBe(false);
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
     expect(isSafeReadOnlyCommand('git tag -l "v*"')).toBe(true);
     expect(isSafeReadOnlyCommand('git branch new-branch')).toBe(false);
