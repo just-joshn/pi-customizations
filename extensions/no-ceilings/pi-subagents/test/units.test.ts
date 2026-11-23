@@ -505,6 +505,11 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git grep -${__pi_no_such_var:-O}/bin/sh cat')).toBe(false);
     expect(isSafeReadOnlyCommand("git status $'\\055\\055help'")).toBe(false);
     expect(isSafeReadOnlyCommand('git diff --e* -- file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('git status --hel\\\np')).toBe(false);
+    expect(isSafeReadOnlyCommand('git grep -\\\n-open-files-in-pager=/bin/sh needle')).toBe(false);
+    expect(isSafeReadOnlyCommand('rg -\\\n-pre=/tmp/pager needle')).toBe(false);
+    expect(isSafeReadOnlyCommand('fd -\\\n-exec /bin/true')).toBe(false);
+    expect(isSafeReadOnlyCommand("git log --grep='a\\\nb'")).toBe(true);
     expect(isSafeReadOnlyCommand("git log --grep='$HOME'")).toBe(true);
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
   });

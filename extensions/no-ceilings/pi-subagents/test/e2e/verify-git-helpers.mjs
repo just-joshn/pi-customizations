@@ -155,6 +155,8 @@ console.log('== quoted grep pager');
 run('git grep "-O/bin/sh" cat');
 console.log('== parameter grep pager');
 run('git grep -${__pi_no_such_var:-O}/bin/sh cat');
+console.log('== continued grep pager');
+run('git grep -\\\n-open-files-in-pager=/bin/sh cat');
 console.log('== quoted help');
 run("git status '--help'");
 
