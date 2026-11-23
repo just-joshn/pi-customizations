@@ -132,15 +132,16 @@ export function createWriteLayerTool(options: WriteToolOptions) {
           if (sha256Hex(after) !== expected) {
             throw layerError('error', `Write verification failed: ${displayPath(ctx.cwd, target)} does not contain the bytes that were written.`, { path: target });
           }
+          // Record inside the same critical section, so a concurrent write cannot land between the
+          // verification and the record and leave a fingerprint for bytes that are no longer on disk.
+          if (after.byteLength <= MAX_FENCE_BYTES) {
+            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: after.byteLength } });
+          } else {
+            session.fence.forget(identity);
+          }
           return after;
         });
 
-        const identity = await fileIdentity(target);
-        if (written.byteLength <= MAX_FENCE_BYTES) {
-          session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: written.byteLength } });
-        } else {
-          session.fence.forget(identity);
-        }
         const metadata = await fileMetadata(target, { digest: written.byteLength <= MAX_FENCE_BYTES });
         const linesWritten = countLines(buffer.toString('utf-8'));
         const notices = `\n\n[wrote ${linesWritten} ${linesWritten === 1 ? 'line' : 'lines'}, ${written.byteLength} ${written.byteLength === 1 ? 'byte' : 'bytes'}]`;

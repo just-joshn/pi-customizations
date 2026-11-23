@@ -72,6 +72,8 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
             }
 
             previousContent = snapshot.size <= MAX_SNAPSHOT_BYTES ? (await readFile(target)).toString('utf-8') : undefined;
+            // Resolve the identity while the file still exists, so a link records its target.
+            const identity = await fileIdentity(target);
 
             const after = await stat(target);
             if (after.dev !== snapshot.dev || after.ino !== snapshot.ino) {
@@ -93,11 +95,11 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
               }
               throw error;
             }
+            session.fence.record(identity, { kind: 'absent' });
             return snapshot;
           },
           { createParent: false },
         );
-        session.fence.record(await fileIdentity(target), { kind: 'absent' });
 
         return {
           content: [{ type: 'text', text: `Deleted ${displayPath(ctx.cwd, target)} (${before.size} ${before.size === 1 ? 'byte' : 'bytes'})` }],

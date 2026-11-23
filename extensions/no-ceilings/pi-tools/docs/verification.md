@@ -9,7 +9,7 @@ from source through `-e`.
 ```
 bunx tsc --noEmit -p tsconfig.json          # no output, exit 0
 bunx vitest run                             # 19 files passed, 1 skipped; 313 passed, 1 live test skipped
-bunx vitest run --coverage                  # statements 90.53, branches 82.37, functions 94.60, lines 90.57
+bunx vitest run --coverage                  # statements 90.56, branches 82.46, functions 94.60, lines 90.60
 bunx biome check . --error-on-warnings      # no diagnostics
 ```
 

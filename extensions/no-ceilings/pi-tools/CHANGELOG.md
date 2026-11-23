@@ -29,7 +29,8 @@
   files see the file a writer would create.
 - The read fence is keyed by canonical file identity, so a symlink or case alias shares one record;
   a ranged read no longer clears a full-read record; `edit` treats a file recreated after `delete`
-  as stale.
+  as stale; `write` and `delete` record their fence inside the file queue, so concurrent writers
+  cannot leave a fingerprint for bytes that are gone.
 - A `dir/` ignore pattern matches only a directory, the first line of a BOM file is editable with the
   text `read` returned, an empty patch is refused, a failed add removes the directories it created,
   a base64 write reports the decoded line count, and a tail read of an empty file invents no line.
