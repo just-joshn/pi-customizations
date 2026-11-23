@@ -137,8 +137,6 @@ function registerFlags(pi: ExtensionAPI): void {
 
 export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const store = createSubagentStore();
-  let definitions: readonly SubagentDefinition[] = [];
-  let definitionsKey: string | undefined;
   let config: SubagentsConfig | undefined;
   let configKey: string | undefined;
   let latestCtx: ExtensionContext | undefined;
@@ -173,12 +171,10 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     const nextConfig = loadConfig(ctx);
     config = nextConfig;
     configKey = cacheKey(ctx);
-    definitions = discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx) });
-    definitionsKey = cacheKey(ctx);
-    return definitions;
+    return discoverSubagents(ctx.cwd, { config: nextConfig, browserIntegration: findBrowserIntegration(pi, nextConfig), projectTrusted: projectTrust(ctx) });
   };
 
-  const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsKey !== cacheKey(ctx) ? reloadDefinitions(ctx) : definitions);
+  const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => reloadDefinitions(ctx);
 
   const onStateChanged = (options?: { readonly includeTranscriptItems?: boolean }): void => {
     if (extensionShutDown) {
