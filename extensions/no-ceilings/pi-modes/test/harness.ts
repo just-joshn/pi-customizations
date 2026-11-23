@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { onTestFinished } from 'vitest';
 import piModesExtension from '../src/index.ts';
 
 const ZERO = 0;
@@ -10,6 +11,13 @@ const ZERO = 0;
 interface RegisteredCommand {
   readonly description: string;
   readonly handler: (args: string, ctx: ExtensionContext) => Promise<void>;
+  readonly getArgumentCompletions?: (argumentPrefix: string) => readonly CompletionItem[] | null | Promise<readonly CompletionItem[] | null>;
+}
+
+interface CompletionItem {
+  readonly value: string;
+  readonly label: string;
+  readonly description?: string;
 }
 
 interface RegisteredShortcut {
@@ -24,6 +32,12 @@ interface RegisteredTool {
 
 type EventHandler = (event: unknown, ctx: ExtensionContext) => Promise<unknown> | unknown;
 
+export interface SkillCommandOption {
+  readonly name: string;
+  readonly path: string;
+  readonly description?: string;
+}
+
 export interface HarnessOptions {
   readonly sessionId?: string;
   readonly hasUI?: boolean;
@@ -33,22 +47,27 @@ export interface HarnessOptions {
   readonly selectResponses?: readonly (string | undefined)[];
   readonly inputResponses?: readonly (string | undefined)[];
   readonly editorResponses?: readonly (string | undefined)[];
+  readonly skillCommands?: readonly SkillCommandOption[];
 }
 
 export interface TestHarness {
   readonly cwd: string;
   readonly ctx: ExtensionContext;
   readonly getActiveTools: () => readonly string[];
+  readonly setActiveTools: (names: readonly string[]) => void;
   readonly getStatuses: () => Readonly<Record<string, string | undefined>>;
   readonly getWidgets: () => Readonly<Record<string, readonly string[] | undefined>>;
   readonly getNotifications: () => readonly { message: string; level?: string }[];
   readonly getEntries: () => readonly { customType: string; data: unknown }[];
   readonly getSentMessages: () => readonly { message: unknown; options?: unknown }[];
   readonly getSentUserMessages: () => readonly { content: string; options?: unknown }[];
+  readonly setSkillCommands: (commands: readonly SkillCommandOption[]) => void;
   readonly runCommand: (name: string, args?: string) => Promise<void>;
+  readonly getCompletions: (name: string, prefix?: string) => Promise<readonly CompletionItem[] | null>;
   readonly triggerShortcut: (shortcut: string) => Promise<void>;
   readonly callTool: (name: string, params: unknown) => Promise<{ content: readonly { type: string; text: string }[]; details?: Record<string, unknown> }>;
   readonly emit: (eventName: string, event: unknown) => Promise<unknown>;
+  readonly emitAll: (eventName: string, event: unknown) => Promise<readonly unknown[]>;
   readonly cleanup: () => Promise<void>;
 }
 
@@ -61,15 +80,8 @@ function createQueue<T>(initial: readonly T[]): () => T | undefined {
   };
 }
 
-function isDouble<T>(_value: unknown): _value is T {
-  return true;
-}
-
 export function double<T>(value: unknown): T {
-  if (!isDouble<T>(value)) {
-    throw new Error('unreachable: test double is always accepted');
-  }
-  return value;
+  return value as T;
 }
 
 function createFakeTheme(): ExtensionContext['ui']['theme'] {
@@ -123,10 +135,21 @@ interface ApiRecorder {
   readonly getShortcut: (key: string) => RegisteredShortcut | undefined;
   readonly getTool: (name: string) => RegisteredTool | undefined;
   readonly getListeners: (eventName: string) => readonly EventHandler[];
+  readonly setSkillCommands: (commands: readonly SkillCommandOption[]) => void;
 }
 
-function createApiRecorder(options: HarnessOptions): ApiRecorder {
+function toSkillCommands(skills: readonly SkillCommandOption[], cwd: string): readonly Record<string, unknown>[] {
+  return skills.map((skill) => ({
+    name: `skill:${skill.name}`,
+    description: skill.description,
+    source: 'skill',
+    sourceInfo: { path: join(cwd, skill.path), source: 'skill', scope: 'project', origin: 'top-level' },
+  }));
+}
+
+function createApiRecorder(options: HarnessOptions, cwd: string): ApiRecorder {
   let activeTools: readonly string[] = options.initialTools ?? ['read', 'bash', 'edit', 'write'];
+  let skillCommands: readonly SkillCommandOption[] = options.skillCommands ?? [];
   let entries: readonly { customType: string; data: unknown }[] = [];
   let sentMessages: readonly { message: unknown; options?: unknown }[] = [];
   let sentUserMessages: readonly { content: string; options?: unknown }[] = [];
@@ -152,6 +175,7 @@ function createApiRecorder(options: HarnessOptions): ApiRecorder {
     setActiveTools: (next: string[]) => {
       activeTools = [...next];
     },
+    getCommands: () => toSkillCommands(skillCommands, cwd),
     appendEntry: (customType: string, data: unknown) => {
       entries = [...entries, { customType, data }];
     },
@@ -176,6 +200,9 @@ function createApiRecorder(options: HarnessOptions): ApiRecorder {
     getShortcut: (key) => shortcuts[key],
     getTool: (name) => tools[name],
     getListeners: (eventName) => listeners[eventName] ?? [],
+    setSkillCommands: (next) => {
+      skillCommands = next;
+    },
   };
 }
 
@@ -190,11 +217,12 @@ export function createTestHarness(options: HarnessOptions = {}): TestHarness {
   const cwd = mkdtempSync(join(tmpdir(), 'pi-modes-test-'));
   const sessionId = options.sessionId ?? 'sess1234-5678-90ab-cdef';
   const uiRec = createUiRecorder(options);
-  const apiRec = createApiRecorder(options);
+  const apiRec = createApiRecorder(options, cwd);
 
   const ctx = double<ExtensionContext>({
     cwd,
     hasUI: options.hasUI ?? true,
+    waitForIdle: async () => undefined,
     sessionManager: {
       getSessionId: () => sessionId,
       getEntries: () => [...(options.initialEntries ?? []), ...apiRec.getEntries().map((e) => ({ type: 'custom', customType: e.customType, data: e.data }))],
@@ -204,31 +232,57 @@ export function createTestHarness(options: HarnessOptions = {}): TestHarness {
 
   piModesExtension(apiRec.pi);
 
-  const emit = async (eventName: string, event: unknown): Promise<unknown> => {
-    let lastResult: unknown;
+  const emitAll = async (eventName: string, event: unknown): Promise<readonly unknown[]> => {
+    const results: readonly unknown[] = [];
+    let collected: readonly unknown[] = results;
     for (const handler of apiRec.getListeners(eventName)) {
-      lastResult = await handler(event, ctx);
+      collected = [...collected, await handler(event, ctx)];
     }
-    return lastResult;
+    return collected;
+  };
+
+  const emit = async (eventName: string, event: unknown): Promise<unknown> => {
+    const results = await emitAll(eventName, event);
+    return results.find((result) => result !== undefined);
   };
 
   return {
     cwd,
     ctx,
     getActiveTools: apiRec.getActiveTools,
+    setActiveTools: (names) => apiRec.pi.setActiveTools([...names]),
     getStatuses: uiRec.getStatuses,
     getWidgets: uiRec.getWidgets,
     getNotifications: uiRec.getNotifications,
     getEntries: apiRec.getEntries,
     getSentMessages: apiRec.getSentMessages,
     getSentUserMessages: apiRec.getSentUserMessages,
+    setSkillCommands: apiRec.setSkillCommands,
     runCommand: (name, args = '') => requireRegistered(apiRec.getCommand(name), 'Command', name).handler(args, ctx),
+    getCompletions: async (name, prefix = '') => {
+      const command = requireRegistered(apiRec.getCommand(name), 'Command', name);
+      const completions = command.getArgumentCompletions;
+      if (completions === undefined) {
+        return null;
+      }
+      return await completions(prefix);
+    },
     triggerShortcut: (shortcut) => requireRegistered(apiRec.getShortcut(shortcut), 'Shortcut', shortcut).handler(ctx),
     callTool: (name, params) => requireRegistered(apiRec.getTool(name), 'Tool', name).execute(`call-${ZERO}`, params, undefined, undefined, ctx),
     emit,
+    emitAll,
     cleanup: async () => {
-      await emit('session_shutdown', {});
-      rmSync(cwd, { recursive: true, force: true });
+      try {
+        await emit('session_shutdown', {});
+      } finally {
+        rmSync(cwd, { recursive: true, force: true });
+      }
     },
   };
+}
+
+export function useTestHarness(options: HarnessOptions = {}): TestHarness {
+  const harness = createTestHarness(options);
+  onTestFinished(() => harness.cleanup());
+  return harness;
 }

@@ -1,27 +1,25 @@
 import { Key } from '@earendil-works/pi-tui';
-import { afterEach, describe, expect, it } from 'vitest';
-import { createTestHarness, double, type TestHarness } from './harness.ts';
+import { describe, expect, it } from 'vitest';
+import { double, type TestHarness, useTestHarness } from './harness.ts';
 
 const ONE = 1;
 
-let harnesses: readonly TestHarness[] = [];
+const ASK_ENTRIES = [{ type: 'custom', customType: 'pi-modes-state', data: { mode: 'ask', toolsBeforeRestricted: ['read', 'bash', 'edit', 'write'] } }];
 
-function track(harness: TestHarness): TestHarness {
-  harnesses = [...harnesses, harness];
-  return harness;
+async function enterReadOnly(mode: 'ask' | 'plan'): Promise<TestHarness> {
+  const h = useTestHarness();
+  await h.emit('session_start', {});
+  await h.runCommand(mode);
+  return h;
 }
 
-afterEach(async () => {
-  const current = harnesses;
-  harnesses = [];
-  for (const h of current) {
-    await h.cleanup();
-  }
-});
+async function bashCall(h: TestHarness, command: string): Promise<unknown> {
+  return h.emit('tool_call', { toolName: 'bash', toolCallId: 'bash', input: { command } });
+}
 
 describe('pi-modes cycling and guards', () => {
   it('cycles through all 4 modes via Ctrl+Alt+M in exact parity order', async () => {
-    const h = track(createTestHarness());
+    const h = useTestHarness();
     await h.emit('session_start', {});
     expect(h.getStatuses()['pi-modes']).toBeUndefined();
 
@@ -43,98 +41,148 @@ describe('pi-modes cycling and guards', () => {
     expect(h.getActiveTools()).toContain('write');
   });
 
-  it('blocks write tools and mutating bash commands in Ask and Plan modes', async () => {
-    const h = track(createTestHarness());
-    await h.emit('session_start', {});
-    await h.runCommand('ask');
-
+  it('blocks write tools in Ask mode', async () => {
+    const h = await enterReadOnly('ask');
     const editBlock = double<{ block?: boolean; reason?: string } | undefined>(await h.emit('tool_call', { toolName: 'edit', toolCallId: 't1', input: { path: 'a.ts' } }));
     expect(editBlock?.block).toBe(true);
     expect(editBlock?.reason).toContain('Ask mode is read-only');
+  });
 
-    const rmBlock = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 't2', input: { command: 'rm -rf dist' } }));
+  it('blocks mutating bash commands in Ask mode', async () => {
+    const h = await enterReadOnly('ask');
+    const rmBlock = double<{ block?: boolean } | undefined>(await bashCall(h, 'rm -rf dist'));
     expect(rmBlock?.block).toBe(true);
+  });
 
-    const gitStatusAllow = await h.emit('tool_call', { toolName: 'bash', toolCallId: 't3', input: { command: 'git status' } });
-    expect(gitStatusAllow).toBeUndefined();
+  it('allows safe bash commands in Ask mode', async () => {
+    const h = await enterReadOnly('ask');
+    expect(await bashCall(h, 'git status')).toBeUndefined();
+  });
 
+  it('allows mutating bash again after restoring Agent mode', async () => {
+    const h = await enterReadOnly('ask');
     await h.runCommand('agent');
-    const rmAllowed = await h.emit('tool_call', { toolName: 'bash', toolCallId: 't4', input: { command: 'rm -rf dist' } });
-    expect(rmAllowed).toBeUndefined();
+    expect(await bashCall(h, 'rm -rf dist')).toBeUndefined();
   });
 });
 
 describe('pi-modes flags, switch_mode tool, and persistence', () => {
-  it('supports CLI flags, slash commands with prompts, and Cursor mode aliases', async () => {
-    const h = track(createTestHarness({ flags: { plan: true } }));
+  it('starts in Plan mode from the --plan flag', async () => {
+    const h = useTestHarness({ flags: { plan: true } });
     await h.emit('session_start', {});
     expect(h.getStatuses()['pi-modes']).toContain('Plan');
+  });
 
+  it('treats /mode search as the Ask alias', async () => {
+    const h = useTestHarness();
+    await h.emit('session_start', {});
     await h.runCommand('mode', 'search');
     expect(h.getStatuses()['pi-modes']).toContain('Ask');
+  });
 
+  it('submits an /ask prompt as the user message', async () => {
+    const h = useTestHarness();
+    await h.emit('session_start', {});
     await h.runCommand('ask', 'Explain the architecture');
     expect(h.getSentUserMessages().at(-ONE)?.content).toBe('Explain the architecture');
+    expect(h.getStatuses()['pi-modes']).toContain('Ask');
+  });
 
+  it('toggles Ask mode off when /ask has no prompt', async () => {
+    const h = useTestHarness();
+    await h.emit('session_start', {});
+    await h.runCommand('ask');
+    expect(h.getStatuses()['pi-modes']).toContain('Ask');
     await h.runCommand('ask');
     expect(h.getStatuses()['pi-modes']).toBeUndefined();
   });
 
-  it('handles switch_mode tool approval, rejection, and headless auto-approval', async () => {
-    const interactive = track(createTestHarness({ selectResponses: ['Reject', 'Approve mode switch'] }));
+  it('rejects an interactive switch_mode request', async () => {
+    const interactive = useTestHarness({ selectResponses: ['Reject'] });
     await interactive.emit('session_start', {});
-
     const rejected = await interactive.callTool('switch_mode', { target_mode_id: 'ask', explanation: 'Read-only Q&A' });
     expect(rejected.details?.['status']).toBe('rejected');
+  });
 
+  it('approves an interactive switch_mode request', async () => {
+    const interactive = useTestHarness({ selectResponses: ['Approve mode switch'] });
+    await interactive.emit('session_start', {});
     const approved = await interactive.callTool('switch_mode', { target_mode_id: 'plan', explanation: 'Plan refactor' });
     expect(approved.details?.['status']).toBe('success');
     expect(interactive.getStatuses()['pi-modes']).toContain('Plan');
+  });
 
-    const headless = track(createTestHarness({ hasUI: false }));
+  it('auto-approves switch_mode when there is no UI', async () => {
+    const headless = useTestHarness({ hasUI: false });
     await headless.emit('session_start', {});
     const auto = await headless.callTool('switch_mode', { target_mode_id: 'ask' });
     expect(auto.details?.['status']).toBe('success');
     expect(headless.getActiveTools()).not.toContain('write');
   });
 
-  it('strips stale mode context messages and restores persisted mode on resume', async () => {
-    const initialEntries = [{ type: 'custom', customType: 'pi-modes-state', data: { mode: 'ask', toolsBeforeRestricted: ['read', 'bash', 'edit', 'write'] } }];
-    const h = track(createTestHarness({ initialEntries }));
+  it('rebuilds the new mode guidance after a switch inside the same run', async () => {
+    const h = useTestHarness({ selectResponses: ['Approve mode switch'] });
+    await h.emit('session_start', {});
+    await h.emit('before_agent_start', { messageType: 'user', prompt: 'start' });
+    await h.callTool('switch_mode', { target_mode_id: 'ask' });
+    const after = double<{ messages: readonly { content?: string }[] }>(await h.emit('context', { messages: [] }));
+    expect(after.messages.map((message) => String(message.content))).toContainEqual(expect.stringContaining('[ASK MODE ACTIVE]'));
+  });
+
+  it('keeps the current run guidance and drops stale copies', async () => {
+    const h = useTestHarness({ initialEntries: ASK_ENTRIES });
     await h.emit('session_start', {});
     expect(h.getStatuses()['pi-modes']).toContain('Ask');
 
-    const contextMessages = [
-      { role: 'user', content: 'hello' },
-      { role: 'custom', customType: 'pi-modes-context', content: '[ASK MODE ACTIVE]' },
-      { role: 'user', content: '[PLAN MODE ACTIVE] old' },
-    ];
-    const filtered = double<{ messages: readonly unknown[] }>(await h.emit('context', { messages: contextMessages }));
-    expect(filtered.messages).toHaveLength(ONE);
+    const injected = double<{ message?: { content: string; details: { runId: string } } } | undefined>(await h.emit('before_agent_start', { messageType: 'user', prompt: 'hello' }));
+    const runId = injected?.message?.details.runId ?? '';
+    expect(injected?.message?.content).toContain('[ASK MODE ACTIVE]');
+
+    const filtered = double<{ messages: readonly { content?: string }[] }>(
+      await h.emit('context', {
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'custom', customType: 'pi-modes-context', content: '[ASK MODE ACTIVE] current', details: { runId } },
+          { role: 'custom', customType: 'pi-modes-context', content: 'stale copy', details: { runId: 'stale-run' } },
+        ],
+      }),
+    );
+    expect(filtered.messages.map((message) => message.content)).toEqual(['hello', '[ASK MODE ACTIVE] current']);
+  });
+
+  it('preserves user text that quotes a mode banner', async () => {
+    const h = useTestHarness({ initialEntries: ASK_ENTRIES });
+    await h.emit('session_start', {});
+    const injected = double<{ message?: { content: string; details: { runId: string } } } | undefined>(await h.emit('before_agent_start', { messageType: 'user', prompt: 'hello' }));
+    const runId = injected?.message?.details.runId ?? '';
+
+    const filtered = double<{ messages: readonly { content?: string }[] }>(
+      await h.emit('context', {
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'custom', customType: 'pi-modes-context', content: '[ASK MODE ACTIVE] current', details: { runId } },
+          { role: 'user', content: 'What does [PLAN MODE ACTIVE] mean?' },
+        ],
+      }),
+    );
+    expect(filtered.messages.map((message) => message.content)).toEqual(['hello', '[ASK MODE ACTIVE] current', 'What does [PLAN MODE ACTIVE] mean?']);
   });
 });
 
 describe('pi-modes regression guards', () => {
-  it('blocks chained commands, command substitution, and find -delete in read-only modes', async () => {
-    const h = track(createTestHarness());
-    await h.emit('session_start', {});
-    await h.runCommand('ask');
+  it.for(['echo ok && node -e "process.exit(0)"', 'echo $(whoami)', 'find . -name "*.tmp" -delete'])('blocks %s in read-only mode', async (command) => {
+    const h = await enterReadOnly('ask');
+    const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
+    expect(result?.block).toBe(true);
+  });
 
-    const chained = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c1', input: { command: 'echo ok && node -e "process.exit(0)"' } }));
-    expect(chained?.block).toBe(true);
-
-    const subshell = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c2', input: { command: 'echo $(whoami)' } }));
-    expect(subshell?.block).toBe(true);
-
-    const findDelete = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c3', input: { command: 'find . -name "*.tmp" -delete' } }));
-    expect(findDelete?.block).toBe(true);
-
-    const safePipe = await h.emit('tool_call', { toolName: 'bash', toolCallId: 'c4', input: { command: 'git status | head -n 5' } });
-    expect(safePipe).toBeUndefined();
+  it('allows a safe pipe in read-only mode', async () => {
+    const h = await enterReadOnly('ask');
+    expect(await bashCall(h, 'git status | head -n 5')).toBeUndefined();
   });
 
   it('preserves user-configured active tools when starting in Agent mode', async () => {
-    const h = track(createTestHarness({ initialTools: ['read', 'grep'] }));
+    const h = useTestHarness({ initialTools: ['read', 'grep'] });
     await h.emit('session_start', {});
 
     expect(h.getActiveTools()).toContain('read');
@@ -146,45 +194,110 @@ describe('pi-modes regression guards', () => {
 });
 
 describe('pi-modes read-only shell escape guards', () => {
-  it('blocks env command execution, awk system(), and sed -n write flags while allowing safe forms', async () => {
-    const h = track(createTestHarness());
-    await h.emit('session_start', {});
-    await h.runCommand('ask');
+  it.for(['env node -e "console.log(1)"', 'awk \'BEGIN { system("id") }\'', "sed -n '1w /tmp/out.txt' package.json"])('blocks %s in read-only mode', async (command) => {
+    const h = await enterReadOnly('ask');
+    const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
+    expect(result?.block).toBe(true);
+  });
 
-    const envExec = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e1', input: { command: 'env node -e "console.log(1)"' } }));
-    expect(envExec?.block).toBe(true);
-
-    const awkSys = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e2', input: { command: 'awk \'BEGIN { system("id") }\'' } }));
-    expect(awkSys?.block).toBe(true);
-
-    const sedWrite = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e3', input: { command: "sed -n '1w /tmp/out.txt' package.json" } }));
-    expect(sedWrite?.block).toBe(true);
-
-    expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e4', input: { command: 'env' } })).toBeUndefined();
-    expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e5', input: { command: "awk '{print $1}' package.json" } })).toBeUndefined();
-    expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'e6', input: { command: "sed -n '1,5p' package.json" } })).toBeUndefined();
+  it.for(['env', "awk '{print $1}' package.json", "sed -n '1,5p' package.json"])('allows %s in read-only mode', async (command) => {
+    const h = await enterReadOnly('ask');
+    expect(await bashCall(h, command)).toBeUndefined();
   });
 });
 
 describe('pi-modes read-only output-flag and process-substitution guards', () => {
-  it('blocks sort -o, find -fprint, git --output, and <(...) process substitution', async () => {
-    const h = track(createTestHarness());
+  it.for(['sort -o /tmp/pwn.txt package.json', 'find . -fprint /tmp/pwn.txt', 'git diff --output=/tmp/pwn.txt', 'cat <(node -e "console.log(1)")'])('blocks %s in Plan mode', async (command) => {
+    const h = await enterReadOnly('plan');
+    const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
+    expect(result?.block).toBe(true);
+  });
+
+  it.for(['sort package.json', 'git diff'])('allows %s in Plan mode', async (command) => {
+    const h = await enterReadOnly('plan');
+    expect(await bashCall(h, command)).toBeUndefined();
+  });
+});
+
+describe('pi-modes read-only tool coverage', () => {
+  it('blocks the powershell tool in read-only modes', async () => {
+    const h = await enterReadOnly('ask');
+
+    const blocked = double<{ block?: boolean; reason?: string } | undefined>(await h.emit('tool_call', { toolName: 'powershell', toolCallId: 'p1', input: { command: 'Remove-Item -Recurse .' } }));
+    expect(blocked?.block).toBe(true);
+    expect(blocked?.reason).toContain('Ask mode is read-only');
+  });
+
+  it('allows the powershell tool in Agent mode', async () => {
+    const h = await enterReadOnly('ask');
+
+    await h.runCommand('agent');
+    expect(await h.emit('tool_call', { toolName: 'powershell', toolCallId: 'p2', input: { command: 'Get-ChildItem' } })).toBeUndefined();
+  });
+});
+
+describe('pi-modes read-only shell write forms', () => {
+  it.for([
+    "printf 'x' 1<> /tmp/pi-modes-out.txt",
+    "sed -n 'w/tmp/pi-modes-out.txt' package.json",
+    "sed -n '1w /tmp/pi-modes-out.txt' package.json",
+    'git remote add evil https://example.com/x.git',
+    'git branch newbranch',
+    'git branch -D main',
+  ])('blocks %s in read-only mode', async (command) => {
+    const h = await enterReadOnly('ask');
+    const result = double<{ block?: boolean } | undefined>(await bashCall(h, command));
+    expect(result?.block).toBe(true);
+  });
+
+  it.for(["sed -n '1,5p' package.json", 'git branch -a', 'git remote -v', 'git status'])('allows %s in read-only mode', async (command) => {
+    const h = await enterReadOnly('ask');
+    expect(await bashCall(h, command)).toBeUndefined();
+  });
+});
+
+describe('pi-modes read-only tool allowlist', () => {
+  it('drops write-capable MCP tools from the loadout and blocks their calls', async () => {
+    const h = useTestHarness({
+      initialTools: ['read', 'bash', 'edit', 'write', 'mcp__filesystem__write_file', 'read_mcp_resource'],
+    });
     await h.emit('session_start', {});
-    await h.runCommand('plan');
+    await h.runCommand('ask');
 
-    const sortOut = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f1', input: { command: 'sort -o /tmp/pwn.txt package.json' } }));
-    expect(sortOut?.block).toBe(true);
+    expect(h.getActiveTools()).not.toContain('mcp__filesystem__write_file');
+    expect(h.getActiveTools()).not.toContain('edit');
+    expect(h.getActiveTools()).toContain('read_mcp_resource');
 
-    const findWrite = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f2', input: { command: 'find . -fprint /tmp/pwn.txt' } }));
-    expect(findWrite?.block).toBe(true);
+    const blocked = double<{ block?: boolean; reason?: string } | undefined>(await h.emit('tool_call', { toolName: 'mcp__filesystem__write_file', toolCallId: 'm1', input: { path: 'a' } }));
+    expect(blocked?.block).toBe(true);
+    expect(blocked?.reason).toContain('Ask mode is read-only');
 
-    const gitOut = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f3', input: { command: 'git diff --output=/tmp/pwn.txt' } }));
-    expect(gitOut?.block).toBe(true);
+    const readAllowed = await h.emit('tool_call', { toolName: 'read_mcp_resource', toolCallId: 'm2', input: { server: 's', uri: 'u' } });
+    expect(readAllowed).toBeUndefined();
 
-    const procSub = double<{ block?: boolean } | undefined>(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f4', input: { command: 'cat <(node -e "console.log(1)")' } }));
-    expect(procSub?.block).toBe(true);
+    await h.runCommand('agent');
+    expect(h.getActiveTools()).toContain('edit');
+    expect(h.getActiveTools()).toContain('mcp__filesystem__write_file');
+  });
+});
 
-    expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f5', input: { command: 'sort package.json' } })).toBeUndefined();
-    expect(await h.emit('tool_call', { toolName: 'bash', toolCallId: 'f6', input: { command: 'git diff' } })).toBeUndefined();
+describe('pi-modes read-only loadout enforcement', () => {
+  it('drops a late-registered tool during the mode and restores it on the way out', async () => {
+    const h = useTestHarness();
+    await h.emit('session_start', {});
+    await h.runCommand('ask');
+
+    h.setActiveTools([...h.getActiveTools(), 'mcp__docs__write_file']);
+    await h.emit('before_agent_start', { messageType: 'user', prompt: 'go' });
+    expect(h.getActiveTools()).not.toContain('mcp__docs__write_file');
+
+    h.setActiveTools([...h.getActiveTools(), 'mcp__docs__write_file']);
+    await h.emit('mcp_servers_change', { servers: [] });
+    expect(h.getActiveTools()).not.toContain('mcp__docs__write_file');
+
+    h.setActiveTools([...h.getActiveTools(), 'mcp__docs__write_file']);
+    await h.runCommand('agent');
+    expect(h.getActiveTools()).toContain('mcp__docs__write_file');
+    expect(h.getActiveTools()).toContain('edit');
   });
 });

@@ -1,54 +1,648 @@
-import { ZERO } from './types.ts';
+import { TWO, ZERO } from './types.ts';
 
-const SHELL_CHAIN_SPLIT = /(?:&&|\|\||[;|\n])+/;
+const SEGMENT_SEPARATORS = new Set<string>([';', '\n', '|', '&']);
+const WHITESPACE = /\s/;
+const DIGIT = /[0-9]/;
+const SINGLE_QUOTE = "'";
+const DOUBLE_QUOTE = '"';
+const BACKSLASH = '\\';
+const LESS_THAN = '<';
+const GREATER_THAN = '>';
+const DOLLAR = '$';
+const OPEN_PAREN = '(';
+const BACKTICK = '`';
 
-const DESTRUCTIVE_COMMAND_PATTERNS: readonly RegExp[] = [
-  /\$\(/,
-  /<\(/,
-  /`/,
-  /\brm\b/i,
-  /\brmdir\b/i,
-  /\bmv\b/i,
-  /\bcp\b/i,
-  /\bmkdir\b/i,
-  /\btouch\b/i,
-  /\bchmod\b/i,
-  /\bchown\b/i,
-  /\bchgrp\b/i,
-  /\bln\b/i,
-  /\btee\b/i,
-  /\btruncate\b/i,
-  /\bdd\b/i,
-  /\bshred\b/i,
-  /\bxargs\b/i,
-  /\bfind\b[^;|\n]*\s-(?:delete|exec|execdir|ok|okdir|fls|fprint0?|fprintf)\b/i,
-  /\bsort\b[^;|\n]*\s-o\b/i,
-  /--output(?:=|\s)/i,
-  /(^|[^<])>(?!>)/,
-  />>/,
-  /\b(?:npm|pnpm|yarn|bun)\s+(?:install|add|remove|uninstall|update|ci|link|publish|upgrade)\b/i,
-  /\bpip3?\s+(?:install|uninstall)\b/i,
-  /\b(?:apt(?:-get)?|brew)\s+(?:install|remove|purge|update|upgrade)\b/i,
-  /\bgit\s+(?:add|commit|push|pull|merge|rebase|reset|checkout|switch|branch\s+-[dD]|stash|cherry-pick|revert|tag|init|clone|clean)\b/i,
-  /\b(?:sudo|su|kill|pkill|killall|reboot|shutdown)\b/i,
-  /\b(?:systemctl|service)\s+.*\b(?:start|stop|restart|enable|disable)\b/i,
-  /\b(?:vim?|nano|emacs|code|subl)\b/i,
-  /\bawk\b[^;|\n]*\b(?:system|getline)\b/i,
-  /\bsed\b[^;|\n]*(?:\bw|\d+w|\/w)\s+\S/i,
-  /\bsed\s+-i/i,
-];
+/** Commands whose default behavior only reads. Per-command rules below remove the writing forms. */
+const READ_ONLY_COMMANDS = new Set<string>([
+  'cat',
+  'head',
+  'tail',
+  'less',
+  'more',
+  'grep',
+  'rg',
+  'find',
+  'fd',
+  'ls',
+  'eza',
+  'bat',
+  'pwd',
+  'echo',
+  'printf',
+  'wc',
+  'sort',
+  'uniq',
+  'diff',
+  'file',
+  'stat',
+  'du',
+  'df',
+  'tree',
+  'which',
+  'whereis',
+  'type',
+  'printenv',
+  'uname',
+  'whoami',
+  'id',
+  'date',
+  'cal',
+  'uptime',
+  'ps',
+  'jq',
+  'awk',
+  'sed',
+]);
 
-const SAFE_READ_ONLY_PATTERNS: readonly RegExp[] = [
-  /^\s*(?:cat|head|tail|less|more|grep|rg|find|fd|ls|eza|bat|pwd|echo|printf|wc|sort|uniq|diff|file|stat|du|df|tree|which|whereis|type|printenv|uname|whoami|id|date|cal|uptime|ps|jq|awk)\b/,
-  /^\s*git\s+(?:status|log|diff|show|branch|remote|rev-parse|describe|ls-files|ls-tree|config\s+--get)\b/i,
-  /^\s*(?:npm|pnpm|yarn|bun)\s+(?:list|ls|view|info|search|outdated|audit|why)\b/i,
-  /^\s*(?:node|bun|python3?|tsc)\s+(?:--version|-v)\b/i,
-  /^\s*env\s*$/,
-  /^\s*sed\s+-n\b/i,
-];
+const GIT_READ_SUBCOMMANDS = new Set<string>([
+  'status',
+  'log',
+  'diff',
+  'show',
+  'rev-parse',
+  'rev-list',
+  'describe',
+  'ls-files',
+  'ls-tree',
+  'blame',
+  'shortlog',
+  'merge-base',
+  'cat-file',
+  'for-each-ref',
+  'whatchanged',
+  'diff-tree',
+  'diff-files',
+  'diff-index',
+  'name-rev',
+]);
 
-function isSafeSegment(segment: string): boolean {
-  return SAFE_READ_ONLY_PATTERNS.some((pattern) => pattern.test(segment));
+/** Flags that make an otherwise read-only command write or execute. */
+const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
+  fd: ['--exec', '--exec-batch'],
+  sort: ['--output', '--compress-program'],
+  rg: ['--pre', '--pre-glob'],
+  tree: ['--output'],
+  awk: ['--file'],
+  sed: ['--in-place', '--file'],
+};
+
+/** Short options whose letter inside a cluster writes, runs a program, or names an unread script, as in `sort -nro out` or `sed -nf`. */
+const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
+  sort: ['o'],
+  tree: ['o'],
+  fd: ['x', 'X'],
+  sed: ['i', 'f'],
+  awk: ['f'],
+};
+
+/** Short options that are complete words and take a separate argument, as in `find -exec`. */
+const DENIED_SHORT_WORDS: Readonly<Record<string, readonly string[]>> = {
+  find: ['-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint', '-fprint0', '-fprintf', '-fls'],
+};
+
+const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+
+interface LexedCommand {
+  readonly segments: readonly (readonly string[])[];
+  readonly safe: boolean;
+}
+
+/**
+ * Split a command line into words and segments without a shell. Quotes and backslash escapes are
+ * honored, and any output redirection, command substitution, or process substitution marks the
+ * whole line unsafe. This is what makes `rg 'a>b'` readable and `echo x 1<> f` blocked.
+ */
+function lexCommand(command: string): LexedCommand {
+  const segments: string[][] = [];
+  let words: string[] = [];
+  let word = '';
+  let hasWord = false;
+  let quote: string | undefined;
+  let safe = true;
+  let index = ZERO;
+
+  const endWord = (): void => {
+    if (hasWord) {
+      words = [...words, word];
+      word = '';
+      hasWord = false;
+    }
+  };
+  const endSegment = (): void => {
+    endWord();
+    if (words.length > ZERO) {
+      segments.push(words);
+      words = [];
+    }
+  };
+
+  while (index < command.length) {
+    const char = command[index] ?? '';
+    if (quote === SINGLE_QUOTE) {
+      if (char === SINGLE_QUOTE) {
+        quote = undefined;
+      } else {
+        word += char;
+        hasWord = true;
+      }
+      index += 1;
+      continue;
+    }
+    if (char === BACKSLASH && quote !== SINGLE_QUOTE) {
+      const next = command[index + 1];
+      if (next === '\n') {
+        // Bash removes a line continuation before it parses the command, which can join `$(` or `$'`.
+        const after = command[index + 2];
+        if (word.endsWith(DOLLAR) && (after === OPEN_PAREN || after === SINGLE_QUOTE)) {
+          safe = false;
+        }
+        index += 2;
+        continue;
+      }
+      if (next !== undefined) {
+        word += next;
+        hasWord = true;
+      }
+      index += 2;
+      continue;
+    }
+    if (quote === DOUBLE_QUOTE) {
+      if (char === DOUBLE_QUOTE) {
+        quote = undefined;
+        index += 1;
+        continue;
+      }
+      if (char === DOLLAR && command[index + 1] === OPEN_PAREN) {
+        safe = false;
+      }
+      if (char === BACKTICK) {
+        safe = false;
+      }
+      word += char;
+      hasWord = true;
+      index += 1;
+      continue;
+    }
+    if (char === DOLLAR && command[index + 1] === SINGLE_QUOTE) {
+      // ANSI-C quoting decodes escapes before bash runs the command, so its argv cannot be read here.
+      safe = false;
+    }
+    if (char === SINGLE_QUOTE || char === DOUBLE_QUOTE) {
+      quote = char;
+      hasWord = true;
+      index += 1;
+      continue;
+    }
+    if (char === GREATER_THAN) {
+      // `2>&1` and `>&2` duplicate a file descriptor, which writes nothing. Other `>` forms write.
+      const fdTarget = command[index + 1] === '&' ? (command[index + 2] ?? '') : '';
+      if (DIGIT.test(fdTarget)) {
+        word += `>&${fdTarget}`;
+        hasWord = true;
+        index += 3;
+        continue;
+      }
+      safe = false;
+    }
+    if (char === BACKTICK) {
+      safe = false;
+    }
+    if (char === DOLLAR && command[index + 1] === OPEN_PAREN) {
+      safe = false;
+    }
+    if (char === LESS_THAN && command[index + 1] === OPEN_PAREN) {
+      safe = false;
+    }
+    if (char === '\n') {
+      endSegment();
+      index += 1;
+      continue;
+    }
+    if (SEGMENT_SEPARATORS.has(char)) {
+      endSegment();
+      index += 1;
+      continue;
+    }
+    if (WHITESPACE.test(char)) {
+      endWord();
+      index += 1;
+      continue;
+    }
+    word += char;
+    hasWord = true;
+    index += 1;
+  }
+  endSegment();
+  return { segments, safe };
+}
+
+function hasLongFlag(words: readonly string[], flags: readonly string[]): boolean {
+  return words.some((word) => flags.some((flag) => word === flag || word.startsWith(`${flag}=`)));
+}
+
+function hasShortLetter(words: readonly string[], letters: readonly string[]): boolean {
+  return words.some((word) => word.startsWith('-') && !word.startsWith('--') && word.length > 1 && letters.some((letter) => word.slice(1).includes(letter)));
+}
+
+function hasExactWord(words: readonly string[], flags: readonly string[]): boolean {
+  return words.some((word) => flags.includes(word));
+}
+
+function hasDeniedFlag(command: string, words: readonly string[]): boolean {
+  return hasLongFlag(words, DENIED_LONG_FLAGS[command] ?? []) || hasShortLetter(words, DENIED_SHORT_LETTERS[command] ?? []) || hasExactWord(words, DENIED_SHORT_WORDS[command] ?? []);
+}
+
+function skipBlank(script: string, start: number): number {
+  let index = start;
+  while (index < script.length && WHITESPACE.test(script[index] ?? '')) {
+    index += 1;
+  }
+  return index;
+}
+
+/** Consume one required run of digits, or return -1 when it is missing. */
+function skipDigits(script: string, start: number): number {
+  if (!DIGIT.test(script[start] ?? '')) {
+    return -1;
+  }
+  let index = start + 1;
+  while (index < script.length && DIGIT.test(script[index] ?? '')) {
+    index += 1;
+  }
+  return index;
+}
+
+function skipAddress(script: string, start: number, allowRelative = false): number {
+  const char = script[start];
+  if (char === undefined) {
+    return start;
+  }
+  if (char === '/') {
+    const close = scanToDelimiter(script, start + 1, '/');
+    return close < ZERO ? -1 : close + 1;
+  }
+  if (char === BACKSLASH) {
+    const delimiter = script[start + 1];
+    const close = delimiter === undefined ? -1 : scanToDelimiter(script, start + 2, delimiter);
+    return close < ZERO ? -1 : close + 1;
+  }
+  if (allowRelative && (char === '+' || char === '~')) {
+    return skipDigits(script, start + 1);
+  }
+  if (DIGIT.test(char) || char === DOLLAR) {
+    let index = start + 1;
+    while (index < script.length && DIGIT.test(script[index] ?? '')) {
+      index += 1;
+    }
+    if (script[index] === '~') {
+      return skipDigits(script, index + 1);
+    }
+    return index;
+  }
+  return start;
+}
+
+/** Index of the closing delimiter, or -1 when the delimiter never closes on this line. */
+function scanToDelimiter(script: string, start: number, delimiter: string): number {
+  let index = start;
+  while (index < script.length) {
+    const char = script[index] ?? '';
+    if (char === BACKSLASH) {
+      index += 2;
+      continue;
+    }
+    if (char === '\n') {
+      return -1;
+    }
+    if (char === delimiter) {
+      return index;
+    }
+    index += 1;
+  }
+  return -1;
+}
+
+/** Parse one `s`/`y` command, rejecting the write (`w`, `W`) and execute (`e`) flags. */
+function skipSubstitution(script: string, start: number): number {
+  const delimiter = script[start + 1];
+  if (delimiter === undefined || delimiter === '\n' || delimiter === BACKSLASH) {
+    return -1;
+  }
+  const patternEnd = scanToDelimiter(script, start + 2, delimiter);
+  if (patternEnd < ZERO) {
+    return -1;
+  }
+  const replacementEnd = scanToDelimiter(script, patternEnd + 1, delimiter);
+  if (replacementEnd < ZERO) {
+    return -1;
+  }
+  let index = replacementEnd + 1;
+  let flags = '';
+  while (index < script.length && !(script[index] === ';' || script[index] === '\n')) {
+    flags += script[index] ?? '';
+    index += 1;
+  }
+  return /[wWe]/.test(flags) ? -1 : index;
+}
+
+const SIMPLE_SED_COMMANDS = new Set<string>(['p', 'P', 'd', 'D', 'n', 'N', 'h', 'H', 'g', 'G', 'x', 'l', 'q', 'Q', 'z', '=', '{', '}']);
+const TEXT_SED_COMMANDS = new Set<string>(['a', 'i', 'c']);
+const READ_SED_COMMANDS = new Set<string>(['r', 'R']);
+
+/**
+ * Allow only the printing side of sed. A numeric address may be a `~` stride. The second address of a
+ * range may be GNU `+N` or `~N`, with blanks around the comma. `s` and `y` are parsed far enough to
+ * reject `w`, `W`, and `e`. `sed -n '/The word/p'` reads and `sed -n '/a/w out'` does not.
+ */
+function isSafeSedScript(script: string): boolean {
+  let index = ZERO;
+  while (index < script.length) {
+    const char = script[index] ?? '';
+    if (WHITESPACE.test(char) || char === ';') {
+      index += 1;
+      continue;
+    }
+    const firstAddress = skipAddress(script, index);
+    if (firstAddress < ZERO) {
+      return false;
+    }
+    index = skipBlank(script, firstAddress);
+    if (script[index] === ',') {
+      const secondStart = skipBlank(script, index + 1);
+      const secondAddress = skipAddress(script, secondStart, true);
+      if (secondAddress < ZERO || secondAddress === secondStart) {
+        return false;
+      }
+      index = skipBlank(script, secondAddress);
+    }
+    if (script[index] === '!') {
+      index += 1;
+    }
+    const command = script[index];
+    if (command === undefined) {
+      return true;
+    }
+    if (command === 's' || command === 'y') {
+      index = skipSubstitution(script, index);
+      if (index < ZERO) {
+        return false;
+      }
+      continue;
+    }
+    if (SIMPLE_SED_COMMANDS.has(command)) {
+      index += 1;
+      while (index < script.length && DIGIT.test(script[index] ?? '')) {
+        index += 1;
+      }
+      continue;
+    }
+    if (TEXT_SED_COMMANDS.has(command) || READ_SED_COMMANDS.has(command)) {
+      const newline = script.indexOf('\n', index + 1);
+      index = newline < ZERO ? script.length : newline + 1;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+function sedScripts(words: readonly string[]): readonly string[] {
+  const scripts: string[] = [];
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index] ?? '';
+    if (word === '-e' || word === '--expression') {
+      const value = words[index + 1];
+      if (value !== undefined) {
+        scripts.push(value);
+      }
+      index += 1;
+      continue;
+    }
+    if (word.startsWith('--expression=')) {
+      scripts.push(word.slice('--expression='.length));
+      continue;
+    }
+    if (word.startsWith('-')) {
+      continue;
+    }
+    if (scripts.length === ZERO) {
+      scripts.push(word);
+    }
+  }
+  return scripts;
+}
+
+const TAG_LIST_FLAGS = new Set<string>([
+  '-l',
+  '--list',
+  '-n',
+  '-i',
+  '--ignore-case',
+  '--no-ignore-case',
+  '--column',
+  '--no-column',
+  '--color',
+  '--no-color',
+  '--contains',
+  '--no-contains',
+  '--points-at',
+  '--merged',
+  '--no-merged',
+  '--sort',
+  '--format',
+  '--omit-empty',
+  '--no-omit-empty',
+]);
+
+const TAG_VERIFY_FLAGS = new Set<string>(['-v', '--verify']);
+
+function tagReadKind(arg: string): 'list' | 'verify' | undefined {
+  if (/^-n[0-9]+$/.test(arg)) {
+    return 'list';
+  }
+  const name = arg.split('=')[0] ?? '';
+  if (TAG_LIST_FLAGS.has(name)) {
+    return 'list';
+  }
+  if (TAG_VERIFY_FLAGS.has(name)) {
+    return 'verify';
+  }
+  return undefined;
+}
+
+/** Listing, filtering, and signature checks. Only those read flags are accepted. `-d` and `--force` write. */
+function isAllowedTagArgs(args: readonly string[]): boolean {
+  if (args.length === ZERO) {
+    return true;
+  }
+  let listMode = false;
+  let verifyMode = false;
+  let positional = false;
+  for (const arg of args) {
+    if (arg.startsWith('-')) {
+      const kind = tagReadKind(arg);
+      if (kind === undefined) {
+        return false;
+      }
+      if (kind === 'list') {
+        listMode = true;
+      }
+      if (kind === 'verify') {
+        verifyMode = true;
+      }
+      continue;
+    }
+    positional = true;
+  }
+  return !positional || listMode || verifyMode;
+}
+
+function isAllowedBranchArgs(args: readonly string[]): boolean {
+  const denied = new Set(['-d', '-D', '-m', '-M', '-c', '-C', '-f', '-u', '--delete', '--move', '--copy', '--force', '--set-upstream-to', '--unset-upstream', '--edit-description']);
+  const valueFlags = new Set(['--merged', '--no-merged', '--contains', '--points-at', '--sort', '--format', '--color', '--list']);
+  let expectsValue = false;
+  for (const arg of args) {
+    if (arg.startsWith('-')) {
+      if (denied.has(arg.split('=')[0] ?? '')) {
+        return false;
+      }
+      expectsValue = valueFlags.has(arg.split('=')[0] ?? '') && !arg.includes('=');
+      continue;
+    }
+    if (expectsValue) {
+      expectsValue = false;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+function isAllowedGit(words: readonly string[]): boolean {
+  // Skip the global options that only choose the repository or the pager.
+  let subcommandIndex = 1;
+  while (subcommandIndex < words.length) {
+    const word = words[subcommandIndex];
+    if (word === '-C') {
+      subcommandIndex += 2;
+      continue;
+    }
+    if (word === '--no-pager' || word === '--no-optional-locks' || word === '--paginate' || word === '-P') {
+      subcommandIndex += 1;
+      continue;
+    }
+    break;
+  }
+  const args = words.slice(subcommandIndex);
+  const subcommand = args[0];
+  if (subcommand === undefined) {
+    return false;
+  }
+  if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
+    return false;
+  }
+  if (GIT_READ_SUBCOMMANDS.has(subcommand)) {
+    return true;
+  }
+  if (subcommand === 'config') {
+    let index = 1;
+    while (index < args.length) {
+      const word = args[index];
+      if (word === '--local' || word === '--global' || word === '--system' || word === '--worktree' || word === '--show-origin' || word === '--null') {
+        index += 1;
+        continue;
+      }
+      if (word === '--file' || word === '-f') {
+        index += 2;
+        continue;
+      }
+      break;
+    }
+    const flag = args[index];
+    return flag === '--get' || flag === '--get-all' || flag === '--get-regexp' || flag === '--get-urlmatch' || flag === '--list' || flag === '-l';
+  }
+  if (subcommand === 'grep') {
+    return !args.slice(1).some((arg) => arg === '--textconv' || arg === '--open-files-in-pager' || arg.startsWith('--open-files-in-pager=') || (arg.startsWith('-O') && !arg.startsWith('--')));
+  }
+  if (subcommand === 'branch') {
+    return isAllowedBranchArgs(args.slice(1));
+  }
+  if (subcommand === 'remote') {
+    const verb = args[1];
+    if (verb === '-v' || verb === '--verbose') {
+      return args.length === TWO;
+    }
+    return verb === undefined || verb === 'show' || verb === 'get-url';
+  }
+  if (subcommand === 'stash') {
+    return args[1] === 'list' || args[1] === 'show';
+  }
+  if (subcommand === 'apply') {
+    const flags = args.slice(1);
+    const inspects = flags.includes('--check') || flags.includes('--stat') || flags.includes('--numstat');
+    const writes = flags.some((flag) => flag === '--index' || flag === '--cached' || flag === '--3way');
+    return inspects && !writes;
+  }
+  if (subcommand === 'worktree') {
+    return args[1] === 'list';
+  }
+  if (subcommand === 'tag') {
+    return isAllowedTagArgs(args.slice(1));
+  }
+  return false;
+}
+
+function isAllowedPositionalCount(words: readonly string[], limit: number): boolean {
+  const positional = words.slice(1).filter((word) => !word.startsWith('-'));
+  return positional.length <= limit;
+}
+
+function isAllowedSegment(words: readonly string[]): boolean {
+  const commandIndex = words.findIndex((word) => !ENV_ASSIGNMENT.test(word));
+  if (commandIndex < ZERO) {
+    return false;
+  }
+  const args = words.slice(commandIndex);
+  const command = args[ZERO];
+  if (command === undefined) {
+    return false;
+  }
+  if (command === 'git') {
+    return isAllowedGit(args);
+  }
+  if (command === 'env') {
+    return args.length === 1;
+  }
+  if (command === 'node' || command === 'python' || command === 'python3' || command === 'tsc') {
+    return args.length === TWO && (args[1] === '--version' || args[1] === '-v');
+  }
+  if (command === 'bun' || command === 'npm' || command === 'pnpm' || command === 'yarn') {
+    if (args.length === TWO && (args[1] === '--version' || args[1] === '-v')) {
+      return true;
+    }
+    const verb = args[1];
+    if (verb === 'audit') {
+      return !args.slice(TWO).some((word) => word === 'fix' || word === '--fix');
+    }
+    return verb === 'list' || verb === 'ls' || verb === 'view' || verb === 'info' || verb === 'search' || verb === 'outdated' || verb === 'why';
+  }
+  if (!READ_ONLY_COMMANDS.has(command)) {
+    return false;
+  }
+  if (hasDeniedFlag(command, args.slice(1))) {
+    return false;
+  }
+  if (command === 'sed') {
+    return sedScripts(args).every(isSafeSedScript);
+  }
+  if (command === 'uniq') {
+    return isAllowedPositionalCount(args, 1);
+  }
+  if (command === 'awk') {
+    // A quoted program can still pipe to a command or redirect to a file of its own.
+    return !args.slice(1).some((word) => /[>|]/.test(word) || /\b(?:system|getline|close)\b/.test(word));
+  }
+  return true;
 }
 
 export function isSafeReadOnlyCommand(command: string): boolean {
@@ -56,12 +650,9 @@ export function isSafeReadOnlyCommand(command: string): boolean {
   if (trimmed.length === ZERO) {
     return false;
   }
-  if (DESTRUCTIVE_COMMAND_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+  const lexed = lexCommand(trimmed);
+  if (!lexed.safe || lexed.segments.length === ZERO) {
     return false;
   }
-  const segments = trimmed
-    .split(SHELL_CHAIN_SPLIT)
-    .map((segment) => segment.trim())
-    .filter((segment) => segment.length > ZERO);
-  return segments.length > ZERO && segments.every(isSafeSegment);
+  return lexed.segments.every(isAllowedSegment);
 }

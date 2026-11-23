@@ -28,7 +28,6 @@ function buildPlanPrompt(currentPlanUri: string | undefined): string {
     '- Do NOT attempt to make code edits directly; wait for the user to approve and build the plan.',
     existingNote,
   ]
-    .filter((line) => line.length > ZERO || line === '')
     .join('\n')
     .trim();
 }

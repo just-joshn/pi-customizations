@@ -39,11 +39,11 @@ export function applyCompletedSteps(text: string, steps: readonly TrackedPlanSte
   return steps.map((item) => (doneSet.has(item.step) ? { ...item, completed: true } : item));
 }
 
-export function hasAllStepsCompletePhrase(text: string): boolean {
+function hasAllStepsCompletePhrase(text: string): boolean {
   return /(?:all|every)\s+steps?\s+(?:are|is\s+)?(?:done|complete|completed|finished)/i.test(text) || /\b(?:the\s+)?plan\s+(?:is\s+)?(?:complete|completed|done)\b/i.test(text);
 }
 
-export function markAllStepsCompleted(steps: readonly TrackedPlanStep[]): readonly TrackedPlanStep[] {
+function markAllStepsCompleted(steps: readonly TrackedPlanStep[]): readonly TrackedPlanStep[] {
   return steps.map((item) => ({ ...item, completed: true }));
 }
 

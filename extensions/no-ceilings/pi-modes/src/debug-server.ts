@@ -103,7 +103,6 @@ async function appendStreamSafely(req: IncomingMessage, logFilePath: string): Pr
     }
     await pipeline(req, createTrailingNewlineTransform(), handle.createWriteStream());
   } catch (error) {
-    console.error('Failed to append NDJSON debug log:', error);
     await handle.close().catch(() => undefined);
     throw new Error('Debug log append failed', { cause: error });
   }
@@ -145,9 +144,10 @@ async function handleIngestRequest(req: IncomingMessage, res: ServerResponse, ex
     res.writeHead(HTTP_NO_CONTENT);
     res.end();
   } catch (error) {
-    console.error('NDJSON ingest request failed:', error);
-    res.writeHead(HTTP_SERVER_ERROR);
-    res.end('write-failed');
+    if (!res.headersSent) {
+      res.writeHead(HTTP_SERVER_ERROR);
+      res.end('write-failed');
+    }
     throw new Error('NDJSON ingest write error', { cause: error });
   }
 }
@@ -187,10 +187,7 @@ export function createDebugServerController(): DebugServerController {
   };
 
   const enqueueAppend = (req: IncomingMessage, logPath: string): Promise<void> => {
-    const task = writeQueue.then(
-      () => appendStreamSafely(req, logPath),
-      () => appendStreamSafely(req, logPath),
-    );
+    const task = writeQueue.then(() => appendStreamSafely(req, logPath));
     writeQueue = task.catch(() => undefined);
     return task;
   };

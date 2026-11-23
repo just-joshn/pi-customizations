@@ -1,32 +1,57 @@
+import { randomUUID } from 'node:crypto';
+
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
-import type { AssistantMessage, TextContent } from '@earendil-works/pi-ai';
+import type { AssistantMessage } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, type ExtensionContext, isToolCallEventType, type SessionEntry, type ToolCallEvent } from '@earendil-works/pi-coding-agent';
 import { Key } from '@earendil-works/pi-tui';
 import { registerModeCommands } from './commands.ts';
+import { buildCustomModeMessage, buildSkillReferenceMessage, type CustomModeContextMessage, findCustomMode, listCustomModes, referencesSkill } from './custom-modes.ts';
 import { createDebugServerController } from './debug-server.ts';
 import { readPlanFileFromUri } from './plan-files.ts';
 import { advancePlanSteps, applyCompletedSteps, extractStepsFromMarkdown } from './plan-progress.ts';
 import { buildModeContextMessage } from './prompts.ts';
 import { extractReproductionSteps } from './reproduction-steps.ts';
 import { isSafeReadOnlyCommand } from './shell-guard.ts';
-import { computeActiveToolsForMode, createInitialState, formatModeLabel, getNextMode, isReadOnlyMode, normalizeModeAlias, restorePersistedState, toPersistedState } from './state.ts';
+import { readSkillDocument, writeSkillAppearance } from './skill-frontmatter.ts';
+import {
+  canonicalModeName,
+  clearPendingExitedCustomMode,
+  computeActiveToolsForMode,
+  createInitialState,
+  enterCustomMode,
+  exitCustomMode,
+  formatModeLabel,
+  getNextMode,
+  isReadOnlyMode,
+  markCustomModeActive,
+  normalizeModeAlias,
+  restorePersistedState,
+  toPersistedState,
+} from './state.ts';
 import { registerModeTools } from './tools.ts';
 import {
+  CUSTOM_MODE_ENTERED_CUSTOM_TYPE,
+  CUSTOM_MODE_REMINDER_CUSTOM_TYPE,
+  type CustomModeAppearancePatch,
+  type CustomModeSkill,
   ENTRY_CUSTOM_TYPE,
   MODE_CONTEXT_CUSTOM_TYPE,
+  MODE_PROMPT_CUSTOM_TYPE,
   type ModeId,
+  type ModeInjectionDetails,
   type ModesRuntimeState,
   ONE,
   PersistedModeStateSchema,
   PLAN_COMPLETE_CUSTOM_TYPE,
   PLAN_EXECUTE_CUSTOM_TYPE,
-  READ_ONLY_DISABLED_TOOLS,
+  READ_ONLY_ALLOWED_TOOLS,
+  SKILL_REFERENCE_CUSTOM_TYPE,
   type TrackedPlanStep,
   ZERO,
 } from './types.ts';
 import { DEBUG_MARK_FIXED_MESSAGE, DEBUG_PROCEED_MESSAGE, promptDebugDecision, promptPlanDecision, syncModeUi } from './ui-flows.ts';
 
-const STALE_MODE_MARKERS = ['[ASK MODE ACTIVE]', '[PLAN MODE ACTIVE]', '[DEBUG MODE ACTIVE]'] as const;
+const MODE_CONTEXT_CUSTOM_TYPES = new Set<string>([MODE_CONTEXT_CUSTOM_TYPE, CUSTOM_MODE_ENTERED_CUSTOM_TYPE, CUSTOM_MODE_REMINDER_CUSTOM_TYPE, SKILL_REFERENCE_CUSTOM_TYPE]);
 const DEBUG_LOG_POLL_MS = 1000;
 const NOT_FOUND = -1;
 
@@ -56,30 +81,53 @@ function getAssistantText(message: AssistantMessage): string {
     .join('\n');
 }
 
-function isStaleModeContextMessage(message: AgentMessage): boolean {
+/**
+ * Injections belong to the run that emitted them. Pi keeps one run alive across tool rounds and
+ * across steered or follow-up user messages, so pruning by position would delete the guidance
+ * exactly when a follow-up is queued. The run nonce keeps them for the whole run and drops every
+ * earlier turn's copy, with no text heuristics over user content.
+ */
+function isStaleModeContextMessage(message: AgentMessage, runId: string | undefined): boolean {
   const customType = 'customType' in message && typeof message.customType === 'string' ? message.customType : undefined;
-  if (customType === MODE_CONTEXT_CUSTOM_TYPE) {
-    return true;
-  }
-  if (message.role !== 'user') {
+  if (customType === undefined || !MODE_CONTEXT_CUSTOM_TYPES.has(customType)) {
     return false;
   }
-  const content = message.content;
-  if (typeof content === 'string') {
-    return STALE_MODE_MARKERS.some((marker) => content.includes(marker));
+  return !isCurrentRunInjection(message, runId);
+}
+
+function isCurrentRunInjection(message: AgentMessage, runId: string | undefined): boolean {
+  if (runId === undefined) {
+    return false;
   }
-  if (Array.isArray(content)) {
-    return content.some((part) => part.type === 'text' && STALE_MODE_MARKERS.some((marker) => (part as TextContent).text.includes(marker)));
+  const customType = 'customType' in message && typeof message.customType === 'string' ? message.customType : undefined;
+  if (customType === undefined || !MODE_CONTEXT_CUSTOM_TYPES.has(customType)) {
+    return false;
   }
-  return false;
+  const details = 'details' in message ? (message.details as Partial<ModeInjectionDetails> | undefined) : undefined;
+  return details?.runId === runId;
+}
+
+interface RunGuidance {
+  readonly id: string;
+  readonly custom: CustomModeContextMessage | undefined;
+  readonly skill: CustomModeContextMessage | undefined;
+}
+
+function buildExecutionGuidance(state: ModesRuntimeState): CustomModeContextMessage | undefined {
+  const content = buildModeContextMessage(state);
+  return content === undefined ? undefined : { customType: MODE_CONTEXT_CUSTOM_TYPE, content, display: false };
+}
+
+function tagGuidance(draft: CustomModeContextMessage, run: RunGuidance) {
+  return { ...draft, details: { runId: run.id } };
 }
 
 function evaluateToolCallGuard(mode: ModeId, event: ToolCallEvent): { block: true; reason: string } | undefined {
   if (!isReadOnlyMode(mode)) {
     return undefined;
   }
-  if (READ_ONLY_DISABLED_TOOLS.has(event.toolName)) {
-    return { block: true, reason: `${formatModeLabel(mode)} mode is read-only. Switch to Agent mode before editing files.` };
+  if (!READ_ONLY_ALLOWED_TOOLS.has(event.toolName)) {
+    return { block: true, reason: `${formatModeLabel(mode)} mode is read-only. ${event.toolName} is not available. Switch to Agent mode before editing files.` };
   }
   if (isToolCallEventType('bash', event) && !isSafeReadOnlyCommand(event.input.command)) {
     return { block: true, reason: `${formatModeLabel(mode)} mode: mutating shell command blocked. Switch to Agent mode first.\nCommand: ${event.input.command}` };
@@ -94,12 +142,9 @@ function buildPlanExecutionBody(planContent: string | undefined, steps: readonly
     .join('\n');
 }
 
-function readInitialModeFromFlags(pi: ExtensionAPI): ModeId | undefined {
-  if (pi.getFlag('plan') === true) {
-    return 'plan';
-  }
+function readInitialCustomModeFlag(pi: ExtensionAPI): string | undefined {
   const modeFlag = pi.getFlag('mode');
-  return typeof modeFlag === 'string' ? normalizeModeAlias(modeFlag) : undefined;
+  return typeof modeFlag === 'string' && modeFlag.trim().length > ZERO ? modeFlag.trim() : undefined;
 }
 
 function reconcileResumedPlanSteps(entries: readonly SessionEntry[], steps: readonly TrackedPlanStep[]): readonly TrackedPlanStep[] {
@@ -123,35 +168,44 @@ function reconcileResumedPlanSteps(entries: readonly SessionEntry[], steps: read
   return advancePlanSteps(combined, steps);
 }
 
-function restoreStateFromSession(ctx: ExtensionContext): ModesRuntimeState {
+function readSessionState(ctx: ExtensionContext): { state: ModesRuntimeState; baseline?: string } {
   const entries = ctx.sessionManager.getEntries();
   const lastEntry = entries.filter((entry) => entry.type === 'custom' && 'customType' in entry && entry.customType === ENTRY_CUSTOM_TYPE).at(-ONE);
   if (!lastEntry || !('data' in lastEntry)) {
-    return createInitialState();
+    return { state: createInitialState() };
   }
   const parsed = PersistedModeStateSchema.safeParse(lastEntry.data);
   if (!parsed.success) {
-    return createInitialState();
+    return { state: createInitialState() };
   }
   const restored = restorePersistedState(parsed.data);
+  const baseline = JSON.stringify(toPersistedState(restored));
   if (!restored.planExecuting || restored.planSteps.length === ZERO) {
-    return restored;
+    return { state: restored, baseline };
   }
   const reconciled = reconcileResumedPlanSteps(entries, restored.planSteps);
   if (reconciled.every((step) => step.completed)) {
-    return { ...restored, planExecuting: false, planSteps: [] };
+    return { state: { ...restored, planExecuting: false, planSteps: [] }, baseline };
   }
-  return { ...restored, planSteps: reconciled };
+  return { state: { ...restored, planSteps: reconciled }, baseline };
 }
 
 interface ModeRuntimeController {
   readonly getState: () => ModesRuntimeState;
   readonly setState: (next: ModesRuntimeState) => void;
   readonly persist: () => void;
+  readonly restoreSession: (ctx: ExtensionContext) => ModesRuntimeState;
+  readonly getRun: () => RunGuidance | undefined;
+  readonly setRun: (run: RunGuidance) => void;
   readonly ensureDebugConfig: (ctx: ExtensionContext) => Promise<void>;
   readonly applyMode: (nextMode: ModeId, ctx: ExtensionContext, shouldPersist?: boolean) => Promise<void>;
   readonly reviewExistingPlan: (ctx: ExtensionContext) => Promise<void>;
   readonly stopDebugServer: () => Promise<void>;
+  readonly listCustomModes: () => Promise<readonly CustomModeSkill[]>;
+  readonly enterCustomMode: (skill: CustomModeSkill, ctx: ExtensionContext) => Promise<void>;
+  readonly exitCustomMode: (ctx: ExtensionContext) => Promise<void>;
+  readonly setCustomModeAppearance: (patch: CustomModeAppearancePatch, ctx: ExtensionContext) => Promise<void>;
+  readonly reapplyToolLoadout: () => void;
 }
 
 function createDebugPoller(getState: () => ModesRuntimeState): { readonly sync: (ctx: ExtensionContext) => void; readonly stop: () => void } {
@@ -206,11 +260,30 @@ async function reviewPlanNow(pi: ExtensionAPI, ctrl: ModeRuntimeController, ctx:
 
 function createRuntimeController(pi: ExtensionAPI): ModeRuntimeController {
   let state: ModesRuntimeState = createInitialState();
+  let lastPersisted: string | undefined;
+  let run: RunGuidance | undefined;
   const debugServer = createDebugServerController();
   const poller = createDebugPoller(() => state);
 
   const persist = (): void => {
-    pi.appendEntry(ENTRY_CUSTOM_TYPE, toPersistedState(state));
+    const persisted = toPersistedState(state);
+    const serialized = JSON.stringify(persisted);
+    if (serialized === lastPersisted) {
+      return;
+    }
+    lastPersisted = serialized;
+    pi.appendEntry(ENTRY_CUSTOM_TYPE, persisted);
+  };
+
+  /** Re-assert the mode's loadout so a tool registered mid-mode cannot stay offered. */
+  const reapplyToolLoadout = (): void => {
+    const current = pi.getActiveTools();
+    const { nextTools, nextSavedTools } = computeActiveToolsForMode(state.mode, current, state.toolsBeforeRestricted);
+    const unchanged = current.length === nextTools.length && current.every((name, index) => name === nextTools[index]);
+    if (!unchanged) {
+      pi.setActiveTools(nextTools);
+    }
+    state = { ...state, toolsBeforeRestricted: nextSavedTools };
   };
 
   const ensureDebugConfig = async (ctx: ExtensionContext): Promise<void> => {
@@ -231,6 +304,9 @@ function createRuntimeController(pi: ExtensionAPI): ModeRuntimeController {
       pendingPlanSuggestion: nextMode === 'plan' ? state.pendingPlanSuggestion : false,
       planExecuting: nextMode === 'agent' ? state.planExecuting : false,
     };
+    if (run !== undefined) {
+      run = { ...run, id: randomUUID() };
+    }
     if (nextMode === 'debug') {
       await ensureDebugConfig(ctx);
     }
@@ -247,12 +323,70 @@ function createRuntimeController(pi: ExtensionAPI): ModeRuntimeController {
       state = next;
     },
     persist,
+    restoreSession: (ctx) => {
+      const restored = readSessionState(ctx);
+      state = restored.state;
+      lastPersisted = restored.baseline;
+      run = undefined;
+      return state;
+    },
+    getRun: () => run,
+    setRun: (next) => {
+      run = next;
+    },
     ensureDebugConfig,
     applyMode,
     reviewExistingPlan: (ctx) => reviewPlanNow(pi, ctrl, ctx),
     stopDebugServer: async () => {
       poller.stop();
       await debugServer.stop();
+    },
+    listCustomModes: async () => listCustomModes(pi.getCommands()),
+    reapplyToolLoadout,
+    enterCustomMode: async (skill, ctx) => {
+      state = enterCustomMode(state, skill);
+      if (run !== undefined) {
+        run = { ...run, id: randomUUID(), custom: undefined };
+      }
+      syncModeUi(ctx, state);
+      persist();
+      ctx.ui.notify(`${skill.label} custom mode enabled.`, 'info');
+    },
+    exitCustomMode: async (ctx) => {
+      if (state.customMode === undefined) {
+        ctx.ui.notify('No custom mode is active.', 'info');
+        return;
+      }
+      const label = state.customMode.label;
+      state = exitCustomMode(state);
+      if (run !== undefined) {
+        run = { ...run, id: randomUUID(), custom: undefined };
+      }
+      syncModeUi(ctx, state);
+      persist();
+      ctx.ui.notify(`${label} custom mode disabled.`, 'info');
+    },
+    setCustomModeAppearance: async (patch, ctx) => {
+      const active = state.customMode;
+      if (active === undefined) {
+        return;
+      }
+      const skill = pi.getCommands().find((command) => command.source === 'skill' && command.sourceInfo.path === active.filePath);
+      if (skill === undefined) {
+        ctx.ui.notify(`Pi no longer discovers the ${active.label} skill. Its appearance was not changed.`, 'warning');
+        return;
+      }
+      try {
+        await writeSkillAppearance(active.filePath, patch, skill.sourceInfo.path);
+        const document = await readSkillDocument(active.filePath, active.id);
+        state = { ...state, customMode: { ...active, name: document.name, label: document.label, icon: document.icon, colorId: document.colorId, body: document.body } };
+        syncModeUi(ctx, state);
+        persist();
+        ctx.ui.notify(`${document.label} mode appearance updated.`, 'info');
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        ctx.ui.notify(`Could not update the ${active.label} mode appearance: ${reason}`, 'error');
+      }
     },
   };
 
@@ -298,24 +432,73 @@ async function handleAgentEnd(pi: ExtensionAPI, ctrl: ModeRuntimeController, mes
   }
 }
 
+function prepareCustomGuidance(ctrl: ModeRuntimeController, ctx: ExtensionContext, run: RunGuidance): CustomModeContextMessage | undefined {
+  if (run.custom !== undefined) {
+    return run.custom;
+  }
+  const current = ctrl.getState();
+  const message = buildCustomModeMessage({ active: current.customMode, pendingExited: current.pendingExitedCustomMode });
+  if (message === undefined) {
+    return undefined;
+  }
+  ctrl.setRun({ ...run, custom: message });
+  ctrl.setState(markCustomModeActive(clearPendingExitedCustomMode(current)));
+  ctrl.persist();
+  syncModeUi(ctx, ctrl.getState());
+  return message;
+}
+
 function registerLifecycleEvents(pi: ExtensionAPI, ctrl: ModeRuntimeController): void {
   pi.on('tool_call', async (event) => evaluateToolCallGuard(ctrl.getState().mode, event));
 
-  pi.on('context', async (event) => ({
-    messages: event.messages.filter((msg) => !isStaleModeContextMessage(msg)),
-  }));
-
-  pi.on('before_agent_start', async (event, ctx) => {
-    if (event.messageType !== 'user') {
-      return undefined;
+  pi.on('context', async (event, ctx) => {
+    const run = ctrl.getRun();
+    const filtered = event.messages.filter((message) => !isStaleModeContextMessage(message, run?.id));
+    if (run === undefined) {
+      return { messages: filtered };
     }
+    const presentTypes = new Set(filtered.flatMap((message) => (isCurrentRunInjection(message, run.id) && 'customType' in message ? [message.customType] : [])));
+    const drafts = [buildExecutionGuidance(ctrl.getState()), prepareCustomGuidance(ctrl, ctx, run), run.skill];
+    const timestamp = Date.now();
+    const missing = drafts.flatMap((draft) => (draft !== undefined && !presentTypes.has(draft.customType) ? [{ role: 'custom' as const, ...tagGuidance(draft, run), timestamp }] : []));
+    return { messages: [...filtered, ...missing] };
+  });
+
+  pi.on('before_agent_start', async (_event, ctx) => {
+    ctrl.reapplyToolLoadout();
+    const run = { id: randomUUID(), custom: undefined, skill: undefined };
+    ctrl.setRun(run);
     if (ctrl.getState().mode === 'debug') {
       await ctrl.ensureDebugConfig(ctx);
       syncModeUi(ctx, ctrl.getState());
       ctrl.persist();
     }
-    const content = buildModeContextMessage(ctrl.getState());
-    return content ? { message: { customType: MODE_CONTEXT_CUSTOM_TYPE, content, display: false } } : undefined;
+    const message = buildExecutionGuidance(ctrl.getState());
+    return message ? { message: tagGuidance(message, run) } : undefined;
+  });
+
+  pi.on('before_agent_start', async (_event, ctx) => {
+    const run = ctrl.getRun();
+    if (run === undefined) {
+      return undefined;
+    }
+    const message = prepareCustomGuidance(ctrl, ctx, run);
+    return message ? { message: tagGuidance(message, run) } : undefined;
+  });
+
+  pi.on('before_agent_start', async (event) => {
+    const prompt = event.messageType === 'user' ? event.prompt : event.message.customType === MODE_PROMPT_CUSTOM_TYPE && typeof event.message.content === 'string' ? event.message.content : undefined;
+    const run = ctrl.getRun();
+    if (run === undefined || prompt === undefined || !referencesSkill(prompt)) {
+      return undefined;
+    }
+    const active = ctrl.getState().customMode;
+    const message = buildSkillReferenceMessage(prompt, await ctrl.listCustomModes(), active === undefined ? [] : [active.filePath]);
+    if (message === undefined) {
+      return undefined;
+    }
+    ctrl.setRun({ ...run, skill: message });
+    return { message: tagGuidance(message, run) };
   });
 
   pi.on('turn_end', async (event, ctx) => {
@@ -336,10 +519,39 @@ function registerLifecycleEvents(pi: ExtensionAPI, ctrl: ModeRuntimeController):
   });
 
   pi.on('session_start', async (_event, ctx) => {
-    const restored = restoreStateFromSession(ctx);
-    const targetMode = readInitialModeFromFlags(pi) ?? restored.mode;
-    ctrl.setState(restored);
-    await ctrl.applyMode(targetMode, ctx, false);
+    const restored = ctrl.restoreSession(ctx);
+    const flag = readInitialCustomModeFlag(pi);
+    const planFlag = pi.getFlag('plan') === true;
+    let startupBuiltin: ModeId | undefined = planFlag ? 'plan' : undefined;
+    let startupCustom: CustomModeSkill | undefined;
+    if (!planFlag && flag !== undefined) {
+      // Canonical mode names are reserved; a custom name wins next, then the compatibility aliases.
+      startupBuiltin = canonicalModeName(flag);
+      if (startupBuiltin === undefined) {
+        startupCustom = findCustomMode(await ctrl.listCustomModes(), flag);
+        if (startupCustom === undefined) {
+          startupBuiltin = normalizeModeAlias(flag);
+        }
+      }
+    }
+    if (flag !== undefined && startupBuiltin === undefined && startupCustom === undefined) {
+      const warning = `Unknown mode ${JSON.stringify(flag)}. Use: agent, plan, debug, ask, or a skill-backed mode name.`;
+      if (ctx.hasUI) {
+        ctx.ui.notify(warning, 'warning');
+      } else {
+        process.stderr.write(`${warning}\n`);
+      }
+    }
+    const withCustom = startupCustom === undefined ? restored : enterCustomMode(restored, startupCustom);
+    ctrl.setState(withCustom);
+    await ctrl.applyMode(startupBuiltin ?? withCustom.mode, ctx, false);
+    if (startupCustom !== undefined) {
+      ctrl.persist();
+    }
+  });
+
+  pi.on('mcp_servers_change', async () => {
+    ctrl.reapplyToolLoadout();
   });
 
   pi.on('session_shutdown', async () => {
@@ -349,6 +561,10 @@ function registerLifecycleEvents(pi: ExtensionAPI, ctrl: ModeRuntimeController):
 
 function registerModeShortcuts(pi: ExtensionAPI, ctrl: ModeRuntimeController): void {
   const onCycle = async (ctx: ExtensionContext): Promise<void> => {
+    if (ctrl.getState().customMode !== undefined) {
+      await ctrl.exitCustomMode(ctx);
+      return;
+    }
     const next = getNextMode(ctrl.getState().mode);
     await ctrl.applyMode(next, ctx);
     ctx.ui.notify(`Mode: ${formatModeLabel(next)}`, 'info');
@@ -393,6 +609,10 @@ export default function piModesExtension(pi: ExtensionAPI): void {
     getState: ctrl.getState,
     switchMode: ctrl.applyMode,
     reviewExistingPlan: ctrl.reviewExistingPlan,
+    listCustomModes: ctrl.listCustomModes,
+    enterCustomMode: ctrl.enterCustomMode,
+    exitCustomMode: ctrl.exitCustomMode,
+    setCustomModeAppearance: ctrl.setCustomModeAppearance,
   });
 
   registerLifecycleEvents(pi, ctrl);

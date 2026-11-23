@@ -1,15 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { z } from 'zod';
 import { type CreatePlanInput, EIGHT, ONE, type PlanTodo, ZERO } from './types.ts';
 
 const MAX_PLAN_NAME_LEN = 50;
-const PLANS_SUBDIR_PI = '.pi';
-const PLANS_SUBDIR_AGENT = 'agent';
 const PLANS_SUBDIR_NAME = 'plans';
 const FILE_URI_PREFIX = 'file:';
 const FALLBACK_PLAN_NAME = 'Plan';
@@ -63,15 +61,16 @@ function serializePhaseLines(phases: NonNullable<CreatePlanInput['phases']>): re
 
 function formatPlanMarkdown(input: CreatePlanInput, sessionId: string): string {
   const todos = input.todos ?? [];
-  const isProject = input.is_project ?? false;
   const phases = input.phases ?? [];
+  // Phases are tracked as steps, so they make the plan a project plan even without the flag.
+  const isProject = input.is_project === true || phases.length > ZERO;
   const hasFrontmatter = todos.length > ZERO || isProject;
   const header = `<!-- ${sessionId} -->`;
   if (!hasFrontmatter) {
     return `${header}\n${input.plan}`;
   }
   const todoLines = todos.length > ZERO ? ['todos:', ...todos.flatMap((todo) => serializeTodoLines(todo))] : [];
-  const phaseLines = isProject ? serializePhaseLines(phases) : [];
+  const phaseLines = serializePhaseLines(phases);
   return [header, '---', ...todoLines, `isProject: ${String(isProject)}`, ...phaseLines, '---', input.plan].join('\n');
 }
 
@@ -80,7 +79,7 @@ function resolvePlansDirectory(): string {
   if (parsed.success && parsed.data.PI_MODES_PLANS_DIR) {
     return parsed.data.PI_MODES_PLANS_DIR;
   }
-  return join(homedir(), PLANS_SUBDIR_PI, PLANS_SUBDIR_AGENT, PLANS_SUBDIR_NAME);
+  return join(getAgentDir(), PLANS_SUBDIR_NAME);
 }
 
 export interface SavedPlanFile {
@@ -102,7 +101,6 @@ export async function writePlanFile(input: CreatePlanInput, sessionId: string): 
     }
     await writeFile(filePath, content, 'utf-8');
   } catch (error) {
-    console.error('Failed to write plan file:', error);
     throw new Error(`Unable to save plan file to ${filePath}`, { cause: error });
   }
   return { planUri: pathToFileURL(filePath).toString(), filePath, created: !existed, content };
@@ -116,7 +114,6 @@ export function readPlanFileFromUri(planUri: string): string | undefined {
     const filePath = fileURLToPath(planUri);
     return existsSync(filePath) ? readFileSync(filePath, 'utf-8') : undefined;
   } catch (error) {
-    console.error('Failed to read plan file:', error);
     throw new Error(`Unable to read plan file from ${planUri}`, { cause: error });
   }
 }
