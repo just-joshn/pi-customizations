@@ -29,6 +29,12 @@
 
 ### Fixed
 
+- A background worktree launch returns before `git worktree add` finishes. Aborting during creation removes the worktree and branch, and an already-aborted call does not start the child.
+- `session_shutdown` stores a failure id on every cancelled run. A completion that finishes after shutdown stays cancelled and does not wake the next session.
+- A worktree child whose parent directory is untracked uses the nearest existing directory inside the worktree.
+- A multi-word agent name in the task text is selected when the whole name appears, and a longer name such as a plural does not match.
+- The tasks list shows a failure id on the row that has one.
+- A restored run that only has a transcript path says the live transcript is no longer retained and shows that path.
 - Built-in `browser` tools are limited to the matched MCP server (`mcp__<server>__*`) instead of every `mcp__` tool.
 - Failed child model requests (`stopReason: "error"`) return `status: "error"` with a failure id and trigger `max_attempts` retries.
 - Exiting or replacing a session while a background subagent is in flight no longer throws on a stale UI context.

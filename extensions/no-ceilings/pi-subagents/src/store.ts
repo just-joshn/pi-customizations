@@ -169,6 +169,11 @@ function buildSessionOps(cell: StoreCell) {
   };
 }
 
+function withShutdownFailure(prev: SubagentSessionRecord, now: number): SubagentSessionRecord {
+  const failureId = prev.failureId ?? randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS);
+  return { ...prev, status: 'cancelled', currentStep: 'Cancelled', failureId, closedAt: now, updatedAt: now };
+}
+
 function buildRunOps(cell: StoreCell) {
   const clearActiveRun = (agentId: string): void => {
     const state = cell.read();
@@ -208,7 +213,7 @@ function buildRunOps(cell: StoreCell) {
       for (const run of runs) {
         const prev = sessions[run.agentId];
         if (prev) {
-          sessions[run.agentId] = { ...prev, status: 'cancelled', currentStep: 'Cancelled', closedAt: now, updatedAt: now };
+          sessions[run.agentId] = withShutdownFailure(prev, now);
         }
       }
       cell.commit({ ...state, sessions, activeRuns: {} });

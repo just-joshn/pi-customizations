@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 import { type SubagentWorktree, WORKTREE_SLUG_CHARS, WORKTREE_SUFFIX_CHARS, ZERO } from './types.ts';
@@ -25,9 +25,10 @@ export interface WorktreeRequest {
   readonly sessionDir: string | undefined;
   readonly root: string | undefined;
   readonly branchPrefix: string;
+  readonly signal?: AbortSignal;
 }
 
-export type CreateWorktreeResult = { readonly ok: true; readonly worktree: SubagentWorktree } | { readonly ok: false; readonly error: string };
+export type CreateWorktreeResult = { readonly ok: true; readonly worktree: SubagentWorktree } | { readonly ok: false; readonly aborted?: boolean; readonly error: string };
 
 interface GitResult {
   readonly ok: boolean;
@@ -59,12 +60,29 @@ function realPath(target: string): string {
   return existsSync(target) ? realpathSync(target) : resolve(target);
 }
 
+function nearestExistingDirectory(candidate: string, root: string): string {
+  if (!existsSync(root)) {
+    return candidate;
+  }
+  const resolvedRoot = resolve(root);
+  let current = resolve(candidate);
+  while (!existsSync(current)) {
+    if (current === resolvedRoot) {
+      return root;
+    }
+    const parent = dirname(current);
+    if (parent === current || relative(resolvedRoot, parent).startsWith('..') || isAbsolute(relative(resolvedRoot, parent))) {
+      return root;
+    }
+    current = parent;
+  }
+  return current === resolvedRoot ? root : current;
+}
+
 export function resolveWorktreeChildCwd(worktree: Pick<SubagentWorktree, 'repoRoot' | 'path'>, parentCwd: string): string {
   const inside = relative(realPath(worktree.repoRoot), realPath(parentCwd));
-  if (inside === '' || (!inside.startsWith('..') && !isAbsolute(inside))) {
-    return join(worktree.path, inside);
-  }
-  return worktree.path;
+  const mapped = inside === '' || (!inside.startsWith('..') && !isAbsolute(inside)) ? join(worktree.path, inside) : worktree.path;
+  return nearestExistingDirectory(mapped, worktree.path);
 }
 
 export function resolveWorktreeRoot(request: Pick<WorktreeRequest, 'root' | 'sessionDir'>): string {
@@ -99,15 +117,31 @@ export async function createSubagentWorktree(request: WorktreeRequest): Promise<
   if (baseRef === undefined) {
     return { ok: false, error: 'Cannot isolate worktree: the repository has no commit to branch from.' };
   }
+  if (request.signal?.aborted) {
+    return { ok: false, aborted: true, error: 'Worktree creation was cancelled.' };
+  }
   const names = buildWorktreeNames(request.description, randomBytes(RANDOM_SUFFIX_BYTES).toString('hex'), request.branchPrefix);
   const root = resolveWorktreeRoot(request);
   const worktreePath = join(root, names.slug);
+  const worktree: SubagentWorktree = { repoRoot, path: worktreePath, branch: names.branch, baseRef };
   mkdirSync(root, { recursive: true });
   const added = await git(repoRoot, ['worktree', 'add', '--no-track', '-b', names.branch, worktreePath, baseRef]);
+  if (request.signal?.aborted) {
+    await discardSubagentWorktree(worktree);
+    return { ok: false, aborted: true, error: 'Worktree creation was cancelled.' };
+  }
   if (!added.ok) {
     return { ok: false, error: `Cannot isolate worktree: ${added.stderr.trim() || 'git worktree add failed'}` };
   }
-  return { ok: true, worktree: { repoRoot, path: worktreePath, branch: names.branch, baseRef } };
+  return { ok: true, worktree };
+}
+
+/** Removes a worktree created for a run that was cancelled before it started, including its branch. */
+export async function discardSubagentWorktree(worktree: SubagentWorktree): Promise<void> {
+  if (existsSync(worktree.path)) {
+    await git(worktree.repoRoot, ['worktree', 'remove', '--force', worktree.path]);
+  }
+  await git(worktree.repoRoot, ['branch', '-D', worktree.branch]);
 }
 
 /** A short parent-facing summary of what the isolated run changed. */

@@ -11,7 +11,8 @@ const FRONTMATTER_BLOCK_REGEX = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/;
 const MIN_KEYWORD_CHARS = 4;
 const MIN_AUTO_SELECT_SCORE = 2;
 const WORD_SPLIT_REGEX = /[^a-z0-9]+/;
-const NAME_SPLIT_REGEX = /[^a-z0-9_-]+/;
+const NAME_BOUNDARY = '[^a-z0-9_-]';
+const NAME_CHAR = '[a-z0-9_-]';
 const YAML_TRUE_SPELLINGS = new Set(['true', 'yes', 'on', 'y', '1']);
 const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
   unspecified: 'general-purpose',
@@ -584,8 +585,26 @@ function countMentionedKeywords(text: string, keywords: readonly string[]): numb
   return keywords.filter((keyword) => words.has(keyword)).length;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function namePattern(name: string, suffix: string): RegExp | undefined {
+  const needle = name.trim().toLowerCase();
+  if (needle.length === ZERO) {
+    return undefined;
+  }
+  return new RegExp(`(?:^|${NAME_BOUNDARY})${escapeRegExp(needle)}${suffix}`);
+}
+
 function mentionsName(text: string, name: string): boolean {
-  return text.toLowerCase().split(NAME_SPLIT_REGEX).includes(name.toLowerCase());
+  const pattern = namePattern(name, `(?:${NAME_BOUNDARY}|$)`);
+  return pattern !== undefined && pattern.test(text.toLowerCase());
+}
+
+function extendsName(text: string, name: string): boolean {
+  const pattern = namePattern(name, NAME_CHAR);
+  return pattern !== undefined && pattern.test(text.toLowerCase());
 }
 
 function textHasWriteIntent(text: string): boolean {
@@ -619,7 +638,8 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
   if (singleMatch !== undefined) {
     return singleMatch.name;
   }
-  const scored = eligible.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
+  const keywordPool = eligible.filter((definition) => !extendsName(text, definition.name));
+  const scored = keywordPool.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
   const best = scored[ZERO];
   const runnerUp = scored[ONE];
   const fallback = fallbackSubagentType(eligible);

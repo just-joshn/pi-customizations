@@ -126,6 +126,8 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Branch: `<branchPrefix>/<slug>-<3 hex>`.
 - Path: `worktrees.root` when set, else `<session dir>/worktrees/`.
 - The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge. Background completions and `await_subagent` results include the same summary.
+- A background worktree launch returns as soon as the run is recorded. `git worktree add` happens inside the background run. An aborted launch removes that worktree and its branch and does not start the child.
+- A child started from an untracked subdirectory uses the nearest existing directory inside the worktree, ending at the worktree root.
 - A resume stays in its worktree. If the run has no transcript, or the worktree or the child transcript file is gone or unreadable, the resume fails with `resume-unavailable` instead of starting over in the shared checkout.
 - `/tasks prune <id>` removes the worktree directory. It refuses while the subagent still runs and does not force a dirty worktree. The branch stays for merging.
 
@@ -134,6 +136,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
 - A mid-run snapshot keeps transcripts for the three most recently updated completed runs. Older completed runs keep their metadata, transcript path, and checkpoints.
+- When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
 - `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.

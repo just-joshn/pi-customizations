@@ -32,7 +32,8 @@ function renderTaskListLines(sessions: readonly SubagentSessionRecord[], selecte
     const elapsed = selected && isRunning ? `  ${formatElapsedCompact(Math.max(ZERO, now - session.startedAt))}` : '';
     const badge = session.isBackground ? ' [bg]' : isRunning ? ' [fg]' : ` [${session.status}]`;
     const retry = session.attempts > ONE ? ` [try ${session.attempts}/${session.maxAttempts}]` : '';
-    const suffix = `${badge}${retry}${elapsed}`;
+    const failure = session.failureId === undefined ? '' : ` ${session.failureId}`;
+    const suffix = `${badge}${retry}${failure}${elapsed}`;
     const maxTitleLen = Math.max(ONE, innerWidth - pointer.length - suffix.length);
     const title = truncateEnd(formatSessionTitle(session.description, session.prompt, session.agentId), maxTitleLen);
     const line = `${pointer}${selected ? theme.bold(title) : title}${theme.fg('dim', suffix)}`;
@@ -70,7 +71,9 @@ function renderTranscriptLines(session: SubagentSessionRecord | undefined, theme
   });
   const liveThinking = session.streamingThinking ? session.streamingThinking.split('\n').map((line) => theme.fg('dim', line)) : [];
   const liveLines = [...liveThinking, ...(session.streamingText ? session.streamingText.split('\n') : []), ...(isActiveSubagentStatus(session.status) ? ['', `${theme.fg('success', '●')} ${theme.bold('Working')}`] : [])];
-  const combined = [...itemLines, ...liveLines].slice(-MAX_TRANSCRIPT_LINES);
+  const retained =
+    session.transcriptItems.length === ZERO && session.transcriptPath !== undefined && !isActiveSubagentStatus(session.status) ? [theme.fg('dim', 'The live transcript is no longer retained.'), theme.fg('dim', session.transcriptPath)] : [];
+  const combined = [...retained, ...itemLines, ...liveLines].slice(-MAX_TRANSCRIPT_LINES);
   const footer = theme.fg('dim', `Subagent · ${title}  ·  esc to go back`);
   return [...combined, '', footer];
 }

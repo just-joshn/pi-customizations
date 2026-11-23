@@ -8,6 +8,7 @@ import type { SubagentEventName, SubagentEventPayload } from './events.ts';
 import { errorMessage, failureCode, SubagentRunError } from './failures.ts';
 import { formatSessionTitle } from './formatters.ts';
 import { applyDefinitionToModel, describeModel, resolveSubagentModel } from './model-resolution.ts';
+import { cancelPreparedRun, runDetachedTask, runForegroundTask } from './run-launch.ts';
 import { createChildSession, materializeTranscriptFile } from './session-factory.ts';
 import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
 import { type RunProgress, reduceSubagentEvent } from './transcript.ts';
@@ -15,6 +16,7 @@ import {
   type BackgroundCompletionPayload,
   type BackgroundReason,
   DEFAULT_TASK_DESCRIPTION,
+  isActiveSubagentStatus,
   type NestedScope,
   ONE,
   SUBAGENT_ABORTED_ERROR,
@@ -23,12 +25,10 @@ import {
   type SubagentFailureCode,
   type SubagentSessionRecord,
   type SubagentThinkingLevel,
-  type SubagentWorktree,
   type TaskToolDetails,
   type TaskToolInput,
   ZERO,
 } from './types.ts';
-import { createSubagentWorktree, resolveWorktreeChildCwd, summarizeWorktreeDiff } from './worktree.ts';
 
 const MAX_FAILURE_ID_CHARS = 12;
 const MAX_RETRY_ATTEMPTS_CAP = 10;
@@ -127,7 +127,7 @@ function resolveChildDepth(existing: SubagentSessionRecord | undefined, scope: N
   return depth;
 }
 
-function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome: SubagentRunOutcome, startedAt: number): SubagentSessionRecord | undefined {
+export function finalizeSubagentSession(store: SubagentStore, agentId: string, outcome: SubagentRunOutcome, startedAt: number): SubagentSessionRecord | undefined {
   const now = Date.now();
   const durationMs = Math.max(ZERO, now - startedAt);
   if (outcome.status === 'completed') {
@@ -263,7 +263,7 @@ function lastAssistantStop(messages: readonly { readonly role: string; readonly 
   return found;
 }
 
-function abortedOutcome(durationMs: number): SubagentRunOutcome {
+export function abortedOutcome(durationMs: number): SubagentRunOutcome {
   return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs };
 }
 
@@ -403,7 +403,7 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
   return { outcome: 'still_running', ...(current ? { record: current } : {}) };
 }
 
-interface AttemptPlan {
+export interface AttemptPlan {
   readonly agentId: string;
   readonly prompt: string;
   readonly parentSessionId: string;
@@ -489,7 +489,7 @@ async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks
   }
 }
 
-async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan): Promise<SubagentRunOutcome> {
+export async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, plan: AttemptPlan): Promise<SubagentRunOutcome> {
   let lastOutcome: SubagentRunOutcome = failedOutcome(plan, 'Subagent did not run', 'failed');
   for (let attempt: number = ONE; attempt <= plan.maxAttempts; attempt += ONE) {
     if (attempt > ONE) {
@@ -509,23 +509,47 @@ async function runAttempts(options: RunTaskOptions, callbacks: RunnerCallbacks, 
   return lastOutcome;
 }
 
-function attachBackgroundCompletionHandler(agentId: string, startedAt: number, runPromise: Promise<SubagentRunOutcome>, callbacks: RunnerCallbacks): Promise<SubagentRunOutcome> {
-  return runPromise.then((outcome) => {
-    callbacks.store.clearActiveRun(agentId);
-    const finalized = finalizeSubagentSession(callbacks.store, agentId, outcome, startedAt);
-    if (finalized) {
-      callbacks.emit('runEnd', finalized);
-      const payload = buildBackgroundPayload(finalized, outcome);
-      if (callbacks.store.enqueueWakeup(payload)) {
-        callbacks.onBackgroundCompleted(payload);
-      }
-    }
-    callbacks.onStateChanged();
-    return outcome;
-  });
+function shutdownCancelled(record: SubagentSessionRecord | undefined): boolean {
+  return record?.status === 'cancelled' && record.failureId !== undefined;
 }
 
-async function runForegroundSubagent(options: RunTaskOptions, initialRecord: SubagentSessionRecord, runPromise: Promise<SubagentRunOutcome>, abortController: AbortController, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
+function needsBackgroundFinalize(record: SubagentSessionRecord | undefined): boolean {
+  if (record === undefined || isActiveSubagentStatus(record.status)) {
+    return true;
+  }
+  return record.status === 'cancelled' && record.failureId === undefined;
+}
+
+function settleBackgroundRun(agentId: string, startedAt: number, outcome: SubagentRunOutcome, callbacks: RunnerCallbacks): SubagentRunOutcome {
+  callbacks.store.clearActiveRun(agentId);
+  const current = callbacks.store.getSession(agentId);
+  if (shutdownCancelled(current)) {
+    callbacks.onStateChanged();
+    return outcome;
+  }
+  const shouldFinalize = needsBackgroundFinalize(current);
+  const finalized = shouldFinalize ? finalizeSubagentSession(callbacks.store, agentId, outcome, startedAt) : current;
+  if (shouldFinalize && finalized) {
+    callbacks.emit('runEnd', finalized);
+  }
+  if (finalized) {
+    const payload = buildBackgroundPayload(finalized, outcome);
+    if (callbacks.store.enqueueWakeup(payload)) {
+      callbacks.onBackgroundCompleted(payload);
+    }
+  }
+  callbacks.onStateChanged();
+  return outcome;
+}
+
+function attachBackgroundCompletionHandler(agentId: string, startedAt: number, runPromise: Promise<SubagentRunOutcome>, callbacks: RunnerCallbacks): Promise<SubagentRunOutcome> {
+  return runPromise.then(
+    (outcome) => settleBackgroundRun(agentId, startedAt, outcome, callbacks),
+    (error: unknown) => settleBackgroundRun(agentId, startedAt, { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs: Math.max(ZERO, Date.now() - startedAt) }, callbacks),
+  );
+}
+
+export async function runForegroundSubagent(options: RunTaskOptions, initialRecord: SubagentSessionRecord, runPromise: Promise<SubagentRunOutcome>, abortController: AbortController, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
   const { agentId, startedAt } = initialRecord;
   let backgrounded = false;
   let triggerBackground: (() => void) | undefined;
@@ -614,41 +638,7 @@ function buildInitialSessionRecord(request: InitialRecordRequest): SubagentSessi
   };
 }
 
-async function prepareWorktree(options: RunTaskOptions, callbacks: RunnerCallbacks, agentId: string, config: SubagentsConfig, description: string): Promise<SubagentWorktree> {
-  const created = await createSubagentWorktree({
-    cwd: options.ctx.cwd,
-    description,
-    agentId,
-    sessionDir: options.ctx.sessionManager.getSessionDir(),
-    root: config.worktrees.root,
-    branchPrefix: config.worktrees.branchPrefix,
-  });
-  if (!created.ok) {
-    const failed = callbacks.store.markFailure(agentId, 'worktree-failed', created.error);
-    if (failed) {
-      callbacks.emit('runEnd', failed);
-    }
-    callbacks.onStateChanged();
-    throw new SubagentRunError('worktree-failed', failed?.failureId === undefined ? created.error : `${created.error} (failure_id: ${failed.failureId})`);
-  }
-  const updated = callbacks.store.updateSession(agentId, (record) => ({ ...record, worktree: created.worktree, updatedAt: Date.now() }));
-  if (updated) {
-    callbacks.emit('worktree', updated);
-  }
-  callbacks.onStateChanged();
-  return created.worktree;
-}
-
-async function attachWorktreeSummary(agentId: string, callbacks: RunnerCallbacks): Promise<void> {
-  const record = callbacks.store.getSession(agentId);
-  if (record?.worktree === undefined) {
-    return;
-  }
-  const summary = await summarizeWorktreeDiff(record.worktree);
-  callbacks.store.updateSession(agentId, (current) => ({ ...current, worktreeSummary: summary, updatedAt: Date.now() }));
-}
-
-interface RunSetup {
+export interface RunSetup {
   readonly parentSessionId: string;
   readonly prompt: string;
   readonly existing: SubagentSessionRecord | undefined;
@@ -730,42 +720,17 @@ async function launchRun(options: RunTaskOptions, callbacks: RunnerCallbacks, co
   options.scope?.agentIds.add(agentId);
   callbacks.emit('runStart', initialRecord);
   callbacks.onStateChanged();
-
+  if (options.signal?.aborted) {
+    return cancelPreparedRun(callbacks, agentId, initialRecord, startedAt);
+  }
   const abortController = new AbortController();
-  if (!setup.detach && options.signal?.aborted) {
-    abortController.abort();
+  const requestedWorktree = Boolean(options.input.worktree ?? options.definition.worktree);
+  if (setup.detach) {
+    const runPromise = runDetachedTask(options, callbacks, config, setup, agentId, startedAt, abortController, nestedScope, childDepth, initialRecord.description, requestedWorktree);
+    options.onUpdate?.(buildDetailsFromRecord(initialRecord));
+    return startBackgroundRun(options, callbacks, agentId, initialRecord, startedAt, runPromise, abortController);
   }
-  const requestedWorktree = options.input.worktree ?? options.definition.worktree;
-  const worktree = setup.existing?.worktree ?? (requestedWorktree && !abortController.signal.aborted ? await prepareWorktree(options, callbacks, agentId, config, initialRecord.description) : undefined);
-  const childCwd = worktree === undefined ? options.ctx.cwd : resolveWorktreeChildCwd(worktree, options.ctx.cwd);
-  const plan: AttemptPlan = {
-    agentId,
-    prompt: setup.prompt,
-    parentSessionId: setup.parentSessionId,
-    startedAt,
-    existing: setup.existing,
-    isResume: setup.existing !== undefined,
-    childDepth,
-    ownedAgentIds: [...(nestedScope?.agentIds ?? [])],
-    nestedScope,
-    abortController,
-    childCwd,
-    maxAttempts: setup.maxAttempts,
-    retryDelayMs: config.retry.delayMs,
-    model: setup.model,
-    thinking: setup.thinking,
-    readonly: setup.isReadonly,
-  };
-  const runPromise = runAttempts(options, callbacks, plan).then(async (outcome) => {
-    await attachWorktreeSummary(agentId, callbacks);
-    return outcome;
-  });
-  options.onUpdate?.(buildDetailsFromRecord(initialRecord));
-
-  if (!setup.detach) {
-    return runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
-  }
-  return startBackgroundRun(options, callbacks, agentId, initialRecord, startedAt, runPromise, abortController);
+  return runForegroundTask(options, callbacks, config, setup, agentId, startedAt, initialRecord, abortController, nestedScope, childDepth, requestedWorktree);
 }
 
 export async function runSubagentTask(options: RunTaskOptions, callbacks: RunnerCallbacks): Promise<TaskToolDetails> {
