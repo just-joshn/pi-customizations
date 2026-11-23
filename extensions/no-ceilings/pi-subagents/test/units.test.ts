@@ -514,6 +514,22 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
   });
 
+  it('blocks quoted, escaped, and encoded options in non-git commands', () => {
+    expect(isSafeReadOnlyCommand('find . "-exec" /bin/echo P0FIND {} +')).toBe(false);
+    expect(isSafeReadOnlyCommand('find . -\\exec /bin/echo P0FIND {} +')).toBe(false);
+    expect(isSafeReadOnlyCommand('fd --max-depth 1 --"exec" /bin/echo P0FD')).toBe(false);
+    expect(isSafeReadOnlyCommand('fd --max-depth 1 -"x" /bin/echo P0FDX')).toBe(false);
+    expect(isSafeReadOnlyCommand('rg --"pre" /bin/echo a.txt .')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort -S 1k --"compress-program" ./mark.sh big.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sed -"i" file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('tree "-o" out.txt .')).toBe(false);
+    expect(isSafeReadOnlyCommand('find . "-fprint" /tmp/out')).toBe(false);
+    expect(isSafeReadOnlyCommand("awk $'BEGIN { sys\\164em(\"echo AWKEXEC\") }'")).toBe(false);
+    expect(isSafeReadOnlyCommand("awk 'BEGIN { sys\\164em(\"echo AWKEXEC\") }'")).toBe(false);
+    expect(isSafeReadOnlyCommand("grep '*.ts' file")).toBe(true);
+    expect(isSafeReadOnlyCommand("find . -name '*.ts'")).toBe(true);
+  });
+
   it('blocks sed write commands and sort output flags in read-only mode', () => {
     expect(isSafeReadOnlyCommand("sed 's/a/b/woutfile'")).toBe(false);
     expect(isSafeReadOnlyCommand("sed 's/a/b/Woutfile'")).toBe(false);
