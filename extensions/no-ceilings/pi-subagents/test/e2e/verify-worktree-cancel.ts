@@ -58,8 +58,14 @@ for (let value = 0; value < 0x1000; value += 1) {
 }
 git(['fast-import', '--quiet'], `${stream.join('\n')}\n`);
 
-const before = git(['for-each-ref', '--format=%(refname:short)', `refs/heads/${prefix}/`]).trim().split('\n');
-console.log(`pre-created user branches=${before.length}; tip commit of first=${git(['rev-parse', before[0] ?? '']).trim().slice(0, 12)}`);
+const before = git(['for-each-ref', '--format=%(refname:short)', `refs/heads/${prefix}/`])
+  .trim()
+  .split('\n');
+console.log(
+  `pre-created user branches=${before.length}; tip commit of first=${git(['rev-parse', before[0] ?? ''])
+    .trim()
+    .slice(0, 12)}`,
+);
 
 const shim = join(bin, 'git');
 writeFileSync(shim, ['#!/bin/sh', 'if [ "$3" = "worktree" ] && [ "$4" = "add" ]; then', '  : > "$SLOW_FLAG"', '  sleep 3', 'fi', `exec ${REAL_GIT} "$@"`, ''].join('\n'));
@@ -87,7 +93,9 @@ controller.abort();
 const result = await pending;
 console.log('result:', JSON.stringify(result));
 
-const after = git(['for-each-ref', '--format=%(refname:short)', `refs/heads/${prefix}/`]).trim().split('\n');
+const after = git(['for-each-ref', '--format=%(refname:short)', `refs/heads/${prefix}/`])
+  .trim()
+  .split('\n');
 const deleted = before.filter((name) => !after.includes(name));
 console.log(`after=${after.length} deleted=${JSON.stringify(deleted)}`);
 if (deleted.length > 0) {
