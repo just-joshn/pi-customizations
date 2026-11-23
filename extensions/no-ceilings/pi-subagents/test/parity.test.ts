@@ -680,7 +680,7 @@ describe('retry, resume, and persistence', () => {
     }
   });
 
-  it('persists checkpoints and the transcript path while the run is still going', async () => {
+  it('keeps mid-run state metadata-only and persists checkpoints at completion', async () => {
     const h = createTestHarness();
     try {
       await h.emit('session_start', {});
@@ -693,13 +693,21 @@ describe('retry, resume, and persistence', () => {
         readonly sessions: readonly { readonly agentId: string; readonly status: string; readonly toolCallCount: number; readonly checkpoints: readonly { readonly seq: number }[]; readonly transcriptPath?: string }[];
       }>(states.at(-ONE)?.data);
       const recorded = snapshot.sessions.find((session) => session.agentId === launched.details?.agentId);
-      expect(recorded?.checkpoints.length).toBeGreaterThan(ZERO);
-      expect(recorded?.toolCallCount).toBeGreaterThan(ZERO);
+      expect(recorded?.checkpoints.length).toBe(ZERO);
+      expect(recorded?.toolCallCount).toBe(ZERO);
       expect(recorded?.transcriptPath).toBeTypeOf('string');
       expect(recorded?.transcriptPath ?? '').toContain('.jsonl');
       expect(recorded?.status).toBe('running');
       gate.release();
       await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
+      const finalState = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const finalSessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly checkpoints: readonly { readonly seq: number }[]; readonly transcriptPath?: string }[] }>(finalState?.data).sessions;
+      const finalRecord = finalSessions.find((session) => session.agentId === launched.details?.agentId);
+      expect(finalRecord?.checkpoints.length).toBeGreaterThan(ZERO);
+      expect(finalRecord?.transcriptPath).toBeTypeOf('string');
     } finally {
       await h.cleanup();
     }
