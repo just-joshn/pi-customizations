@@ -23,7 +23,7 @@ The extension registers two tools.
 
 Each run gets its own `AgentSession`, so the child has a separate context window and an isolated history. Results and errors return to the parent through the tool result. Errors carry a `failure_id` and a `code` you can branch on.
 
-Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins when exactly one agent is named. Two or more named agents fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically.
+Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins when exactly one agent is named. Overlapping names keep the longest match. Two or more distinct names fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically.
 
 Every run appends the discovered agent catalog to the system prompt, so the model sees each name and description before it decides how to delegate.
 
@@ -81,7 +81,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. OpenAI and other flat adapters get `temperature` and `top_p`. Anthropic also gets `top_k`, except when extended thinking is enabled, which leaves the request unchanged. Google writes `temperature`, `topP`, and `topK` into `config`. Bedrock writes `temperature` and `topP` into `inferenceConfig` and does not send `topK`. `max_tokens` caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
-| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. |
+| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. On macOS, an allowed bash command runs under `sandbox-exec` with filesystem writes denied except `/dev/null`. Elsewhere, the command guard applies. |
 | `background`, `is_background` | Start in background by default. |
 | `nested-tasks` | Let this child delegate one level deeper, up to `nesting.maxDepth`. |
 | `worktree` | Run in an isolated git worktree by default. |
@@ -127,6 +127,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Path: `worktrees.root` when set, else `<session dir>/worktrees/`.
 - The result carries `worktree_path`, `branch`, and a `git diff --stat` summary, so the parent can review and merge. Background completions and `await_subagent` results include the same summary.
 - A background worktree launch returns as soon as the run is recorded. `git worktree add` happens inside the background run. An aborted launch removes that worktree and its branch and does not start the child.
+- `/tasks abort` cancels a foreground launch while `git worktree add` is still running. The run ends cancelled, the worktree and branch are removed, and the child does not start.
 - A child started from an untracked subdirectory uses the nearest existing directory inside the worktree, ending at the worktree root.
 - A resume stays in its worktree. If the run has no transcript, or the worktree or the child transcript file is gone or unreadable, the resume fails with `resume-unavailable` instead of starting over in the shared checkout.
 - `/tasks prune <id>` removes the worktree directory. It refuses while the subagent still runs and does not force a dirty worktree. The branch stays for merging.
@@ -135,7 +136,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
-- A mid-run snapshot keeps transcripts for the three most recently updated completed runs. Older completed runs keep their metadata, transcript path, and checkpoints.
+- Persisted session state keeps transcripts for the three most recently updated completed runs, including mid-run snapshots and saves when a run completes. Older completed runs keep their metadata, transcript path, and checkpoints.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
 - `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.

@@ -88,7 +88,10 @@ function recentCompletedIds(records: readonly SubagentSessionRecord[]): Readonly
 }
 
 function keepSnapshotTranscript(record: SubagentSessionRecord, includeTranscriptItems: boolean | undefined, recentCompleted: ReadonlySet<string>): boolean {
-  return includeTranscriptItems !== false || recentCompleted.has(record.agentId);
+  if (includeTranscriptItems === true) {
+    return true;
+  }
+  return recentCompleted.has(record.agentId);
 }
 
 function toPersistedRecord(record: SubagentSessionRecord, includeTranscriptItems: boolean): PersistedSubagentRecord {

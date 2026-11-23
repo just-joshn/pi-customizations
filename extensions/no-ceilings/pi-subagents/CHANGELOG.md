@@ -29,6 +29,10 @@
 
 ### Fixed
 
+- Read-only bash on macOS runs under `sandbox-exec`, which denies filesystem writes except `/dev/null`. `git grep -O` and `--open-files-in-pager` are blocked.
+- `/tasks abort` cancels a foreground launch during `git worktree add` and discards the worktree and branch.
+- Completed-run persists keep transcripts for the three most recently updated runs, same as mid-run snapshots.
+- Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, and converting as write intent, and prefers the longest overlapping agent name.
 - A background worktree launch returns before `git worktree add` finishes. Aborting during creation removes the worktree and branch, and an already-aborted call does not start the child.
 - `session_shutdown` stores a failure id on every cancelled run. A completion that finishes after shutdown stays cancelled and does not wake the next session.
 - A worktree child whose parent directory is untracked uses the nearest existing directory inside the worktree.

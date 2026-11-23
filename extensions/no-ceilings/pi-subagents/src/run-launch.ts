@@ -99,6 +99,21 @@ export async function runDetachedTask(
   return runWithSummary(options, callbacks, buildAttemptPlan(options, config, setup, agentId, startedAt, abortController, nestedScope, childDepth, worktree), agentId);
 }
 
+function beginForegroundPreparation(callbacks: RunnerCallbacks, options: RunTaskOptions, agentId: string, abortController: AbortController): (outcome: SubagentRunOutcome) => void {
+  let resolveCompletion: (outcome: SubagentRunOutcome) => void = () => undefined;
+  const completionPromise = new Promise<SubagentRunOutcome>((resolve) => {
+    resolveCompletion = resolve;
+  });
+  callbacks.store.registerActiveRun({
+    agentId,
+    toolCallId: options.toolCallId,
+    isBackground: false,
+    abort: () => abortController.abort(),
+    completionPromise,
+  });
+  return resolveCompletion;
+}
+
 export async function runForegroundTask(
   options: RunTaskOptions,
   callbacks: RunnerCallbacks,
@@ -116,15 +131,23 @@ export async function runForegroundTask(
     abortController.abort();
   };
   options.signal?.addEventListener('abort', onAbort, { once: true });
+  const finishPreparation = beginForegroundPreparation(callbacks, options, agentId, abortController);
+  let handedOff = false;
   try {
     const worktree = await resolveLaunchWorktree(options, callbacks, config, setup, agentId, initialRecord.description, abortController, requestedWorktree);
     if (worktree === 'aborted' || abortController.signal.aborted) {
       return cancelPreparedRun(callbacks, agentId, initialRecord, startedAt);
     }
     const runPromise = runWithSummary(options, callbacks, buildAttemptPlan(options, config, setup, agentId, startedAt, abortController, nestedScope, childDepth, worktree), agentId);
+    void runPromise.then(finishPreparation, () => finishPreparation(abortedOutcome(Math.max(ZERO, Date.now() - startedAt))));
     options.onUpdate?.(buildDetailsFromRecord(initialRecord));
+    handedOff = true;
     return await runForegroundSubagent(options, initialRecord, runPromise, abortController, callbacks);
   } finally {
+    if (!handedOff) {
+      finishPreparation(abortedOutcome(Math.max(ZERO, Date.now() - startedAt)));
+      callbacks.store.clearActiveRun(agentId);
+    }
     options.signal?.removeEventListener('abort', onAbort);
   }
 }

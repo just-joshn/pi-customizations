@@ -24,7 +24,7 @@ const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
   debug: 'debug',
 };
 const WRITE_VERBS =
-  'fix(?:ing)?|edit(?:ing)?|change(?:ing)?|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting';
+  'fix(?:ing)?|edit(?:ing)?|chang(?:e|ing)|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting|split(?:ting)?|move|moving|optimize|optimizing|port(?:ing)?|format(?:ting)?|extract(?:ing)?|convert(?:ing)?';
 const NEGATED_WRITE = `\\b(?:do not|don['\u2019]t|cannot|can['\u2019]t|must not|should not|never|avoid|without)\\b(?:\\s+\\w+){0,4}\\s+(?:${WRITE_VERBS})\\b|\\bno(?:\\s+\\w+){0,2}\\s+(?:${WRITE_VERBS})\\b`;
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
@@ -612,10 +612,19 @@ function textHasWriteIntent(text: string): boolean {
   return new RegExp(String.raw`\b(?:${WRITE_VERBS})\b`, 'i').test(remaining);
 }
 
+function nameContainedIn(name: string, other: string): boolean {
+  return other.length > name.length && other.toLowerCase().includes(name.toLowerCase());
+}
+
+function longestNamedMatches(matches: readonly SubagentDefinition[]): readonly SubagentDefinition[] {
+  return matches.filter((candidate) => !matches.some((other) => nameContainedIn(candidate.name, other.name)));
+}
+
 /**
  * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
- * the definition whose description shares the most keywords with the task. Ambiguity falls back to
- * the general-purpose agent when it is available, otherwise the first available definition.
+ * the definition whose description shares the most keywords with the task. Overlapping names keep the
+ * longest match. Two or more distinct names fall back to the general-purpose agent when it is available,
+ * otherwise the first available definition.
  */
 function fallbackSubagentType(definitions: readonly SubagentDefinition[]): string {
   const general = definitions.find((definition) => definition.name.toLowerCase() === DEFAULT_SUBAGENT_TYPE);
@@ -630,7 +639,7 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
   const text = `${hint.description} ${hint.prompt}`;
   const writable = textHasWriteIntent(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
   const eligible = writable.length > ZERO ? writable : definitions;
-  const namedMatches = eligible.filter((definition) => mentionsName(text, definition.name));
+  const namedMatches = longestNamedMatches(eligible.filter((definition) => mentionsName(text, definition.name)));
   if (namedMatches.length > ONE) {
     return fallbackSubagentType(eligible);
   }

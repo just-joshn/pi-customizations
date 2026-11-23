@@ -1,9 +1,13 @@
+import { existsSync } from 'node:fs';
+
 import { type ExtensionAPI, type ExtensionFactory, isToolCallEventType, type ToolCallEvent } from '@earendil-works/pi-coding-agent';
 import { READONLY_SUBAGENT_ERROR } from './types.ts';
 
 export const READONLY_BLOCKED_TOOLS: ReadonlySet<string> = new Set(['write', 'edit', 'delete', 'powershell']);
 const MCP_TOOL_PREFIX = 'mcp__';
 const DEV_NULL = '/dev/null';
+const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
+const SANDBOX_PROFILE = '(version 1)(allow default)(deny file-write*)(allow file-write* (literal "/dev/null"))';
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brm\b/i,
@@ -30,6 +34,7 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
   /\bgit\s+reflog\s+(?:expire|delete)\b/i,
+  /\bgit\s+grep\b.*(?:\s-O|--open-files-in-pager(?:=|\s|$))/,
   /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
   /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s])(?:\\[\s\S]|.)*?\1(?:\\[\s\S]|.)*?\1[^\s'"\\]*[wWeE]|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
   /\b(?:sed|awk)\b.*(?:\s-f\b|\s--file\b)/,
@@ -199,13 +204,29 @@ export function isSafeReadOnlyCommand(command: string): boolean {
   return segments !== undefined && segments.every(isSingleReadOnlySegment);
 }
 
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null. Other platforms return the command unchanged. */
+export function sandboxReadOnlyCommand(command: string): string {
+  if (process.platform !== 'darwin' || !existsSync(SANDBOX_EXEC)) {
+    return command;
+  }
+  return `${SANDBOX_EXEC} -p ${shellQuote(SANDBOX_PROFILE)} /bin/sh -c ${shellQuote(command)}`;
+}
+
 export function evaluateReadonlySubagentGuard(event: ToolCallEvent): { block: true; reason: string } | undefined {
   if (READONLY_BLOCKED_TOOLS.has(event.toolName) || event.toolName.startsWith(MCP_TOOL_PREFIX)) {
     return { block: true, reason: READONLY_SUBAGENT_ERROR };
   }
-  if (isToolCallEventType('bash', event) && !isSafeReadOnlyCommand(event.input.command)) {
+  if (!isToolCallEventType('bash', event)) {
+    return undefined;
+  }
+  if (!isSafeReadOnlyCommand(event.input.command)) {
     return { block: true, reason: READONLY_SUBAGENT_ERROR };
   }
+  event.input.command = sandboxReadOnlyCommand(event.input.command);
   return undefined;
 }
 
