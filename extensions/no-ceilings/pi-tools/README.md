@@ -43,8 +43,9 @@ when the model needs them.
 name, so the layer replaces the built-ins instead of duplicating them. The remaining tools are new.
 `write` and `save_resource` refuse a FIFO or other non-regular file instead of blocking on it, and a
 write, redirect, or delete through a symlink to a protected ignore file or to `.pi/pi-tools.json` is
-refused like the direct write. `.git/config` and everything under `.git/hooks/` are protected too, so
-the agent cannot install a hook or an fsmonitor command that git runs later.
+refused like the direct write. `.git/config` and everything under `.git/hooks/` are protected too, in the
+workspace root and in any repository nested below it, so the agent cannot install a hook or an
+fsmonitor command that git runs later.
 
 ## Configuration
 
@@ -148,23 +149,30 @@ operand or redirect target.
   `grep` or a directory-walking `rg`/`ag`/`ack`, a wrapper that runs another command (`sudo`, `doas`,
   `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `flock`, `arch`, `xcrun`,
   `unshare`, `setarch`, `busybox`, `nsenter`, `docker`, `podman`, `ssh`, `caffeinate`, `strace`,
-  `bwrap`, and similar), a login shell that would source a profile, a shell or interpreter fed a script
-  through a pipe or a stdin redirect, and a shell function definition. Literal
+  `bwrap`, and similar), `git grep`, `patch`, and `git apply` (each chooses the files it reads or
+  writes), a login shell that would source a profile, a shell or interpreter fed a script through a
+  pipe or a stdin redirect, and a shell function definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
-  deny-checked too, an index pathspec such as `:file` is checked as that path, a directory-wide stage
-  (`git add -A`, `-u`, `.`) and `git commit -a` are refused because the layer cannot see the staged
-  files, `git -C`, `--git-dir`, and `--work-tree` outside the workspace need approval, a git
-  destination (`init`, `apply --directory`, `archive -o`, `show`/`log`/`diff` `--output`, `clone`,
-  `worktree add`, `format-patch -o`, `bundle create`) is a write, and a `git config` that sets a value
-  is refused because it can persist a command. A redirect target ends at the next `<` or `>`, `>|` is one
+  deny-checked too, an index pathspec such as `:file` and a revision path such as `HEAD:file` are
+  checked as the files they open, a directory-wide stage (`git add -A`, `-u`, `.`) and `git commit -a`
+  are refused because the layer cannot see the staged files, `git log --patch` without a path and
+  `git show` without a path or summary flag are refused because they print whole file bodies, and
+  `git init --template` is refused because the template installs a hook. `git -C`, `--git-dir`, and
+  `--work-tree` outside the workspace need approval, a git destination (`init`, `archive -o`,
+  `show`/`log`/`diff` `--output`, `clone`, `worktree add`, `format-patch -o`, `bundle create`) is a
+  write, and a `git config` with a key and a value is refused even when a read flag is
+  present, because it can persist a command. A redirect target ends at the next `<` or `>`, `>|` is one
   redirect, and digits stay with the word or file name around a redirect rather than becoming a file
   descriptor. A write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`,
   `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
   `gzip`, `gunzip`, `bzip2`, `xz`, `split`, `openssl -out`, `unzip -d`, a `sed` `w`/`W` script or
-  `s///w` flag, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`, `wget -O`, `sort -o`, `rsync`'s
-  destination) or `>`/`>>`/`>|` target outside the workspace needs the same approval as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
-  destination, and every `ln` target counts because a link is the path a later use escapes through.
+  `s///w` flag, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`/`-D`/`-c`/`--trace`, `wget -O`,
+  `sort -o`, `rsync`'s destination and `--log-file`) or `>`/`>>`/`>|` target outside the workspace needs
+  the same approval as `write`; `split` reads its input and writes its prefix, `curl -K` is refused
+  because its config names outputs and URLs, `cp`/`mv`/`ln` destination flags such as `-t` and
+  `--target-directory` count as the destination, and every `ln` target counts because a link is the
+  path a later use escapes through.
   `/dev/null` is a discard sink, so a redirect there carries no outside-write approval. Every spawned
   shell drops `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions,
   then pins `PWD` and `OLDPWD` to the working directory. Allowlist mode

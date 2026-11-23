@@ -81,7 +81,17 @@
   writes. A git index pathspec is checked as the path it opens, and a directory-wide stage or
   `git commit -a` is refused.
 - An edit or delete of a read-denied path is refused, so the diff and snapshot cannot leak the body.
-  `.git/config` and `.git/hooks/*` are protected from writes and deletes.
+  `.git/config` and `.git/hooks/*` are protected from writes and deletes in the workspace root and in
+  any repository nested below it.
+- `curl -D`, `--trace`, `--trace-ascii`, and `-c` destinations are writes in spaced, `=` and glued
+  forms, `rsync --log-file` is a write, and `split` checks its input as a read. `curl -K` is refused
+  because its config names outputs and URLs.
+- `patch` and `git apply` are refused because the patch file names the paths they write. `git grep`
+  is refused because it chooses the files it reads, `git init --template` because the template
+  installs a hook, and `git log --patch` without a path and `git show` without a path or summary flag
+  because they print whole file bodies.
+- A git revision path such as `HEAD:file` is checked as the file it opens, and a `git config` with a
+  key and a value is refused even when a read flag is present.
 
 ## 0.1.0
 
