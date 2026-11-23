@@ -133,4 +133,73 @@ describe('real session delegation', () => {
       session.dispose();
     }
   });
+
+  it('reports a failure id and retries when child model requests fail with HTTP 500', async () => {
+    let seenChildCalls = 0;
+    const errorServer = await startFakeModelServer({
+      childMarker: CHILD_MARKER,
+      onRequest: ({ isChild, hasToolResult, model, response, streamText, streamToolCall }) => {
+        if (isChild) {
+          seenChildCalls += ONE;
+          response.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: { message: 'upstream failed' } }));
+          return true;
+        }
+        if (!hasToolResult) {
+          streamToolCall(response, model, {
+            id: 'call_retry_task',
+            name: 'task',
+            args: { description: 'Retry failing child', prompt: 'Do work', subagent_type: 'worker', max_attempts: 2 },
+          });
+          return true;
+        }
+        const tool = [...(response.req ? [] : [])];
+        void tool;
+        streamText(response, model, 'PARENT_SAW_DONE');
+        return true;
+      },
+    });
+    const prevDir = process.env['PI_CODING_AGENT_DIR'];
+    const errRoot = mkdtempSync(join(tmpdir(), 'pi-subagents-err-'));
+    const errProfile = join(errRoot, 'profile');
+    const errWorkspace = join(errRoot, 'workspace');
+    mkdirSync(errProfile, { recursive: true });
+    mkdirSync(join(errWorkspace, '.pi', 'agents'), { recursive: true });
+    mkdirSync(join(errWorkspace, 'sessions'), { recursive: true });
+    writeFileSync(
+      join(errProfile, 'models.json'),
+      JSON.stringify({
+        providers: {
+          fake: { baseUrl: `${errorServer.url}/v1`, api: 'openai-completions', apiKey: 'fake-key', models: [{ id: 'fake-model', contextWindow: 100_000, maxTokens: 4096 }] },
+        },
+      }),
+    );
+    writeFileSync(join(errWorkspace, '.pi', 'agents', 'worker.md'), ['---', 'name: worker', 'description: Worker.', 'tools: read', '---', `${CHILD_MARKER}.`].join('\n'));
+    process.env['PI_CODING_AGENT_DIR'] = errProfile;
+    const settings = SettingsManager.create(errWorkspace, errProfile, { projectTrusted: true });
+    const loader = new DefaultResourceLoader({ cwd: errWorkspace, agentDir: errProfile, settingsManager: settings, extensionFactories: [piSubagentsExtension as ExtensionFactory] });
+    await loader.reload();
+    const { session } = await createAgentSession({
+      cwd: errWorkspace,
+      agentDir: errProfile,
+      settingsManager: settings,
+      resourceLoader: loader,
+      sessionManager: SessionManager.create(errWorkspace, join(errWorkspace, 'sessions')),
+    });
+    try {
+      await session.prompt('Run the worker with retries.');
+      const serialized = JSON.stringify(session.agent.state.messages);
+      expect(serialized).toContain('failure_id');
+      expect(serialized).toContain('attempts: 2');
+      expect(seenChildCalls).toBeGreaterThan(ONE);
+    } finally {
+      session.dispose();
+      if (prevDir === undefined) {
+        delete process.env['PI_CODING_AGENT_DIR'];
+      } else {
+        process.env['PI_CODING_AGENT_DIR'] = prevDir;
+      }
+      await errorServer.close();
+      rmSync(errRoot, { recursive: true, force: true });
+    }
+  });
 });

@@ -848,6 +848,31 @@ describe('state snapshots and shutdown', () => {
       await h.cleanup();
     }
   });
+
+  it('does not touch a stale UI context when a background run settles after session shutdown', async () => {
+    const h = createTestHarness();
+    const errors: unknown[] = [];
+    const onUnhandled = (error: unknown): void => {
+      errors.push(error);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      await h.emit('session_start', {});
+      const gate = createGate();
+      enqueuePlan({ finalText: 'slow', waitForRelease: gate.promise });
+      await h.callTool('task', { description: 'Stale UI job', prompt: 'go', subagent_type: 'general-purpose', run_in_background: true });
+      await h.emit('session_shutdown', {});
+      vi.spyOn(h.ctx.ui, 'setStatus').mockImplementation(() => {
+        throw new Error('This extension ctx is stale after session replacement or reload.');
+      });
+      gate.release();
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      expect(errors).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+      await h.cleanup();
+    }
+  });
 });
 
 describe('sampling wiring', () => {
@@ -1116,6 +1141,39 @@ describe('nested catalog and command naming', () => {
       await h.cleanup();
     }
   });
+
+  it('treats --bg as a whole flag token on per-agent commands', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      await h.runCommand('subagent:explore', '--bg-color the button');
+      const sent = h.getSentUserMessages().at(-ONE)?.content ?? '';
+      expect(sent).not.toContain('run_in_background: true');
+      expect(sent).toContain('to: --bg-color the button');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('fails and retries when the child assistant message ends with stopReason error', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      const errorEvent = double<AgentSessionEvent>({
+        type: 'message_end',
+        message: { role: 'assistant', content: [], stopReason: 'error', errorMessage: 'HTTP 500 from upstream' },
+      });
+      enqueuePlan({ finalText: '', events: [errorEvent] });
+      enqueuePlan({ finalText: '', events: [errorEvent] });
+      const result = await h.callTool('task', { description: 'Failing provider', prompt: 'go', subagent_type: 'general-purpose', max_attempts: TWO });
+      expect(result.details?.status).toBe('error');
+      expect(result.details?.errorCode).toBe('failed');
+      expect(result.details?.failureId).toBeDefined();
+      expect(result.details?.attempts).toBe(TWO);
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('read-only await validation', () => {
@@ -1196,7 +1254,8 @@ describe('built-in subagents and explore configuration', () => {
       enqueuePlan({ finalText: 'clicked' });
       const result = await withIntegration.callTool('task', { description: 'Click the button', prompt: 'Open the page and click', subagent_type: 'browser' });
       expect(result.details?.subagentType).toBe('browser');
-      expect(captured[ZERO]?.tools).toContain('mcp__*');
+      expect(captured[ZERO]?.tools).toEqual(['mcp__playwright__*']);
+      expect(captured[ZERO]?.tools).not.toContain('mcp__*');
       expect((loaderOptions['extensionFactories'] as readonly unknown[]).length).toBeGreaterThan(ONE);
     } finally {
       await withIntegration.cleanup();

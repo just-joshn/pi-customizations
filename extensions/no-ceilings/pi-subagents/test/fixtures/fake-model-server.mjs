@@ -110,6 +110,13 @@ export async function startFakeModelServer(options = {}) {
     const hasToolResult = messages.some((message) => message.role === 'tool');
     const model = typeof body.model === 'string' ? body.model : 'fake-model';
 
+    if (options.onRequest !== undefined) {
+      const handled = await options.onRequest({ body, messages, isChild, hasToolResult, model, response, streamText, streamToolCall });
+      if (handled) {
+        return;
+      }
+    }
+
     response.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
     if (isChild && !hasToolResult) {
       streamToolCall(response, model, { id: 'call_child_read', name: 'read', args: { path: childFile } });

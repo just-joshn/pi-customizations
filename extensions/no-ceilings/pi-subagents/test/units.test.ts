@@ -492,6 +492,40 @@ describe('adversary regressions', () => {
     expect(selectSubagentType(definitions, { description: '', prompt: 'use explore to find where the bug is' })).toBe('explore');
   });
 
+  it('keeps an explicitly named read-only agent when write verbs are negated', () => {
+    const definitions = [
+      makeDefinition({ name: 'explore', description: 'Fast read-only agent specialized for exploring codebases, finding files by pattern, and searching code', permissionMode: 'readonly' }),
+      makeDefinition({ name: 'shell', description: 'Command execution specialist for running bash commands and builds' }),
+      makeDefinition({ name: 'debug', description: 'Debugging specialist for tracing failures and isolating root causes' }),
+      makeDefinition({ name: 'general-purpose', description: 'General-purpose agent for researching questions and executing multi-step tasks' }),
+    ];
+    expect(selectSubagentType(definitions, { description: 'explore the auth flow', prompt: 'Find where tokens are validated. Do not edit anything.' })).toBe('explore');
+    expect(selectSubagentType(definitions, { description: 'explore the flaky test', prompt: 'Find the cause of the failure; do not change any files.' })).toBe('explore');
+  });
+
+  it('blocks reflog mutations, non-slash sed execute flags, and mutating date or hostname calls', () => {
+    expect(isSafeReadOnlyCommand('git reflog expire --expire=now --all')).toBe(false);
+    expect(isSafeReadOnlyCommand('git reflog delete --all HEAD@{1}')).toBe(false);
+    expect(isSafeReadOnlyCommand('git reflog')).toBe(true);
+    expect(isSafeReadOnlyCommand('git reflog -n 5')).toBe(true);
+    expect(isSafeReadOnlyCommand("sed 's#x#id#e' notes.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed -n 's#.*#id#ep' notes.txt")).toBe(false);
+    expect(isSafeReadOnlyCommand("sed 's#a#b#gp' notes.txt")).toBe(true);
+    expect(isSafeReadOnlyCommand('date 010100002030.00')).toBe(false);
+    expect(isSafeReadOnlyCommand('hostname evilname')).toBe(false);
+    expect(isSafeReadOnlyCommand('date -u')).toBe(true);
+    expect(isSafeReadOnlyCommand("date '+%Y-%m-%d'")).toBe(true);
+    expect(isSafeReadOnlyCommand('hostname -s')).toBe(true);
+  });
+
+  it('scopes the built-in browser agent to the browser integration server', () => {
+    const dir = tempDir('browser-scope-');
+    const fromTool = discoverSubagents(dir, { browserIntegration: 'mcp__playwright__browser_navigate', projectTrusted: false, homeDir: dir, agentDir: dir }).find((definition) => definition.name === 'browser');
+    expect(fromTool?.tools).toEqual(['mcp__playwright__*']);
+    const fromServer = discoverSubagents(dir, { browserIntegration: 'chrome-devtools', projectTrusted: false, homeDir: dir, agentDir: dir }).find((definition) => definition.name === 'browser');
+    expect(fromServer?.tools).toEqual(['mcp__chrome_devtools__*']);
+  });
+
   it('keeps read-only git inspection available', () => {
     expect(isSafeReadOnlyCommand('git branch --show-current')).toBe(true);
     expect(isSafeReadOnlyCommand('git branch --list')).toBe(true);

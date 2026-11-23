@@ -155,6 +155,50 @@ try {
   }
   console.log('ok persisted state has a completed run with a transcript path');
 
+  const bgServer = await startFakeModelServer({
+    childMarker: CHILD_MARKER,
+    onRequest: async ({ isChild, hasToolResult, model, response, streamText, streamToolCall }) => {
+      if (isChild) {
+        await new Promise((resolvePromise) => setTimeout(resolvePromise, 4000));
+        streamText(response, model, 'LATE_CHILD');
+        return true;
+      }
+      if (!hasToolResult) {
+        streamToolCall(response, model, {
+          id: 'call_bg_quit',
+          name: 'task',
+          args: { description: 'Background quit probe', prompt: 'Wait briefly.', subagent_type: 'worker', run_in_background: true },
+        });
+        return true;
+      }
+      streamText(response, model, 'PARENT_EXITED_CLEANLY');
+      return true;
+    },
+  });
+  try {
+    writeFileSync(
+      join(profile, 'models.json'),
+      JSON.stringify({
+        providers: {
+          fake: { baseUrl: `${bgServer.url}/v1`, api: 'openai-completions', apiKey: 'fake-key', models: [{ id: 'fake-model', contextWindow: 100_000, maxTokens: 4096 }] },
+        },
+      }),
+    );
+    const bgResult = await runPi(['-p', '--session-dir', sessions, '-ne', '-e', extensionPath, '-ns', '-np', '--no-themes', '--approve', '--model', 'fake/fake-model', 'Launch background worker and exit.'], workspace, {
+      ...process.env,
+      PI_CODING_AGENT_DIR: profile,
+    });
+    if (bgResult.status !== ZERO) {
+      fail(`pi -p crashed when exiting with an active background subagent (exit ${bgResult.status}): ${bgResult.stderr}`);
+    }
+    if (!bgResult.stdout.includes('PARENT_EXITED_CLEANLY')) {
+      fail(`background exit check missing parent reply: ${bgResult.stdout}`);
+    }
+    console.log('ok pi -p exits 0 when a background subagent is still running');
+  } finally {
+    await bgServer.close();
+  }
+
   console.log(`PASS ${root}`);
 } finally {
   await server.close();

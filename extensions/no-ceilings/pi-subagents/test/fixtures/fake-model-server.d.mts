@@ -10,4 +10,17 @@ export interface FakeModelServer {
   readonly close: () => Promise<void>;
 }
 
-export function startFakeModelServer(options?: { readonly childMarker?: string; readonly childFile?: string }): Promise<FakeModelServer>;
+export function startFakeModelServer(options?: {
+  readonly childMarker?: string;
+  readonly childFile?: string;
+  readonly onRequest?: (context: {
+    readonly body: FakeModelRequest;
+    readonly messages: FakeModelRequest['messages'];
+    readonly isChild: boolean;
+    readonly hasToolResult: boolean;
+    readonly model: string;
+    readonly response: import('node:http').ServerResponse;
+    readonly streamText: (response: import('node:http').ServerResponse, model: string, text: string) => void;
+    readonly streamToolCall: (response: import('node:http').ServerResponse, model: string, call: { readonly id: string; readonly name: string; readonly args: unknown }) => void;
+  }) => Promise<boolean> | boolean;
+}): Promise<FakeModelServer>;
