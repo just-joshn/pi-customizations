@@ -620,6 +620,25 @@ function longestNamedMatches(matches: readonly SubagentDefinition[]): readonly S
   return matches.filter((candidate) => !matches.some((other) => nameContainedIn(candidate.name, other.name)));
 }
 
+function isPartOfLongerName(text: string, definition: SubagentDefinition, definitions: readonly SubagentDefinition[]): boolean {
+  const name = definition.name.trim().toLowerCase();
+  return definitions.some((other) => {
+    const longer = other.name.trim().toLowerCase();
+    if (longer.length <= name.length || !longer.startsWith(name)) {
+      return false;
+    }
+    const separator = longer[name.length];
+    if (separator !== ' ' && separator !== '-') {
+      return false;
+    }
+    const next = longer.slice(name.length).trim().replace(/^-+/, '').split(/\s+/)[0];
+    if (next === undefined || next.length === ZERO) {
+      return false;
+    }
+    return new RegExp(`(?:^|${NAME_BOUNDARY})${escapeRegExp(name)}\\s+${escapeRegExp(next)}(?:s|es)?(?:${NAME_BOUNDARY}|$)`, 'i').test(text);
+  });
+}
+
 /**
  * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
  * the definition whose description shares the most keywords with the task. Overlapping names keep the
@@ -639,7 +658,7 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
   const text = `${hint.description} ${hint.prompt}`;
   const writable = textHasWriteIntent(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
   const eligible = writable.length > ZERO ? writable : definitions;
-  const namedMatches = longestNamedMatches(eligible.filter((definition) => mentionsName(text, definition.name)));
+  const namedMatches = longestNamedMatches(eligible.filter((definition) => mentionsName(text, definition.name))).filter((definition) => !isPartOfLongerName(text, definition, eligible));
   if (namedMatches.length > ONE) {
     return fallbackSubagentType(eligible);
   }
@@ -647,7 +666,7 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
   if (singleMatch !== undefined) {
     return singleMatch.name;
   }
-  const keywordPool = eligible.filter((definition) => !extendsName(text, definition.name));
+  const keywordPool = eligible.filter((definition) => !extendsName(text, definition.name) && !isPartOfLongerName(text, definition, eligible));
   const scored = keywordPool.map((definition) => ({ name: definition.name, score: countMentionedKeywords(text, descriptionKeywords(definition.description)) })).toSorted((left, right) => right.score - left.score);
   const best = scored[ZERO];
   const runnerUp = scored[ONE];
