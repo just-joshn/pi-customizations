@@ -133,10 +133,11 @@ describe('package agent directories', () => {
 
   it('loads agents shipped by a local package', () => {
     const agentDir = tempDir('pkg-local-agent-');
+    const cwd = tempDir('pkg-local-cwd-');
     const agents = join(agentDir, 'local-pkg', 'agents');
     mkdirSync(agents, { recursive: true });
 
-    expect(resolvePackageAgentDirectories(['./local-pkg'], '/tmp', agentDir, false)).toEqual([agents]);
+    expect(resolvePackageAgentDirectories(['./local-pkg'], cwd, agentDir, false)).toEqual([agents]);
   });
 });
 
