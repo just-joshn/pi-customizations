@@ -1,5 +1,6 @@
 import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import type { Theme } from '@earendil-works/pi-coding-agent';
+import { visibleWidth } from '@earendil-works/pi-tui';
 import { describe, expect, it } from 'vitest';
 import { buildBackgroundCompletionText } from '../src/index.ts';
 import { createSubagentStore } from '../src/store.ts';
@@ -74,6 +75,16 @@ describe('task renderers', () => {
     expect(lines.join('\n')).toContain('background');
     const fallback = renderTaskCall({}, theme).render(WIDTH).join('\n');
     expect(fallback).toContain('Subagent task');
+  });
+
+  it('reuses the call row for a background task result', () => {
+    const state = {};
+    const call = renderTaskCall({ description: 'Background task', subagent_type: 'general-purpose', run_in_background: true }, theme, { state });
+    const resultView = renderTaskResult(result({ status: 'running', isBackground: true }), { expanded: false, isPartial: false }, theme, { state });
+    const text = [...call.render(WIDTH), ...resultView.render(WIDTH)].join('\n');
+
+    expect(text.match(/Task/g)).toHaveLength(ONE);
+    expect(text).toContain('Running in background');
   });
 
   it('renders a result without details from its text content', () => {
@@ -398,6 +409,11 @@ describe('tasks overlay', () => {
       expect(rendered[THREE]?.join('\n')).toContain('prompt text');
       expect(rendered[THREE]?.join('\n')).toContain('tool output');
       expect(rendered[FOUR]?.join('\n')).toContain('Tasks');
+      for (const lines of rendered) {
+        for (const line of lines) {
+          expect(visibleWidth(line)).toBe(WIDTH);
+        }
+      }
     } finally {
       await h.cleanup();
     }

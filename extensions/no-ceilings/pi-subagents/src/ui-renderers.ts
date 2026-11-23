@@ -18,6 +18,7 @@ import {
 
 const BULLET_SEPARATOR = ' • ';
 const PADDING_ZERO = 0;
+const taskContainers = new WeakMap<object, Container>();
 
 function formatHeaderLine(theme: Theme, description: string, status: TaskToolDetails['status'], note: string | undefined): string {
   const glyph = status === 'success' ? theme.fg('success', '✓') : status === 'error' || status === 'cancelled' ? theme.fg('error', '✗') : theme.fg('warning', '●');
@@ -27,13 +28,18 @@ function formatHeaderLine(theme: Theme, description: string, status: TaskToolDet
   return `${glyph} ${title} ${primary}${suffix}`;
 }
 
-export function renderTaskCall(args: Readonly<Record<string, unknown>>, theme: Theme): Text {
+export function renderTaskCall(args: Readonly<Record<string, unknown>>, theme: Theme, context?: { readonly state: object }): Container {
   const rawDesc = typeof args['description'] === 'string' && args['description'].trim().length > ZERO ? args['description'].trim() : DEFAULT_TASK_DESCRIPTION;
   const rawType = typeof args['subagent_type'] === 'string' && args['subagent_type'].trim().length > ZERO ? args['subagent_type'].trim() : undefined;
   const isBg = args['run_in_background'] === true;
   const noteParts = [rawType, isBg ? 'background' : undefined].filter((part): part is string => part !== undefined);
   const note = noteParts.length > ZERO ? noteParts.join(BULLET_SEPARATOR) : undefined;
-  return new Text(formatHeaderLine(theme, rawDesc, 'pending', note), PADDING_ZERO, PADDING_ZERO);
+  const container = new Container();
+  container.addChild(new Text(formatHeaderLine(theme, rawDesc, 'pending', note), PADDING_ZERO, PADDING_ZERO));
+  if (context) {
+    taskContainers.set(context.state, container);
+  }
+  return container;
 }
 
 function appendPendingBody(container: Container, details: TaskToolDetails, expanded: boolean, theme: Theme): void {
@@ -62,14 +68,13 @@ function appendPendingBody(container: Container, details: TaskToolDetails, expan
   }
 }
 
-export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, options: { readonly expanded: boolean; readonly isPartial: boolean }, theme: Theme): Container {
-  const container = new Container();
+function appendTaskResult(container: Container, result: AgentToolResult<TaskToolDetails>, options: { readonly expanded: boolean; readonly isPartial: boolean }, theme: Theme): void {
   const details = result.details;
   if (!details) {
     const firstText = result.content.find((c) => c.type === 'text');
     const text = firstText && 'text' in firstText ? firstText.text : '(no output)';
     container.addChild(new Text(theme.fg('toolOutput', text), PADDING_ZERO, PADDING_ZERO));
-    return container;
+    return;
   }
   const durationLabel = formatDurationMs(details.durationMs);
   const attemptsLabel = details.attempts > ONE ? `attempt ${details.attempts}/${details.maxAttempts}` : undefined;
@@ -80,17 +85,17 @@ export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, optio
 
   if (options.isPartial || details.status === 'pending' || (details.status === 'running' && !details.isBackground)) {
     appendPendingBody(container, details, options.expanded, theme);
-    return container;
+    return;
   }
   if (details.isBackground && details.status === 'running') {
     container.addChild(new Text(`  ${theme.fg('dim', `Running in background (${details.agentId})`)}`, PADDING_ZERO, PADDING_ZERO));
-    return container;
+    return;
   }
   if (details.status === 'error' || details.status === 'cancelled') {
     const errorMsg = details.error || 'Unknown error';
     const identifier = details.failureId ? ` [${details.failureId}${details.errorCode ? ` ${details.errorCode}` : ''}]` : '';
     container.addChild(new Text(`  ${theme.fg('error', `Error${identifier}: ${errorMsg}`)}`, PADDING_ZERO, PADDING_ZERO));
-    return container;
+    return;
   }
   if (details.worktreePath !== undefined) {
     container.addChild(new Text(`  ${theme.fg('dim', `worktree ${details.branch ?? ''} at ${details.worktreePath}`)}`, PADDING_ZERO, PADDING_ZERO));
@@ -105,7 +110,14 @@ export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, optio
       container.addChild(new Text(`  ${theme.fg('toolOutput', preview.text)}`, PADDING_ZERO, PADDING_ZERO));
     }
   }
-  return container;
+}
+
+export function renderTaskResult(result: AgentToolResult<TaskToolDetails>, options: { readonly expanded: boolean; readonly isPartial: boolean }, theme: Theme, context?: { readonly state: object }): Container {
+  const shared = context === undefined ? undefined : taskContainers.get(context.state);
+  const container = shared ?? new Container();
+  container.clear();
+  appendTaskResult(container, result, options, theme);
+  return shared === undefined ? container : new Container();
 }
 
 export function renderBackgroundCompletionMessage(message: { readonly details?: unknown; readonly content: unknown }, theme: Theme): Text {
