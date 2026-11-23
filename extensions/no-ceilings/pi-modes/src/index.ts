@@ -544,10 +544,7 @@ function registerLifecycleEvents(pi: ExtensionAPI, ctrl: ModeRuntimeController):
     }
     const withCustom = startupCustom === undefined ? restored : enterCustomMode(restored, startupCustom);
     ctrl.setState(withCustom);
-    await ctrl.applyMode(startupBuiltin ?? withCustom.mode, ctx, false);
-    if (startupCustom !== undefined) {
-      ctrl.persist();
-    }
+    await ctrl.applyMode(startupBuiltin ?? withCustom.mode, ctx, startupBuiltin !== undefined || startupCustom !== undefined);
   });
 
   pi.on('mcp_servers_change', async () => {

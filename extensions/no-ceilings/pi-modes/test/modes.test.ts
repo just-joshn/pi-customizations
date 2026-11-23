@@ -73,6 +73,21 @@ describe('pi-modes flags, switch_mode tool, and persistence', () => {
     expect(h.getStatuses()['pi-modes']).toContain('Plan');
   });
 
+  it.for([
+    { flags: { mode: 'ask' }, mode: 'ask' },
+    { flags: { plan: true }, mode: 'plan' },
+  ])('persists the $mode startup mode and tool baseline for resume', async ({ flags, mode }) => {
+    const h = useTestHarness({ flags });
+    await h.emit('session_start', {});
+    const entry = h.getEntries().at(-ONE);
+    expect(entry?.customType).toBe('pi-modes-state');
+    const data = entry?.data as { mode?: string; toolsBeforeRestricted?: readonly string[] } | undefined;
+    expect(data?.mode).toBe(mode);
+    expect(data?.toolsBeforeRestricted).toEqual(expect.arrayContaining(['edit', 'write']));
+    expect(h.getActiveTools()).not.toContain('edit');
+    expect(h.getActiveTools()).not.toContain('write');
+  });
+
   it('treats /mode search as the Ask alias', async () => {
     const h = useTestHarness();
     await h.emit('session_start', {});

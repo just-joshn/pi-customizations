@@ -222,7 +222,8 @@ function lexCommand(command: string): LexedCommand {
     if (char === GREATER_THAN) {
       // `2>&1` and `>&2` duplicate a file descriptor, which writes nothing. Other `>` forms write.
       const fdTarget = command[index + 1] === '&' ? (command[index + 2] ?? '') : '';
-      if (DIGIT.test(fdTarget)) {
+      const afterFd = command[index + 3];
+      if (DIGIT.test(fdTarget) && (afterFd === undefined || WHITESPACE.test(afterFd) || SEGMENT_SEPARATORS.has(afterFd))) {
         word += `>&${fdTarget}`;
         hasWord = true;
         index += 3;
