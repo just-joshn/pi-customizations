@@ -111,6 +111,12 @@
   and `sftp` are refused because each runs or copies paths the argv only names.
 - The tar-family write side covers `tar`, `bsdtar`, and `gtar`; `ditto -x` is refused as extraction;
   `ssh-keygen -f` and the `sqlite3` database operand are writes.
+- `base64 -o`, `uuencode`/`b64encode -o`, `plutil -o`, `textutil -output`, compiler `-o`, `shuf -o`,
+  `openssl -keyout`, and `ruby -i` destinations are writes, and `base64 -i` and `grep --file=` reads
+  are checked in their attached and `=` spellings.
+- `uudecode`, `split --filter`, `git difftool`/`mergetool`, a `sqlite3` dot-command or `-cmd`/`-init`/
+  `-A`, and a fileless `history -w`/`-a` are refused. A `cp` or `mv` of a directory is refused when a
+  read deny or ignore rule matches a file inside it.
 
 ## 0.1.0
 

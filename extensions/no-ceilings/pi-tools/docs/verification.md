@@ -8,8 +8,8 @@ from source through `-e`.
 
 ```
 bunx tsc --noEmit -p tsconfig.json          # no output, exit 0
-bunx vitest run                             # 35 files passed, 1 skipped; 462 passed, 1 live test skipped
-bunx vitest run --coverage                  # statements 90.22, branches 84.67, functions 95.50, lines 90.14
+bunx vitest run                             # 37 files passed, 1 skipped; 483 passed, 1 live test skipped
+bunx vitest run --coverage                  # statements 90.31, branches 84.92, functions 95.24, lines 90.26
 bunx biome check . --error-on-warnings      # no diagnostics
 ```
 
