@@ -23,7 +23,7 @@ The extension registers two tools.
 
 Each run gets its own `AgentSession`, so the child has a separate context window and an isolated history. Results and errors return to the parent through the tool result. Errors carry a `failure_id` and a `code` you can branch on.
 
-Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. A name mentioned in the task text wins when exactly one agent is named. Overlapping names keep the longest match. Two or more distinct names fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically.
+Omit `subagent_type` and the harness picks the agent whose description best matches `description` and `prompt`. Repeated words in a description count once. A name mentioned in the task text wins when exactly one agent is named. Overlapping names keep the longest match. Two or more distinct names fall back to `general-purpose`, or to the first available agent when `general-purpose` is disabled. A task that asks for a change never picks a read-only agent automatically. A negated change, including a coordinated list such as `do not edit, add, or delete`, keeps a named read-only agent. `report what to change` is not itself a change.
 
 Every run appends the discovered agent catalog to the system prompt, so the model sees each name and description before it decides how to delegate.
 
@@ -35,7 +35,7 @@ Parallel work: call `task` several times with `run_in_background: true`, then co
 
 ### Checkpoints
 
-Every completed step writes a checkpoint to the run record: sequence, status, tool count, transcript item count, and the transcript path. Checkpoints persist in the session entry, so `/tasks` can show progress after a restart.
+Every completed step writes a checkpoint to the run record: sequence, status, tool count, transcript item count, and the transcript path. Checkpoints persist for the `subagents:checkpoint` hook and the parent tool-result metadata. `/tasks` does not show checkpoint progress.
 
 ## Built-in subagents
 
@@ -53,7 +53,7 @@ The `browser` subagent is a delegation interface. Its tool allowlist is only the
 
 ## Custom subagents
 
-Discovery reads Markdown files with YAML frontmatter from these directories. Project directories win over user directories, and the first definition of a name wins.
+Discovery reads Markdown files with YAML frontmatter from these directories. Project directories win over user directories, and the first definition of a name wins. Names that differ only by case are the same name, so a project `Explore` replaces the built-in `explore`.
 
 ```
 .pi/agents/
@@ -81,7 +81,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | `model-params` | `temperature`, `top_p`, `top_k`, `max_tokens`. OpenAI and other flat adapters get `temperature` and `top_p`. Anthropic also gets `top_k`, except when extended thinking is enabled, which leaves the request unchanged. Google writes `temperature`, `topP`, and `topK` into `config`. Bedrock writes `temperature` and `topP` into `inferenceConfig` and does not send `topK`. `max_tokens` caps output. |
 | `context-window` | Child context window, as a number or `200k` / `1M`. |
 | `max-tokens` | Child output cap. |
-| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. On macOS, an allowed bash command runs under `sandbox-exec` with filesystem writes denied except `/dev/null`. Elsewhere, the command guard applies. |
+| `readonly`, `permission-mode`, `sandbox_mode` | Read-only mode. Blocks writes, deletes, file redirects, mutating shell commands (bash and powershell), and MCP tools. Redirects to `/dev/null`, including `2>/dev/null`, stay allowed. On macOS, an allowed bash command runs under `sandbox-exec` with filesystem writes denied except `/dev/null`, `/tmp/pi-subagents-readonly`, and here-document files named `sh-thd-<digits>` in `/var/tmp`. The wrapper sets `TMPDIR` to a fresh directory under that root and removes the directory when the command finishes. macOS `/bin/sh` does not put here-documents in `TMPDIR`. Elsewhere, the command guard applies. |
 | `background`, `is_background` | Start in background by default. |
 | `nested-tasks` | Let this child delegate one level deeper, up to `nesting.maxDepth`. |
 | `worktree` | Run in an isolated git worktree by default. |
@@ -138,7 +138,9 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Transcript files under `<session dir>/subagents/`.
 - Persisted session state keeps transcripts for the three most recently updated completed runs, including mid-run snapshots and saves when a run completes. Older completed runs keep their metadata, transcript path, and checkpoints.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
-- `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
+- `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect. The pager does not render checkpoints.
+- While a run is active, the status widget header counts completed and cancelled runs in the session. The widget clears when nothing is active.
+- Restoring a session cancels runs that were still pending or running and assigns a failure id when the record does not already have one.
 - `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.
 

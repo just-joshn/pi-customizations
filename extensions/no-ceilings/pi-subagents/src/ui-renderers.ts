@@ -142,7 +142,7 @@ export function syncSubagentsUi(ctx: ExtensionContext, store: SubagentStore): vo
   }
   const statusLabel = active.length === ONE ? '1 task running (/tasks)' : `${active.length} tasks running (/tasks)`;
   ctx.ui.setStatus(SUBAGENTS_STATUS_KEY, ctx.ui.theme.fg('accent', statusLabel));
-  const header = ctx.ui.theme.bold(formatRunningAgentsSummaryHeader(active));
+  const header = ctx.ui.theme.bold(formatRunningAgentsSummaryHeader(store.listSessions()));
   const body = active.flatMap((session) => formatAgentWidgetLines(ctx.ui.theme, session));
   ctx.ui.setWidget(SUBAGENTS_WIDGET_KEY, [header, ...body]);
 }

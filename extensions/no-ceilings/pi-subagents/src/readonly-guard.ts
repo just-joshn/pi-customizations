@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, realpathSync } from 'node:fs';
 
 import { type ExtensionAPI, type ExtensionFactory, isToolCallEventType, type ToolCallEvent } from '@earendil-works/pi-coding-agent';
 import { READONLY_SUBAGENT_ERROR } from './types.ts';
@@ -7,7 +7,7 @@ export const READONLY_BLOCKED_TOOLS: ReadonlySet<string> = new Set(['write', 'ed
 const MCP_TOOL_PREFIX = 'mcp__';
 const DEV_NULL = '/dev/null';
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
-const SANDBOX_PROFILE = '(version 1)(allow default)(deny file-write*)(allow file-write* (literal "/dev/null"))';
+const READONLY_TEMP_ROOT = '/tmp/pi-subagents-readonly';
 
 const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\brm\b/i,
@@ -208,12 +208,31 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null. Other platforms return the command unchanged. */
+const HERE_DOC_DIRS = ['/private/var/tmp', '/var/tmp'] as const;
+
+function sandboxProfile(tempRoot: string): string {
+  const devNull = `(allow file-write* (literal "${DEV_NULL}"))`;
+  const temp = `(allow file-write* (subpath "${tempRoot}"))`;
+  // macOS bash writes here-documents to /var/tmp/sh-thd-<digits> and does not use TMPDIR.
+  const hereDocs = HERE_DOC_DIRS.map((dir) => `(allow file-write* (literal "${dir}"))(allow file-write* (regex #"^${dir}/sh-thd-[0-9]+$"))`).join('');
+  return `(version 1)(allow default)(deny file-write*)${devNull}${temp}${hereDocs}`;
+}
+
+function readonlySandboxInvocation(command: string, tempRoot: string): string {
+  const profile = shellQuote(sandboxProfile(tempRoot));
+  const template = shellQuote(`${tempRoot}/tmp.XXXXXX`);
+  const quoted = shellQuote(command);
+  const run = `TMPDIR="$_pi_tmp" ${SANDBOX_EXEC} -p ${profile} /bin/sh -c ${quoted}`;
+  return `_pi_tmp=$(mktemp -d ${template}) || exit 1; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
+}
+
+/** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and a private temp directory. Other platforms return the command unchanged. */
 export function sandboxReadOnlyCommand(command: string): string {
   if (process.platform !== 'darwin' || !existsSync(SANDBOX_EXEC)) {
     return command;
   }
-  return `${SANDBOX_EXEC} -p ${shellQuote(SANDBOX_PROFILE)} /bin/sh -c ${shellQuote(command)}`;
+  mkdirSync(READONLY_TEMP_ROOT, { recursive: true });
+  return readonlySandboxInvocation(command, realpathSync(READONLY_TEMP_ROOT));
 }
 
 export function evaluateReadonlySubagentGuard(event: ToolCallEvent): { block: true; reason: string } | undefined {

@@ -24,8 +24,10 @@ const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
   debug: 'debug',
 };
 const WRITE_VERBS =
-  'fix(?:ing)?|edit(?:ing)?|chang(?:e|ing)|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting|split(?:ting)?|move|moving|optimize|optimizing|port(?:ing)?|format(?:ting)?|extract(?:ing)?|convert(?:ing)?';
-const NEGATED_WRITE = `\\b(?:do not|don['\u2019]t|cannot|can['\u2019]t|must not|should not|never|avoid|without)\\b(?:\\s+\\w+){0,4}\\s+(?:${WRITE_VERBS})\\b|\\bno(?:\\s+\\w+){0,2}\\s+(?:${WRITE_VERBS})\\b`;
+  'fix(?:ing)?|edit(?:ing)?|chang(?:e|ing)|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting|split(?:ting)?|move|moving|optimize|optimizing|port(?:ing)?|format(?:ting)?|extract(?:ing)?|convert(?:ing)?|replace(?:ing)?|set(?:ting)?|insert(?:ing)?|apply|applying|generate|generating|simplify|simplifying|clean\\s+up|cleaning\\s+up|swap(?:ping)?|drop(?:ping)?|strip(?:ping)?';
+const WRITE_VERB = `(?:${WRITE_VERBS})`;
+const COORDINATED_WRITE = `${WRITE_VERB}(?:(?:\\s*,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+)${WRITE_VERB})*`;
+const NEGATED_WRITE = `\\b(?:do not|don['\u2019]t|cannot|can['\u2019]t|must not|should not|never|avoid|without)\\b(?:\\s+\\w+){0,4}\\s+${COORDINATED_WRITE}\\b|\\bno(?:\\s+\\w+){0,2}\\s+${COORDINATED_WRITE}\\b`;
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
   Read: 'read',
@@ -526,7 +528,7 @@ function buildBuiltins(config: SubagentsConfig | undefined, browserIntegration: 
 function dedupeByName(definitions: readonly SubagentDefinition[]): readonly SubagentDefinition[] {
   const seen = new Set<string>();
   return definitions.filter((definition) => {
-    const key = definition.name.trim();
+    const key = definition.name.trim().toLowerCase();
     if (key.length === ZERO || seen.has(key)) {
       return false;
     }
@@ -573,11 +575,12 @@ function normalizeWord(word: string): string {
 }
 
 function descriptionKeywords(description: string): readonly string[] {
-  return description
+  const keywords = description
     .toLowerCase()
     .split(WORD_SPLIT_REGEX)
     .map(normalizeWord)
     .filter((word) => word.length >= MIN_KEYWORD_CHARS && !SELECTION_STOPWORDS.has(word));
+  return [...new Set(keywords)];
 }
 
 function countMentionedKeywords(text: string, keywords: readonly string[]): number {
@@ -608,7 +611,8 @@ function extendsName(text: string, name: string): boolean {
 }
 
 function textHasWriteIntent(text: string): boolean {
-  const remaining = text.replace(new RegExp(NEGATED_WRITE, 'gi'), ' ');
+  const withoutNegation = text.replace(new RegExp(NEGATED_WRITE, 'gi'), ' ');
+  const remaining = withoutNegation.replace(new RegExp(String.raw`\bwhat to (?:${WRITE_VERBS})\b`, 'gi'), ' ');
   return new RegExp(String.raw`\b(?:${WRITE_VERBS})\b`, 'i').test(remaining);
 }
 

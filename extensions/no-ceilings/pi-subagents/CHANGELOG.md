@@ -24,15 +24,16 @@
 - A `task` call without `subagent_type` selects an agent by description match, then falls back to `general-purpose`.
 - Project agent directories and the project `subagents.json` load only for a trusted project, matching Pi's gate on project skills and MCP configuration.
 - Child sessions inherit the parent's active tool loadout when the definition lists no `tools`.
-- The tasks pager and task renderer show retries, failure ids, worktrees, and checkpoints.
+- The tasks pager and task renderer show retries, failure ids, and worktrees.
 - `/agents` prints the effective config and config errors.
 
 ### Fixed
 
-- Read-only bash on macOS runs under `sandbox-exec`, which denies filesystem writes except `/dev/null`. `git grep -O` and `--open-files-in-pager` are blocked.
+- Read-only bash on macOS runs under `sandbox-exec`, which denies filesystem writes except `/dev/null`, a private temp directory at `/tmp/pi-subagents-readonly`, and here-document files named `sh-thd-<digits>` in `/var/tmp`. The wrapper sets `TMPDIR` to a fresh directory under that root and removes it after the command. Writes outside those paths stay denied. `git grep -O` and `--open-files-in-pager` are blocked.
 - `/tasks abort` cancels a foreground launch during `git worktree add` and discards the worktree and branch.
 - Completed-run persists keep transcripts for the three most recently updated runs, same as mid-run snapshots.
-- Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, and converting as write intent, and prefers the longest overlapping agent name.
+- Automatic selection treats changing, splitting, moving, optimizing, porting, formatting, extracting, converting, replacing, setting, inserting, applying, generating, simplifying, cleaning up, swapping, dropping, and stripping as write intent, and prefers the longest overlapping agent name. A negation covers a coordinated verb list such as `do not edit, add, or delete`. `what to change` is not write intent. Description keywords are counted once. Agent names that differ only by case collapse to one definition.
+- Restoring an in-flight run marks it cancelled and stores a failure id. The status widget header keeps completed-run counts while another run is active.
 - A background worktree launch returns before `git worktree add` finishes. Aborting during creation removes the worktree and branch, and an already-aborted call does not start the child.
 - `session_shutdown` stores a failure id on every cancelled run. A completion that finishes after shutdown stays cancelled and does not wake the next session.
 - A worktree child whose parent directory is untracked uses the nearest existing directory inside the worktree.

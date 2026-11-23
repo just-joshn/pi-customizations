@@ -10,13 +10,16 @@ import {
   type SubagentCheckpoint,
   type SubagentFailureCode,
   type SubagentSessionRecord,
-  type SubagentStatus,
   type SubagentTranscriptItem,
   UUID_PATTERN,
   ZERO,
 } from './types.ts';
 
 const FAILURE_ID_CHARS = 12;
+
+function createFailureId(): string {
+  return randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS);
+}
 const MAX_PERSISTED_TRANSCRIPT_ITEMS = 50;
 const MAX_PERSISTED_ITEM_CHARS = 4000;
 const MAX_SNAPSHOT_TRANSCRIPTS = 3;
@@ -173,8 +176,23 @@ function buildSessionOps(cell: StoreCell) {
 }
 
 function withShutdownFailure(prev: SubagentSessionRecord, now: number): SubagentSessionRecord {
-  const failureId = prev.failureId ?? randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS);
+  const failureId = prev.failureId ?? createFailureId();
   return { ...prev, status: 'cancelled', currentStep: 'Cancelled', failureId, closedAt: now, updatedAt: now };
+}
+
+function restoredSession(record: PersistedSubagentRecord, parentSessionId: string): SubagentSessionRecord {
+  const active = isActiveSubagentStatus(record.status);
+  const failureId = active ? (record.failureId ?? createFailureId()) : record.failureId;
+  return {
+    ...record,
+    status: active ? 'cancelled' : record.status,
+    parentSessionId,
+    attempts: record.attempts ?? ONE,
+    maxAttempts: record.maxAttempts ?? ONE,
+    checkpoints: record.checkpoints ?? [],
+    transcriptItems: record.transcriptItems ?? [],
+    ...(failureId !== undefined ? { failureId } : {}),
+  };
 }
 
 function buildRunOps(cell: StoreCell) {
@@ -299,7 +317,7 @@ function buildObservabilityOps(cell: StoreCell) {
         return undefined;
       }
       const now = Date.now();
-      const next: SubagentSessionRecord = { ...prev, status: 'error', error: message, errorCode: code, failureId: randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS), updatedAt: now, closedAt: now };
+      const next: SubagentSessionRecord = { ...prev, status: 'error', error: message, errorCode: code, failureId: createFailureId(), updatedAt: now, closedAt: now };
       cell.commit({ ...state, sessions: { ...state.sessions, [agentId]: next } });
       return next;
     },
@@ -334,13 +352,7 @@ export function createSubagentStore(): SubagentStore {
       };
     },
     restoreFromPersisted: (persisted, parentSessionId) => {
-      const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>((acc, rec) => {
-        const status: SubagentStatus = isActiveSubagentStatus(rec.status) ? 'cancelled' : rec.status;
-        return {
-          ...acc,
-          [rec.agentId]: { ...rec, status, parentSessionId, attempts: rec.attempts ?? ONE, maxAttempts: rec.maxAttempts ?? ONE, checkpoints: rec.checkpoints ?? [], transcriptItems: rec.transcriptItems ?? [] },
-        };
-      }, {});
+      const restored = persisted.sessions.reduce<Record<string, SubagentSessionRecord>>((acc, rec) => ({ ...acc, [rec.agentId]: restoredSession(rec, parentSessionId) }), {});
       cell.commit({ ...state, sessions: restored });
     },
     toPersistedState: (options) => {
