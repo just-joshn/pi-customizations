@@ -30,7 +30,18 @@ export function gitOptionWords(words: readonly string[]): readonly string[] {
 
 export function hasPatchFlag(words: readonly string[]): boolean {
   const options = gitOptionWords(words);
-  return options.some((word) => PATCH_FLAGS.has(word) || word.startsWith('-U') || word.startsWith('-S') || word.startsWith('-G') || word.startsWith('--unified=') || word.startsWith('--diff-merges=') || word.startsWith('--word-diff='));
+  return options.some(
+    (word) =>
+      PATCH_FLAGS.has(word) ||
+      word.startsWith('-L') ||
+      word.startsWith('--line-range') ||
+      word.startsWith('-U') ||
+      word.startsWith('-S') ||
+      word.startsWith('-G') ||
+      word.startsWith('--unified=') ||
+      word.startsWith('--diff-merges=') ||
+      word.startsWith('--word-diff='),
+  );
 }
 
 export function hasDangerousDiffFlag(words: readonly string[]): boolean {

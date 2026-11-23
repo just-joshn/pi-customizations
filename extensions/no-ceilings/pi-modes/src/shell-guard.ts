@@ -86,7 +86,7 @@ const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   sort: ['--output', '--compress-program'],
   rg: ['--pre', '--pre-glob', '--hostname-bin'],
   tree: ['--output'],
-  awk: ['--file'],
+  awk: ['--file', '--include'],
   sed: ['--in-place', '--file'],
   bat: ['--pager', '--config-file', '--generate-config-file'],
   file: ['--compile'],
@@ -97,7 +97,7 @@ const DENIED_SHORT_LETTERS: Readonly<Record<string, readonly string[]>> = {
   sort: ['o'],
   tree: ['o'],
   fd: ['x', 'X'],
-  awk: ['f'],
+  awk: ['f', 'i'],
   file: ['C'],
 };
 
@@ -616,7 +616,8 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'stash') {
     if (args[1] === 'list') {
-      return true;
+      const flags = args.slice(TWO);
+      return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
     }
     if (args[1] !== 'show') {
       return false;
@@ -738,7 +739,7 @@ function isAllowedSegment(words: readonly string[]): boolean {
   }
   if (command === 'awk') {
     // A quoted program can still pipe to a command or redirect to a file of its own.
-    return !args.slice(1).some((word) => /[>|]/.test(word) || /\b(?:system|getline|close)\b/.test(word));
+    return !args.slice(1).some((word) => /[>|]/.test(word) || /\b(?:system|getline|close)\b/.test(word) || /@(?:include|load)\b/.test(word));
   }
   return true;
 }
