@@ -17,11 +17,8 @@ const CHAIN_SEPARATOR = ' < ';
 const US_PER_MS = 1000;
 const MAX_CHAIN = 8;
 const PROVIDER_WINDOWS = new Map([
-  // biome-ignore lint/security/noSecrets: benchmark record field names
   ['workload', ['agentStartHrtimeUs', 'agentEndHrtimeUs']],
-  // biome-ignore lint/security/noSecrets: benchmark record field names
   ['idle', ['agentEndHrtimeUs', 'idleEndHrtimeUs']],
-  // biome-ignore lint/security/noSecrets: benchmark record field names
   ['cleanIdle', ['idleEndHrtimeUs', 'cleanIdleEndHrtimeUs']],
 ]);
 const NESTED_PHASES = new Map([

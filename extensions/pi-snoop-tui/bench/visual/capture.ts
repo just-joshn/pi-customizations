@@ -80,7 +80,6 @@ function main(): void {
   const capture: Capture = { sock: join(tmp, SOCKET_NAME), sess: `snoop-${label}-${process.pid}` };
   const work = mkdtempSync(join(tmp, 'snoop-capture.'));
   const session = writeFixture(here, work, env.FIXTURE, env.PWD ?? process.cwd());
-  // biome-ignore lint/security/noSecrets: terminal environment variable
   tmux(capture, 'new-session', '-d', '-s', capture.sess, '-x', cols, '-y', rows, '--', 'env', 'COLORTERM=truecolor', 'pi', ...piArgs, '--session', session);
   const frame = waitForStableFrame(capture);
   writeFileSync(join(out, `${label}.ansi`), `${frame}\n`);

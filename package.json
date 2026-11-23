@@ -14,12 +14,25 @@
   "scripts": {
     "test": "bun run --sequential --filter \"*\" test",
     "typecheck": "bun run --sequential --filter \"*\" typecheck",
-    "check": "biome check . --error-on-warnings && bun lint",
-    "ci": "biome ci . --error-on-warnings --max-diagnostics=none && bun lint"
+    "lint": "eslint . --max-warnings 0",
+    "format": "bun fmt",
+    "format:check": "bun fmt --check",
+    "check": "bun run format:check && bun run lint",
+    "ci": "bun run check"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/node": "^22.19.0",
-    "typescript": "^7.0.2",
-    "@biomejs/biome": "2.5.14"
+    "@vitest/eslint-plugin": "1.6.28",
+    "eslint": "10.15.0",
+    "eslint-plugin-functional": "10.0.1",
+    "eslint-plugin-n": "18.5.0",
+    "eslint-plugin-no-secrets": "2.3.3",
+    "eslint-plugin-promise": "7.3.0",
+    "eslint-plugin-security": "4.2.1",
+    "eslint-plugin-unicorn": "80.0.0",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.73.0"
   }
 }

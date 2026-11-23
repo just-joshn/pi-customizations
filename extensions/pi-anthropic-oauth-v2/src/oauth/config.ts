@@ -10,7 +10,7 @@ const REDIRECT_URI = 'https://console.anthropic.com/oauth/code/callback';
 
 export const OAUTH_CONFIG = {
   name: 'Custom Anthropic (Claude Pro/Max)',
-  // biome-ignore lint/security/noSecrets: Claude Code's public OAuth client ID, not a user credential.
+  // Claude Code's public OAuth client ID.
   clientId: atob('OWQxYzI1MGEtZTYxYi00NGQ5LTg4ZWQtNTk0NGQxOTYyZjVl'),
   authorizeUrl: AUTHORIZE_URL,
   tokenUrl: TOKEN_URL,

@@ -83,7 +83,7 @@ function units(count: number, unit: 'line' | 'match' | 'file' | 'entry', limited
 function countPatchLines(patch: string): { added: number; removed: number } {
   let added = 0;
   let removed = 0;
-  for (let start = 0; start < patch.length; ) {
+  for (let start = 0; start < patch.length;) {
     if (patch[start] === '+' && !patch.startsWith('+++', start)) added++;
     if (patch[start] === '-' && !patch.startsWith('---', start)) removed++;
     const end = patch.indexOf('\n', start);
