@@ -74,6 +74,14 @@
   A patch move refuses an existing destination.
 - A regular file with more than one hard link is refused by the read, write, edit, delete, patch, and
   save paths, and dropped from grep and find results, because a path rule cannot see its other names.
+- Shell recursion is refused: recursive grep and directory-walking rg/ag/ack cannot be checked against
+  the ignore and read rules. A script fed to an interpreter on stdin is refused, as are the wrapper
+  prefixes arch, xcrun, unshare, setarch, busybox, nsenter, docker, podman, and ssh.
+- `sed` w/W and s///w destinations, split's prefix, openssl -out, unzip -d, and `git --output` are
+  writes. A git index pathspec is checked as the path it opens, and a directory-wide stage or
+  `git commit -a` is refused.
+- An edit or delete of a read-denied path is refused, so the diff and snapshot cannot leak the body.
+  `.git/config` and `.git/hooks/*` are protected from writes and deletes.
 
 ## 0.1.0
 
