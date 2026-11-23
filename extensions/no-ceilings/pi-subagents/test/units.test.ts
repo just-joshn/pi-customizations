@@ -763,6 +763,9 @@ describe('adversary regressions', () => {
     expect(selectSubagentType(docs, { description: 'ask docs to update the guide', prompt: '' })).toBe('docs');
     const distinct = [makeDefinition({ name: 'docs writer', description: 'Writes documentation' }), makeDefinition({ name: 'security', description: 'Checks security' }), makeDefinition({ name: 'general-purpose', description: '' })];
     expect(selectSubagentType(distinct, { description: 'ask docs writer and security to review', prompt: '' })).toBe('general-purpose');
+    const plural = [makeDefinition({ name: 'Code', description: 'Writes code' }), makeDefinition({ name: 'Code Reviewer', description: 'Reviews code' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    expect(selectSubagentType(plural, { description: 'Ask Code Reviewers to inspect the patch', prompt: '' })).toBe('general-purpose');
+    expect(selectSubagentType(plural, { description: 'Ask Code Reviewer to inspect the patch', prompt: '' })).toBe('Code Reviewer');
   });
 
   it('applies a top-level max-tokens cap to the child model', () => {
