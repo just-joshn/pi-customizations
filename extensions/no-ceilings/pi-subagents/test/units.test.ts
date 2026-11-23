@@ -530,11 +530,18 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand("find . -name '*.ts'")).toBe(true);
     expect(isSafeReadOnlyCommand('sort -S 1k --compress-prog=/tmp/compress.sh big.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('sort -S 1k --compress=/tmp/compress.sh big.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort -S 1k --co /tmp/compress.sh big.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort -S 1k --com /tmp/compress.sh big.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('sort --out=/tmp/out.txt input.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('sort --outp=/tmp/out.txt input.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('less --lesskey-src /tmp/keys.lesskey file.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('less file.txt')).toBe(false);
     expect(isSafeReadOnlyCommand('more file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('ag --pager=sh needle .')).toBe(false);
+    expect(isSafeReadOnlyCommand('ack --pager=sh needle .')).toBe(false);
+    expect(isSafeReadOnlyCommand('ag needle .')).toBe(false);
+    expect(isSafeReadOnlyCommand('ack needle .')).toBe(false);
+    expect(isSafeReadOnlyCommand('rg needle .')).toBe(true);
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
   });
 

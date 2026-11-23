@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Real read-only command guard checks for quoted, escaped, and encoded non-git options. */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -49,6 +49,26 @@ writeFileSync(join(root, 'compress.sh'), '#!/bin/sh\necho P0SORT_EXEC >&2\ncat\n
 execFileSync('chmod', ['+x', join(root, 'compress.sh')]);
 const sortCompress = run(`sort -S 1k --compress-prog=${join(root, 'compress.sh')} ${join(root, 'big.txt')}`);
 if (sortCompress.safe || sortCompress.combined.includes('P0SORT_EXEC')) {
+  failures += 1;
+}
+
+const mockBin = join(root, 'bin');
+mkdirSync(mockBin);
+for (const tool of ['ag', 'ack']) {
+  writeFileSync(join(mockBin, tool), '#!/bin/sh\nfor arg do case "$arg" in --pager=*) exec sh -c "${arg#--pager=}" ;; esac; done\nexit 0\n');
+  execFileSync('chmod', ['+x', join(mockBin, tool)]);
+}
+process.env['PATH'] = `${mockBin}:${process.env['PATH'] ?? ''}`;
+const agPager = run("ag --pager='echo P0AG_EXEC' needle .");
+if (agPager.safe || agPager.combined.includes('P0AG_EXEC')) {
+  failures += 1;
+}
+const ackPager = run("ack --pager='echo P0ACK_EXEC' needle .");
+if (ackPager.safe || ackPager.combined.includes('P0ACK_EXEC')) {
+  failures += 1;
+}
+const sortShort = run(`sort -S 1k --co ${join(root, 'compress.sh')} ${join(root, 'big.txt')}`);
+if (sortShort.safe) {
   failures += 1;
 }
 
