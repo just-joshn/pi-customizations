@@ -1,0 +1,71 @@
+{
+  "name": "@justjoshn/pi-tools",
+  "version": "0.1.0",
+  "description": "Pi-native local tool-execution layer: permissioned filesystem, search, edit, patch, delete, shell, git, web, and resource tools.",
+  "type": "module",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/no-ceilings/pi-tools"
+  },
+  "keywords": [
+    "pi-package",
+    "no-ceilings",
+    "tools",
+    "permissions",
+    "filesystem"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --exclude test/integration-dispatch.test.ts --exclude test/e2e-cli.test.ts --exclude test/live-model.test.ts",
+    "test:integration": "vitest run test/integration-dispatch.test.ts",
+    "test:e2e": "vitest run test/e2e-cli.test.ts",
+    "test:live": "PI_TOOLS_LIVE=1 vitest run test/live-model.test.ts",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-agent-core": "1.6.0",
+    "@earendil-works/pi-ai": "1.6.0",
+    "@earendil-works/pi-coding-agent": "1.6.0",
+    "@earendil-works/pi-tui": "1.6.0",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "typebox": "1.3.27",
+    "typescript": "^7.0.2",
+    "vitest": "5.1.0"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5",
+    "minimatch": "11.0.3",
+    "zod": "^4"
+  }
+}
