@@ -893,7 +893,8 @@ describe('adversary regressions', () => {
   it('denies writes when the read-only sandbox is available', () => {
     const wrapped = sandboxReadOnlyCommand('echo hi');
     if (process.platform !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
-      expect(wrapped).toBe('echo hi');
+      expect(wrapped).toContain('_pi_apply_git_safety');
+      expect(wrapped).toContain('echo hi');
       return;
     }
     expect(wrapped).toContain('sandbox-exec');
@@ -907,7 +908,8 @@ describe('adversary regressions', () => {
   it('runs read-only commands that need a temporary file', () => {
     const command = sandboxReadOnlyCommand('grep two <<<two');
     if (process.platform !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
-      expect(command).toBe('grep two <<<two');
+      expect(command).toContain('_pi_apply_git_safety');
+      expect(command).toContain('grep two <<<two');
       return;
     }
     const output = execFileSync('/bin/sh', ['-c', command], { encoding: 'utf8' });

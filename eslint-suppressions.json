@@ -22,7 +22,65 @@
       "count": 1
     }
   },
+  "extensions/no-ceilings/pi-subagents/src/commands.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/config.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/discovery.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 2
+    },
+    "security/detect-unsafe-regex": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/index.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/readonly-git.ts": {
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/readonly-guard.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    },
+    "no-param-reassign": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/readonly-policy.ts": {
+    "security/detect-unsafe-regex": {
+      "count": 8
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/readonly-shell.ts": {
+    "functional/immutable-data": {
+      "count": 2
+    },
+    "no-magic-numbers": {
+      "count": 2
+    }
+  },
   "extensions/no-ceilings/pi-subagents/src/runner.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
     "functional/immutable-data": {
       "count": 2
     },
@@ -30,12 +88,223 @@
       "count": 1
     }
   },
+  "extensions/no-ceilings/pi-subagents/src/session-factory.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/store.ts": {
+    "functional/immutable-data": {
+      "count": 2
+    },
+    "max-lines-per-function": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/transcript.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 4
+    },
+    "@typescript-eslint/no-unsafe-return": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/types.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/worktree.ts": {
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-append-failure.mjs": {
+    "no-promise-executor-return": {
+      "count": 3
+    },
+    "no-restricted-properties": {
+      "count": 7
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-crafted-tools.mjs": {
+    "no-restricted-properties": {
+      "count": 4
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-delegation-fake-model.mjs": {
+    "no-promise-executor-return": {
+      "count": 1
+    },
+    "no-restricted-properties": {
+      "count": 8
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-git-helpers.mjs": {
+    "no-restricted-properties": {
+      "count": 33
+    },
+    "no-template-curly-in-string": {
+      "count": 2
+    },
+    "no-useless-assignment": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-readonly-commands.mjs": {
+    "no-restricted-properties": {
+      "count": 3
+    },
+    "no-template-curly-in-string": {
+      "count": 1
+    },
+    "no-useless-assignment": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-retry-timer.mjs": {
+    "no-restricted-properties": {
+      "count": 5
+    },
+    "no-unused-vars": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-state-growth.mjs": {
+    "no-promise-executor-return": {
+      "count": 1
+    },
+    "no-restricted-properties": {
+      "count": 4
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-subagents.mjs": {
+    "no-restricted-properties": {
+      "count": 7
+    },
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/e2e/verify-worktree-cancel.ts": {
+    "functional/immutable-data": {
+      "count": 4
+    },
+    "no-magic-numbers": {
+      "count": 7
+    },
+    "no-promise-executor-return": {
+      "count": 1
+    },
+    "no-restricted-properties": {
+      "count": 8
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/fixtures/fake-model-server.mjs": {
+    "no-promise-executor-return": {
+      "count": 2
+    }
+  },
   "extensions/no-ceilings/pi-subagents/test/harness.ts": {
     "@typescript-eslint/no-redundant-type-constituents": {
       "count": 1
     },
+    "functional/immutable-data": {
+      "count": 8
+    },
     "max-lines-per-function": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/integration.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 2
+    },
+    "@typescript-eslint/no-unsafe-return": {
       "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 2
+    },
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/model-resolution.test.ts": {
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-agents.test.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 5
+    },
+    "no-magic-numbers": {
+      "count": 6
+    },
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-delegation.test.ts": {
+    "functional/immutable-data": {
+      "count": 4
+    },
+    "max-lines-per-function": {
+      "count": 2
+    },
+    "require-atomic-updates": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-lifecycle.test.ts": {
+    "functional/immutable-data": {
+      "count": 5
+    },
+    "max-lines-per-function": {
+      "count": 4
+    },
+    "no-magic-numbers": {
+      "count": 6
+    },
+    "require-atomic-updates": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-observability.test.ts": {
+    "max-lines-per-function": {
+      "count": 2
+    },
+    "vitest/no-conditional-expect": {
+      "count": 4
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-support.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/parity-worktree.test.ts": {
+    "functional/immutable-data": {
+      "count": 4
+    },
+    "max-lines-per-function": {
+      "count": 4
+    },
+    "no-magic-numbers": {
+      "count": 4
+    },
+    "require-atomic-updates": {
+      "count": 2
     }
   },
   "extensions/no-ceilings/pi-subagents/test/regressions.test.ts": {
@@ -44,6 +313,48 @@
     },
     "no-magic-numbers": {
       "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/sampling.test.ts": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/ui-store.test.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 3
+    },
+    "max-lines-per-function": {
+      "count": 5
+    },
+    "no-promise-executor-return": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/units.test.ts": {
+    "max-lines": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 6
+    },
+    "no-magic-numbers": {
+      "count": 37
+    },
+    "no-secrets/no-secrets": {
+      "count": 1
+    },
+    "no-template-curly-in-string": {
+      "count": 2
+    },
+    "no-useless-escape": {
+      "count": 2
+    },
+    "vitest/no-conditional-expect": {
+      "count": 6
     }
   },
   "extensions/pi-anthropic-oauth-v2/src/oauth/config.ts": {
