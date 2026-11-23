@@ -24,19 +24,19 @@ when the model needs them.
 
 | Tool | What it does |
 | --- | --- |
-| `read` | Reads text or images. `offset`/`limit`, negative offset for a tail, binary refusal, ignore and permission checks, size/line/digest metadata, and a read fence for later writes. |
-| `ls` | Lists a directory, optionally to a depth, sorted, with directories suffixed. Applies ignore files, permission rules, extra globs, an entry limit, a name budget, and a five second budget. |
+| `read` | Reads text or images. Integer `offset`/`limit`, negative offset for a tail, binary refusal, ignore and permission checks, size/line/digest metadata in the result, and a read fence for later writes. |
+| `ls` | Lists a directory, optionally to a depth, sorted, with directories and symlinked directories suffixed. Applies ignore files, permission rules, extra globs, an entry limit, a name budget, and a five second budget. |
 | `find` | Glob matching for files and paths through ripgrep. Ignore files, permission rules, a result limit, and partial results on timeout. |
-| `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit, line truncation, output caps, and partial results on timeout. |
+| `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit over matched lines, line truncation, output caps, and partial results on timeout. |
 | `write` | Creates or overwrites a file with parent directories (UTF-8 or validated base64), refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
 | `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. |
-| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, and a write failure rolls back the files and directories the call created. |
+| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, untouched lines keep their endings, a write failure rolls back the files and directories the call created. |
 | `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, protected ignore files, and files that changed after the check. |
 | `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
 | `git` *(loads on demand)* | Runs a git subcommand through the local executable with captured output and an exit code. |
 | `web_fetch` *(loads on demand)* | Fetches an http(s) URL, reduces HTML to text, caps the body, and can save it to a file. |
 | `web_search` *(loads on demand)* | Queries the endpoint configured under `web.search` and returns references. |
-| `save_resource` *(loads on demand)* | Writes tool-produced content to a permitted file with a digest and overwrite protection. |
+| `save_resource` *(loads on demand)* | Writes tool-produced UTF-8 or validated base64 content to a permitted file with a digest and overwrite protection. |
 | `search_tools` | Finds the tools above that are not yet declared, prints their argument schemas, and activates them. |
 
 `read`, `ls`, `find`, `grep`, `write`, `edit`, and `bash` override Pi's built-in tools of the same
@@ -102,11 +102,12 @@ an ignored path directly is refused with the ignore file that matched.
 
 ## Behavior worth knowing
 
-- **Writes are fenced.** A full-file `read` records a fingerprint for that session, keyed by the file's
-  canonical identity, so a read through a symlink or another case spelling fences the same file. A later
-  `write` or `edit` in the same session refuses to proceed if the file changed on disk and says nothing
-  was written. `delete` records the file as absent, so a recreated file is stale for both `write` and
-  `edit`. Ranged reads record nothing and leave an earlier full-file record in place, and every mutation
+- **Writes are fenced.** A full-file `read` records a fingerprint for the rest of the session, with no
+  expiry and for a file of any size, keyed by the file's canonical identity, so a read through a symlink
+  or another case spelling fences the same file. A later `write` or `edit` in the same session refuses
+  to proceed if the file changed on disk and says nothing was written. `delete` records the path it
+  removed as absent, so a recreated file is stale for both `write` and `edit` while a symlink's target
+  is not marked. Ranged reads record nothing and leave an earlier full-file record in place, and every mutation
   holds the per-file queue from the read through the verification. `apply_patch` holds the queues for
   every file it touches for the whole operation.
 - **Search results stay in bounds.** Every hit is resolved to its canonical path and must stay inside
@@ -132,13 +133,17 @@ an ignored path directly is refused with the ignore file that matched.
   `eval` bodies, and a `cd` target resolves `~`, `~currentuser`, `$HOME`, `$PWD`, and `$OLDPWD`.
   Anything the analyzer cannot vouch for is refused before it runs, because the policy cannot see what
   it would execute: a command word built by an expansion, an unquoted command substitution or backtick
-  anywhere in the command (including a here-string), brace expansion, an unresolvable `cd` target such
-  as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS` (including after `env`), a wrapper
-  that runs another command (`sudo`, `xargs`, `find -exec`, `env -S`), a shell fed a script through a
-  pipe, and a shell function definition. Literal path operands and redirection targets are matched
-  against read and write deny rules, and a write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`,
-  `dd`, `ln`, `tee`, `chmod`, `chown`) or `>`/`>>` target outside the workspace needs the same
-  approval as `write`. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`, `BASHOPTS`,
+  anywhere in the command (including a here-string, `${...}`, and `$((...))`), brace expansion, an
+  unresolvable `cd` target such as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS`
+  (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a git
+  `-c` value that starts a shell command, a wrapper that runs another command (`sudo`, `doas`, `su`,
+  `runuser`, `xargs`, `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a shell
+  fed a script through a pipe, and a shell function definition. Literal path operands and redirection
+  targets are matched against read and write deny rules. A write-like command (`touch`, `mkdir`, `cp`,
+  `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`, `truncate`, `find -delete`) or `>`/`>>` target
+  outside the workspace needs the same approval as `write`; `cp`/`mv`/`ln` destination flags such as
+  `-t` and `--target-directory` count as the destination, and every `ln` target counts because a link
+  is the path a later use escapes through. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`, `BASHOPTS`,
   and exported functions, then pins `PWD` and `OLDPWD` to the working directory. Allowlist mode
   requires every segment to be allowed. A `cd` to a directory outside the workspace needs approval.
   Code a scanner cannot see, such as a script invoked by name, another interpreter's `-c` string, or a
@@ -146,10 +151,11 @@ an ignored path directly is refused with the ignore file that matched.
 - **Patches validate before writing.** All touched files are locked, then every file is read and every
   hunk checked before the first write, so a failure on the second file leaves the first untouched. A
   write that still fails while applying restores every file the patch already changed and removes the
-  files and directories it created, so the call keeps its "nothing was written" contract. Delete hunks
-  must remove the whole file, hunks apply in file order and honor zero-context insertions, git-style
-  headers and the no-newline marker are honored, a pure move renames, and a no-op, including a patch
-  with no file sections, is refused.
+  files and directories it created, so the call keeps its "nothing was written" contract. Untouched
+  lines keep their own endings, added lines use the file's dominant ending, and a changed last line
+  gains a newline unless the diff carries the no-newline marker. Delete hunks must remove the whole file,
+  hunks apply in file order and honor zero-context insertions, git-style headers are honored, a pure
+  move renames, and a no-op, including a patch with no file sections, is refused.
 - **Errors reach the model as error results.** A failing tool returns `isError` with a message, a hint
   when there is one, and typed details; Pi never sees a thrown error from the layer, so one failure does
   not abort a batch.

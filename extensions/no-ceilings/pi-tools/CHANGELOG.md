@@ -34,6 +34,16 @@
 - A `dir/` ignore pattern matches only a directory, the first line of a BOM file is editable with the
   text `read` returned, an empty patch is refused, a failed add removes the directories it created,
   a base64 write reports the decoded line count, and a tail read of an empty file invents no line.
+- Shell analysis scans `${...}` and `$((...))` bodies for substitutions, refuses startup assignments
+  through `export`/`declare`/`typeset`/`readonly`, refuses `alias` and `git -c alias.*=!`, treats
+  every `ln` target and `find -delete` as a write, adds `truncate`, and refuses `caffeinate` and
+  other indirect wrappers. `cp`/`mv`/`ln` `-t` and `--target-directory` destinations are writes.
+- A URL host or path-prefix rule covers the same host on any port and URLs with a query or fragment.
+- The read fence has no lifetime and covers any file size; `delete` records the path it removed, not
+  a symlink's target. Read text carries the digest, a fractional offset is rejected, `grep` limits
+  and totals count matches rather than context lines, patches keep untouched endings and honor the
+  trailing newline, `ls` follows directory symlinks inside the workspace, and `save_resource` rejects
+  malformed base64.
 
 ## 0.1.0
 
