@@ -29,7 +29,7 @@ when the model needs them.
 | `find` | Glob matching for files and paths through ripgrep. Ignore files, permission rules, a result limit, and partial results on timeout. |
 | `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit over matched lines, line truncation, output caps, and partial results on timeout. |
 | `write` | Creates or overwrites a file with parent directories (UTF-8 or validated base64), refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
-| `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. |
+| `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. A file that is not valid UTF-8 is refused instead of rewritten. |
 | `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written, untouched lines keep their endings, a write failure rolls back the files and directories the call created. |
 | `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, protected ignore files, and files that changed after the check. |
 | `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
@@ -98,7 +98,8 @@ outside root.
 `.gitignore` and `.ignore` are honored by ripgrep directly and by the layer's own resolver; `.piignore`
 is applied by the resolver as a post-filter, so it applies outside a git repository too. A pattern that
 ends in `/` matches only a directory. Listing and reading use the same verdict. A tool call that names
-an ignored path directly is refused with the ignore file that matched.
+an ignored path directly is refused with the ignore file that matched, including a literal shell
+operand or redirect target.
 
 ## Behavior worth knowing
 
@@ -140,17 +141,21 @@ an ignored path directly is refused with the ignore file that matched.
   `trap` with an action, a git `-c` value that starts a shell command or names a command key such as
   `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*` or `GIT_EXTERNAL_DIFF` in the command
   environment, a wrapper that runs another command (`sudo`, `doas`, `su`, `runuser`, `xargs`,
-  `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a shell fed a script through
-  a pipe, and a shell function definition. Literal path operands and redirection targets are matched
-  against read and write deny rules. A redirect target ends at the next `<` or `>`, and digits before
-  a redirect stay with the word they continue. A write-like command (`touch`, `mkdir`, `cp`, `mv`,
-  `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`, `truncate`, `install`, `sed -i`, `perl -i`,
-  `find -delete`) or `>`/`>>` target outside the workspace needs the same approval as `write`;
-  `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the destination, and
-  every `ln` target counts because a link is the path a later use escapes through. `/dev/null` is a
-  discard sink, so a redirect there carries no outside-write approval. Every spawned shell drops
-  `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions, then pins `PWD`
-  and `OLDPWD` to the working directory. Allowlist mode
+  `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a login shell that would
+  source a profile, a shell fed a script through a pipe, and a shell function definition. Literal
+  path operands and redirection targets are matched against read and write deny rules and against
+  the ignore files, and a write to a protected ignore file is refused. Git literal operands are
+  deny-checked too, `git -C`, `--git-dir`, and `--work-tree` outside the workspace need approval, and
+  a `git config` that sets a value is refused because it can persist a command. A redirect target
+  ends at the next `<` or `>`, and digits before a redirect stay with the word they continue. A
+  write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`,
+  `truncate`, `install`, `sed -i`, `perl -i`, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`,
+  `sort -o`, `rsync`'s destination) or `>`/`>>` target outside the workspace needs the same approval
+  as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
+  destination, and every `ln` target counts because a link is the path a later use escapes through.
+  `/dev/null` is a discard sink, so a redirect there carries no outside-write approval. Every spawned
+  shell drops `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions,
+  then pins `PWD` and `OLDPWD` to the working directory. Allowlist mode
   requires every segment to be allowed. A `cd` to a directory outside the workspace needs approval.
   Code a scanner cannot see, such as a script invoked by name, another interpreter's `-c` string, or a
   path built by a variable, is out of reach.
@@ -160,8 +165,9 @@ an ignored path directly is refused with the ignore file that matched.
   files and directories it created, so the call keeps its "nothing was written" contract. Untouched
   lines keep their own endings, added lines use the file's dominant ending, and a changed last line
   gains a newline unless the diff carries the no-newline marker. A unified hunk counts its old and new
-  lines, so a `---` line inside an open hunk is a removed line and a short hunk is refused. Duplicate
-  add sections concatenate their lines. Delete hunks must remove the whole file, hunks apply in file
+  lines, so a `---` line inside an open hunk is a removed line and a short hunk is refused. A move
+  with no hunks copies the exact bytes, including a binary file, and a patch that rewrites a file
+  which is not valid UTF-8 is refused. Duplicate add sections concatenate their lines. Delete hunks must remove the whole file, hunks apply in file
   order and honor zero-context insertions, git-style headers are honored, a hunk-less move and a
   `git diff -M` rename both rename the file, and a no-op, including a patch with no file sections, is
   refused.

@@ -52,6 +52,14 @@
 - A unified hunk counts its lines, so a `---` line inside a hunk is a removed line and a short hunk
   is refused. Duplicate add sections concatenate, and a hunk-less move or a `git diff -M` rename
   renames the file.
+- Git literal operands obey read and write deny rules, `git -C`/`--git-dir`/`--work-tree` outside the
+  workspace need approval, and a `git config` that writes a value is refused. A login shell is
+  refused because it would source a profile.
+- `tar -C`/`-f`, `curl -o`, `sort -o`, the `rsync` destination, and `find -fprint*` count as writes.
+  Literal shell paths honor the ignore files, and a write to a protected ignore file is refused.
+- A pure move copies the exact bytes of a binary file, a patch rollback restores exact bytes, and an
+  edit or hunk application on a non-UTF-8 file is refused instead of rewriting it.
+- A URL rule covers a trailing-dot host and a percent-encoded path.
 
 ## 0.1.0
 
