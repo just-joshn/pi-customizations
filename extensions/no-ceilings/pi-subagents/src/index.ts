@@ -185,11 +185,16 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     if (extensionShutDown) {
       return;
     }
-    const patch = store.toPersistedPatch(options);
-    if (patch.sessions.length === ZERO) {
-      return;
+    try {
+      const patch = store.toPersistedPatch(options);
+      if (patch.sessions.length === ZERO) {
+        return;
+      }
+      pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, patch);
+      store.acknowledgePatch(patch.sessions.map((session) => session.agentId));
+    } catch {
+      // Keep the changed records dirty so the next boundary or shutdown can retry the append.
     }
-    pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, patch);
   };
 
   const flushWakeups = (): void => {
@@ -333,7 +338,8 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   });
 
   pi.on('session_shutdown', async () => {
-    if (store.abortAllRuns() > ZERO) {
+    const aborted = store.abortAllRuns();
+    if (aborted > ZERO || store.hasDirtySessions()) {
       onStateChanged();
     }
     latestCtx = undefined;

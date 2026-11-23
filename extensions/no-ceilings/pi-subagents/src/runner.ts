@@ -385,7 +385,10 @@ export async function awaitBackgroundSubagent(agentId: string, store: SubagentSt
       finish('aborted');
     }
     signal?.addEventListener('abort', onAbort, { once: true });
-    void active.completionPromise.then(() => finish('done'));
+    void active.completionPromise.then(
+      () => finish('done'),
+      () => finish('done'),
+    );
   });
   if (raceResult === 'done') {
     store.unsuppressWakeup(agentId);
@@ -570,6 +573,7 @@ export async function runForegroundSubagent(options: RunTaskOptions, initialReco
     options.signal?.removeEventListener('abort', onParentAbort);
     callbacks.store.updateSession(agentId, (record) => ({ ...record, isBackground: true, backgroundReason: 'user_request', currentStep: 'Running in background', updatedAt: Date.now() }));
     const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
+    void settledPromise.catch(() => undefined);
     callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
     triggerBackground?.();
     return true;
@@ -712,6 +716,7 @@ function startBackgroundRun(
   abortController: AbortController,
 ): TaskToolDetails {
   const settledPromise = attachBackgroundCompletionHandler(agentId, startedAt, runPromise, callbacks);
+  void settledPromise.catch(() => undefined);
   callbacks.store.registerActiveRun({ agentId, toolCallId: options.toolCallId, isBackground: true, abort: () => abortController.abort(), completionPromise: settledPromise });
   callbacks.onStateChanged();
   return buildDetailsFromRecord(callbacks.store.getSession(agentId) ?? initialRecord);

@@ -73,6 +73,8 @@ export interface SubagentStore {
   readonly restoreFromPersisted: (persisted: PersistedSubagentsState, parentSessionId: string) => void;
   readonly toPersistedState: (options?: { readonly includeTranscriptItems?: boolean }) => PersistedSubagentsState;
   readonly toPersistedPatch: (options?: { readonly includeTranscriptItems?: boolean }) => PersistedSubagentsState;
+  readonly acknowledgePatch: (agentIds: readonly string[]) => void;
+  readonly hasDirtySessions: () => boolean;
   readonly reset: () => void;
 }
 
@@ -378,9 +380,19 @@ export function createSubagentStore(): SubagentStore {
       const records = sessionOps.listSessions();
       const recentCompleted = recentCompletedIds(records);
       const sessions = records.filter((record) => dirty.has(record.agentId)).map((record) => toPersistedRecord(record, keepSnapshotTranscript(record, options?.includeTranscriptItems, recentCompleted)));
-      state = { ...state, dirtyIds: new Set() };
       return { sessions };
     },
+    acknowledgePatch: (agentIds) => {
+      if (agentIds.length === ZERO) {
+        return;
+      }
+      const dirtyIds = new Set(state.dirtyIds);
+      for (const agentId of agentIds) {
+        dirtyIds.delete(agentId);
+      }
+      state = { ...state, dirtyIds };
+    },
+    hasDirtySessions: () => state.dirtyIds.size > ZERO,
     reset: () => {
       runOps.abortAllRuns();
       cell.commit({ ...createEmptyState(), listeners: state.listeners }, false);

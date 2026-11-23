@@ -138,12 +138,47 @@ function hasUnquotedRedirect(command: string): boolean {
   return false;
 }
 
+function hasUnquotedShellExpansion(command: string): boolean {
+  let quote: "'" | '"' | undefined;
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index] ?? '';
+    if (char === '\\' && quote !== "'") {
+      index += 1;
+      continue;
+    }
+    if (quote === "'") {
+      quote = char === "'" ? undefined : quote;
+      continue;
+    }
+    if (quote === '"') {
+      if (char === '"') {
+        quote = undefined;
+      } else if (char === '$' || char === '`') {
+        return true;
+      }
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === '$' || char === '{' || char === '}' || char === '*' || char === '?' || char === '[' || char === '`') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function startsWithGit(segment: string): boolean {
+  return /^\s*git\b/.test(segment);
+}
+
 function isSingleReadOnlySegment(segment: string): boolean {
   const trimmed = segment.trim();
   if (!trimmed) {
     return false;
   }
-  if (hasUnquotedRedirect(trimmed) || hasDangerousGitOption(trimmed) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+  if (hasUnquotedRedirect(trimmed) || hasDangerousGitOption(trimmed) || (startsWithGit(trimmed) && hasUnquotedShellExpansion(trimmed)) || DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(trimmed))) {
     return false;
   }
   return SAFE_READONLY_PREFIXES.some((pattern) => pattern.test(trimmed));
@@ -312,7 +347,7 @@ function readonlySandboxInvocation(command: string, tempRoot: string): string {
 }
 
 function blocksExternalViewer(command: string): boolean {
-  return hasDangerousGitOption(command);
+  return hasDangerousGitOption(command) || (/\bgit\b/.test(command) && hasUnquotedShellExpansion(command));
 }
 
 function blockedReadonlyCommand(): string {
