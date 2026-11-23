@@ -1,3 +1,4 @@
+import { lstat, readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -275,6 +276,71 @@ function decideExec(policy: Policy, segments: readonly string[]): Decision {
   return { kind: 'allow' };
 }
 
+/** Entries one copied or moved directory may hold before the guard refuses the tree it cannot check. */
+export const COPY_WALK_LIMIT = 4000;
+
+interface CopyRefusal {
+  readonly message: string;
+  readonly path: string;
+}
+
+/**
+ * The first regular file under a copied or moved directory that a read rule or an ignore rule refuses,
+ * or undefined. A directory copy writes every file inside it to a new path, so the rules must see those
+ * files themselves. Symlinks are not followed, because the copy reproduces the link, not its target.
+ * A tree past the entry cap is refused unseen instead of walked partially.
+ */
+async function refusedCopyTree(session: LayerSession, source: string, cwd: string): Promise<CopyRefusal | undefined> {
+  const root = await lstat(source).catch(() => undefined);
+  if (root === undefined || !root.isDirectory()) {
+    return undefined;
+  }
+  const pending = [source];
+  let seen = 0;
+  for (;;) {
+    const directory = pending.pop();
+    if (directory === undefined) {
+      return undefined;
+    }
+    let names: string[];
+    try {
+      names = await readdir(directory);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      seen += 1;
+      if (seen > COPY_WALK_LIMIT) {
+        return {
+          message: `Blocked by permissions configuration: the copy holds more than ${COPY_WALK_LIMIT} entries, so the policy cannot check them`,
+          path: source,
+        };
+      }
+      const child = path.join(directory, name);
+      const info = await lstat(child).catch(() => undefined);
+      if (info === undefined || info.isSymbolicLink()) {
+        continue;
+      }
+      if (info.isDirectory()) {
+        pending.push(child);
+        continue;
+      }
+      if (!info.isFile()) {
+        continue;
+      }
+      const shown = displayPath(cwd, child);
+      const denied = readDenyRule(session, child);
+      if (denied !== undefined) {
+        return { message: `Blocked by permissions configuration: the copy includes ${shown}, which a rule denies (rule: ${denied.pattern})`, path: child };
+      }
+      const ignored = await session.ignore.describe(child);
+      if (ignored !== undefined) {
+        return { message: `Blocked by permissions configuration: the copy includes ${shown}, which ${path.basename(ignored)} filters out`, path: child };
+      }
+    }
+  }
+}
+
 /**
  * Gate a shell command. Exec rules see every analyzed spelling, every workspace boundary crossing is
  * checked against the current directory and each `cd` target in order, and a working directory outside
@@ -338,6 +404,15 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
     }
     if (decision.kind === 'approve') {
       approvalReason ??= decision.reason;
+    }
+  }
+
+  // A copy or move of a directory creates paths no rule named, so the files inside it are judged here,
+  // before anything spawns.
+  for (const source of analysis.copySources) {
+    const refusal = await refusedCopyTree(session, source, canonicalCwd);
+    if (refusal !== undefined) {
+      throw denial({ kind: 'permission_denied', message: refusal.message, path: refusal.path });
     }
   }
 

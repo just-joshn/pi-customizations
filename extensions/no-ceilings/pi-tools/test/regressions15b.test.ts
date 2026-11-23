@@ -198,8 +198,12 @@ describe('finding 9: ssh-keygen and sqlite3 write the path the argv names', () =
     expect(pathsOf("sqlite3 app.db 'create table t(x);'")).toEqual([{ path: 'app.db', write: true }]);
     expect(pathsOf("sqlite3 :memory: 'create table t(x);'")).toEqual([]);
     expect(pathsOf("sqlite3 -readonly app.db 'select 1;'")).toEqual([{ path: 'app.db', write: false }]);
-    expect(pathsOf("sqlite3 -init setup.sql app.db 'select 1;'")).toEqual([{ path: 'app.db', write: true }]);
-    expect(pathsOf("sqlite3 -cmd '.print hi' app.db 'select 1;'")).toEqual([{ path: 'app.db', write: true }]);
+    expect(pathsOf("sqlite3 -init setup.sql app.db 'select 1;'")).toEqual([]);
+    expect(pathsOf("sqlite3 -cmd '.print hi' app.db 'select 1;'")).toEqual([]);
+    // `-init`, `-cmd`, and `-A` run SQL or dot-commands the analyzer never reads, so they are refused.
+    expect(untrustedOf("sqlite3 -init setup.sql app.db 'select 1;'")).toContain('sqlite3 runs a command');
+    expect(untrustedOf("sqlite3 -cmd '.print hi' app.db 'select 1;'")).toContain('sqlite3 runs a command');
+    expect(untrustedOf('sqlite3 -A app.db')).toContain('sqlite3 runs a command');
   });
 
   it('refuses the outside key and database, and keeps both working inside the workspace', async () => {

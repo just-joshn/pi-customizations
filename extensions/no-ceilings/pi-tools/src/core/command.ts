@@ -86,6 +86,9 @@ const PATCH_APPLIERS = new Set(['patch']);
 /** Why a patch applier is refused: the patch file names the paths it writes. */
 const PATCH_REASON = 'the patch file names the paths this command writes, and the analyzer does not read it';
 
+/** Why `uudecode` is refused: the payload's `begin` line names the path it writes. */
+const UUDECODE_REASON = 'uudecode writes the path named inside its payload, which the analyzer does not read';
+
 /** Why a git reader that prints a whole commit diff is refused: every file body in it is unread by rule. */
 const GIT_DIFF_REASON = 'the commit diff prints the body of every file it touches, so the analyzer cannot see which files it reads';
 
@@ -131,6 +134,9 @@ const GIT_EXEC_PATH_REASON = 'git --exec-path runs git from a directory the anal
 /** Why `git filter-branch` is refused: every filter option runs a command the argv only names. */
 const GIT_FILTER_BRANCH_REASON = 'git filter-branch runs a filter command the analyzer does not follow';
 
+/** Why `git difftool` and `git mergetool` are refused: each runs an external tool the analyzer does not read. */
+const GIT_TOOL_REASON = 'git difftool and git mergetool run a tool the analyzer does not follow';
+
 /** Why `git clean` is refused: it deletes files the argv never names. */
 const GIT_CLEAN_REASON = 'the command deletes files the argv does not name';
 
@@ -174,6 +180,12 @@ const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
 
 /** Assignments that change how the shell finds, starts, splits, or traces, so the analyzer cannot vouch for them. */
 const RESOLUTION_ASSIGNMENTS = new Set(['CDPATH', 'BASH_ENV', 'ENV', 'IFS', 'PS4']);
+
+/**
+ * Variables that point a command at a file the analyzer never reads. `HISTFILE` is the destination of
+ * `history -w` and `-a` when they name no file, so a rule cannot judge that write.
+ */
+const UNSEEN_FILE_ASSIGNMENTS = new Set(['HISTFILE']);
 
 /** Builtins that assign the same way a leading `NAME=value` does. */
 const ASSIGNMENT_BUILTINS = new Set(['export', 'declare', 'typeset', 'readonly']);
@@ -1165,7 +1177,7 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
  * points git at a repository, editor, or helper the analyzer does not follow.
  */
 function unvouchedAssignment(name: string): boolean {
-  return RESOLUTION_ASSIGNMENTS.has(name) || name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF' || gitEnvName(name) !== undefined;
+  return RESOLUTION_ASSIGNMENTS.has(name) || UNSEEN_FILE_ASSIGNMENTS.has(name) || name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF' || gitEnvName(name) !== undefined;
 }
 
 function assignmentReason(name: string): string {
@@ -1174,6 +1186,9 @@ function assignmentReason(name: string): string {
   }
   if (gitEnvName(name) !== undefined) {
     return `${name} points git at a repository, index, editor, or helper the analyzer does not follow`;
+  }
+  if (UNSEEN_FILE_ASSIGNMENTS.has(name)) {
+    return `${name} sets a file the analyzer does not read`;
   }
   return `${name} changes how the shell finds commands`;
 }
@@ -1406,6 +1421,59 @@ function perlInplaceFiles(args: readonly Word[]): readonly Word[] | undefined {
         break;
       }
       cursor++;
+    }
+  }
+  if (!inplace) {
+    return undefined;
+  }
+  return hasProgram ? positional : positional.slice(1);
+}
+
+/** `ruby` short options that consume the next word, so it is a value and not a positional file. */
+const RUBY_VALUE_FLAGS = new Set(['e', 'E', 'F', 'I', 'r', 'C', 'T', '0']);
+
+/** Files `ruby -i` will rewrite, or undefined when this invocation is not in-place. */
+function rubyInplaceFiles(args: readonly Word[]): readonly Word[] | undefined {
+  let inplace = false;
+  let hasProgram = false;
+  const positional: Word[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options || value === '-' || !value.startsWith('-')) {
+      if (value !== '') {
+        positional.push(word);
+      }
+      continue;
+    }
+    const body = value.slice(1);
+    let cursor = 0;
+    while (cursor < body.length) {
+      const flag = body[cursor] ?? '';
+      // `-i` takes an optional backup suffix glued to the flag, so the rest of the cluster is that suffix.
+      if (flag === 'i') {
+        inplace = true;
+        break;
+      }
+      if (!RUBY_VALUE_FLAGS.has(flag)) {
+        cursor++;
+        continue;
+      }
+      if (flag === 'e') {
+        hasProgram = true;
+      }
+      if (body.slice(cursor + 1) === '') {
+        index++;
+      }
+      break;
     }
   }
   if (!inplace) {
@@ -2350,6 +2418,10 @@ function gitOpaqueReason(subcommand: string, args: readonly Word[], dir: string 
     // Every filter option (`--tree-filter`, `--index-filter`, `--msg-filter`, and the rest) runs a command.
     return GIT_FILTER_BRANCH_REASON;
   }
+  // `difftool` and `mergetool` run the tool `--extcmd`, `difftool.<tool>.cmd`, or the config names.
+  if (subcommand === 'difftool' || subcommand === 'mergetool') {
+    return GIT_TOOL_REASON;
+  }
   if (subcommand === 'clean') {
     return gitCleanDryRun(args) ? undefined : GIT_CLEAN_REASON;
   }
@@ -2929,33 +3001,69 @@ const ZSTD_VALUE_LETTERS = new Set(['B', 'D', 'i', 'M', 'o', 'p', 's', 'T']);
 const PAX_VALUE_LETTERS = new Set(['f', 's', 'o', 'X']);
 
 interface DestinationFlag {
-  /** The long option whose value is the file the command writes. */
-  readonly long: string;
-  /** The short letter whose value is that file. */
-  readonly short: string;
+  /** Whole spellings whose value is the file the command writes, dashes included. */
+  readonly writeLong: readonly string[];
+  /** Whole spellings whose value is a file the command reads instead, dashes included. */
+  readonly readLong?: readonly string[];
+  /** Short letters whose value is the file the command writes. */
+  readonly writeShort?: ReadonlySet<string>;
+  /** Short letters whose value is a file the command reads instead. */
+  readonly readShort?: ReadonlySet<string>;
   /** Every short letter that consumes a value, so the rest of a cluster is that value. */
-  readonly valueShort: ReadonlySet<string>;
+  readonly valueShort?: ReadonlySet<string>;
   /** True when the destination word may carry a glob the shell expands before the command sees it. */
   readonly glob: boolean;
 }
 
-const ZSTD_DESTINATION: DestinationFlag = { long: '--output', short: 'o', valueShort: ZSTD_VALUE_LETTERS, glob: true };
-const PAX_DESTINATION: DestinationFlag = { long: '--file', short: 'f', valueShort: PAX_VALUE_LETTERS, glob: false };
+const ZSTD_DESTINATION: DestinationFlag = { writeLong: ['--output'], writeShort: new Set(['o']), valueShort: ZSTD_VALUE_LETTERS, glob: true };
+const PAX_DESTINATION: DestinationFlag = { writeLong: ['--file'], writeShort: new Set(['f']), valueShort: PAX_VALUE_LETTERS, glob: false };
+
+/** `base64` writes `-o` and reads `-i`, each with a separate or attached value. */
+const BASE64_DESTINATION: DestinationFlag = { writeLong: ['--output', '-o'], readLong: ['--input', '-i'], glob: false };
+
+/** `b64encode` and `uuencode` write `-o`; their positional input file stays a read. */
+const ENCODE_DESTINATION: DestinationFlag = { writeLong: ['--output', '-o'], glob: false };
+
+/** `plutil -o` writes the converted copy. */
+const PLUTIL_DESTINATION: DestinationFlag = { writeLong: ['-o'], glob: false };
+
+/** `textutil` spells its destination as the single-dash long option `-output`. */
+const TEXTUTIL_DESTINATION: DestinationFlag = { writeLong: ['-output'], glob: false };
+
+/** `clang`, `cc`, and `gcc` write the `-o` program or object. */
+const COMPILER_DESTINATION: DestinationFlag = { writeLong: ['--output', '-o'], glob: false };
+
+/** `shuf -o` and `shuf --output` write the shuffled copy. */
+const SHUF_DESTINATION: DestinationFlag = { writeLong: ['--output', '-o'], glob: false };
+
+/** Commands whose writer and reader flags name a file the generic operand rules never see. */
+const DESTINATION_COMMANDS = new Map<string, DestinationFlag>([
+  ['zstd', ZSTD_DESTINATION],
+  ['pax', PAX_DESTINATION],
+  ['base64', BASE64_DESTINATION],
+  ['b64encode', ENCODE_DESTINATION],
+  ['uuencode', ENCODE_DESTINATION],
+  ['plutil', PLUTIL_DESTINATION],
+  ['textutil', TEXTUTIL_DESTINATION],
+  ['shuf', SHUF_DESTINATION],
+  ...['clang', 'cc', 'gcc', 'g++', 'clang++'].map((name) => [name, COMPILER_DESTINATION] as const),
+]);
 
 /**
- * `zstd` and `pax` destinations: the `-o`/`-f` file in its spaced, attached, and `--long=FILE` forms. Every
- * other operand is an input, and a `-` destination is standard output, which is no path in the workspace.
+ * Destination and reader flags for the commands in `DESTINATION_COMMANDS`: the file in its spaced,
+ * attached, single-dash long, and `--long=FILE` forms. Every other operand is an input, and a `-`
+ * destination is standard output, which is no path in the workspace.
  */
 function destinationPaths(flag: DestinationFlag, args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
   const paths: PathNote[] = [];
   let untrusted: string | undefined;
-  const destination = (raw: string, glob: boolean): void => {
+  const note = (raw: string, write: boolean, glob: boolean): void => {
     if (raw === '' || raw === '-') {
       return;
     }
-    paths.push({ path: raw, write: true, ...(glob ? { glob: true } : {}) });
+    paths.push({ path: raw, write, ...(glob ? { glob: true } : {}) });
   };
-  const destinationAt = (index: number): void => {
+  const noteAt = (index: number, write: boolean): void => {
     const word = args[index];
     if (word === undefined) {
       return;
@@ -2964,8 +3072,9 @@ function destinationPaths(flag: DestinationFlag, args: readonly Word[]): { reado
       untrusted ??= 'the write target is built by an expansion';
       return;
     }
-    destination(word.value, flag.glob && word.glob);
+    note(word.value, write, flag.glob && word.glob);
   };
+  const spellings = [...flag.writeLong.map((spelling) => ({ spelling, write: true })), ...(flag.readLong ?? []).map((spelling) => ({ spelling, write: false }))].sort((left, right) => right.spelling.length - left.spelling.length);
   let options = true;
   for (let index = 0; index < args.length; index++) {
     const word = args[index];
@@ -2977,29 +3086,34 @@ function destinationPaths(flag: DestinationFlag, args: readonly Word[]): { reado
       options = false;
       continue;
     }
-    if (options && literal && word.value.startsWith('--')) {
-      if (word.value === flag.long) {
-        index++;
-        destinationAt(index);
-      } else if (word.value.startsWith(`${flag.long}=`)) {
-        destination(word.value.slice(flag.long.length + 1), flag.glob && word.glob);
-      }
-      continue;
-    }
     if (options && literal && word.value.startsWith('-') && word.value !== '-') {
+      const named = spellings.find((candidate) => word.value === candidate.spelling || word.value.startsWith(candidate.spelling));
+      if (named !== undefined) {
+        const attached = word.value.slice(named.spelling.length);
+        const value = attached.startsWith('=') ? attached.slice(1) : attached;
+        if (value === '') {
+          index++;
+          noteAt(index, named.write);
+        } else {
+          note(value, named.write, flag.glob && word.glob);
+        }
+        continue;
+      }
       const body = word.value.slice(1);
       for (let cursor = 0; cursor < body.length; cursor++) {
         const letter = body[cursor] ?? '';
-        if (!flag.valueShort.has(letter)) {
+        if (!(flag.valueShort?.has(letter) ?? false)) {
           continue;
         }
         const attached = body.slice(cursor + 1);
-        if (letter === flag.short) {
+        const write = flag.writeShort?.has(letter) ?? false;
+        const read = flag.readShort?.has(letter) ?? false;
+        if (write || read) {
           if (attached !== '') {
-            destination(attached, flag.glob && word.glob);
+            note(attached, write, flag.glob && word.glob);
           } else {
             index++;
-            destinationAt(index);
+            noteAt(index, write);
           }
         } else if (attached === '') {
           index++;
@@ -3010,6 +3124,65 @@ function destinationPaths(flag: DestinationFlag, args: readonly Word[]): { reado
     }
     if (literal && word.value !== '') {
       paths.push({ path: word.value, write: false, ...(word.glob ? { glob: true } : {}) });
+    }
+  }
+  return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** Why `history -w` or `-a` with no file is refused: it rewrites `HISTFILE`, which the analyzer cannot see. */
+const HISTORY_DEFAULT_FILE_REASON = 'history writes the history file the analyzer does not see';
+
+/**
+ * `history` paths: `-w` and `-a` write the file they name, and `-r` and `-n` read it. The file is the
+ * next word, so an attached cluster like `-aw FILE` names the same file `-a FILE` does. A `-w` or `-a`
+ * with no file writes `HISTFILE`, which the analyzer never reads.
+ */
+function historyPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const paths: PathNote[] = [];
+  let untrusted: string | undefined;
+  const note = (word: Word | undefined, write: boolean): void => {
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      untrusted ??= 'the history file is built by an expansion';
+      return;
+    }
+    if (word.value !== '' && word.value !== '-') {
+      paths.push({ path: word.value, write, ...(word.glob ? { glob: true } : {}) });
+    }
+  };
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options || value === '-' || !value.startsWith('-')) {
+      continue;
+    }
+    const body = value.slice(1);
+    for (let cursor = 0; cursor < body.length; cursor++) {
+      const flag = body[cursor] ?? '';
+      const write = flag === 'w' || flag === 'a';
+      const read = flag === 'r' || flag === 'n';
+      if (write || read) {
+        // The file is the next word, so `-aw FILE` names the same file `-a FILE` does.
+        if (index + 1 < args.length) {
+          index++;
+          note(args[index], write);
+        } else if (write) {
+          untrusted ??= HISTORY_DEFAULT_FILE_REASON;
+        }
+        break;
+      }
+      // `-d` takes an offset, which is not a path.
+      if (flag === 'd' && body.slice(cursor + 1) === '') {
+        index++;
+        break;
+      }
     }
   }
   return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
@@ -3105,6 +3278,9 @@ function scriptFromStdin(segment: CommandSegment, redirects: readonly Redirect[]
 const SPLIT_SHORT_VALUES = new Set(['a', 'b', 'C', 'l', 'n', 't']);
 const SPLIT_LONG_VALUES = new Set(['--additional-suffix', '--bytes', '--line-bytes', '--lines', '--number', '--suffix-length', '--separator']);
 
+/** Why `split --filter` is refused: it runs a command whose effect the analyzer never reads. */
+const SPLIT_FILTER_REASON = 'split --filter runs a command the analyzer does not follow';
+
 /** `split` destinations: the second positional operand is the output prefix it writes. */
 function splitPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
   const positional: Word[] = [];
@@ -3119,6 +3295,9 @@ function splitPaths(args: readonly Word[]): { readonly paths: readonly PathNote[
       continue;
     }
     if (options && word.literal && !word.hidesCommand && word.value.startsWith('--')) {
+      if (word.value === '--filter' || word.value.startsWith('--filter=')) {
+        return { paths: [], untrusted: SPLIT_FILTER_REASON };
+      }
       if (!word.value.includes('=') && SPLIT_LONG_VALUES.has(word.value)) {
         index++;
       }
@@ -3226,7 +3405,7 @@ function fileOutputPaths(name: string, args: readonly Word[]): { readonly paths:
 const SSH_KEYGEN_VALUE_LETTERS = new Set(['a', 'b', 'C', 'D', 'E', 'f', 'I', 'm', 'M', 'n', 'N', 'O', 'P', 't', 'V', 'w', 'Z', 'z']);
 
 /** The key file `ssh-keygen -f` and `--filename` name. */
-const SSH_KEYGEN_DESTINATION: DestinationFlag = { long: '--filename', short: 'f', valueShort: SSH_KEYGEN_VALUE_LETTERS, glob: false };
+const SSH_KEYGEN_DESTINATION: DestinationFlag = { writeLong: ['--filename'], writeShort: new Set(['f']), valueShort: SSH_KEYGEN_VALUE_LETTERS, glob: false };
 
 /** `ssh-keygen` mode letters that only read the `-f` file, so the command writes no key. */
 const SSH_KEYGEN_READ_MODES = new Set(['i', 'e', 'y', 'l', 'B', 'F', 'r', 'L', 'Q', 'Y']);
@@ -3283,10 +3462,19 @@ const SQLITE3_VALUE_OPTIONS = new Set(['-A', '-alg', '-cmd', '-escape', '-hexkey
 /** `sqlite3` options whose value is two words, so both are skipped. */
 const SQLITE3_TWO_VALUE_OPTIONS = new Set(['-lookaside', '-pagecache']);
 
+/** `sqlite3` options that run a command or SQL the analyzer never reads. */
+const SQLITE3_UNSEEN_OPTIONS = new Set(['-A', '-cmd', '-init']);
+const SQLITE3_UNSEEN_REASON = 'sqlite3 runs a command the analyzer does not follow';
+
+/** Why a `sqlite3` dot-command operand is refused: it opens or writes paths the analyzer never reads. */
+const SQLITE3_DOT_COMMAND_REASON = 'a sqlite3 dot-command runs or reads paths the analyzer does not follow';
+
 /** `sqlite3` paths: the first operand is the database it opens, which it writes unless `-readonly`. */
 function sqlitePaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
   const readonly = args.some((word) => word.literal && !word.hidesCommand && word.value === '-readonly');
   let options = true;
+  let database: Word | undefined;
+  let memory = false;
   for (let index = 0; index < args.length; index++) {
     const word = args[index];
     if (word === undefined) {
@@ -3298,13 +3486,18 @@ function sqlitePaths(args: readonly Word[]): { readonly paths: readonly PathNote
       continue;
     }
     if (options && literal && word.value.startsWith('-') && word.value !== '-') {
-      // `-A` runs a `.archive` command on the rest of the argv, so no later operand names a database.
-      if (word.value === '-A') {
-        return { paths: [] };
+      if (SQLITE3_UNSEEN_OPTIONS.has(word.value)) {
+        return { paths: [], untrusted: SQLITE3_UNSEEN_REASON };
       }
       if (SQLITE3_VALUE_OPTIONS.has(word.value)) {
         index += SQLITE3_TWO_VALUE_OPTIONS.has(word.value) ? 2 : 1;
       }
+      continue;
+    }
+    if (literal && word.value.startsWith('.')) {
+      return { paths: [], untrusted: SQLITE3_DOT_COMMAND_REASON };
+    }
+    if (database !== undefined || memory) {
       continue;
     }
     if (!literal) {
@@ -3312,11 +3505,15 @@ function sqlitePaths(args: readonly Word[]): { readonly paths: readonly PathNote
     }
     // `:memory:` is a private database, and an empty operand falls back to it.
     if (word.value === '' || word.value === ':memory:') {
-      return { paths: [] };
+      memory = true;
+      continue;
     }
-    return { paths: [{ path: word.value, write: !readonly, ...(word.glob ? { glob: true } : {}) }] };
+    database = word;
   }
-  return { paths: [] };
+  if (database === undefined) {
+    return { paths: [] };
+  }
+  return { paths: [{ path: database.value, write: !readonly, ...(database.glob ? { glob: true } : {}) }] };
 }
 
 /** Why a `curl` config file is refused: it sets output paths and URLs this layer never reads. */
@@ -3818,6 +4015,11 @@ export interface ShellAnalysis {
   readonly directories: readonly string[];
   /** Literal path operands and redirection targets, in command order. */
   readonly paths: readonly ShellPath[];
+  /**
+   * Absolute paths a `cp` or `mv` copies or moves, resolved against `root`. A directory source copies
+   * every file inside it, which creates paths no rule ever named, so the caller walks these itself.
+   */
+  readonly copySources: readonly string[];
   /** Why the command cannot be analyzed safely; the caller refuses it when set. */
   readonly untrusted?: string;
 }
@@ -3832,6 +4034,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
   const segments = new Set<string>();
   const directories: string[] = [];
   const paths: ShellPath[] = [];
+  const copySources: string[] = [];
   let untrusted: string | undefined;
   const distrust = (reason: string): void => {
     untrusted ??= reason;
@@ -3850,6 +4053,18 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
       return;
     }
     paths.push({ path: locate(resolved.path, base), write });
+  };
+
+  /** Record a `cp`/`mv` source as an absolute path, so the caller can judge the files inside it. */
+  const noteCopySource = (word: Word | undefined, base: string | undefined): void => {
+    if (word === undefined || !word.literal || word.hidesCommand || word.glob) {
+      return;
+    }
+    const resolved = literalPath(word.value, home);
+    if (resolved.unknown !== undefined || resolved.path === undefined || resolved.path === '') {
+      return;
+    }
+    copySources.push(path.resolve(root, locate(resolved.path, base)));
   };
   const collectOperands = (name: string, args: readonly Word[], base: string | undefined): void => {
     if (name === 'git') {
@@ -3906,6 +4121,17 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
       }
       return;
     }
+    // `history -w` and `-a` write the file they name, and `-r` and `-n` read it.
+    if (name === 'history') {
+      const noted = historyPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
     if (NODE_COMMANDS.has(name)) {
       const noted = nodePaths(name, args);
       if (noted.untrusted !== undefined) {
@@ -3916,9 +4142,10 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
       }
       return;
     }
-    // `zstd -o` and `pax -f` name the file these commands write, and a policy rule never sees it.
-    if (name === 'zstd' || name === 'pax') {
-      const noted = destinationPaths(name === 'zstd' ? ZSTD_DESTINATION : PAX_DESTINATION, args);
+    // A writer or reader flag these commands keep outside the generic operand rules names the file.
+    const destinations = DESTINATION_COMMANDS.get(name);
+    if (destinations !== undefined) {
+      const noted = destinationPaths(destinations, args);
       if (noted.untrusted !== undefined) {
         distrust(noted.untrusted);
       }
@@ -3927,7 +4154,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
       }
       return;
     }
-    if (name === 'sed' || name === 'perl') {
+    if (name === 'sed' || name === 'perl' || name === 'ruby') {
       if (name === 'sed') {
         for (const script of sedScripts(args)) {
           for (const target of sedScriptWrites(script)) {
@@ -3935,7 +4162,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
           }
         }
       }
-      const edited = name === 'sed' ? sedInplaceFiles(args) : perlInplaceFiles(args);
+      const edited = name === 'sed' ? sedInplaceFiles(args) : name === 'perl' ? perlInplaceFiles(args) : rubyInplaceFiles(args);
       if (edited !== undefined) {
         for (const word of edited) {
           notePath(word.value, true, base, word.glob);
@@ -4023,7 +4250,34 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
         continue;
       }
       if (options && name === 'sort' && value.startsWith('-o') && value.length > 2) {
-        notePath(value.slice(2), true, base, word.glob);
+        // GNU `sort -o=FILE` writes FILE, with the `=` as the separator and not part of the name.
+        const attached = value.slice(2);
+        notePath(attached.startsWith('=') ? attached.slice(1) : attached, true, base, word.glob);
+        continue;
+      }
+      if (options && GREP_COMMANDS.has(name) && value === '--file') {
+        const next = args[index + 1];
+        if (next?.literal === true && next.hidesCommand !== true) {
+          notePath(next.value, false, base, next.glob);
+        }
+        index++;
+        continue;
+      }
+      if (options && GREP_COMMANDS.has(name) && value.startsWith('--file=')) {
+        notePath(value.slice('--file='.length), false, base, word.glob);
+        continue;
+      }
+      if (options && GREP_COMMANDS.has(name) && value.startsWith('-f') && value.length > 2) {
+        notePath(value.slice(2), false, base, word.glob);
+        continue;
+      }
+      if (options && name === 'openssl' && value === '-keyout') {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'openssl' && value.startsWith('-keyout') && value.length > '-keyout'.length) {
+        notePath(value.slice('-keyout'.length), true, base, word.glob);
         continue;
       }
       if (options && name === 'openssl' && (value === '-out' || value === '--out')) {
@@ -4075,10 +4329,15 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
       }
       positional.push(word);
     }
+    // `cp` and `mv` create new paths from every source, so a directory source needs its own walk.
+    const copiesSources = name === 'cp' || name === 'mv';
     if (targetDir !== undefined) {
       notePath(targetDir.value, true, base, targetDir.glob);
       for (const word of positional) {
         notePath(word.value, name === 'mv', base, word.glob);
+        if (copiesSources) {
+          noteCopySource(word, base);
+        }
         const slash = word.value.lastIndexOf('/');
         const baseName = slash === -1 ? word.value : word.value.slice(slash + 1);
         if (baseName !== '' && baseName !== '.' && baseName !== '..') {
@@ -4102,6 +4361,9 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     const zipLists = name === 'zip' && args.some((word) => word.literal === true && !word.hidesCommand && (word.value === '-l' || word.value === '--list'));
     const writesFirst = name === 'zip' && !zipLists;
     for (const [index, word] of positional.entries()) {
+      if (copiesSources && index < positional.length - 1) {
+        noteCopySource(word, base);
+      }
       const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesFirst ? index === 0 : writesLast ? index === positional.length - 1 : write;
       notePath(word.value, isWrite, base, word.glob);
     }
@@ -4219,6 +4481,9 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
         }
         if (PATCH_APPLIERS.has(name)) {
           distrust(PATCH_REASON);
+        }
+        if (name === 'uudecode') {
+          distrust(UUDECODE_REASON);
         }
         const archiveReason = archiveExtractionReason(name, words.slice(headIndex + 1));
         if (archiveReason !== undefined) {
@@ -4354,7 +4619,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
   };
 
   visit(command, 0);
-  return { segments: [...segments], directories, paths, ...(untrusted === undefined ? {} : { untrusted }) };
+  return { segments: [...segments], directories, paths, copySources, ...(untrusted === undefined ? {} : { untrusted }) };
 }
 
 /** Every string an exec rule should see. */
