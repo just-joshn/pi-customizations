@@ -21,7 +21,7 @@ const PATCH_FLAGS = new Set<string>([
 ]);
 
 export function hasPatchFlag(words: readonly string[]): boolean {
-  return words.some((word) => PATCH_FLAGS.has(word) || word.startsWith('-U') || word.startsWith('--unified=') || word.startsWith('--diff-merges=') || word.startsWith('--word-diff='));
+  return words.some((word) => PATCH_FLAGS.has(word) || word.startsWith('-U') || word.startsWith('-S') || word.startsWith('-G') || word.startsWith('--unified=') || word.startsWith('--diff-merges=') || word.startsWith('--word-diff='));
 }
 
 export function hasDangerousDiffFlag(words: readonly string[]): boolean {

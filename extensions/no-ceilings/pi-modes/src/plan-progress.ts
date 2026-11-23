@@ -39,8 +39,25 @@ export function applyCompletedSteps(text: string, steps: readonly TrackedPlanSte
   return steps.map((item) => (doneSet.has(item.step) ? { ...item, completed: true } : item));
 }
 
+const ALL_STEPS_COMPLETE_PATTERN = /(?:all|every)\s+steps?\s+(?:(?:are|is)\s+)?(?:done|complete|completed|finished)/i;
+const PLAN_COMPLETE_PATTERN = /\b(?:the\s+)?plan\s+(?:is\s+)?(?:complete|completed|done)\b/gi;
+const NEGATION_PATTERN = /\b(?:not|never|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|cannot|can't)\b/i;
+
+function followsNegation(text: string, index: number): boolean {
+  const sentenceStart = Math.max(text.lastIndexOf('.', index - ONE), text.lastIndexOf('!', index - ONE), text.lastIndexOf('?', index - ONE)) + ONE;
+  return NEGATION_PATTERN.test(text.slice(sentenceStart, index));
+}
+
 function hasAllStepsCompletePhrase(text: string): boolean {
-  return /(?:all|every)\s+steps?\s+(?:are|is\s+)?(?:done|complete|completed|finished)/i.test(text) || /\b(?:the\s+)?plan\s+(?:is\s+)?(?:complete|completed|done)\b/i.test(text);
+  if (ALL_STEPS_COMPLETE_PATTERN.test(text)) {
+    return true;
+  }
+  for (const match of text.matchAll(PLAN_COMPLETE_PATTERN)) {
+    if (!followsNegation(text, match.index ?? ZERO)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function markAllStepsCompleted(steps: readonly TrackedPlanStep[]): readonly TrackedPlanStep[] {

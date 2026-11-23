@@ -12,6 +12,12 @@ const EMPTY_BLOCK_LINES = 1;
 const SKILL_FILE_NAME = 'SKILL.md';
 const MARKDOWN_EXT = '.md';
 const BLOCK_SCALAR_HEADER = /^[>|][+-]?\d?\s*(?:#.*)?$/;
+const FLOW_OPEN = '{';
+const FLOW_CLOSE = '}';
+const FLOW_KEY_SEPARATOR = ':';
+const LIST_OPEN = '[';
+const LIST_CLOSE = ']';
+const FLOW_ENTRY_SEPARATOR = ',';
 const TEMP_SUFFIX_SEPARATOR = '.pi-modes-';
 const TEMP_SUFFIX_EXT = '.tmp';
 
@@ -112,13 +118,72 @@ function splitFrontmatterBlock(content: string): { readonly lines: readonly stri
   return { lines: lines.length === EMPTY_BLOCK_LINES && lines[ZERO] === '' ? [] : lines, tail: content.slice(closingIndex) };
 }
 
+function splitFlowEntries(inner: string): readonly string[] {
+  const entries: string[] = [];
+  let current = '';
+  let quote: string | undefined;
+  let depth = ZERO;
+  for (let index = ZERO; index < inner.length; index += ONE) {
+    const char = inner[index] ?? '';
+    if (quote !== undefined) {
+      current += char;
+      if (char === '\\') {
+        const next = inner[index + ONE];
+        if (next !== undefined) {
+          current += next;
+          index += ONE;
+        }
+      } else if (char === quote) {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      current += char;
+      continue;
+    }
+    if (char === FLOW_OPEN || char === LIST_OPEN) {
+      depth += ONE;
+    } else if (char === FLOW_CLOSE || char === LIST_CLOSE) {
+      depth -= ONE;
+    } else if (char === FLOW_ENTRY_SEPARATOR && depth === ZERO) {
+      entries.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim().length > ZERO) {
+    entries.push(current.trim());
+  }
+  return entries;
+}
+
+function expandFlowFrontmatter(lines: readonly string[]): readonly string[] {
+  if (lines.length !== EMPTY_BLOCK_LINES) {
+    return lines;
+  }
+  const line = (lines[ZERO] ?? '').trim();
+  if (!line.startsWith(FLOW_OPEN) || !line.endsWith(FLOW_CLOSE)) {
+    return lines;
+  }
+  const inner = line.slice(ONE, -ONE).trim();
+  if (inner.length === ZERO) {
+    return [];
+  }
+  return splitFlowEntries(inner).map((entry) => {
+    const colon = entry.indexOf(FLOW_KEY_SEPARATOR);
+    return colon < ZERO ? entry : `${entry.slice(ZERO, colon).trim()}: ${entry.slice(colon + ONE).trim()}`;
+  });
+}
+
 function rewriteFrontmatter(content: string, mutate: (lines: readonly string[]) => readonly string[]): string {
+  const lineEnding = content.includes('\r\n') ? '\r\n' : content.includes('\r') ? '\r' : '\n';
   const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const split = splitFrontmatterBlock(normalized);
-  if (!split) {
-    return `${FRONTMATTER_FENCE}\n${mutate([]).join('\n')}\n${FRONTMATTER_FENCE}\n\n${normalized}`;
-  }
-  return `${FRONTMATTER_FENCE}\n${mutate(split.lines).join('\n')}${split.tail}`;
+  const updated = !split ? `${FRONTMATTER_FENCE}\n${mutate([]).join('\n')}\n${FRONTMATTER_FENCE}\n\n${normalized}` : `${FRONTMATTER_FENCE}\n${mutate(expandFlowFrontmatter(split.lines)).join('\n')}${split.tail}`;
+  return updated.replace(/\n/g, lineEnding);
 }
 
 function keyPattern(key: string): RegExp {

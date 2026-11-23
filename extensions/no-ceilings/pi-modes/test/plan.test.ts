@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
+import { advancePlanSteps } from '../src/plan-progress.ts';
 import { double, type TestHarness, useTestHarness } from './harness.ts';
 
 const ZERO = 0;
@@ -259,5 +260,22 @@ describe('Plan mode execution handoff', () => {
       }),
     );
     expect(filtered.messages.map((message) => message.content).join('\n')).not.toContain('PLAN MODE ACTIVE');
+  });
+});
+
+describe('plan completion phrases', () => {
+  const steps = [
+    { step: ONE, id: 's1', text: 'First step', completed: false },
+    { step: TWO, id: 's2', text: 'Second step', completed: false },
+  ];
+
+  it('does not complete on a negated plan statement', () => {
+    const advanced = advancePlanSteps("I don't think the plan is done. Step 2 remains.", steps);
+    expect(advanced.every((step) => !step.completed)).toBe(true);
+  });
+
+  it('completes all steps when the assistant says all steps are done', () => {
+    const advanced = advancePlanSteps('All steps are done.', steps);
+    expect(advanced.every((step) => step.completed)).toBe(true);
   });
 });

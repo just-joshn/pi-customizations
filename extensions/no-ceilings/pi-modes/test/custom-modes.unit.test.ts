@@ -311,11 +311,24 @@ describe('writeSkillAppearance', () => {
     expect(readFileSync(skillPath, 'utf-8')).toBe('---\ncolor: "magenta"\nicon: "⚡"\n---');
   });
 
-  it('normalizes CRLF line endings when writing appearance', async () => {
+  it('preserves CRLF line endings when writing appearance', async () => {
     const skillPath = writeSkillFile('pi-modes-crlf-', '---\r\nname: reviewer\r\n---\r\n\r\nReview every diff.\r\n');
 
     await writeSkillAppearance(skillPath, { icon: '⚡', color: 'magenta' });
-    expect(readFileSync(skillPath, 'utf-8')).toBe('---\ncolor: "magenta"\nicon: "⚡"\nname: reviewer\n---\n\nReview every diff.\n');
+    expect(readFileSync(skillPath, 'utf-8')).toBe('---\r\ncolor: "magenta"\r\nicon: "⚡"\r\nname: reviewer\r\n---\r\n\r\nReview every diff.\r\n');
+  });
+
+  it('updates flow-style frontmatter and keeps the body', async () => {
+    const skillPath = writeSkillFile('pi-modes-flow-', '---\n{name: reviewer, color: red, icon: "★"}\n---\n\nReview every diff.\n');
+
+    await writeSkillAppearance(skillPath, { color: 'blue' });
+    const written = readFileSync(skillPath, 'utf-8');
+    expect(written).toContain('color: "blue"');
+    expect(written).toContain('Review every diff.');
+
+    const skill = await readSkillDocument(skillPath, 'reviewer');
+    expect(skill.colorId).toBe('blue');
+    expect(skill.body).toBe('Review every diff.');
   });
 
   it('writes color and icon on a skill Pi discovered as a direct markdown file and keeps the body', async () => {

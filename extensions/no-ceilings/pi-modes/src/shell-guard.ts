@@ -1,4 +1,5 @@
 import { hasDangerousDiffFlag, hasPatchFlag, hasSafeDiffFlags, isAllowedDiffArgs } from './git-diff-guard.ts';
+import { hasBraceExpansion } from './shell-expansions.ts';
 import { ONE, TWO, ZERO } from './types.ts';
 
 const SEGMENT_SEPARATORS = new Set<string>([';', '\n', '|', '&']);
@@ -11,6 +12,7 @@ const LESS_THAN = '<';
 const GREATER_THAN = '>';
 const DOLLAR = '$';
 const OPEN_PAREN = '(';
+const OPEN_BRACE = '{';
 const BACKTICK = '`';
 
 /** Commands whose default behavior only reads. Per-command rules below remove the writing forms. */
@@ -46,7 +48,6 @@ const READ_ONLY_COMMANDS = new Set<string>([
   'uname',
   'whoami',
   'id',
-  'date',
   'cal',
   'uptime',
   'ps',
@@ -82,7 +83,7 @@ const GIT_READ_SUBCOMMANDS = new Set<string>([
 const DENIED_LONG_FLAGS: Readonly<Record<string, readonly string[]>> = {
   fd: ['--exec', '--exec-batch'],
   sort: ['--output', '--compress-program'],
-  rg: ['--pre', '--pre-glob'],
+  rg: ['--pre', '--pre-glob', '--hostname-bin'],
   tree: ['--output'],
   awk: ['--file'],
   sed: ['--in-place', '--file'],
@@ -161,9 +162,9 @@ function lexCommand(command: string): LexedCommand {
     if (char === BACKSLASH && quote !== SINGLE_QUOTE) {
       const next = command[index + 1];
       if (next === '\n') {
-        // Bash removes a line continuation before it parses the command, which can join `$(` or `$'`.
+        // Bash removes a line continuation before it parses the command, which can join an expansion.
         const after = command[index + 2];
-        if (word.endsWith(DOLLAR) && (after === OPEN_PAREN || after === SINGLE_QUOTE)) {
+        if (word.endsWith(DOLLAR) && (after === OPEN_PAREN || after === OPEN_BRACE || after === SINGLE_QUOTE || after === DOUBLE_QUOTE)) {
           safe = false;
         }
         index += 2;
@@ -182,7 +183,7 @@ function lexCommand(command: string): LexedCommand {
         index += 1;
         continue;
       }
-      if (char === DOLLAR && command[index + 1] === OPEN_PAREN) {
+      if (char === DOLLAR && (command[index + 1] === OPEN_PAREN || command[index + 1] === OPEN_BRACE)) {
         safe = false;
       }
       if (char === BACKTICK) {
@@ -193,8 +194,14 @@ function lexCommand(command: string): LexedCommand {
       index += 1;
       continue;
     }
-    if (char === DOLLAR && command[index + 1] === SINGLE_QUOTE) {
-      // ANSI-C quoting decodes escapes before bash runs the command, so its argv cannot be read here.
+    if (char === DOLLAR) {
+      const next = command[index + 1];
+      // Locale and ANSI-C quoting decode the argument, and parameter expansion runs before argv is fixed.
+      if (next === SINGLE_QUOTE || next === DOUBLE_QUOTE || next === OPEN_BRACE) {
+        safe = false;
+      }
+    }
+    if (char === OPEN_BRACE && hasBraceExpansion(command, index)) {
       safe = false;
     }
     if (char === SINGLE_QUOTE || char === DOUBLE_QUOTE) {
@@ -616,6 +623,13 @@ function isAllowedGit(words: readonly string[]): boolean {
     const flags = args.slice(1);
     return !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
   }
+  if (subcommand === 'cat-file') {
+    return !hasLongFlag(args.slice(1), ['--textconv', '--filters']);
+  }
+  if (subcommand === 'blame') {
+    const flags = args.slice(1);
+    return !hasLongFlag(flags, ['--textconv']) && flags.includes('--no-textconv');
+  }
   if (GIT_READ_SUBCOMMANDS.has(subcommand)) {
     return true;
   }
@@ -637,7 +651,8 @@ function isAllowedGit(words: readonly string[]): boolean {
     return flag === '--get' || flag === '--get-all' || flag === '--get-regexp' || flag === '--get-urlmatch' || flag === '--list' || flag === '-l';
   }
   if (subcommand === 'grep') {
-    return !args.slice(1).some((arg) => arg === '--textconv' || arg === '--open-files-in-pager' || arg.startsWith('--open-files-in-pager=') || (arg.startsWith('-O') && !arg.startsWith('--')));
+    const flags = args.slice(1);
+    return !hasLongFlag(flags, ['--textconv', '--open-files-in-pager']) && !flags.some((arg) => arg.startsWith('-O') && !arg.startsWith('--'));
   }
   if (subcommand === 'branch') {
     return isAllowedBranchArgs(args.slice(1));
@@ -662,7 +677,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (subcommand === 'apply') {
     const flags = args.slice(1);
     const inspects = flags.includes('--check') || flags.includes('--stat') || flags.includes('--numstat');
-    const writes = flags.some((flag) => flag === '--index' || flag === '--cached' || flag === '--3way');
+    const writes = hasLongFlag(flags, ['--apply', '--index', '--cached', '--3way']);
     return inspects && !writes;
   }
   if (subcommand === 'worktree') {
