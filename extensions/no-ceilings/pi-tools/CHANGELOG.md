@@ -97,6 +97,13 @@
   exclusion pathspec no longer narrows a `git log --patch` or `git show` refusal.
 - The destination of `git mv` and `git init --separate-git-dir` are writes, `uniq` and `xxd` write
   their second operand, and `apply_patch` applies the read deny to every source it opens.
+- Archive extraction is refused for `tar`/`pax` and for `unzip` outside its list and inspect forms,
+  because the member names are paths the analyzer never reads.
+- `git clone --template`, `git rebase --exec`, and `git stash show --patch` without a narrowing path
+  are refused. The `GIT_*` variables that move the repository, index, editor, pager, or SSH command
+  are refused and scrubbed, `git checkout` and `git restore` path operands are writes, and
+  `git reset --hard`/`--merge`/`--keep` or a checkout/restore of a directory is refused.
+- `zstd -o`, `pax -f`, `mkfifo`, and `mknod` destinations are writes.
 
 ## 0.1.0
 

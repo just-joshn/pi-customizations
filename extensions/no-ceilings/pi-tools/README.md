@@ -144,23 +144,28 @@ operand or redirect target.
   unresolvable `cd` target such as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, `IFS`, or
   `PS4` (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a
   `trap` with an action, a git `-c` value that starts a shell command or names a command key such as
-  `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*` or `GIT_EXTERNAL_DIFF` in the command
-  environment, `printf -v` of one of those names, an unquoted glob in a path operand, a recursive
+  `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*`, `GIT_EXTERNAL_DIFF`, or a `GIT_*` variable
+  that moves the repository, index, editor, pager, or SSH command in the environment, `printf -v` of
+  one of those names, an unquoted glob in a path operand, a recursive
   `grep` or a directory-walking `rg`/`ag`/`ack`, a wrapper that runs another command (`sudo`, `doas`,
   `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `flock`, `arch`, `xcrun`,
   `unshare`, `setarch`, `busybox`, `nsenter`, `docker`, `podman`, `ssh`, `caffeinate`, `strace`,
-  `bwrap`, and similar), `git grep`, `git checkout-index`, `git fast-export`, a raw-object or batch
-  `git cat-file`, `patch`, and `git apply` (each chooses the files or objects it reads or writes), a
+  `bwrap`, and similar), archive extraction (`tar -x`, `pax -r`, and `unzip` outside its list and
+  inspect forms), `git grep`, `git checkout-index`, `git fast-export`, a raw-object or batch
+  `git cat-file`, `git clone --template`, `git rebase --exec`, `patch`, and `git apply` (each chooses
+  the files or objects it reads or writes), a
   login shell that would source a profile, a shell or interpreter fed a script through a pipe or a
   stdin redirect, and a shell function definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
   deny-checked too, an index pathspec such as `:file` and a revision path such as `HEAD:file` are
   checked as the files they open, a directory-wide stage (`git add -A`, `-u`, `.`) and `git commit -a`
-  are refused because the layer cannot see the staged files, `git log --patch` and `git show` are
-  refused unless a path that cannot name a directory narrows them or a summary flag replaces the
-  bodies, the destination of `git mv` is a write, and `git init --template` is refused because the
-  template installs a hook. `git -C`, `--git-dir`, and
+  are refused because the layer cannot see the staged files, `git log --patch`, `git show`, and
+  `git stash show --patch` are refused unless a path that cannot name a directory narrows them or a
+  summary flag replaces the bodies, `git reset --hard`/`--merge`/`--keep` and a checkout or restore of
+  a directory are refused because they rewrite files the argv does not name, the path operands of
+  `git checkout` and `git restore` are writes, the destination of `git mv` is a write, and
+  `git init --template` is refused because the template installs a hook. `git -C`, `--git-dir`, and
   `--work-tree` outside the workspace need approval, a git destination (`init` and
   `--separate-git-dir`, `archive -o`, `show`/`log`/`diff` `--output`, `clone`, `worktree add`,
   `format-patch -o`, `bundle create`) is a write, the last operand of `git mv` is a write, and a `git config` with a key and a value is refused even when a read flag is
@@ -170,7 +175,8 @@ operand or redirect target.
   `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
   `gzip`, `gunzip`, `bzip2`, `xz`, `split`, `openssl -out`, `unzip -d`, a `sed` `w`/`W` script or
   `s///w` flag, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`/`-D`/`-c`/`--trace`, `wget -O`,
-  `sort -o`, `uniq`/`xxd`'s second operand, `rsync`'s destination and `--log-file`) or a `>`/`>>`/`>|`
+  `sort -o`, `uniq`/`xxd`'s second operand, `zstd -o`, `pax -f`, `mkfifo`, `mknod`, `rsync`'s
+  destination and `--log-file`) or a `>`/`>>`/`>|`
   target outside the workspace needs the same approval as `write`; `split` reads its input and writes
   its prefix, `curl -K` is refused
   because its config names outputs and URLs, `cp`/`mv`/`ln` destination flags such as `-t` and
