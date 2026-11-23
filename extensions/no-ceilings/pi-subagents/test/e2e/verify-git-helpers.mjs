@@ -94,6 +94,31 @@ if (fsLeak || extLeak) {
   failures += 1;
 }
 
+writeFileSync(join(root, '.gitattributes'), '');
+const coreAttributes = join(root, 'core-attributes');
+writeFileSync(coreAttributes, '* filter=+evil\n');
+execFileSync('git', ['config', 'core.attributesFile', coreAttributes], { cwd: root });
+execFileSync('git', ['config', 'filter.+evil.clean', filterScript], { cwd: root });
+execFileSync('git', ['config', 'filter.+evil.required', 'true'], { cwd: root });
+console.log('== filter driver shape core attributes');
+run('git diff');
+
+execFileSync('git', ['config', '--unset-all', 'core.attributesFile'], { cwd: root });
+writeFileSync(join(root, '.git/info/attributes'), '* filter=+evil\n');
+console.log('== filter driver shape info attributes');
+run('git diff');
+
+writeFileSync(join(root, '.git/info/attributes'), '');
+execFileSync('git', ['config', '--unset-all', 'filter.+evil.clean'], { cwd: root });
+execFileSync('git', ['config', '--unset-all', 'filter.+evil.required'], { cwd: root });
+const extScript = join(root, 'ext-helper.sh');
+writeFileSync(extScript, `#!/bin/sh\ncat "${secret}" >&2\nexit 1\n`);
+chmodSync(extScript, 0o755);
+execFileSync('git', ['config', 'protocol.ext.allow', 'always'], { cwd: root });
+execFileSync('git', ['remote', 'set-url', 'origin', `ext::${extScript}`], { cwd: root });
+console.log('== ext remote helper');
+run('git remote show origin');
+
 if (failures > 0) {
   console.error('FAIL: a read-only git command executed a repository helper');
   process.exitCode = 1;
