@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- List every Cursor model variant as its own Pi model. A pinned id such as `grok-4.7@context=256k+fast=false+reasoning_effort=low` sends that variant's parameters exactly, and Pi offers no thinking level on a pinned model. Ids survive offline starts and do not depend on catalog order.
+- Name pinned models from their context size and parameter labels, including when the catalog repeats a display name. Reject malformed ids and unadvertised parameter sets before an agent is created.
+- Add unit, integration, and end-to-end tests for sign-in, refresh, inference, tool calls, errors, provider switching, and secret isolation. The end-to-end suite runs the real Pi CLI against a local Grok server.
+
 ## 0.2.6
 
 - Update `README.md` sign-in steps and the Cursor agent directory description to match the current code.
