@@ -316,6 +316,19 @@ describe('commands', () => {
     }
   });
 
+  it('accepts the bash alias in the generic subagent command', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      await h.runCommand('subagent', 'bash run the tests');
+      const sent = h.getSentUserMessages();
+      expect(sent.length).toBe(ONE);
+      expect(sent[ZERO]?.content).toContain('subagent_type="shell"');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('warns when a per-agent command is used without a prompt', async () => {
     const h = createTestHarness();
     try {

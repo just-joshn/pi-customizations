@@ -279,6 +279,33 @@ describe('delegation: automatic and explicit selection', () => {
   });
 });
 
+describe('harness isolation', () => {
+  it('ignores user agent directories outside the harness', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'pi-subagents-home-'));
+    mkdirSync(join(home, '.claude/agents'), { recursive: true });
+    writeFileSync(join(home, '.claude/agents/changelog-writer.md'), ['---', 'name: changelog-writer', 'description: Summarize changelogs, release notes, and two sentence summaries', '---', 'Write the summary.'].join('\n'));
+    const previousHome = process.env['HOME'];
+    const previousAgentDir = process.env['PI_CODING_AGENT_DIR'];
+    process.env['HOME'] = home;
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'summary' });
+      const result = await h.callTool('task', { description: 'Summarize the changelog', prompt: 'Write two sentences' });
+      expect(result.details?.subagentType).toBe('general-purpose');
+    } finally {
+      await h.cleanup();
+      process.env['HOME'] = previousHome;
+      if (previousAgentDir === undefined) {
+        delete process.env['PI_CODING_AGENT_DIR'];
+      } else {
+        process.env['PI_CODING_AGENT_DIR'] = previousAgentDir;
+      }
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('delegation: retries and checkpoints', () => {
   it('retries a failing run up to max_attempts and records every attempt', async () => {
     const h = createTestHarness();
@@ -720,6 +747,21 @@ describe('nested tool inheritance and shell coverage', () => {
     }
   });
 
+  it('gives a child with an explicit empty tools list no tools', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'locked.md', ['---', 'name: locked', 'description: Locked down', 'tools: []', '---', 'Body.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'locked' });
+      const activeBefore = activeToolsCalls.length;
+      await h.callTool('task', { description: 'Locked agent', prompt: 'go', subagent_type: 'locked' });
+      expect(captured.at(-ONE)?.tools).toEqual([]);
+      expect(activeToolsCalls.length).toBe(activeBefore);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('drops powershell from a read-only child that inherits tools', async () => {
     const h = createTestHarness({ activeTools: ['read', 'bash', 'powershell'] });
     try {
@@ -981,8 +1023,43 @@ describe('read-only floors and retry safety', () => {
         resume: first.details?.agentId,
         readonly: false,
       });
+
       expect(resumed.details?.readonly).toBe(true);
       expect((loaderOptions['extensionFactories'] as readonly unknown[]).length).toBe(firstFactories);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('keeps a foreground run foreground when the agent defaults to background', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'bg-true.md', ['---', 'name: bg-true', 'description: Background by default', 'background: true', '---', 'Body.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Foreground override', prompt: 'go', subagent_type: 'bg-true', run_in_background: false });
+      expect(first.details?.isBackground).toBe(false);
+      enqueuePlan({ finalText: 'second' });
+      const resumed = await h.callTool('task', { description: 'Foreground override', prompt: 'again', subagent_type: 'bg-true', resume: first.details?.agentId });
+      expect(resumed.details?.isBackground).toBe(false);
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('keeps a background run background when the agent defaults to foreground', async () => {
+    const h = createTestHarness();
+    try {
+      writeAgent(h.cwd, '.pi/agents', 'bg-false.md', ['---', 'name: bg-false', 'description: Foreground by default', 'background: false', '---', 'Body.'].join('\n'));
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first' });
+      const first = await h.callTool('task', { description: 'Background override', prompt: 'go', subagent_type: 'bg-false', run_in_background: true });
+      expect(first.details?.isBackground).toBe(true);
+      await h.callTool('await_subagent', { agent_id: first.details?.agentId });
+      enqueuePlan({ finalText: 'second' });
+      const resumed = await h.callTool('task', { description: 'Background override', prompt: 'again', subagent_type: 'bg-false', resume: first.details?.agentId });
+      expect(resumed.details?.isBackground).toBe(true);
+      await h.callTool('await_subagent', { agent_id: resumed.details?.agentId });
     } finally {
       await h.cleanup();
     }

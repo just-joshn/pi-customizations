@@ -445,6 +445,8 @@ describe('worktree helpers', () => {
     const defaultSnapshot = store.toPersistedState();
     const defaultWithTranscripts = defaultSnapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
     expect(defaultWithTranscripts.length).toBeLessThanOrEqual(3);
+    const kept = defaultWithTranscripts.map((session) => session.agentId).sort();
+    expect(kept).toEqual(['00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000004']);
     expect(JSON.stringify(snapshot).length).toBeLessThan(100_000);
   });
   it('slugifies descriptions and falls back when empty', () => {
@@ -608,6 +610,13 @@ describe('adversary regressions', () => {
   it('does not let a negation swallow a later imperative', () => {
     const definitions = [makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }), makeDefinition({ name: 'general-purpose', description: '' })];
     for (const text of ['explore the repo. No tests, but fix the parser.', 'explore the repo. Never mind, fix the parser.']) {
+      expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
+    }
+  });
+
+  it('does not treat a negation of a read as a negation of a later change', () => {
+    const definitions = [makeDefinition({ name: 'explore', description: 'Fast read-only agent for exploring codebases', permissionMode: 'readonly' }), makeDefinition({ name: 'general-purpose', description: '' })];
+    for (const text of ['Read the code, update the parser.', "Don't just read the code, update the parser.", 'Do not just read the docs, update the parser.']) {
       expect(selectSubagentType(definitions, { description: text, prompt: '' })).toBe('general-purpose');
     }
   });
