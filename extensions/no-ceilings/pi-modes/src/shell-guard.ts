@@ -272,6 +272,28 @@ function hasSignatureFormat(words: readonly string[]): boolean {
   return words.some((word) => word.includes('%G'));
 }
 
+function isAlwaysPagingValue(value: string | undefined): boolean {
+  return value !== undefined && value.length >= TWO && 'always'.startsWith(value);
+}
+
+function hasBatForcedPager(words: readonly string[]): boolean {
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index] ?? '';
+    if (word === '--paging' || word === '--pag') {
+      if (isAlwaysPagingValue(words[index + 1])) {
+        return true;
+      }
+      continue;
+    }
+    if (word.startsWith('--paging=') || word.startsWith('--pag=')) {
+      if (isAlwaysPagingValue(word.slice(word.indexOf('=') + 1))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function hasExactWord(words: readonly string[], flags: readonly string[]): boolean {
   return words.some((word) => flags.includes(word));
 }
@@ -741,7 +763,7 @@ function isAllowedSegment(words: readonly string[]): boolean {
   if (!READ_ONLY_COMMANDS.has(command)) {
     return false;
   }
-  if (command === 'bat' && args[ONE] === 'cache') {
+  if (command === 'bat' && (args[ONE] === 'cache' || hasBatForcedPager(args))) {
     return false;
   }
   if (hasDeniedFlag(command, args.slice(1))) {

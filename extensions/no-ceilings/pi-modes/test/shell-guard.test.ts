@@ -127,6 +127,7 @@ const ALLOWED = [
   'git -c core.fsmonitor=false --no-optional-locks grep -n pattern .',
   'git show-ref',
   'bat --paging=never package.json',
+  'bat --paging=auto package.json',
 ];
 
 const BLOCKED = [
@@ -156,6 +157,10 @@ const BLOCKED = [
   "sed -ne'1w /tmp/out.txt' package.json",
   "sed -n -e'w/tmp/out.txt' package.json",
   'bat --paging=always --pager "touch /tmp/out.txt" package.json',
+  'bat --paging=always package.json',
+  'bat --paging always package.json',
+  'bat --paging=al package.json',
+  'bat --pag=always package.json',
   'bat --pager=touch package.json',
   'bat --config-file /tmp/bat.conf package.json',
   'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0="touch /tmp/out.txt" git status',
