@@ -248,7 +248,9 @@ describe('pi-subagents background execution and resume', () => {
 
       enqueuePlan({ finalText: 'Resumed follow-up answer.' });
       const resumed = await h.callTool('task', { description: 'Follow up', prompt: 'Summarize risks', resume: agentId });
-      expect(resumed.details?.finalMessage).toBe('Resumed follow-up answer.');
+      expect(resumed.details?.isBackground).toBe(true);
+      const settled = await h.callTool('await_subagent', { agent_id: agentId });
+      expect(double<{ readonly outcome?: string; readonly finalMessage?: string } | undefined>(settled.details)?.finalMessage).toBe('Resumed follow-up answer.');
 
       await expect(h.callTool('task', { description: 'Bad', prompt: 'Hi', resume: 'not-a-uuid' })).rejects.toThrow('Invalid subagent agent_id format');
     } finally {

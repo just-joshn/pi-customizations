@@ -388,6 +388,53 @@ describe('failure codes and resume safety', () => {
     }
   });
 
+  it('refuses to resume a run with no transcript path', async () => {
+    const persisted = {
+      sessions: [
+        {
+          agentId: '11111111-2222-4333-8444-555555555555',
+          parentSessionId: 'previous-session',
+          toolCallId: 'call-no-transcript',
+          subagentType: 'general-purpose',
+          description: 'No transcript',
+          prompt: 'First prompt',
+          readonly: false,
+          status: 'error',
+          isBackground: false,
+          backgroundReason: 'unspecified',
+          error: 'boom',
+          toolCallCount: ZERO,
+          startedAt: 1,
+          updatedAt: 2,
+        },
+      ],
+    };
+    const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });
+    try {
+      await h.emit('session_start', {});
+      await expect(h.callTool('task', { description: 'Resume without transcript', prompt: 'Second prompt', resume: '11111111-2222-4333-8444-555555555555' })).rejects.toMatchObject({ code: 'resume-unavailable' });
+    } finally {
+      await h.cleanup();
+    }
+  });
+
+  it('keeps background mode across a resume', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      enqueuePlan({ finalText: 'first background' });
+      const background = await h.callTool('task', { description: 'Background job', prompt: 'first', subagent_type: 'general-purpose', run_in_background: true });
+      await h.callTool('await_subagent', { agent_id: background.details?.agentId });
+      enqueuePlan({ finalText: 'resumed background' });
+      const resumed = await h.callTool('task', { description: 'Background resume', prompt: 'second', subagent_type: 'general-purpose', resume: background.details?.agentId });
+      expect(resumed.details?.isBackground).toBe(true);
+      const awaited = await h.callTool('await_subagent', { agent_id: background.details?.agentId });
+      expect(double<{ readonly outcome?: string }>(awaited.details).outcome).toBe('complete');
+    } finally {
+      await h.cleanup();
+    }
+  });
+
   it('restores valid runs when a sibling record is invalid', async () => {
     const persisted = {
       sessions: [

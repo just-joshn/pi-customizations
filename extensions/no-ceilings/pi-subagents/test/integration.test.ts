@@ -73,6 +73,7 @@ describe('real session delegation', () => {
       }),
     );
     writeFileSync(join(workspace, 'marker.txt'), 'alpha\n');
+    writeFileSync(join(workspace, '.pi', 'APPEND_SYSTEM.md'), 'PROJECT_APPEND_RULE\n');
     writeFileSync(
       join(workspace, '.pi', 'agents', 'worker.md'),
       ['---', 'name: worker', 'description: Reads one file and reports its contents.', 'tools: read', '---', `${CHILD_MARKER}. Read the requested file and report its contents.`].join('\n'),
@@ -104,6 +105,13 @@ describe('real session delegation', () => {
       const requests = server.requests.slice(before);
       expect(childRequests(requests)).toHaveLength(2);
       expect(JSON.stringify(childRequests(requests))).toContain('"name":"read"');
+      for (const request of childRequests(requests)) {
+        const system = request.messages
+          .filter((message) => message.role === 'system')
+          .map((message) => textOf(message.content))
+          .join('\n');
+        expect(system).toContain('PROJECT_APPEND_RULE');
+      }
       const transcripts = readdirSync(join(workspace, 'sessions', 'subagents'));
       expect(transcripts.length).toBe(ONE);
       const transcript = readFileSync(join(workspace, 'sessions', 'subagents', transcripts[0] ?? ''), 'utf8');

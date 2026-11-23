@@ -10,10 +10,11 @@ import { computeAgentDirectories, discoverSubagents, normalizeToolNames, parseCo
 import { buildSubagentsContextPrompt, formatDurationMs, formatElapsedCompact, formatSessionTitle, formatToolActivity, truncateByLines, truncateEnd, truncateOutputPreview } from '../src/formatters.ts';
 import { applyDefinitionToModel } from '../src/model-resolution.ts';
 import { evaluateReadonlySubagentGuard, isSafeReadOnlyCommand } from '../src/readonly-guard.ts';
+import { createSubagentStore } from '../src/store.ts';
 import { formatAwaitResultText, formatTaskResultText } from '../src/tools.ts';
 import { reduceSubagentEvent } from '../src/transcript.ts';
 import { type AwaitSubagentDetails, MAX_NESTED_TASK_DEPTH, type SubagentSessionRecord, type TaskToolDetails, ZERO } from '../src/types.ts';
-import { buildWorktreeNames, resolveWorktreeRoot, slugifyWorktreeLabel } from '../src/worktree.ts';
+import { buildWorktreeNames, resolveWorktreeChildCwd, resolveWorktreeRoot, slugifyWorktreeLabel } from '../src/worktree.ts';
 import { double, makeDefinition } from './harness.ts';
 
 const ONE = 1;
@@ -396,6 +397,29 @@ describe('transcript reducer', () => {
 });
 
 describe('worktree helpers', () => {
+  it('mirrors the parent subdirectory inside a worktree', () => {
+    expect(resolveWorktreeChildCwd({ repoRoot: '/repo', path: '/wt' }, '/repo/packages/x')).toBe('/wt/packages/x');
+    expect(resolveWorktreeChildCwd({ repoRoot: '/repo', path: '/wt' }, '/repo')).toBe('/wt');
+    expect(resolveWorktreeChildCwd({ repoRoot: '/repo', path: '/wt' }, '/outside')).toBe('/wt');
+  });
+
+  it('bounds completed transcripts in mid-run snapshots', () => {
+    const store = createSubagentStore();
+    for (let index = ZERO; index < 5; index += 1) {
+      store.upsertSession(
+        record({
+          agentId: `00000000-0000-4000-8000-00000000000${index}`,
+          status: 'success',
+          updatedAt: index,
+          transcriptItems: Array.from({ length: 10 }, (_value, item) => ({ id: `i${item}`, role: 'assistant' as const, text: 'x'.repeat(2000), completed: true, timestamp: index })),
+        }),
+      );
+    }
+    const snapshot = store.toPersistedState({ includeTranscriptItems: false });
+    const withTranscripts = snapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
+    expect(withTranscripts.length).toBeLessThanOrEqual(3);
+    expect(JSON.stringify(snapshot).length).toBeLessThan(100_000);
+  });
   it('slugifies descriptions and falls back when empty', () => {
     expect(slugifyWorktreeLabel('Refactor the parser')).toBe('refactor-the-parser');
     expect(slugifyWorktreeLabel('   !!!   ')).toBe('subagent');
@@ -551,6 +575,43 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('git remote -v')).toBe(true);
     expect(isSafeReadOnlyCommand('date -s 2020-01-01')).toBe(false);
     expect(isSafeReadOnlyCommand('date')).toBe(true);
+  });
+
+  it('blocks a lone ampersand and keeps fd duplication', () => {
+    expect(isSafeReadOnlyCommand("ls -la & python3 -c 'print(1)'")).toBe(false);
+    expect(isSafeReadOnlyCommand('echo ok & python3 -c \'open("owned.txt","w").write("owned")\'')).toBe(false);
+    expect(isSafeReadOnlyCommand('cat /etc/hosts 2>&1')).toBe(true);
+    expect(isSafeReadOnlyCommand('echo hi >&2')).toBe(true);
+  });
+
+  it('allows quoted pipes and repository grep', () => {
+    expect(isSafeReadOnlyCommand("rg 'foo|bar' src")).toBe(true);
+    expect(isSafeReadOnlyCommand("grep -E 'foo|bar' src/index.ts")).toBe(true);
+    expect(isSafeReadOnlyCommand('git grep -n TODO')).toBe(true);
+    expect(isSafeReadOnlyCommand('ls -la | head -n 5')).toBe(true);
+    expect(isSafeReadOnlyCommand('ls -la | python3 -c "print(1)"')).toBe(false);
+  });
+
+  it('allows stderr discarded to /dev/null', () => {
+    expect(isSafeReadOnlyCommand('ls src 2>/dev/null')).toBe(true);
+    expect(isSafeReadOnlyCommand('grep -r foo . 2>/dev/null')).toBe(true);
+    expect(isSafeReadOnlyCommand('ls src 2>/dev/null > out.txt')).toBe(false);
+  });
+
+  it('allows read-only date forms including GNU -d', () => {
+    expect(isSafeReadOnlyCommand("date -d '2020-01-01'")).toBe(true);
+    expect(isSafeReadOnlyCommand('date --date=2020-01-01')).toBe(true);
+    expect(isSafeReadOnlyCommand('date -u')).toBe(true);
+    expect(isSafeReadOnlyCommand('date -s 2020-01-01')).toBe(false);
+  });
+
+  it('reports unknown config keys instead of silently ignoring them', () => {
+    const explore = parseSubagentsConfig({ explore: { modle: 'inherit' } }, undefined, { cwd: '/tmp' });
+    expect(explore.errors.some((error) => error.includes('modle'))).toBe(true);
+    const retry = parseSubagentsConfig({ retry: { maxAtempts: 5 } }, undefined, { cwd: '/tmp' });
+    expect(retry.errors.some((error) => error.includes('maxAtempts'))).toBe(true);
+    const unknownSection = parseSubagentsConfig({ nested: {} }, undefined, { cwd: '/tmp' });
+    expect(unknownSection.errors.some((error) => error.includes('nested'))).toBe(true);
   });
 
   it('blocks every powershell call in read-only mode', () => {

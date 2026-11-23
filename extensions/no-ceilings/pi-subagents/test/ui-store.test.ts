@@ -399,6 +399,30 @@ describe('tasks overlay', () => {
       await h.cleanup();
     }
   });
+
+  it('aborts a selected foreground task with k', async () => {
+    const theme = createTheme();
+    const h = createTestHarness({ onCustomOverlay: driveOverlay(theme, ['k', '\u001b'], () => undefined) });
+    try {
+      const store = createSubagentStore();
+      store.upsertSession(record({ isBackground: false }));
+      let aborted = false;
+      store.registerActiveRun({
+        agentId: 'agent-1',
+        toolCallId: 'call-1',
+        isBackground: false,
+        abort: () => {
+          aborted = true;
+        },
+        completionPromise: Promise.resolve({ status: 'completed', toolCallCount: ZERO, durationMs: ZERO }),
+      });
+      const { openTasksOverlay } = await import('../src/tasks-overlay.ts');
+      await openTasksOverlay(h.ctx, store);
+      expect(aborted).toBe(true);
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('flags and MCP reloads', () => {
