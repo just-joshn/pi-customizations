@@ -1,0 +1,170 @@
+# pi-tools
+
+A Pi-native local tool-execution layer. It gives the agent permissioned filesystem access, capped
+searches, verified mutations, patch application, a shell with a working directory and environment
+overrides, git, web egress, and resource saving.
+
+Every tool is built from Pi mechanisms: `registerTool`, Pi's own tool factories, `withFileMutationQueue`,
+`pi.exec`, `ctx.ui.confirm`, `tool_call`/`tool_execution_*` events, and Pi's schema validation. Nothing
+here reimplements the agent loop, validation, MCP, codemode, or truncation.
+
+## Install
+
+The package is a Pi package. Add it to a profile with `pi install` (npm or git), or load the source
+directly:
+
+```bash
+pi -e ./extensions/no-ceilings/pi-tools/src/index.ts
+```
+
+The extension registers on load. Tools marked inactive in the table below load through `search_tools`
+when the model needs them.
+
+## Tools
+
+| Tool | What it does |
+| --- | --- |
+| `read` | Reads text or images. `offset`/`limit`, negative offset for a tail, binary refusal, ignore and permission checks, size/line/digest metadata, and a read fence for later writes. |
+| `ls` | Lists a directory, optionally to a depth, sorted, with directories suffixed. Applies ignore files, permission rules, extra globs, an entry limit, a name budget, and a five second budget. |
+| `find` | Glob matching for files and paths through ripgrep. Ignore files, permission rules, a result limit, and partial results on timeout. |
+| `grep` | Content, file, and count search modes with regex or literal patterns, context lines, glob and type filters, offset and limit, line truncation, output caps, and partial results on timeout. |
+| `write` | Creates or overwrites a file with parent directories, refuses case-folding collisions and stale files, verifies the bytes on disk, and reports size and line count. |
+| `edit` | Exact text replacement with several disjoint edits or `replaceAll`, overlap and no-op detection, stale-file refusal, BOM and line-ending preservation, and a diff plus patch. |
+| `apply_patch` | Multi-file patches in the `*** Begin Patch` format or a unified diff. Every hunk is validated before anything is written. |
+| `delete` | Deletes one file, keeps the previous contents when small, and refuses directories, ignored paths, and files that changed after the check. |
+| `bash` | Shell commands with `cwd`, environment overrides, an optional timeout, streamed output, an exit code, output spill to a file, and process-tree interruption. |
+| `git` *(loads on demand)* | Runs a git subcommand through the local executable with captured output and an exit code. |
+| `web_fetch` *(loads on demand)* | Fetches an http(s) URL, reduces HTML to text, caps the body, and can save it to a file. |
+| `web_search` *(loads on demand)* | Queries the endpoint configured under `web.search` and returns references. |
+| `save_resource` *(loads on demand)* | Writes tool-produced content to a permitted file with a digest and overwrite protection. |
+| `search_tools` | Finds the tools above that are not yet declared, prints their argument schemas, and activates them. |
+
+`read`, `ls`, `find`, `grep`, `write`, `edit`, and `bash` override Pi's built-in tools of the same
+name, so the layer replaces the built-ins instead of duplicating them. The remaining tools are new.
+
+## Configuration
+
+Settings load from `~/.pi/agent/pi-tools.json`, then `.pi/pi-tools.json` in the workspace. Project
+settings load only when the project is trusted. Environment overrides:
+
+| Variable | Effect |
+| --- | --- |
+| `PI_TOOLS_MODE` | `unrestricted`, `auto`, or `allowlist`. |
+| `PI_TOOLS_RULES` | Comma-separated `kind:action:pattern` rules appended after the files. |
+| `PI_TOOLS_IGNORE_FILES` | Comma-separated ignore file names. |
+
+```json
+{
+  "mode": "auto",
+  "workspaceRoots": ["."],
+  "ignoreFiles": [".gitignore", ".ignore", ".piignore"],
+  "rules": [
+    { "kind": "read", "action": "deny", "pattern": "**/.env" },
+    { "kind": "write", "action": "deny", "pattern": "**/secrets/**" },
+    { "kind": "exec", "action": "deny", "pattern": "npm publish*" }
+  ],
+  "web": {
+    "search": {
+      "url": "https://api.example.com/search?q={query}",
+      "headers": { "authorization": "$SEARCH_API_KEY" },
+      "resultsPath": "results"
+    }
+  }
+}
+```
+
+### Modes
+
+| Mode | Behavior |
+| --- | --- |
+| `unrestricted` | Deny rules only. No prompts. |
+| `auto` (default) | Deny rules win. Reads, writes, deletes, searches, and commands inside the workspace run without a prompt. Writes and deletes outside the workspace, and network egress, ask through `ctx.ui.confirm`; without a UI they are refused. |
+| `allowlist` | Only calls matching an allow rule run. Everything else is refused without a prompt. |
+
+Rules are checked in order for a match of the same kind and action. A deny match always wins over an
+allow match. Path rules match the absolute path and each workspace-relative path, with `*` matching a
+path segment and `**` spanning segments; a pattern without `/` matches a file name at any depth. Exec
+rules match the command string as written.
+
+Searches are the exception to the outside-workspace prompt: naming a directory explicitly lets the
+layer search it, because that is the point of passing a path. Deny rules and allowlist mode still apply.
+
+### Ignore files
+
+`.gitignore`, `.ignore`, and `.piignore` are read from each workspace root and its ancestors.
+`.gitignore` and `.ignore` are honored by ripgrep directly and by the layer's own resolver; `.piignore`
+is applied by the resolver as a post-filter, so it applies outside a git repository too. Listing and
+reading use the same verdict. A tool call that names an ignored path directly is refused with the ignore file that matched.
+
+## Behavior worth knowing
+
+- **Writes are fenced.** A full-file `read` records a fingerprint for that session. A later `write`
+  or `edit` in the same session refuses to proceed if the file changed on disk and says nothing was
+  written. Ranged reads do not record a fingerprint, and every mutation holds the per-file queue from
+  the read through the verification. `apply_patch` holds the queues for every file it touches for the
+  whole operation.
+- **Search results stay in bounds.** Every hit is resolved to its canonical path and must stay inside
+  the workspace or a directory the caller named explicitly. A symlink cannot pull outside content into
+  `grep`, `find`, or `ls`, and allowlist mode authorizes the canonical target, not the link name.
+- **Every mutation is verified.** `write`, `edit`, `apply_patch`, `save_resource`, and `web_fetch`
+  saving to disk re-read the file, compare digests inside the locked section, and report a failure when
+  the bytes on disk differ. Check-and-write pairs such as `save_resource`'s overwrite guard run inside
+  that same section, so two concurrent calls cannot both pass the check.
+- **Caps are explicit.** Search keeps 2000 results, stops ripgrep at its output cap or 8 MiB, and cuts
+  a matched line at 500 characters, each with a notice, including when the cap leaves no results. An
+  `offset` past the 2000-result window is refused rather than silently clamped, and a capped search says
+  its totals cover only the matches seen. Output truncation in `bash` keeps the last
+  2000 lines or 50KB and spills the full output to a file.
+- **Time budgets return partial results.** `grep` and `find` default to 25 seconds and return what
+  they have, marked `timedOut` in the details, when the budget expires.
+- **Commands are analyzed, not trusted.** Exec rules see the whole command plus each segment with
+  wrappers (`env`, `command`, `nohup`), assignments, `sh -c`, `eval`, `$(...)`, and backticks expanded.
+  Allowlist mode requires every segment to be allowed. A `cd` to a directory outside the workspace needs
+  approval. Code a scanner cannot see, such as a script invoked by name, is out of reach.
+- **Patches validate before writing.** All touched files are locked, then every file is read and every
+  hunk checked before the first write, so a failure on the second file leaves the first untouched. Delete
+  hunks must remove the whole file, hunks apply in file order, git-style headers and the no-newline marker
+  are honored, a pure move renames, and a no-op is refused.
+- **Errors reach the model as error results.** A failing tool returns `isError` with a message, a hint
+  when there is one, and typed details; Pi never sees a thrown error from the layer, so one failure does
+  not abort a batch.
+- **Bad arguments are repaired before validation.** `file_path`/`filePath`/`directory` map to `path`,
+  `old_string`/`new_string` to `oldText`/`newText`, JSON-string arrays become arrays, single objects
+  become one-element arrays, and numeric or boolean strings are coerced. Anything still invalid gets
+  Pi's validation error with the received arguments.
+
+## Concurrency
+
+Tool calls run in parallel, as in Pi. Every mutation goes through `withFileMutationQueue` on the
+resolved target, so two calls that touch the same file serialize instead of clobbering each other.
+`search_tools` runs sequentially because it changes the active tool set.
+
+## Security notes
+
+- Extensions run with the host's permissions. The policy is a guardrail against accidental damage, not
+  a sandbox. Use a container or VM when the process itself is untrusted.
+- Deny rules are checked before any filesystem operation, and the ignore set is re-read at the start of
+  every turn, so a `.piignore` the agent writes takes effect on the next turn.
+- The layer never runs a command through a shell string it built itself: `git` and `save_resource` use
+  `pi.exec` or `writeFile` directly. `bash` runs the exact string the model supplied, behind the exec
+  rules.
+- Web egress is never implicit. Either a read rule allows the URL, the mode is `unrestricted`, or the
+  user approves the call.
+
+## Development
+
+```bash
+bun install
+bunx vitest run              # unit, integration, and CLI end-to-end suites
+bunx vitest run --coverage   # 80% thresholds
+PI_TOOLS_LIVE=1 bunx vitest run test/live-model.test.ts   # opt-in real provider
+bunx tsc --noEmit -p tsconfig.json
+bunx biome check . --error-on-warnings
+```
+
+The end-to-end suite runs the real `pi` binary against an isolated profile and workspace with a
+deterministic fake model server, so it exercises the CLI, loader, agent loop, and tools without an LLM or
+API cost. See [docs/testing.md](docs/testing.md).
+
+See [docs/parity.md](docs/parity.md) for the capability matrix and
+[docs/verification.md](docs/verification.md) for the recorded evidence.

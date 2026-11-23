@@ -1,0 +1,91 @@
+# Capability matrix
+
+Every behavior in the capability inventory for a local tool-execution layer, mapped to the Pi-native
+mechanism that implements it and the test that proves it.
+
+## Filesystem and codebase tools
+
+| Behavior | Implementation | Test |
+| --- | --- | --- |
+| File reading | `src/tools/read.ts` composes Pi's `createReadToolDefinition` and records a session fingerprint for later mutation checks | `read > reads a full file and reports metadata`, `finding 8: the read fence fires under Pi > refuses a write after an external change` |
+| Partial-file reading | `offset`/`limit` passed through to Pi's reader | `read > reads a window with offset and limit` |
+| Reading files using line offsets | 1-indexed `offset`, negative offset translated to a tail window, and the metadata line reports the effective start and the number of lines actually returned | `read > reads the tail with a negative offset`, `finding 22: a tail read reports its real line range > shows the last two lines of five`, `finding 17: the read footer reports a truthful range > handles offset 0, limit 0, and a negative limit`, `finding 9: read footer matches what Pi returned > reports the shown range on a truncated read` |
+| Directory listing | `src/tools/ls.ts` walks with `readdir`, sorted, directories suffixed, then applies the shared ignore and permission verdicts | `ls > lists sorted entries with directories suffixed and dotfiles included` |
+| File and directory discovery | `ls` `depth` option, `find` glob root | `ls > walks nested levels when depth is greater than one` |
+| Filename and path glob matching | `src/tools/glob.ts` (registered as `find`) runs `rg --files --iglob` | `find (glob) > matches files by glob and returns paths relative to the search root` |
+| File-content search | `src/tools/grep.ts` runs ripgrep and parses its output | `grep > returns content matches with line numbers and context` |
+| Regular-expression searching | ripgrep regex by default, `literal` for fixed strings | `grep > supports literal, case-insensitive, glob, and type filters` |
+| Search result limiting and truncation | `limit`/`offset` within a 2000-result window, 2000-result cap, 8 MiB stdout cap, output-line kill, 500-char line cut, each with a notice even when the cap leaves nothing, an offset past the window is refused rather than clamped, and an offset past the match count reports no matches | `grep > limits and offsets results`, `finding 20: grep reports the cap instead of no matches > surfaces the cap notice when the cap left nothing`, `finding 18: grep pagination is bounded and honest > refuses an offset beyond the window instead of silently clamping`, `finding 10: grep reports no matches past the offset and names a file root > reports no matches when offset is past the match count` |
+| Partial search results when a search times out | `streamLines` deadline kills the child and returns collected lines; the tool marks `timedOut` | `stream runner > returns partial lines when the deadline expires`, `find (glob) > surfaces partial results when the search times out` |
+| Searching explicitly specified directories outside the workspace | `resolveToolPath` accepts absolute and `..` roots; `guardSearch` skips the outside-workspace prompt for a named root, and workspace containment compares canonical paths | `grep > searches an explicit directory outside the workspace`, `finding 3: containment compares canonical paths > allows a write through the realpath of the workspace` |
+| Respecting project ignore files during searches | `src/core/ignore.ts` resolves `.gitignore`, `.ignore`, and `.piignore` from the roots, ancestors, and every directory down to the target; search, listing, and read share one verdict | `finding 12: one ignore verdict across search and read > applies an ancestor ignore file to grep and find`, `applies .gitignore outside a git repository`, `applies a nested ignore file to read and search` |
+| Applying file-read permission rules to search results | `src/core/search.ts` `allowedPaths` resolves each result, requires it to stay inside the workspace or the named search root, applies the ignore chain and the read rules to every spelling, and drops symlink aliases of denied files | `grep > reports no matches and filters ignored or denied files`, `finding 2: symlinks cannot bypass deny rules or the workspace boundary > does not return a denied file through a symlink in grep or find`, `finding 1: search cannot leave the workspace through a symlink > drops a symlinked file and directory that point outside` |
+| Reading newly created or modified file contents | `read` always hits disk; the fence forgets stale records; the ignore set reloads each turn | `read > does not fence a ranged read` |
+| File creation | `src/tools/write.ts` creates parents and writes inside `withFileQueue`, then verifies the bytes | `write > creates a file with parents, then overwrites it` |
+| File writing | same, plus base64 bytes, overwrite, `returnContent`, and a session-scoped stale-write fence | `write > writes base64 bytes and can return the content`, `finding 8: the read fence fires under Pi > refuses a write after an external change` |
+| File editing | `src/tools/edit.ts` applies exact replacements on the original text | `edit > replaces a unique block and reports a diff` |
+| Text replacement | same, with CRLF text copied from `read` normalized before matching, and replacements spliced into the original text so untouched line endings survive | `edit > applies several disjoint edits in one call`, `finding 17: an edit matches CRLF text copied from read > replaces the line and keeps CRLF`, `finding 16: an edit preserves untouched line endings > keeps the mixed endings of other lines` |
+| Multiple-occurrence replacement | `replaceAll` per edit, refused on overlap | `edit > replaces every occurrence when replaceAll is set` |
+| Patch-based editing | `src/tools/patch.ts` with `src/core/patch.ts`. Every touched file is locked for the whole operation; inside that lock every file is read and every hunk validated before the first write, so a later failure writes nothing. Unified diffs accept git headers, blank-line separators, zero-context insertions, and the no-newline marker; delete hunks are validated; duplicate file sections merge; hunks apply in file order; a move writes the destination before removing the source; a pure move and a no-op are distinguished | `finding 4: a unified diff add writes the added lines > creates the file with its content`, `finding 5: a failed move keeps the source > leaves the source in place when the destination cannot be created`, `finding 18: a context-only patch on a file without a final newline is a no-op > refuses and leaves the bytes unchanged`, `finding 3: a patch that fails later writes nothing > leaves the first file untouched`, `finding 4: a unified-diff delete validates the removed lines > refuses a delete whose hunk does not match`, `finding 5: a blank line between unified-diff sections does not truncate the patch > applies both files`, `finding 6: a git-style multi-file diff is accepted > skips diff --git and index headers`, `finding 7: the no-newline marker is honored > writes the new last line without a trailing newline`, `finding 8: hunks apply in file order > anchors the second hunk after the first`, `finding 9: a failed patch creates no directories > leaves no parent directory behind`, `finding 10: a pure move renames without a content change > moves the file` |
+| File deletion where permitted | `src/tools/delete.ts`, guarded by write rules, with the stat, snapshot, re-check, and unlink inside the per-file queue | `delete > deletes a file and keeps the previous contents`, `finding 7: delete serializes with other mutations > produces exactly one success for two concurrent deletes` |
+| Validation of file-edit arguments | empty `edits`, empty `oldText`, unique-match requirement, overlap rejection, Pi schema validation | `edit > refuses a missing match, an overlap, and a no-op edit`, `tool edge cases > refuses an edit with no edits, an empty oldText, and a missing file` |
+| Detection of unsuccessful file operations | post-write digest verification, no-op patch/edit detection, delete `dev`/`ino` re-check | `write > asks before writing outside the workspace`, `apply_patch > refuses a patch whose update produces no change`, `write > refuses a case-folding collision only on a volume that folds case` |
+| Reporting operation errors to the agent | `src/core/errors.ts` plus `guarded` turns every failure into an `isError` result with details | `read > reports a missing file, a directory, and binary content` |
+| Reporting file metadata, sizes, and line counts | `src/core/metadata.ts` feeds `read`'s `[file: N lines, M bytes]` footer and `details.metadata`; write/edit/delete report bytes and lines | `read > reads a full file and reports metadata`, `write > creates a file with parents, then overwrites it` |
+| Protection against malformed patches and invalid search patterns | `parsePatch` validates headers, directives, hunks, and empty patches before writing; ripgrep stderr becomes an error with a regex hint | `apply_patch > writes nothing when the patch is malformed`, `grep > reports an invalid regex without crashing` |
+| Automatic tool-error recovery for incorrect arguments | `src/core/repair.ts` repairs aliases, JSON-string arrays, single-object arrays, and scalar strings before validation, wired through `prepareArguments` on every tool | `repairArguments > maps aliases onto canonical names and drops the alias`, `edit > repairs legacy argument names`, `finding 19: documented argument aliases work on every path tool > accepts file_path on read and directory on ls` |
+
+## Execution and auxiliary tools
+
+| Behavior | Implementation | Test |
+| --- | --- | --- |
+| Shell-command invocation | `src/tools/shell.ts` composes Pi's `createBashToolDefinition` | `bash > captures stdout, stderr, and the exit code` |
+| Command working-directory selection | `cwd` param, existence check, Pi operations run in it | `bash > runs in the requested working directory` |
+| Environment-variable inheritance | process environment plus per-call `env` overrides | `bash > adds and overrides environment variables on top of the inherited environment` |
+| Standard output capture | Pi's shell accumulator, streamed through `onUpdate` | `bash > streams progress updates and spills truncated output to a file` |
+| Standard error capture | merged into the same stream by Pi's shell backend | `bash > captures stdout, stderr, and the exit code` |
+| Command exit-status handling | `structuredContent.exit_code`, `isError` on non-zero, message appended | `bash > marks a non-zero exit as an error result` |
+| Command interruption | `AbortSignal` reaches Pi's process-tree kill; the result reports the abort | `bash > stops on abort`, `stream runner > rejects an already-aborted call` |
+| Command boundary | `guardCommand` tokenizes shell words, unwraps subshells and inline shells, expands substitutions, and normalizes quoting before matching exec rules. Allowlist mode requires every segment to be allowed, and the spawn directory plus every `cd` target is checked against the workspace | `finding 13: a command outside the workspace needs approval > refuses a cwd outside the workspace without a UI`, `finding 14: exec deny rules apply to every command segment > blocks a prefixed and a chained command`, `finding 11: exec rules cover ordinary command spellings > blocks whitespace, assignments, wrappers, substitutions, and nested shells`, `finding 1: exec rules cover quoting, wrappers, and nested shells > blocks quoted, escaped, and prefixed forms`, `finding 12: allowlist mode requires every command segment to be allowed > refuses a chain with one unlisted segment`, `finding 13: a cd inside the command respects the workspace boundary > refuses cd /etc headless`, `finding 2: cd targets inside subshells and nested shells are gated > blocks cd --, sh -c, /bin/sh -c, and ( ... )` |
+| Tool-call progress events | `onUpdate` from the shell definition, forwarded with command and cwd; Pi emits `tool_execution_update` | `bash > streams progress updates and spills truncated output to a file` |
+| Tool-call completion events | every tool returns a result, which Pi records as `tool_execution_end`; no layer code handles the event | covered by every tool test that asserts a returned result |
+| Concurrent tool execution | Pi's parallel default; `src/core/queue.ts` keys `withFileMutationQueue` on a canonical path and holds several queues in sorted order for multi-file work. Read, check, write, and verify run inside the lock for write, edit, delete, patch, resource saving, and web saving | `edit > keeps concurrent writes to one file serialized and verified`, `finding 20: concurrent patches serialize and no reported success is lost > serializes concurrent patches and refuses the loser`, `finding 6: patches serialize with edits and with each other > keeps the edit result when a patch runs at the same time` |
+| Local test/build/linter execution through shell commands | `bash` runs any command; `cwd` and `timeout` are explicit | `bash > times out and says so` |
+| Git operations through the local Git executable | `src/tools/git.ts` runs git through injected `pi.exec` (no shell), keeps stdout on a non-zero exit, caps the output, and reports the exit code | `git > runs status, add, commit, and log through the local executable`, `finding 15: git keeps stdout when it exits non-zero > returns the diff and the exit code` |
+| External tool invocation through the MCP client | Pi's built-in MCP extension (`mcp__<server>__<tool>`, `list_mcp_resources`, `read_mcp_resource`, `ctx.executeTool`) | verified in `docs/verification.md` against Pi's shipped MCP surface |
+| Web-search and web-fetch dispatch subject to permissions | `src/tools/web.ts` fetches one redirect hop at a time through `guardEgress`, matches URLs without embedded credentials, and keeps a caller signal plus timeout alive through the body read | `web_fetch > applies deny rules, allowlist mode, and the approval prompt`, `finding 9: a redirect cannot bypass a URL deny rule > refuses the redirect target`, `finding 10: web_fetch honors abort and timeout for the body > aborts without saving the body`, `finding 14: web_search gates every redirect hop > refuses a redirect to a denied host`, `finding 15: a userinfo URL cannot bypass a host deny rule > refuses the same host written with credentials` |
+| Tool invocation argument validation | Pi's `validateToolArguments` with coercion, plus the repair layer | `repairArguments > coerces numbers, booleans, and strings` |
+| Dynamic loading of supported tools when needed | `search_tools` activates tools registered with `defaultActive: false` through `pi.setActiveTools` | `extension wiring > keeps the auxiliary tools inactive until the loader activates them`, `extension wiring > exposes every registered tool through the catalog loader and activates matches` |
+| Tool-schema discovery and recovery from invalid arguments | `search_tools` prints the JSON schema of each match; `prepareArguments` repairs known mistakes | `search_tools > finds a tool, prints its schema, and activates it` |
+| Saving tool-produced resources to permitted local files | `save_resource`, `web_fetch` `saveTo`, shell spill files, git spill files | `save_resource > writes a resource and reports its digest`, `bash > streams progress updates and spills truncated output to a file` |
+
+### Workspace and policy
+
+| Behavior | Implementation | Test |
+| --- | --- | --- |
+| Relative workspace roots | `createPolicy` resolves them against the working directory, with `~` still expanding to home | `finding 1: workspaceRoots resolve against the working directory > keeps the project inside the workspace and the home directory outside` |
+| Canonical containment | Roots and targets are canonicalized before containment, so a symlinked path and its realpath agree | `finding 3: containment compares canonical paths > allows a write through the realpath of the workspace` |
+| Symlink targets | Rules and containment see the named path and its resolved target, so a link cannot reach a denied file or leave the workspace | `finding 2: symlinks cannot bypass deny rules or the workspace boundary > refuses a read and a write through a symlink to a denied file` |
+
+## Pi behaviors reused instead of reimplemented
+
+| Behavior | Mechanism |
+| --- | --- |
+| Argument validation, coercion, and error text | `validateToolArguments` in `@earendil-works/pi-ai` |
+| Truncation limits and notices | `truncateHead`, `truncateTail`, `formatSize` from `@earendil-works/pi-coding-agent` |
+| Text reading, image handling, and byte-order marks | `createReadToolDefinition` |
+| File mutation serialization | `withFileMutationQueue`, wrapped by `withFileQueue` for a creation-stable key |
+| Diff and patch generation for `edit` | `generateDiffString`, `generateUnifiedPatch` |
+| Shell streaming, process-tree kill, temp-file spill | `createBashToolDefinition`, `createLocalBashOperations` |
+| Subprocess capture without a shell | `pi.exec` |
+| Approval prompts | `ctx.ui.confirm` |
+| Tool lifecycle events | `onUpdate` and Pi's `tool_execution_start/update/end` |
+| MCP servers, tools, and resources | Pi's built-in MCP extension |
+| Tool discovery for scripts | codemode `searchTools`/`describeTool` and Pi's `describeNamespace` |
+| Active-tool management | `pi.getActiveTools`, `pi.setActiveTools`, `pi.getAllTools` |
+
+## Boundary
+
+The layer stops at dispatch. A service that produces search hits, rendered pages, or generated images
+is not part of it: `web_search` requires a configured endpoint, and `web_fetch` returns what the server
+sends. No service client is bundled.
