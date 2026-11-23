@@ -33,9 +33,61 @@ const WRAPPERS: ReadonlyMap<string, WrapperSpec> = new Map([
 ]);
 
 /** Wrappers that run another command, which this analyzer does not follow. */
-const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'parallel', 'watch', 'script', 'caffeinate', 'strace', 'ltrace', 'chrt', 'taskset', 'numactl', 'eatmydata', 'fakeroot', 'firejail', 'bwrap', 'flock']);
+const INDIRECT = new Set([
+  'sudo',
+  'doas',
+  'su',
+  'runuser',
+  'chroot',
+  'xargs',
+  'parallel',
+  'watch',
+  'script',
+  'caffeinate',
+  'strace',
+  'ltrace',
+  'chrt',
+  'taskset',
+  'numactl',
+  'eatmydata',
+  'fakeroot',
+  'firejail',
+  'bwrap',
+  'flock',
+  'arch',
+  'xcrun',
+  'unshare',
+  'setarch',
+  'busybox',
+  'nsenter',
+  'docker',
+  'podman',
+  'ssh',
+]);
 
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
+
+/** Readers that walk a directory tree by default, so the layer cannot see which files they open. */
+const RECURSIVE_READERS = new Set(['rg', 'ag', 'ack']);
+
+/** `grep` spellings, which recurse only behind a flag. */
+const GREP_COMMANDS = new Set(['grep', 'egrep', 'fgrep']);
+
+/** `grep` short options that consume a value, so the rest of the cluster is that value. */
+const GREP_VALUE_FLAGS = new Set(['e', 'f', 'm', 'A', 'B', 'C', 'd']);
+
+/** `grep` long options whose value is a separate word, which is not a recursive flag. */
+const GREP_VALUE_LONG = new Set(['--regexp', '--file', '--max-count', '--after-context', '--before-context', '--context', '--directories', '--devices', '--include', '--exclude', '--exclude-from', '--exclude-dir', '--label']);
+
+/** Interpreters that read their program from standard input, so the layer cannot see what runs. */
+const SCRIPT_INTERPRETERS = new Set(['python', 'python3', 'node', 'ruby', 'perl', 'php', 'lua', 'ed', 'ex']);
+
+/** Editors whose stdin is always a command script, even when a file argument is present. */
+const STDIN_SCRIPT_EDITORS = new Set(['ed', 'ex']);
+
+/** Interpreter flags that carry the program itself, so a pipe on stdin is data, not a script. */
+const INTERPRETER_PROGRAM_FLAGS = new Set(['c', 'e', 'm', 'r']);
+const INTERPRETER_PROGRAM_LONG = new Set(['--command', '--eval', '--execute', '--module', '--print']);
 const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
 
 /** Assignments that change how the shell finds, starts, splits, or traces, so the analyzer cannot vouch for them. */
@@ -103,6 +155,8 @@ interface Redirect {
   readonly hereString?: boolean;
   /** True when the operator opens the target on standard input, so a shell reads its script from it. */
   readonly readStdin?: boolean;
+  /** True for a `<<` here-document, which feeds its body to the command on standard input. */
+  readonly hereDocument?: boolean;
 }
 
 /** Resolve a leading `~`, `~/`, or `~user`. Anything else is unchanged. */
@@ -849,7 +903,9 @@ function stripRedirects(segment: string): { readonly text: string; readonly redi
         // substitutions, so its target is scanned without being treated as a path.
         if (operator === '<<<') {
           redirects.push({ raw, write: false, hereString: true });
-        } else if (!operator.includes('<<') && raw !== '') {
+        } else if (operator.includes('<<')) {
+          redirects.push({ raw, write: false, hereDocument: true });
+        } else if (raw !== '') {
           redirects.push({ raw, write: operator.includes('>'), readStdin: attached === undefined && operator.startsWith('<') });
         }
       }
@@ -1198,6 +1254,266 @@ function perlInplaceFiles(args: readonly Word[]): readonly Word[] | undefined {
   return hasProgram ? positional : positional.slice(1);
 }
 
+/** Index after a `sed` address that starts at `start`, so the scan lands on the command letter. */
+function skipSedAddress(script: string, start: number): number {
+  let index = start;
+  while (index < script.length) {
+    const char = script[index] ?? '';
+    if (char === ';' || char === '\n' || char === '{' || char === '}') {
+      return index;
+    }
+    if (/[\s0-9$,!~+?]/.test(char)) {
+      index++;
+      continue;
+    }
+    // `/regex/` and `\cregexc` addresses are patterns, not commands, so a `w` inside one is not a write.
+    if (char === '/') {
+      index++;
+      while (index < script.length) {
+        const inner = script[index] ?? '';
+        if (inner === '\\') {
+          index += 2;
+          continue;
+        }
+        index++;
+        if (inner === '/') {
+          break;
+        }
+      }
+      continue;
+    }
+    if (char === '\\' && index + 1 < script.length) {
+      const delimiter = script[index + 1] ?? '';
+      index += 2;
+      while (index < script.length) {
+        const inner = script[index] ?? '';
+        if (inner === '\\') {
+          index += 2;
+          continue;
+        }
+        index++;
+        if (inner === delimiter) {
+          break;
+        }
+      }
+      continue;
+    }
+    return index;
+  }
+  return index;
+}
+
+/** Files a literal `sed` script writes through a `w`/`W` command or an `s///w file` flag. */
+function sedScriptWrites(script: string): string[] {
+  const writes: string[] = [];
+  let index = 0;
+  const endOfCommand = (from: number): number => {
+    const stop = script.slice(from).search(/[;\n]/);
+    return stop === -1 ? script.length : from + stop;
+  };
+  const skipDelimited = (from: number, delimiter: string): number => {
+    let cursor = from;
+    while (cursor < script.length) {
+      const char = script[cursor] ?? '';
+      if (char === '\\') {
+        cursor += 2;
+        continue;
+      }
+      if (char === '\n') {
+        return cursor;
+      }
+      cursor++;
+      if (char === delimiter) {
+        return cursor;
+      }
+    }
+    return cursor;
+  };
+  while (index < script.length) {
+    index = skipSedAddress(script, index);
+    const command = script[index] ?? '';
+    if (command === '' || command === ';' || command === '\n' || command === '{' || command === '}') {
+      index++;
+      continue;
+    }
+    index++;
+    if (command === 's' || command === 'y') {
+      const delimiter = script[index] ?? '';
+      if (delimiter === '') {
+        break;
+      }
+      const afterFields = skipDelimited(skipDelimited(index + 1, delimiter), delimiter);
+      const flagsEnd = script.slice(afterFields).search(/[;\n]/);
+      const stop = flagsEnd === -1 ? script.length : afterFields + flagsEnd;
+      const flags = script.slice(afterFields, stop);
+      if (command === 's') {
+        const flag = flags.indexOf('w');
+        const target = flag === -1 ? '' : flags.slice(flag + 1).trim();
+        if (target !== '') {
+          writes.push(target);
+        }
+      }
+      index = stop;
+      continue;
+    }
+    const end = endOfCommand(index);
+    const target = script.slice(index, end).trim();
+    if ((command === 'w' || command === 'W') && target !== '') {
+      writes.push(target);
+    }
+    index = end;
+  }
+  return writes;
+}
+
+/** Script text of a `sed` invocation: each `-e` value, or the first positional when no `-e` and no `-f` is given. */
+function sedScripts(args: readonly Word[]): string[] {
+  const scripts: string[] = [];
+  const positional: Word[] = [];
+  let hasSource = false;
+  let options = true;
+  const takeNext = (index: number): string | undefined => {
+    const next = args[index + 1];
+    return next !== undefined && next.literal && !next.hidesCommand && next.value !== '' ? next.value : undefined;
+  };
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--')) {
+      const eq = value.indexOf('=');
+      const flag = eq === -1 ? value : value.slice(0, eq);
+      if (flag === '--expression' || flag === '--file') {
+        hasSource = true;
+        if (flag === '--expression') {
+          const script = eq === -1 ? takeNext(index) : value.slice(eq + 1);
+          if (script !== undefined && script !== '') {
+            scripts.push(script);
+          }
+        }
+        if (eq === -1) {
+          index++;
+        }
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const flag = body[cursor] ?? '';
+        if (flag === 'i' || flag === 'I') {
+          if (body.slice(cursor + 1) === '' && sedConsumesSuffix(args, index)) {
+            index++;
+          }
+          break;
+        }
+        if (flag !== 'e' && flag !== 'f') {
+          continue;
+        }
+        hasSource = true;
+        if (flag === 'e') {
+          const rest = body.slice(cursor + 1);
+          const script = rest === '' ? takeNext(index) : rest;
+          if (script !== undefined && script !== '') {
+            scripts.push(script);
+          }
+        }
+        if (body.slice(cursor + 1) === '') {
+          index++;
+        }
+        break;
+      }
+      continue;
+    }
+    positional.push(word);
+  }
+  const first = positional[0];
+  if (!hasSource && first !== undefined && first.value !== '') {
+    scripts.push(first.value);
+  }
+  return scripts;
+}
+
+/** True when `grep` reads directories recursively, so the layer cannot see which files it opens. */
+function grepRecursive(args: readonly Word[]): boolean {
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value === '--recursive' || value === '--dereference-recursive') {
+      return true;
+    }
+    if (value.startsWith('--')) {
+      if (GREP_VALUE_LONG.has(value) && args[index + 1] !== undefined) {
+        index++;
+      }
+      continue;
+    }
+    if (!value.startsWith('-') || value === '-') {
+      continue;
+    }
+    const body = value.slice(1);
+    for (let cursor = 0; cursor < body.length; cursor++) {
+      const flag = body[cursor] ?? '';
+      if (flag === 'r' || flag === 'R') {
+        return true;
+      }
+      if (GREP_VALUE_FLAGS.has(flag)) {
+        if (body.slice(cursor + 1) === '') {
+          index++;
+        }
+        break;
+      }
+    }
+  }
+  return false;
+}
+
+/** True when an interpreter takes its program from a pipe on standard input, given its literal arguments. */
+function interpreterReadsStdin(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      return false;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      if (value.startsWith('--')) {
+        if (INTERPRETER_PROGRAM_LONG.has(value.split('=')[0] ?? '')) {
+          return false;
+        }
+        continue;
+      }
+      if ([...value.slice(1)].some((flag) => INTERPRETER_PROGRAM_FLAGS.has(flag))) {
+        return false;
+      }
+      continue;
+    }
+    return value === '-';
+  }
+  return true;
+}
+
 /** True when a shell is invoked as a login shell, so it sources a profile the analyzer cannot see. */
 function loginShell(args: readonly string[]): boolean {
   for (const flag of args) {
@@ -1342,6 +1658,132 @@ const GIT_DESTINATIONS: ReadonlyMap<string, GitDestinationSpec> = new Map([
 
 const WORKTREE_ADD_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--reason'], valueShort: ['b', 'B'], positional: 'first' };
 const BUNDLE_CREATE_DESTINATION: GitDestinationSpec = { writeLong: [], writeShort: [], valueLong: ['--version'], valueShort: [], positional: 'first' };
+
+/** Commands whose only write destination is `--output`, which the table above does not cover. */
+const GIT_OUTPUT_COMMANDS = new Set(['show', 'log', 'diff', 'diff-tree', 'whatchanged']);
+
+/** `--output FILE` and `--output=FILE` destinations for a git command that only writes that file. */
+function gitOutputWrites(args: readonly Word[]): GitOperands {
+  const writes: string[] = [];
+  let untrusted: string | undefined;
+  const opaque = (): void => {
+    untrusted ??= 'the write target is built by an expansion';
+  };
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value === '--') {
+      options = false;
+      continue;
+    }
+    const namesOutput = options && (word.value === '--output' || word.value.startsWith('--output='));
+    if (!namesOutput) {
+      continue;
+    }
+    if (!word.literal || word.hidesCommand) {
+      opaque();
+      continue;
+    }
+    if (word.value !== '--output') {
+      const attached = word.value.slice('--output='.length);
+      if (attached !== '') {
+        writes.push(attached);
+      }
+      continue;
+    }
+    const next = args[index + 1];
+    index++;
+    if (next === undefined || !next.literal || next.hidesCommand) {
+      opaque();
+      continue;
+    }
+    if (next.value !== '') {
+      writes.push(next.value);
+    }
+  }
+  return { reads: gitReadOperands(args), writes, ...(untrusted === undefined ? {} : { untrusted }) };
+}
+
+/** A git pathspec with its index and magic prefix removed, so a rule sees the path git opens. */
+function gitPathspecPath(value: string): string {
+  if (!value.startsWith(':')) {
+    return value;
+  }
+  let rest = value.slice(1);
+  if (rest.startsWith('(')) {
+    const close = rest.indexOf(')');
+    if (close !== -1) {
+      rest = rest.slice(close + 1);
+    }
+  }
+  rest = rest.replace(/^[!^]+/, '').replace(/^(\d+)?:/, '');
+  return rest === '' ? value : rest;
+}
+
+const GIT_STAGE_REASON = 'the command stages every file, and the analyzer does not see which files those are';
+/** `git commit` short options that consume a value, so the letters after one are that value. */
+const GIT_COMMIT_VALUE_SHORT = new Set(['m', 'F', 'C', 'c', 't']);
+/** `git commit` long options that consume the next word, which is a message or a path this layer does not read. */
+const GIT_COMMIT_VALUE_LONG = new Set(['--message', '--file', '--reuse-message', '--reedit-message', '--author', '--date', '--template', '--fixup', '--squash', '--pathspec-from-file', '--trailer', '--cleanup']);
+
+/** True when `git add` or `git commit` would stage files this analyzer never names. */
+function gitStagesEverything(subcommand: string, args: readonly Word[]): boolean {
+  const isAdd = subcommand === 'add';
+  if (!isAdd && subcommand !== 'commit') {
+    return false;
+  }
+  const positional: string[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      return false;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--')) {
+      const eq = value.indexOf('=');
+      const flag = eq === -1 ? value : value.slice(0, eq);
+      if (isAdd ? flag === '--all' || flag === '--update' : flag === '--all') {
+        return true;
+      }
+      if (!isAdd && eq === -1 && GIT_COMMIT_VALUE_LONG.has(flag)) {
+        index++;
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      for (let cursor = 0; cursor < body.length; cursor++) {
+        const flag = body[cursor] ?? '';
+        if (isAdd) {
+          if (flag === 'A' || flag === 'u') {
+            return true;
+          }
+          continue;
+        }
+        if (GIT_COMMIT_VALUE_SHORT.has(flag)) {
+          if (body.slice(cursor + 1) === '') {
+            index++;
+          }
+          break;
+        }
+        if (flag === 'a') {
+          return true;
+        }
+      }
+      continue;
+    }
+    positional.push(value);
+  }
+  return isAdd && positional.length === 1 && (positional[0] === '.' || positional[0] === './' || positional[0] === ':/');
+}
 
 /** Literal operands that are not options. Option values that do not start with `-` stay operands, as before. */
 function gitReadOperands(args: readonly Word[]): string[] {
@@ -1541,7 +1983,7 @@ function gitDestinationPlan(subcommand: Word | undefined, args: readonly Word[])
   }
   const spec = GIT_DESTINATIONS.get(subcommand.value);
   if (spec === undefined) {
-    return undefined;
+    return GIT_OUTPUT_COMMANDS.has(subcommand.value) ? gitOutputWrites(args) : undefined;
   }
   return gitDestinationPaths(spec, args);
 }
@@ -1605,6 +2047,8 @@ function inspectGit(args: readonly Word[]): GitCommand {
     untrusted = gitConfigUntrusted(rest);
   } else if (subcommand?.value === 'bisect' && gitBisectRun(rest)) {
     untrusted = 'git bisect run runs a command the analyzer does not follow';
+  } else if (subcommand !== undefined && gitStagesEverything(subcommand.value, rest)) {
+    untrusted = GIT_STAGE_REASON;
   }
   const planned = gitDestinationPlan(subcommand, rest);
   if (planned?.untrusted !== undefined) {
@@ -1764,6 +2208,55 @@ function archiveOptionSkip(command: string, value: string): number | undefined {
   return undefined;
 }
 
+/** True when the tokens feed a command its program on standard input. */
+function scriptFromStdin(segment: CommandSegment, redirects: readonly Redirect[]): boolean {
+  return segment.piped || segment.text.includes('<<') || redirects.some((redirect) => redirect.readStdin === true || redirect.hereDocument === true);
+}
+
+/** `split` short options that consume a value, so the word after one is that value and not a path. */
+const SPLIT_SHORT_VALUES = new Set(['a', 'b', 'C', 'l', 'n', 't']);
+const SPLIT_LONG_VALUES = new Set(['--additional-suffix', '--bytes', '--line-bytes', '--lines', '--number', '--suffix-length', '--separator']);
+
+/** `split` destinations: the second positional operand is the output prefix it writes. */
+function splitPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const positional: Word[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('--')) {
+      if (!word.value.includes('=') && SPLIT_LONG_VALUES.has(word.value)) {
+        index++;
+      }
+      continue;
+    }
+    if (options && word.literal && !word.hidesCommand && word.value.startsWith('-') && word.value !== '-') {
+      const body = word.value.slice(1);
+      const flag = body[body.length - 1] ?? '';
+      // An attached value (`-l5`, `-b1M`) stays in the same word, so only a bare flag skips the next word.
+      if (SPLIT_SHORT_VALUES.has(flag) && body.lastIndexOf(flag) === body.length - 1) {
+        index++;
+      }
+      continue;
+    }
+    positional.push(word);
+  }
+  const prefix = positional[1];
+  if (prefix === undefined) {
+    return { paths: [] };
+  }
+  if (!prefix.literal || prefix.hidesCommand) {
+    return { paths: [], untrusted: 'the write target is built by an expansion' };
+  }
+  return { paths: [{ path: prefix.value, write: true }] };
+}
+
 export interface ShellPath {
   /** Spawn-relative or absolute literal path. */
   readonly path: string;
@@ -1824,7 +2317,24 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       }
       return;
     }
+    if (name === 'split') {
+      const noted = splitPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base);
+      }
+      return;
+    }
     if (name === 'sed' || name === 'perl') {
+      if (name === 'sed') {
+        for (const script of sedScripts(args)) {
+          for (const target of sedScriptWrites(script)) {
+            notePath(target, true, base);
+          }
+        }
+      }
       const edited = name === 'sed' ? sedInplaceFiles(args) : perlInplaceFiles(args);
       if (edited !== undefined) {
         for (const word of edited) {
@@ -1926,6 +2436,38 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         notePath(value.slice(2), true, base, word.glob);
         continue;
       }
+      if (options && name === 'openssl' && (value === '-out' || value === '--out')) {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'openssl' && value.startsWith('-out') && value.length > '-out'.length) {
+        notePath(value.slice('-out'.length), true, base, word.glob);
+        continue;
+      }
+      if (options && name === 'openssl' && value.startsWith('--out=')) {
+        notePath(value.slice('--out='.length), true, base, word.glob);
+        continue;
+      }
+      if (options && name === 'unzip' && (value === '--directory' || value === '-d')) {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'unzip' && value.startsWith('--directory=')) {
+        notePath(value.slice('--directory='.length), true, base, word.glob);
+        continue;
+      }
+      if (options && name === 'unzip' && value.startsWith('-') && !value.startsWith('--') && value.includes('d')) {
+        const attached = value.slice(value.indexOf('d') + 1);
+        if (attached !== '') {
+          notePath(attached, true, base, word.glob);
+        } else {
+          noteWriteArg(args[index + 1]);
+          index++;
+        }
+        continue;
+      }
       if (options && name === 'find' && (value === '-fprint' || value === '-fprint0' || value === '-fls' || value === '-fprintf')) {
         noteWriteArg(args[index + 1]);
         index += value === '-fprintf' ? 2 : 1;
@@ -2006,6 +2548,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (redirect.hereString === true) {
           continue;
         }
+        if (redirect.hereDocument === true) {
+          continue;
+        }
         if (word !== undefined && word.literal) {
           notePath(word.value, redirect.write, cwd, word.glob);
         }
@@ -2079,6 +2624,23 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (INDIRECT.has(name)) {
           distrust(`${name} runs a command the analyzer does not follow`);
         }
+        if (RECURSIVE_READERS.has(name)) {
+          distrust(`${name} walks directories by default, so the analyzer cannot see which files it reads`);
+        }
+        if (GREP_COMMANDS.has(name) && grepRecursive(words.slice(headIndex + 1))) {
+          distrust(`${name} recurses into directories, so the analyzer cannot see which files it reads`);
+        }
+        if (SCRIPT_INTERPRETERS.has(name)) {
+          const args = words.slice(headIndex + 1);
+          const fedScript = stripped.redirects.some((redirect) => redirect.readStdin === true || redirect.hereDocument === true) || segment.text.includes('<<');
+          if (fedScript && (STDIN_SCRIPT_EDITORS.has(name) || interpreterReadsStdin(args))) {
+            distrust(`${name} reads a script from standard input, which the analyzer cannot see`);
+          } else if (args.some((word) => word.literal && !word.hidesCommand && word.value === '-')) {
+            distrust(`${name} - reads a script from standard input, which the analyzer cannot see`);
+          } else if (segment.piped && interpreterReadsStdin(args)) {
+            distrust(`${name} reads a script from a pipe, which the analyzer cannot see`);
+          }
+        }
         if (name === 'alias' && tail.length > 0) {
           distrust('alias rebinds a command, which the analyzer cannot see through');
         }
@@ -2110,7 +2672,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           const inline = inlineShellBody([name, ...tail]);
           if (inline !== undefined && inline !== '') {
             visit(inline, depth + 1, cwd);
-          } else if (segment.piped || segment.text.includes('<<') || stripped.redirects.some((redirect) => redirect.readStdin === true)) {
+          } else if (scriptFromStdin(segment, stripped.redirects)) {
             distrust(`${name} reads a script from standard input, which the analyzer cannot see`);
           }
         }
@@ -2141,7 +2703,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
             }
           }
           for (const operand of inspected.operands) {
-            notePath(operand, false, cwd);
+            notePath(gitPathspecPath(operand), false, cwd);
           }
           for (const target of inspected.writes) {
             notePath(target, true, cwd);

@@ -8,7 +8,7 @@ import { canonicalName, displayPath, multiLinkReason, resolveToolPath } from '..
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
+import { guard, guardReadDeny, type LayerSession, protectedFileReason, subjectsFor } from '../core/session.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -45,13 +45,17 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
       async ({ params, ctx }): Promise<ToolOutcome<DeleteDetails>> => {
         const session = await options.session(ctx);
         const target = resolveToolPath(params.path, ctx.cwd, session.home);
-        await guard(session, { kind: 'write', subjects: await subjectsFor(target), action: 'delete file', ctx });
+        const subjects = await subjectsFor(target);
+        // A read deny wins: the result keeps the file's previous contents.
+        guardReadDeny(session, subjects);
+        await guard(session, { kind: 'write', subjects, action: 'delete file', ctx });
         const ignoreFile = await session.ignore.describe(target);
         if (ignoreFile !== undefined) {
           throw layerError('permission_denied', `Path ${displayPath(ctx.cwd, target)} is filtered out by ${path.basename(ignoreFile)}`, { path: target });
         }
-        if (await isProtectedIgnoreFile(session, target)) {
-          throw layerError('permission_denied', `Blocked: ${path.basename(target)} is protected and cannot be changed by the agent`, { path: target });
+        const protectedReason = await protectedFileReason(session, target);
+        if (protectedReason !== undefined) {
+          throw layerError('permission_denied', `Blocked: ${protectedReason}`, { path: target, hint: 'The permission policy marks this path as protected, so no tool can change it.' });
         }
 
         let previousContent: string | undefined;

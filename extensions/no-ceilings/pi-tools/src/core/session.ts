@@ -3,12 +3,12 @@ import path from 'node:path';
 
 import { minimatch } from 'minimatch';
 import { PROJECT_CONFIG_FILE, SPILL_DIR } from '../constants.ts';
-import type { Decision, Policy, RuleKind, ToolFailure } from '../types.ts';
+import type { Decision, Policy, PolicyRule, RuleKind, ToolFailure } from '../types.ts';
 import { analyzeShellCommand } from './command.ts';
 import { type LoadedConfig, loadConfig, type PiToolsConfig } from './config.ts';
 import { LayerError } from './errors.ts';
 import { createIgnoreResolver, type IgnoreResolver, ignoreRefusal } from './ignore.ts';
-import { canonicalPath, displayPath, multiLinkReason, policySubjects, statOrUndefined, toPosix } from './paths.ts';
+import { canonicalPath, displayPath, isInside, multiLinkReason, policySubjects, statOrUndefined, toPosix } from './paths.ts';
 import { decideMany, isInsideWorkspace, ruleMatches } from './policy.ts';
 import { createReadFence, type ReadFence } from './read-fence.ts';
 
@@ -205,6 +205,25 @@ export async function guard(session: LayerSession, request: GuardRequest): Promi
   throw failureFor(decision, request.kind, request.subjects, request.action, false);
 }
 
+/** The read deny rule that applies to this subject, when the policy refuses to read it. */
+export function readDenyRule(session: LayerSession, subject: string): PolicyRule | undefined {
+  return session.policy.rules.find((rule) => rule.kind === 'read' && rule.action === 'deny' && ruleMatches(rule, subject, session.policy));
+}
+
+/**
+ * Refuse a call whose target the policy refuses to read. A tool that returns file text, such as a diff
+ * or the previous contents it deleted, must not hand back a denied body. Only a read deny rule decides
+ * this, so allowlist mode still needs no read allow rule to edit a file.
+ */
+export function guardReadDeny(session: LayerSession, subjects: readonly string[]): void {
+  for (const subject of subjects) {
+    const denied = readDenyRule(session, subject);
+    if (denied) {
+      throw denial({ kind: 'permission_denied', message: `Blocked by permissions configuration (rule: ${denied.pattern})`, path: subject });
+    }
+  }
+}
+
 /**
  * Gate a search root. Naming a directory explicitly lets the layer search it, so auto mode approves
  * rather than prompting. Deny rules and allowlist mode still apply to every spelling of the root.
@@ -212,7 +231,7 @@ export async function guard(session: LayerSession, request: GuardRequest): Promi
 export async function guardSearch(session: LayerSession, subjects: readonly string[]): Promise<void> {
   const readRules = session.policy.rules.filter((rule) => rule.kind === 'read');
   for (const subject of subjects) {
-    const denied = readRules.find((rule) => rule.action === 'deny' && ruleMatches(rule, subject, session.policy));
+    const denied = readDenyRule(session, subject);
     if (denied) {
       throw denial({ kind: 'permission_denied', message: `Blocked by permissions configuration (rule: ${denied.pattern})`, path: subject });
     }
@@ -456,19 +475,11 @@ export async function guardEgress(session: LayerSession, url: string, ctx?: Laye
 }
 
 /**
- * True when a path names one of the configured ignore files, or the project policy file, inside the
- * workspace. Both the named path and its canonical target are checked, so a symlink does not hide the
- * protected file it points at.
- */
-export async function isProtectedIgnoreFile(session: LayerSession, target: string): Promise<boolean> {
-  return (await protectedFileReason(session, target)) !== undefined;
-}
-
-/**
  * Why the agent may not change this path, or undefined when it may. A protected ignore file is matched
  * by basename on the named path and on the file the name resolves to, so a symlink alias is refused
- * too. The project policy file is matched by canonical path inside each workspace root. `display` is
- * the spelling to show the caller, for a canonical target reached through a symlinked parent.
+ * too. The project policy file and git's own metadata are matched by canonical path inside each
+ * workspace root. `display` is the spelling to show the caller, for a canonical target reached through
+ * a symlinked parent.
  */
 export async function protectedFileReason(session: LayerSession, target: string, display?: string): Promise<string | undefined> {
   const named = path.resolve(target);
@@ -477,8 +488,30 @@ export async function protectedFileReason(session: LayerSession, target: string,
   if (ignoreFile && isInsideWorkspace(session.policy, canonical)) {
     return `${path.basename(canonical)} is protected and cannot be changed by the agent`;
   }
+  const spelled = toPosix(displayPath(session.cwd, display ?? named));
   if (await isProjectPolicyFile(session, canonical)) {
-    return `${toPosix(displayPath(session.cwd, display ?? named))} is the project policy file and cannot be changed by the agent`;
+    return `${spelled} is the project policy file and cannot be changed by the agent`;
+  }
+  const gitReason = await gitMetadataReason(session, canonical);
+  if (gitReason !== undefined) {
+    return `${spelled} ${gitReason}`;
+  }
+  return undefined;
+}
+
+/**
+ * Git reads `config` and runs whatever `hooks/` holds on a later command, so a write there takes effect
+ * outside the call that made it. Matched by canonical path inside each workspace root's git directory.
+ */
+async function gitMetadataReason(session: LayerSession, canonical: string): Promise<string | undefined> {
+  for (const root of new Set([session.cwd, ...session.policy.workspaceRoots])) {
+    const gitDir = await canonicalPath(path.join(root, '.git'));
+    if (canonical === path.join(gitDir, 'config')) {
+      return 'is git config, which names hooks and fsmonitor commands that run later, and cannot be changed by the agent';
+    }
+    if (isInside(path.join(gitDir, 'hooks'), canonical)) {
+      return 'is a git hook, which git runs later, and cannot be changed by the agent';
+    }
   }
   return undefined;
 }
