@@ -65,6 +65,8 @@ const INDIRECT = new Set([
   'docker',
   'podman',
   'ssh',
+  'scp',
+  'sftp',
 ]);
 
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
@@ -116,6 +118,30 @@ const GIT_CHECKOUT_INDEX_REASON = 'the command writes the files its index names,
 
 /** Why `git mv --target-directory` is refused: the moved file lands under a name the command never spells out. */
 const GIT_MOVE_TARGET_REASON = 'the moved file lands under a name the command does not spell out';
+
+/** Why process substitution is refused: the shell turns it into a file the analyzer never names. */
+const PROCESS_SUBSTITUTION_REASON = 'the command uses process substitution, which the analyzer cannot vouch for';
+
+/** Why `git --config-env` is refused: the config value, and any alias body in it, comes from the environment. */
+const GIT_CONFIG_ENV_REASON = 'git --config-env builds a config value from the environment, so the analyzer cannot see what runs';
+
+/** Why `git --exec-path` is refused: it runs git out of a directory the analyzer does not read. */
+const GIT_EXEC_PATH_REASON = 'git --exec-path runs git from a directory the analyzer does not read';
+
+/** Why `git filter-branch` is refused: every filter option runs a command the argv only names. */
+const GIT_FILTER_BRANCH_REASON = 'git filter-branch runs a filter command the analyzer does not follow';
+
+/** Why `git clean` is refused: it deletes files the argv never names. */
+const GIT_CLEAN_REASON = 'the command deletes files the argv does not name';
+
+/** Why `git read-tree --update` is refused: the update rewrites worktree files the argv never names. */
+const GIT_READ_TREE_REASON = 'the update rewrites worktree files the argv does not name';
+
+/** Why an `rsync` remote shell is refused: the transport is a command the argv only names. */
+const RSYNC_TRANSPORT_REASON = 'rsync -e runs a transport command the analyzer does not follow';
+
+/** Why `rsync --files-from` is refused: the list file names the source paths the argv never spells out. */
+const RSYNC_FILES_FROM_REASON = 'the list file names the source paths this command copies, and the analyzer does not read it';
 
 /** `git log` and `git show` long options that print the whole commit diff. */
 const GIT_PATCH_FLAGS = new Set(['--patch', '--full-diff']);
@@ -697,6 +723,49 @@ interface CommandSegment {
   readonly text: string;
   /** True when a top-level pipeline feeds this segment. */
   readonly piped: boolean;
+}
+
+/**
+ * True when the input holds an unquoted `<(` or `>(`. The shell replaces either one with a file descriptor
+ * whose writer or reader is a command, and the splitter below cuts at the `(`, so the word after the `)`
+ * would become a command of its own and the substitution body would vanish.
+ */
+function processSubstitution(command: string): boolean {
+  let quote: '"' | "'" | 'ansi' | undefined;
+  for (let index = 0; index < command.length; index++) {
+    const char = command[index] ?? '';
+    if (quote === 'ansi') {
+      if (char === '\\') {
+        index++;
+      } else if (char === "'") {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === '\\' && quote !== "'") {
+      index++;
+      continue;
+    }
+    if (quote !== undefined) {
+      if (char === quote) {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === '$' && command[index + 1] === "'") {
+      quote = 'ansi';
+      index++;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if ((char === '<' || char === '>') && command[index + 1] === '(') {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Split on top-level `;`, `|`, `&`, and newlines, recording which segments a pipe feeds. */
@@ -1941,6 +2010,89 @@ function gitResetRewrites(args: readonly Word[]): boolean {
   return false;
 }
 
+/** The shortest prefix git resolves to `--update`, as `--upd` does. */
+const GIT_READ_TREE_UPDATE_PREFIX = '--upd';
+
+/**
+ * True when `git read-tree` takes a mode that also rewrites the worktree: `-u`, `--update`, or an unambiguous
+ * prefix. The index-only forms move no file, so they stay allowed.
+ */
+function gitReadTreeUpdate(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      // An expansion can spell `--update`, which rewrites every worktree file.
+      if (options && word.value.startsWith('-')) {
+        return true;
+      }
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      if (name.length >= GIT_READ_TREE_UPDATE_PREFIX.length && '--update'.startsWith(name)) {
+        return true;
+      }
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      for (const letter of value.slice(1)) {
+        if (letter === 'u') {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/** `git clean` short options that consume a value, so the letters after one are that value. */
+const GIT_CLEAN_VALUE_SHORT = new Set(['e']);
+
+/** True when `git clean` takes a dry run, which lists the files it would delete and deletes none of them. */
+function gitCleanDryRun(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      // git accepts any unambiguous prefix, so `--dry` selects `--dry-run`.
+      if (name.length >= '--dry'.length && '--dry-run'.startsWith(name)) {
+        return true;
+      }
+      continue;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      for (const letter of value.slice(1)) {
+        if (letter === 'n') {
+          return true;
+        }
+        if (GIT_CLEAN_VALUE_SHORT.has(letter)) {
+          break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 /** True when pathspec magic only removes a path, which leaves every other file body in the diff. */
 function gitPathspecExcludes(value: string): boolean {
   if (!value.startsWith(':')) {
@@ -2193,6 +2345,16 @@ function gitOpaqueReason(subcommand: string, args: readonly Word[], dir: string 
   }
   if (subcommand === 'rebase') {
     return gitRebaseExec(args) ? GIT_REBASE_EXEC_REASON : undefined;
+  }
+  if (subcommand === 'filter-branch') {
+    // Every filter option (`--tree-filter`, `--index-filter`, `--msg-filter`, and the rest) runs a command.
+    return GIT_FILTER_BRANCH_REASON;
+  }
+  if (subcommand === 'clean') {
+    return gitCleanDryRun(args) ? undefined : GIT_CLEAN_REASON;
+  }
+  if (subcommand === 'read-tree') {
+    return gitReadTreeUpdate(args) ? GIT_READ_TREE_REASON : undefined;
   }
   if (subcommand === 'reset') {
     return gitResetRewrites(args) ? GIT_RESET_REWRITE_REASON : undefined;
@@ -2525,10 +2687,33 @@ function gitWorkingDirectory(dir: string | undefined, enters: readonly GitDirect
   return current;
 }
 
+/** The shortest prefixes git resolves to `--config-env` and `--exec-path`, both of which it abbreviates. */
+const GIT_CONFIG_ENV_PREFIX = '--config';
+const GIT_EXEC_PATH_PREFIX = '--exec';
+
+/**
+ * Why one global git option is refused, or undefined when it changes no command channel. Both refused options
+ * are matched through their prefixes, because git accepts any unambiguous abbreviation of a long option.
+ */
+function gitChannelReason(value: string): string | undefined {
+  if (!value.startsWith('--')) {
+    return undefined;
+  }
+  const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+  if (name.length >= GIT_CONFIG_ENV_PREFIX.length && '--config-env'.startsWith(name)) {
+    return GIT_CONFIG_ENV_REASON;
+  }
+  if (name.length >= GIT_EXEC_PATH_PREFIX.length && '--exec-path'.startsWith(name)) {
+    return GIT_EXEC_PATH_REASON;
+  }
+  return undefined;
+}
+
 /** Global git options, the config-write verdict, and literal operands after the subcommand. */
 function inspectGit(args: readonly Word[], root: string): GitCommand {
   const directories: GitDirectory[] = [];
   let index = 0;
+  let channel: string | undefined;
   const pushDirectory = (word: Word | undefined, kind: GitDirectory['kind']): void => {
     if (word === undefined) {
       return;
@@ -2541,6 +2726,12 @@ function inspectGit(args: readonly Word[], root: string): GitCommand {
       break;
     }
     const value = word.value;
+    const channelReason = gitChannelReason(value);
+    if (channelReason !== undefined) {
+      channel ??= channelReason;
+      index++;
+      continue;
+    }
     if (value === '--') {
       index++;
       break;
@@ -2565,7 +2756,7 @@ function inspectGit(args: readonly Word[], root: string): GitCommand {
       index++;
       continue;
     }
-    if (value === '--namespace' || value === '--super-prefix' || value === '--config-env') {
+    if (value === '--namespace' || value === '--super-prefix') {
       index += 2;
       continue;
     }
@@ -2592,6 +2783,9 @@ function inspectGit(args: readonly Word[], root: string): GitCommand {
     untrusted = GIT_STAGE_REASON;
   } else if (subcommand !== undefined) {
     untrusted = gitOpaqueReason(subcommand.value, rest, gitDir);
+  }
+  if (channel !== undefined) {
+    untrusted = channel;
   }
   const planned = gitDestinationPlan(subcommand, rest);
   if (planned?.untrusted !== undefined) {
@@ -3028,6 +3222,103 @@ function fileOutputPaths(name: string, args: readonly Word[]): { readonly paths:
   return { paths: [...paths, { path: output.value, write: true, ...(output.glob ? { glob: true } : {}) }] };
 }
 
+/** `ssh-keygen` short letters that consume a value, so the rest of a cluster is that value. */
+const SSH_KEYGEN_VALUE_LETTERS = new Set(['a', 'b', 'C', 'D', 'E', 'f', 'I', 'm', 'M', 'n', 'N', 'O', 'P', 't', 'V', 'w', 'Z', 'z']);
+
+/** The key file `ssh-keygen -f` and `--filename` name. */
+const SSH_KEYGEN_DESTINATION: DestinationFlag = { long: '--filename', short: 'f', valueShort: SSH_KEYGEN_VALUE_LETTERS, glob: false };
+
+/** `ssh-keygen` mode letters that only read the `-f` file, so the command writes no key. */
+const SSH_KEYGEN_READ_MODES = new Set(['i', 'e', 'y', 'l', 'B', 'F', 'r', 'L', 'Q', 'Y']);
+
+/** `ssh-keygen` mode letters that write the `-f` file, or a file next to it. */
+const SSH_KEYGEN_WRITE_MODES = new Set(['p', 'c', 'H', 'R', 'A', 'k', 's', 'M']);
+
+/**
+ * True when `ssh-keygen` writes the file `-f` names. Key generation is the default mode, so the write holds
+ * unless the argv names a mode that only reads the file, as `ssh-keygen -lf key.pub` does.
+ */
+function sshKeygenWrites(args: readonly Word[]): boolean {
+  const words = args.filter((word) => word.literal && !word.hidesCommand).map((word) => word.value);
+  // `-M screen` reads its input file; the other `-M` modes write the file it generates.
+  if (words.some((value, index) => value === 'screen' && words[index - 1] === '-M')) {
+    return false;
+  }
+  let reads = false;
+  for (const value of words) {
+    if (!value.startsWith('-') || value === '-' || value.startsWith('--')) {
+      continue;
+    }
+    const body = value.slice(1);
+    for (let cursor = 0; cursor < body.length; cursor++) {
+      const letter = body[cursor] ?? '';
+      if (SSH_KEYGEN_WRITE_MODES.has(letter)) {
+        return true;
+      }
+      if (SSH_KEYGEN_READ_MODES.has(letter)) {
+        reads = true;
+      }
+      // The rest of a cluster is this option's value, so a mode letter inside it is not a flag.
+      if (SSH_KEYGEN_VALUE_LETTERS.has(letter)) {
+        break;
+      }
+    }
+  }
+  return !reads;
+}
+
+/** `ssh-keygen` paths: the `-f` key file it writes, plus the operands it reads. */
+function sshKeygenPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const noted = destinationPaths(SSH_KEYGEN_DESTINATION, args);
+  const writes = sshKeygenWrites(args);
+  return {
+    paths: noted.paths.map((entry) => ({ ...entry, write: entry.write && writes })),
+    ...(noted.untrusted === undefined ? {} : { untrusted: noted.untrusted }),
+  };
+}
+
+/** `sqlite3` options that consume the next word, so it is a value and not the database operand. */
+const SQLITE3_VALUE_OPTIONS = new Set(['-A', '-alg', '-cmd', '-escape', '-hexkey', '-init', '-key', '-lookaside', '-maxsize', '-newline', '-nonce', '-nullvalue', '-pagecache', '-screenwidth', '-separator', '-textkey', '-vfs']);
+
+/** `sqlite3` options whose value is two words, so both are skipped. */
+const SQLITE3_TWO_VALUE_OPTIONS = new Set(['-lookaside', '-pagecache']);
+
+/** `sqlite3` paths: the first operand is the database it opens, which it writes unless `-readonly`. */
+function sqlitePaths(args: readonly Word[]): { readonly paths: readonly PathNote[]; readonly untrusted?: string } {
+  const readonly = args.some((word) => word.literal && !word.hidesCommand && word.value === '-readonly');
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined) {
+      continue;
+    }
+    const literal = word.literal && !word.hidesCommand;
+    if (options && literal && word.value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && literal && word.value.startsWith('-') && word.value !== '-') {
+      // `-A` runs a `.archive` command on the rest of the argv, so no later operand names a database.
+      if (word.value === '-A') {
+        return { paths: [] };
+      }
+      if (SQLITE3_VALUE_OPTIONS.has(word.value)) {
+        index += SQLITE3_TWO_VALUE_OPTIONS.has(word.value) ? 2 : 1;
+      }
+      continue;
+    }
+    if (!literal) {
+      return { paths: [], untrusted: 'the write target is built by an expansion' };
+    }
+    // `:memory:` is a private database, and an empty operand falls back to it.
+    if (word.value === '' || word.value === ':memory:') {
+      return { paths: [] };
+    }
+    return { paths: [{ path: word.value, write: !readonly, ...(word.glob ? { glob: true } : {}) }] };
+  }
+  return { paths: [] };
+}
+
 /** Why a `curl` config file is refused: it sets output paths and URLs this layer never reads. */
 const CURL_CONFIG_REASON = 'the curl config file sets output paths and URLs, which the analyzer does not read';
 
@@ -3286,8 +3577,11 @@ function curlPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]
   return { paths, ...(untrusted === undefined ? {} : { untrusted }) };
 }
 
-/** Archive extractors that write the member names an archive holds instead of paths the argv spells out. */
-const ARCHIVE_EXTRACTORS = new Set(['tar', 'bsdtar', 'gtar']);
+/**
+ * The tar family. One set covers both halves of the same grammar: the extraction gate, and the `-f` archive
+ * and `-C` directory that a create, append, or update writes.
+ */
+const TAR_FAMILY = new Set(['tar', 'bsdtar', 'gtar']);
 
 /** tar short letters that consume a value, so the rest of the cluster is that value and not a flag. */
 const TAR_VALUE_LETTERS = new Set(['b', 'C', 'f', 'F', 'g', 'H', 'I', 'K', 'L', 'N', 'T', 'V', 'X']);
@@ -3391,8 +3685,11 @@ function unzipLists(args: readonly Word[]): boolean {
 
 /** Why an archive command is refused, or undefined when it creates, updates, or only lists. */
 function archiveExtractionReason(name: string, args: readonly Word[]): string | undefined {
-  if (ARCHIVE_EXTRACTORS.has(name)) {
+  if (TAR_FAMILY.has(name)) {
     return tarExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
+  }
+  if (name === 'ditto') {
+    return dittoExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
   }
   if (name === 'pax') {
     return paxExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
@@ -3401,6 +3698,110 @@ function archiveExtractionReason(name: string, args: readonly Word[]): string | 
     return unzipLists(args) ? undefined : ARCHIVE_MEMBERS_REASON;
   }
   return undefined;
+}
+
+/** True when `ditto` extracts (`-x` or `--extract`), which writes the member paths the archive holds. */
+function dittoExtracts(args: readonly Word[]): boolean {
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value === '--extract') {
+      return true;
+    }
+    if (value.startsWith('-') && !value.startsWith('--') && value !== '-' && value.slice(1).includes('x')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** `rsync` short options that consume a value, so the letters after one are that value. */
+const RSYNC_VALUE_SHORT = new Set(['e', 'f', 'T', 'B', 'M']);
+
+/**
+ * True when `rsync` names a remote shell or a remote binary. Either one runs a command the argv only
+ * spells as data, so no rule sees what it executes.
+ */
+function rsyncTransport(args: readonly Word[]): boolean {
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      // An expansion can spell `-e`, which runs a transport this layer never reads.
+      if (options && word !== undefined && word.value.startsWith('-')) {
+        return true;
+      }
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+      if (name === '--rsh' || name === '--rsync-path') {
+        return true;
+      }
+      continue;
+    }
+    if (!value.startsWith('-') || value === '-') {
+      continue;
+    }
+    const body = value.slice(1);
+    for (let cursor = 0; cursor < body.length; cursor++) {
+      const letter = body[cursor] ?? '';
+      if (letter === 'e') {
+        return true;
+      }
+      if (!RSYNC_VALUE_SHORT.has(letter)) {
+        continue;
+      }
+      // The rest of the cluster is this option's value, so a later `e` is data and not a transport flag.
+      if (cursor === body.length - 1) {
+        index++;
+      }
+      break;
+    }
+  }
+  return false;
+}
+
+/**
+ * True when `rsync` reads its source paths from a list file. `--files-from` has no short letter, so this
+ * covers the long option, its `=FILE` form, a separate value, and the unambiguous prefixes rsync accepts.
+ */
+function rsyncFilesFrom(args: readonly Word[]): boolean {
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (value === '--') {
+      return false;
+    }
+    if (!value.startsWith('--')) {
+      continue;
+    }
+    const name = value.includes('=') ? value.slice(0, value.indexOf('=')) : value;
+    if (name.length >= '--files'.length && '--files-from'.startsWith(name)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export interface ShellPath {
@@ -3454,7 +3855,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     if (name === 'git') {
       return;
     }
-    if (name === 'tar') {
+    if (TAR_FAMILY.has(name)) {
       const noted = tarPaths(args);
       if (noted.untrusted !== undefined) {
         distrust(noted.untrusted);
@@ -3486,6 +3887,17 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     }
     if (name === 'curl') {
       const noted = curlPaths(args);
+      if (noted.untrusted !== undefined) {
+        distrust(noted.untrusted);
+      }
+      for (const entry of noted.paths) {
+        notePath(entry.path, entry.write, base, entry.glob === true);
+      }
+      return;
+    }
+    // `ssh-keygen -f` and the `sqlite3` database operand are the files these commands write.
+    if (name === 'ssh-keygen' || name === 'sqlite3') {
+      const noted = name === 'ssh-keygen' ? sshKeygenPaths(args) : sqlitePaths(args);
       if (noted.untrusted !== undefined) {
         distrust(noted.untrusted);
       }
@@ -3703,6 +4115,9 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     if (/(^|[;&|\n(])\s*(?:function\s+[A-Za-z_]|[A-Za-z_][A-Za-z0-9_-]*\s*\(\)\s*\{)/.test(input)) {
       distrust('the command defines a shell function, which the analyzer cannot see through');
     }
+    if (processSubstitution(input)) {
+      distrust(PROCESS_SUBSTITUTION_REASON);
+    }
     for (const segment of splitCommandSegments(input)) {
       const stripped = stripRedirects(segment.text);
       const lexed = lexSegment(stripped.text);
@@ -3808,6 +4223,12 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
         const archiveReason = archiveExtractionReason(name, words.slice(headIndex + 1));
         if (archiveReason !== undefined) {
           distrust(archiveReason);
+        }
+        if (name === 'rsync' && rsyncTransport(words.slice(headIndex + 1))) {
+          distrust(RSYNC_TRANSPORT_REASON);
+        }
+        if (name === 'rsync' && rsyncFilesFrom(words.slice(headIndex + 1))) {
+          distrust(RSYNC_FILES_FROM_REASON);
         }
         if (RECURSIVE_READERS.has(name)) {
           distrust(`${name} walks directories by default, so the analyzer cannot see which files it reads`);
