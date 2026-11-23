@@ -151,19 +151,19 @@ operand or redirect target.
   `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `flock`, `arch`, `xcrun`,
   `unshare`, `setarch`, `busybox`, `nsenter`, `docker`, `podman`, `ssh`, `caffeinate`, `strace`,
   `bwrap`, and similar), archive extraction (`tar -x`, `pax -r`, and `unzip` outside its list and
-  inspect forms), `git grep`, `git checkout-index`, `git fast-export`, a raw-object or batch
+  inspect forms, `7zz x`/`e`, and `ar -x`), `git grep`, `git checkout-index`, `git fast-export`, a raw-object or batch
   `git cat-file`, `git clone --template`, `git rebase --exec`, `git filter-branch`, `git clean`
   without a dry run, `git --config-env`, `git --exec-path`, `rsync -e`/`--files-from`, `scp`,
-  `sftp`, `uudecode`, `split --filter`, `git difftool`/`mergetool`, a `sqlite3` dot-command or its
+  `sftp`, `uudecode`, `split --filter`, `fd -x`/`-X`, `git difftool`/`mergetool`, a `sqlite3` dot-command or its
   `-cmd`/`-init`/`-A` options, `patch`, and `git apply` (each chooses the files, objects, or commands
   it reads or writes), a
   login shell that would source a profile, a shell or interpreter fed a script through a pipe or a
   stdin redirect, and a shell function definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
-  deny-checked too, an attached or `=` spelling such as `base64 -i.env`, `grep --file=.env`, and
-  `sort -o=FILE` is read as the same path, an index pathspec such as `:file` and a revision path such
-  as `HEAD:file` are checked as the files they open, a directory-wide stage (`git add -A`, `-u`, `.`) and `git commit -a`
+  deny-checked too, an attached or `=` spelling such as `base64 -i.env`, `grep --file=.env`,
+  `sort -o=FILE`, `git commit -Fenv`, and `git config --file=.env` is read as the same path, an index
+  pathspec such as `:file` and a revision path such as `HEAD:file` are checked as the files they open, a directory-wide stage (`git add -A`, `-u`, `.`) and `git commit -a`
   are refused because the layer cannot see the staged files, `git log --patch`, `git show`, and
   `git stash show --patch` are refused unless a path that cannot name a directory narrows them or a
   summary flag replaces the bodies, `git reset --hard`/`--merge`/`--keep`, `git read-tree -u`, and a
@@ -179,14 +179,16 @@ operand or redirect target.
   `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
   `gzip`, `gunzip`, `bzip2`, `xz`, `split`, `openssl -out`, `unzip -d`, a `sed` `w`/`W` script or
   `s///w` flag, `find -delete` and `-fprint`, `tar`/`bsdtar`/`gtar` `-C`/`-f`, `ditto -x`,
-  `ssh-keygen -f`, `sqlite3`'s database operand, `curl -o`/`-D`/`-c`/`--trace`, `wget -O`,
+  `ssh-keygen -f`, `sqlite3`'s database operand, `ar`'s archive, `7zz a`'s archive, `ffmpeg`'s output,
+  `mktemp`'s template, `curl -o`/`-D`/`-c`/`--trace`, `wget -O`,
   `sort -o`, `uniq`/`xxd`'s second operand, `zstd -o`, `pax -f`, `base64 -o`, `uuencode`/`b64encode`
   `-o`, `plutil -o`, `textutil -output`, a compiler `-o`, `shuf -o`, `openssl -keyout`, `ruby -i`,
   `history -w`/`-a`, `sqlite3`'s database operand, `mkfifo`, `mknod`, `rsync`'s destination and
   `--log-file`) or a `>`/`>>`/`>|`
   target outside the workspace needs the same approval as `write`; a `history -w` or `-a` file joins
-  that list, a `cp` or `mv` of a directory is refused when a read deny or ignore rule matches a file
-  inside it, `split` reads its input and writes its prefix, `curl -K` is refused
+  that list, a `cp`, `mv`, `rsync`, or `ditto` of a directory is refused when a read deny or ignore
+  rule matches a file inside it, when a symlink resolves to a denied or outside target, or when a file
+  has another link, `split` reads its input and writes its prefix, `curl -K` is refused
   because its config names outputs and URLs, `cp`/`mv`/`ln` destination flags such as `-t` and
   `--target-directory` count as the destination, and every `ln` target counts because a link is the
   path a later use escapes through.

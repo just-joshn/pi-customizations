@@ -115,8 +115,13 @@
   `openssl -keyout`, and `ruby -i` destinations are writes, and `base64 -i` and `grep --file=` reads
   are checked in their attached and `=` spellings.
 - `uudecode`, `split --filter`, `git difftool`/`mergetool`, a `sqlite3` dot-command or `-cmd`/`-init`/
-  `-A`, and a fileless `history -w`/`-a` are refused. A `cp` or `mv` of a directory is refused when a
-  read deny or ignore rule matches a file inside it.
+  `-A`, and a fileless `history -w`/`-a` are refused. A `cp`, `mv`, `rsync`, or `ditto` of a directory
+  is refused when a read deny or ignore rule matches a file inside it, when a symlink resolves to a
+  denied or outside target, or when a file has another link.
+- `fd -x`/`-X` and `ar -x` are refused, and `7zz x`/`e` joins the archive-extraction refusal.
+  `ar`'s archive, `7zz a`'s archive, `ffmpeg`'s output, and `mktemp`'s template are writes; a bare or
+  `-t` `mktemp` is refused. An attached or `=` git file option such as `commit -Fenv` or
+  `config --file=.env` is read as the path it opens.
 
 ## 0.1.0
 
