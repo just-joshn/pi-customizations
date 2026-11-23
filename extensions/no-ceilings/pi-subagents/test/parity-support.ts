@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import type { AgentSessionEvent } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { SUBAGENTS_CONFIG_FILE_NAME } from '../src/types.ts';
+import { double } from './double.ts';
 import type { SubagentsTestHarness } from './harness.ts';
 
 export const ZERO = 0;
@@ -65,17 +66,6 @@ export function installSlowGit(bin: string, match: string, flag: string): void {
   const wrapper = join(bin, 'git');
   writeFileSync(wrapper, ['#!/bin/sh', 'for arg in "$@"; do', `  if [ "$arg" = "${match}" ]; then touch "${flag}"; sleep 2; break; fi`, 'done', 'exec /usr/bin/git "$@"', ''].join('\n'));
   chmodSync(wrapper, 0o755);
-}
-
-function isDouble<T>(_value: unknown): _value is T {
-  return true;
-}
-
-function double<T>(value: unknown): T {
-  if (!isDouble<T>(value)) {
-    throw new Error('unreachable: test double is always accepted');
-  }
-  return value;
 }
 
 export function latestRunningAgentId(h: SubagentsTestHarness): string | undefined {

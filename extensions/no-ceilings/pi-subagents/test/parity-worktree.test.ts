@@ -16,15 +16,6 @@ import { ZERO, ONE, captured, enqueuePlan, initRepo, installSlowGit, persistedWo
 installParityHooks();
 
 describe('worktree and transcript durability', () => {
-  function initRepo(cwd: string): void {
-    execFileSync('git', ['init'], { cwd });
-    execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd });
-    execFileSync('git', ['config', 'user.name', 'Test'], { cwd });
-    writeFileSync(join(cwd, 'README.md'), 'base\n');
-    execFileSync('git', ['add', '.'], { cwd });
-    execFileSync('git', ['commit', '-m', 'base'], { cwd });
-  }
-
   it('keeps the worktree across resumes and refuses a resume after prune', async () => {
     const h = createTestHarness();
     try {
@@ -58,7 +49,7 @@ describe('worktree and transcript durability', () => {
       expect(transcriptPath).toBeTypeOf('string');
       expect(transcriptPath ?? '').toContain('.jsonl');
       if (transcriptPath === undefined) {
-        return;
+        throw new Error('missing transcript path');
       }
       writeFileSync(transcriptPath, 'not a session\n');
       enqueuePlan({ finalText: 'second' });
@@ -211,12 +202,7 @@ describe('abort handling and pre-aborted worktrees', () => {
   it('does not create a worktree when the call is already aborted', async () => {
     const h = createTestHarness();
     try {
-      execFileSync('git', ['init'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.name', 'Test'], { cwd: h.cwd });
-      writeFileSync(join(h.cwd, 'README.md'), 'base\n');
-      execFileSync('git', ['add', '.'], { cwd: h.cwd });
-      execFileSync('git', ['commit', '-m', 'base'], { cwd: h.cwd });
+      initRepo(h.cwd);
       await h.emit('session_start', {});
       const controller = new AbortController();
       controller.abort();

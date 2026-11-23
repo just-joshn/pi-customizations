@@ -494,9 +494,10 @@ describe('Nested task + await for opted-in non-readonly subagents', () => {
 
   function installNested(factories: readonly ExtensionFactory[]): readonly FakeTool[] {
     let tools: readonly FakeTool[] = [];
-    const fakePi = double<{ readonly on: () => void; readonly registerProvider: () => void; readonly registerTool: (tool: FakeTool) => void }>({
+    const fakePi = double<{ readonly on: () => void; readonly registerProvider: () => void; readonly getActiveTools: () => readonly string[]; readonly registerTool: (tool: FakeTool) => void }>({
       on: () => undefined,
       registerProvider: () => undefined,
+      getActiveTools: () => [],
       registerTool: (tool: FakeTool) => {
         tools = [...tools, tool];
       },

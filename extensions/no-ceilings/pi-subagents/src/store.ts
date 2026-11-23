@@ -17,7 +17,7 @@ import {
 
 const FAILURE_ID_CHARS = 12;
 
-function createFailureId(): string {
+export function createFailureId(): string {
   return randomUUID().replace(/-/g, '').slice(ZERO, FAILURE_ID_CHARS);
 }
 const MAX_PERSISTED_TRANSCRIPT_ITEMS = 10;

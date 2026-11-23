@@ -49,22 +49,19 @@ export interface ChildSession {
   readonly transcriptPath: string | undefined;
 }
 
-function isExtensionProviderConfig(config: unknown): config is ProviderConfig {
-  return typeof config === 'object' && config !== null;
-}
-
 /** Re-registers the parent's extension providers so delegated runs resolve custom OAuth models. */
 function createInheritedProvidersExtension(modelRegistry: ExtensionContext['modelRegistry']): ExtensionFactory {
   return (pi: ExtensionAPI): void => {
-    for (const providerId of modelRegistry.getRegisteredProviderIds?.() ?? []) {
-      const nativeProvider = modelRegistry.getRegisteredNativeProvider?.(providerId);
+    for (const providerId of modelRegistry.getRegisteredProviderIds()) {
+      const nativeProvider = modelRegistry.getRegisteredNativeProvider(providerId);
       if (nativeProvider !== undefined) {
         pi.registerProvider(nativeProvider);
         continue;
       }
-      const config = modelRegistry.getRegisteredProviderConfig?.(providerId);
-      if (isExtensionProviderConfig(config)) {
-        pi.registerProvider(providerId, config);
+      const config = modelRegistry.getRegisteredProviderConfig(providerId);
+      if (config !== undefined) {
+        // Pi's input and registration provider types differ only in optional model fields.
+        pi.registerProvider(providerId, config as ProviderConfig);
       }
     }
   };
@@ -156,7 +153,7 @@ const NESTED_TOOL_SET = new Set<string>([SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL
 function applyInheritedTools(session: AgentSession, parentActiveTools: readonly string[], nestedScope: NestedScope | undefined, readonly: boolean): void {
   const callable = new Set([...session.getCallableToolNames(), ...session.getAllTools().map((tool) => tool.name)]);
   const nested = nestedScope === undefined ? [] : [...NESTED_TOOL_SET];
-  const inherited = parentActiveTools.filter((name) => (callable.has(name) || nested.includes(name)) && !NESTED_TOOL_SET.has(name) && (!readonly || !READONLY_BLOCKED_TOOLS.has(name)));
+  const inherited = parentActiveTools.filter((name) => callable.has(name) && !NESTED_TOOL_SET.has(name) && (!readonly || !READONLY_BLOCKED_TOOLS.has(name)));
   session.setActiveToolsByName([...inherited, ...nested]);
 }
 
@@ -167,8 +164,7 @@ function disableChildAgentRetry(settingsManager: SettingsManager): void {
 }
 
 export async function createChildSession(request: ChildSessionRequest, parentActiveTools: readonly string[]): Promise<ChildSession> {
-  const projectTrusted = request.projectTrusted ?? false;
-  const settingsManager = SettingsManager.create(request.cwd, getAgentDir(), { projectTrusted });
+  const settingsManager = SettingsManager.create(request.cwd, getAgentDir(), { projectTrusted: request.projectTrusted });
   const sessionDir = resolveSubagentSessionDir(request.ctx);
   const sessionManager = createChildSessionManager(request.cwd, request.existingTranscriptPath, request.isResume, sessionDir);
   const resourceLoader = new DefaultResourceLoader({

@@ -8,8 +8,6 @@ import { MAX_TOOL_TEXT_CHARS, ONE, type SubagentSessionRecord, type SubagentTran
 const THINKING_STEP = 'Thinking…';
 const RESPONDING_STEP = 'Responding…';
 const WORKING_STEP = 'Working…';
-const TOOL_JSON_INDENT = ZERO;
-
 export interface RunProgress {
   readonly toolCallCount: number;
   readonly finalMessage: string | undefined;
@@ -28,7 +26,7 @@ function truncateToolText(text: string): string {
 
 function stringifyArgs(args: unknown): string {
   try {
-    return truncateToolText(JSON.stringify(args, undefined, TOOL_JSON_INDENT) ?? '');
+    return truncateToolText(JSON.stringify(args) ?? '');
   } catch {
     return '';
   }

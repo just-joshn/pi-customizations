@@ -60,7 +60,6 @@ describe('retry, resume, and persistence', () => {
       await expect.poll(() => h.getSentMessages().some((message) => JSON.stringify(message).includes('pi-subagents-background-completion'))).toBe(true);
       await h.runCommand('tasks', 'list');
       expect(h.getNotifications().at(-ONE)?.message).toContain('[success/bg]');
-      expect(h.getSentMessages().some((message) => JSON.stringify(message).includes('pi-subagents-background-completion'))).toBe(true);
     } finally {
       await h.cleanup();
     }
@@ -273,7 +272,7 @@ describe('read-only floors and retry safety', () => {
       expect(transcriptPath).toBeTypeOf('string');
       expect(transcriptPath ?? '').toContain('.jsonl');
       if (transcriptPath === undefined) {
-        return;
+        throw new Error('missing transcript path');
       }
       writeFileSync(transcriptPath, 'not a session\n');
       enqueuePlan({ finalText: 'should not run' });
@@ -299,15 +298,16 @@ describe('state snapshots and shutdown', () => {
       enqueuePlan({ finalText: 'slow', events: toolEvent('read', 'call-slow', { path: 'a.ts' }), waitForRelease: gate.promise });
       const running = await h.callTool('task', { description: 'Running job', prompt: 'second prompt', subagent_type: 'general-purpose', run_in_background: true });
       await expect.poll(() => h.getEmittedEvents().some((entry) => entry.channel === 'subagents:checkpoint')).toBe(true);
-      const state = h
+      const sessions = h
         .getEntries()
         .filter((entry) => entry.customType === 'pi-subagents-state')
-        .at(-ONE);
-      const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(state?.data).sessions;
-      const completedRecord = sessions.find((session) => session.agentId === completed.details?.agentId);
-      const runningRecord = sessions.find((session) => session.agentId === running.details?.agentId);
-      expect(completedRecord?.transcriptItems === undefined || completedRecord.transcriptItems.length === ZERO).toBe(true);
-      expect(runningRecord?.transcriptItems === undefined || runningRecord.transcriptItems.length === ZERO).toBe(true);
+        .flatMap((entry) => double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(entry.data).sessions);
+      const completedRecord = sessions.findLast((session) => session.agentId === completed.details?.agentId);
+      const runningRecord = sessions.findLast((session) => session.agentId === running.details?.agentId);
+      expect(completedRecord).toBeDefined();
+      expect(runningRecord).toBeDefined();
+      expect(completedRecord?.transcriptItems?.length ?? ZERO).toBeGreaterThan(ZERO);
+      expect(runningRecord?.transcriptItems ?? []).toHaveLength(ZERO);
       gate.release();
       await h.callTool('await_subagent', { agent_id: running.details?.agentId });
       const finalSessions = h

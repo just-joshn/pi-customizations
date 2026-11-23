@@ -61,9 +61,5 @@ export function buildEventPayload(event: SubagentEventName, record: SubagentSess
 }
 
 export function emitSubagentEvent(pi: ExtensionAPI, event: SubagentEventName, record: SubagentSessionRecord, extra?: Partial<SubagentEventPayload>): void {
-  const bus = pi.events;
-  if (bus === undefined) {
-    return;
-  }
-  bus.emit(SUBAGENT_EVENT_CHANNELS[event], buildEventPayload(event, record, extra));
+  pi.events.emit(SUBAGENT_EVENT_CHANNELS[event], buildEventPayload(event, record, extra));
 }

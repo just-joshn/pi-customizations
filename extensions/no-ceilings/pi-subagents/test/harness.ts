@@ -6,6 +6,9 @@ import type { AgentToolResult } from '@earendil-works/pi-agent-core';
 import type { ExtensionAPI, ExtensionContext, ExtensionFactory, Theme } from '@earendil-works/pi-coding-agent';
 import piSubagentsExtension from '../src/index.ts';
 import type { SubagentDefinition, TaskToolDetails } from '../src/types.ts';
+import { double } from './double.ts';
+
+export { double } from './double.ts';
 
 const ZERO = 0;
 
@@ -78,10 +81,6 @@ export interface SubagentsTestHarness {
 
 const DEFAULT_WIDTH = 100;
 
-function isDouble<T>(_value: unknown): _value is T {
-  return true;
-}
-
 export function makeDefinition(overrides: Partial<SubagentDefinition> = {}): SubagentDefinition {
   return {
     name: 'test',
@@ -104,13 +103,6 @@ export function makeDefinition(overrides: Partial<SubagentDefinition> = {}): Sub
     fullPath: undefined,
     ...overrides,
   };
-}
-
-export function double<T>(value: unknown): T {
-  if (!isDouble<T>(value)) {
-    throw new Error('unreachable: test double is always accepted');
-  }
-  return value;
 }
 
 function createFakeTheme(): Theme {

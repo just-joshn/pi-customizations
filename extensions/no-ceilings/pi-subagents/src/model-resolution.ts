@@ -3,8 +3,7 @@ import { SubagentRunError } from './failures.ts';
 import { type SubagentDefinition, type SubagentSampling, type SubagentThinkingLevel, ZERO } from './types.ts';
 
 const FAST_MODEL_HINTS = ['haiku', 'flash', 'mini', 'nano', 'fast', 'lite'] as const;
-const SLASH_CHAR = '/';
-const PROVIDER_SEPARATOR_CHARS = 1;
+const SLASH = '/';
 const INHERIT_TOKENS = new Set(['inherit', 'auto', 'inherit-parent']);
 const FAST_TOKENS = new Set(['fast', 'default']);
 
@@ -41,10 +40,10 @@ function sameModel<M extends ModelIdentity>(candidate: M, provider: string, id: 
 }
 
 function findModelByRequest<M extends ModelIdentity>(effective: string, ctx: ModelResolutionContext<M>): M | undefined {
-  const slashIndex = effective.indexOf(SLASH_CHAR);
+  const slashIndex = effective.indexOf(SLASH);
   if (slashIndex > ZERO) {
     const provider = effective.slice(ZERO, slashIndex);
-    const id = effective.slice(slashIndex + PROVIDER_SEPARATOR_CHARS);
+    const id = effective.slice(slashIndex + SLASH.length);
     const exact = ctx.modelRegistry.find(provider, id);
     if (exact) {
       return exact;

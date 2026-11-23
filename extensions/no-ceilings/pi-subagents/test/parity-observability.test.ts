@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,7 +13,7 @@ vi.mock(import('@earendil-works/pi-coding-agent'), async (importOriginal) => {
 import type { TaskToolDetails } from '../src/types.ts';
 import { createSubagentWorktree, summarizeWorktreeDiff } from '../src/worktree.ts';
 import { createGate, createTestHarness, double } from './harness.ts';
-import { ZERO, ONE, TWO, captured, enqueuePlan, loaderOptions, persistedWorktreePath, toolEvent, writeAgent, installParityHooks } from './parity-support.ts';
+import { ZERO, ONE, TWO, captured, enqueuePlan, initRepo, loaderOptions, persistedWorktreePath, toolEvent, writeAgent, installParityHooks } from './parity-support.ts';
 
 installParityHooks();
 
@@ -124,12 +123,7 @@ describe('isolation and observability', () => {
   it('runs in the parent checkout by default and in a git worktree on request', async () => {
     const h = createTestHarness();
     try {
-      execFileSync('git', ['init'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.name', 'Test'], { cwd: h.cwd });
-      writeFileSync(join(h.cwd, 'README.md'), 'base\n');
-      execFileSync('git', ['add', '.'], { cwd: h.cwd });
-      execFileSync('git', ['commit', '-m', 'base'], { cwd: h.cwd });
+      initRepo(h.cwd);
       await h.emit('session_start', {});
 
       enqueuePlan({ finalText: 'shared checkout' });
@@ -155,9 +149,6 @@ describe('isolation and observability', () => {
         path: isolated.details?.worktreePath,
         branch: isolated.details?.branch,
       });
-      if (worktree) {
-        expect((await summarizeWorktreeDiff(worktree)).length).toBeGreaterThanOrEqual(ZERO);
-      }
     } finally {
       await h.cleanup();
     }
@@ -166,12 +157,7 @@ describe('isolation and observability', () => {
   it('keeps a running worktree and removes it after the run finishes', async () => {
     const h = createTestHarness();
     try {
-      execFileSync('git', ['init'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: h.cwd });
-      execFileSync('git', ['config', 'user.name', 'Test'], { cwd: h.cwd });
-      writeFileSync(join(h.cwd, 'README.md'), 'base\n');
-      execFileSync('git', ['add', '.'], { cwd: h.cwd });
-      execFileSync('git', ['commit', '-m', 'base'], { cwd: h.cwd });
+      initRepo(h.cwd);
       await h.emit('session_start', {});
       const gate = createGate();
       enqueuePlan({ finalText: 'isolated done', waitForRelease: gate.promise });
@@ -186,9 +172,8 @@ describe('isolation and observability', () => {
       await h.callTool('await_subagent', { agent_id: launched.details?.agentId });
       await h.runCommand('tasks', `prune ${launched.details?.agentId ?? ''}`);
       expect(h.getNotifications().at(-ONE)?.message).toContain('Removed worktree');
-      if (worktreePath !== undefined) {
-        expect(existsSync(worktreePath)).toBe(false);
-      }
+      expect(worktreePath).toBeTypeOf('string');
+      expect(existsSync(worktreePath ?? '')).toBe(false);
     } finally {
       await h.cleanup();
     }
@@ -197,21 +182,18 @@ describe('isolation and observability', () => {
   it('creates and summarizes a real worktree outside the task pipeline', async () => {
     const repo = join(tmpdir(), `pi-subagents-repo-${process.pid}-${Date.now()}`);
     mkdirSync(repo, { recursive: true });
-    execFileSync('git', ['init'], { cwd: repo });
-    execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: repo });
-    execFileSync('git', ['config', 'user.name', 'Test'], { cwd: repo });
+    initRepo(repo);
     writeFileSync(join(repo, 'file.txt'), 'one\n');
-    execFileSync('git', ['add', '.'], { cwd: repo });
-    execFileSync('git', ['commit', '-m', 'base'], { cwd: repo });
 
     const created = await createSubagentWorktree({ cwd: repo, description: 'Refactor the parser', agentId: 'a', sessionDir: join(repo, '.sessions'), root: undefined, branchPrefix: 'pi-subagents' });
     expect(created.ok).toBe(true);
-    if (created.ok) {
-      expect(created.worktree.branch).toMatch(/^pi-subagents\/refactor-the-parser-[0-9a-f]{3}$/);
-      writeFileSync(join(created.worktree.path, 'file.txt'), 'two\n');
-      const summary = await summarizeWorktreeDiff(created.worktree);
-      expect(summary).toContain('file.txt');
+    if (!created.ok) {
+      throw new Error('worktree creation failed');
     }
+    expect(created.worktree.branch).toMatch(/^pi-subagents\/refactor-the-parser-[0-9a-f]{3}$/);
+    writeFileSync(join(created.worktree.path, 'file.txt'), 'two\n');
+    const summary = await summarizeWorktreeDiff(created.worktree);
+    expect(summary).toContain('file.txt');
     const notRepo = await createSubagentWorktree({ cwd: tmpdir(), description: 'nope', agentId: 'b', sessionDir: undefined, root: undefined, branchPrefix: 'pi-subagents' });
     expect(notRepo.ok).toBe(false);
   });

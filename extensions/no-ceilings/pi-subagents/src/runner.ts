@@ -10,7 +10,7 @@ import { formatSessionTitle } from './formatters.ts';
 import { applyDefinitionToModel, describeModel, resolveSubagentModel } from './model-resolution.ts';
 import { cancelPreparedRun, runDetachedTask, runForegroundTask } from './run-launch.ts';
 import { createChildSession, materializeTranscriptFile } from './session-factory.ts';
-import { isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
+import { createFailureId, isMatchingLineage, isValidSubagentId, type SubagentRunOutcome, type SubagentStore } from './store.ts';
 import { type RunProgress, reduceSubagentEvent } from './transcript.ts';
 import {
   type BackgroundCompletionPayload,
@@ -30,7 +30,6 @@ import {
   ZERO,
 } from './types.ts';
 
-const MAX_FAILURE_ID_CHARS = 12;
 const MAX_RETRY_ATTEMPTS_CAP = 10;
 const NON_RETRYABLE_FAILURES: ReadonlySet<SubagentFailureCode> = new Set(['resume-unavailable', 'worktree-failed', 'nesting-limit', 'invalid-id', 'empty-prompt', 'type-unknown', 'model-unknown', 'resume-not-owned', 'busy']);
 
@@ -53,10 +52,6 @@ export interface RunTaskOptions {
   readonly createNestedExtension: (scope: NestedScope) => ExtensionFactory;
   readonly onUpdate?: (details: TaskToolDetails) => void;
   readonly retry?: boolean;
-}
-
-function createFailureId(): string {
-  return randomUUID().replace(/-/g, '').slice(ZERO, MAX_FAILURE_ID_CHARS);
 }
 
 export function buildDetailsFromRecord(record: SubagentSessionRecord): TaskToolDetails {
@@ -456,7 +451,7 @@ async function runOneAttempt(options: RunTaskOptions, callbacks: RunnerCallbacks
         existingTranscriptPath: attempt === ONE ? plan.existing?.transcriptPath : undefined,
         isResume: attempt === ONE && plan.isResume,
         cwd: plan.childCwd,
-        projectTrusted: options.ctx.isProjectTrusted?.() ?? false,
+        projectTrusted: options.ctx.isProjectTrusted(),
         nestedScope: plan.nestedScope,
         createNestedExtension: options.createNestedExtension,
       },

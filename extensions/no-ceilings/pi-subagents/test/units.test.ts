@@ -73,7 +73,8 @@ describe('config', () => {
     expect(config.retry.maxAttempts).toBe(TWO);
     expect(config.retry.delayMs).toBe(250);
     expect(config.worktrees.branchPrefix).toBe('user-prefix');
-    expect(config.configFiles).toEqual(subagentsConfigPaths(cwd, agentDir).user === config.configFiles[ZERO] ? [subagentsConfigPaths(cwd, agentDir).user, subagentsConfigPaths(cwd, agentDir).project] : config.configFiles);
+    const paths = subagentsConfigPaths(cwd, agentDir);
+    expect(config.configFiles).toEqual([paths.user, paths.project]);
   });
 
   it('reports a malformed file and keeps usable defaults', () => {

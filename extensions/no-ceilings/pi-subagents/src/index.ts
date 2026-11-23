@@ -110,19 +110,18 @@ function registerSubagentShortcuts(pi: ExtensionAPI, store: SubagentStore): void
 }
 
 function readStringFlag(pi: ExtensionAPI, name: string): string | undefined {
-  const value = pi.getFlag?.(name);
+  const value = pi.getFlag(name);
   return typeof value === 'string' && value.trim().length > ZERO ? value.trim() : undefined;
 }
 
 function findBrowserIntegration(pi: ExtensionAPI, config: SubagentsConfig): string | undefined {
   const hints = (config.browser.serverHints.length > ZERO ? config.browser.serverHints : DEFAULT_BROWSER_SERVER_HINTS).map((hint) => hint.toLowerCase());
-  try {
-    const serverNames = (pi.getMcpServers?.() ?? []).map((server) => server.name);
-    const toolNames = (pi.getAllTools?.() ?? []).filter((tool) => tool.name.startsWith(MCP_TOOL_PREFIX)).map((tool) => tool.name);
-    return [...serverNames, ...toolNames].find((name) => hints.some((hint) => name.toLowerCase().includes(hint)));
-  } catch {
-    return undefined;
-  }
+  const serverNames = pi.getMcpServers().map((server) => server.name);
+  const toolNames = pi
+    .getAllTools()
+    .filter((tool) => tool.name.startsWith(MCP_TOOL_PREFIX))
+    .map((tool) => tool.name);
+  return [...serverNames, ...toolNames].find((name) => hints.some((hint) => name.toLowerCase().includes(hint)));
 }
 
 function registerFlags(pi: ExtensionAPI): void {
@@ -147,7 +146,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
 
   registerFlags(pi);
 
-  const projectTrust = (ctx: ExtensionContext): boolean => ctx.isProjectTrusted?.() ?? false;
+  const projectTrust = (ctx: ExtensionContext): boolean => ctx.isProjectTrusted();
   const cacheKey = (ctx: ExtensionContext): string => `${ctx.cwd}\0${projectTrust(ctx) ? '1' : '0'}`;
 
   const loadConfig = (ctx: ExtensionContext): SubagentsConfig =>
@@ -209,7 +208,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const createNestedExtension =
     (scope: NestedScope) =>
     (child: ExtensionAPI): void => {
-      registerSubagentTools(child, { ...callbacks, store: nestedStore, scope, getParentActiveTools: () => child.getActiveTools?.() ?? [] });
+      registerSubagentTools(child, { ...callbacks, store: nestedStore, scope, getParentActiveTools: () => child.getActiveTools() });
     };
 
   const callbacks: SubagentToolCallbacks = {
@@ -223,7 +222,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
         emitSubagentEvent(pi, event, record, extra);
       }
     },
-    getParentActiveTools: () => pi.getActiveTools?.() ?? [],
+    getParentActiveTools: () => pi.getActiveTools(),
   };
 
   const runnerCallbacks = {

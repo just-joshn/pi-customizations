@@ -283,9 +283,6 @@
   "extensions/no-ceilings/pi-subagents/test/parity-observability.test.ts": {
     "max-lines-per-function": {
       "count": 2
-    },
-    "vitest/no-conditional-expect": {
-      "count": 4
     }
   },
   "extensions/no-ceilings/pi-subagents/test/parity-support.ts": {

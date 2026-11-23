@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
+import { errorMessage } from './failures.ts';
 import { type SubagentWorktree, WORKTREE_SLUG_CHARS, WORKTREE_SUFFIX_CHARS, ZERO } from './types.ts';
 
 const execFileAsync = promisify(execFile);
@@ -41,8 +42,7 @@ async function git(cwd: string, args: readonly string[]): Promise<GitResult> {
     const { stdout, stderr } = await execFileAsync('git', ['-C', cwd, ...args], { maxBuffer: GIT_MAX_BUFFER_BYTES });
     return { ok: true, stdout, stderr };
   } catch (error) {
-    const stderr = error instanceof Error ? error.message : String(error);
-    return { ok: false, stdout: '', stderr };
+    return { ok: false, stdout: '', stderr: errorMessage(error) };
   }
 }
 

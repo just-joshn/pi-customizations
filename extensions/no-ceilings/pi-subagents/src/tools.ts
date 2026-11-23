@@ -136,7 +136,7 @@ function registerTaskTool(pi: ExtensionAPI, callbacks: SubagentToolCallbacks): v
         definition,
         ctx,
         createNestedExtension: (scope: NestedScope) => (child: ExtensionAPI) => {
-          registerSubagentTools(child, { ...callbacks, store: { ...callbacks.store, enqueueWakeup: () => false }, scope, getParentActiveTools: () => child.getActiveTools?.() ?? [] });
+          registerSubagentTools(child, { ...callbacks, store: { ...callbacks.store, enqueueWakeup: () => false }, scope, getParentActiveTools: () => child.getActiveTools() });
         },
         ...(signal ? { signal } : {}),
         ...(callbacks.scope ? { scope: callbacks.scope } : {}),
