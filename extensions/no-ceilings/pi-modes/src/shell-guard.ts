@@ -679,7 +679,7 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (subcommand === 'apply') {
     const flags = args.slice(1);
     const inspects = flags.includes('--check') || flags.includes('--stat') || flags.includes('--numstat');
-    const writes = hasLongFlag(flags, ['--apply', '--index', '--cached', '--3way']);
+    const writes = hasLongFlag(flags, ['--apply', '--index', '--cached', '--3way', '--build-fake-ancestor']);
     return inspects && !writes;
   }
   if (subcommand === 'worktree') {

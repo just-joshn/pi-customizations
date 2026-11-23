@@ -6,6 +6,7 @@ import { normalizeModeColorId, normalizeModeIcon } from './mode-colors.ts';
 import { type ModeColorId, ONE, ZERO } from './types.ts';
 
 const FRONTMATTER_FENCE = '---';
+const BOM = '\uFEFF';
 const FRONTMATTER_OPEN_LEN = 4;
 const KEY_PATTERN_SUFFIX = '\\s*:';
 const EMPTY_BLOCK_LINES = 1;
@@ -161,7 +162,18 @@ function splitFlowEntries(inner: string): readonly string[] {
 }
 
 function expandFlowFrontmatter(lines: readonly string[]): readonly string[] {
-  const joined = lines.join('\n').trim();
+  const leading: string[] = [];
+  let start = ZERO;
+  while (start < lines.length) {
+    const line = lines[start] ?? '';
+    const trimmed = line.trim();
+    if (trimmed.length > ZERO && !trimmed.startsWith('#')) {
+      break;
+    }
+    leading.push(line);
+    start += ONE;
+  }
+  const joined = lines.slice(start).join('\n').trim();
   if (!joined.startsWith(FLOW_OPEN)) {
     return lines;
   }
@@ -174,26 +186,29 @@ function expandFlowFrontmatter(lines: readonly string[]): readonly string[] {
     return lines;
   }
   const inner = joined.slice(ONE, close).trim();
-  if (inner.length === ZERO) {
-    return [];
-  }
-  return splitFlowEntries(inner).map((entry) => {
-    const colon = entry.indexOf(FLOW_KEY_SEPARATOR);
-    if (colon < ZERO) {
-      return entry;
-    }
-    const rawKey = entry.slice(ZERO, colon).trim();
-    const key = rawKey.replace(/^(["'])(.*)\1$/, '$2');
-    return `${key}: ${entry.slice(colon + ONE).trim()}`;
-  });
+  const entries =
+    inner.length === ZERO
+      ? []
+      : splitFlowEntries(inner).map((entry) => {
+          const colon = entry.indexOf(FLOW_KEY_SEPARATOR);
+          if (colon < ZERO) {
+            return entry;
+          }
+          const rawKey = entry.slice(ZERO, colon).trim();
+          const key = rawKey.replace(/^(["'])(.*)\1$/, '$2');
+          return `${key}: ${entry.slice(colon + ONE).trim()}`;
+        });
+  return [...leading, ...entries];
 }
 
 function rewriteFrontmatter(content: string, mutate: (lines: readonly string[]) => readonly string[]): string {
-  const lineEnding = content.includes('\r\n') ? '\r\n' : content.includes('\r') ? '\r' : '\n';
-  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const bom = content.startsWith(BOM) ? BOM : '';
+  const body = bom.length > ZERO ? content.slice(ONE) : content;
+  const lineEnding = body.includes('\r\n') ? '\r\n' : body.includes('\r') ? '\r' : '\n';
+  const normalized = body.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const split = splitFrontmatterBlock(normalized);
   const updated = !split ? `${FRONTMATTER_FENCE}\n${mutate([]).join('\n')}\n${FRONTMATTER_FENCE}\n\n${normalized}` : `${FRONTMATTER_FENCE}\n${mutate(expandFlowFrontmatter(split.lines)).join('\n')}${split.tail}`;
-  return updated.replace(/\n/g, lineEnding);
+  return `${bom}${updated.replace(/\n/g, lineEnding)}`;
 }
 
 function keyPattern(key: string): RegExp {

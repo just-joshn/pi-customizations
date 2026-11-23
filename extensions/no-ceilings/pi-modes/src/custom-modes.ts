@@ -11,6 +11,33 @@ const MARKDOWN_EXT = '.md';
 const UNHYDRATED_PREFIX = 'unhydrated:';
 const CUSTOM_MODE_ID_PREFIX = 'custom-mode:';
 const REFERENCE_PATTERN = /(?:^|\s)\/[a-zA-Z0-9_-]/;
+const SYSTEM_PATH_TOKENS = new Set<string>([
+  'applications',
+  'bin',
+  'boot',
+  'dev',
+  'etc',
+  'home',
+  'lib',
+  'lib64',
+  'library',
+  'media',
+  'mnt',
+  'opt',
+  'private',
+  'proc',
+  'root',
+  'run',
+  'sbin',
+  'srv',
+  'sys',
+  'system',
+  'tmp',
+  'usr',
+  'users',
+  'var',
+  'volumes',
+]);
 const REFERENCE_TOKEN_PATTERN = /(?:^|\s)\/([a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-]|\.[a-zA-Z0-9]|\/)/g;
 
 export interface SlashCommandLike {
@@ -143,7 +170,7 @@ function collectReferenceTokens(prompt: string): readonly string[] {
   if (!REFERENCE_PATTERN.test(prompt)) {
     return [];
   }
-  return [...prompt.matchAll(REFERENCE_TOKEN_PATTERN)].flatMap((match) => (match[1] === undefined ? [] : [match[1]]));
+  return [...prompt.matchAll(REFERENCE_TOKEN_PATTERN)].flatMap((match) => (match[1] === undefined || SYSTEM_PATH_TOKENS.has(match[1].toLowerCase()) ? [] : [match[1]]));
 }
 
 export function referencesSkill(prompt: string): boolean {

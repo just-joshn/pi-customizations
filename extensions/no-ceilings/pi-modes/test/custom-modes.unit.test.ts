@@ -209,6 +209,8 @@ describe('findReferencedCustomModes', () => {
     expect(findReferencedCustomModes('read src/index.ts then /nope', modes)).toEqual([]);
     expect(findReferencedCustomModes('open the docs at /reviewer.md', modes)).toEqual([]);
     expect(findReferencedCustomModes('read /reviewer/notes/before acting', modes)).toEqual([]);
+    expect(findReferencedCustomModes('read /tmp please', [...modes, makeSkill({ id: 'tmp', label: 'tmp', filePath: '/repo/.pi/skills/tmp/SKILL.md' })])).toEqual([]);
+    expect(findReferencedCustomModes('list /dev please', [...modes, makeSkill({ id: 'dev', label: 'dev', filePath: '/repo/.pi/skills/dev/SKILL.md' })])).toEqual([]);
     expect(findReferencedCustomModes('nothing to do here', modes)).toEqual([]);
   });
 
@@ -352,6 +354,33 @@ describe('writeSkillAppearance', () => {
     expect(written).toContain('color: "blue"');
     expect(written).not.toContain('"color":');
     expect(written).toContain('Body here.');
+  });
+
+  it('preserves a BOM and keeps one frontmatter block', async () => {
+    const skillPath = writeSkillFile('pi-modes-bom-', '\uFEFF---\nname: reviewer\ncolor: red\n---\n\nReview every diff.\n');
+
+    await writeSkillAppearance(skillPath, { color: 'blue' });
+    const written = readFileSync(skillPath, 'utf-8');
+    expect(written.startsWith('\uFEFF---\n')).toBe(true);
+    expect(written).toContain('color: "blue"');
+    expect(written).toContain('Review every diff.');
+
+    const skill = await readSkillDocument(skillPath, 'reviewer');
+    expect(skill.colorId).toBe('blue');
+    expect(skill.body).toBe('Review every diff.');
+  });
+
+  it('updates flow frontmatter that starts with a comment', async () => {
+    const skillPath = writeSkillFile('pi-modes-flow-comment-', '---\n# appearance\n{name: reviewer, color: red}\n---\n\nReview every diff.\n');
+
+    await writeSkillAppearance(skillPath, { color: 'blue' });
+    const written = readFileSync(skillPath, 'utf-8');
+    expect(written).toContain('# appearance');
+    expect(written).toContain('color: "blue"');
+    expect(written).toContain('Review every diff.');
+
+    const skill = await readSkillDocument(skillPath, 'reviewer');
+    expect(skill.colorId).toBe('blue');
   });
 
   it('writes color and icon on a skill Pi discovered as a direct markdown file and keeps the body', async () => {

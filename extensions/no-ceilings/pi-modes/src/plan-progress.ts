@@ -2,11 +2,12 @@ import { type CreatePlanInput, ONE, type TrackedPlanStep, TWO, ZERO } from './ty
 
 const SLASH_PREFIX = '/';
 const MIN_STEP_TEXT_LEN = 3;
-const DONE_PATTERNS = [/\[DONE\s*:?\s*(\d+)\]/gi, /\bDone\s*:\s*(\d+)\b/gi, /\bStep\s*(\d+)\s+(?:is\s+)?(?:done|complete|completed|finished)\b/gi];
-const ALL_STEPS_COMPLETE_PATTERN = /\b(?:all|every)\s+steps?\s+(?:(?:are|is)\s+)?(?:done|complete|completed|finished)/gi;
-const PLAN_COMPLETE_PATTERN = /\b(?:the\s+)?plan\s+(?:is\s+)?(?:complete|completed|done)\b/gi;
+const DONE_PATTERNS = [/\[DONE\s*:?\s*(\d+)\]/gi, /\bDone\s*:\s*(\d+)\b/gi, /\bStep\s*(\d+)\s+(?:is\s+)?(?:done|complete|completed|finished)(?![-A-Za-z0-9_])(?!\s+[A-Za-z])\b/gi];
+const ALL_STEPS_COMPLETE_PATTERN = /\b(?:all|every)\s+steps?\s+(?:(?:are|is)\s+)?(?:done|complete|completed|finished)(?![-A-Za-z0-9_])(?!\s+[A-Za-z])/gi;
+const PLAN_COMPLETE_PATTERN = /\b(?:the\s+)?plan\s+(?:is\s+)?(?:complete|completed|done)(?![-A-Za-z0-9_])(?!\s+[A-Za-z])\b/gi;
 const NEGATION_PATTERN = /\b(?:not|never|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|cannot|can't)\b/i;
-const NON_COMPLETION_PREFIX_PATTERN = /\b(?:not|never|until|before|unless|if|when|once|whether|will|would|could|should|may|might|can|hope|expect|want|need|continue|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|cannot|can't)\b/i;
+const NON_COMPLETION_PREFIX_PATTERN = /\b(?:not|never|until|before|unless|if|when|once|whether|will|hope|expect|want|need|continue|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|cannot|can't)\b/i;
+const CONDITIONAL_AFTER_PATTERN = /^\s*(?:once|when|whenever|if|after|before|until|unless|whether|while)\b/i;
 
 export function buildTrackedStepsFromPlanInput(input: CreatePlanInput): readonly TrackedPlanStep[] {
   const directTodos = input.todos ?? [];
@@ -30,12 +31,31 @@ export function extractStepsFromMarkdown(markdown: string): readonly TrackedPlan
     .map((text, idx) => ({ step: idx + ONE, id: `step-${idx + ONE}`, text, completed: false }));
 }
 
+function clauseStart(text: string, index: number): number {
+  return Math.max(text.lastIndexOf('.', index - ONE), text.lastIndexOf('!', index - ONE), text.lastIndexOf('?', index - ONE), text.lastIndexOf(';', index - ONE)) + ONE;
+}
+
 function hasNegationBefore(text: string, index: number): boolean {
-  return NEGATION_PATTERN.test(text.slice(Math.max(ZERO, index - 16), index));
+  return NEGATION_PATTERN.test(text.slice(clauseStart(text, index), index));
+}
+
+function followsNonCompletion(text: string, index: number): boolean {
+  return NON_COMPLETION_PREFIX_PATTERN.test(text.slice(clauseStart(text, index), index));
+}
+
+function hasConditionalAfter(text: string, index: number): boolean {
+  return CONDITIONAL_AFTER_PATTERN.test(text.slice(index));
 }
 
 export function extractDoneStepNumbers(text: string): readonly number[] {
-  const numbers = DONE_PATTERNS.flatMap((pattern) => [...text.matchAll(pattern)].filter((match) => !hasNegationBefore(text, match.index ?? ZERO)).map((match) => Number(match[ONE])));
+  const numbers = DONE_PATTERNS.flatMap((pattern) =>
+    [...text.matchAll(pattern)]
+      .filter((match) => {
+        const index = match.index ?? ZERO;
+        return !hasNegationBefore(text, index) && !followsNonCompletion(text, index) && !hasConditionalAfter(text, index + match[ZERO].length);
+      })
+      .map((match) => Number(match[ONE])),
+  );
   return [...new Set(numbers.filter((n) => Number.isInteger(n) && n > ZERO))];
 }
 
@@ -47,15 +67,11 @@ export function applyCompletedSteps(text: string, steps: readonly TrackedPlanSte
   return steps.map((item) => (doneSet.has(item.step) ? { ...item, completed: true } : item));
 }
 
-function followsNonCompletion(text: string, index: number): boolean {
-  const sentenceStart = Math.max(text.lastIndexOf('.', index - ONE), text.lastIndexOf('!', index - ONE), text.lastIndexOf('?', index - ONE)) + ONE;
-  return NON_COMPLETION_PREFIX_PATTERN.test(text.slice(sentenceStart, index));
-}
-
 function hasAllStepsCompletePhrase(text: string): boolean {
   for (const pattern of [ALL_STEPS_COMPLETE_PATTERN, PLAN_COMPLETE_PATTERN]) {
     for (const match of text.matchAll(pattern)) {
-      if (!followsNonCompletion(text, match.index ?? ZERO)) {
+      const index = match.index ?? ZERO;
+      if (!followsNonCompletion(text, index) && !hasConditionalAfter(text, index + match[ZERO].length)) {
         return true;
       }
     }

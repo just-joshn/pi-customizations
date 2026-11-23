@@ -194,6 +194,7 @@ const BLOCKED = [
   'git stash drop',
   'git apply patch.diff',
   'git apply --check --apply patch.diff',
+  'git apply --check --build-fake-ancestor=notes.txt patch.diff',
   'git apply --stat --apply patch.diff',
   'git apply --index --check patch.diff',
   'git cat-file --textconv HEAD:file.txt',

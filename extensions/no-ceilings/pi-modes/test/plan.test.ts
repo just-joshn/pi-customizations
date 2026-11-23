@@ -294,6 +294,17 @@ describe('plan completion phrases', () => {
     const advanced = advancePlanSteps('Overall steps are done for now; step 2 remains.', steps);
     expect(advanced.every((step) => !step.completed)).toBe(true);
   });
+
+  it('ignores qualifiers and trailing conditions', () => {
+    for (const text of ['All steps are done-ish', 'The plan is complete nonsense', 'all steps are done wrong', 'All steps are done tomorrow', 'All steps are done once the tests pass.']) {
+      expect(advancePlanSteps(text, steps).every((step) => !step.completed)).toBe(true);
+    }
+  });
+
+  it('completes on a present-tense confirmation with a modal verb', () => {
+    const advanced = advancePlanSteps('I can confirm the plan is complete.', steps);
+    expect(advanced.every((step) => step.completed)).toBe(true);
+  });
 });
 
 describe('plan step extraction', () => {
@@ -303,5 +314,17 @@ describe('plan step extraction', () => {
 
   it('ignores a negated Step marker', () => {
     expect(extractDoneStepNumbers('not Step 1 is done')).toEqual([]);
+  });
+
+  it('ignores qualifiers, long negations, and conditional step markers', () => {
+    expect(extractDoneStepNumbers('Step 2 is done-ish')).toEqual([]);
+    expect(extractDoneStepNumbers('It is not the case that Step 1 is done')).toEqual([]);
+    expect(extractDoneStepNumbers('I will mark step 2 done after the tests pass.')).toEqual([]);
+    expect(extractDoneStepNumbers('Next, we should run until step 3 is done.')).toEqual([]);
+    expect(extractDoneStepNumbers('Step 2 is done once the tests pass.')).toEqual([]);
+  });
+
+  it('keeps a later step when an earlier sentence is negated', () => {
+    expect(extractDoneStepNumbers('Step 1 is not done. Step 2 is done.')).toEqual([TWO]);
   });
 });

@@ -16,7 +16,7 @@ Mode guidance applies to runs started by a user prompt or an extension. It stays
 Ask and Plan keep `bash`. The guard checks each command in a chain against an allowlist. It rejects file output redirection, command and process substitution, ANSI-C and locale quoting (`$'...'` and `$"..."`), parameter expansion (`$NAME` and `${...}`), brace expansion, and unquoted pathname expansion (`*`, `?`, `[`) that can hide options. It allows file-descriptor duplication such as `2>&1` and `>&2`. This command policy is not an operating system sandbox.
 
 - `sed` is limited to its printing side. Addresses and `s`/`y` commands are parsed, including scripts attached to `-e` and `-e` inside an option cluster, and `w`, `W`, `e`, `-i`, and `-f` are refused, so `sed -n -e'/pat/p'` reads and `sed -n -e'/pat/w out'` does not.
-- `git` allows the read subcommands (`status`, `log`, `show-ref`, `branch` listings, `remote` listings, `stash list`, `apply --check`, and similar), including `-C <dir>` and `--no-pager`. Diff-producing commands require `--no-ext-diff --no-textconv`, so `git diff`, `git show`, `git log -p`, and `git stash show -p` are refused without both flags. `git log` pickaxe searches and combined diff forms (`-c`, `--cc`) require the same two flags. `git blame` requires `--no-textconv`, and `git cat-file` refuses `--textconv` and `--filters`. `git apply` refuses `--apply`, `--index`, `--cached`, and `--3way`. `--ext-diff` and `--textconv` are refused. `git remote add`, `git branch <name>`, `git branch --delete-merged`, `git stash push`, and `--output` are refused. Branch delete, move, copy, force, and upstream options are refused in long form, abbreviated long form, and short clusters.
+- `git` allows the read subcommands (`status`, `log`, `show-ref`, `branch` listings, `remote` listings, `stash list`, `apply --check`, and similar), including `-C <dir>` and `--no-pager`. Diff-producing commands require `--no-ext-diff --no-textconv`, so `git diff`, `git show`, `git log -p`, and `git stash show -p` are refused without both flags. `git log` pickaxe searches and combined diff forms (`-c`, `--cc`) require the same two flags. `git blame` requires `--no-textconv`, and `git cat-file` refuses `--textconv` and `--filters`. `git apply` refuses `--apply`, `--index`, `--cached`, `--3way`, and `--build-fake-ancestor`. `--ext-diff` and `--textconv` are refused. `git remote add`, `git branch <name>`, `git branch --delete-merged`, `git stash push`, and `--output` are refused. Branch delete, move, copy, force, and upstream options are refused in long form, abbreviated long form, and short clusters.
 - Leading environment assignments are limited to locale and display names such as `LANG`, `LC_*`, `TERM`, `NO_COLOR`, and `COLUMNS`. Variables that can choose or configure an executing program, such as `GIT_*`, `BAT_PAGER`, `NODE_OPTIONS`, and `PAGER`, are refused.
 - `bat` refuses `--pager`, `--config-file`, `--generate-config-file`, and the `cache` subcommand, so it cannot launch a pager, load a config, build a cache, or write a config. `file` refuses `-C` and `--compile`.
 - `find`, `fd`, `sort`, `uniq`, `tree`, `rg`, and `awk` reject their write or execute forms, such as `-exec`, `-delete`, `-oFILE`, `--compress-program`, a second `uniq` path, `-o`, `--pre`, `--hostname-bin`, `system(`, `getline`, and quoted `>` or `|` inside an awk program. Denied long flags are matched by unambiguous abbreviation, so `sort --out` is refused. `uniq` still allows the values of `-f`, `-s`, and `-w`.
@@ -43,14 +43,14 @@ While a custom mode is active:
 - Every later turn re-injects a sticky reminder naming the mode and the skill file, so the mode survives long conversations.
 - Leaving the mode states the exit once, then stops.
 - The status line shows the mode's icon and label in its color with an exit hint, and a second slot shows the execution mode whenever one is constraining tools, so Ask or Plan stays visible under a custom mode.
-- A prompt that mentions `/<skill-name>` attaches that skill to that message only. A filesystem path such as `/foo/bar` does not count. A skill the active custom mode already carries is not attached a second time.
+- A prompt that mentions `/<skill-name>` attaches that skill to that message only. A filesystem path such as `/foo/bar`, `/tmp`, or `/dev` does not count. A skill the active custom mode already carries is not attached a second time.
 
 The mode's skill can be edited by hand or configured with `/mode`:
 
 | Command | Behavior |
 | --- | --- |
 | `/mode icon [<glyph>]` | Picker, or writes `icon:` into the skill frontmatter. Longer than 8 characters is rejected |
-| `/mode color [<name>]` | Picker, or writes `color:` into the skill frontmatter. Flow-style maps and quoted keys are normalized to block form |
+| `/mode color [<name>]` | Picker, or writes `color:` into the skill frontmatter. Flow-style maps, leading comments, and quoted keys are normalized to block form, and a BOM or CRLF is preserved |
 
 ```yaml
 ---
