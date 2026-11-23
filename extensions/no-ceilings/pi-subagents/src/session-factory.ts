@@ -122,7 +122,7 @@ function buildExtensionFactories(request: ChildSessionRequest): readonly Extensi
 
 function buildToolAllowlist(definition: SubagentDefinition, nestedScope: NestedScope | undefined): readonly string[] | undefined {
   if (definition.tools.length === ZERO) {
-    return undefined;
+    return definition.hasToolsField === true ? [] : undefined;
   }
   const tools = normalizeToolNames(definition.tools);
   return nestedScope === undefined ? [...tools] : [...new Set([...tools, SUBAGENT_TOOL_NAMES.task, SUBAGENT_TOOL_NAMES.awaitSubagent])];

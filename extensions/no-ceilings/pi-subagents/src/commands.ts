@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { SubagentsConfig } from './config.ts';
-import { resolveSubagentDefinition } from './discovery.ts';
+import { normalizeSubagentTypeName, resolveSubagentDefinition } from './discovery.ts';
 import { formatSessionTitle } from './formatters.ts';
 import type { SubagentStore } from './store.ts';
 import { openTasksOverlay } from './tasks-overlay.ts';
@@ -140,7 +140,10 @@ function findLongestAgentPrefix(parts: readonly string[], definitions: readonly 
   for (let count = parts.length; count >= ONE; count -= ONE) {
     const name = parts.slice(ZERO, count).join(' ');
     const definition = resolveSubagentDefinition(definitions, name);
-    if (definition && definition.name.toLowerCase() === name.toLowerCase()) {
+    const normalized = normalizeSubagentTypeName(name);
+    const nameMatches = definition?.name.toLowerCase() === name.toLowerCase();
+    const aliasMatches = definition?.name.toLowerCase() === normalized.toLowerCase();
+    if (definition && (nameMatches || aliasMatches)) {
       return { definition, consumed: count };
     }
   }

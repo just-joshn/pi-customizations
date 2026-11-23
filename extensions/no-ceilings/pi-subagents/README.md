@@ -74,7 +74,7 @@ Project directories load only for a trusted project, the same gate Pi puts on pr
 | Frontmatter | Meaning |
 | --- | --- |
 | `name`, `description` | Identity and delegation text. Missing `name` falls back to the file name. |
-| `tools` | Comma or space separated tool allowlist. Omit it to inherit the parent's active tools. Claude names such as `Read`, `Grep`, and `Glob` map to Pi's `read`, `grep`, and `find`. |
+| `tools` | Comma or space separated tool allowlist. Omit the key to inherit the parent's active tools. An empty list, including `tools: []`, grants no tools. Claude names such as `Read`, `Grep`, and `Glob` map to Pi's `read`, `grep`, and `find`. |
 | `model` | `inherit`, `fast`, a model id, or `provider/id`. Claude aliases `haiku`, `sonnet`, and `opus` map to `fast` and `inherit`. |
 | `force-default-model` | Ignore `model` and any caller override. |
 | `thinking`, `reasoning-effort` | Pi thinking level: `off` through `max`. |
@@ -96,7 +96,7 @@ Children load project rules (`AGENTS.md`, `CLAUDE.md`) because the child resourc
 - Automatic: ask for work and let the model choose, or omit `subagent_type`.
 - Explicit tool call: `task` with `subagent_type`.
 - Slash command per agent: `/subagent:<slug> [--bg] <prompt>`. The slug is the lowercased name with non-alphanumeric runs turned into hyphens. Every discovered agent gets a command; when two slugs collide, the later one is suffixed `-2`, then `-3`.
-- Generic form: `/subagent <name> [--bg] <prompt>`. A name may contain spaces. The longest prefix that matches a discovered agent is the target, and the rest is the prompt. After `--bg`, an empty prompt prints the usage text and sends nothing.
+- Generic form: `/subagent <name> [--bg] <prompt>`. A name may contain spaces. The longest prefix that matches a discovered agent or a built-in alias is the target, and the rest is the prompt. `bash` selects `shell` unless a discovered agent is named `bash`. After `--bg`, an empty prompt prints the usage text and sends nothing.
 - A per-agent command resolves the agent again when it runs. If that agent is gone, Pi warns `Unknown subagent "<name>"` and sends nothing.
 
 ## Configuration
@@ -137,16 +137,17 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - Ordered transcript per run: prompt, assistant text, tool calls with arguments, tool output, and errors.
 - Transcript files under `<session dir>/subagents/`.
 - Persisted session state keeps transcripts for the three most recently updated finished runs. Success, error, and cancelled runs are eligible. That includes mid-run snapshots and saves when a run finishes. Older finished runs keep their metadata, transcript path, and checkpoints.
+- A persisted run keeps at most 50 transcript items. Each item's text is truncated to 4,000 characters.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
 - `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect. The pager does not render checkpoints.
 - While a run is active, the status widget header counts completed and cancelled runs in the session. The widget clears when nothing is active.
 - Restoring a session cancels runs that were still pending or running and assigns a failure id when the record does not already have one.
-- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode. Passing `readonly: false` does not clear read-only mode already set by the agent or by an earlier call.
+- `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode. The agent file's background default applies only to a new run. An explicit `run_in_background` still wins, and a resumed run keeps its background reason. Passing `readonly: false` does not clear read-only mode already set by the agent or by an earlier call.
 - `Ctrl+Alt+B` moves running foreground subagents to the background.
 
 ### Hook events
 
-Subscribe with `pi.events.on(channel, handler)` from another extension. Every payload includes `agentId`, `status`, `attempt`, `toolCallCount`, `transcriptPath`, and failure details when present.
+Subscribe with `pi.events.on(channel, handler)` from another extension. Every payload includes `agentId`, `status`, `attempt`, `toolCallCount`, and failure details when present. `transcriptPath` is included once the child session file exists.
 
 | Channel | Fires |
 | --- | --- |

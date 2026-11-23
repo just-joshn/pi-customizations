@@ -28,10 +28,11 @@ const WRITE_VERBS =
 const WRITE_VERB = `(?:${WRITE_VERBS})`;
 const VERB_GAP = '(?:\\s*,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+|\\s*/\\s*|\\s*[\\u2014\\u2013]\\s*(?:(?:and|or)\\s+)?|\\s*\\(\\s*(?:(?:and|or)\\s+)?)';
 const COORDINATED_WRITE = `${WRITE_VERB}(?:${VERB_GAP}${WRITE_VERB})*`;
-const NEGATION_SPAN_CHARS = 80;
 const BROAD_NEGATION = "\\b(?:under no circumstances|do not|don['\\u2019]t|cannot|can['\\u2019]t|must not|should not)\\b";
+const NEGATION_FILLER = 'just|simply|really|actually|please|under|any|circumstances|at|all|first|then|also|even|still|only|must|should|you|now|ever';
+const NEGATION_GAP = `(?:[\\s,]+(?:${NEGATION_FILLER})\\b)*[\\s,]*`;
 const SHORT_NEGATION = '\\b(?:never|avoid|without|no)\\b(?:\\s+\\w+){0,4}\\s+';
-const NEGATED_WRITE = `${BROAD_NEGATION}[^\\.!?;]{0,${NEGATION_SPAN_CHARS}}?${COORDINATED_WRITE}\\b(?:\\s*\\))?|${SHORT_NEGATION}${COORDINATED_WRITE}\\b(?:\\s*\\))?`;
+const NEGATED_WRITE = `${BROAD_NEGATION}${NEGATION_GAP}${COORDINATED_WRITE}\\b(?:\\s*\\))?|${SHORT_NEGATION}${COORDINATED_WRITE}\\b(?:\\s*\\))?`;
 const HOW_TO_WRITE = `\\bhow\\s+to\\s+${WRITE_VERB}\\b`;
 const WHAT_TO_WRITE = `\\bwhat\\s+to\\s+${WRITE_VERB}\\b`;
 const DESCRIPTIVE_CUE = '(?:the|a|an|this|that|its|their|our|we|i|they|it|he|she)';
@@ -334,6 +335,7 @@ export function parseSubagentFile(filePath: string, source: SubagentSource): Sub
     name,
     description: readTrimmedString(readField(frontmatter, 'description')) ?? '',
     tools,
+    ...(hasField(frontmatter, 'tools') ? { hasToolsField: true } : {}),
     model: parseModel(readField(frontmatter, 'model')),
     forceDefaultModel: readTruthy(readField(frontmatter, 'forceDefaultModel')),
     prompt,

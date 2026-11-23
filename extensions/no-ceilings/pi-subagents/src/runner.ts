@@ -655,20 +655,36 @@ function resolveReadOnly(permissionMode: SubagentDefinition['permissionMode'], r
   return permissionMode === 'readonly' || requested === true || existingReadonly === true;
 }
 
+function resolveBackground(
+  requested: boolean | undefined,
+  definitionBackground: boolean | undefined,
+  existing: SubagentSessionRecord | undefined,
+  configDefault: boolean,
+): { readonly wantBackground: boolean; readonly backgroundReason: BackgroundReason } {
+  if (requested !== undefined) {
+    return { wantBackground: requested, backgroundReason: requested ? 'agent_request' : 'unspecified' };
+  }
+  const existingBackground = existing?.isBackground;
+  if (existing !== undefined && existingBackground !== undefined) {
+    return { wantBackground: existingBackground, backgroundReason: existing.backgroundReason };
+  }
+  const wantBackground = definitionBackground ?? configDefault;
+  const backgroundReason: BackgroundReason = wantBackground && definitionBackground !== undefined ? 'agent_request' : 'unspecified';
+  return { wantBackground, backgroundReason };
+}
+
 function resolveRunSetup(options: RunTaskOptions, callbacks: RunnerCallbacks, config: SubagentsConfig, parentSessionId: string, prompt: string, resumeId: string | undefined): RunSetup {
   const existing = resumeId === undefined ? undefined : validateResumeRequest(resumeId, prompt, parentSessionId, callbacks.store, options.retry === true);
   const resolved = resolveSubagentModel({ model: options.input.model ?? existing?.model, thinking: options.input.thinking ?? existing?.thinking }, options.definition, options.ctx);
-  const explicitBackground = options.input.run_in_background ?? options.definition.isBackground;
-  const wantBackground = explicitBackground ?? existing?.isBackground ?? config.defaultBackground;
-  const backgroundReason: BackgroundReason = wantBackground && explicitBackground !== undefined ? 'agent_request' : 'unspecified';
+  const background = resolveBackground(options.input.run_in_background, options.definition.isBackground, existing, config.defaultBackground);
   return {
     parentSessionId,
     prompt,
     existing,
     isReadonly: resolveReadOnly(options.definition.permissionMode, options.input.readonly, existing?.readonly),
-    wantBackground,
-    detach: wantBackground,
-    backgroundReason,
+    wantBackground: background.wantBackground,
+    detach: background.wantBackground,
+    backgroundReason: background.backgroundReason,
     maxAttempts: Math.min(MAX_RETRY_ATTEMPTS_CAP, Math.max(ONE, options.input.max_attempts ?? options.definition.retryAttempts ?? config.retry.maxAttempts)),
     model: resolved.model === undefined ? undefined : applyDefinitionToModel(resolved.model, options.definition),
     thinking: resolved.thinking,

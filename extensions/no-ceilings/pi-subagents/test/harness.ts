@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -315,6 +315,12 @@ export function extractGuardHandler(factory: ExtensionFactory | undefined): ((ev
 export function createTestHarness(options: HarnessOptions = {}): SubagentsTestHarness {
   const cwd = mkdtempSync(join(tmpdir(), 'pi-subagents-test-'));
   const sessionDir = mkdtempSync(join(tmpdir(), 'pi-subagents-sess-'));
+  const standaloneAgentDir = join(cwd, '.agent');
+  mkdirSync(standaloneAgentDir, { recursive: true });
+  const previousHome = process.env['HOME'];
+  const previousAgentDir = process.env['PI_CODING_AGENT_DIR'];
+  process.env['HOME'] = cwd;
+  process.env['PI_CODING_AGENT_DIR'] = standaloneAgentDir;
   const sessionId = options.sessionId ?? '11111111-2222-4333-8444-555555555555';
   const theme = createFakeTheme();
   const uiRec = createUiRecorder(options, theme);
@@ -361,6 +367,12 @@ export function createTestHarness(options: HarnessOptions = {}): SubagentsTestHa
       await emit('session_shutdown', {});
       rmSync(cwd, { recursive: true, force: true });
       rmSync(sessionDir, { recursive: true, force: true });
+      process.env['HOME'] = previousHome;
+      if (previousAgentDir === undefined) {
+        delete process.env['PI_CODING_AGENT_DIR'];
+      } else {
+        process.env['PI_CODING_AGENT_DIR'] = previousAgentDir;
+      }
     },
   };
 }

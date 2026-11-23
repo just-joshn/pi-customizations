@@ -14,7 +14,7 @@
 - Git worktree isolation per run: own branch, diff summary, `worktree_path` and `branch` in the result, and `/tasks prune <id>`.
 - Failure ids and stable failure codes on every failed or cancelled run.
 - `subagents:*` hook events over `pi.events`.
-- Ordered transcripts with prompt, assistant text, tool arguments, tool output, and error flags, persisted up to 50 items per run.
+- Ordered transcripts with prompt, assistant text, tool arguments, tool output, and error flags, persisted up to 50 items per run and 4,000 characters per item.
 - `/subagent:<name>` command per discovered agent, plus `--bg` on both invocation forms.
 - Configured nesting depth, with nested runs scoped to the runs a child started.
 - End-to-end script that drives the real `pi` binary.
@@ -29,6 +29,10 @@
 
 ### Fixed
 
+- An explicit empty `tools` list grants no tools. Omitting `tools` still inherits the parent's active tools.
+- A resume keeps the existing run's foreground or background mode, and its background reason, when `run_in_background` is omitted. The agent file's background default applies only to a new run. An explicit `run_in_background` still wins.
+- A broad negation no longer swallows a later change. `Don't just read the code, update the parser.` stays a write. Filler between a negation and a write verb still counts, including `under any circumstances` and `should you`.
+- `/subagent bash` selects the built-in `shell` agent. A discovered agent named `bash` still wins.
 - A resume keeps call-level read-only mode when a later call passes `readonly: false`. Read-only mode from the agent definition, the call, or the existing run is a floor.
 - Automatic selection treats make, address, improve, rework, get, and ensure as write intent. A verb after a determiner or subject pronoun, inside `how to`, or inside a discovered agent name is not write intent.
 - A change request does not select a read-only agent when no writable agent is available. The selection is `general-purpose`, and the call fails with `type-unknown`.

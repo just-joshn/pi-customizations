@@ -100,6 +100,8 @@ export interface SubagentDefinition {
   readonly name: string;
   readonly description: string;
   readonly tools: readonly string[];
+  /** True only when the agent file contained a `tools` key. An empty list then means no tools. */
+  readonly hasToolsField?: boolean;
   readonly model: string;
   readonly forceDefaultModel: boolean;
   readonly prompt: string;
