@@ -82,6 +82,7 @@ const DENIED_SHORT_WORDS: Readonly<Record<string, readonly string[]>> = {
   find: ['-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint', '-fprint0', '-fprintf', '-fls'],
 };
 
+const NETWORK_DEVICE_PATH = /\/dev\/(?:tcp|udp)(?:\/|$)/;
 const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
 const SAFE_ENV_NAMES = new Set<string>(['LANG', 'LANGUAGE', 'TZ', 'TERM', 'COLORTERM', 'NO_COLOR', 'CLICOLOR', 'CLICOLOR_FORCE', 'FORCE_COLOR', 'COLUMNS', 'LINES']);
 
@@ -266,6 +267,10 @@ function hasLongFlag(words: readonly string[], flags: readonly string[]): boolea
 
 function hasShortLetter(words: readonly string[], letters: readonly string[]): boolean {
   return words.some((word) => word.startsWith('-') && !word.startsWith('--') && word.length > 1 && letters.some((letter) => word.slice(1).includes(letter)));
+}
+
+function hasExplicitLogFormat(words: readonly string[]): boolean {
+  return words.some((word) => word === '--oneline' || word === '--format' || word.startsWith('--format=') || word === '--pretty' || word.startsWith('--pretty='));
 }
 
 function hasSignatureFormat(words: readonly string[]): boolean {
@@ -594,8 +599,11 @@ function isAllowedGit(words: readonly string[]): boolean {
   if (args.slice(1).some((word) => word === '--output' || word.startsWith('--output='))) {
     return false;
   }
-  if (subcommand === 'show' && (hasSignatureFormat(args.slice(1)) || hasLongFlag(args.slice(1), ['--show-signature']))) {
-    return false;
+  if (subcommand === 'show') {
+    const flags = args.slice(1);
+    if (hasSignatureFormat(flags) || hasLongFlag(flags, ['--show-signature']) || !hasLongFlag(flags, ['--no-show-signature']) || !hasExplicitLogFormat(flags)) {
+      return false;
+    }
   }
   if (subcommand === 'diff') {
     const options = gitOptionWords(args.slice(1));
@@ -618,7 +626,12 @@ function isAllowedGit(words: readonly string[]): boolean {
   }
   if (subcommand === 'log') {
     const flags = args.slice(1);
-    return !hasLongFlag(flags, ['--show-signature']) && !hasSignatureFormat(flags) && !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags));
+    return (
+      hasLongFlag(flags, ['--no-show-signature']) && hasExplicitLogFormat(flags) && !hasLongFlag(flags, ['--show-signature']) && !hasSignatureFormat(flags) && !hasDangerousDiffFlag(flags) && (!hasPatchFlag(flags) || hasSafeDiffFlags(flags))
+    );
+  }
+  if (subcommand === 'rev-list') {
+    return !hasSignatureFormat(args.slice(1)) && !hasLongFlag(args.slice(1), ['--show-signature']);
   }
   if (subcommand === 'cat-file') {
     return !hasLongFlag(args.slice(1), ['--textconv', '--filters']);
@@ -713,6 +726,9 @@ function isAllowedUniqArgs(words: readonly string[]): boolean {
 }
 
 function isAllowedSegment(words: readonly string[]): boolean {
+  if (words.some((word) => NETWORK_DEVICE_PATH.test(word))) {
+    return false;
+  }
   let commandIndex = ZERO;
   while (commandIndex < words.length && ENV_ASSIGNMENT.test(words[commandIndex] ?? '')) {
     if (!isSafeEnvAssignment(words[commandIndex] ?? '')) {
