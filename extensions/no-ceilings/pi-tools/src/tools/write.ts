@@ -2,7 +2,6 @@ import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { Type } from 'typebox';
-import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
 import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
@@ -10,7 +9,7 @@ import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
-import { countLines, looksBinary, sha256Hex } from '../core/text.ts';
+import { countLines, decodeBase64, looksBinary, sha256Hex } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { FileMetadata, ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -70,14 +69,7 @@ function decodeContent(params: WriteParams): Buffer {
   if (params.encoding !== 'base64') {
     return Buffer.from(params.content, 'utf-8');
   }
-  // Buffer.from ignores invalid characters, so a typo would write a truncated file and report success.
-  const compact = params.content.replace(/\s+/g, '');
-  if (compact !== '' && (!/^[A-Za-z0-9+/]+={0,2}$/.test(compact) || compact.length % 4 !== 0)) {
-    throw layerError('invalid_arguments', 'content is not valid base64', {
-      hint: 'Pass standard base64 (RFC 4648, padded) without a data: prefix, or use encoding "utf8".',
-    });
-  }
-  return Buffer.from(compact, 'base64');
+  return decodeBase64(params.content);
 }
 
 export function createWriteLayerTool(options: WriteToolOptions) {
@@ -134,15 +126,11 @@ export function createWriteLayerTool(options: WriteToolOptions) {
           }
           // Record inside the same critical section, so a concurrent write cannot land between the
           // verification and the record and leave a fingerprint for bytes that are no longer on disk.
-          if (after.byteLength <= MAX_FENCE_BYTES) {
-            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: after.byteLength } });
-          } else {
-            session.fence.forget(identity);
-          }
+          session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: after.byteLength } });
           return after;
         });
 
-        const metadata = await fileMetadata(target, { digest: written.byteLength <= MAX_FENCE_BYTES });
+        const metadata = await fileMetadata(target);
         const linesWritten = countLines(buffer.toString('utf-8'));
         const notices = `\n\n[wrote ${linesWritten} ${linesWritten === 1 ? 'line' : 'lines'}, ${written.byteLength} ${written.byteLength === 1 ? 'byte' : 'bytes'}]`;
         return {

@@ -1,6 +1,6 @@
 import { open, readFile, stat } from 'node:fs/promises';
 
-import { MAX_FENCE_BYTES, MAX_READ_CHARS } from '../constants.ts';
+import { MAX_READ_CHARS } from '../constants.ts';
 import type { FileFingerprint, FileMetadata } from '../types.ts';
 import { countLines, looksBinary, sha256Hex } from './text.ts';
 
@@ -17,7 +17,7 @@ export async function readHead(target: string, maxBytes: number): Promise<Uint8A
 }
 
 export interface MetadataOptions {
-  /** Include a content digest. Skipped for files above the fingerprint cap. */
+  /** Include a content digest. The bytes are already loaded for the line count. */
   readonly digest?: boolean;
 }
 
@@ -29,7 +29,7 @@ export async function fileMetadata(target: string, options: MetadataOptions = {}
   if (stats.isFile()) {
     const buffer = await readFile(target);
     lines = countLines(buffer.toString('utf-8'));
-    if (options.digest !== false && buffer.byteLength <= MAX_FENCE_BYTES) {
+    if (options.digest !== false) {
       sha256 = sha256Hex(buffer);
     }
   }
@@ -42,10 +42,10 @@ export async function fileMetadata(target: string, options: MetadataOptions = {}
   };
 }
 
-/** Fingerprint used for stale-write detection, or undefined when the file is too large or binary. */
+/** Fingerprint used for stale-write detection, or undefined when the file is missing or binary. */
 export async function fingerprintFile(target: string): Promise<FileFingerprint | undefined> {
   const size = await fileSize(target);
-  if (size === undefined || size > MAX_FENCE_BYTES) {
+  if (size === undefined) {
     return undefined;
   }
   const buffer = await readFile(target);

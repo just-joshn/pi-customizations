@@ -4,7 +4,7 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { MAX_SNAPSHOT_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
-import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
+import { canonicalName, displayPath, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -72,8 +72,8 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
             }
 
             previousContent = snapshot.size <= MAX_SNAPSHOT_BYTES ? (await readFile(target)).toString('utf-8') : undefined;
-            // Resolve the identity while the file still exists, so a link records its target.
-            const identity = await fileIdentity(target);
+            // Key the path that unlink removes. Following a symlink would mark the untouched target absent.
+            const identity = await canonicalName(target);
 
             const after = await stat(target);
             if (after.dev !== snapshot.dev || after.ino !== snapshot.ino) {

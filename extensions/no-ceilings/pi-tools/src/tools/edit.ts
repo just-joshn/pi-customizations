@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import { generateDiffString, generateUnifiedPatch } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
 import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
@@ -255,7 +254,7 @@ export function createEditLayerTool(options: EditToolOptions) {
               updated,
               replaced,
               diff: generateDiffString(normalized, updated),
-              metadata: await fileMetadata(target, { digest: written.byteLength <= MAX_FENCE_BYTES }),
+              metadata: await fileMetadata(target),
             };
           },
           { createParent: false },

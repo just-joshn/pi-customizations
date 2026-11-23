@@ -338,12 +338,53 @@ export function egressSubject(raw: string): string {
   }
 }
 
+/** Same path, or a continuation at a `/` boundary. A trailing slash does not create a new segment. */
+function pathCovers(rulePath: string, subjectPath: string): boolean {
+  const normalize = (value: string): string => (value.length > 1 ? value.replace(/\/+$/, '') : value).toLowerCase();
+  const rule = normalize(rulePath);
+  const subject = normalize(subjectPath);
+  if (rule === '/' || rule === '') {
+    return true;
+  }
+  return subject === rule || subject.startsWith(`${rule}/`);
+}
+
+/**
+ * A rule with no glob that parses as a URL covers that origin and every path beneath it.
+ * Scheme and host must match. A rule that names no port covers any port; a rule that names one
+ * covers only that port. The subject's query and fragment are ignored. Returns undefined when
+ * either side is not a URL, so wildcard rules stay on minimatch.
+ */
+function urlPrefixCovers(pattern: string, subject: string): boolean | undefined {
+  let rule: URL;
+  let target: URL;
+  try {
+    rule = new URL(pattern);
+    target = new URL(subject);
+  } catch {
+    return undefined;
+  }
+  if (rule.protocol !== target.protocol || rule.hostname !== target.hostname) {
+    return false;
+  }
+  if (rule.port !== '' && rule.port !== target.port) {
+    return false;
+  }
+  return pathCovers(rule.pathname, target.pathname);
+}
+
 /**
  * Match a URL against a read rule pattern, ignoring embedded credentials. A rule that names a host or
  * a path prefix also covers every URL beneath it, the way a path rule covers a directory.
  */
 function urlMatches(pattern: string, url: string): boolean {
   const subject = egressSubject(url);
+  if (!/[*?]/.test(pattern)) {
+    const covered = urlPrefixCovers(pattern, subject);
+    if (covered !== undefined) {
+      return covered;
+    }
+  }
   const patterns = new Set([pattern]);
   if (pattern.endsWith('/*')) {
     patterns.add(`${pattern.slice(0, -1)}**`);

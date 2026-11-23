@@ -5,7 +5,8 @@ import { minimatch } from 'minimatch';
 import { Type } from 'typebox';
 import { LS_NAME_BUDGET, LS_TIMEOUT_MS } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
-import { displayPath, relativeTo, resolveToolPath, toPosix } from '../core/paths.ts';
+import { canonicalPath, displayPath, isInside, relativeTo, resolveToolPath, toPosix } from '../core/paths.ts';
+import { isInsideWorkspace } from '../core/policy.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import { allowedPaths, assertSearchable } from '../core/search.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -116,7 +117,15 @@ export function createLsLayerTool(options: LsToolOptions) {
               return;
             }
             const absolute = path.join(directory, entry.name);
-            const isDirectory = entry.isDirectory();
+            const info = await stat(absolute).catch(() => undefined);
+            const isDirectory = info?.isDirectory() === true;
+            if (isDirectory) {
+              const canonical = await canonicalPath(absolute);
+              const contained = isInsideWorkspace(session.policy, canonical) || isInside(root, canonical);
+              if (!contained) {
+                continue;
+              }
+            }
             if (extraIgnores.some((pattern) => minimatch(entry.name, pattern, { dot: true }))) {
               continue;
             }

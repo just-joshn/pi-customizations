@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import { createReadToolDefinition } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata, readHead } from '../core/metadata.ts';
 import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
@@ -43,14 +42,22 @@ export interface ReadDetails {
 
 function metadataFooter(metadata: FileMetadata, range: ReadRange, shownLines: number): string {
   const counts = `${metadata.lines} ${metadata.lines === 1 ? 'line' : 'lines'}, ${metadata.bytes} ${metadata.bytes === 1 ? 'byte' : 'bytes'}`;
+  let fileLine: string;
   if (range.offset === undefined && range.limit === undefined) {
-    return `[file: ${counts}]`;
+    fileLine = `[file: ${counts}]`;
+  } else if (shownLines === 0) {
+    fileLine = `[file: ${counts} · 0 lines shown]`;
+  } else {
+    const start = Math.max(1, range.offset ?? 1);
+    fileLine = `[file: ${counts} · lines ${start}-${start + shownLines - 1}]`;
   }
-  if (shownLines === 0) {
-    return `[file: ${counts} · 0 lines shown]`;
+  return metadata.sha256 === undefined ? fileLine : `${fileLine}\n[sha256: ${metadata.sha256}]`;
+}
+
+function assertIntegerLine(name: string, value: number | undefined): void {
+  if (typeof value === 'number' && !Number.isInteger(value)) {
+    throw layerError('invalid_arguments', `${name} must be an integer`, { hint: 'Pass a whole number of lines.' });
   }
-  const start = Math.max(1, range.offset ?? 1);
-  return `[file: ${counts} · lines ${start}-${start + shownLines - 1}]`;
 }
 
 async function countFileLines(target: string): Promise<number> {
@@ -85,6 +92,8 @@ export function createReadLayerTool(options: ReadToolOptions) {
     execute: guarded<ReadParams, ReadDetails>(
       (failure) => ({ failure }),
       async ({ toolCallId, params, ctx, signal }): Promise<ToolOutcome<ReadDetails>> => {
+        assertIntegerLine('offset', params.offset);
+        assertIntegerLine('limit', params.limit);
         const session = await options.session(ctx);
         const target = resolveToolPath(params.path, ctx.cwd, session.home);
         await guard(session, { kind: 'read', subjects: await subjectsFor(target), action: 'read file', ctx });
@@ -118,7 +127,7 @@ export function createReadLayerTool(options: ReadToolOptions) {
         const definition = createReadToolDefinition(ctx.cwd);
         const result = await definition.execute(toolCallId, { path: target, ...(range.offset === undefined ? {} : { offset: range.offset }), ...(range.limit === undefined ? {} : { limit: range.limit }) }, signal, undefined, ctx as never);
 
-        const metadata = await fileMetadata(target, { digest: stats.size <= MAX_FENCE_BYTES });
+        const metadata = await fileMetadata(target);
         if (params.offset === undefined && params.limit === undefined) {
           const identity = await fileIdentity(target);
           if (metadata.sha256 !== undefined) {

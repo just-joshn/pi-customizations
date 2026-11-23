@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+import { layerError } from './errors.ts';
+
 const BOM = '\uFEFF';
 
 export function stripBom(text: string): { readonly bom: string; readonly text: string } {
@@ -50,6 +52,20 @@ export function countLines(text: string): number {
 
 export function sha256Hex(data: string | Uint8Array): string {
   return createHash('sha256').update(data).digest('hex');
+}
+
+/**
+ * Decode standard padded base64. Whitespace is ignored. A non-empty string that is not RFC 4648
+ * alphabet, or whose length is not a multiple of 4, is rejected instead of being truncated.
+ */
+export function decodeBase64(content: string): Buffer {
+  const compact = content.replace(/\s+/g, '');
+  if (compact !== '' && (!/^[A-Za-z0-9+/]+={0,2}$/.test(compact) || compact.length % 4 !== 0)) {
+    throw layerError('invalid_arguments', 'content is not valid base64', {
+      hint: 'Pass standard base64 (RFC 4648, padded) without a data: prefix, or use encoding "utf8".',
+    });
+  }
+  return Buffer.from(compact, 'base64');
 }
 
 const BINARY_SAMPLE_BYTES = 8000;

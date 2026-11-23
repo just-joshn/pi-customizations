@@ -104,9 +104,8 @@ describe('metadata', () => {
 });
 
 describe('read fence', () => {
-  it('records, takes, restores, forgets, and expires entries', () => {
-    let clock = 1000;
-    const fence = createReadFence(() => clock);
+  it('records, takes, restores, forgets, and keeps entries', () => {
+    const fence = createReadFence();
     const record = { kind: 'absent' as const };
     fence.record('/a', record);
     expect(fence.take('/a')).toEqual(record);
@@ -121,15 +120,14 @@ describe('read fence', () => {
     expect(fence.take('/c')).toBeUndefined();
 
     fence.record('/d', record);
-    clock += 120_000;
-    expect(fence.take('/d')).toBeUndefined();
+    expect(fence.take('/d')).toEqual(record);
 
     fence.record('/e', record);
     expect(fence.size()).toBe(1);
   });
 
   it('caps the number of entries', () => {
-    const fence = createReadFence(() => 0);
+    const fence = createReadFence();
     for (let index = 0; index < 1200; index++) {
       fence.record(`/file-${index}`, { kind: 'absent' });
     }

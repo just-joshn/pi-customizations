@@ -1,16 +1,12 @@
-import { FENCE_TTL_MS, MAX_FENCE_ENTRIES } from '../constants.ts';
+import { MAX_FENCE_ENTRIES } from '../constants.ts';
 import type { FileFingerprint, ReadRecord } from '../types.ts';
-
-interface Entry {
-  readonly record: ReadRecord;
-  readonly expiresAt: number;
-}
 
 /**
  * Per-session record of what the agent has read or written, so a later mutation can refuse to clobber
  * a file that changed on disk in between. Entries are keyed by the string the caller supplies. Callers
  * pass one canonical file identity, so two spellings of one file share a record. Pi gives every tool call
- * its own id, so the session, not the tool call, is the meaningful scope.
+ * its own id, so the session, not the tool call, is the meaningful scope. A record stays until the
+ * session forgets it or the entry cap drops the oldest one.
  */
 export interface ReadFence {
   record(target: string, record: ReadRecord): void;
@@ -21,16 +17,10 @@ export interface ReadFence {
   size(): number;
 }
 
-export function createReadFence(now: () => number = Date.now): ReadFence {
-  const entries = new Map<string, Entry>();
+export function createReadFence(): ReadFence {
+  const entries = new Map<string, ReadRecord>();
 
-  const prune = (): void => {
-    const cutoff = now();
-    for (const [key, entry] of entries) {
-      if (entry.expiresAt <= cutoff) {
-        entries.delete(key);
-      }
-    }
+  const cap = (): void => {
     while (entries.size > MAX_FENCE_ENTRIES) {
       const oldest = entries.keys().next();
       if (oldest.done === true) {
@@ -42,19 +32,19 @@ export function createReadFence(now: () => number = Date.now): ReadFence {
 
   return {
     record(target, record) {
-      entries.set(target, { record, expiresAt: now() + FENCE_TTL_MS });
-      prune();
+      entries.set(target, record);
+      cap();
     },
     take(target) {
-      const entry = entries.get(target);
-      if (!entry) {
+      const record = entries.get(target);
+      if (record === undefined) {
         return undefined;
       }
       entries.delete(target);
-      return entry.expiresAt <= now() ? undefined : entry.record;
+      return record;
     },
     restore(target, record) {
-      entries.set(target, { record, expiresAt: now() + FENCE_TTL_MS });
+      entries.set(target, record);
     },
     forget(target) {
       entries.delete(target);

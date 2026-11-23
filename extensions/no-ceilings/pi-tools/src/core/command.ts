@@ -33,13 +33,16 @@ const WRAPPERS: ReadonlyMap<string, WrapperSpec> = new Map([
 ]);
 
 /** Wrappers that run another command, which this analyzer does not follow. */
-const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'parallel', 'watch', 'script']);
+const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'parallel', 'watch', 'script', 'caffeinate', 'strace', 'ltrace', 'chrt', 'taskset', 'numactl', 'eatmydata', 'fakeroot', 'firejail', 'bwrap']);
 
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
 const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
 
 /** Assignments that change how the shell finds, starts, or splits, so the analyzer cannot vouch for them. */
 const RESOLUTION_ASSIGNMENTS = new Set(['CDPATH', 'BASH_ENV', 'ENV', 'IFS']);
+
+/** Builtins that assign the same way a leading `NAME=value` does. */
+const ASSIGNMENT_BUILTINS = new Set(['export', 'declare', 'typeset', 'readonly']);
 
 /** Reserved words whose following words are the command that actually runs. */
 const INTRODUCERS = new Set(['if', 'then', 'else', 'elif', 'while', 'until', 'do', '!', '{']);
@@ -48,7 +51,7 @@ const INTRODUCERS = new Set(['if', 'then', 'else', 'elif', 'while', 'until', 'do
 const STRUCTURAL = new Set(['for', 'case', 'select', 'function', 'fi', 'done', 'esac', '}', 'in']);
 
 /** Commands whose literal operands create or modify a file. `git` is intentionally absent. */
-const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown']);
+const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown', 'truncate']);
 
 /** Variables a `cd` target may name, resolved from the session instead of the shell. */
 const DIR_VARIABLES = new Map([
@@ -316,6 +319,56 @@ function findClosingParen(command: string, open: number): number {
   return -1;
 }
 
+/**
+ * Command bodies of unquoted `$(...)` and backticks in an expansion.
+ * Single quotes hide them. Double quotes do not. Arithmetic is not a command, but a substitution inside it is.
+ */
+function commandSubstitutions(source: string): string[] {
+  const found: string[] = [];
+  let quote: '"' | "'" | undefined;
+  for (let index = 0; index < source.length; index++) {
+    const char = source[index] ?? '';
+    if (quote === "'") {
+      if (char === "'") {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === '\\') {
+      index++;
+      continue;
+    }
+    if (char === '"') {
+      quote = quote === '"' ? undefined : '"';
+      continue;
+    }
+    if (char === "'" && quote === undefined) {
+      quote = "'";
+      continue;
+    }
+    if (char === '`') {
+      const end = source.indexOf('`', index + 1);
+      const stop = end === -1 ? source.length : end;
+      found.push(source.slice(index + 1, stop));
+      index = stop;
+      continue;
+    }
+    if (char === '$' && source[index + 1] === '(') {
+      const arithmetic = source[index + 2] === '(';
+      const end = findClosingParen(source, index + 1);
+      const stop = end === -1 ? source.length : end;
+      if (arithmetic) {
+        found.push(...commandSubstitutions(source.slice(index + 2, stop)));
+      } else {
+        found.push(source.slice(index + 2, stop));
+      }
+      index = stop;
+      continue;
+    }
+  }
+  return found;
+}
+
 /** Read an expansion starting at `$`, returning its source text and the index after it. */
 function readExpansion(segment: string, start: number): { text: string; end: number } {
   const next = segment[start + 1] ?? '';
@@ -434,8 +487,14 @@ function lexSegment(segment: string): Lexed {
       const arithmetic = segment[index + 2] === '(';
       const end = findClosingParen(segment, index + 1);
       const stop = end === -1 ? segment.length : end;
-      substitutions.push(segment.slice(index + 2, stop));
-      expansion(segment.slice(index, stop + 1), !arithmetic);
+      const body = segment.slice(index + 2, stop);
+      const inners = arithmetic ? commandSubstitutions(body) : [];
+      if (arithmetic && inners.length > 0) {
+        substitutions.push(...inners);
+      } else {
+        substitutions.push(body);
+      }
+      expansion(segment.slice(index, stop + 1), !arithmetic || inners.length > 0);
       index = stop;
       continue;
     }
@@ -449,7 +508,11 @@ function lexSegment(segment: string): Lexed {
     }
     if (char === '$') {
       const read = readExpansion(segment, index);
-      expansion(read.text);
+      const parameter = read.text.startsWith('${');
+      const body = parameter ? read.text.slice(2, read.text.endsWith('}') ? -1 : undefined) : '';
+      const inners = parameter ? commandSubstitutions(body) : [];
+      substitutions.push(...inners);
+      expansion(read.text, inners.length > 0);
       index = read.end - 1;
       continue;
     }
@@ -822,6 +885,50 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
   return { target: value };
 }
 
+/** Name assigned by `export`, `declare`, `typeset`, or `readonly` when it is one the analyzer cannot vouch for. */
+function resolutionAssignment(values: readonly string[]): string | undefined {
+  for (const value of values) {
+    if (value === '--' || (value.startsWith('-') && !ASSIGNMENT.test(value))) {
+      continue;
+    }
+    const name = ASSIGNMENT.exec(value)?.[1];
+    if (name !== undefined && RESOLUTION_ASSIGNMENTS.has(name)) {
+      return name;
+    }
+  }
+  return undefined;
+}
+
+/** True when `git -c` carries a config value that starts a shell command. The value may be attached or a separate word. */
+function gitInlineShell(words: readonly Word[]): boolean {
+  let index = 0;
+  while (index < words.length) {
+    const value = words[index]?.value ?? '';
+    index++;
+    let payload: string | undefined;
+    if (value === '-c') {
+      payload = words[index]?.value;
+      index++;
+    } else if (value.startsWith('-c') && !value.startsWith('--') && value.length > 2) {
+      payload = value.slice(2);
+    } else {
+      continue;
+    }
+    if (payload === undefined || payload === '') {
+      continue;
+    }
+    const eq = payload.indexOf('=');
+    const configValue = eq === -1 ? words[index]?.value : payload.slice(eq + 1);
+    if (eq === -1) {
+      index++;
+    }
+    if (configValue !== undefined && configValue.startsWith('!')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export interface ShellPath {
   /** Spawn-relative or absolute literal path. */
   readonly path: string;
@@ -870,8 +977,11 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     }
     let options = true;
     const positional: string[] = [];
-    for (const word of args) {
-      if (!word.literal || word.hidesCommand) {
+    let targetDir: string | undefined;
+    const takesTarget = name === 'cp' || name === 'mv' || name === 'ln';
+    for (let index = 0; index < args.length; index++) {
+      const word = args[index];
+      if (word === undefined || !word.literal || word.hidesCommand) {
         continue;
       }
       const value = word.value;
@@ -886,15 +996,46 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         options = false;
         continue;
       }
+      if (options && takesTarget && (value === '--target-directory' || value === '-t')) {
+        const next = args[index + 1];
+        if (next?.literal === true && next.hidesCommand !== true) {
+          targetDir = next.value;
+        }
+        index++;
+        continue;
+      }
+      if (options && takesTarget && value.startsWith('--target-directory=')) {
+        targetDir = value.slice('--target-directory='.length);
+        continue;
+      }
+      if (options && takesTarget && value.startsWith('-t') && value.length > 2) {
+        targetDir = value.slice(2);
+        continue;
+      }
       if (options && value.startsWith('-') && value !== '-') {
         continue;
       }
       positional.push(value);
     }
-    // `cp` and `ln` read their sources and write the last operand; `mv` also removes them.
-    const write = WRITE_COMMANDS.has(name);
+    if (targetDir !== undefined) {
+      notePath(targetDir, true, base);
+      for (const value of positional) {
+        notePath(value, name === 'mv', base);
+        const slash = value.lastIndexOf('/');
+        const baseName = slash === -1 ? value : value.slice(slash + 1);
+        if (baseName !== '' && baseName !== '.' && baseName !== '..') {
+          notePath(targetDir.endsWith('/') ? `${targetDir}${baseName}` : `${targetDir}/${baseName}`, true, base);
+        }
+      }
+      return;
+    }
+    // `cp` reads its sources and writes the last operand. `mv` removes every operand. Every `ln`
+    // operand is a write, because the source is the path a later use of the link would escape through.
+    // `find -delete` writes the paths it was given.
+    const findDelete = name === 'find' && args.some((word) => word.literal && word.value === '-delete');
+    const write = WRITE_COMMANDS.has(name) || findDelete;
     for (const [index, value] of positional.entries()) {
-      const isWrite = name === 'cp' || name === 'ln' ? index === positional.length - 1 : write;
+      const isWrite = findDelete || name === 'ln' ? true : name === 'cp' ? index === positional.length - 1 : write;
       notePath(value, isWrite, base);
     }
   };
@@ -999,6 +1140,18 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
 
         if (INDIRECT.has(name)) {
           distrust(`${name} runs a command the analyzer does not follow`);
+        }
+        if (name === 'alias' && tail.length > 0) {
+          distrust('alias rebinds a command, which the analyzer cannot see through');
+        }
+        if (ASSIGNMENT_BUILTINS.has(name)) {
+          const assigned = resolutionAssignment(tail);
+          if (assigned !== undefined) {
+            distrust(`${assigned} changes how the shell finds commands`);
+          }
+        }
+        if (name === 'git' && gitInlineShell(words.slice(headIndex + 1))) {
+          distrust('git -c runs a command the analyzer does not follow');
         }
         if (name === 'find' && tail.some((value) => ['-exec', '-execdir', '-ok', '-okdir'].includes(value))) {
           distrust('find -exec runs a command the analyzer does not follow');

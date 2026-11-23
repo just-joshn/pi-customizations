@@ -9,7 +9,7 @@ import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, guardEgress, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
-import { sha256Hex } from '../core/text.ts';
+import { decodeBase64, sha256Hex } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -449,7 +449,7 @@ export function createSaveResourceLayerTool(options: WebContext) {
         const target = resolveToolPath(params.path, ctx.cwd, session.home);
         await guard(session, { kind: 'write', subjects: await subjectsFor(target), action: 'save resource', ctx });
         await assertWritableTarget(session, target, ctx.cwd);
-        const buffer = params.encoding === 'base64' ? Buffer.from(params.content, 'base64') : Buffer.from(params.content, 'utf-8');
+        const buffer = params.encoding === 'base64' ? decodeBase64(params.content) : Buffer.from(params.content, 'utf-8');
         if (buffer.byteLength > RESOURCE_MAX_BYTES) {
           throw layerError('error', `Resource is ${buffer.byteLength} bytes, above the ${RESOURCE_MAX_BYTES} byte cap. Nothing was written.`, { path: target });
         }

@@ -173,6 +173,46 @@ interface RawMatch {
   readonly truncated: boolean;
 }
 
+/** Keep context around the matches that survive offset and limit. Limit counts matches, not context lines. */
+function selectContentLines(
+  matches: readonly GrepLineMatch[],
+  offset: number,
+  limit: number,
+  before: number,
+  after: number,
+): { readonly kept: GrepLineMatch[]; readonly total: number; readonly limitReached: boolean; readonly empty: boolean } {
+  const matched = matches.filter((match) => !match.isContext);
+  const page = matched.slice(offset, offset + limit);
+  const keptKeys = new Set(page.map((match) => `${match.file}\0${match.line}`));
+  const chosen = new Map<string, GrepLineMatch>();
+  const order: string[] = [];
+  for (const match of matches) {
+    const key = `${match.file}\0${match.line}`;
+    const inWindow = page.some((hit) => hit.file === match.file && match.line >= hit.line - before && match.line <= hit.line + after);
+    const keep = match.isContext ? inWindow : keptKeys.has(key);
+    if (!keep) {
+      continue;
+    }
+    const previous = chosen.get(key);
+    if (previous === undefined) {
+      order.push(key);
+      chosen.set(key, match);
+      continue;
+    }
+    if (previous.isContext && !match.isContext) {
+      chosen.set(key, match);
+    }
+  }
+  const kept: GrepLineMatch[] = [];
+  for (const key of order) {
+    const match = chosen.get(key);
+    if (match !== undefined) {
+      kept.push(match);
+    }
+  }
+  return { kept, total: matched.length, limitReached: matched.length - offset > page.length, empty: page.length === 0 };
+}
+
 export function createGrepLayerTool(options: GrepToolOptions) {
   return {
     name: 'grep',
@@ -324,21 +364,21 @@ export function createGrepLayerTool(options: GrepToolOptions) {
         };
 
         if (mode === 'content') {
-          const sliced = matches.slice(offset);
-          const kept = sliced.slice(0, limit);
-          const limitReached = sliced.length > kept.length;
-          if (matches.length === 0 || matches.slice(offset).length === 0) {
+          const before = Math.max(0, Math.floor(params.contextBefore ?? params.context ?? 0));
+          const after = Math.max(0, Math.floor(params.contextAfter ?? params.context ?? 0));
+          const selected = selectContentLines(matches, offset, limit, before, after);
+          if (selected.empty) {
             return emptyOutcome();
           }
-          const body = kept.map((match) => `${match.file}${match.isContext ? '-' : ':'}${match.line}${match.isContext ? '-' : ':'} ${match.text}`).join('\n');
+          const body = selected.kept.map((match) => `${match.file}${match.isContext ? '-' : ':'}${match.line}${match.isContext ? '-' : ':'} ${match.text}`).join('\n');
           return {
-            content: [{ type: 'text', text: withNotices(body, noticesFor(limitReached, kept.length)) }],
-            details: { mode: 'content', matches: kept, total: matches.length, ...truncatedFlags(limitReached) },
+            content: [{ type: 'text', text: withNotices(body, noticesFor(selected.limitReached, Math.min(limit, selected.total - offset))) }],
+            details: { mode: 'content', matches: selected.kept, total: selected.total, ...truncatedFlags(selected.limitReached) },
             structuredContent: {
               mode: 'content',
-              total: matches.length,
-              truncated: limitReached || run.timedOut || run.truncated,
-              matches: kept.map((match) => ({ file: match.file, line: match.line, text: match.text, context: match.isContext })),
+              total: selected.total,
+              truncated: selected.limitReached || run.timedOut || run.truncated,
+              matches: selected.kept.map((match) => ({ file: match.file, line: match.line, text: match.text, context: match.isContext })),
             },
           };
         }

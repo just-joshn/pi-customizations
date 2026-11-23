@@ -3,13 +3,13 @@ import path from 'node:path';
 
 import { Type } from 'typebox';
 import { LayerError, layerError } from '../core/errors.ts';
-import { applyHunks, countHunkChanges, PatchError, type PatchFile, parsePatch, splitLines } from '../core/patch.ts';
+import { applyHunks, countHunkChanges, PatchError, type PatchFile, parsePatch, rebuildPatched, splitLines } from '../core/patch.ts';
 import { displayPath, resolveToolPath } from '../core/paths.ts';
 import { withFileQueues } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
-import { detectEol, sha256Hex } from '../core/text.ts';
+import { sha256Hex } from '../core/text.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -57,20 +57,6 @@ interface PlannedFile {
   readonly original?: string;
   /** Content of the move destination before the patch, for rollback. Undefined when it did not exist. */
   readonly destinationOriginal?: string;
-}
-
-/** Re-emit patched lines with the original file's line ending and trailing-newline state. */
-function buildContent(lines: readonly string[], originalText: string, noNewline: boolean): string {
-  if (lines.length === 0) {
-    return '';
-  }
-  const eol = detectEol(originalText);
-  const body = lines.join(eol);
-  if (noNewline) {
-    return body;
-  }
-  const hadTrailingNewline = originalText === '' || originalText.endsWith('\n');
-  return hadTrailingNewline ? `${body}${eol}` : body;
 }
 
 async function verifyWrite(target: string, expected: string, cwd: string): Promise<void> {
@@ -189,7 +175,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                   throw layerError('error', `Cannot add ${displayPath(ctx.cwd, target)}: it already exists. Nothing was written.`, { path: target });
                 }
                 const lines = file.addedLines ?? [];
-                actions.push({ file, target, destination, added, removed, action: 'write', content: buildContent(lines, '', file.noNewlineAtEnd === true), createsParent: true });
+                actions.push({ file, target, destination, added, removed, action: 'write', content: rebuildPatched('', lines, file.noNewlineAtEnd === true), createsParent: true });
                 continue;
               }
 
@@ -202,7 +188,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
               } catch (error) {
                 throw staleOrError(error, target, ctx.cwd);
               }
-              const content = buildContent(lines, original, file.noNewlineAtEnd === true);
+              const content = rebuildPatched(original, lines, file.noNewlineAtEnd === true);
               if (destination === target && content === original) {
                 throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
               }

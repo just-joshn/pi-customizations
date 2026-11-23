@@ -135,6 +135,18 @@ export async function fileIdentity(target: string): Promise<string> {
   return folds ? canonical.toLowerCase() : canonical;
 }
 
+/**
+ * Fence key for the named path. The parent is canonicalized and the final component is appended,
+ * so a symlink records the link itself and not the file it points at.
+ */
+export async function canonicalName(target: string): Promise<string> {
+  const resolved = path.resolve(target);
+  const parent = await canonicalPath(path.dirname(resolved));
+  const named = path.join(parent, path.basename(resolved));
+  const folds = await directoryFoldsCase(parent);
+  return folds ? named.toLowerCase() : named;
+}
+
 /** The path a caller named plus its canonical form, deduplicated. Policy rules check both. */
 export async function policySubjects(target: string): Promise<string[]> {
   const named = path.resolve(target);

@@ -1,5 +1,7 @@
 /** Patch parsing and application. Two formats are accepted: a multi-file patch with `***` directives, and a unified diff. */
 
+import { detectEol } from './text.ts';
+
 export class PatchError extends Error {
   constructor(message: string) {
     super(message);
@@ -59,6 +61,19 @@ interface DraftFile {
   addedLines?: string[];
   noNewlineAtEnd?: boolean;
   lastMarker?: '+' | '-' | ' ';
+}
+
+/** A line that lands in the new file clears an earlier no-newline marker. The marker only sticks at the end. */
+function markNewFileLine(file: DraftFile, marker: '+' | ' '): void {
+  file.noNewlineAtEnd = false;
+  file.lastMarker = marker;
+}
+
+/** The marker describes the new file when it follows a context or added line, not a deletion. */
+function markNoNewline(file: DraftFile): void {
+  if (file.lastMarker === '+' || file.lastMarker === ' ') {
+    file.noNewlineAtEnd = true;
+  }
 }
 
 function finishHunk(file: DraftFile, hunk: DraftHunk | undefined): void {
@@ -137,9 +152,7 @@ function parseDirectives(text: string): ParsedPatch {
       throw new PatchError('patch content appears before any file directive');
     }
     if (line === '\\ No newline at end of file') {
-      if (current.lastMarker === '+') {
-        current.noNewlineAtEnd = true;
-      }
+      markNoNewline(current);
       continue;
     }
     if (line.startsWith('@@')) {
@@ -151,7 +164,7 @@ function parseDirectives(text: string): ParsedPatch {
     if (current.kind === 'add') {
       if (line === '' || line.startsWith('+')) {
         current.addedLines?.push(line.startsWith('+') ? line.slice(1) : line);
-        current.lastMarker = '+';
+        markNewFileLine(current, '+');
         continue;
       }
       throw new PatchError(`added file ${current.path} contains a line that does not start with +`);
@@ -160,7 +173,7 @@ function parseDirectives(text: string): ParsedPatch {
       hunk ??= { oldLines: [], newLines: [] };
       hunk.oldLines.push('');
       hunk.newLines.push('');
-      current.lastMarker = ' ';
+      markNewFileLine(current, ' ');
       continue;
     }
     const marker = line[0];
@@ -169,7 +182,7 @@ function parseDirectives(text: string): ParsedPatch {
       hunk ??= { oldLines: [], newLines: [] };
       hunk.oldLines.push(body);
       hunk.newLines.push(body);
-      current.lastMarker = ' ';
+      markNewFileLine(current, ' ');
       continue;
     }
     if (marker === '-') {
@@ -181,7 +194,7 @@ function parseDirectives(text: string): ParsedPatch {
     if (marker === '+') {
       hunk ??= { oldLines: [], newLines: [] };
       hunk.newLines.push(body);
-      current.lastMarker = '+';
+      markNewFileLine(current, '+');
       continue;
     }
     throw new PatchError(`unexpected line in patch: ${line.slice(0, 80)}`);
@@ -254,15 +267,15 @@ function parseUnified(text: string, basePath: string): ParsedPatch {
         hunk.oldLines.push('');
         hunk.newLines.push('');
         if (current !== undefined) {
-          current.lastMarker = ' ';
+          markNewFileLine(current, ' ');
         }
       }
       index++;
       continue;
     }
     if (line.startsWith('\\')) {
-      if (current !== undefined && current.lastMarker === '+') {
-        current.noNewlineAtEnd = true;
+      if (current !== undefined) {
+        markNoNewline(current);
       }
       index++;
       continue;
@@ -276,13 +289,13 @@ function parseUnified(text: string, basePath: string): ParsedPatch {
     if (marker === ' ') {
       hunk.oldLines.push(body);
       hunk.newLines.push(body);
-      current.lastMarker = ' ';
+      markNewFileLine(current, ' ');
     } else if (marker === '-') {
       hunk.oldLines.push(body);
       current.lastMarker = '-';
     } else if (marker === '+') {
       hunk.newLines.push(body);
-      current.lastMarker = '+';
+      markNewFileLine(current, '+');
     } else {
       throw new PatchError(`unexpected line in hunk: ${line.slice(0, 80)}`);
     }
@@ -410,14 +423,166 @@ function longestCommonSubsequence(left: readonly string[], right: readonly strin
   return previous[right.length] ?? 0;
 }
 
-export function splitLines(text: string): string[] {
+interface SourcedLine {
+  readonly text: string;
+  readonly ending: '' | '\n' | '\r\n';
+}
+
+function splitLinesWithEndings(text: string): SourcedLine[] {
   if (text === '') {
     return [];
   }
-  const normalized = text.replaceAll('\r\n', '\n');
-  const lines = normalized.split('\n');
-  if (normalized.endsWith('\n')) {
-    lines.pop();
+  const lines: SourcedLine[] = [];
+  let start = 0;
+  for (let index = 0; index < text.length; index++) {
+    if (text.charCodeAt(index) !== 10) {
+      continue;
+    }
+    const crlf = index > start && text.charCodeAt(index - 1) === 13;
+    const end = crlf ? index - 1 : index;
+    lines.push({ text: text.slice(start, end), ending: crlf ? '\r\n' : '\n' });
+    start = index + 1;
+  }
+  if (start < text.length) {
+    lines.push({ text: text.slice(start), ending: '' });
   }
   return lines;
+}
+
+export function splitLines(text: string): string[] {
+  return splitLinesWithEndings(text).map((line) => line.text);
+}
+
+/** Pair patched lines with original lines by a longest common subsequence, after the shared ends. */
+function alignEndings(original: readonly SourcedLine[], patched: readonly string[]): ('' | '\n' | '\r\n' | undefined)[] {
+  const pairs = lcsPairs(
+    original.map((line) => line.text),
+    patched,
+  );
+  const endings: ('' | '\n' | '\r\n' | undefined)[] = new Array(patched.length).fill(undefined);
+  for (const [left, right] of pairs) {
+    endings[right] = original[left]?.ending;
+  }
+  return endings;
+}
+
+function lcsPairs(left: readonly string[], right: readonly string[]): Array<[number, number]> {
+  let prefix = 0;
+  while (prefix < left.length && prefix < right.length && left[prefix] === right[prefix]) {
+    prefix++;
+  }
+  let suffix = 0;
+  while (suffix < left.length - prefix && suffix < right.length - prefix && left[left.length - 1 - suffix] === right[right.length - 1 - suffix]) {
+    suffix++;
+  }
+  const mid = lcsMiddle(left.slice(prefix, left.length - suffix), right.slice(prefix, right.length - suffix));
+  const pairs: Array<[number, number]> = [];
+  for (let index = 0; index < prefix; index++) {
+    pairs.push([index, index]);
+  }
+  for (const [leftIndex, rightIndex] of mid) {
+    pairs.push([leftIndex + prefix, rightIndex + prefix]);
+  }
+  for (let index = 0; index < suffix; index++) {
+    pairs.push([left.length - suffix + index, right.length - suffix + index]);
+  }
+  return pairs;
+}
+
+function lcsMiddle(left: readonly string[], right: readonly string[]): Array<[number, number]> {
+  const rows = left.length;
+  const cols = right.length;
+  if (rows === 0 || cols === 0) {
+    return [];
+  }
+  if (rows * cols > 2_000_000) {
+    return greedyPairs(left, right);
+  }
+  const width = cols + 1;
+  const previous = new Uint32Array(width);
+  const current = new Uint32Array(width);
+  const direction = new Uint8Array((rows + 1) * width);
+  for (let row = 1; row <= rows; row++) {
+    current.fill(0);
+    for (let col = 1; col <= cols; col++) {
+      if (left[row - 1] === right[col - 1]) {
+        current[col] = (previous[col - 1] ?? 0) + 1;
+        direction[row * width + col] = 1;
+      } else if ((previous[col] ?? 0) >= (current[col - 1] ?? 0)) {
+        current[col] = previous[col] ?? 0;
+        direction[row * width + col] = 2;
+      } else {
+        current[col] = current[col - 1] ?? 0;
+        direction[row * width + col] = 3;
+      }
+    }
+    previous.set(current);
+  }
+  const pairs: Array<[number, number]> = [];
+  let row = rows;
+  let col = cols;
+  while (row > 0 && col > 0) {
+    const step = direction[row * width + col];
+    if (step === 1) {
+      pairs.push([row - 1, col - 1]);
+      row--;
+      col--;
+    } else if (step === 2) {
+      row--;
+    } else {
+      col--;
+    }
+  }
+  pairs.reverse();
+  return pairs;
+}
+
+/** In-order fallback when the changed region is too large for the LCS table. */
+function greedyPairs(left: readonly string[], right: readonly string[]): Array<[number, number]> {
+  const pairs: Array<[number, number]> = [];
+  let leftIndex = 0;
+  for (let rightIndex = 0; rightIndex < right.length; rightIndex++) {
+    while (leftIndex < left.length && left[leftIndex] !== right[rightIndex]) {
+      leftIndex++;
+    }
+    if (leftIndex < left.length) {
+      pairs.push([leftIndex, rightIndex]);
+      leftIndex++;
+    }
+  }
+  return pairs;
+}
+
+function endingFor(matched: '' | '\n' | '\r\n' | undefined, isLast: boolean, noNewline: boolean, dominant: '\n' | '\r\n'): '' | '\n' | '\r\n' {
+  if (isLast && noNewline) {
+    return '';
+  }
+  if (matched === undefined) {
+    return dominant;
+  }
+  if (matched === '' && !isLast) {
+    return dominant;
+  }
+  return matched;
+}
+
+/**
+ * Rebuild the file from patched line texts. A matched line keeps its original ending. An added line
+ * uses the file's dominant ending. The no-newline marker drops the final ending. An unchanged last
+ * line that had no ending keeps it, so a context-only patch stays a no-op.
+ */
+export function rebuildPatched(originalText: string, patchedLines: readonly string[], noNewline: boolean): string {
+  if (patchedLines.length === 0) {
+    return '';
+  }
+  const original = splitLinesWithEndings(originalText);
+  const dominant = detectEol(originalText);
+  const matched = alignEndings(original, patchedLines);
+  const parts: string[] = [];
+  for (let index = 0; index < patchedLines.length; index++) {
+    const text = patchedLines[index] ?? '';
+    const ending = endingFor(matched[index], index === patchedLines.length - 1, noNewline, dominant);
+    parts.push(`${text}${ending}`);
+  }
+  return parts.join('');
 }

@@ -31,15 +31,11 @@ export const LS_TIMEOUT_MS = 5000;
 export const GLOB_DEFAULT_LIMIT = 2000;
 export const GLOB_MAX_LIMIT = MAX_GREP_OUTPUT_LINES;
 
-/** Files above this size skip content snapshots and fingerprinting. */
+/** Files above this size skip the delete content snapshot. */
 export const MAX_SNAPSHOT_BYTES = 50 * 1024 * 1024;
 
-/** File size above which a read does not record a write fence fingerprint. */
-export const MAX_FENCE_BYTES = MAX_READ_CHARS;
-
-/** Read fence entries kept per session, and their lifetime. */
+/** Read fence entries kept per session. The oldest entry is dropped once the cap is passed. */
 export const MAX_FENCE_ENTRIES = 1000;
-export const FENCE_TTL_MS = 60_000;
 
 /** Bytes fetched by the web fetch tool before the body is reported as truncated. */
 export const WEB_FETCH_MAX_BYTES = 2 * 1024 * 1024;
