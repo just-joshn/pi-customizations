@@ -1,0 +1,322 @@
+{
+  "extensions/no-ceilings/pi-goals/test/harness.ts": {
+    "@typescript-eslint/no-redundant-type-constituents": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-modes/src/index.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "extensions/no-ceilings/pi-modes/src/plan-progress.ts": {
+    "security/detect-unsafe-regex": {
+      "count": 3
+    }
+  },
+  "extensions/no-ceilings/pi-modes/test/harness.ts": {
+    "@typescript-eslint/no-redundant-type-constituents": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/src/runner.ts": {
+    "functional/immutable-data": {
+      "count": 2
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/harness.ts": {
+    "@typescript-eslint/no-redundant-type-constituents": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/no-ceilings/pi-subagents/test/regressions.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-anthropic-oauth-v2/src/oauth/config.ts": {
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/pi-google-oauth-v2/src/auth.ts": {
+    "no-secrets/no-secrets": {
+      "count": 2
+    }
+  },
+  "extensions/pi-google-oauth-v2/test/constants.ts": {
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/pi-google-oauth-v2/test/login.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-google-oauth-v2/test/refresh.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "extensions/pi-google-oauth-v2/test/stream-events.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/src/gondolin/bash.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/src/jobs.ts": {
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/pi-pstack-v2/src/prompt.ts": {
+    "functional/immutable-data": {
+      "count": 2
+    }
+  },
+  "extensions/pi-pstack-v2/src/subagent/index.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    },
+    "no-param-reassign": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/src/subagent/results.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/src/subagent/run-in-tmux.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/core-gondolin-host.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/gondolin.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/job-wakes.test.ts": {
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/pi-pstack-v2/test/jobs.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-agents.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-extension.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-multi.test.ts": {
+    "no-magic-numbers": {
+      "count": 5
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-render.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-single.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-tier1-foundation.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "extensions/pi-pstack-v2/test/subagent-tmux.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/bench/profile-scan.ts": {
+    "security/detect-unsafe-regex": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/bench/profile-summary.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/bench/script.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/bench/visual/demo-provider.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/src/chrome.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/src/editor.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/src/footer.ts": {
+    "no-magic-numbers": {
+      "count": 3
+    }
+  },
+  "extensions/pi-snoop-tui/src/rows/components.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/src/rows/panel.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/src/rows/view.ts": {
+    "no-magic-numbers": {
+      "count": 2
+    }
+  },
+  "extensions/pi-snoop-tui/src/text.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/test/editor.test.ts": {
+    "no-magic-numbers": {
+      "count": 2
+    }
+  },
+  "extensions/pi-snoop-tui/test/footer.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/test/harness.ts": {
+    "no-magic-numbers": {
+      "count": 2
+    }
+  },
+  "extensions/pi-snoop-tui/test/panels.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-snoop-tui/test/row-expansion.test.ts": {
+    "no-magic-numbers": {
+      "count": 5
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/scripts/verify-live.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/src/cursor/models.ts": {
+    "security/detect-unsafe-regex": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/src/cursor/run.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/agent-pool.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/cursor-account.test.ts": {
+    "no-magic-numbers": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/e2e/patch-fetch.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/fake-sdk.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/grok.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 2
+    },
+    "no-secrets/no-secrets": {
+      "count": 2
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/host.ts": {
+    "no-secrets/no-secrets": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/models.test.ts": {
+    "no-secrets/no-secrets": {
+      "count": 8
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/stream-helpers.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/stream.test.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "no-magic-numbers": {
+      "count": 1
+    }
+  }
+}

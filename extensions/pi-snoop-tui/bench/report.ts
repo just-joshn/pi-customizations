@@ -43,7 +43,6 @@ const STREAM_METRICS: Metric[] = [
   metric('PTY bytes, idle 10 s', field('pty', 'idleBytes')),
   metric('PTY bytes, idle after first 1 s', field('pty', 'idleLateBytes')),
   metric('Clean idle CPU ms over 10 s, no sampler', cpu('cleanIdle')),
-  // biome-ignore lint/security/noSecrets: benchmark record field name
   metric('Clean idle involuntary context switches', field('cleanIdle', 'involuntaryContextSwitches')),
   metric('PTY bytes, clean idle 10 s', field('pty', 'cleanIdleBytes')),
   metric('Tool results', field('toolResults')),

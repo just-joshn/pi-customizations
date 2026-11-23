@@ -10,6 +10,7 @@ import { ask, call, freshPrompt, system, toolCalls, toolResult, user } from './s
 vi.mock('@cursor/sdk', async (importOriginal) => ({ ...(await importOriginal<object>()), ...(await import('./fake-sdk.ts')).fakeSdk }));
 
 const HTTP_UNAUTHORIZED = 401;
+const HTTP_TOO_MANY_REQUESTS = 429;
 const IMAGE_RESULT_TIMESTAMP = 3;
 const BATCH_WAIT_MS = 30;
 const MS_PER_MINUTE = 60_000;
@@ -337,6 +338,18 @@ describe('failures: how Cursor SDK errors read', () => {
 
   test('an SDK error without details shows only its name and message', async () => {
     expect(await failWith(new CursorSdkError('bare'))).toBe('Cursor CursorSdkError: bare');
+  });
+
+  test('an SDK error with a code, status, and request ID shows all three', async () => {
+    const error = new CursorSdkError('too many requests', { code: 'rate_limited', status: HTTP_TOO_MANY_REQUESTS, requestId: 'req-9' });
+    expect(await failWith(error)).toBe('Cursor CursorSdkError: too many requests (code rate_limited, HTTP 429, request req-9)');
+  });
+
+  test('a run rejected for rate limiting reports 429 without a sign-in hint', async () => {
+    const error = new CursorSdkError('slow down', { code: 'rate_limited', status: HTTP_TOO_MANY_REQUESTS });
+    const message = await failWith(error);
+    expect(message).toContain('HTTP 429');
+    expect(message).not.toContain('/login');
   });
 
   test('a plain Error shows its message', async () => {

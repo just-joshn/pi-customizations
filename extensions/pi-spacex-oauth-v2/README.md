@@ -31,9 +31,11 @@ Before the first refresh after sign-in, Pi lists these built-in models:
 
 After the first refresh, each list comes from the service and is saved for offline starts. The Grok Build list keeps only models whose `api_backend` is `responses`, or is not set. The Cursor list comes from `Cursor.models.list()`.
 
-Every model reports a cost of 0, so Pi shows no price. Every model accepts text and image input.
+Pi keeps one Cursor model per catalog id, and that id does not change. Pi's thinking level changes the effort parameter on the model's default variant. Grok Build models accept the reasoning efforts `low`, `medium`, `high`, and `xhigh` that the service lists for them. Cursor models use their `effort`, `reasoning_effort`, or `reasoning` parameter. A model with only a `thinking` parameter turns thinking on or off.
 
-Pi's thinking level maps to the model's parameters. Grok Build models accept the reasoning efforts `low`, `medium`, `high`, and `xhigh` that the service lists for them. Cursor models use their `effort`, `reasoning_effort`, or `reasoning` parameter. A model with only a `thinking` parameter turns thinking on or off.
+Pi also lists each Cursor variant that has parameters. The model id pins those parameters. `grok-4.7@context=256k+fast=false+reasoning_effort=low` is one example. Pi does not offer a thinking level on a pinned model, and a request sends those parameters exactly. The id is built from the catalog model id and the parameter values, so a saved list keeps the same ids when Pi refreshes with no network. Variant order does not change the id. The display name includes the context size and the other parameter labels when several variants share one catalog display name.
+
+Every model reports a cost of 0, so Pi shows no price. Every model accepts text and image input.
 
 ## Commands
 
@@ -71,3 +73,5 @@ bun run --filter @justjoshn/pi-spacex-oauth-v2 test:coverage
 # Live check against Cursor: tool pause, resume, follow-up, abort.
 CURSOR_API_KEY=... node extensions/pi-spacex-oauth-v2/scripts/verify-live.ts
 ```
+
+The end-to-end tests in `test/e2e` spawn the real `pi` CLI against a local Grok server. They run when `pi` is on `PATH`, the login case also needs `tmux`, and the Cursor cases need `CURSOR_API_KEY` or a stored `spacex-cursor` login. CI installs Pi and `tmux` for this package and passes `CURSOR_API_KEY` from a repository secret. Fork pull requests receive no secret, so the two Cursor cases skip there.

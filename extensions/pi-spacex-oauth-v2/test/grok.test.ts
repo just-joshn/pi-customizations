@@ -24,7 +24,9 @@ const DEVICE_REQUESTS = 1;
 const SLOW_DOWN_STEP_MS = 5000;
 const GROK_CONTEXT_WINDOW = 256_000;
 const TOKEN_POLL_INDEX = 3;
-// biome-ignore lint/security/noSecrets: OAuth's device authorization grant uses this standardized URN, not a credential.
+const CALLS_AFTER_ONE_POLL = 2;
+const CALLS_AFTER_TWO_POLLS = 3;
+const CALLS_AFTER_THREE_POLLS = 4;
 const DEVICE_GRANT = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code';
 const DEVICE_CODE_URL = 'https://auth.x.ai/oauth2/device/code';
 const TOKEN_URL = 'https://auth.x.ai/oauth2/token';
@@ -97,6 +99,38 @@ describe('Grok Build device sign-in', () => {
     const creds = await login;
     expect(deviceCodes()[0]).toMatchObject({ verificationUri: DEVICE_URL, intervalSeconds: POLL_INTERVAL_SECONDS });
     expect(creds.expires).toBe(Date.now() + DEFAULT_TOKEN_TTL_SECONDS * MS_PER_SECOND);
+  });
+});
+
+describe('Grok Build device sign-in polling', () => {
+  test('adds the delay again for each slow_down instead of asking at the old interval', async () => {
+    const fetch = stubFetch(
+      jsonResponse(HTTP_OK, deviceCode({ interval: 1 })),
+      jsonResponse(HTTP_BAD_REQUEST, { error: 'slow_down' }),
+      jsonResponse(HTTP_BAD_REQUEST, { error: 'slow_down' }),
+      jsonResponse(HTTP_OK, { access_token: 'a', refresh_token: 'r' }),
+    );
+    const login = grok().oauth.login(makeLogin().callbacks);
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS);
+    expect(fetch).toHaveBeenCalledTimes(CALLS_AFTER_ONE_POLL);
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS + SLOW_DOWN_STEP_MS);
+    expect(fetch).toHaveBeenCalledTimes(CALLS_AFTER_TWO_POLLS);
+    await vi.advanceTimersByTimeAsync(SLOW_DOWN_STEP_MS + SLOW_DOWN_STEP_MS);
+    expect(fetch).toHaveBeenCalledTimes(CALLS_AFTER_TWO_POLLS);
+    await vi.advanceTimersByTimeAsync(ONE_SECOND_MS);
+    expect(fetch).toHaveBeenCalledTimes(CALLS_AFTER_THREE_POLLS);
+    await expect(login).resolves.toMatchObject({ access: 'a' });
+  });
+
+  test('stops polling once the code’s lifetime runs out', async () => {
+    const fetch = vi.fn(async (url: string) =>
+      url.includes('device/code') ? jsonResponse(HTTP_OK, deviceCode({ expires_in: SHORT_CODE_LIFETIME_SECONDS, interval: POLL_INTERVAL_SECONDS })) : jsonResponse(HTTP_BAD_REQUEST, { error: 'authorization_pending' }),
+    );
+    vi.stubGlobal('fetch', fetch);
+    const login = handled(grok().oauth.login(makeLogin().callbacks));
+    await vi.advanceTimersByTimeAsync(SHORT_CODE_LIFETIME_SECONDS * MS_PER_SECOND);
+    expect(fetch).toHaveBeenCalledTimes(DEVICE_REQUESTS + SHORT_CODE_LIFETIME_SECONDS / POLL_INTERVAL_SECONDS);
+    await expect(login).rejects.toThrow('Grok device sign-in expired before it was approved');
   });
 });
 
@@ -189,6 +223,31 @@ describe('Grok Build token refresh and API key', () => {
 
   test('hands Pi the access token as the API key', () => {
     expect(grok().oauth.getApiKey({ access: 'acc', refresh: 'r', expires: 0 })).toBe('acc');
+  });
+});
+
+describe('Grok Build model list failure logging', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  test('writes no access token to the log', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await grok().refreshModels(makeRefresh({ credential: oauthCredential('secret-token') }).ctx);
+    expect(JSON.stringify(error.mock.calls)).not.toContain('secret-token');
+  });
+});
+
+describe('Grok Build token refresh responses', () => {
+  const signal = new AbortController().signal;
+
+  test('gives a refreshed token one hour when the server omits its lifetime', async () => {
+    stubFetch(jsonResponse(HTTP_OK, { access_token: 'new', refresh_token: 'rotated' }));
+    const creds = await grok().oauth.refreshToken({ access: 'old', refresh: 'keep', expires: 0 }, signal);
+    expect(creds.expires).toBe(Date.now() + DEFAULT_TOKEN_TTL_SECONDS * MS_PER_SECOND);
+  });
+
+  test('reports a refresh response that carries no access token', async () => {
+    stubFetch(jsonResponse(HTTP_OK, { refresh_token: 'rotated' }));
+    await expect(grok().oauth.refreshToken({ access: 'old', refresh: 'keep', expires: 0 }, signal)).rejects.toThrow('Grok sign-in failed: no token returned');
   });
 });
 

@@ -42,16 +42,24 @@ The source of the deprecated packages stays in git history.
 
 ## Develop
 
-You need Node `>=22.19.0` and Bun. The `pi-pstack-v2` tests also need `tmux`.
+Use Node `>=22.19.0` and the Bun version in [`.bun-version`](.bun-version). The `pi-pstack-v2` tests also need `tmux`.
 
 ```sh
-bun install
-bun run ci                   # Biome format and assist check, bun lint
+bun install --frozen-lockfile
+bun run format               # write formatting changes with bun fmt
+bun run lint                 # ESLint
+bun run check                # check formatting and lint without rewriting files
 bun run typecheck            # every package
 bun run test                 # every package
 ```
 
-`bun lint` exists only in Bun canary builds. Run `bun upgrade --canary` to get one. The CI lint job installs Bun canary (`bun-version: canary`). The CI test jobs and the release workflow use Bun 1.4.5.
+Pull-request CI and the release workflow run the same formatting and lint checks as `bun run check`. They install Bun from `.bun-version` and ESLint from `bun.lock`. The formatter skips Markdown, lockfiles, and vendored skills.
+
+`eslint.config.mjs` checks the code patterns in [`.pi/rules/`](.pi/rules) that ESLint can detect. Every first-party TypeScript file is checked, including tests, scripts, and bench tools. The two vendored skill trees are excluded because they are copies maintained upstream, outside the TypeScript build. Coverage, input validation, authentication, algorithm complexity, and Git workflow still need their own checks. ESLint uses TypeScript 6 because `typescript-eslint` does not support TypeScript 7. The extension type checks still use TypeScript 7.
+
+`eslint-plugin-functional` supplies the immutability rule. `functional/immutable-data` fails any write to an existing object or array, and it applies outside `src`. Four rules stay off on purpose. `functional/no-let` and `functional/prefer-immutable-types` go beyond the immutability rule's text, and enabling them today would report 261 and 192 findings. `functional/no-throw-statements` and `functional/no-try-statements` contradict the error-handling rule in the same file, which requires `try`/`catch` and `throw new Error`.
+
+`eslint-suppressions.json` records existing findings by rule and file. If you fix one, run `bun run lint --prune-suppressions`, then `bun run format`.
 
 To load a package from this checkout, run `pi -e extensions/<package>` for a top-level package or `pi -e extensions/no-ceilings/<package>` for a suite package.
 

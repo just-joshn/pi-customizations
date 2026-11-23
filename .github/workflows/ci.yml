@@ -21,10 +21,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # `bun lint` ships only in canary builds (https://bun.com/docs/lint). Move to a release once it lands in one.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.13.0
+          package-manager-cache: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: canary
+          bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - run: bun run ci
 
@@ -108,21 +111,36 @@ jobs:
           package-manager-cache: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.5
-      - if: matrix.package == 'pi-pstack-v2'
+          bun-version-file: .bun-version
+      - if: matrix.package == 'pi-pstack-v2' || matrix.package == 'pi-spacex-oauth-v2'
         name: Install tmux
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq tmux
+      # The end-to-end tests spawn the real Pi CLI. Pin the version the package tests against.
+      - if: matrix.package == 'pi-spacex-oauth-v2'
+        name: Install Pi for the end-to-end tests
+        run: npm install --global @earendil-works/pi-coding-agent@1.5.2
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
       - run: |
+          exclude=()
+          if [ "${{ matrix.package }}" = "pi-spacex-oauth-v2" ]; then
+            exclude=(--exclude 'test/e2e/**')
+          fi
           if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json > /dev/null; then
-            npx vitest run --coverage --passWithNoTests ${CHANGED:+--changed "$CHANGED"}
+            npx vitest run --coverage --passWithNoTests "${exclude[@]}" ${CHANGED:+--changed "$CHANGED"}
           else
             bun run test
           fi
+      # The end-to-end tests spawn the real Pi CLI, so they always run for this package. Fork pull
+      # requests receive no secrets, so the Cursor cases skip there and the Grok cases still run.
+      - if: matrix.package == 'pi-spacex-oauth-v2'
+        name: End-to-end tests
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: npx vitest run test/e2e
       # Vitest cannot see the watch-pr Bun tests, so they run when the scripts they cover changed.
       - if: matrix.package == 'pi-pstack-v2'
         run: |

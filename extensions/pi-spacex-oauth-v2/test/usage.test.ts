@@ -111,6 +111,14 @@ describe('the spacex-usage command when a lookup fails', () => {
     const [note] = await usage({ authFailure: 'boom' });
     expect(note?.message).toBe('Usage lookup failed: boom');
   });
+
+  test('shows neither credential when both lookups fail', async () => {
+    stubGrokBilling({ status: HTTP_SERVER_ERROR });
+    fakeSdk.Cursor.me.mockRejectedValue(new Error('Invalid User API Key'));
+    const [note] = await usage({ tokens: { [CURSOR_ID]: 'cursor-secret', [GROK_ID]: 'grok-secret' } });
+    expect(note?.message).not.toContain('cursor-secret');
+    expect(note?.message).not.toContain('grok-secret');
+  });
 });
 
 describe('the spacex-usage command Grok Build rate limit', () => {

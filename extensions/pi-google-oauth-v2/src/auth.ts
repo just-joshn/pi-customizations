@@ -7,7 +7,7 @@ import { type LoopbackCallback, startLoopbackCallback } from './loopback.ts';
 import { readProjectOverride, resolveProject } from './onboarding.ts';
 
 const ANTIGRAVITY_CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
-// biome-ignore lint/security/noSecrets: Antigravity's public desktop OAuth client requires this shared application secret, not a user credential.
+// This public desktop OAuth client shares its application secret across installations.
 const ANTIGRAVITY_CLIENT_SECRET = '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';
 const SCOPE_CLOUD_PLATFORM = 'https://www.googleapis.com/auth/cloud-platform';
 const SCOPE_USER_EMAIL = 'https://www.googleapis.com/auth/userinfo.email';
@@ -80,7 +80,7 @@ function buildAuthUrl(input: { redirectUri: string; state: string; codeChallenge
     code_challenge: input.codeChallenge,
     code_challenge_method: 'S256',
   });
-  return `${AUTH_URL}?${params}`;
+  return `${AUTH_URL}?${params.toString()}`;
 }
 
 async function postToken(body: Record<string, string>, fetchImpl: FetchFunction, signal: AbortSignal): Promise<TokenResponse> {

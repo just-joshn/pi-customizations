@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack-v2",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Use the pstack skills and workflow in Pi, with the upstream subagent tool spawning Pi in tmux, shell jobs running in tmux, and Pi's tools running in a Gondolin micro-VM.",
   "type": "module",
   "license": "MIT",
@@ -56,6 +56,7 @@
     "@earendil-works/pi-tui": "1.5.2",
     "@vitest/coverage-v8": "5.1.0",
     "typebox": "1.3.27",
+    "typescript": "^7.0.2",
     "vitest": "5.1.0"
   },
   "dependencies": {
