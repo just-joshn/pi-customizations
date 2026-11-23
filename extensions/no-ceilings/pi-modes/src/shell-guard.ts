@@ -13,6 +13,7 @@ const GREATER_THAN = '>';
 const DOLLAR = '$';
 const OPEN_PAREN = '(';
 const OPEN_BRACE = '{';
+const EQUALS = '=';
 const BACKTICK = '`';
 
 /** Commands whose default behavior only reads. Per-command rules below remove the writing forms. */
@@ -164,7 +165,7 @@ function lexCommand(command: string): LexedCommand {
       if (next === '\n') {
         // Bash removes a line continuation before it parses the command, which can join an expansion.
         const after = command[index + 2];
-        if (word.endsWith(DOLLAR) && startsShellExpansion(after)) {
+        if ((word.endsWith(DOLLAR) && startsShellExpansion(after)) || (word.endsWith(EQUALS) && after === OPEN_PAREN)) {
           safe = false;
         }
         index += 2;
@@ -202,6 +203,10 @@ function lexCommand(command: string): LexedCommand {
       safe = false;
     }
     if (char === OPEN_BRACE && hasBraceExpansion(command, index)) {
+      safe = false;
+    }
+    if (char === EQUALS && command[index + 1] === OPEN_PAREN) {
+      // zsh process substitution, also invalid in bash.
       safe = false;
     }
     if (isPathnameExpansionChar(char)) {
@@ -285,7 +290,7 @@ function hasDeniedSedOption(words: readonly string[]): boolean {
       if (letter === 'e') {
         return false;
       }
-      if (letter === 'i' || letter === 'f') {
+      if (letter === 'i' || letter === 'I' || letter === 'f') {
         return true;
       }
     }
@@ -499,31 +504,13 @@ function sedScripts(words: readonly string[]): readonly string[] {
   return scripts;
 }
 
-const TAG_LIST_FLAGS = new Set<string>([
-  '-l',
-  '--list',
-  '-n',
-  '-i',
-  '--ignore-case',
-  '--no-ignore-case',
-  '--column',
-  '--no-column',
-  '--color',
-  '--no-color',
-  '--contains',
-  '--no-contains',
-  '--points-at',
-  '--merged',
-  '--no-merged',
-  '--sort',
-  '--format',
-  '--omit-empty',
-  '--no-omit-empty',
-]);
+const TAG_LIST_FLAGS = new Set<string>(['-l', '--list', '-n', '--contains', '--no-contains', '--points-at', '--merged', '--no-merged']);
+
+const TAG_PASSIVE_FLAGS = new Set<string>(['-i', '--ignore-case', '--no-ignore-case', '--column', '--no-column', '--color', '--no-color', '--sort', '--format', '--omit-empty', '--no-omit-empty']);
 
 const TAG_VERIFY_FLAGS = new Set<string>(['-v', '--verify']);
 
-function tagReadKind(arg: string): 'list' | 'verify' | undefined {
+function tagReadKind(arg: string): 'list' | 'verify' | 'passive' | undefined {
   if (/^-n[0-9]+$/.test(arg)) {
     return 'list';
   }
@@ -533,6 +520,9 @@ function tagReadKind(arg: string): 'list' | 'verify' | undefined {
   }
   if (TAG_VERIFY_FLAGS.has(name)) {
     return 'verify';
+  }
+  if (TAG_PASSIVE_FLAGS.has(name)) {
+    return 'passive';
   }
   return undefined;
 }
@@ -569,7 +559,7 @@ const BRANCH_DENIED_SHORT = new Set<string>(['d', 'D', 'm', 'M', 'c', 'C', 'f', 
 
 /** Git accepts unambiguous long-option prefixes, so every prefix of a denied option is denied too. */
 function isAllowedBranchArgs(args: readonly string[]): boolean {
-  const valueFlags = new Set(['--merged', '--no-merged', '--contains', '--points-at', '--sort', '--format', '--color', '--list']);
+  const valueFlags = new Set(['--merged', '--no-merged', '--contains', '--points-at', '--sort', '--format', '--list']);
   let expectsValue = false;
   for (const arg of args) {
     const option = arg.split('=')[0] ?? '';
@@ -759,7 +749,7 @@ function isAllowedSegment(words: readonly string[]): boolean {
     }
     const verb = args[1];
     if (verb === 'audit') {
-      return !args.slice(TWO).some((word) => word === 'fix' || word === '--fix');
+      return !args.slice(TWO).some((word) => word === 'fix' || word === '--fix' || word.startsWith('--fix='));
     }
     return verb === 'list' || verb === 'ls' || verb === 'view' || verb === 'info' || verb === 'search' || verb === 'outdated' || verb === 'why';
   }
