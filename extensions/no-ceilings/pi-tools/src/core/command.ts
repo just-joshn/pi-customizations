@@ -38,8 +38,8 @@ const INDIRECT = new Set(['sudo', 'doas', 'su', 'runuser', 'chroot', 'xargs', 'p
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
 const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
 
-/** Assignments that change how the shell finds, starts, or splits, so the analyzer cannot vouch for them. */
-const RESOLUTION_ASSIGNMENTS = new Set(['CDPATH', 'BASH_ENV', 'ENV', 'IFS']);
+/** Assignments that change how the shell finds, starts, splits, or traces, so the analyzer cannot vouch for them. */
+const RESOLUTION_ASSIGNMENTS = new Set(['CDPATH', 'BASH_ENV', 'ENV', 'IFS', 'PS4']);
 
 /** Builtins that assign the same way a leading `NAME=value` does. */
 const ASSIGNMENT_BUILTINS = new Set(['export', 'declare', 'typeset', 'readonly']);
@@ -64,7 +64,7 @@ const DIR_VARIABLES = new Map([
 export const SHELL_STARTUP_ENV = ['BASH_ENV', 'ENV'] as const;
 
 /** Variables removed from every spawned shell, so a rule verdict matches the command that runs. */
-export const SHELL_ENV_SCRUB = [...SHELL_STARTUP_ENV, 'CDPATH', 'SHELLOPTS', 'BASHOPTS'] as const;
+export const SHELL_ENV_SCRUB = [...SHELL_STARTUP_ENV, 'CDPATH', 'SHELLOPTS', 'BASHOPTS', 'PS4'] as const;
 
 /** The form a rule should match: collapsed whitespace, no quoting, no subshell wrapper. */
 export function normalizeCommand(command: string): string {
@@ -691,9 +691,33 @@ function skipRedirectTarget(segment: string, start: number): number {
       }
       continue;
     }
+    // The next operator starts another redirect. `>a>b` is two targets, not one.
+    if (char === '<' || char === '>') {
+      return index;
+    }
     index++;
   }
   return index;
+}
+
+/** Digits are a file descriptor only when they are the whole redirect word (`2>`, `echo 2>f`), not the end of a filename. */
+function withoutRedirectFd(text: string): string {
+  let index = text.length;
+  while (index > 0) {
+    const digit = text[index - 1] ?? '';
+    if (digit < '0' || digit > '9') {
+      break;
+    }
+    index--;
+  }
+  if (index === text.length) {
+    return text;
+  }
+  const before = index === 0 ? '' : (text[index - 1] ?? '');
+  if (before === '' || /[\s|&;()<>]/.test(before)) {
+    return text.slice(0, index);
+  }
+  return text;
 }
 
 /** Redirections (`> file`, `2>&1`, `< in`) removed before tokenization, without touching quoted text. */
@@ -762,8 +786,7 @@ function stripRedirects(segment: string): { readonly text: string; readonly redi
       continue;
     }
     if (char === '<' || char === '>') {
-      // A leading digit belongs to the operator (`2>`), not to a word.
-      out = out.replace(/[0-9]+$/, '');
+      out = withoutRedirectFd(out);
       const operatorStart = index;
       index++;
       while (index < segment.length && '<>&|'.includes(segment[index] ?? '')) {
@@ -885,6 +908,18 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
   return { target: value };
 }
 
+/** True when an assignment changes command lookup or hands git a config value the analyzer cannot see. */
+function unvouchedAssignment(name: string): boolean {
+  return RESOLUTION_ASSIGNMENTS.has(name) || name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF';
+}
+
+function assignmentReason(name: string): string {
+  if (name.startsWith('GIT_CONFIG_') || name === 'GIT_EXTERNAL_DIFF') {
+    return `${name} sets git config the analyzer does not follow`;
+  }
+  return `${name} changes how the shell finds commands`;
+}
+
 /** Name assigned by `export`, `declare`, `typeset`, or `readonly` when it is one the analyzer cannot vouch for. */
 function resolutionAssignment(values: readonly string[]): string | undefined {
   for (const value of values) {
@@ -892,14 +927,50 @@ function resolutionAssignment(values: readonly string[]): string | undefined {
       continue;
     }
     const name = ASSIGNMENT.exec(value)?.[1];
-    if (name !== undefined && RESOLUTION_ASSIGNMENTS.has(name)) {
+    if (name !== undefined && unvouchedAssignment(name)) {
       return name;
     }
   }
   return undefined;
 }
 
-/** True when `git -c` carries a config value that starts a shell command. The value may be attached or a separate word. */
+/** True when `trap` will run an action. A reset, an empty action, and a listing do not. */
+function trapRunsCommand(args: readonly string[]): boolean {
+  let index = 0;
+  while (index < args.length) {
+    const value = args[index] ?? '';
+    if (value === '--') {
+      index++;
+      break;
+    }
+    if (value === '-l' || value === '-p' || value === '-lp' || value === '-pl') {
+      return false;
+    }
+    if (value.startsWith('-') && value !== '-') {
+      index++;
+      continue;
+    }
+    break;
+  }
+  const action = args[index];
+  if (action === undefined || action === '-' || action === '') {
+    return false;
+  }
+  return args.slice(index + 1).some((value) => value !== '');
+}
+
+const GIT_EXEC_KEYS = new Set(['core.fsmonitor', 'diff.external', 'core.editor', 'core.pager', 'core.askpass', 'core.sshcommand', 'core.hookspath', 'credential.helper', 'gpg.program', 'sequence.editor']);
+
+/** True when a git config key names a command or hook path git will execute. */
+function gitExecKey(key: string): boolean {
+  const name = key.toLowerCase();
+  if (GIT_EXEC_KEYS.has(name) || name.startsWith('alias.')) {
+    return true;
+  }
+  return /^diff\..+\.command$/.test(name) || /^filter\..+\.(?:clean|smudge)$/.test(name) || /^merge\..+\.driver$/.test(name);
+}
+
+/** True when `git -c` names a command git executes, or a value that starts a shell command. */
 function gitInlineShell(words: readonly Word[]): boolean {
   let index = 0;
   while (index < words.length) {
@@ -922,11 +993,137 @@ function gitInlineShell(words: readonly Word[]): boolean {
     if (eq === -1) {
       index++;
     }
-    if (configValue !== undefined && configValue.startsWith('!')) {
+    const key = eq === -1 ? payload : payload.slice(0, eq);
+    if (gitExecKey(key) || (configValue !== undefined && configValue.startsWith('!'))) {
       return true;
     }
   }
   return false;
+}
+
+/** Backup suffix glued to `sed -i`, or the separate empty / `.ext` suffix BSD sed requires. */
+function sedConsumesSuffix(args: readonly Word[], index: number): boolean {
+  const next = args[index + 1];
+  if (next?.literal !== true || next.hidesCommand) {
+    return false;
+  }
+  return next.value === '' || next.value.startsWith('.');
+}
+
+/** Files `sed` will rewrite, or undefined when this invocation is not in-place. */
+function sedInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
+  let inplace = false;
+  let hasProgram = false;
+  const positional: string[] = [];
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('--')) {
+      const eq = value.indexOf('=');
+      const flag = eq === -1 ? value : value.slice(0, eq);
+      if (flag === '--in-place') {
+        inplace = true;
+      } else if ((flag === '--expression' || flag === '--file') && eq === -1) {
+        hasProgram = true;
+        index++;
+      } else if (flag === '--expression' || flag === '--file') {
+        hasProgram = true;
+      }
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const body = value.slice(1);
+      let cursor = 0;
+      while (cursor < body.length) {
+        const flag = body[cursor] ?? '';
+        if (flag === 'i' || flag === 'I') {
+          inplace = true;
+          if (body.slice(cursor + 1) === '' && sedConsumesSuffix(args, index)) {
+            index++;
+          }
+          break;
+        }
+        if (flag === 'e' || flag === 'f') {
+          hasProgram = true;
+          if (body.slice(cursor + 1) === '') {
+            index++;
+          }
+          break;
+        }
+        cursor++;
+      }
+      continue;
+    }
+    positional.push(value);
+  }
+  if (!inplace) {
+    return undefined;
+  }
+  return hasProgram ? positional : positional.slice(1);
+}
+
+/** Files `perl -i` will rewrite, or undefined when this invocation is not in-place. */
+function perlInplaceFiles(args: readonly Word[]): readonly string[] | undefined {
+  let inplace = false;
+  let hasProgram = false;
+  const positional: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (value === '--') {
+      for (const rest of args.slice(index + 1)) {
+        if (rest?.literal === true && !rest.hidesCommand && rest.value !== '') {
+          positional.push(rest.value);
+        }
+      }
+      break;
+    }
+    if (!value.startsWith('-') || value === '-') {
+      if (value !== '') {
+        positional.push(value);
+      }
+      continue;
+    }
+    const body = value.slice(1);
+    let cursor = 0;
+    while (cursor < body.length) {
+      const flag = body[cursor] ?? '';
+      if (flag === 'i') {
+        inplace = true;
+        break;
+      }
+      if (flag === 'e' || flag === 'E') {
+        hasProgram = true;
+        if (body.slice(cursor + 1) === '') {
+          index++;
+        }
+        break;
+      }
+      if ((flag === 'I' || flag === 'm' || flag === 'M' || flag === 'F') && body.slice(cursor + 1) === '') {
+        index++;
+        break;
+      }
+      if (flag === '0' || flag === 'I' || flag === 'm' || flag === 'M' || flag === 'F' || flag === 'd' || flag === 'x') {
+        break;
+      }
+      cursor++;
+    }
+  }
+  if (!inplace) {
+    return undefined;
+  }
+  return hasProgram ? positional : positional.slice(1);
 }
 
 export interface ShellPath {
@@ -975,10 +1172,20 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     if (name === 'git') {
       return;
     }
+    if (name === 'sed' || name === 'perl') {
+      const edited = name === 'sed' ? sedInplaceFiles(args) : perlInplaceFiles(args);
+      if (edited !== undefined) {
+        for (const value of edited) {
+          notePath(value, true, base);
+        }
+        return;
+      }
+    }
     let options = true;
     const positional: string[] = [];
     let targetDir: string | undefined;
-    const takesTarget = name === 'cp' || name === 'mv' || name === 'ln';
+    const takesTarget = name === 'cp' || name === 'mv' || name === 'ln' || name === 'install';
+    const directoryInstall = name === 'install' && args.some((word) => word.literal && !word.hidesCommand && (word.value === '-d' || word.value === '--directory'));
     for (let index = 0; index < args.length; index++) {
       const word = args[index];
       if (word === undefined || !word.literal || word.hidesCommand) {
@@ -1034,8 +1241,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
     // `find -delete` writes the paths it was given.
     const findDelete = name === 'find' && args.some((word) => word.literal && word.value === '-delete');
     const write = WRITE_COMMANDS.has(name) || findDelete;
+    const writesLast = name === 'cp' || (name === 'install' && !directoryInstall);
     for (const [index, value] of positional.entries()) {
-      const isWrite = findDelete || name === 'ln' ? true : name === 'cp' ? index === positional.length - 1 : write;
+      const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesLast ? index === positional.length - 1 : write;
       notePath(value, isWrite, base);
     }
   };
@@ -1077,8 +1285,8 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       }
       const { rest, names } = stripAssignments(lexed.words);
       for (const name of names) {
-        if (RESOLUTION_ASSIGNMENTS.has(name)) {
-          distrust(`${name} changes how the shell finds commands`);
+        if (unvouchedAssignment(name)) {
+          distrust(assignmentReason(name));
         }
       }
       const words = [...rest];
@@ -1118,8 +1326,8 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         // `NAME=value` assignments may follow a wrapper (`env FOO=1 cmd`).
         while (ASSIGNMENT.test(words[headIndex]?.value ?? '')) {
           const assigned = ASSIGNMENT.exec(words[headIndex]?.value ?? '')?.[1];
-          if (assigned !== undefined && RESOLUTION_ASSIGNMENTS.has(assigned)) {
-            distrust(`${assigned} changes how the shell finds commands`);
+          if (assigned !== undefined && unvouchedAssignment(assigned)) {
+            distrust(assignmentReason(assigned));
           }
           headIndex++;
         }
@@ -1147,8 +1355,11 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         if (ASSIGNMENT_BUILTINS.has(name)) {
           const assigned = resolutionAssignment(tail);
           if (assigned !== undefined) {
-            distrust(`${assigned} changes how the shell finds commands`);
+            distrust(assignmentReason(assigned));
           }
+        }
+        if (name === 'trap' && trapRunsCommand(tail)) {
+          distrust('trap runs a command the analyzer does not follow');
         }
         if (name === 'git' && gitInlineShell(words.slice(headIndex + 1))) {
           distrust('git -c runs a command the analyzer does not follow');

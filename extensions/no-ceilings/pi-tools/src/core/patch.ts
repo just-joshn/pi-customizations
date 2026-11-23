@@ -16,6 +16,8 @@ export interface PatchHunk {
   readonly oldStart?: number;
   readonly oldLines: readonly string[];
   readonly newLines: readonly string[];
+  /** Unified hunk with context and no trailing context. It has to cover the rest of the file. */
+  readonly matchThroughEnd?: boolean;
 }
 
 export interface PatchFile {
@@ -51,6 +53,7 @@ interface DraftHunk {
   oldStart?: number;
   oldLines: string[];
   newLines: string[];
+  matchThroughEnd?: boolean;
 }
 
 interface DraftFile {
@@ -202,30 +205,118 @@ function parseDirectives(text: string): ParsedPatch {
   throw new PatchError('patch is missing *** End Patch');
 }
 
+interface CountedHunk {
+  oldStart: number;
+  oldExpected: number;
+  newExpected: number;
+  oldSeen: number;
+  newSeen: number;
+  oldLines: string[];
+  newLines: string[];
+  context: number;
+  trailing: number;
+}
+
 function parseUnified(text: string, basePath: string): ParsedPatch {
   const lines = text.replaceAll('\r\n', '\n').split('\n');
   const files: DraftFile[] = [];
   let index = 0;
   let current: DraftFile | undefined;
-  let hunk: DraftHunk | undefined;
+  let hunk: CountedHunk | undefined;
+  let renameFrom: string | undefined;
+  let renameTo: string | undefined;
 
-  const flushHunk = (): void => {
-    if (current !== undefined) {
-      finishHunk(current, hunk);
+  const countsMismatch = (): PatchError => new PatchError(`hunk counts do not match for ${current?.path ?? basePath}`);
+
+  const closeHunk = (): void => {
+    if (hunk !== undefined && current !== undefined && (hunk.oldLines.length > 0 || hunk.newLines.length > 0)) {
+      current.hunks.push({
+        oldStart: hunk.oldStart,
+        oldLines: hunk.oldLines,
+        newLines: hunk.newLines,
+        ...(hunk.context > 0 && hunk.trailing === 0 ? { matchThroughEnd: true } : {}),
+      });
     }
     hunk = undefined;
   };
 
-  const startsFileSection = (candidate: string): boolean => candidate.startsWith('--- ') || candidate.startsWith('diff --git ');
+  const finishIfComplete = (): void => {
+    if (hunk !== undefined && hunk.oldSeen === hunk.oldExpected && hunk.newSeen === hunk.newExpected) {
+      closeHunk();
+    }
+  };
+
+  const take = (active: CountedHunk, oldDelta: number, newDelta: number): void => {
+    if (active.oldSeen + oldDelta > active.oldExpected || active.newSeen + newDelta > active.newExpected) {
+      throw countsMismatch();
+    }
+    active.oldSeen += oldDelta;
+    active.newSeen += newDelta;
+  };
+
+  const consumeRename = (): { from: string; to: string } | undefined => {
+    if (renameFrom === undefined || renameTo === undefined || renameFrom === '' || renameTo === '') {
+      return undefined;
+    }
+    const pending = { from: renameFrom, to: renameTo };
+    renameFrom = undefined;
+    renameTo = undefined;
+    return pending;
+  };
+
+  const flushRename = (): void => {
+    const pending = consumeRename();
+    if (pending === undefined) {
+      renameFrom = undefined;
+      renameTo = undefined;
+      return;
+    }
+    files.push({ path: pending.from, kind: 'update', hunks: [], moveTo: pending.to });
+  };
 
   while (index < lines.length) {
     const line = lines[index] ?? '';
-    if (UNIFIED_METADATA.test(line)) {
+    if (line.startsWith('@@')) {
+      if (hunk !== undefined) {
+        throw countsMismatch();
+      }
+      if (current === undefined) {
+        throw new PatchError('hunk appears before a file header');
+      }
+      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line);
+      if (!match) {
+        throw new PatchError(`malformed hunk header: ${line.slice(0, 80)}`);
+      }
+      const oldExpected = match[2] === undefined ? 1 : Number(match[2]);
+      const newExpected = match[4] === undefined ? 1 : Number(match[4]);
+      index++;
+      if (oldExpected === 0 && newExpected === 0) {
+        continue;
+      }
+      hunk = { oldStart: Number(match[1]), oldExpected, newExpected, oldSeen: 0, newSeen: 0, oldLines: [], newLines: [], context: 0, trailing: 0 };
+      continue;
+    }
+    if (hunk === undefined && line.startsWith('diff --git ')) {
+      flushRename();
       index++;
       continue;
     }
-    if (line.startsWith('--- ')) {
-      flushHunk();
+    if (hunk === undefined && line.startsWith('rename from ')) {
+      renameFrom = line.slice('rename from '.length).trim();
+      index++;
+      continue;
+    }
+    if (hunk === undefined && line.startsWith('rename to ')) {
+      renameTo = line.slice('rename to '.length).trim();
+      index++;
+      continue;
+    }
+    if (hunk === undefined && UNIFIED_METADATA.test(line)) {
+      index++;
+      continue;
+    }
+    if (hunk === undefined && line.startsWith('--- ')) {
+      const pending = consumeRename();
       const oldPath = stripPrefix(line.slice(4));
       const next = lines[index + 1] ?? '';
       if (!next.startsWith('+++ ')) {
@@ -233,42 +324,41 @@ function parseUnified(text: string, basePath: string): ParsedPatch {
       }
       const newPath = stripPrefix(next.slice(4));
       const kind: PatchKind = oldPath === '/dev/null' ? 'add' : newPath === '/dev/null' ? 'delete' : 'update';
-      current = { path: kind === 'delete' ? oldPath : newPath, kind, hunks: [] };
+      let path = kind === 'delete' ? oldPath : newPath;
+      let moveTo: string | undefined;
+      if (pending !== undefined && kind === 'update') {
+        path = pending.from;
+        moveTo = pending.to;
+      } else if (pending !== undefined) {
+        files.push({ path: pending.from, kind: 'update', hunks: [], moveTo: pending.to });
+      }
+      current = { path, kind, hunks: [], ...(moveTo === undefined ? {} : { moveTo }) };
       files.push(current);
       index += 2;
       continue;
     }
-    if (line.startsWith('@@')) {
-      if (current === undefined) {
-        throw new PatchError('hunk appears before a file header');
-      }
-      flushHunk();
-      const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
-      if (!match) {
-        throw new PatchError(`malformed hunk header: ${line.slice(0, 80)}`);
-      }
-      hunk = { oldStart: Number(match[1]), oldLines: [], newLines: [] };
-      index++;
-      continue;
-    }
     if (line === '') {
-      // A blank line either separates file sections or stands for an empty context line.
+      if (hunk !== undefined) {
+        take(hunk, 1, 1);
+        hunk.oldLines.push('');
+        hunk.newLines.push('');
+        hunk.context += 1;
+        hunk.trailing += 1;
+        if (current !== undefined) {
+          markNewFileLine(current, ' ');
+        }
+        finishIfComplete();
+        index++;
+        continue;
+      }
       let ahead = index + 1;
       while (ahead < lines.length && (lines[ahead] ?? '') === '') {
         ahead++;
       }
       const next = lines[ahead] ?? '';
-      if (next === '' || startsFileSection(next)) {
-        flushHunk();
+      if (next === '' || next.startsWith('--- ') || next.startsWith('diff --git ')) {
         index = ahead;
         continue;
-      }
-      if (hunk !== undefined) {
-        hunk.oldLines.push('');
-        hunk.newLines.push('');
-        if (current !== undefined) {
-          markNewFileLine(current, ' ');
-        }
       }
       index++;
       continue;
@@ -280,28 +370,44 @@ function parseUnified(text: string, basePath: string): ParsedPatch {
       index++;
       continue;
     }
-    if (current === undefined || hunk === undefined) {
+    if (hunk === undefined || current === undefined) {
       index++;
       continue;
     }
+    if (line.startsWith('diff --git ')) {
+      throw countsMismatch();
+    }
+    // A "--- " or "+++ " line is a file header only while no hunk is open. Inside a hunk the first character is the marker.
+    const active = hunk;
     const marker = line[0];
     const body = line.slice(1);
     if (marker === ' ') {
-      hunk.oldLines.push(body);
-      hunk.newLines.push(body);
+      take(active, 1, 1);
+      active.oldLines.push(body);
+      active.newLines.push(body);
+      active.context += 1;
+      active.trailing += 1;
       markNewFileLine(current, ' ');
     } else if (marker === '-') {
-      hunk.oldLines.push(body);
+      take(active, 1, 0);
+      active.oldLines.push(body);
+      active.trailing = 0;
       current.lastMarker = '-';
     } else if (marker === '+') {
-      hunk.newLines.push(body);
+      take(active, 0, 1);
+      active.newLines.push(body);
+      active.trailing = 0;
       markNewFileLine(current, '+');
     } else {
       throw new PatchError(`unexpected line in hunk: ${line.slice(0, 80)}`);
     }
+    finishIfComplete();
     index++;
   }
-  flushHunk();
+  if (hunk !== undefined) {
+    throw countsMismatch();
+  }
+  flushRename();
   if (files.length === 0) {
     throw new PatchError(`no file headers found in patch for ${basePath}`);
   }
@@ -310,7 +416,7 @@ function parseUnified(text: string, basePath: string): ParsedPatch {
     files: files.map((file) => ({
       ...file,
       hunks: file.hunks,
-      ...(file.kind === 'add' ? { addedLines: file.hunks.flatMap((hunk) => hunk.newLines) } : {}),
+      ...(file.kind === 'add' ? { addedLines: file.hunks.flatMap((part) => part.newLines) } : {}),
     })),
   };
 }
@@ -325,7 +431,7 @@ export function parsePatch(text: string, basePath = '.'): ParsedPatch {
     if (file.path === '' || file.path === '/dev/null') {
       throw new PatchError('patch names an empty file path');
     }
-    if (file.kind === 'update' && file.hunks.length === 0) {
+    if (file.kind === 'update' && file.hunks.length === 0 && (file.moveTo === undefined || file.moveTo === '')) {
       throw new PatchError(`update for ${file.path} contains no hunks`);
     }
   }
@@ -357,19 +463,20 @@ function findHunk(lines: readonly string[], hunk: PatchHunk, from: number, expec
       matches.push(start);
     }
   }
-  if (matches.length === 0) {
+  const eligible = hunk.matchThroughEnd === true ? matches.filter((start) => start + hunk.oldLines.length === lines.length) : matches;
+  if (eligible.length === 0) {
     return -1;
   }
   if (expected !== undefined) {
-    const exact = matches.find((start) => start === expected);
+    const exact = eligible.find((start) => start === expected);
     if (exact !== undefined) {
       return exact;
     }
   }
-  if (matches.length > 1) {
+  if (eligible.length > 1) {
     throw new PatchError('hunk matches more than one place; add surrounding context');
   }
-  return matches[0] ?? -1;
+  return eligible[0] ?? -1;
 }
 
 /**

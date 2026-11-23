@@ -126,12 +126,14 @@ describe('read fence', () => {
     expect(fence.size()).toBe(1);
   });
 
-  it('caps the number of entries', () => {
+  it('keeps every entry for the session', () => {
     const fence = createReadFence();
     for (let index = 0; index < 1200; index++) {
       fence.record(`/file-${index}`, { kind: 'absent' });
     }
-    expect(fence.size()).toBeLessThanOrEqual(1000);
+    expect(fence.size()).toBe(1200);
+    expect(fence.take('/file-0')).toEqual({ kind: 'absent' });
+    expect(fence.size()).toBe(1199);
   });
 });
 

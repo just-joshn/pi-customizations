@@ -288,6 +288,10 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
       continue;
     }
     const canonical = subjects[subjects.length - 1] ?? named;
+    // /dev/null is a discard sink. It stays subject to deny rules above, but it is not an outside write.
+    if (named === '/dev/null' || canonical === '/dev/null') {
+      continue;
+    }
     if (isInsideWorkspace(session.policy, canonical)) {
       continue;
     }

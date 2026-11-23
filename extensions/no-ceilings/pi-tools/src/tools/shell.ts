@@ -54,6 +54,10 @@ export function createShellLayerTool(options: ShellToolOptions) {
       (failure) => ({ failure }),
       async ({ toolCallId, params, ctx, signal, onUpdate }): Promise<ToolOutcome<ShellDetails>> => {
         const session = await options.session(ctx);
+        const blockedEnv = Object.keys(params.env ?? {}).find((key) => key.startsWith('GIT_CONFIG_') || key === 'GIT_EXTERNAL_DIFF');
+        if (blockedEnv !== undefined) {
+          throw layerError('permission_denied', `Blocked by permissions configuration: ${blockedEnv} sets git config the analyzer does not follow`);
+        }
 
         const cwd = params.cwd === undefined ? ctx.cwd : resolveToolPath(params.cwd, ctx.cwd, session.home);
         const info = await stat(cwd).catch(() => undefined);

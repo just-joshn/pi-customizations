@@ -34,9 +34,6 @@ export const GLOB_MAX_LIMIT = MAX_GREP_OUTPUT_LINES;
 /** Files above this size skip the delete content snapshot. */
 export const MAX_SNAPSHOT_BYTES = 50 * 1024 * 1024;
 
-/** Read fence entries kept per session. The oldest entry is dropped once the cap is passed. */
-export const MAX_FENCE_ENTRIES = 1000;
-
 /** Bytes fetched by the web fetch tool before the body is reported as truncated. */
 export const WEB_FETCH_MAX_BYTES = 2 * 1024 * 1024;
 

@@ -115,7 +115,8 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
         const mergedFiles = parsed.files.reduce<PatchFile[]>((acc, file) => {
           const existing = acc.find((candidate) => candidate.path === file.path && candidate.kind === file.kind);
           if (existing) {
-            acc[acc.indexOf(existing)] = { ...existing, hunks: [...existing.hunks, ...file.hunks] };
+            const addedLines = existing.kind === 'add' ? [...(existing.addedLines ?? []), ...(file.addedLines ?? [])] : undefined;
+            acc[acc.indexOf(existing)] = { ...existing, hunks: [...existing.hunks, ...file.hunks], ...(addedLines === undefined ? {} : { addedLines }) };
           } else {
             acc.push(file);
           }

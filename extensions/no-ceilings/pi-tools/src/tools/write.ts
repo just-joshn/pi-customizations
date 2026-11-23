@@ -111,23 +111,30 @@ export function createWriteLayerTool(options: WriteToolOptions) {
           }
           const identity = await fileIdentity(target);
           const readRecord = session.fence.take(identity);
-          if (readRecord !== undefined) {
-            const current = await readFile(target).catch(() => undefined);
-            const changed = readRecord.kind === 'absent' ? current !== undefined : current === undefined || sha256Hex(current) !== readRecord.fingerprint.sha256 || current.byteLength !== readRecord.fingerprint.bytes;
-            if (changed) {
+          let kept = false;
+          try {
+            if (readRecord !== undefined) {
+              const current = await readFile(target).catch(() => undefined);
+              const changed = readRecord.kind === 'absent' ? current !== undefined : current === undefined || sha256Hex(current) !== readRecord.fingerprint.sha256 || current.byteLength !== readRecord.fingerprint.bytes;
+              if (changed) {
+                throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
+              }
+            }
+            await writeFile(target, buffer);
+            const after = await readFile(target);
+            if (sha256Hex(after) !== expected) {
+              throw layerError('error', `Write verification failed: ${displayPath(ctx.cwd, target)} does not contain the bytes that were written.`, { path: target });
+            }
+            // Record inside the same critical section, so a concurrent write cannot land between the
+            // verification and the record and leave a fingerprint for bytes that are no longer on disk.
+            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: after.byteLength } });
+            kept = true;
+            return after;
+          } finally {
+            if (!kept && readRecord !== undefined) {
               session.fence.restore(identity, readRecord);
-              throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
             }
           }
-          await writeFile(target, buffer);
-          const after = await readFile(target);
-          if (sha256Hex(after) !== expected) {
-            throw layerError('error', `Write verification failed: ${displayPath(ctx.cwd, target)} does not contain the bytes that were written.`, { path: target });
-          }
-          // Record inside the same critical section, so a concurrent write cannot land between the
-          // verification and the record and leave a fingerprint for bytes that are no longer on disk.
-          session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: after.byteLength } });
-          return after;
         });
 
         const metadata = await fileMetadata(target);

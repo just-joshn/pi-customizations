@@ -225,37 +225,45 @@ export function createEditLayerTool(options: EditToolOptions) {
             }
             const identity = await fileIdentity(target);
             const readRecord = session.fence.take(identity);
-            const before = await readFile(target);
-            if (readRecord !== undefined) {
-              const changed = readRecord.kind === 'absent' ? true : sha256Hex(before) !== readRecord.fingerprint.sha256 || before.byteLength !== readRecord.fingerprint.bytes;
-              if (changed) {
+            let kept = false;
+            try {
+              const before = await readFile(target);
+              if (readRecord !== undefined) {
+                const changed = readRecord.kind === 'absent' ? true : sha256Hex(before) !== readRecord.fingerprint.sha256 || before.byteLength !== readRecord.fingerprint.bytes;
+                if (changed) {
+                  throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
+                }
+              }
+
+              const { bom, text: original } = stripBom(before.toString('utf-8'));
+              const normalized = normalizeEol(original);
+              const { ranges, replaced } = collectRanges(normalized, params.edits, displayPath(ctx.cwd, target));
+              const updated = applyRanges(normalized, ranges);
+              if (updated === normalized) {
+                throw layerError('error', `Edit made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
+              }
+              const finalContent = bom + spliceOriginal(original, ranges);
+              await writeFile(target, finalContent, 'utf-8');
+              const written = await readFile(target);
+              if (sha256Hex(written) !== sha256Hex(Buffer.from(finalContent, 'utf-8'))) {
+                throw layerError('error', `Edit verification failed: ${displayPath(ctx.cwd, target)} does not contain the edited text.`, { path: target });
+              }
+              const metadata = await fileMetadata(target);
+              const digest = sha256Hex(written);
+              session.fence.record(identity, { kind: 'content', fingerprint: { sha256: digest, bytes: written.byteLength } });
+              kept = true;
+              return {
+                normalized,
+                updated,
+                replaced,
+                diff: generateDiffString(normalized, updated),
+                metadata,
+              };
+            } finally {
+              if (!kept && readRecord !== undefined) {
                 session.fence.restore(identity, readRecord);
-                throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
               }
             }
-
-            const { bom, text: original } = stripBom(before.toString('utf-8'));
-            const normalized = normalizeEol(original);
-            const { ranges, replaced } = collectRanges(normalized, params.edits, displayPath(ctx.cwd, target));
-            const updated = applyRanges(normalized, ranges);
-            if (updated === normalized) {
-              throw layerError('error', `Edit made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
-            }
-            const finalContent = bom + spliceOriginal(original, ranges);
-            await writeFile(target, finalContent, 'utf-8');
-            const written = await readFile(target);
-            if (sha256Hex(written) !== sha256Hex(Buffer.from(finalContent, 'utf-8'))) {
-              throw layerError('error', `Edit verification failed: ${displayPath(ctx.cwd, target)} does not contain the edited text.`, { path: target });
-            }
-            const digest = sha256Hex(written);
-            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: digest, bytes: written.byteLength } });
-            return {
-              normalized,
-              updated,
-              replaced,
-              diff: generateDiffString(normalized, updated),
-              metadata: await fileMetadata(target),
-            };
           },
           { createParent: false },
         );
