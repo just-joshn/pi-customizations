@@ -104,6 +104,13 @@
   are refused and scrubbed, `git checkout` and `git restore` path operands are writes, and
   `git reset --hard`/`--merge`/`--keep` or a checkout/restore of a directory is refused.
 - `zstd -o`, `pax -f`, `mkfifo`, and `mknod` destinations are writes.
+- An unquoted process substitution is refused, because the splitter cannot keep the word after it with
+  the command that opens it.
+- `git --config-env`, `git --exec-path`, `git filter-branch`, `git clean` without a dry run, and a
+  `git read-tree` that updates the worktree are refused, and `rsync -e`, `rsync --files-from`, `scp`,
+  and `sftp` are refused because each runs or copies paths the argv only names.
+- The tar-family write side covers `tar`, `bsdtar`, and `gtar`; `ditto -x` is refused as extraction;
+  `ssh-keygen -f` and the `sqlite3` database operand are writes.
 
 ## 0.1.0
 
