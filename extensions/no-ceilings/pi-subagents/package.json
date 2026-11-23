@@ -41,7 +41,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:e2e": "node test/e2e/verify-subagents.mjs",
     "test:e2e:fake": "node test/e2e/verify-delegation-fake-model.mjs",
-    "test:e2e:retry": "node test/e2e/verify-retry-timer.mjs retry"
+    "test:e2e:retry": "node test/e2e/verify-retry-timer.mjs retry",
+    "test:e2e:tools": "node test/e2e/verify-crafted-tools.mjs",
+    "test:e2e:git": "node test/e2e/verify-git-helpers.mjs",
+    "test:e2e:growth": "node test/e2e/verify-state-growth.mjs 4 25"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

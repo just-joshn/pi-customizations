@@ -441,7 +441,7 @@ describe('worktree helpers', () => {
     }
     const snapshot = store.toPersistedState({ includeTranscriptItems: false });
     const withTranscripts = snapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
-    expect(withTranscripts.length).toBeLessThanOrEqual(3);
+    expect(withTranscripts.length).toBe(ZERO);
     const defaultSnapshot = store.toPersistedState();
     const defaultWithTranscripts = defaultSnapshot.sessions.filter((session) => (session.transcriptItems?.length ?? ZERO) > ZERO);
     expect(defaultWithTranscripts.length).toBeLessThanOrEqual(3);

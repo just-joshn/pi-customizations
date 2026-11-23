@@ -1108,10 +1108,16 @@ describe('state snapshots and shutdown', () => {
       const sessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(state?.data).sessions;
       const completedRecord = sessions.find((session) => session.agentId === completed.details?.agentId);
       const runningRecord = sessions.find((session) => session.agentId === running.details?.agentId);
-      expect(completedRecord?.transcriptItems?.some((item) => item.text.includes('completed reply'))).toBe(true);
+      expect(completedRecord?.transcriptItems === undefined || completedRecord.transcriptItems.length === ZERO).toBe(true);
       expect(runningRecord?.transcriptItems === undefined || runningRecord.transcriptItems.length === ZERO).toBe(true);
       gate.release();
       await h.callTool('await_subagent', { agent_id: running.details?.agentId });
+      const finalState = h
+        .getEntries()
+        .filter((entry) => entry.customType === 'pi-subagents-state')
+        .at(-ONE);
+      const finalSessions = double<{ readonly sessions: readonly { readonly agentId: string; readonly transcriptItems?: readonly { readonly text: string }[] }[] }>(finalState?.data).sessions;
+      expect(finalSessions.find((session) => session.agentId === completed.details?.agentId)?.transcriptItems?.some((item) => item.text.includes('completed reply'))).toBe(true);
     } finally {
       await h.cleanup();
     }
