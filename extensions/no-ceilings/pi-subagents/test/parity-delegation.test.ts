@@ -14,6 +14,25 @@ import { ZERO, ONE, TWO, captured, enqueuePlan, loaderOptions, toolEvent, writeA
 
 installParityHooks();
 
+function persistedRecord(agentId: string, description: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    agentId,
+    parentSessionId: 'previous-session',
+    toolCallId: `call-${agentId}`,
+    subagentType: 'general-purpose',
+    description,
+    prompt: 'go',
+    readonly: false,
+    status: 'success',
+    isBackground: false,
+    backgroundReason: 'unspecified',
+    toolCallCount: ZERO,
+    startedAt: 1,
+    updatedAt: 2,
+    ...overrides,
+  };
+}
+
 describe('delegation: automatic and explicit selection', () => {
   it('picks the custom agent whose description matches the task when subagent_type is omitted', async () => {
     const h = createTestHarness();
@@ -209,21 +228,6 @@ describe('failure codes and resume safety', () => {
   });
 
   it('restores records from multiple persisted patches', async () => {
-    const persistedRecord = (agentId: string, description: string) => ({
-      agentId,
-      parentSessionId: 'previous-session',
-      toolCallId: `call-${agentId}`,
-      subagentType: 'general-purpose',
-      description,
-      prompt: 'go',
-      readonly: false,
-      status: 'success',
-      isBackground: false,
-      backgroundReason: 'unspecified',
-      toolCallCount: ZERO,
-      startedAt: 1,
-      updatedAt: 2,
-    });
     const h = createTestHarness({
       initialEntries: [
         { type: 'custom', customType: 'pi-subagents-state', data: { sessions: [persistedRecord('11111111-2222-4333-8444-555555555555', 'First patch')] } },
@@ -243,24 +247,7 @@ describe('failure codes and resume safety', () => {
 
   it('retries a run restored from an earlier session', async () => {
     const persisted = {
-      sessions: [
-        {
-          agentId: '11111111-2222-4333-8444-555555555555',
-          parentSessionId: 'previous-session',
-          toolCallId: 'call-restored',
-          subagentType: 'general-purpose',
-          description: 'Restored run',
-          prompt: 'Do the restored work',
-          readonly: false,
-          status: 'error',
-          isBackground: false,
-          backgroundReason: 'unspecified',
-          error: 'boom',
-          toolCallCount: ZERO,
-          startedAt: 1,
-          updatedAt: 2,
-        },
-      ],
+      sessions: [persistedRecord('11111111-2222-4333-8444-555555555555', 'Restored run', { toolCallId: 'call-restored', prompt: 'Do the restored work', status: 'error', error: 'boom' })],
     };
     const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });
     try {
@@ -276,24 +263,7 @@ describe('failure codes and resume safety', () => {
 
   it('refuses to resume a run with no transcript path', async () => {
     const persisted = {
-      sessions: [
-        {
-          agentId: '11111111-2222-4333-8444-555555555555',
-          parentSessionId: 'previous-session',
-          toolCallId: 'call-no-transcript',
-          subagentType: 'general-purpose',
-          description: 'No transcript',
-          prompt: 'First prompt',
-          readonly: false,
-          status: 'error',
-          isBackground: false,
-          backgroundReason: 'unspecified',
-          error: 'boom',
-          toolCallCount: ZERO,
-          startedAt: 1,
-          updatedAt: 2,
-        },
-      ],
+      sessions: [persistedRecord('11111111-2222-4333-8444-555555555555', 'No transcript', { toolCallId: 'call-no-transcript', prompt: 'First prompt', status: 'error', error: 'boom' })],
     };
     const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });
     try {
@@ -324,37 +294,8 @@ describe('failure codes and resume safety', () => {
   it('restores valid runs when a sibling record is invalid', async () => {
     const persisted = {
       sessions: [
-        {
-          agentId: '11111111-2222-4333-8444-555555555555',
-          parentSessionId: 'previous-session',
-          toolCallId: 'call-restored',
-          subagentType: 'general-purpose',
-          description: 'Restored run',
-          prompt: 'Do the restored work',
-          readonly: false,
-          status: 'error',
-          isBackground: false,
-          backgroundReason: 'unspecified',
-          error: 'boom',
-          toolCallCount: ZERO,
-          startedAt: 1,
-          updatedAt: 2,
-        },
-        {
-          agentId: '99999999-8888-4777-8666-555555555555',
-          parentSessionId: 'previous-session',
-          toolCallId: 'call-invalid',
-          subagentType: 'general-purpose',
-          description: 'Invalid run',
-          prompt: 'Never ran',
-          readonly: false,
-          status: 'bogus',
-          isBackground: false,
-          backgroundReason: 'unspecified',
-          toolCallCount: ZERO,
-          startedAt: 1,
-          updatedAt: 2,
-        },
+        persistedRecord('11111111-2222-4333-8444-555555555555', 'Restored run', { toolCallId: 'call-restored', prompt: 'Do the restored work', status: 'error', error: 'boom' }),
+        persistedRecord('99999999-8888-4777-8666-555555555555', 'Invalid run', { toolCallId: 'call-invalid', prompt: 'Never ran', status: 'bogus' }),
       ],
     };
     const h = createTestHarness({ initialEntries: [{ type: 'custom', customType: 'pi-subagents-state', data: persisted }] });

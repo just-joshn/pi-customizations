@@ -35,7 +35,7 @@ Parallel work: call `task` several times with `run_in_background: true`, then co
 
 ### Checkpoints
 
-Every completed step writes a checkpoint to the in-memory run record: sequence, status, tool count, transcript item count, and the transcript path. The `subagents:checkpoint` hook fires then. The parent session persists checkpoints at the next run boundary and on shutdown when a run is still active, not on every tool call. A crash during a run can drop the latest checkpoint. `/tasks` does not show checkpoint progress.
+Every completed step writes a checkpoint to the in-memory run record: sequence, status, tool count, transcript item count, and the transcript path. The `subagents:checkpoint` hook fires then. `/tasks` does not show checkpoint progress.
 
 ## Built-in subagents
 
@@ -140,7 +140,7 @@ A subagent shares the parent checkout by default. Set `worktree: true` on `task`
 - A completion patch keeps that run's checkpoints and transcript preview. Mid-run patches keep metadata and the transcript path only. Checkpoints are stored with that boundary save, and on shutdown when a run was still active, not on every child tool call. A crash can lose the latest mid-run checkpoint.
 - A persisted transcript preview keeps at most 10 items. Each item's text is truncated to 500 characters.
 - When a restored run has no live transcript in memory, the pager says the live transcript is no longer retained and shows the stored transcript path.
-- `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect. The pager does not render checkpoints.
+- `Ctrl+Alt+T` or `/tasks` opens the pager: elapsed time, retries, failure ids, live transcripts, `k` to abort, `b` to background a foreground run, `Enter` to inspect.
 - While a run is active, the status widget header counts completed and cancelled runs in the session. The widget clears when nothing is active.
 - Restoring a session cancels runs that were still pending or running and assigns a failure id when the record does not already have one.
 - `/tasks list | abort <id> | bg <id> | retry <id> | prune <id>`. A resume or retry keeps the run's model, thinking level, read-only mode, and foreground or background mode. The agent file's background default applies only to a new run. An explicit `run_in_background` still wins, and a resumed run keeps its background reason. Passing `readonly: false` does not clear read-only mode already set by the agent or by an earlier call.

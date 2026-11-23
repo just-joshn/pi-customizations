@@ -76,7 +76,6 @@
 - Read-only mode blocks the `powershell` tool, including when a child inherits tools.
 - Worktree metadata survives a resume, and a resume fails clearly when the worktree or transcript file is gone or corrupt.
 - Background completion and await results include the worktree diff summary.
-- Mid-run state snapshots omit transcript items, so a long run no longer writes a full transcript per step.
 - Disabling `general-purpose` falls back to the first available agent for an ambiguous task.
 - A read-only agent stays read-only when a caller passes `readonly: false`.
 - Terminal failures such as `resume-unavailable` and `worktree-failed` are not retried into a fresh run.
@@ -118,7 +117,7 @@
 - A read-only resume with an empty prompt validates the id, lineage, worktree, and transcript before waiting.
 - Read-only shell enforcement rejects a lone `&`, command substitution, and unclosed quotes. It allows `git grep`, quoted pipes, `|&`, and redirects to `/dev/null` such as `2>/dev/null`. `date -d` and `date --date` stay allowed; `date -s` stays blocked.
 - Unknown `subagents.json` sections and unknown keys inside a section are reported instead of ignored.
-- A mid-run patch keeps metadata and transcript paths only. A completion patch keeps that run's checkpoints and transcript preview. Success, error, and cancelled runs are eligible.
+- Parent session state is appended as patches of changed records. A mid-run patch keeps metadata and transcript paths only. A completion patch keeps that run's checkpoints and transcript preview. Restore folds every patch in order. A failed append leaves records dirty and retries at the next boundary or shutdown without ending the parent session. Checkpoints stay in memory and on `subagents:checkpoint` during a run. A crash can lose the latest mid-run checkpoint. Shutdown does not append another state entry when nothing was active.
 - A worktree run started in a repository subdirectory uses that subdirectory inside the worktree.
 - Resuming a run that never recorded a transcript fails with `resume-unavailable`. Retry still starts a fresh session.
 - A resume keeps background mode when the caller omits `run_in_background`.
@@ -127,9 +126,7 @@
 - Read-only sandbox writes are allowed only in the per-command temp directory and `/dev/null`. The shared temp root and sibling directories stay denied. `awk` programs that pipe into another program, and `git --ext-diff` and `git --textconv`, are blocked.
 - A `tools` list is an allowlist passed to the child session. Entries that start with `-` are dropped, a leading `+` is removed, and entries that contain `*` are dropped except a scoped `mcp__<server>__*` pattern. A list that sanitizes to empty grants no tools instead of editing the default tool set. Claude names are still mapped, and the result is deduplicated.
 - Retry backoff and `await_subagent` timeouts stay referenced, so `pi -p` waits for a retried child instead of exiting 0 with no result.
-- Checkpoints stay in memory and on `subagents:checkpoint` during a run. The parent session persists them at the next run boundary and on shutdown when a run was still active, not on every tool call. A crash can lose the latest mid-run checkpoint. Shutdown does not append another state entry when nothing was active.
 - Read-only Git disables diff drivers, textconv, external diffs, SSH commands, credential helpers, repository clean, smudge, and process filters, signature display, and signer programs. Option checks normalize shell quotes and escapes, so a quoted or escaped helper option does not bypass them. Commands with shell expansion, brace expansion, unquoted globs, or an unquoted backslash-newline continuation are rejected. Dangerous option patterns are checked after quote, backslash, and octal/hex normalization, so quoted or encoded `find -exec`, `fd --exec`, `rg --pre`, `sort --compress-program`, `awk system`, and `less` lesskey startup do not execute. `sort` rejects the shorter `--co` and `--com` prefixes. `yq` rejects `--security-enable-*`, which would enable its `system` operator. `less`, `more`, `ag`, and `ack` are not on the read-only allowlist. The filter override runs on every platform, covers every driver name, sets `core.attributesFile` to `/dev/null`, and sets `protocol.ext.allow` to `never`. `git status --help` and `git remote show` are rejected so man viewers, upload-pack, and proxies cannot start. `git diff`, `git log`, `git show`, `git blame`, and `git reflog` receive `--no-ext-diff --no-textconv`. `git grep` rejects every clustered `-O` and every unambiguous abbreviation of `--open-files-in-pager`. `log.showSignature` is off, `gpg.*.program` is `/usr/bin/false`, `GIT_SSH_COMMAND`, `GIT_SSH`, `GIT_ASKPASS`, and `SSH_ASKPASS` are `/usr/bin/false`, `GIT_TERMINAL_PROMPT` is `0`, and `credential.helper` is empty.
-- Parent session state is appended as patches of changed records. Restore folds every patch in order. A failed append leaves records dirty and retries at the next boundary or shutdown without ending the parent session. A persisted transcript preview keeps at most 10 items and 500 characters per item.
 - A configured agent directory is resolved through its real path. An untrusted project skips one whose target is inside the workspace, including a symlink. A broken link does not throw.
 
 ## 0.1.4
