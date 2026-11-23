@@ -206,7 +206,8 @@ function nextCommandSlug(base: string, registered: ReadonlySet<string>): string 
 
 function splitAgentArgs(rawArgs: string): { readonly prompt: string; readonly background: boolean } {
   const args = CommandArgsSchema.parse(rawArgs).trim();
-  return args.startsWith(BACKGROUND_FLAG) ? { prompt: args.slice(BACKGROUND_FLAG.length).trim(), background: true } : { prompt: args, background: false };
+  const parts = args.length > ZERO ? args.split(/\s+/) : [];
+  return promptAfterBackgroundFlag(parts);
 }
 
 /** One command per discovered agent, named like Pi's own `skill:` commands. */

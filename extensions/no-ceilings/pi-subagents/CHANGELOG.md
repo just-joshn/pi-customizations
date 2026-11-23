@@ -29,6 +29,12 @@
 
 ### Fixed
 
+- Built-in `browser` tools are limited to the matched MCP server (`mcp__<server>__*`) instead of every `mcp__` tool.
+- Failed child model requests (`stopReason: "error"`) return `status: "error"` with a failure id and trigger `max_attempts` retries.
+- Exiting or replacing a session while a background subagent is in flight no longer throws on a stale UI context.
+- Read-only shell enforcement blocks `git reflog expire`/`delete`, non-slash `sed` execute flags, and mutating `date` and `hostname` invocations.
+- Negated write phrases no longer divert an explicitly named read-only agent to a writable one.
+- Per-agent slash commands require `--bg` to be a whole token, so `--bg-color` stays in the foreground prompt.
 - Extension load no longer calls runtime actions, so `pi -e` and `pi -ne -e` load the extension without an initialization error.
 - The agent catalog now reaches the model through the run's system prompt. Injecting it as a custom message was stripped by the extension's own context filter, so custom agent names and descriptions never arrived.
 - A resumed or retried run keeps its read-only mode, model, thinking level, and foreground or background mode.

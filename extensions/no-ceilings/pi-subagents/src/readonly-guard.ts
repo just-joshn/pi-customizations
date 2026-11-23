@@ -28,8 +28,9 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bbun\s+(add|remove|install|publish)\b/i,
   /\bpip\s+(install|uninstall)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|cherry-pick|revert|stash|clean|branch\s+-[dDmM]|tag\s+-d)\b/i,
+  /\bgit\s+reflog\s+(?:expire|delete)\b/i,
   /\bsed\b.*(?:\s-i\b|\s--in-place\b)/i,
-  /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s]).*?\1.*?\1[wW]\S|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
+  /\bsed\b.*(?:\/[wWeE]\b|\/[wW]\S|s([^\\\s])(?:\\[\s\S]|.)*?\1(?:\\[\s\S]|.)*?\1[^\s'"\\]*[wWeE]|['"]\s*(?:[\d$,]*)[wWeE]\s|['";]\s*[\d$,]*[wW](?:\s|\/)|(?:^|\s)\d+[wW](?:\s|\/|$)|\b[wW]\s+\S|\s[wW]\S)/,
   /\b(?:sed|awk)\b.*(?:\s-f\b|\s--file\b)/,
   /\bawk\b.*>/,
   /\buniq\b(?:\s+--?\S+)*\s+\S+\s+\S+/,
@@ -49,7 +50,9 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
 ];
 
 const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
-  /^\s*(cat|head|tail|less|more|wc|nl|file|stat|ls|ll|la|tree|pwd|which|whereis|type|realpath|readlink|basename|dirname|env|printenv|echo|printf|date|uname|whoami|id|hostname)\b/,
+  /^\s*(cat|head|tail|less|more|wc|nl|file|stat|ls|ll|la|tree|pwd|which|whereis|type|realpath|readlink|basename|dirname|env|printenv|echo|printf|uname|whoami|id)\b/,
+  /^\s*date(?:\s+(?:-[uR]|--utc|--universal))*(?:\s+(?:\+\S+|'\+(?:[^'\\]|\\.)*'|"\+(?:[^"\\]|\\.)*"))?\s*$/,
+  /^\s*hostname(?:\s+--?[A-Za-z0-9][-A-Za-z0-9]*)*\s*$/,
   /^\s*(find|fd|rg|ripgrep|grep|egrep|fgrep|ag|ack|awk|sed|cut|sort|uniq|tr|jq|yq|diff|cmp|comm|md5|sha256sum|shasum)\b/,
   /^\s*git\s+(status|log|diff|show|rev-parse|describe|blame|ls-files|ls-tree|shortlog|reflog|config\s+--get|config\s+--list)\b/,
   /^\s*git\s+branch(?:\s+(?:-[arv]+|--list|--show-current))?\s*$/,

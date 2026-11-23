@@ -137,6 +137,12 @@ function applyInheritedTools(session: AgentSession, parentActiveTools: readonly 
   session.setActiveToolsByName([...inherited, ...nested]);
 }
 
+function disableChildAgentRetry(settingsManager: SettingsManager): void {
+  // Loader reload rebuilds settings from disk. Apply after that so a model error settles as this attempt
+  // instead of sleeping through Pi's backoff and blowing past max_attempts.
+  settingsManager.applyOverrides({ retry: { enabled: false } });
+}
+
 export async function createChildSession(request: ChildSessionRequest, parentActiveTools: readonly string[]): Promise<ChildSession> {
   const projectTrusted = request.projectTrusted ?? false;
   const settingsManager = SettingsManager.create(request.cwd, getAgentDir(), { projectTrusted });
@@ -153,6 +159,7 @@ export async function createChildSession(request: ChildSessionRequest, parentAct
     appendSystemPrompt: [request.definition.prompt],
   });
   await resourceLoader.reload();
+  disableChildAgentRetry(settingsManager);
   const tools = buildToolAllowlist(request.definition, request.nestedScope);
   const { session } = await createAgentSession({
     cwd: request.cwd,

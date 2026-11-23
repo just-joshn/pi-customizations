@@ -227,13 +227,75 @@ function abortNestedRuns(scope: NestedScope | undefined, store: SubagentStore): 
   }
 }
 
+const MODEL_REQUEST_FAILED = 'Subagent model request failed';
+
+interface AssistantStop {
+  readonly stopReason: string;
+  readonly errorMessage?: string;
+}
+
+function readAssistantStop(message: { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }): AssistantStop | undefined {
+  if (message.role !== 'assistant' || typeof message.stopReason !== 'string') {
+    return undefined;
+  }
+  const errorMessage = typeof message.errorMessage === 'string' ? message.errorMessage : undefined;
+  return { stopReason: message.stopReason, ...(errorMessage !== undefined ? { errorMessage } : {}) };
+}
+
+function listedMessages(session: AgentSession): readonly { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }[] | undefined {
+  if (!('messages' in session)) {
+    return undefined;
+  }
+  const messages = session.messages;
+  return Array.isArray(messages) ? messages : undefined;
+}
+
+function lastAssistantStop(messages: readonly { readonly role: string; readonly stopReason?: unknown; readonly errorMessage?: unknown }[], start: number): AssistantStop | undefined {
+  let found: AssistantStop | undefined;
+  for (const message of messages.slice(start)) {
+    const stop = readAssistantStop(message);
+    if (stop !== undefined) {
+      found = stop;
+    }
+  }
+  return found;
+}
+
+function abortedOutcome(durationMs: number): SubagentRunOutcome {
+  return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs };
+}
+
+function promptOutcome(request: LifecycleRequest, progress: RunProgress, fromEvents: AssistantStop | undefined, messageStart: number): SubagentRunOutcome {
+  const durationMs = Math.max(ZERO, Date.now() - request.startedAt);
+  if (request.abortController.signal.aborted) {
+    return abortedOutcome(durationMs);
+  }
+  const assistant = lastAssistantStop(listedMessages(request.session) ?? [], messageStart) ?? fromEvents;
+  if (assistant?.stopReason === 'aborted') {
+    return abortedOutcome(durationMs);
+  }
+  if (assistant?.stopReason === 'error') {
+    return { status: 'error', error: assistant.errorMessage || MODEL_REQUEST_FAILED, errorCode: 'failed', durationMs };
+  }
+  const finalText = (request.session.getLastAssistantText() ?? progress.finalMessage ?? '').trim();
+  if (finalText.length > ZERO) {
+    ensureFinalAssistantItem(request.store, request.agentId, finalText);
+  }
+  return { status: 'completed', ...(finalText.length > ZERO ? { finalMessage: finalText } : {}), toolCallCount: progress.toolCallCount, durationMs };
+}
+
 function runSession(request: LifecycleRequest): Promise<SubagentRunOutcome> {
   if (request.abortController.signal.aborted) {
     request.session.dispose();
-    return Promise.resolve({ status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs: Math.max(ZERO, Date.now() - request.startedAt) });
+    return Promise.resolve(abortedOutcome(Math.max(ZERO, Date.now() - request.startedAt)));
   }
   let progress: RunProgress = { toolCallCount: request.store.getSession(request.agentId)?.toolCallCount ?? ZERO, finalMessage: undefined };
+  let fromEvents: AssistantStop | undefined;
+  const messageStart = listedMessages(request.session)?.length ?? ZERO;
   const unsubscribe = request.session.subscribe((event) => {
+    if (event.type === 'message_end') {
+      fromEvents = readAssistantStop(event.message) ?? fromEvents;
+    }
     progress = applyChildEvent(request, event, progress);
   });
   const onAbort = (): void => {
@@ -243,21 +305,11 @@ function runSession(request: LifecycleRequest): Promise<SubagentRunOutcome> {
 
   return request.session
     .prompt(request.prompt)
-    .then((): SubagentRunOutcome => {
-      const durationMs = Math.max(ZERO, Date.now() - request.startedAt);
-      if (request.abortController.signal.aborted) {
-        return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs };
-      }
-      const finalText = (request.session.getLastAssistantText() ?? progress.finalMessage ?? '').trim();
-      if (finalText.length > ZERO) {
-        ensureFinalAssistantItem(request.store, request.agentId, finalText);
-      }
-      return { status: 'completed', ...(finalText.length > ZERO ? { finalMessage: finalText } : {}), toolCallCount: progress.toolCallCount, durationMs };
-    })
+    .then((): SubagentRunOutcome => promptOutcome(request, progress, fromEvents, messageStart))
     .catch((error: unknown): SubagentRunOutcome => {
       const durationMs = Math.max(ZERO, Date.now() - request.startedAt);
       if (request.abortController.signal.aborted) {
-        return { status: 'aborted', error: SUBAGENT_ABORTED_ERROR, errorCode: 'aborted', durationMs };
+        return abortedOutcome(durationMs);
       }
       return { status: 'error', error: errorMessage(error), errorCode: failureCode(error), durationMs };
     })

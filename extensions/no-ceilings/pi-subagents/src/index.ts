@@ -140,6 +140,7 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   let config: SubagentsConfig | undefined;
   let configKey: string | undefined;
   let latestCtx: ExtensionContext | undefined;
+  let extensionShutDown = false;
 
   registerFlags(pi);
 
@@ -178,7 +179,17 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   const getDefinitions = (ctx: ExtensionContext): readonly SubagentDefinition[] => (definitions.length === ZERO || definitionsKey !== cacheKey(ctx) ? reloadDefinitions(ctx) : definitions);
 
   const onStateChanged = (options?: { readonly includeTranscriptItems?: boolean }): void => {
+    if (extensionShutDown) {
+      return;
+    }
     pi.appendEntry(SUBAGENTS_ENTRY_CUSTOM_TYPE, store.toPersistedState(options));
+  };
+
+  const flushWakeups = (): void => {
+    if (extensionShutDown) {
+      return;
+    }
+    flushBackgroundWakeups(pi, store);
   };
 
   const nestedStore: SubagentStore = { ...store, enqueueWakeup: () => false };
@@ -193,9 +204,13 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
     store,
     getDefinitions,
     getConfig,
-    onBackgroundCompleted: () => flushBackgroundWakeups(pi, store),
+    onBackgroundCompleted: () => flushWakeups(),
     onStateChanged,
-    emit: (event, record, extra) => emitSubagentEvent(pi, event, record, extra),
+    emit: (event, record, extra) => {
+      if (!extensionShutDown) {
+        emitSubagentEvent(pi, event, record, extra);
+      }
+    },
     getParentActiveTools: () => pi.getActiveTools?.() ?? [],
   };
 
@@ -259,9 +274,10 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   };
 
   store.subscribe(() => {
-    if (latestCtx) {
-      syncSubagentsUi(latestCtx, store);
+    if (extensionShutDown || !latestCtx) {
+      return;
     }
+    syncSubagentsUi(latestCtx, store);
   });
 
   registerSubagentTools(pi, callbacks);
@@ -279,6 +295,9 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   registerSubagentShortcuts(pi, store);
 
   pi.on('before_agent_start', async (_event, ctx) => {
+    if (extensionShutDown) {
+      return {};
+    }
     latestCtx = ctx;
     const catalog = buildSubagentsContextPrompt(getDefinitions(ctx), getConfig(ctx));
     const basePrompt = ctx.getSystemPrompt().trim();
@@ -286,14 +305,18 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   });
 
   pi.on('agent_end', async (_event, ctx) => {
+    if (extensionShutDown) {
+      return;
+    }
     latestCtx = ctx;
     if (store.hasPendingWakeups()) {
-      flushBackgroundWakeups(pi, store);
+      flushWakeups();
     }
     syncSubagentsUi(ctx, store);
   });
 
   pi.on('session_start', async (_event, ctx) => {
+    extensionShutDown = false;
     latestCtx = ctx;
     store.reset();
     registerAgentCommands(pi, reloadDefinitions(ctx), getDefinitions);
@@ -304,6 +327,8 @@ export default function piSubagentsExtension(pi: ExtensionAPI): void {
   pi.on('session_shutdown', async () => {
     store.abortAllRuns();
     onStateChanged();
+    latestCtx = undefined;
+    extensionShutDown = true;
   });
 
   pi.on('mcp_servers_change', async (_event, ctx) => {

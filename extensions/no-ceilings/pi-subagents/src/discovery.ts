@@ -22,8 +22,9 @@ const SUBAGENT_TYPE_ALIASES: Readonly<Record<string, string>> = {
   explore: 'explore',
   debug: 'debug',
 };
-const WRITE_INTENT_PATTERN =
-  /\b(?:fix(?:ing)?|edit(?:ing)?|change(?:ing)?|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting)\b/i;
+const WRITE_VERBS =
+  'fix(?:ing)?|edit(?:ing)?|change(?:ing)?|modify|modifying|implement(?:ing)?|add(?:ing)?|create|creating|write|writing|update|updating|refactor(?:ing)?|rename|renaming|delete|deleting|remove|removing|patch(?:ing)?|migrate|migrating|bump(?:ing)?|upgrade|upgrading|rewrite|rewriting';
+const NEGATED_WRITE = `\\b(?:do not|don['\u2019]t|cannot|can['\u2019]t|must not|should not|never|avoid|without)\\b(?:\\s+\\w+){0,4}\\s+(?:${WRITE_VERBS})\\b|\\bno(?:\\s+\\w+){0,2}\\s+(?:${WRITE_VERBS})\\b`;
 
 const CLAUDE_TOOL_NAMES: Readonly<Record<string, string>> = {
   Read: 'read',
@@ -69,7 +70,7 @@ const SELECTION_STOPWORDS = new Set([
 
 const EXPLORE_DEFAULT_TOOLS = ['read', 'grep', 'find', 'ls', 'bash'] as const;
 const SHELL_DEFAULT_TOOLS = ['bash', 'read'] as const;
-const BROWSER_TOOL_PATTERN = 'mcp__*';
+const MCP_TOOL_SEPARATOR = '__';
 
 const CLAUDE_MODEL_ALIASES: Readonly<Record<string, string>> = {
   haiku: 'fast',
@@ -478,12 +479,23 @@ function builtinDebug(): BuiltinSpec {
   };
 }
 
+function browserToolPattern(integration: string): string {
+  const prefix = `mcp${MCP_TOOL_SEPARATOR}`;
+  if (integration.startsWith(prefix)) {
+    const second = integration.indexOf(MCP_TOOL_SEPARATOR, prefix.length);
+    if (second !== -ONE) {
+      return `${integration.slice(ZERO, second + MCP_TOOL_SEPARATOR.length)}*`;
+    }
+  }
+  return `${prefix}${integration.replace(/[^A-Za-z0-9_]/g, '_')}${MCP_TOOL_SEPARATOR}*`;
+}
+
 function builtinBrowser(integration: string): BuiltinSpec {
   return {
     definition: {
       name: 'browser',
       description: `Browser work through the ${integration} MCP integration: open pages, click, type, read the DOM, and capture screenshots.`,
-      tools: [BROWSER_TOOL_PATTERN],
+      tools: [browserToolPattern(integration)],
       model: 'inherit',
       forceDefaultModel: false,
       prompt: 'You are a browser automation subagent. Use the available MCP browser tools to inspect and drive the page. Report what you observed with concrete evidence such as page titles, selectors, and captured text.',
@@ -576,6 +588,11 @@ function mentionsName(text: string, name: string): boolean {
   return text.toLowerCase().split(NAME_SPLIT_REGEX).includes(name.toLowerCase());
 }
 
+function textHasWriteIntent(text: string): boolean {
+  const remaining = text.replace(new RegExp(NEGATED_WRITE, 'gi'), ' ');
+  return new RegExp(String.raw`\b(?:${WRITE_VERBS})\b`, 'i').test(remaining);
+}
+
 /**
  * Picks the subagent for a task that did not name one. An explicit name in the task text wins, then
  * the definition whose description shares the most keywords with the task. Ambiguity falls back to
@@ -592,7 +609,7 @@ export function selectSubagentType(definitions: readonly SubagentDefinition[], h
     return resolveSubagentDefinition(definitions, named)?.name ?? named;
   }
   const text = `${hint.description} ${hint.prompt}`;
-  const writable = WRITE_INTENT_PATTERN.test(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
+  const writable = textHasWriteIntent(text) ? definitions.filter((definition) => definition.permissionMode !== 'readonly') : definitions;
   const eligible = writable.length > ZERO ? writable : definitions;
   const namedMatches = eligible.filter((definition) => mentionsName(text, definition.name));
   if (namedMatches.length > ONE) {

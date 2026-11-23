@@ -45,11 +45,11 @@ Every completed step writes a checkpoint to the run record: sequence, status, to
 | `explore` | Read-only, fast model, file and content search tools. |
 | `shell` | `bash` and `read` (alias `bash`). |
 | `debug` | Debugging prompt on an inherited model and tool set. |
-| `browser` | Appears only when an MCP server or `mcp__` tool matches a browser hint. |
+| `browser` | Appears only when an MCP server or `mcp__` tool matches a browser hint. Tools are limited to that server. |
 
 `explore` is configurable. Set `explore.model` to `default` (built-in fast pick), `inherit` (parent model), or a model id. Set `explore.enabled` to `false` to remove it.
 
-The `browser` subagent is a delegation interface. It runs the MCP browser tools that the parent session already has configured, so the server must set `"exposure": "direct"` in `mcp.json` to declare its tools to the model.
+The `browser` subagent is a delegation interface. Its tool allowlist is only the matched server (`mcp__<server>__*`), so other MCP servers stay out of reach. The server must set `"exposure": "direct"` in `mcp.json` to declare its tools to the model.
 
 ## Custom subagents
 
