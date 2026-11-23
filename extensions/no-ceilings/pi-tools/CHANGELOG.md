@@ -44,6 +44,14 @@
   and totals count matches rather than context lines, patches keep untouched endings and honor the
   trailing newline, `ls` follows directory symlinks inside the workspace, and `save_resource` rejects
   malformed base64.
+- Shell analysis refuses `trap` actions, `PS4` assignments, git `-c` command keys, and
+  `GIT_CONFIG_*` environment. `install`, in-place `sed` and `perl`, `truncate`, and `find -delete`
+  are writes. A redirect target ends at the next `<` or `>`, digits before a redirect stay with their
+  word, and a redirect to `/dev/null` is not an outside write.
+- The read fence keeps every record for the session, and a failed edit or write restores the record.
+- A unified hunk counts its lines, so a `---` line inside a hunk is a removed line and a short hunk
+  is refused. Duplicate add sections concatenate, and a hunk-less move or a `git diff -M` rename
+  renames the file.
 
 ## 0.1.0
 

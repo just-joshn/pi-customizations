@@ -107,9 +107,10 @@ an ignored path directly is refused with the ignore file that matched.
   or another case spelling fences the same file. A later `write` or `edit` in the same session refuses
   to proceed if the file changed on disk and says nothing was written. `delete` records the path it
   removed as absent, so a recreated file is stale for both `write` and `edit` while a symlink's target
-  is not marked. Ranged reads record nothing and leave an earlier full-file record in place, and every mutation
-  holds the per-file queue from the read through the verification. `apply_patch` holds the queues for
-  every file it touches for the whole operation.
+  is not marked. A failed edit or write puts the record back, so a later mutation still refuses. Ranged
+  reads record nothing and leave an earlier full-file record in place, and every mutation holds the
+  per-file queue from the read through the verification. `apply_patch` holds the queues for every file
+  it touches for the whole operation.
 - **Search results stay in bounds.** Every hit is resolved to its canonical path and must stay inside
   the workspace or a directory the caller named explicitly. A symlink cannot pull outside content into
   `grep`, `find`, or `ls`, and a search rooted at a workspace path that resolves outside is refused the
@@ -134,17 +135,22 @@ an ignored path directly is refused with the ignore file that matched.
   Anything the analyzer cannot vouch for is refused before it runs, because the policy cannot see what
   it would execute: a command word built by an expansion, an unquoted command substitution or backtick
   anywhere in the command (including a here-string, `${...}`, and `$((...))`), brace expansion, an
-  unresolvable `cd` target such as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, or `IFS`
-  (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a git
-  `-c` value that starts a shell command, a wrapper that runs another command (`sudo`, `doas`, `su`,
-  `runuser`, `xargs`, `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a shell
-  fed a script through a pipe, and a shell function definition. Literal path operands and redirection
-  targets are matched against read and write deny rules. A write-like command (`touch`, `mkdir`, `cp`,
-  `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`, `truncate`, `find -delete`) or `>`/`>>` target
-  outside the workspace needs the same approval as `write`; `cp`/`mv`/`ln` destination flags such as
-  `-t` and `--target-directory` count as the destination, and every `ln` target counts because a link
-  is the path a later use escapes through. Every spawned shell drops `BASH_ENV`, `ENV`, `CDPATH`, `SHELLOPTS`, `BASHOPTS`,
-  and exported functions, then pins `PWD` and `OLDPWD` to the working directory. Allowlist mode
+  unresolvable `cd` target such as `~otheruser`, an inline `BASH_ENV`, `ENV`, `CDPATH`, `IFS`, or
+  `PS4` (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a
+  `trap` with an action, a git `-c` value that starts a shell command or names a command key such as
+  `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*` or `GIT_EXTERNAL_DIFF` in the command
+  environment, a wrapper that runs another command (`sudo`, `doas`, `su`, `runuser`, `xargs`,
+  `find -exec`, `env -S`, `caffeinate`, `strace`, `bwrap`, and similar), a shell fed a script through
+  a pipe, and a shell function definition. Literal path operands and redirection targets are matched
+  against read and write deny rules. A redirect target ends at the next `<` or `>`, and digits before
+  a redirect stay with the word they continue. A write-like command (`touch`, `mkdir`, `cp`, `mv`,
+  `rm`, `dd`, `ln`, `tee`, `chmod`, `chown`, `truncate`, `install`, `sed -i`, `perl -i`,
+  `find -delete`) or `>`/`>>` target outside the workspace needs the same approval as `write`;
+  `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the destination, and
+  every `ln` target counts because a link is the path a later use escapes through. `/dev/null` is a
+  discard sink, so a redirect there carries no outside-write approval. Every spawned shell drops
+  `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions, then pins `PWD`
+  and `OLDPWD` to the working directory. Allowlist mode
   requires every segment to be allowed. A `cd` to a directory outside the workspace needs approval.
   Code a scanner cannot see, such as a script invoked by name, another interpreter's `-c` string, or a
   path built by a variable, is out of reach.
@@ -153,9 +159,12 @@ an ignored path directly is refused with the ignore file that matched.
   write that still fails while applying restores every file the patch already changed and removes the
   files and directories it created, so the call keeps its "nothing was written" contract. Untouched
   lines keep their own endings, added lines use the file's dominant ending, and a changed last line
-  gains a newline unless the diff carries the no-newline marker. Delete hunks must remove the whole file,
-  hunks apply in file order and honor zero-context insertions, git-style headers are honored, a pure
-  move renames, and a no-op, including a patch with no file sections, is refused.
+  gains a newline unless the diff carries the no-newline marker. A unified hunk counts its old and new
+  lines, so a `---` line inside an open hunk is a removed line and a short hunk is refused. Duplicate
+  add sections concatenate their lines. Delete hunks must remove the whole file, hunks apply in file
+  order and honor zero-context insertions, git-style headers are honored, a hunk-less move and a
+  `git diff -M` rename both rename the file, and a no-op, including a patch with no file sections, is
+  refused.
 - **Errors reach the model as error results.** A failing tool returns `isError` with a message, a hint
   when there is one, and typed details; Pi never sees a thrown error from the layer, so one failure does
   not abort a batch.
