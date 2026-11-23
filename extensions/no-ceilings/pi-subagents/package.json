@@ -47,7 +47,8 @@
     "test:e2e:growth": "node test/e2e/verify-state-growth.mjs 4 25",
     "test:e2e:growth-heavy": "node test/e2e/verify-state-growth.mjs 12 50",
     "test:e2e:append-failure": "node test/e2e/verify-append-failure.mjs",
-    "test:e2e:readonly-commands": "node test/e2e/verify-readonly-commands.mjs"
+    "test:e2e:readonly-commands": "node test/e2e/verify-readonly-commands.mjs",
+    "test:e2e:worktree-cancel": "bun test/e2e/verify-worktree-cancel.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-agent-core": "*",

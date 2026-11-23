@@ -528,6 +528,14 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('awk \'BEGIN { sys\\164em("echo AWKEXEC") }\'')).toBe(false);
     expect(isSafeReadOnlyCommand("grep '*.ts' file")).toBe(true);
     expect(isSafeReadOnlyCommand("find . -name '*.ts'")).toBe(true);
+    expect(isSafeReadOnlyCommand('sort -S 1k --compress-prog=/tmp/compress.sh big.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort -S 1k --compress=/tmp/compress.sh big.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort --out=/tmp/out.txt input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort --outp=/tmp/out.txt input.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('less --lesskey-src /tmp/keys.lesskey file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('less file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('more file.txt')).toBe(false);
+    expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
   });
 
   it('blocks sed write commands and sort output flags in read-only mode', () => {

@@ -44,6 +44,21 @@ if (awkLiteral.safe || awkLiteral.combined.includes('AWKLITERAL')) {
   failures += 1;
 }
 
+writeFileSync(join(root, 'big.txt'), 'b\na\n');
+writeFileSync(join(root, 'compress.sh'), '#!/bin/sh\necho P0SORT_EXEC >&2\ncat\n');
+execFileSync('chmod', ['+x', join(root, 'compress.sh')]);
+const sortCompress = run(`sort -S 1k --compress-prog=${join(root, 'compress.sh')} ${join(root, 'big.txt')}`);
+if (sortCompress.safe || sortCompress.combined.includes('P0SORT_EXEC')) {
+  failures += 1;
+}
+
+writeFileSync(join(root, 'keys.lesskey'), '#env\nLESSOPEN=|echo P0LESS_EXEC %s\n');
+writeFileSync(join(root, 'less-file.txt'), 'less body\n');
+const lessKey = run(`less --lesskey-src ${join(root, 'keys.lesskey')} ${join(root, 'less-file.txt')}`);
+if (lessKey.safe || lessKey.combined.includes('P0LESS_EXEC')) {
+  failures += 1;
+}
+
 if (failures > 0) {
   console.error('FAIL: a read-only command executed a quoted, escaped, or encoded option');
   process.exitCode = 1;
