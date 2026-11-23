@@ -56,6 +56,8 @@ const DESTRUCTIVE_PATTERNS: readonly RegExp[] = [
   /\bsort\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\btree\b.*\s(?:-o\S*|--output(?:=|\s|$))/i,
   /\bgit\b.*\s--output(?:=|\s)/i,
+  /\bgit\b[^|;&\n]*\s--help\b/i,
+  /\bgit\s+remote\s+show\b/i,
 ];
 
 const SAFE_READONLY_PREFIXES: readonly RegExp[] = [
@@ -222,6 +224,11 @@ const READONLY_GIT_CONFIG: readonly (readonly [string, string])[] = [
   ['credential.helper', ''],
   ['core.attributesFile', '/dev/null'],
   ['protocol.ext.allow', 'never'],
+  ['log.showSignature', 'false'],
+  ['gpg.program', DISABLED_GIT_HELPER],
+  ['gpg.openpgp.program', DISABLED_GIT_HELPER],
+  ['gpg.x509.program', DISABLED_GIT_HELPER],
+  ['gpg.ssh.program', DISABLED_GIT_HELPER],
 ];
 
 function isGitWordChar(char: string | undefined): boolean {
@@ -292,8 +299,19 @@ function readonlySandboxInvocation(command: string, tempRoot: string): string {
   return `${gitSafetyPrelude()}_pi_tmp=$(mktemp -d ${template}) || exit 1; ${readonlyProfileAssignment()}; _pi_status=0; ${run} || _pi_status=$?; rm -rf "$_pi_tmp"; exit $_pi_status`;
 }
 
+function blocksExternalViewer(command: string): boolean {
+  return /\bgit\b[^|;&\n]*\s--help\b/i.test(command) || /\bgit\s+remote\s+show\b/i.test(command);
+}
+
+function blockedReadonlyCommand(): string {
+  return `printf '%s\\n' ${shellQuote('read-only Git help and remote-show commands are blocked')} >&2; exit 1`;
+}
+
 /** Wraps a command in a macOS sandbox that denies filesystem writes except /dev/null and that command's temp directory. Git helper neutralization runs on every platform. */
 export function sandboxReadOnlyCommand(command: string): string {
+  if (blocksExternalViewer(command)) {
+    return blockedReadonlyCommand();
+  }
   const hardened = hardenReadOnlyGitCommand(command);
   if (process.platform === 'darwin' && existsSync(SANDBOX_EXEC)) {
     mkdirSync(READONLY_TEMP_ROOT, { recursive: true });
