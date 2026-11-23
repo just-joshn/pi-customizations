@@ -4,8 +4,8 @@ import { type PruneResult, registerAgentCommands, registerSubagentCommands } fro
 import { DEFAULT_BROWSER_SERVER_HINTS, loadSubagentsConfig, type SubagentsConfig } from './config.ts';
 import { discoverSubagents, resolveSubagentDefinition } from './discovery.ts';
 import { emitSubagentEvent } from './events.ts';
-import { resolvePackageAgentDirectories } from './package-agents.ts';
 import { buildSubagentsContextPrompt } from './formatters.ts';
+import { resolvePackageAgentDirectories } from './package-agents.ts';
 import { runSubagentTask } from './runner.ts';
 import { createSubagentStore, type SubagentStore } from './store.ts';
 import { openTasksOverlay } from './tasks-overlay.ts';

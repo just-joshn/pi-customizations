@@ -1,12 +1,11 @@
-import { existsSync, statSync } from 'node:fs';
+import { statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 
-import { TWO } from './types.ts';
-
-export type PackageSource = string | { readonly source?: string };
+type PackageSource = string | { readonly source?: string };
 
 const AGENTS_DIR = 'agents';
+const HOME_PREFIX = '~/';
 
 function sourceOf(value: PackageSource): string | undefined {
   if (typeof value === 'string') {
@@ -16,7 +15,7 @@ function sourceOf(value: PackageSource): string | undefined {
 }
 
 function expandHome(value: string): string {
-  return value === '~' ? homedir() : value.startsWith('~/') ? join(homedir(), value.slice(TWO)) : value;
+  return value === '~' ? homedir() : value.startsWith(HOME_PREFIX) ? join(homedir(), value.slice(HOME_PREFIX.length)) : value;
 }
 
 function npmPackageName(source: string): string | undefined {
@@ -38,7 +37,7 @@ function gitRepository(source: string): { readonly host: string; readonly path: 
 
 function existingPath(candidate: string): string | undefined {
   try {
-    return existsSync(candidate) && statSync(candidate).isDirectory() ? candidate : undefined;
+    return statSync(candidate).isDirectory() ? candidate : undefined;
   } catch {
     return undefined;
   }
@@ -51,7 +50,7 @@ function isInsideProject(cwd: string, candidate: string): boolean {
 
 function localPackageRoots(source: string, cwd: string, agentDir: string, projectTrusted: boolean): readonly string[] {
   const path = expandHome(source.replace(/^file:/, ''));
-  const candidates = resolve(path) === path ? [path] : [resolve(agentDir, path), resolve(cwd, '.pi', path), resolve(cwd, path)];
+  const candidates = isAbsolute(path) ? [path] : [resolve(agentDir, path), resolve(cwd, '.pi', path), resolve(cwd, path)];
   return candidates
     .filter((candidate) => projectTrusted || !isInsideProject(cwd, candidate))
     .map(existingPath)
@@ -91,5 +90,5 @@ export function resolvePackageAgentDirectories(packages: readonly PackageSource[
       }
     }
   }
-  return [...directories];
+  return directories;
 }

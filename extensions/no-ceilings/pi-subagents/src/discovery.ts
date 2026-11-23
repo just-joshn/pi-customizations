@@ -394,7 +394,7 @@ function isInsideProject(projectRoot: string, candidate: string): boolean {
   return relativePath === '' || (!relativePath.startsWith(`..${sep}`) && relativePath !== '..' && !isAbsolute(relativePath));
 }
 
-export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig, projectTrusted = true): readonly DirectorySpec[] {
+export function computeAgentDirectories(cwd: string, userHome: string, agentDir: string, config?: SubagentsConfig, projectTrusted = true, packageAgentDirs: readonly string[] = []): readonly DirectorySpec[] {
   const workspaceRoot = resolve(cwd);
   const workspaceDirs: readonly DirectorySpec[] = projectTrusted
     ? [
@@ -411,7 +411,8 @@ export function computeAgentDirectories(cwd: string, userHome: string, agentDir:
     { dirPath: join(userHome, '.agents', 'agents'), source: 'shared-user' },
   ];
   const configured = (config?.extraAgentDirectories ?? []).filter((dirPath) => projectTrusted || !isInsideProject(workspaceRoot, dirPath)).map((dirPath): DirectorySpec => ({ dirPath, source: 'configured' }));
-  return [...workspaceDirs, ...configured, ...userDirs];
+  const packages = packageAgentDirs.map((dirPath): DirectorySpec => ({ dirPath, source: 'package' }));
+  return [...workspaceDirs, ...configured, ...packages, ...userDirs];
 }
 
 function builtinGeneralPurpose(): BuiltinSpec {
@@ -559,10 +560,7 @@ function dedupeByName(definitions: readonly SubagentDefinition[]): readonly Suba
 
 export function discoverSubagents(cwd: string, options: DiscoverSubagentsOptions = {}): readonly SubagentDefinition[] {
   const config = options.config;
-  const baseDirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config, options.projectTrusted ?? true);
-  const packageDirs = (options.packageAgentDirs ?? []).map((dirPath): DirectorySpec => ({ dirPath, source: 'package' }));
-  const userIndex = baseDirs.findIndex((spec) => spec.source === 'user');
-  const dirs = userIndex === -1 ? [...baseDirs, ...packageDirs] : [...baseDirs.slice(ZERO, userIndex), ...packageDirs, ...baseDirs.slice(userIndex)];
+  const dirs = computeAgentDirectories(cwd, options.homeDir ?? homedir(), options.agentDir ?? getAgentDir(), config, options.projectTrusted ?? true, options.packageAgentDirs);
   const discovered = dirs.flatMap((spec) =>
     walkAgentFiles(spec.dirPath)
       .map((filePath) => parseSubagentFile(filePath, spec.source))
