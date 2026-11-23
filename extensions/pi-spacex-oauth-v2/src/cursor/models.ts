@@ -1,6 +1,7 @@
 import type { ModelParameterValue, ModelSelection, SDKModel } from '@cursor/sdk';
 import type { ThinkingLevel, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import { type ChatModelConfig, chatModel } from '../stored-models.ts';
+import { catalogPresets, parsePickerId, presetMatches, presetNames } from './preset.ts';
 
 type PiLevel = keyof ThinkingLevelMap;
 type ModelParameter = NonNullable<SDKModel['parameters']>[number];
@@ -65,24 +66,60 @@ function thinkingLevelMap(plans: Plans | undefined): ThinkingLevelMap | undefine
   return plans && PI_LEVELS.reduce<ThinkingLevelMap>((map, level) => ({ ...map, [level]: planValue(plans[level]) }), {});
 }
 
-function contextWindow(model: SDKModel): number {
-  const value = defaultParams(model).find((p) => p.id === CONTEXT_PARAM)?.value ?? '';
+function tokensOf(value: string): number | undefined {
   const [, amount, unit] = /^(\d+(?:\.\d+)?)([km])$/i.exec(value) ?? [];
   const scale = unit ? CONTEXT_UNITS[unit.toLowerCase()] : undefined;
-  return amount && scale ? Math.round(Number(amount) * scale) : DEFAULT_CONTEXT_WINDOW;
+  return amount && scale ? Math.round(Number(amount) * scale) : undefined;
 }
 
-export const toPiModel = (model: SDKModel): ChatModelConfig => chatModel({ id: model.id, name: model.displayName, contextWindow: contextWindow(model), levels: thinkingLevelMap(levelPlans(model)) });
+function contextWindow(model: SDKModel): number {
+  const value = defaultParams(model).find((p) => p.id === CONTEXT_PARAM)?.value ?? '';
+  return tokensOf(value) ?? DEFAULT_CONTEXT_WINDOW;
+}
+
+function variantContext(model: SDKModel, params: readonly ModelParameterValue[]): number {
+  const value = params.find((param) => param.id === CONTEXT_PARAM)?.value;
+  return (value ? tokensOf(value) : undefined) ?? contextWindow(model);
+}
+
+const toPiModel = (model: SDKModel): ChatModelConfig => chatModel({ id: model.id, name: model.displayName, contextWindow: contextWindow(model), levels: thinkingLevelMap(levelPlans(model)) });
+
+/** The base model, then one pinned preset per distinct advertised parameter set. */
+export function toPiModels(model: SDKModel): ChatModelConfig[] {
+  const presets = catalogPresets(model);
+  const names = presetNames(model, presets);
+  const pinned = presets.map((preset, index) => chatModel({ id: preset.id, name: names[index] ?? model.displayName, contextWindow: variantContext(model, preset.params), levels: undefined }));
+  return [toPiModel(model), ...pinned];
+}
 
 const withParam = (params: ModelParameterValue[], change: ModelParameterValue) => [...params.filter((p) => p.id !== change.id), change];
 
-/**
- * The model selection for one run. Starts from the catalog's default variant, so every parameter is explicit,
- * then applies Pi's thinking level. `level` undefined means thinking is off.
- */
-export function selectModel(model: SDKModel | undefined, modelId: string, level: ThinkingLevel | undefined): ModelSelection {
+/** What a catalog lookup produced. `unavailable` means the list could not be read, so a preset id stands on its own. */
+export type CatalogLookup = { status: 'ready'; model: SDKModel | undefined } | { status: 'unavailable' };
+
+const adjustableSelection = (model: SDKModel | undefined, modelId: string, level: ThinkingLevel | undefined): ModelSelection => {
   if (!model) return { id: modelId };
   const plan = levelPlans(model)?.[level ?? 'off'] ?? [];
   const params = plan.reduce(withParam, defaultParams(model));
   return params.length > 0 ? { id: model.id, params } : { id: model.id };
+};
+
+function presetSelection(lookup: CatalogLookup, modelId: string, sdkId: string, params: ModelParameterValue[]): ModelSelection {
+  if (lookup.status === 'unavailable') return { id: sdkId, params };
+  const model = lookup.model;
+  const matches = model ? presetMatches(model.variants, params) : [];
+  if (!model || matches.length === 0) throw new Error(`Unknown Cursor model preset: ${modelId}`);
+  return { id: model.id, params, ...(matches.every((variant) => variant.isMaxMode === true) ? { maxMode: true } : {}) };
+}
+
+/**
+ * The model selection for one run. A base id starts from the default variant and applies Pi's thinking level.
+ * `level` undefined means thinking is off. A preset id sends that variant's parameters and ignores the thinking level.
+ */
+export async function selectModel(modelId: string, level: ThinkingLevel | undefined, lookupModel: (sdkId: string) => Promise<CatalogLookup>): Promise<ModelSelection> {
+  const parsed = parsePickerId(modelId);
+  if (parsed.kind === 'malformed') throw new Error(`Malformed Cursor model id: ${modelId}`);
+  const lookup = await lookupModel(parsed.kind === 'pinned' ? parsed.sdkId : modelId);
+  if (parsed.kind === 'pinned') return presetSelection(lookup, modelId, parsed.sdkId, parsed.params);
+  return adjustableSelection(lookup.status === 'ready' ? lookup.model : undefined, modelId, level);
 }

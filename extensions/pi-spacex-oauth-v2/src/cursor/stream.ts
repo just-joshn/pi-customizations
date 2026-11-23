@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { Agent } from '@cursor/sdk';
 import { type Api, type AssistantMessageEventStream, collapseSystemMessages, getCurrentSystemPrompt, getCurrentTools, type Model, type SimpleStreamOptions, type ToolResultMessage, type TranscriptContext } from '@earendil-works/pi-ai';
 import { keepIdle, takeIdle } from './agent-pool.ts';
-import { findCursorModel } from './catalog.ts';
+import { lookupCursorModel } from './catalog.ts';
 import { describeCursorError } from './errors.ts';
 import { selectModel } from './models.ts';
 import { createCursorRun, findParkedRun } from './run.ts';
@@ -37,7 +37,7 @@ async function startRun(model: Model<Api>, transcript: TranscriptContext, option
   const history = latest ? conversation.slice(0, -1) : conversation;
 
   const apiKey = options?.apiKey || undefined;
-  const selection = selectModel(await findCursorModel(apiKey, model.id), model.id, options?.reasoning);
+  const selection = await selectModel(model.id, options?.reasoning, (sdkId) => lookupCursorModel(apiKey, sdkId));
   const keyFor = (messages: typeof history) => conversationKey(apiKey, systemPrompt, tools, messages);
   const idle = latest ? takeIdle(keyFor(history)) : undefined;
   const agent = idle ?? (await Agent.create({ ...(apiKey ? { apiKey } : {}), model: selection, tools: ['mcp'], local: { cwd: workspace() } }));
