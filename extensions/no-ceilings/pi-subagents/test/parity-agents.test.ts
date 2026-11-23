@@ -72,6 +72,19 @@ describe('trust and tool inheritance', () => {
       await h.cleanup();
     }
   });
+
+  it('discovers an agent file added after the session starts', async () => {
+    const h = createTestHarness();
+    try {
+      await h.emit('session_start', {});
+      writeAgent(h.cwd, '.pi/agents', 'late.md', ['---', 'name: late-agent', 'description: Added after startup', '---', 'Work late.'].join('\n'));
+      enqueuePlan({ finalText: 'late' });
+      const result = await h.callTool('task', { description: 'Late agent', prompt: 'go', subagent_type: 'late-agent' });
+      expect(result.details?.status).toBe('success');
+    } finally {
+      await h.cleanup();
+    }
+  });
 });
 
 describe('nested tool inheritance and shell coverage', () => {
