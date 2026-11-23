@@ -37,7 +37,7 @@ describe('copySources: the analyzer names every cp and mv source as an absolute 
     expect(copySourcesOf(`cp ~/notes copied`)).toEqual(['/home/tester/notes']);
 
     expect(copySourcesOf('touch a.txt')).toEqual([]);
-    expect(copySourcesOf('rsync -a secrets copied')).toEqual([]);
+    expect(copySourcesOf('rsync -a secrets copied')).toEqual(['/ws/secrets']);
   });
 });
 
@@ -120,12 +120,13 @@ describe('finding 5d: a plain directory copy and move still work', () => {
       expect(read.isError).toBeUndefined();
       expect(textOf(read)).toContain('deep');
 
-      // A symlink to a denied file is copied as a link, so the copy is allowed and the target stays denied.
+      // A symlink to a denied file is refused, because `cp -RL`, `ditto`, and `rsync -L` copy the
+      // bytes behind it. A link to an allowed file still copies.
       await symlink(path.join(h.workspace, 'secrets/token.txt'), h.file('docs/link.txt'));
       const linked = await h.call('bash', { command: 'cp -r docs linked-copy' });
-      expect(linked.isError).toBeUndefined();
-      const throughLink = await h.call('read', { path: 'linked-copy/link.txt' });
-      expect(throughLink.isError).toBe(true);
+      expect(linked.isError).toBe(true);
+      expect(textOf(linked)).toContain('docs/link.txt (a symlink to secrets/token.txt), which a rule denies');
+      expect(existsSync(h.file('linked-copy'))).toBe(false);
 
       const empty = await h.call('bash', { command: 'cp -r assets assets-copy' });
       expect(empty.isError).toBeUndefined();

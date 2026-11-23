@@ -1,4 +1,5 @@
-import { lstat, readdir } from 'node:fs/promises';
+import type { Stats } from 'node:fs';
+import { lstat, readdir, realpath } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -285,10 +286,12 @@ interface CopyRefusal {
 }
 
 /**
- * The first regular file under a copied or moved directory that a read rule or an ignore rule refuses,
- * or undefined. A directory copy writes every file inside it to a new path, so the rules must see those
- * files themselves. Symlinks are not followed, because the copy reproduces the link, not its target.
- * A tree past the entry cap is refused unseen instead of walked partially.
+ * The first entry under a copied or moved directory that the policy cannot vouch for, or undefined. A
+ * directory copy writes every file inside it to a new path, so the rules must see those files
+ * themselves. A symlink is judged by the target it resolves to, because `cp -RL`, `ditto`, and
+ * `rsync -L` copy the bytes behind it, and a target outside the workspace is refused. A hardlinked
+ * file is refused because path rules cannot see its other names. A tree past the entry cap is refused
+ * unseen instead of walked partially.
  */
 async function refusedCopyTree(session: LayerSession, source: string, cwd: string): Promise<CopyRefusal | undefined> {
   const root = await lstat(source).catch(() => undefined);
@@ -296,12 +299,37 @@ async function refusedCopyTree(session: LayerSession, source: string, cwd: strin
     return undefined;
   }
   const pending = [source];
+  // A symlink can point at an ancestor directory, so every real directory is walked once.
+  const visited = new Set<string>();
   let seen = 0;
+
+  /** The refusal for one path the copy would bring in, worded for the spelling the caller used. */
+  const judge = async (subject: string, shown: string, info: Stats, at: string): Promise<CopyRefusal | undefined> => {
+    const denied = readDenyRule(session, subject);
+    if (denied !== undefined) {
+      return { message: `Blocked by permissions configuration: the copy includes ${shown}, which a rule denies (rule: ${denied.pattern})`, path: at };
+    }
+    const ignored = await session.ignore.describe(subject);
+    if (ignored !== undefined) {
+      return { message: `Blocked by permissions configuration: the copy includes ${shown}, which ${path.basename(ignored)} filters out`, path: at };
+    }
+    const linked = multiLinkReason(info);
+    if (linked !== undefined) {
+      return { message: `Blocked by permissions configuration: the copy includes ${shown}, and ${linked}`, path: at };
+    }
+    return undefined;
+  };
+
   for (;;) {
     const directory = pending.pop();
     if (directory === undefined) {
       return undefined;
     }
+    const key = (await realpath(directory).catch(() => undefined)) ?? directory;
+    if (visited.has(key)) {
+      continue;
+    }
+    visited.add(key);
     let names: string[];
     try {
       names = await readdir(directory);
@@ -318,7 +346,34 @@ async function refusedCopyTree(session: LayerSession, source: string, cwd: strin
       }
       const child = path.join(directory, name);
       const info = await lstat(child).catch(() => undefined);
-      if (info === undefined || info.isSymbolicLink()) {
+      if (info === undefined) {
+        continue;
+      }
+      const shown = displayPath(cwd, child);
+      if (info.isSymbolicLink()) {
+        const resolved = await realpath(child).catch(() => undefined);
+        if (resolved === undefined) {
+          // A dangling link copies as a link and brings no bytes with it.
+          continue;
+        }
+        if (!isInsideWorkspace(session.policy, resolved)) {
+          return {
+            message: `Blocked by permissions configuration: the copy includes ${shown}, a symlink to ${displayPath(cwd, resolved)}, which reaches outside the workspace`,
+            path: child,
+          };
+        }
+        const targetInfo = await statOrUndefined(resolved);
+        if (targetInfo === undefined) {
+          continue;
+        }
+        const through = `${shown} (a symlink to ${displayPath(cwd, resolved)})`;
+        const targetRefusal = await judge(resolved, through, targetInfo, child);
+        if (targetRefusal !== undefined) {
+          return targetRefusal;
+        }
+        if (targetInfo.isDirectory()) {
+          pending.push(resolved);
+        }
         continue;
       }
       if (info.isDirectory()) {
@@ -328,14 +383,9 @@ async function refusedCopyTree(session: LayerSession, source: string, cwd: strin
       if (!info.isFile()) {
         continue;
       }
-      const shown = displayPath(cwd, child);
-      const denied = readDenyRule(session, child);
-      if (denied !== undefined) {
-        return { message: `Blocked by permissions configuration: the copy includes ${shown}, which a rule denies (rule: ${denied.pattern})`, path: child };
-      }
-      const ignored = await session.ignore.describe(child);
-      if (ignored !== undefined) {
-        return { message: `Blocked by permissions configuration: the copy includes ${shown}, which ${path.basename(ignored)} filters out`, path: child };
+      const refusal = await judge(child, shown, info, child);
+      if (refusal !== undefined) {
+        return refusal;
       }
     }
   }

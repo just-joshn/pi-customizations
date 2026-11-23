@@ -71,6 +71,37 @@ const INDIRECT = new Set([
 
 const INLINE_SHELLS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh', 'ash', 'fish', 'csh', 'tcsh']);
 
+/** `fd` spellings, which only print names unless an exec flag gives it a command to run. */
+const FD_COMMANDS = new Set(['fd', 'fdfind']);
+
+/** `fd` short options that consume a value, so the rest of a cluster is that value and not a flag. */
+const FD_VALUE_LETTERS = new Set(['c', 'C', 'd', 'e', 'E', 'j', 'o', 'S', 't']);
+
+/** True when `fd` runs a command over its matches instead of printing their names. */
+function fdExecutes(args: readonly Word[]): boolean {
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (value === '--exec' || value === '--exec-batch' || value.startsWith('--exec=') || value.startsWith('--exec-batch=')) {
+      return true;
+    }
+    if (!value.startsWith('-') || value.startsWith('--') || value === '-') {
+      continue;
+    }
+    for (const letter of value.slice(1)) {
+      if (letter === 'x' || letter === 'X') {
+        return true;
+      }
+      if (FD_VALUE_LETTERS.has(letter)) {
+        break;
+      }
+    }
+  }
+  return false;
+}
+
 /** Readers that walk a directory tree by default, so the layer cannot see which files they open. */
 const RECURSIVE_READERS = new Set(['rg', 'ag', 'ack']);
 
@@ -1825,6 +1856,95 @@ interface GitCommand {
   readonly untrusted?: string;
 }
 
+/** A git option whose value names a file the command reads. */
+interface GitFileReadOption {
+  readonly name: string;
+  /** The shortest prefix git resolves to this option without an ambiguity error. */
+  readonly abbrev: string;
+}
+
+interface GitFileReadSpec {
+  readonly long: readonly GitFileReadOption[];
+  /** Short letters whose value is the file. */
+  readonly short: readonly string[];
+  /** Short letters that consume a value, so the rest of a cluster is that value and not a flag. */
+  readonly valueShort: readonly string[];
+}
+
+/**
+ * git options that name a file the command reads: `-F`/`--file` for `commit` and `tag`, `-f`/`--file`
+ * for `config`, and `--signature-file` for `format-patch`. Git rejects an ambiguous abbreviation, so a
+ * prefix of the long name from `abbrev` onward is the same option.
+ */
+const GIT_FILE_READS: ReadonlyMap<string, GitFileReadSpec> = new Map([
+  ['commit', { long: [{ name: '--file', abbrev: '--fil' }], short: ['F'], valueShort: ['m', 'c', 'C', 'S', 't'] }],
+  ['tag', { long: [{ name: '--file', abbrev: '--fil' }], short: ['F'], valueShort: ['m', 'u', 'S'] }],
+  ['config', { long: [{ name: '--file', abbrev: '--fil' }], short: ['f'], valueShort: [] }],
+  ['format-patch', { long: [{ name: '--signature-file', abbrev: '--signature-f' }], short: [], valueShort: ['o', 'v'] }],
+]);
+
+/**
+ * The file a git option names as a read, in its spaced, attached, and `--long=FILE` forms. An unrelated
+ * short letter, as the `-f` that forces a tag, consumes no value and names no file here.
+ */
+function gitFileOptionReads(subcommand: string, args: readonly Word[]): string[] {
+  const spec = GIT_FILE_READS.get(subcommand);
+  if (spec === undefined) {
+    return [];
+  }
+  const reads: string[] = [];
+  const attachedOrNext = (attached: string, index: number): number => {
+    if (attached !== '') {
+      reads.push(attached);
+      return index;
+    }
+    const next = args[index + 1];
+    if (next?.literal === true && next.hidesCommand !== true && next.value !== '') {
+      reads.push(next.value);
+    }
+    return index + 1;
+  };
+  let options = true;
+  for (let index = 0; index < args.length; index++) {
+    const word = args[index];
+    if (word === undefined || !word.literal || word.hidesCommand) {
+      continue;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (!options) {
+      continue;
+    }
+    if (value.startsWith('--')) {
+      const eq = value.indexOf('=');
+      const name = eq === -1 ? value : value.slice(0, eq);
+      if (!spec.long.some((entry) => name.length >= entry.abbrev.length && entry.name.startsWith(name))) {
+        continue;
+      }
+      index = attachedOrNext(eq === -1 ? '' : value.slice(eq + 1), index);
+      continue;
+    }
+    if (!value.startsWith('-') || value === '-') {
+      continue;
+    }
+    const body = value.slice(1);
+    for (let cursor = 0; cursor < body.length; cursor++) {
+      const letter = body[cursor] ?? '';
+      if (spec.short.includes(letter)) {
+        index = attachedOrNext(body.slice(cursor + 1), index);
+        break;
+      }
+      if (spec.valueShort.includes(letter)) {
+        break;
+      }
+    }
+  }
+  return reads;
+}
+
 interface GitDestinationSpec {
   /** Long options whose value is a path the command writes. */
   readonly writeLong: readonly string[];
@@ -2863,13 +2983,16 @@ function inspectGit(args: readonly Word[], root: string): GitCommand {
   if (planned?.untrusted !== undefined) {
     untrusted ??= planned.untrusted;
   }
+  // The destination plan and the operand pass both miss a file named by an option's value.
+  const operands = planned?.reads ?? gitReadOperands(rest);
+  const fileReads = subcommand === undefined || !subcommand.literal || subcommand.hidesCommand ? operands : [...operands, ...gitFileOptionReads(subcommand.value, rest).filter((value) => !operands.includes(value))];
   // Git operands and destinations are paths, and the shell expands a glob before git sees it.
   if (untrusted === undefined && args.some((word) => word.glob)) {
     untrusted = GLOB_REASON;
   }
   return {
     directories,
-    operands: planned?.reads ?? gitReadOperands(rest),
+    operands: fileReads,
     writes: planned?.writes ?? [],
     ...(untrusted === undefined ? {} : { untrusted }),
   };
@@ -3780,6 +3903,84 @@ function curlPaths(args: readonly Word[]): { readonly paths: readonly PathNote[]
  */
 const TAR_FAMILY = new Set(['tar', 'bsdtar', 'gtar']);
 
+/** 7-Zip command names. The first positional word of the command line is the verb. */
+const SEVEN_ZIP_COMMANDS = new Set(['7z', '7za', '7zr', '7zz', '7zzs']);
+
+/** The verb of a 7-Zip command line: its first positional word, lowercased. */
+function sevenZipVerb(args: readonly Word[]): string | undefined {
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      return undefined;
+    }
+    if (word.value.startsWith('-') && word.value !== '-') {
+      continue;
+    }
+    return word.value.toLowerCase();
+  }
+  return undefined;
+}
+
+/** `ar` operation letters. One leads the mode word or the `-r` option word. */
+const AR_OPERATIONS = new Set(['d', 'm', 'p', 'q', 'r', 's', 't', 'x']);
+
+/** `ar` modes that write the archive operand: delete, move, quick append, replace, and index. */
+const AR_WRITE_MODES = new Set(['d', 'm', 'q', 'r', 's']);
+
+/** `ar` modifiers whose member name comes before the archive operand. */
+const AR_POSITION_MODIFIERS = new Set(['a', 'b', 'i']);
+
+interface ArCommand {
+  readonly mode: string;
+  /** The word that names the archive. */
+  readonly archive: Word;
+}
+
+/**
+ * The `ar` operation letter and the word that names its archive. `ar` accepts the operation leading
+ * the first operand (`ar r lib.a`) or as an option word (`ar -r lib.a`).
+ */
+function arCommand(args: readonly Word[]): ArCommand | undefined {
+  let mode: string | undefined;
+  let modifiers = '';
+  let positioned = false;
+  let options = true;
+  for (const word of args) {
+    if (!word.literal || word.hidesCommand) {
+      return undefined;
+    }
+    const value = word.value;
+    if (options && value === '--') {
+      options = false;
+      continue;
+    }
+    if (options && value.startsWith('-') && value !== '-') {
+      const letters = value.slice(1);
+      const first = letters[0];
+      if (mode === undefined && first !== undefined && AR_OPERATIONS.has(first)) {
+        mode = first;
+        modifiers += letters.slice(1);
+      }
+      continue;
+    }
+    if (mode === undefined) {
+      const first = value[0];
+      if (first === undefined || !AR_OPERATIONS.has(first)) {
+        return undefined;
+      }
+      mode = first;
+      modifiers += value.slice(1);
+      continue;
+    }
+    // The a, b, and i modifiers name an existing member, which sits between the mode and the archive.
+    if (!positioned && [...modifiers].some((letter) => AR_POSITION_MODIFIERS.has(letter))) {
+      positioned = true;
+      continue;
+    }
+    return { mode, archive: word };
+  }
+  return undefined;
+}
+
 /** tar short letters that consume a value, so the rest of the cluster is that value and not a flag. */
 const TAR_VALUE_LETTERS = new Set(['b', 'C', 'f', 'F', 'g', 'H', 'I', 'K', 'L', 'N', 'T', 'V', 'X']);
 
@@ -3880,10 +4081,42 @@ function unzipLists(args: readonly Word[]): boolean {
   return false;
 }
 
+/**
+ * The operands a writer creates that no destination flag names: the `ar` and 7-Zip archive, the
+ * `ffmpeg` output, and the `mktemp` template. Every other operand stays a read.
+ */
+function namedWriterOperands(name: string, args: readonly Word[], positional: readonly Word[]): readonly Word[] {
+  if (name === 'ar') {
+    const command = arCommand(args);
+    return command !== undefined && AR_WRITE_MODES.has(command.mode) ? [command.archive] : [];
+  }
+  if (SEVEN_ZIP_COMMANDS.has(name)) {
+    const verb = sevenZipVerb(args);
+    const archive = positional[1];
+    return (verb === 'a' || verb === 'u') && archive !== undefined ? [archive] : [];
+  }
+  // `ffmpeg` writes its last positional operand, and `-` sends the result to standard output.
+  if (name === 'ffmpeg') {
+    const output = positional[positional.length - 1];
+    return output !== undefined && output.value !== '-' ? [output] : [];
+  }
+  if (name === 'mktemp') {
+    return positional.slice(0, 1);
+  }
+  return [];
+}
+
 /** Why an archive command is refused, or undefined when it creates, updates, or only lists. */
 function archiveExtractionReason(name: string, args: readonly Word[]): string | undefined {
   if (TAR_FAMILY.has(name)) {
     return tarExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
+  }
+  if (SEVEN_ZIP_COMMANDS.has(name)) {
+    const verb = sevenZipVerb(args);
+    return verb === 'x' || verb === 'e' ? ARCHIVE_MEMBERS_REASON : undefined;
+  }
+  if (name === 'ar') {
+    return arCommand(args)?.mode === 'x' ? ARCHIVE_MEMBERS_REASON : undefined;
   }
   if (name === 'ditto') {
     return dittoExtracts(args) ? ARCHIVE_MEMBERS_REASON : undefined;
@@ -4001,6 +4234,18 @@ function rsyncFilesFrom(args: readonly Word[]): boolean {
   return false;
 }
 
+/**
+ * True when an `rsync` source operand names a remote host (`host:path`, `user@host:path`, or
+ * `rsync://`), which the copy never reads from the local filesystem.
+ */
+function rsyncRemoteSource(value: string): boolean {
+  if (value.startsWith('rsync://')) {
+    return true;
+  }
+  const match = /^(?:[^/@:]+@)?([^/:]+):/.exec(value);
+  return match?.[1] !== undefined && match[1] !== '';
+}
+
 export interface ShellPath {
   /** Spawn-relative or absolute literal path. */
   readonly path: string;
@@ -4016,8 +4261,9 @@ export interface ShellAnalysis {
   /** Literal path operands and redirection targets, in command order. */
   readonly paths: readonly ShellPath[];
   /**
-   * Absolute paths a `cp` or `mv` copies or moves, resolved against `root`. A directory source copies
-   * every file inside it, which creates paths no rule ever named, so the caller walks these itself.
+   * Absolute paths a `cp`, `mv`, `rsync`, or `ditto` copies or moves, resolved against `root`. A
+   * directory source copies every file inside it, which creates paths no rule ever named, so the
+   * caller walks these itself.
    */
   readonly copySources: readonly string[];
   /** Why the command cannot be analyzed safely; the caller refuses it when set. */
@@ -4055,7 +4301,7 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     paths.push({ path: locate(resolved.path, base), write });
   };
 
-  /** Record a `cp`/`mv` source as an absolute path, so the caller can judge the files inside it. */
+  /** Record a copied source as an absolute path, so the caller can judge the files inside it. */
   const noteCopySource = (word: Word | undefined, base: string | undefined): void => {
     if (word === undefined || !word.literal || word.hidesCommand || word.glob) {
       return;
@@ -4218,6 +4464,24 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
         targetDir = { value: value.slice(2), glob: word.glob };
         continue;
       }
+      // `mktemp` writes its template under the `-p`/`--tmpdir` directory, and `--tmpdir` takes a value
+      // only in its `=` form because the bare spelling is a switch.
+      if (options && name === 'mktemp' && value === '-p') {
+        noteWriteArg(args[index + 1]);
+        index++;
+        continue;
+      }
+      if (options && name === 'mktemp' && value.startsWith('-p') && value.length > 2) {
+        notePath(value.slice(2), true, base, word.glob);
+        continue;
+      }
+      if (options && name === 'mktemp' && value === '--tmpdir') {
+        continue;
+      }
+      if (options && name === 'mktemp' && value.startsWith('--tmpdir=')) {
+        notePath(value.slice('--tmpdir='.length), true, base, word.glob);
+        continue;
+      }
       if (options && name === 'rsync' && value.startsWith('--log-file=')) {
         notePath(value.slice('--log-file='.length), true, base, word.glob);
         continue;
@@ -4331,6 +4595,12 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     }
     // `cp` and `mv` create new paths from every source, so a directory source needs its own walk.
     const copiesSources = name === 'cp' || name === 'mv';
+    const rsyncListOnly = name === 'rsync' && args.some((word) => word.literal && !word.hidesCommand && word.value === '--list-only');
+    // `rsync` copies every positional but the last, the destination. A remote source brings bytes
+    // from another host, so the local tree behind it does not exist. `--list-only` copies nothing.
+    const rsyncCopiesSources = name === 'rsync' && !rsyncListOnly;
+    // `ditto` copies its first operand into its second. An extraction writes archive members instead.
+    const dittoCopiesSource = name === 'ditto' && positional.length > 1 && !dittoExtracts(args);
     if (targetDir !== undefined) {
       notePath(targetDir.value, true, base, targetDir.glob);
       for (const word of positional) {
@@ -4354,17 +4624,27 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
     const compressStdout =
       COMPRESS_COMMANDS.has(name) && args.some((word) => word.literal && !word.hidesCommand && (word.value === '--stdout' || (word.value.startsWith('-') && !word.value.startsWith('--') && word.value.slice(1).includes('c'))));
     const write = WRITE_COMMANDS.has(name) || findDelete || (COMPRESS_COMMANDS.has(name) && !compressStdout);
-    const rsyncListOnly = name === 'rsync' && args.some((word) => word.literal && !word.hidesCommand && word.value === '--list-only');
     // `ditto` with only a source has no destination. `zip` writes the archive, which is its first operand.
     const writesLast = name === 'cp' || (name === 'install' && !directoryInstall) || (name === 'rsync' && !rsyncListOnly) || (name === 'ditto' && positional.length > 1);
     // `zip -l` lists an archive and writes nothing.
     const zipLists = name === 'zip' && args.some((word) => word.literal === true && !word.hidesCommand && (word.value === '-l' || word.value === '--list'));
     const writesFirst = name === 'zip' && !zipLists;
+    const namedWrites = namedWriterOperands(name, args, positional);
     for (const [index, word] of positional.entries()) {
       if (copiesSources && index < positional.length - 1) {
         noteCopySource(word, base);
       }
-      const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesFirst ? index === 0 : writesLast ? index === positional.length - 1 : write;
+      if (rsyncCopiesSources && index < positional.length - 1 && !(word.literal && rsyncRemoteSource(word.value))) {
+        noteCopySource(word, base);
+      }
+      if (dittoCopiesSource && index === 0) {
+        noteCopySource(word, base);
+      }
+      // `ffmpeg -` sends its output to standard output, which is no path.
+      if (name === 'ffmpeg' && word.value === '-') {
+        continue;
+      }
+      const isWrite = findDelete || name === 'ln' || directoryInstall ? true : writesFirst ? index === 0 : writesLast ? index === positional.length - 1 : write || namedWrites.includes(word);
       notePath(word.value, isWrite, base, word.glob);
     }
   };
@@ -4478,6 +4758,19 @@ export function analyzeShellCommand(command: string, home: string = homedir(), r
 
         if (INDIRECT.has(name)) {
           distrust(`${name} runs a command the analyzer does not follow`);
+        }
+        if (FD_COMMANDS.has(name) && fdExecutes(words.slice(headIndex + 1))) {
+          distrust(`${name} runs a command the analyzer does not follow`);
+        }
+        if (name === 'mktemp') {
+          const tempArgs = words.slice(headIndex + 1);
+          // `-t` and a bare invocation put the new file under the system temp directory, which no
+          // path in the argv names.
+          const systemDirectory = tempArgs.some((word) => word.literal && !word.hidesCommand && (word.value === '-t' || (word.value.startsWith('-t') && !word.value.startsWith('--'))));
+          const template = tempArgs.some((word) => word.literal && !word.hidesCommand && (!word.value.startsWith('-') || word.value === '-'));
+          if (systemDirectory || !template) {
+            distrust('mktemp creates a file in a directory the analyzer does not see');
+          }
         }
         if (PATCH_APPLIERS.has(name)) {
           distrust(PATCH_REASON);
