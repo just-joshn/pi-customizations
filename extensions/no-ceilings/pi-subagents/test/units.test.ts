@@ -541,6 +541,9 @@ describe('adversary regressions', () => {
     expect(isSafeReadOnlyCommand('ack --pager=sh needle .')).toBe(false);
     expect(isSafeReadOnlyCommand('ag needle .')).toBe(false);
     expect(isSafeReadOnlyCommand('ack needle .')).toBe(false);
+    expect(isSafeReadOnlyCommand(`yq -n --security-enable-system-operator 'system("/usr/bin/id")'`)).toBe(false);
+    expect(isSafeReadOnlyCommand(`yq -n --security-enable-system-operator 'system("echo P0YQ")'`)).toBe(false);
+    expect(isSafeReadOnlyCommand(`yq -n '.a = 1'`)).toBe(true);
     expect(isSafeReadOnlyCommand('rg needle .')).toBe(true);
     expect(isSafeReadOnlyCommand('sort input.txt')).toBe(true);
   });

@@ -59,6 +59,10 @@ for (const tool of ['ag', 'ack']) {
   execFileSync('chmod', ['+x', join(mockBin, tool)]);
 }
 process.env['PATH'] = `${mockBin}:${process.env['PATH'] ?? ''}`;
+const yqSystem = run(`yq -n --security-enable-system-operator 'system("/usr/bin/id")'`);
+if (yqSystem.safe || yqSystem.combined.includes('uid=')) {
+  failures += 1;
+}
 const agPager = run("ag --pager='echo P0AG_EXEC' needle .");
 if (agPager.safe || agPager.combined.includes('P0AG_EXEC')) {
   failures += 1;
