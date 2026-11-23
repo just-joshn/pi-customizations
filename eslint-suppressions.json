@@ -275,6 +275,11 @@
       "count": 1
     }
   },
+  "extensions/pi-spacex-oauth-v2/test/e2e/patch-fetch.ts": {
+    "functional/immutable-data": {
+      "count": 1
+    }
+  },
   "extensions/pi-spacex-oauth-v2/test/fake-sdk.ts": {
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
@@ -294,6 +299,11 @@
   "extensions/pi-spacex-oauth-v2/test/host.ts": {
     "no-secrets/no-secrets": {
       "count": 1
+    }
+  },
+  "extensions/pi-spacex-oauth-v2/test/models.test.ts": {
+    "no-secrets/no-secrets": {
+      "count": 8
     }
   },
   "extensions/pi-spacex-oauth-v2/test/stream-helpers.ts": {

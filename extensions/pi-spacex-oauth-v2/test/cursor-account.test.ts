@@ -109,3 +109,19 @@ describe('Cursor model list refresh when the live list fails', () => {
     expect(ids(await cursor().refreshModels(makeRefresh({ credential: oauthCredential('bad-key') }).ctx))).toStrictEqual(['composer-2.5']);
   });
 });
+
+describe('Cursor credential isolation', () => {
+  test('uses the signed-in key over CURSOR_API_KEY', async () => {
+    vi.stubEnv('CURSOR_API_KEY', 'env-key');
+    await cursor().refreshModels(makeRefresh({ credential: oauthCredential('oauth-key') }).ctx);
+    expect(fakeSdk.Cursor.models.list.mock.calls).toStrictEqual([[{ apiKey: 'oauth-key' }]]);
+  });
+
+  test('writes no key to the refresh failure log', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fakeSdk.Cursor.models.list.mockRejectedValue(new Error('Invalid User API Key'));
+    await cursor().refreshModels(makeRefresh({ credential: oauthCredential('secret-key') }).ctx);
+    expect(JSON.stringify(error.mock.calls)).not.toContain('secret-key');
+    error.mockRestore();
+  });
+});
