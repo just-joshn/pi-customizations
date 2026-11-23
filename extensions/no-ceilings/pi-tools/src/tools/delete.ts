@@ -8,7 +8,7 @@ import { displayPath, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
-import { guard, type LayerSession, subjectsFor } from '../core/session.ts';
+import { guard, isProtectedIgnoreFile, type LayerSession, subjectsFor } from '../core/session.ts';
 import { guarded } from '../core/tool.ts';
 import type { ToolFailure, ToolOutcome } from '../types.ts';
 
@@ -49,6 +49,9 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
         const ignoreFile = await session.ignore.describe(target);
         if (ignoreFile !== undefined) {
           throw layerError('permission_denied', `Path ${displayPath(ctx.cwd, target)} is filtered out by ${path.basename(ignoreFile)}`, { path: target });
+        }
+        if (await isProtectedIgnoreFile(session, target)) {
+          throw layerError('permission_denied', `Blocked: ${path.basename(target)} is protected and cannot be changed by the agent`, { path: target });
         }
 
         let previousContent: string | undefined;

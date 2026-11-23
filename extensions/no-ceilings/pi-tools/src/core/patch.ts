@@ -323,10 +323,11 @@ export function parsePatch(text: string, basePath = '.'): ParsedPatch {
  * Find a hunk at or after `from`. The position implied by the hunk header, adjusted for previously
  * applied hunks, wins; otherwise the match must be unique.
  */
-function findHunk(lines: readonly string[], hunk: PatchHunk, from: number, expected?: number): number {
+function findHunk(lines: readonly string[], hunk: PatchHunk, from: number, expected: number | undefined, insertionAt: number): number {
   if (hunk.oldLines.length === 0) {
-    // An insertion has no text to match. The header's old start is the line it inserts after.
-    const at = hunk.oldStart ?? 0;
+    // An insertion has no text to match. Its header position counts the lines before it, and every
+    // earlier hunk has already moved the content, so the insertion point includes the accumulated offset.
+    const at = Math.max(from, insertionAt);
     return at >= 0 && at <= lines.length ? at : -1;
   }
   const matches: number[] = [];
@@ -368,7 +369,9 @@ export function applyHunks(originalLines: readonly string[], hunks: readonly Pat
   let offset = 0;
   for (const [index, hunk] of hunks.entries()) {
     const expected = hunk.oldStart === undefined ? undefined : hunk.oldStart === 0 ? offset : hunk.oldStart - 1 + offset;
-    const start = findHunk(lines, hunk, cursor, expected);
+    // A zero-context insertion names the line it follows, which is its old start plus earlier offsets.
+    const insertionAt = hunk.oldStart === undefined ? cursor : hunk.oldStart + offset;
+    const start = findHunk(lines, hunk, cursor, expected, insertionAt);
     if (start === -1) {
       throw new PatchError(`hunk ${index + 1} for ${filePath} does not match the file contents`);
     }

@@ -1,4 +1,4 @@
-import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { Type } from 'typebox';
@@ -53,6 +53,10 @@ interface PlannedFile {
   readonly action: 'write' | 'delete';
   readonly content?: string;
   readonly createsParent: boolean;
+  /** Content of the target before the patch, for rollback. Undefined when the target did not exist. */
+  readonly original?: string;
+  /** Content of the move destination before the patch, for rollback. Undefined when it did not exist. */
+  readonly destinationOriginal?: string;
 }
 
 /** Re-emit patched lines with the original file's line ending and trailing-newline state. */
@@ -173,7 +177,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                     throw layerError('error', `Delete hunk for ${displayPath(ctx.cwd, target)} leaves ${remaining.length} line(s) behind. Nothing was written.`, { path: target });
                   }
                 }
-                actions.push({ file, target, destination, added, removed, action: 'delete', createsParent: false });
+                actions.push({ file, target, destination, added, removed, action: 'delete', createsParent: false, original });
                 continue;
               }
 
@@ -199,23 +203,29 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
               if (destination === target && content === original) {
                 throw layerError('error', `Patch made no changes to ${displayPath(ctx.cwd, target)}. Nothing was written.`, { path: target });
               }
-              actions.push({ file, target, destination, added, removed, action: 'write', content, createsParent: destination !== target });
+              const destinationOriginal = destination === target ? original : await readExisting(destination);
+              actions.push({ file, target, destination, added, removed, action: 'write', content, createsParent: destination !== target, original, ...(destinationOriginal === undefined ? {} : { destinationOriginal }) });
             }
 
-            for (const action of actions) {
-              if (action.action === 'delete') {
-                await unlink(action.target);
-                continue;
+            try {
+              for (const action of actions) {
+                if (action.action === 'delete') {
+                  await unlink(action.target);
+                  continue;
+                }
+                if (action.createsParent) {
+                  await mkdir(path.dirname(action.destination), { recursive: true });
+                }
+                const content = action.content ?? '';
+                await writeFile(action.destination, content, 'utf-8');
+                await verifyWrite(action.destination, content, ctx.cwd);
+                if (action.destination !== action.target) {
+                  await unlink(action.target);
+                }
               }
-              if (action.createsParent) {
-                await mkdir(path.dirname(action.destination), { recursive: true });
-              }
-              const content = action.content ?? '';
-              await writeFile(action.destination, content, 'utf-8');
-              await verifyWrite(action.destination, content, ctx.cwd);
-              if (action.destination !== action.target) {
-                await unlink(action.target);
-              }
+            } catch (error) {
+              await rollback(actions);
+              throw error;
             }
             return actions;
           },
@@ -242,6 +252,29 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
       (params) => params.path,
     ),
   };
+}
+
+/**
+ * Put every touched path back the way it was. Validation happens before any write, so a failure here
+ * is a filesystem error during the write itself; undoing the files already written keeps the call's
+ * "nothing was written" contract true.
+ */
+async function rollback(actions: readonly PlannedFile[]): Promise<void> {
+  for (const action of [...actions].reverse()) {
+    const paths = action.destination === action.target ? [action.target] : [action.destination, action.target];
+    for (const target of paths) {
+      const original = target === action.target ? action.original : action.destinationOriginal;
+      try {
+        if (original === undefined) {
+          await rm(target, { force: true });
+        } else {
+          await writeFile(target, original, 'utf-8');
+        }
+      } catch {
+        // Best effort: the original error is what the caller needs to see.
+      }
+    }
+  }
 }
 
 function staleOrError(error: unknown, target: string, cwd: string): Error {

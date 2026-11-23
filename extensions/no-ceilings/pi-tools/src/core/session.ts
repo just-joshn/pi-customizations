@@ -4,7 +4,7 @@ import path from 'node:path';
 import { minimatch } from 'minimatch';
 import { SPILL_DIR } from '../constants.ts';
 import type { Decision, Policy, RuleKind, ToolFailure } from '../types.ts';
-import { analyzeCommand, directoryChanges } from './command.ts';
+import { analyzeShellCommand } from './command.ts';
 import { type LoadedConfig, loadConfig, type PiToolsConfig } from './config.ts';
 import { LayerError } from './errors.ts';
 import { createIgnoreResolver, type IgnoreResolver } from './ignore.ts';
@@ -95,8 +95,9 @@ export interface SessionManager {
 
 /** Caches one session per working directory, so tool calls do not reload configuration. */
 export function createSessionManager(options: SessionManagerOptions): SessionManager {
+  const sessions = new Map<string, LayerSession>();
+  const pending = new Map<string, Promise<LayerSession>>();
   let current: LayerSession | undefined;
-  let pending: Promise<LayerSession> | undefined;
   const report = (message: string): void => options.onConfigError?.(message);
 
   const build = async (ctx: LayerContext, trusted: boolean): Promise<LayerSession> => {
@@ -118,6 +119,7 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
       report(error);
     }
     current = session;
+    sessions.set(ctx.cwd, session);
     return session;
   };
 
@@ -125,15 +127,22 @@ export function createSessionManager(options: SessionManagerOptions): SessionMan
 
   return {
     async get(ctx) {
-      if (current && current.cwd === ctx.cwd) {
-        return current;
+      const cached = sessions.get(ctx.cwd);
+      if (cached !== undefined) {
+        return cached;
       }
-      pending ??= build(ctx, trusted(ctx)).finally(() => {
-        pending = undefined;
+      const inFlight = pending.get(ctx.cwd);
+      if (inFlight !== undefined) {
+        return inFlight;
+      }
+      const promise = build(ctx, trusted(ctx)).finally(() => {
+        pending.delete(ctx.cwd);
       });
-      return pending;
+      pending.set(ctx.cwd, promise);
+      return promise;
     },
     async refresh(ctx, projectTrusted) {
+      sessions.delete(ctx.cwd);
       current = undefined;
       return build(ctx, projectTrusted);
     },
@@ -211,6 +220,19 @@ export async function guardSearch(session: LayerSession, subjects: readonly stri
       throw denial({ kind: 'permission_denied', message: 'Blocked by permissions configuration: no allow rule matches this search root', path: subject });
     }
   }
+  // A path inside the workspace that resolves outside it is a symlink out. `read` refuses that link,
+  // so a search rooted at it must refuse too rather than hand back the directory behind it.
+  const named = subjects[0];
+  const canonical = subjects[subjects.length - 1];
+  if (named !== undefined && canonical !== undefined) {
+    // Compare the name's own directory, canonicalized, so a workspace spelled through a symlinked
+    // parent still counts as inside while the searched path itself resolves out.
+    const namedDirectory = await canonicalPath(path.dirname(named));
+    const namedInside = isInsideWorkspace(session.policy, namedDirectory) || isInsideWorkspace(session.policy, named);
+    if (namedInside && !isInsideWorkspace(session.policy, canonical)) {
+      throw denial({ kind: 'permission_denied', message: 'This call reaches outside the workspace and no approval channel is available', path: named });
+    }
+  }
 }
 
 /**
@@ -239,9 +261,16 @@ function decideExec(policy: Policy, segments: readonly string[]): Decision {
  * checked against the current directory and each `cd` target in order, and a working directory outside
  * the workspace needs approval.
  */
-export async function guardCommand(session: LayerSession, command: string, cwd: string, ctx?: LayerContext): Promise<void> {
+export async function guardCommand(session: LayerSession, command: string, cwd: string, ctx?: LayerContext, home: string = session.home): Promise<void> {
   const canonicalCwd = await canonicalPath(cwd);
-  const segments = analyzeCommand(command);
+  const analysis = analyzeShellCommand(command, home);
+  if (analysis.untrusted !== undefined) {
+    throw denial({
+      kind: 'permission_denied',
+      message: `Blocked by permissions configuration: ${analysis.untrusted}. Run the equivalent command with literal words so the policy can see what runs.`,
+    });
+  }
+  const segments = analysis.segments;
   const execDecision = decideExec(session.policy, segments);
   if (execDecision.kind === 'deny') {
     throw failureFor(execDecision, 'exec', segments, 'run command', false);
@@ -249,7 +278,7 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
 
   const directories: string[] = [canonicalCwd];
   let current = canonicalCwd;
-  for (const target of directoryChanges(command)) {
+  for (const target of analysis.directories) {
     current = await canonicalPath(path.resolve(current, target));
     directories.push(current);
   }
@@ -286,10 +315,22 @@ export function egressSubject(raw: string): string {
   }
 }
 
-/** Match a URL against a read rule pattern, ignoring embedded credentials. */
+/**
+ * Match a URL against a read rule pattern, ignoring embedded credentials. A rule that names a host or
+ * a path prefix also covers every URL beneath it, the way a path rule covers a directory.
+ */
 function urlMatches(pattern: string, url: string): boolean {
   const subject = egressSubject(url);
-  return minimatch(subject, pattern, { dot: true, nocase: true }) || minimatch(subject.replace(/\/$/, ''), pattern, { dot: true, nocase: true });
+  const patterns = new Set([pattern]);
+  if (pattern.endsWith('/*')) {
+    patterns.add(`${pattern.slice(0, -1)}**`);
+  } else if (!/[*?]/.test(pattern)) {
+    patterns.add(`${pattern.replace(/\/$/, '')}/**`);
+  }
+  if (pattern.endsWith('/')) {
+    patterns.add(`${pattern}**`);
+  }
+  return [...patterns].some((candidate) => minimatch(subject, candidate, { dot: true, nocase: true }) || minimatch(subject.replace(/\/$/, ''), candidate, { dot: true, nocase: true }));
 }
 
 /**

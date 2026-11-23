@@ -43,9 +43,9 @@ export interface GlobToolOptions {
 }
 
 /** Search root that is definitely a directory or a regular file. */
-async function requireExistingSearchRoot(root: string, cwd: string): Promise<void> {
+async function requireExistingSearchRoot(root: string, cwd: string): Promise<Awaited<ReturnType<typeof stat>>> {
   try {
-    await stat(root);
+    return await stat(root);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       throw layerError('file_not_found', `Path does not exist: ${displayPath(cwd, root)}`, { path: root });
@@ -71,8 +71,11 @@ export function createGlobLayerTool(options: GlobToolOptions) {
         const root = resolveToolPath(params.path ?? '.', ctx.cwd, session.home);
         const subjects = await subjectsFor(root);
         await guardSearch(session, subjects);
-        await requireExistingSearchRoot(root, ctx.cwd);
+        const rootInfo = await requireExistingSearchRoot(root, ctx.cwd);
         await assertSearchable(session, subjects, ctx.cwd);
+        // Paths are relative to the directory that was searched. A file root searches its own
+        // directory, so the file is reported by name instead of as ".".
+        const base = rootInfo.isDirectory() ? root : path.dirname(root);
 
         const limit = Math.max(1, Math.min(GLOB_MAX_LIMIT, Math.floor(params.limit ?? GLOB_DEFAULT_LIMIT)));
         const timeoutMs = Math.max(100, Math.min(120_000, Math.floor(params.timeoutMs ?? GREP_TIMEOUT_MS)));
@@ -99,7 +102,7 @@ export function createGlobLayerTool(options: GlobToolOptions) {
         const seen = new Set<string>();
         for (const line of run.lines) {
           const absolute = path.isAbsolute(line) ? path.resolve(line) : path.resolve(root, line);
-          const display = isInside(root, absolute) ? relativeTo(root, absolute) : toPosix(absolute);
+          const display = isInside(base, absolute) ? relativeTo(base, absolute) : toPosix(absolute);
           if (seen.has(display)) {
             continue;
           }

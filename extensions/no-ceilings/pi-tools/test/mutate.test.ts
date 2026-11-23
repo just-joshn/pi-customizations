@@ -95,7 +95,7 @@ describe('edit', () => {
       await harness.write('app.ts', 'const a = 1;\nconst b = 2;\n');
       const result = await harness.call('edit', { path: 'app.ts', edits: [{ oldText: 'const b = 2;', newText: 'const b = 3;' }] });
       expect(result.isError).toBeUndefined();
-      expect(textOf(result)).toContain('Successfully replaced 1 block(s) in app.ts.');
+      expect(textOf(result)).toContain('Successfully replaced 1 occurrence in app.ts.');
       expect(textOf(result)).toContain('const b = 3;');
       expect(await readFile(harness.file('app.ts'), 'utf-8')).toBe('const a = 1;\nconst b = 3;\n');
       const details = result.details as { diff?: string; patch?: string; replaced?: number; firstChangedLine?: number };

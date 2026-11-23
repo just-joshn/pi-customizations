@@ -2,7 +2,7 @@ import { stat } from 'node:fs/promises';
 
 import { createBashToolDefinition, createLocalBashOperations } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { SHELL_STARTUP_ENV } from '../core/command.ts';
+import { SHELL_ENV_SCRUB, SHELL_STARTUP_ENV } from '../core/command.ts';
 import { layerError } from '../core/errors.ts';
 import { displayPath, resolveToolPath } from '../core/paths.ts';
 import { prepareWith } from '../core/repair.ts';
@@ -61,13 +61,25 @@ export function createShellLayerTool(options: ShellToolOptions) {
           throw layerError('error', `Working directory does not exist: ${displayPath(ctx.cwd, cwd)}\nThe command did not run.`, { path: cwd });
         }
 
-        await guardCommand(session, params.command, cwd, ctx);
+        // The analyzer resolves `~` and `$HOME` against the home this command will actually see.
+        const home = params.env?.['HOME'] ?? session.home;
+        await guardCommand(session, params.command, cwd, ctx, home);
         const timeoutSeconds = params.timeout === undefined ? undefined : Math.max(0, params.timeout);
         const overrides = { ...(params.env ?? {}) };
         for (const key of SHELL_STARTUP_ENV) {
           delete overrides[key];
         }
-        const env: NodeJS.ProcessEnv = { ...process.env, ...overrides, PWD: cwd };
+        const env: NodeJS.ProcessEnv = { ...process.env, ...overrides, PWD: cwd, OLDPWD: cwd };
+        // The analyzer decides against the command that runs, so drop every variable that changes
+        // where the shell finds a command, which startup file it sources, or how it splits words.
+        for (const key of SHELL_ENV_SCRUB) {
+          delete env[key];
+        }
+        for (const key of Object.keys(env)) {
+          if (key.startsWith('BASH_FUNC_')) {
+            delete env[key];
+          }
+        }
         const definition = createBashToolDefinition(ctx.cwd, {
           operations: {
             exec: (command, _cwd, execOptions) => local.exec(command, cwd, { ...execOptions, env }),

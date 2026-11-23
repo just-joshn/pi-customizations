@@ -126,12 +126,27 @@ export function createReadLayerTool(options: ReadToolOptions) {
         }
 
         const readRange: ReadRange = { ...(range.offset === undefined ? {} : { offset: range.offset }), ...(range.limit === undefined ? {} : { limit: range.limit }) };
-        // Use what the reader actually returned: Pi truncates long reads and has its own negative-limit
-        // slicing, so the requested limit alone does not describe the shown lines.
-        const body = result.content.find((block) => block.type === 'text')?.text ?? '';
-        const noticeStart = body.indexOf('\n\n[');
-        const bodyWithoutNotice = noticeStart === -1 ? body : body.slice(0, noticeStart);
-        const shownLines = countLines(bodyWithoutNotice);
+        // Use what the reader actually returned: Pi truncates long reads and slices unusual limits, so
+        // the requested window alone does not describe the shown lines. Its truncation report is exact.
+        const rawBody = result.content.find((block) => block.type === 'text')?.text ?? '';
+        const truncation = result.details?.truncation as { readonly outputLines?: number; readonly firstLineExceedsLimit?: boolean } | undefined;
+        const start = Math.max(1, readRange.offset ?? 1);
+        const available = Math.max(0, metadata.lines - start + 1);
+        const plainLimit = readRange.limit === undefined || (Number.isInteger(readRange.limit) && readRange.limit >= 0);
+        // A negative or fractional limit slices the file outside the requested window, so count what came
+        // back. Strip only the notice Pi appends at the end, never text that belongs to the file.
+        const notice = /\n\n\[(?:Showing lines \d+-\d+ of \d+(?: \([^)]*\))?|\d+ more lines in file)\. Use offset=-?\d+ to continue\.\]$/;
+        const returned = rawBody.replace(notice, '');
+        const shownLines =
+          truncation?.firstLineExceedsLimit === true
+            ? 0
+            : typeof truncation?.outputLines === 'number'
+              ? truncation.outputLines
+              : plainLimit
+                ? Math.min(readRange.limit ?? available, available)
+                : returned === ''
+                  ? 0
+                  : returned.split('\n').length;
         const content = isImage
           ? result.content
           : result.content.map((block, index) => (index === 0 && block.type === 'text' ? { type: 'text' as const, text: `${block.text}\n\n${metadataFooter(metadata, readRange, shownLines)}` } : block));

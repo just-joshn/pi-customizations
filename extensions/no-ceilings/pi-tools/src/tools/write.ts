@@ -67,10 +67,17 @@ async function findCaseCollision(target: string): Promise<string | undefined> {
 }
 
 function decodeContent(params: WriteParams): Buffer {
-  if (params.encoding === 'base64') {
-    return Buffer.from(params.content, 'base64');
+  if (params.encoding !== 'base64') {
+    return Buffer.from(params.content, 'utf-8');
   }
-  return Buffer.from(params.content, 'utf-8');
+  // Buffer.from ignores invalid characters, so a typo would write a truncated file and report success.
+  const compact = params.content.replace(/\s+/g, '');
+  if (compact !== '' && (!/^[A-Za-z0-9+/]+={0,2}$/.test(compact) || compact.length % 4 !== 0)) {
+    throw layerError('invalid_arguments', 'content is not valid base64', {
+      hint: 'Pass standard base64 (RFC 4648, padded) without a data: prefix, or use encoding "utf8".',
+    });
+  }
+  return Buffer.from(compact, 'base64');
 }
 
 export function createWriteLayerTool(options: WriteToolOptions) {

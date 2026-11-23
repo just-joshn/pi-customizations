@@ -266,7 +266,7 @@ export function createEditLayerTool(options: EditToolOptions) {
           content: [
             {
               type: 'text',
-              text: `Successfully replaced ${blockCount} block(s) in ${displayPath(ctx.cwd, target)}.\n\n${diff.diff}`,
+              text: `Successfully replaced ${editResult.replaced} ${editResult.replaced === 1 ? 'occurrence' : 'occurrences'} in ${displayPath(ctx.cwd, target)}.\n\n${diff.diff}`,
             },
           ],
           details: {

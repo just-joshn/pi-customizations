@@ -170,6 +170,7 @@ interface RawMatch {
   readonly line: number;
   readonly text: string;
   readonly isContext: boolean;
+  readonly truncated: boolean;
 }
 
 export function createGrepLayerTool(options: GrepToolOptions) {
@@ -259,7 +260,7 @@ export function createGrepLayerTool(options: GrepToolOptions) {
             const text = decodeText(event.data?.lines).replace(/\r?\n$/, '');
             const cut = truncateMatchedLine(text);
             linesTruncated ||= cut.truncated;
-            rawMatches.push({ absolute: absoluteFor(root, ctx.cwd, rawPath), line: lineNumber, text: cut.text, isContext: event.type === 'context' });
+            rawMatches.push({ absolute: absoluteFor(root, ctx.cwd, rawPath), line: lineNumber, text: cut.text, isContext: event.type === 'context', truncated: cut.truncated });
           } else if (mode === 'files') {
             rawFiles.push(absoluteFor(root, ctx.cwd, line.trim()));
           } else {
@@ -276,7 +277,7 @@ export function createGrepLayerTool(options: GrepToolOptions) {
         }
 
         const allowed = await allowedPaths(session, [...rawMatches.map((match) => match.absolute), ...rawFiles, ...rawCounts.map((entry) => entry.absolute)], root);
-        const matches = rawMatches.filter((match) => allowed.has(match.absolute)).map((match) => ({ file: displayFor(root, match.absolute), line: match.line, text: match.text, isContext: match.isContext, truncated: false }));
+        const matches = rawMatches.filter((match) => allowed.has(match.absolute)).map((match) => ({ file: displayFor(root, match.absolute), line: match.line, text: match.text, isContext: match.isContext, truncated: match.truncated }));
         const files = rawFiles.filter((file) => allowed.has(file)).map((file) => displayFor(root, file));
         const counts = rawCounts.filter((entry) => allowed.has(entry.absolute)).map((entry) => ({ file: displayFor(root, entry.absolute), count: entry.count }));
 
