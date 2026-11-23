@@ -66,6 +66,14 @@
   are writes.
 - `ditto`, `zip`, `unlink`, `rmdir`, and `shred` destinations are writes. `web_fetch` requires every
   redirect hop to be http or https, so a `file:` redirect is rejected before any request.
+- An unquoted glob in a path operand is refused, and a shell that reads its script from stdin is
+  refused in every spelling, including a glued redirect. `gzip`, `gunzip`, `bzip2`, `xz`, and
+  `wget -O` destinations are writes, and `flock` joins the refused indirect wrappers.
+- A write, redirect, or delete through a symlink to a protected ignore file is refused, as is a
+  write to `<root>/.pi/pi-tools.json`. `write` and `save_resource` refuse a FIFO instead of blocking.
+  A patch move refuses an existing destination.
+- A regular file with more than one hard link is refused by the read, write, edit, delete, patch, and
+  save paths, and dropped from grep and find results, because a path rule cannot see its other names.
 
 ## 0.1.0
 

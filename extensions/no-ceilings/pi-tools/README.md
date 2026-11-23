@@ -41,6 +41,9 @@ when the model needs them.
 
 `read`, `ls`, `find`, `grep`, `write`, `edit`, and `bash` override Pi's built-in tools of the same
 name, so the layer replaces the built-ins instead of duplicating them. The remaining tools are new.
+`write` and `save_resource` refuse a FIFO or other non-regular file instead of blocking on it, and a
+write, redirect, or delete through a symlink to a protected ignore file or to `.pi/pi-tools.json` is
+refused like the direct write.
 
 ## Configuration
 
@@ -140,10 +143,11 @@ operand or redirect target.
   `PS4` (including after `env`, `export`, `declare`, `typeset`, or `readonly`), an alias definition, a
   `trap` with an action, a git `-c` value that starts a shell command or names a command key such as
   `core.fsmonitor` or `diff.external`, `GIT_CONFIG_*` or `GIT_EXTERNAL_DIFF` in the command
-  environment, `printf -v` of one of those names, a wrapper that runs another command (`sudo`,
-  `doas`, `su`, `runuser`, `xargs`, `find -exec`, `env -S`, `git bisect run`, `caffeinate`, `strace`,
-  `bwrap`, and similar), a login shell that would source a profile, a shell fed a script through a
-  pipe, and a shell function definition. Literal
+  environment, `printf -v` of one of those names, an unquoted glob in a path operand, a wrapper that
+  runs another command (`sudo`, `doas`, `su`, `runuser`, `xargs`, `find -exec`, `env -S`,
+  `git bisect run`, `flock`, `caffeinate`, `strace`, `bwrap`, and similar), a login shell that would
+  source a profile, a shell fed a script through a pipe or a stdin redirect, and a shell function
+  definition. Literal
   path operands and redirection targets are matched against read and write deny rules and against
   the ignore files, and a write to a protected ignore file is refused. Git literal operands are
   deny-checked too, `git -C`, `--git-dir`, and `--work-tree` outside the workspace need approval, a
@@ -153,8 +157,9 @@ operand or redirect target.
   redirect, and digits stay with the word or file name around a redirect rather than becoming a file
   descriptor. A write-like command (`touch`, `mkdir`, `cp`, `mv`, `rm`, `dd`, `ln`, `tee`, `chmod`,
   `chown`, `truncate`, `install`, `sed -i`, `perl -i`, `unlink`, `rmdir`, `shred`, `ditto`, `zip`,
-  `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`, `sort -o`, `rsync`'s destination) or
-  `>`/`>>`/`>|` target outside the workspace needs the same approval as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
+  `gzip`, `gunzip`, `bzip2`, `xz`, `find -delete` and `-fprint`, `tar -C`/`-f`, `curl -o`, `wget -O`,
+  `sort -o`, `rsync`'s destination) or `>`/`>>`/`>|` target outside the workspace needs the same
+  approval as `write`; `cp`/`mv`/`ln` destination flags such as `-t` and `--target-directory` count as the
   destination, and every `ln` target counts because a link is the path a later use escapes through.
   `/dev/null` is a discard sink, so a redirect there carries no outside-write approval. Every spawned
   shell drops `BASH_ENV`, `ENV`, `CDPATH`, `PS4`, `SHELLOPTS`, `BASHOPTS`, and exported functions,
@@ -162,6 +167,11 @@ operand or redirect target.
   requires every segment to be allowed. A `cd` to a directory outside the workspace needs approval.
   Code a scanner cannot see, such as a script invoked by name, another interpreter's `-c` string, or a
   path built by a variable, is out of reach.
+- **A file with more than one name is refused.** A hardlink is a second directory entry for one
+  inode, so the other name bypasses path-based deny, ignore, and allowlist rules. The tools refuse to
+  read, write, edit, or delete a regular file whose `nlink` is greater than one, and search drops it
+  from results. Files materialized as hardlinks by a package manager or dedupe tool are unreadable
+  through the layer until they are copied to a single-link file.
 - **Patches validate before writing.** All touched files are locked, then every file is read and every
   hunk checked before the first write, so a failure on the second file leaves the first untouched. A
   write that still fails while applying restores every file the patch already changed and removes the
@@ -170,7 +180,8 @@ operand or redirect target.
   gains a newline unless the diff carries the no-newline marker. A unified hunk counts its old and new
   lines, so a `---` line inside an open hunk is a removed line and a short hunk is refused. A move
   with no hunks copies the exact bytes, including a binary file, and a patch that rewrites a file
-  which is not valid UTF-8 is refused. Duplicate add sections concatenate their lines. Delete hunks must remove the whole file, hunks apply in file
+  which is not valid UTF-8 is refused. A move whose destination already exists is refused. Duplicate
+  add sections concatenate their lines. Delete hunks must remove the whole file, hunks apply in file
   order and honor zero-context insertions, git-style headers are honored, a hunk-less move and a
   `git diff -M` rename both rename the file, and a no-op, including a patch with no file sections, is
   refused.
