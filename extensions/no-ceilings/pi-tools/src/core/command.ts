@@ -2,11 +2,12 @@
  * Command analysis: decode shell words the way a shell does, unwrap nested invocations, and report a
  * command the analyzer cannot see through instead of guessing at its spelling.
  *
- * The analyzer covers a known grammar: quoting, ANSI-C escapes, assignments, a fixed wrapper set,
- * inline shells, `eval`, and substitutions. Anything outside that grammar is marked untrusted and the
- * caller refuses the command, so a new spelling cannot slip past a rule written for the command it runs.
+ * The analyzer covers a known grammar: quoting, line continuation, ANSI-C escapes, assignments, a fixed
+ * wrapper set, inline shells, `eval`, and substitutions. Reserved words are skipped so the body is visible.
+ * Brace expansion and command substitutions are refused rather than guessed. Anything outside that grammar
+ * is marked untrusted and the caller refuses the command, so a new spelling cannot slip past a rule.
  */
-import { homedir } from 'node:os';
+import { homedir, userInfo } from 'node:os';
 
 /** Wrappers whose remaining arguments are the command, with the flags that consume a value. */
 interface WrapperSpec {
@@ -40,6 +41,15 @@ const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
 /** Assignments that change how the shell finds, starts, or splits, so the analyzer cannot vouch for them. */
 const RESOLUTION_ASSIGNMENTS = new Set(['CDPATH', 'BASH_ENV', 'ENV', 'IFS']);
 
+/** Reserved words whose following words are the command that actually runs. */
+const INTRODUCERS = new Set(['if', 'then', 'else', 'elif', 'while', 'until', 'do', '!', '{']);
+
+/** Reserved words that carry no command of their own. The body is a later segment. */
+const STRUCTURAL = new Set(['for', 'case', 'select', 'function', 'fi', 'done', 'esac', '}', 'in']);
+
+/** Commands whose literal operands create or modify a file. `git` is intentionally absent. */
+const WRITE_COMMANDS = new Set(['touch', 'mkdir', 'cp', 'mv', 'rm', 'dd', 'ln', 'tee', 'chmod', 'chown']);
+
 /** Variables a `cd` target may name, resolved from the session instead of the shell. */
 const DIR_VARIABLES = new Map([
   ['HOME', 'home'],
@@ -63,12 +73,131 @@ interface Word {
   readonly value: string;
   /** False when an expansion contributed text this analyzer cannot know. */
   readonly literal: boolean;
+  /** True when an unquoted command substitution or backtick contributed to the word. */
+  readonly hidesCommand: boolean;
 }
 
 interface Lexed {
   readonly words: readonly Word[];
   readonly substitutions: readonly string[];
   readonly unbalanced: boolean;
+  /** True when an unquoted brace expansion appears, which changes the words before they run. */
+  readonly brace: boolean;
+}
+
+interface Redirect {
+  readonly raw: string;
+  readonly write: boolean;
+  /** A `<<<` here-string carries data, but a substitution inside it still runs. */
+  readonly hereString?: boolean;
+}
+
+/** Resolve a leading `~`, `~/`, or `~user`. Anything else is unchanged. */
+function tildeTarget(value: string, home: string): { path: string; unknown?: string } | undefined {
+  if (!value.startsWith('~')) {
+    return undefined;
+  }
+  if (value === '~') {
+    return { path: home };
+  }
+  if (value.startsWith('~/')) {
+    return { path: `${home}/${value.slice(2)}` };
+  }
+  const slash = value.indexOf('/');
+  const name = slash === -1 ? value.slice(1) : value.slice(1, slash);
+  const rest = slash === -1 ? '' : value.slice(slash + 1);
+  let username: string | undefined;
+  let userHome: string | undefined;
+  try {
+    const info = userInfo();
+    username = info.username;
+    userHome = info.homedir;
+  } catch {
+    username = undefined;
+  }
+  if (username !== undefined && username !== '' && name === username && userHome !== undefined && userHome !== '') {
+    return { path: rest === '' ? userHome : `${userHome}/${rest}` };
+  }
+  return { path: value, unknown: `the directory names ~${name}, which the analyzer cannot resolve` };
+}
+
+function literalPath(raw: string, home: string): { path?: string; unknown?: string } {
+  const tilde = tildeTarget(raw, home);
+  if (tilde === undefined) {
+    return { path: raw };
+  }
+  return tilde.unknown === undefined ? { path: tilde.path } : { unknown: tilde.unknown };
+}
+
+/** Join a literal path onto the logical directory, keeping a relative path relative. */
+function locate(raw: string, cwd: string | undefined): string {
+  if (raw.startsWith('/')) {
+    return raw;
+  }
+  if (cwd === undefined || cwd === '.' || cwd === '') {
+    return raw;
+  }
+  return `${cwd.replace(/\/+$/, '')}/${raw}`;
+}
+
+/** True when `{` at `open` starts an unquoted brace expansion inside the current word. */
+function opensBraceExpansion(segment: string, open: number): boolean {
+  let depth = 0;
+  let comma = false;
+  let range = false;
+  let quote: '"' | "'" | undefined;
+  for (let index = open; index < segment.length; index++) {
+    const char = segment[index] ?? '';
+    if (quote !== undefined) {
+      if (char === '\\' && quote === '"') {
+        index++;
+        continue;
+      }
+      if (char === quote) {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === '\\') {
+      index++;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (/\s/.test(char)) {
+      return false;
+    }
+    if (char === '$' && segment[index + 1] === '{') {
+      const close = segment.indexOf('}', index + 2);
+      if (close === -1) {
+        return false;
+      }
+      index = close;
+      continue;
+    }
+    if (char === '{') {
+      depth++;
+      continue;
+    }
+    if (char === ',' && depth > 0) {
+      comma = true;
+      continue;
+    }
+    if (char === '.' && segment[index + 1] === '.' && depth > 0) {
+      range = true;
+      index++;
+      continue;
+    }
+    if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        return comma || range;
+      }
+    }
+  }
+  return false;
 }
 
 /** Decode the escapes bash accepts inside `$'...'`. */
@@ -211,24 +340,30 @@ function lexSegment(segment: string): Lexed {
   const substitutions: string[] = [];
   let value = '';
   let literal = true;
+  let hidesCommand = false;
   let started = false;
   let state: 'plain' | 'single' | 'double' | 'ansi' = 'plain';
   let unbalanced = false;
+  let brace = false;
 
   const begin = (): void => {
     started = true;
   };
-  const expansion = (text: string): void => {
+  const expansion = (text: string, command = false): void => {
     value += text;
     literal = false;
+    if (command) {
+      hidesCommand = true;
+    }
     begin();
   };
   const push = (): void => {
     if (started) {
-      words.push({ value, literal });
+      words.push({ value, literal, hidesCommand });
     }
     value = '';
     literal = true;
+    hidesCommand = false;
     started = false;
   };
 
@@ -259,6 +394,11 @@ function lexSegment(segment: string): Lexed {
     }
     if (char === '\\') {
       const next = segment[index + 1] ?? '';
+      // A backslash-newline is a line continuation outside single quotes, not a character of the word.
+      if (next === '\n') {
+        index++;
+        continue;
+      }
       if (state === 'double' && !['$', '`', '"', '\\', '\n'].includes(next)) {
         value += `\\${next}`;
       } else {
@@ -291,10 +431,11 @@ function lexSegment(segment: string): Lexed {
       continue;
     }
     if (char === '$' && segment[index + 1] === '(') {
+      const arithmetic = segment[index + 2] === '(';
       const end = findClosingParen(segment, index + 1);
       const stop = end === -1 ? segment.length : end;
       substitutions.push(segment.slice(index + 2, stop));
-      expansion(segment.slice(index, stop + 1));
+      expansion(segment.slice(index, stop + 1), !arithmetic);
       index = stop;
       continue;
     }
@@ -302,7 +443,7 @@ function lexSegment(segment: string): Lexed {
       const end = segment.indexOf('`', index + 1);
       const stop = end === -1 ? segment.length : end;
       substitutions.push(segment.slice(index + 1, stop));
-      expansion(segment.slice(index, stop + 1));
+      expansion(segment.slice(index, stop + 1), true);
       index = stop;
       continue;
     }
@@ -316,6 +457,9 @@ function lexSegment(segment: string): Lexed {
       push();
       continue;
     }
+    if (state === 'plain' && char === '{' && opensBraceExpansion(segment, index)) {
+      brace = true;
+    }
     value += char;
     begin();
   }
@@ -323,7 +467,7 @@ function lexSegment(segment: string): Lexed {
     unbalanced = true;
   }
   push();
-  return { words, substitutions, unbalanced };
+  return { words, substitutions, unbalanced, brace };
 }
 
 interface CommandSegment {
@@ -360,12 +504,13 @@ function splitCommandSegments(command: string): CommandSegment[] {
       }
       continue;
     }
-    if (quote === undefined && (char === '(' || char === ')')) {
-      flush();
-      continue;
-    }
     if (char === '\\' && quote !== "'") {
-      current += char + (command[index + 1] ?? '');
+      const next = command[index + 1] ?? '';
+      if (next === '\n') {
+        index++;
+        continue;
+      }
+      current += char + next;
       index++;
       continue;
     }
@@ -400,6 +545,10 @@ function splitCommandSegments(command: string): CommandSegment[] {
         index = end;
         continue;
       }
+    }
+    if (quote === undefined && (char === '(' || char === ')')) {
+      flush();
+      continue;
     }
     if (char === ';' || char === '\n' || char === '|' || char === '&') {
       // `>&` and `<&` belong to a redirection, not to the command separator.
@@ -453,6 +602,16 @@ function skipRedirectTarget(segment: string, start: number): number {
       }
       continue;
     }
+    if (char === '$' && segment[index + 1] === '(') {
+      const end = findClosingParen(segment, index + 1);
+      index = end === -1 ? segment.length : end + 1;
+      continue;
+    }
+    if (char === '`') {
+      const end = segment.indexOf('`', index + 1);
+      index = end === -1 ? segment.length : end + 1;
+      continue;
+    }
     if (char === '$' && (segment[index + 1] === '"' || segment[index + 1] === "'")) {
       const quote = segment[index + 1];
       index += 2;
@@ -475,8 +634,9 @@ function skipRedirectTarget(segment: string, start: number): number {
 }
 
 /** Redirections (`> file`, `2>&1`, `< in`) removed before tokenization, without touching quoted text. */
-function stripRedirects(segment: string): string {
+function stripRedirects(segment: string): { readonly text: string; readonly redirects: readonly Redirect[] } {
   let out = '';
+  const redirects: Redirect[] = [];
   let index = 0;
   let quote: '"' | "'" | 'ansi' | undefined;
   while (index < segment.length) {
@@ -512,6 +672,20 @@ function stripRedirects(segment: string): string {
       index += 2;
       continue;
     }
+    if (char === '$' && segment[index + 1] === '(') {
+      const end = findClosingParen(segment, index + 1);
+      const stop = end === -1 ? segment.length : end + 1;
+      out += segment.slice(index, stop);
+      index = stop;
+      continue;
+    }
+    if (char === '`') {
+      const end = segment.indexOf('`', index + 1);
+      const stop = end === -1 ? segment.length : end + 1;
+      out += segment.slice(index, stop);
+      index = stop;
+      continue;
+    }
     if (char === '$' && (segment[index + 1] === '"' || segment[index + 1] === "'")) {
       quote = segment[index + 1] === '"' ? '"' : 'ansi';
       out += segment.slice(index, index + 2);
@@ -527,19 +701,37 @@ function stripRedirects(segment: string): string {
     if (char === '<' || char === '>') {
       // A leading digit belongs to the operator (`2>`), not to a word.
       out = out.replace(/[0-9]+$/, '');
+      const operatorStart = index;
       index++;
       while (index < segment.length && '<>&|'.includes(segment[index] ?? '')) {
         index++;
       }
+      const operator = segment.slice(operatorStart, index);
       const attached = /^&?-?[0-9]+|^&/.exec(segment.slice(index))?.[0];
-      index = attached === undefined ? skipRedirectTarget(segment, index) : index + attached.length;
+      if (attached !== undefined) {
+        index += attached.length;
+      } else {
+        let targetStart = index;
+        while (targetStart < segment.length && /\s/.test(segment[targetStart] ?? '')) {
+          targetStart++;
+        }
+        index = skipRedirectTarget(segment, index);
+        const raw = segment.slice(targetStart, index);
+        // Here-documents name a delimiter, not a path. A here-string carries data but still runs
+        // substitutions, so its target is scanned without being treated as a path.
+        if (operator === '<<<') {
+          redirects.push({ raw, write: false, hereString: true });
+        } else if (!operator.includes('<<') && raw !== '') {
+          redirects.push({ raw, write: operator.includes('>') });
+        }
+      }
       out += ' ';
       continue;
     }
     out += char;
     index++;
   }
-  return out;
+  return { text: out, redirects };
 }
 
 /** Strip leading `NAME=value` assignments, reporting the names. */
@@ -605,11 +797,9 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
   if (value === '' || value === '-' || value === '.') {
     return { target: '.' };
   }
-  if (value === '~') {
-    return { target: home };
-  }
-  if (value.startsWith('~/')) {
-    return { target: `${home}/${value.slice(2)}` };
+  const tilde = tildeTarget(value, home);
+  if (tilde !== undefined) {
+    return tilde.unknown === undefined ? { target: tilde.path } : { unknown: tilde.unknown };
   }
   const variable = /^\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))(.*)$/.exec(value);
   if (variable !== null) {
@@ -632,11 +822,20 @@ function directoryTarget(raw: string, home: string, cwd?: string): { target?: st
   return { target: value };
 }
 
+export interface ShellPath {
+  /** Spawn-relative or absolute literal path. */
+  readonly path: string;
+  /** True when this path is a write redirection or an operand of a writing command. */
+  readonly write: boolean;
+}
+
 export interface ShellAnalysis {
   /** Every string an exec rule should see, in command order. */
   readonly segments: readonly string[];
   /** `cd` targets in order, already expanded where they are literal. */
   readonly directories: readonly string[];
+  /** Literal path operands and redirection targets, in command order. */
+  readonly paths: readonly ShellPath[];
   /** Why the command cannot be analyzed safely; the caller refuses it when set. */
   readonly untrusted?: string;
 }
@@ -649,9 +848,55 @@ export interface ShellAnalysis {
 export function analyzeShellCommand(command: string, home: string = homedir()): ShellAnalysis {
   const segments = new Set<string>();
   const directories: string[] = [];
+  const paths: ShellPath[] = [];
   let untrusted: string | undefined;
   const distrust = (reason: string): void => {
     untrusted ??= reason;
+  };
+  const notePath = (raw: string, write: boolean, base: string | undefined): void => {
+    const resolved = literalPath(raw, home);
+    if (resolved.unknown !== undefined) {
+      distrust(resolved.unknown);
+      return;
+    }
+    if (resolved.path === undefined || resolved.path === '') {
+      return;
+    }
+    paths.push({ path: locate(resolved.path, base), write });
+  };
+  const collectOperands = (name: string, args: readonly Word[], base: string | undefined): void => {
+    if (name === 'git') {
+      return;
+    }
+    let options = true;
+    const positional: string[] = [];
+    for (const word of args) {
+      if (!word.literal || word.hidesCommand) {
+        continue;
+      }
+      const value = word.value;
+      if (name === 'dd') {
+        const io = /^(if|of)=(.+)$/.exec(value);
+        if (io?.[2] !== undefined) {
+          notePath(io[2], io[1] === 'of', base);
+        }
+        continue;
+      }
+      if (options && value === '--') {
+        options = false;
+        continue;
+      }
+      if (options && value.startsWith('-') && value !== '-') {
+        continue;
+      }
+      positional.push(value);
+    }
+    // `cp` and `ln` read their sources and write the last operand; `mv` also removes them.
+    const write = WRITE_COMMANDS.has(name);
+    for (const [index, value] of positional.entries()) {
+      const isWrite = name === 'cp' || name === 'ln' ? index === positional.length - 1 : write;
+      notePath(value, isWrite, base);
+    }
   };
 
   const visit = (input: string, depth: number, cwd?: string): void => {
@@ -663,9 +908,31 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
       distrust('the command defines a shell function, which the analyzer cannot see through');
     }
     for (const segment of splitCommandSegments(input)) {
-      const lexed = lexSegment(stripRedirects(segment.text));
+      const stripped = stripRedirects(segment.text);
+      const lexed = lexSegment(stripped.text);
+      if (lexed.brace) {
+        distrust('the command uses brace expansion, which the analyzer cannot see through');
+      }
       if (lexed.unbalanced) {
         distrust('the command has an unterminated quote');
+      }
+      let redirectHides = false;
+      for (const redirect of stripped.redirects) {
+        const target = lexSegment(redirect.raw);
+        if (target.brace) {
+          distrust('the command uses brace expansion, which the analyzer cannot see through');
+        }
+        const word = target.words.length === 1 ? target.words[0] : undefined;
+        if (word?.hidesCommand === true) {
+          redirectHides = true;
+          continue;
+        }
+        if (redirect.hereString === true) {
+          continue;
+        }
+        if (word !== undefined && word.literal) {
+          notePath(word.value, redirect.write, cwd);
+        }
       }
       const { rest, names } = stripAssignments(lexed.words);
       for (const name of names) {
@@ -708,13 +975,21 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
         }
         headIndex += 1 + skipWrapper(spec, words.slice(headIndex + 1));
         // `NAME=value` assignments may follow a wrapper (`env FOO=1 cmd`).
-        while ((words[headIndex]?.value ?? '').match(ASSIGNMENT) !== null) {
+        while (ASSIGNMENT.test(words[headIndex]?.value ?? '')) {
+          const assigned = ASSIGNMENT.exec(words[headIndex]?.value ?? '')?.[1];
+          if (assigned !== undefined && RESOLUTION_ASSIGNMENTS.has(assigned)) {
+            distrust(`${assigned} changes how the shell finds commands`);
+          }
           headIndex++;
         }
       }
+      while (words[headIndex]?.literal === true && INTRODUCERS.has(words[headIndex]?.value ?? '')) {
+        headIndex++;
+      }
 
       const head = words[headIndex];
-      if (head !== undefined) {
+      const structural = head !== undefined && head.literal && STRUCTURAL.has(head.value);
+      if (head !== undefined && !structural) {
         const name = commandName(head);
         if (!head.literal) {
           distrust('the command word comes from an expansion');
@@ -737,8 +1012,12 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           }
         }
         if (name === 'eval' && tail.length > 0) {
-          visit(tail.join(' '), depth + 1, cwd);
+          const args = tail[0] === '--' ? tail.slice(1) : tail;
+          if (args.length > 0) {
+            visit(args.join(' '), depth + 1, cwd);
+          }
         }
+        collectOperands(name, words.slice(headIndex + 1), cwd);
         if (name === 'cd' || name === 'pushd') {
           const args = words
             .slice(headIndex + 1)
@@ -758,6 +1037,9 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
           }
         }
       }
+      if ((head === undefined || head.literal) && (lexed.words.some((word) => word.hidesCommand) || redirectHides)) {
+        distrust('a command substitution hides the text the shell runs');
+      }
       for (const body of lexed.substitutions) {
         visit(body, depth + 1, cwd);
       }
@@ -765,7 +1047,7 @@ export function analyzeShellCommand(command: string, home: string = homedir()): 
   };
 
   visit(command, 0);
-  return { segments: [...segments], directories, ...(untrusted === undefined ? {} : { untrusted }) };
+  return { segments: [...segments], directories, paths, ...(untrusted === undefined ? {} : { untrusted }) };
 }
 
 /** Every string an exec rule should see. */
@@ -786,14 +1068,13 @@ function inlineShellBody(tokens: readonly string[]): string | undefined {
   }
   for (let index = 0; index < rest.length; index++) {
     const flag = rest[index] ?? '';
-    if (flag === '-c') {
-      return rest.slice(index + 1).join(' ');
+    if (!/^-[a-zA-Z]*c[a-zA-Z]*$/.test(flag)) {
+      continue;
     }
-    if (/^-[a-zA-Z]*c[a-zA-Z]*$/.test(flag)) {
-      const inline = rest.slice(index + 1).join(' ');
-      if (inline !== '') {
-        return inline;
-      }
+    const body = rest[index + 1] === '--' ? rest.slice(index + 2) : rest.slice(index + 1);
+    const inline = body.join(' ');
+    if (flag === '-c' || inline !== '') {
+      return inline;
     }
   }
   return undefined;

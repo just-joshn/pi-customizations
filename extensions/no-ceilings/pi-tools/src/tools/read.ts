@@ -6,7 +6,7 @@ import { Type } from 'typebox';
 import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata, readHead } from '../core/metadata.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
 import { guard, type LayerSession, subjectsFor } from '../core/session.ts';
@@ -119,10 +119,13 @@ export function createReadLayerTool(options: ReadToolOptions) {
         const result = await definition.execute(toolCallId, { path: target, ...(range.offset === undefined ? {} : { offset: range.offset }), ...(range.limit === undefined ? {} : { limit: range.limit }) }, signal, undefined, ctx as never);
 
         const metadata = await fileMetadata(target, { digest: stats.size <= MAX_FENCE_BYTES });
-        if (params.offset === undefined && params.limit === undefined && metadata.sha256 !== undefined) {
-          session.fence.record(target, { kind: 'content', fingerprint: { sha256: metadata.sha256, bytes: metadata.bytes } });
-        } else {
-          session.fence.forget(target);
+        if (params.offset === undefined && params.limit === undefined) {
+          const identity = await fileIdentity(target);
+          if (metadata.sha256 !== undefined) {
+            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: metadata.sha256, bytes: metadata.bytes } });
+          } else {
+            session.fence.forget(identity);
+          }
         }
 
         const readRange: ReadRange = { ...(range.offset === undefined ? {} : { offset: range.offset }), ...(range.limit === undefined ? {} : { limit: range.limit }) };
@@ -149,7 +152,14 @@ export function createReadLayerTool(options: ReadToolOptions) {
                   : returned.split('\n').length;
         const content = isImage
           ? result.content
-          : result.content.map((block, index) => (index === 0 && block.type === 'text' ? { type: 'text' as const, text: `${block.text}\n\n${metadataFooter(metadata, readRange, shownLines)}` } : block));
+          : result.content.map((block, index) => {
+              if (index !== 0 || block.type !== 'text') {
+                return block;
+              }
+              // An empty file has no next line. Pi still emits a continuation notice for a tail read.
+              const body = metadata.lines === 0 ? '' : block.text;
+              return { type: 'text' as const, text: `${body}\n\n${metadataFooter(metadata, readRange, shownLines)}` };
+            });
         const details: ReadDetails = {
           metadata,
           ...(range.offset === undefined && range.limit === undefined ? {} : { range: readRange }),

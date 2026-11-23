@@ -1,4 +1,4 @@
-import { realpath } from 'node:fs/promises';
+import { readlink, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -55,20 +55,84 @@ export async function realpathOrSelf(target: string): Promise<string> {
 }
 
 /**
- * Canonical absolute path. Existing paths resolve fully; a missing leaf resolves through its nearest
- * existing ancestor, so `/tmp/x` and `/private/tmp/x` produce the same value before and after creation.
+ * Canonical absolute path. Existing paths resolve fully. A missing leaf resolves through its nearest
+ * existing ancestor, and a symlink is followed even when its final target does not exist yet.
  */
 export async function canonicalPath(target: string): Promise<string> {
-  const resolved = path.resolve(target);
+  return canonicalize(path.resolve(target), new Set());
+}
+
+async function canonicalize(resolved: string, seen: Set<string>): Promise<string> {
   try {
     return await realpath(resolved);
   } catch {
-    const parent = path.dirname(resolved);
-    if (parent === resolved) {
-      return resolved;
-    }
-    return path.join(await canonicalPath(parent), path.basename(resolved));
+    // Missing, dangling, or looping. Fall through and resolve what we can.
   }
+  if (seen.has(resolved)) {
+    return resolved;
+  }
+  seen.add(resolved);
+  let linkTarget: string | undefined;
+  try {
+    linkTarget = await readlink(resolved);
+  } catch {
+    linkTarget = undefined;
+  }
+  if (linkTarget !== undefined) {
+    return canonicalize(path.resolve(path.dirname(resolved), linkTarget), seen);
+  }
+  const parent = path.dirname(resolved);
+  if (parent === resolved) {
+    return resolved;
+  }
+  return path.join(await canonicalize(parent, seen), path.basename(resolved));
+}
+
+/** One character of opposite case, or undefined when the path has no letters. */
+function flipCase(input: string): string | undefined {
+  for (let index = input.length - 1; index >= 0; index--) {
+    const char = input[index];
+    if (char === undefined) {
+      continue;
+    }
+    const lower = char.toLowerCase();
+    const upper = char.toUpperCase();
+    if (lower === upper) {
+      continue;
+    }
+    const flipped = char === lower ? upper : lower;
+    return `${input.slice(0, index)}${flipped}${input.slice(index + 1)}`;
+  }
+  return undefined;
+}
+
+/** True when this existing directory treats `A` and `a` as the same name. */
+async function directoryFoldsCase(directory: string): Promise<boolean> {
+  const variant = flipCase(directory);
+  if (variant === undefined) {
+    return false;
+  }
+  let canonical: string;
+  try {
+    canonical = await realpath(directory);
+  } catch {
+    return false;
+  }
+  try {
+    return (await realpath(variant)) === canonical;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fence key for one file. Realpath when the file exists, otherwise the canonical lexical path.
+ * On a case-folding volume the key is folded too, so a missing path and its later on-disk spelling match.
+ */
+export async function fileIdentity(target: string): Promise<string> {
+  const canonical = await canonicalPath(target);
+  const folds = await directoryFoldsCase(path.dirname(canonical));
+  return folds ? canonical.toLowerCase() : canonical;
 }
 
 /** The path a caller named plus its canonical form, deduplicated. Policy rules check both. */

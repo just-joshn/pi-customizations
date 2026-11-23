@@ -4,7 +4,7 @@ import path from 'node:path';
 import { Type } from 'typebox';
 import { MAX_SNAPSHOT_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -97,7 +97,7 @@ export function createDeleteLayerTool(options: DeleteToolOptions) {
           },
           { createParent: false },
         );
-        session.fence.record(target, { kind: 'absent' });
+        session.fence.record(await fileIdentity(target), { kind: 'absent' });
 
         return {
           content: [{ type: 'text', text: `Deleted ${displayPath(ctx.cwd, target)} (${before.size} ${before.size === 1 ? 'byte' : 'bytes'})` }],

@@ -1,8 +1,8 @@
-import { mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, rmdir, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { Type } from 'typebox';
-import { layerError } from '../core/errors.ts';
+import { LayerError, layerError } from '../core/errors.ts';
 import { applyHunks, countHunkChanges, PatchError, type PatchFile, parsePatch, splitLines } from '../core/patch.ts';
 import { displayPath, resolveToolPath } from '../core/paths.ts';
 import { withFileQueues } from '../core/queue.ts';
@@ -116,6 +116,9 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
           }
           throw error;
         }
+        if (parsed.files.length === 0) {
+          throw layerError('error', 'Patch made no changes. Nothing was written.');
+        }
 
         // Policy and ignore checks first, so no prompt runs while a file queue is held.
         interface GuardedFile {
@@ -207,6 +210,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
               actions.push({ file, target, destination, added, removed, action: 'write', content, createsParent: destination !== target, original, ...(destinationOriginal === undefined ? {} : { destinationOriginal }) });
             }
 
+            const created: string[] = [];
             try {
               for (const action of actions) {
                 if (action.action === 'delete') {
@@ -214,7 +218,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                   continue;
                 }
                 if (action.createsParent) {
-                  await mkdir(path.dirname(action.destination), { recursive: true });
+                  await createMissingParents(path.dirname(action.destination), created);
                 }
                 const content = action.content ?? '';
                 await writeFile(action.destination, content, 'utf-8');
@@ -224,8 +228,8 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
                 }
               }
             } catch (error) {
-              await rollback(actions);
-              throw error;
+              await rollback(actions, created);
+              throw annotateFailedWrite(error);
             }
             return actions;
           },
@@ -259,7 +263,7 @@ export function createApplyPatchLayerTool(options: ApplyPatchToolOptions) {
  * is a filesystem error during the write itself; undoing the files already written keeps the call's
  * "nothing was written" contract true.
  */
-async function rollback(actions: readonly PlannedFile[]): Promise<void> {
+async function rollback(actions: readonly PlannedFile[], created: readonly string[]): Promise<void> {
   for (const action of [...actions].reverse()) {
     const paths = action.destination === action.target ? [action.target] : [action.destination, action.target];
     for (const target of paths) {
@@ -275,6 +279,61 @@ async function rollback(actions: readonly PlannedFile[]): Promise<void> {
       }
     }
   }
+  const directories = [...created].sort((left, right) => pathDepth(right) - pathDepth(left));
+  for (const directory of directories) {
+    await rmdir(directory).catch(() => undefined);
+  }
+}
+
+/** Parents that did not exist before this call, leaf first. */
+async function createMissingParents(directory: string, created: string[]): Promise<void> {
+  const missing: string[] = [];
+  let current = directory;
+  while (!created.includes(current) && !missing.includes(current)) {
+    try {
+      const info = await stat(current);
+      if (info.isDirectory()) {
+        break;
+      }
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+      missing.push(current);
+      const parent = path.dirname(current);
+      if (parent === current) {
+        break;
+      }
+      current = parent;
+    }
+  }
+  if (missing.length === 0) {
+    return;
+  }
+  await mkdir(directory, { recursive: true });
+  created.push(...missing);
+}
+
+function pathDepth(target: string): number {
+  return target.split(path.sep).filter((part) => part !== '').length;
+}
+
+function annotateFailedWrite(error: unknown): Error {
+  if (error instanceof LayerError) {
+    if (error.message.includes('Nothing was written')) {
+      return error;
+    }
+    return layerError(error.failure.kind, `${error.message} Nothing was written.`, {
+      ...(error.failure.path === undefined ? {} : { path: error.failure.path }),
+      ...(error.failure.hint === undefined ? {} : { hint: error.failure.hint }),
+    });
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes('Nothing was written')) {
+    return error instanceof Error ? error : new Error(message);
+  }
+  return layerError('error', `${message} Nothing was written.`);
 }
 
 function staleOrError(error: unknown, target: string, cwd: string): Error {

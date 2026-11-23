@@ -6,7 +6,7 @@ import { Type } from 'typebox';
 import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, repairArguments } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -90,7 +90,7 @@ export function prepareEditArguments(raw: unknown): unknown {
 function collectRanges(content: string, edits: readonly EditSpec[], display: string): { ranges: Range[]; replaced: number } {
   const ranges: Range[] = [];
   let replaced = 0;
-  const normalizedEdits = edits.map((edit) => ({ ...edit, oldText: normalizeEol(edit.oldText), newText: normalizeEol(edit.newText) }));
+  const normalizedEdits = edits.map((edit) => ({ ...edit, oldText: normalizeEol(stripBom(edit.oldText).text), newText: normalizeEol(stripBom(edit.newText).text) }));
   normalizedEdits.forEach((edit, editIndex) => {
     if (edit.oldText === '') {
       throw layerError('invalid_arguments', `Edit ${editIndex + 1} has an empty oldText`, { hint: 'oldText must contain the exact text to replace.' });
@@ -224,12 +224,13 @@ export function createEditLayerTool(options: EditToolOptions) {
             if (info === undefined || !info.isFile()) {
               throw layerError('file_not_found', `Cannot edit file: ${displayPath(ctx.cwd, target)} does not exist or is not a file.`, { path: target });
             }
-            const readRecord = session.fence.take(target);
+            const identity = await fileIdentity(target);
+            const readRecord = session.fence.take(identity);
             const before = await readFile(target);
             if (readRecord !== undefined) {
-              const changed = readRecord.kind === 'absent' ? false : sha256Hex(before) !== readRecord.fingerprint.sha256 || before.byteLength !== readRecord.fingerprint.bytes;
+              const changed = readRecord.kind === 'absent' ? true : sha256Hex(before) !== readRecord.fingerprint.sha256 || before.byteLength !== readRecord.fingerprint.bytes;
               if (changed) {
-                session.fence.restore(target, readRecord);
+                session.fence.restore(identity, readRecord);
                 throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
               }
             }
@@ -248,7 +249,7 @@ export function createEditLayerTool(options: EditToolOptions) {
               throw layerError('error', `Edit verification failed: ${displayPath(ctx.cwd, target)} does not contain the edited text.`, { path: target });
             }
             const digest = sha256Hex(written);
-            session.fence.record(target, { kind: 'content', fingerprint: { sha256: digest, bytes: written.byteLength } });
+            session.fence.record(identity, { kind: 'content', fingerprint: { sha256: digest, bytes: written.byteLength } });
             return {
               normalized,
               updated,

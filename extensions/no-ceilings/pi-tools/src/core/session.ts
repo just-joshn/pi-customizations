@@ -276,6 +276,30 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
     throw failureFor(execDecision, 'exec', segments, 'run command', false);
   }
 
+  let approvalReason: string | undefined;
+  for (const use of analysis.paths) {
+    const named = path.resolve(canonicalCwd, use.path);
+    const subjects = await policySubjects(named);
+    const denied = session.policy.rules.find((rule) => (rule.kind === 'read' || rule.kind === 'write') && rule.action === 'deny' && subjects.some((subject) => ruleMatches(rule, subject, session.policy)));
+    if (denied) {
+      throw denial({ kind: 'permission_denied', message: `Blocked by permissions configuration (rule: ${denied.pattern})`, path: named });
+    }
+    if (!use.write) {
+      continue;
+    }
+    const canonical = subjects[subjects.length - 1] ?? named;
+    if (isInsideWorkspace(session.policy, canonical)) {
+      continue;
+    }
+    const decision = decideMany(session.policy, 'write', subjects, { canPrompt: ctx?.hasUI === true });
+    if (decision.kind === 'deny') {
+      throw failureFor(decision, 'write', subjects, 'write outside the workspace', false);
+    }
+    if (decision.kind === 'approve') {
+      approvalReason ??= decision.reason;
+    }
+  }
+
   const directories: string[] = [canonicalCwd];
   let current = canonicalCwd;
   for (const target of analysis.directories) {
@@ -283,7 +307,6 @@ export async function guardCommand(session: LayerSession, command: string, cwd: 
     directories.push(current);
   }
   const outside = [...new Set(directories.filter((directory) => !isInsideWorkspace(session.policy, directory)))];
-  let approvalReason: string | undefined;
   for (const directory of outside) {
     const decision = decideMany(session.policy, 'write', [directory], { canPrompt: ctx?.hasUI === true });
     if (decision.kind === 'deny') {

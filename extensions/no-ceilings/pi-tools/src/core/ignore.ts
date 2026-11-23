@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import ignore, { type Ignore } from 'ignore';
@@ -18,8 +18,8 @@ export interface IgnoreResolver {
   files(): readonly string[];
   /** True when a rule ignores this path. */
   ignores(target: string, isDirectory?: boolean): Promise<boolean>;
-  /** The ignore file responsible for a path, when one is. */
-  describe(target: string): Promise<string | undefined>;
+  /** The ignore file responsible for a path, when one is. `isDirectory` selects a dir/ pattern. */
+  describe(target: string, isDirectory?: boolean): Promise<string | undefined>;
   /** Reload the eager set and drop cached nested files. */
   reload(): Promise<void>;
 }
@@ -35,6 +35,15 @@ export function parseIgnorePatterns(body: string): Ignore {
     matcher.add(line);
   }
   return matcher;
+}
+
+/** True only when the path exists and is a directory. A missing path is a file the caller is about to create. */
+async function pathIsDirectory(target: string): Promise<boolean> {
+  try {
+    return (await stat(target)).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 /** Verdict of one source for one path: true ignored, false unignored, undefined no opinion. */
@@ -203,23 +212,22 @@ class WorkspaceIgnoreResolver implements IgnoreResolver {
     return false;
   }
 
-  async describe(target: string): Promise<string | undefined> {
+  async describe(target: string, isDirectory?: boolean): Promise<string | undefined> {
     const canonical = await canonicalPath(target);
+    const directory = isDirectory ?? (await pathIsDirectory(target));
     for (const candidate of canonical === target ? [target] : [target, canonical]) {
-      for (const isDirectory of [false, true]) {
-        const sources = await this.orderedSources(candidate, isDirectory);
-        let responsible: string | undefined;
-        for (const source of sources) {
-          const result = verdict(source, candidate, isDirectory);
-          if (result === true) {
-            responsible = source.file;
-          } else if (result === false) {
-            responsible = undefined;
-          }
+      const sources = await this.orderedSources(candidate, directory);
+      let responsible: string | undefined;
+      for (const source of sources) {
+        const result = verdict(source, candidate, directory);
+        if (result === true) {
+          responsible = source.file;
+        } else if (result === false) {
+          responsible = undefined;
         }
-        if (responsible !== undefined) {
-          return responsible;
-        }
+      }
+      if (responsible !== undefined) {
+        return responsible;
       }
     }
     return undefined;

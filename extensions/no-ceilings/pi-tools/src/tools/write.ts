@@ -5,7 +5,7 @@ import { Type } from 'typebox';
 import { MAX_FENCE_BYTES } from '../constants.ts';
 import { layerError } from '../core/errors.ts';
 import { fileMetadata } from '../core/metadata.ts';
-import { displayPath, resolveToolPath } from '../core/paths.ts';
+import { displayPath, fileIdentity, resolveToolPath } from '../core/paths.ts';
 import { withFileQueue } from '../core/queue.ts';
 import { PATH_ALIASES, prepareWith } from '../core/repair.ts';
 import type { LayerContext } from '../core/session.ts';
@@ -117,12 +117,13 @@ export function createWriteLayerTool(options: WriteToolOptions) {
               hint: `Write ${collision} to change that file, or choose a new name.`,
             });
           }
-          const readRecord = session.fence.take(target);
+          const identity = await fileIdentity(target);
+          const readRecord = session.fence.take(identity);
           if (readRecord !== undefined) {
             const current = await readFile(target).catch(() => undefined);
             const changed = readRecord.kind === 'absent' ? current !== undefined : current === undefined || sha256Hex(current) !== readRecord.fingerprint.sha256 || current.byteLength !== readRecord.fingerprint.bytes;
             if (changed) {
-              session.fence.restore(target, readRecord);
+              session.fence.restore(identity, readRecord);
               throw layerError('stale', `${displayPath(ctx.cwd, target)} changed on disk after this tool call read it. Nothing was written. Read the file again and retry.`, { path: target });
             }
           }
@@ -134,13 +135,14 @@ export function createWriteLayerTool(options: WriteToolOptions) {
           return after;
         });
 
+        const identity = await fileIdentity(target);
         if (written.byteLength <= MAX_FENCE_BYTES) {
-          session.fence.record(target, { kind: 'content', fingerprint: { sha256: expected, bytes: written.byteLength } });
+          session.fence.record(identity, { kind: 'content', fingerprint: { sha256: expected, bytes: written.byteLength } });
         } else {
-          session.fence.forget(target);
+          session.fence.forget(identity);
         }
         const metadata = await fileMetadata(target, { digest: written.byteLength <= MAX_FENCE_BYTES });
-        const linesWritten = params.encoding === 'base64' ? 0 : countLines(params.content);
+        const linesWritten = countLines(buffer.toString('utf-8'));
         const notices = `\n\n[wrote ${linesWritten} ${linesWritten === 1 ? 'line' : 'lines'}, ${written.byteLength} ${written.byteLength === 1 ? 'byte' : 'bytes'}]`;
         return {
           content: [

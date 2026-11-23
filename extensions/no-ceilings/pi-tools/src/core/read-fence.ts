@@ -8,8 +8,9 @@ interface Entry {
 
 /**
  * Per-session record of what the agent has read or written, so a later mutation can refuse to clobber
- * a file that changed on disk in between. Entries are keyed by path: Pi gives every tool call its own
- * id, so the session, not the tool call, is the meaningful scope.
+ * a file that changed on disk in between. Entries are keyed by the string the caller supplies. Callers
+ * pass one canonical file identity, so two spellings of one file share a record. Pi gives every tool call
+ * its own id, so the session, not the tool call, is the meaningful scope.
  */
 export interface ReadFence {
   record(target: string, record: ReadRecord): void;
