@@ -66,12 +66,13 @@ neither depends on the other:
    ignored the rejection could not turn one Pi turn into several CLI turns.
 
 A CLI tool that needs no approval still arrives as a `tool_call` session update,
-which is captured the same way. The turn is cancelled before its result matters,
-so the CLI's copy of a read is always discarded in favour of Pi's.
+and it ends the turn the same way. Every `tool_call` and `tool_call_update`
+settles the turn and sends `session/cancel`, whether or not it maps onto a Pi
+tool, so an ungated tool cannot keep running while Pi waits.
 
-Both paths end the turn, including the ones where the tool does not map onto a
-Pi tool: approving an unmapped request would let the CLI act on its own, so the
-request is refused and the turn stops either way.
+A request that does not map is refused and reported with an error naming the CLI
+tool. Silently dropping it would look like a finished answer that did nothing;
+approving it would let the CLI act on its own.
 
 ## Tool bridging
 
@@ -90,6 +91,11 @@ A call is dropped when its target tool is not in the request's declared tool
 set, when a required argument is missing, or when the CLI tool has no entry.
 Dropping is deliberate: Pi cannot execute a tool it was not given, and a
 fabricated tool name would fail one round trip later with a worse error.
+
+`run_command` is refused when it names a `Cwd` other than Pi's working
+directory. Pi's `bash` has no working-directory argument, and rewriting the
+request into a `cd` would change the command the model wrote. Appending edits
+are refused for the same reason: Pi's `write` always replaces the file.
 
 ## Instructions
 
@@ -124,8 +130,10 @@ more input tokens per turn. The benefit is that branching, editing an earlier
 message, and changing settings mid-conversation need no special handling, which
 is where the reference implementation spends most of its complexity.
 
-The ACP process itself is pooled: up to two `agy acp` processes stay warm, and a
-process idle for more than five minutes is closed. A session is never reused.
+The ACP process is not pooled. Each turn spawns `agy acp`, opens one session,
+runs the turn, closes the session, and shuts the process down, which bounds the
+blast radius of a CLI left in a bad state and keeps no idle child around. The
+cost is one process boot per turn.
 
 ## Failure classification
 

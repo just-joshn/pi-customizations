@@ -171,17 +171,20 @@ function tokensFrom(result: unknown): TokenUsage | undefined {
   };
 }
 
-function actionForUpdate(params: unknown, declared: ReadonlySet<string>): TurnAction | undefined {
+/** What one `session/update` means for a Pi turn. A tool update always ends the turn. */
+type UpdateOutcome = { kind: 'none' } | { kind: 'content'; action: TurnAction } | { kind: 'tool'; action: TurnAction | undefined; agyTool: string };
+
+function outcomeForUpdate(params: unknown, declared: ReadonlySet<string>): UpdateOutcome {
   const parsed = z.object({ update: updateSchema.optional() }).safeParse(params);
   const update = parsed.success ? parsed.data.update : undefined;
-  if (update === undefined) return undefined;
+  if (update === undefined) return { kind: 'none' };
   const text = update.content?.text;
   const textOk = text !== undefined && (update.content?.type === undefined || update.content.type === 'text');
-  if (update.sessionUpdate === 'agent_message_chunk' && textOk && text !== undefined) return { kind: 'text', delta: text };
-  if (update.sessionUpdate === 'agent_thought_chunk' && textOk && text !== undefined) return { kind: 'thinking', delta: text };
-  if (update.sessionUpdate === 'tool_call' || update.sessionUpdate === 'tool_call_update') return bridged(update, declared);
-  if (update.sessionUpdate === 'usage_update' && update.size !== undefined) return { kind: 'usage', contextSize: update.size };
-  return undefined;
+  if (update.sessionUpdate === 'agent_message_chunk' && textOk && text !== undefined) return { kind: 'content', action: { kind: 'text', delta: text } };
+  if (update.sessionUpdate === 'agent_thought_chunk' && textOk && text !== undefined) return { kind: 'content', action: { kind: 'thinking', delta: text } };
+  if (update.sessionUpdate === 'usage_update' && update.size !== undefined) return { kind: 'content', action: { kind: 'usage', contextSize: update.size } };
+  if (update.sessionUpdate !== 'tool_call' && update.sessionUpdate !== 'tool_call_update') return { kind: 'none' };
+  return { kind: 'tool', action: bridged(update, declared), agyTool: update.name ?? update.toolName ?? 'an unnamed tool' };
 }
 
 /** `allow_*` is never selected. The CLI must not run the tool. */
@@ -248,10 +251,18 @@ function bindTurn(drive: Drive, apply: (action: TurnAction) => void, finish: (en
   };
   const unsubscribe = drive.client.onNotification((method, params) => {
     if (method !== ACP_METHODS.update) return;
-    const action = actionForUpdate(params, declared);
-    if (action === undefined) return;
-    apply(action);
-    if (action.kind === 'tool') sealTool(false);
+    const outcome = outcomeForUpdate(params, declared);
+    if (outcome.kind === 'content') {
+      apply(outcome.action);
+      return;
+    }
+    if (outcome.kind !== 'tool') return;
+    // A tool update ends the turn whether or not it maps. Approving or ignoring one
+    // is what would let the CLI act, so an unmapped request is reported, never passed
+    // through and never merely dropped.
+    if (outcome.action === undefined) apply({ kind: 'unsupported', agyTool: outcome.agyTool });
+    else apply(outcome.action);
+    sealTool(false);
   });
   drive.client.setServerRequestHandler(async (method, params) => {
     if (method !== ACP_METHODS.requestPermission) return {};
@@ -314,10 +325,15 @@ async function driveTurn(drive: Drive, apply: (action: TurnAction) => void): Pro
 /** Resolve with the prompt result, or undefined once the grace window closes or the turn aborts. */
 async function withGrace(answered: Promise<unknown>, signal: AbortSignal | undefined): Promise<unknown> {
   if (signal?.aborted === true) return undefined;
+  let timer: NodeJS.Timeout | undefined;
   const timeout = new Promise<undefined>((resolve) => {
-    setTimeout(() => resolve(undefined), CANCEL_USAGE_GRACE_MS);
+    timer = setTimeout(() => resolve(undefined), CANCEL_USAGE_GRACE_MS);
   });
-  return Promise.race([answered, timeout]);
+  try {
+    return await Promise.race([answered, timeout]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
 }
 
 function settle(end: TurnEnd, state: TurnState, signal: AbortSignal | undefined, client: AcpClient): TurnAction | undefined {
@@ -385,7 +401,8 @@ async function runTurn(stream: AssistantMessageEventStream, model: Model<typeof 
 async function shutdown(client: AcpClient | undefined, sessionId: string | undefined): Promise<void> {
   if (client === undefined) return;
   try {
-    if (sessionId !== undefined) await client.request(ACP_METHODS.close, { sessionId });
+    // A CLI that never answers close must not keep the process alive.
+    if (sessionId !== undefined) await client.request(ACP_METHODS.close, { sessionId }, { timeoutMs: HANDSHAKE_TIMEOUT_MS });
   } catch {
     // A dead process has nothing left to close.
   } finally {

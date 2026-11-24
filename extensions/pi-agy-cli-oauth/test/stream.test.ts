@@ -16,6 +16,7 @@ type Scenario = (typeof SCENARIOS)[keyof typeof SCENARIOS];
 const FAKE_AGY = fileURLToPath(new URL('./fake-agy.ts', import.meta.url));
 const SCENARIO_ENV = 'FAKE_AGY_SCENARIO';
 const bashTool: Tool = { name: 'bash', description: 'Run a command', parameters: { type: 'object' } };
+const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object' } };
 
 function model(): Model<typeof API_ID> {
   return {
@@ -33,8 +34,8 @@ function model(): Model<typeof API_ID> {
   };
 }
 
-function context(): TranscriptContext {
-  return normalizeContext({ messages: [{ role: 'user', content: 'Say hello', timestamp: 1 }], tools: [bashTool] });
+function context(tools: readonly Tool[] = [bashTool]): TranscriptContext {
+  return normalizeContext({ messages: [{ role: 'user', content: 'Say hello', timestamp: 1 }], tools: [...tools] });
 }
 
 function childEnv(scenario: Scenario): Record<string, string> {
@@ -79,7 +80,7 @@ function connectScenario(scenario: Scenario, onPermission?: (result: unknown) =>
   };
 }
 
-async function collect(scenario: Scenario, options?: { controller?: AbortController; allowPolicy?: boolean }): Promise<{ events: readonly AssistantMessageEvent[]; permission: unknown }> {
+async function collect(scenario: Scenario, options?: { controller?: AbortController; allowPolicy?: boolean; tools?: readonly Tool[] }): Promise<{ events: readonly AssistantMessageEvent[]; permission: unknown }> {
   if (options?.allowPolicy === true) vi.stubEnv(POLICY_ALLOW_ENV, '1');
   let permission: unknown;
   const signal = options?.controller?.signal;
@@ -87,7 +88,7 @@ async function collect(scenario: Scenario, options?: { controller?: AbortControl
     connectScenario(scenario, (result) => {
       permission = result;
     }),
-  )(model(), context(), { reasoning: 'high', ...(signal === undefined ? {} : { signal }) });
+  )(model(), context(options?.tools), { reasoning: 'high', ...(signal === undefined ? {} : { signal }) });
   let events: readonly AssistantMessageEvent[] = [];
   for await (const event of stream) {
     events = events.concat([event]);
@@ -137,10 +138,25 @@ it('bridges one run_command call to bash and rejects the CLI permission', async 
   expect(permission).toEqual({ outcome: { outcome: 'selected', optionId: 'reject-once' } });
 });
 
-it('keeps one tool call when a read arrives before the permission request', async () => {
-  const { events, permission } = await collect(SCENARIOS.parallelToolCalls);
-  expect(events.filter((event) => event.type === 'toolcall_end')).toHaveLength(1);
+it('ends the turn at the first tool when a read arrives before the permission request', async () => {
+  const { events, permission } = await collect(SCENARIOS.parallelToolCalls, { tools: [bashTool, readTool] });
+  const calls = events.flatMap((event) => (event.type === 'toolcall_end' ? [event.toolCall] : []));
+  expect(calls).toHaveLength(1);
+  expect(calls[0]).toMatchObject({ id: 'call-2', name: 'read', arguments: { path: '/tmp/src/index.ts', offset: 1, limit: 40 } });
   expect(finalMessage(events).stopReason).toBe('toolUse');
+  // The second call never reaches Pi, and its permission request is still refused:
+  // every request is answered, whatever the turn already decided.
+  expect(permission).toEqual({ outcome: { outcome: 'selected', optionId: 'reject-once' } });
+});
+
+it('refuses an ungated tool it cannot bridge instead of letting the CLI run it', async () => {
+  // `view_file` arrives as a plain tool update with no permission request, so the
+  // only thing standing between the CLI and the user's files is this refusal.
+  const { events, permission } = await collect(SCENARIOS.parallelToolCalls);
+  expect(events.filter((event) => event.type === 'toolcall_end')).toEqual([]);
+  const message = finalMessage(events);
+  expect(message.stopReason).toBe('error');
+  expect(message.errorMessage).toContain('view_file');
   expect(permission).toEqual({ outcome: { outcome: 'selected', optionId: 'reject-once' } });
 });
 

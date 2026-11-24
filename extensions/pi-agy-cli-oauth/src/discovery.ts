@@ -79,7 +79,6 @@ interface AdvertisedModel {
 interface OpenedSession {
   sessionId: string;
   tierName: string | undefined;
-  currentModelId: string | undefined;
   models: readonly AdvertisedModel[];
 }
 
@@ -122,7 +121,6 @@ async function discoverAt(client: AcpClient, cwd: string, signal: AbortSignal | 
   const initialized = await readInitialize(client, signal);
   const session = await openSession(client, cwd, signal);
   const models = await loadCatalog(client, session, signal);
-  await restoreCurrentModel(client, session, signal);
   // `_meta.antigravity.tier` is on `session/new` in the measured protocol. Initialize is the fallback.
   return { version: initialized.version, tierName: session.tierName ?? initialized.tierName, models };
 }
@@ -150,7 +148,6 @@ async function openSession(client: AcpClient, cwd: string, signal: AbortSignal |
   return {
     sessionId,
     tierName: tierOf(parsed._meta),
-    currentModelId: present(parsed.models?.currentModelId),
     models: advertised.map((model) => ({ modelId: model.modelId, name: model.name })),
   };
 }
@@ -174,15 +171,6 @@ async function effortsFor(client: AcpClient, sessionId: string, baseId: string, 
   } catch {
     // One model rejecting `model` must not drop the rest of the catalog.
     return [];
-  }
-}
-
-async function restoreCurrentModel(client: AcpClient, session: OpenedSession, signal: AbortSignal | undefined): Promise<void> {
-  if (session.currentModelId === undefined) return;
-  try {
-    await client.request(ACP_METHODS.setConfigOption, { sessionId: session.sessionId, configId: CONFIG_MODEL, value: session.currentModelId }, callOptions(signal));
-  } catch {
-    // The catalog is already known. The caller closes this session.
   }
 }
 

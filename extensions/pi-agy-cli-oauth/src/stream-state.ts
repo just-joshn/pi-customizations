@@ -10,7 +10,8 @@ export type TurnAction =
   | { kind: 'stop'; reason: 'end_turn' | 'max_tokens' | 'refusal' | 'cancelled' }
   | { kind: 'fail'; message: string }
   | { kind: 'usage'; contextSize: number }
-  | { kind: 'tokens'; tokens: TokenUsage };
+  | { kind: 'tokens'; tokens: TokenUsage }
+  | { kind: 'unsupported'; agyTool: string };
 
 /** Token counts the CLI reports on the prompt result. Cost stays zero: a plan turn has no per-token price Pi can bill. */
 export interface TokenUsage {
@@ -34,6 +35,14 @@ export interface TurnState {
   contextSize?: number;
   /** Per-turn tokens from the prompt result. Absent when the turn was cut short at a tool. */
   tokens?: TokenUsage;
+}
+
+/**
+ * The model asked for a CLI tool this extension cannot hand to Pi. Saying so beats
+ * dropping the request: a silent drop looks like a finished answer that did nothing.
+ */
+export function unsupportedMessage(agyTool: string): string {
+  return `The model asked for the Antigravity tool \`${agyTool}\`, which this provider does not bridge to a Pi tool, ` + 'so the request was refused and the turn stopped. Ask again without that tool.';
 }
 
 /** The model named the refusal. Pi must not retry that stop. */
@@ -100,6 +109,8 @@ export function reduceTurn(state: TurnState, action: TurnAction): TurnState {
       return settled(state) ? state : applyStop(state, action.reason);
     case 'fail':
       return settled(state) ? state : { ...state, stopReason: 'error', errorMessage: action.message };
+    case 'unsupported':
+      return settled(state) ? state : { ...state, stopReason: 'error', errorMessage: unsupportedMessage(action.agyTool) };
     default: {
       const exhaustive: never = action;
       return exhaustive;

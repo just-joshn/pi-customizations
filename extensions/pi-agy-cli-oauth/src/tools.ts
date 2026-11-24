@@ -1,3 +1,5 @@
+import { realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ToolBridgeCall } from './types.ts';
 
 /** Arguments the CLI sent, after the boundary check that they are one object. */
@@ -103,10 +105,28 @@ function buildMultiReplace(fields: Fields): Record<string, unknown> | undefined 
   return { path, edits: [...edits] };
 }
 
+/** Compare two directory paths the way the filesystem does, following symlinks when they exist. */
+function sameDirectory(left: string, right: string): boolean {
+  const canonical = (path: string): string => {
+    try {
+      return realpathSync(path);
+    } catch {
+      // A path that does not exist yet is compared as written.
+      return resolve(path);
+    }
+  };
+  return canonical(left) === canonical(right);
+}
+
 function buildBash(fields: Fields): Record<string, unknown> | undefined {
   const command = nonEmpty(fields, 'CommandLine');
-  // Pi's bash tool has no working-directory argument. `Cwd` is not rewritten into the command.
-  return command === undefined ? undefined : { command };
+  if (command === undefined) return undefined;
+  // Pi's bash tool has no working-directory argument, and rewriting `Cwd` into a
+  // `cd` would change the command the model wrote. A command aimed somewhere else
+  // is refused rather than run in the wrong directory.
+  const cwd = nonEmpty(fields, 'Cwd');
+  if (cwd !== undefined && !sameDirectory(cwd, process.cwd())) return undefined;
+  return { command };
 }
 
 function singleGlob(value: unknown): string | undefined {

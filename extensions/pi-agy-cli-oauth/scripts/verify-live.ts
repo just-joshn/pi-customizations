@@ -16,7 +16,7 @@ import { connectAcp } from '../src/acp/client.ts';
 import { API_ID } from '../src/constants.ts';
 import { discover } from '../src/discovery.ts';
 import { launchSpec } from '../src/launch.ts';
-import { catalogToModels, resolveSelection } from '../src/model-catalog.ts';
+import { catalogToModels } from '../src/model-catalog.ts';
 import { streamAgy } from '../src/stream.ts';
 
 const PAD = 28;
@@ -47,8 +47,6 @@ async function catalog(): Promise<readonly Model<typeof API_ID>[]> {
     }
     const models = catalogToModels(discovery);
     say(`pi models: ${models.map((model) => model.id).join(', ')}`);
-    const first = models[0]?.id ?? '';
-    say(`selection for ${first} at high: ${JSON.stringify(resolveSelection(first, 'high'))}`);
     return models;
   } finally {
     client.close();

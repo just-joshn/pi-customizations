@@ -82,8 +82,8 @@ const cases: readonly Case[] = [
     expected: undefined,
   },
   {
-    title: 'run_command maps CommandLine and drops Cwd',
-    input: call('run_command', { CommandLine: 'ls -la', Cwd: '/tmp' }),
+    title: 'run_command maps CommandLine and the summary metadata',
+    input: call('run_command', { CommandLine: 'ls -la', toolSummary: 'List directory contents' }),
     declared: ALL,
     expected: bridged('bash', { command: 'ls -la' }, 'run_command'),
   },

@@ -1,7 +1,7 @@
 import type { Model } from '@earendil-works/pi-ai';
 import { expect, it } from 'vitest';
 import { API_ID, DEFAULT_CONTEXT_WINDOW, DEFAULT_MAX_TOKENS, PROCESS_BASE_URL, PROVIDER_ID, SMALL_CONTEXT_WINDOW } from '../src/constants.ts';
-import { BASELINE_MODELS, catalogToModels, resolveSelection } from '../src/model-catalog.ts';
+import { BASELINE_MODELS, baseModelId, catalogToModels } from '../src/model-catalog.ts';
 import { EFFORTS, type CatalogEntry, type Discovery } from '../src/types.ts';
 
 type AgenticModel = Model<typeof API_ID>;
@@ -83,24 +83,12 @@ it('uses the smaller window for gpt-oss and leaves unoffered levels null', () =>
   });
 });
 
-it('passes a CLI effort for a bare id', () => {
-  expect(resolveSelection('gemini-3.8-flash', 'high')).toEqual({
-    modelId: 'gemini-3.8-flash',
-    thoughtLevel: 'high',
-  });
-  expect(resolveSelection('claude-sonnet-4-6', 'max')).toEqual({
-    modelId: 'claude-sonnet-4-6',
-    thoughtLevel: 'max',
-  });
-});
-
-it('sends nothing for off, minimal, an unknown level, or a suffixed id', () => {
-  expect(resolveSelection('gemini-3.8-flash', 'off')).toEqual({ modelId: 'gemini-3.8-flash' });
-  expect(resolveSelection('gemini-3.8-flash', 'minimal')).toEqual({ modelId: 'gemini-3.8-flash' });
-  expect(resolveSelection('gemini-3.8-flash', undefined)).toEqual({ modelId: 'gemini-3.8-flash' });
-  expect(resolveSelection('gemini-3.8-flash', 'nope')).toEqual({ modelId: 'gemini-3.8-flash' });
-  expect(resolveSelection('gemini-3.8-flash-xhigh', 'high')).toEqual({ modelId: 'gemini-3.8-flash-xhigh' });
-  expect(resolveSelection('gpt-oss-120b-medium', 'low')).toEqual({ modelId: 'gpt-oss-120b-medium' });
+it('strips only a trailing known effort, so `flash-xhigh` is xhigh and not high', () => {
+  expect(baseModelId('gemini-3.8-flash-xhigh')).toBe('gemini-3.8-flash');
+  expect(baseModelId('gpt-oss-120b-medium')).toBe('gpt-oss-120b');
+  expect(baseModelId('claude-sonnet-4-6')).toBe('claude-sonnet-4-6');
+  expect(baseModelId('gemini-3.8-flash-nope')).toBe('gemini-3.8-flash-nope');
+  expect(baseModelId('low')).toBe('low');
 });
 
 it('collapses the 1.5.15 catalog to base ids with the efforts a live session advertises', () => {

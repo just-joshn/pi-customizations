@@ -40,10 +40,6 @@ export const DEFAULT_CONTEXT_WINDOW = 1_048_576;
 export const SMALL_CONTEXT_WINDOW = 200_000;
 export const DEFAULT_MAX_TOKENS = 64_000;
 
-/** A warm process is reused only while requests keep arriving. */
-export const PROCESS_IDLE_TIMEOUT_MS = 5 * 60 * 1_000;
-export const MAX_IDLE_PROCESSES = 2;
-
 /**
  * A cancelled prompt still answers with the turn's token counts. The grace window
  * is how long a settled tool turn waits for that answer before reporting none.
@@ -55,6 +51,10 @@ export const PROBE_TTL_MS = 2 * 60 * 1_000;
 
 /** `initialize` and `session/new` complete in seconds; a prompt may run far longer. */
 export const HANDSHAKE_TIMEOUT_MS = 30_000;
-/** The CLI reads the keyring on boot, and `session/new` can race that read. */
+/**
+ * The CLI reads the keyring on boot, and `session/new` can race that read. Two
+ * retries cover the race; `-32000` is also the permanent "signed out" answer, and
+ * spending the whole budget on that only makes a status check slow.
+ */
 export const AUTH_RETRY_DELAY_MS = 2_500;
-export const AUTH_RETRIES = 8;
+export const AUTH_RETRIES = 2;

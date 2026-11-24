@@ -127,6 +127,8 @@ export type ContentBlock = { type: 'text'; text: string } | { type: 'image'; dat
 /** Tool-call detail shared by the `tool_call` session update and `request_permission`. */
 export interface ToolCallInfo {
   toolCallId?: string;
+  /** The CLI's canonical tool name. Observed on every live `tool_call` and permission request. */
+  name?: string;
   title?: string;
   kind?: string;
   status?: string;

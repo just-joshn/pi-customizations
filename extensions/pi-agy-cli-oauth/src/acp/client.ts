@@ -51,6 +51,19 @@ type NotifyHandler = (method: string, params: unknown) => void;
 type Phase = 'starting' | 'open' | 'closing' | 'closed';
 type PendingCall = { readonly resolve: (value: unknown) => void; readonly reject: (error: Error) => void; readonly timer: NodeJS.Timeout | undefined; readonly signal: AbortSignal | undefined; readonly onAbort: (() => void) | undefined };
 type ExitStatus = { readonly code: number | null; readonly signal: NodeJS.Signals | null };
+type TransportState = {
+  readonly pending: ReadonlyMap<AcpId, PendingCall>;
+  readonly listeners: ReadonlySet<NotifyHandler>;
+  readonly handler: ServerRequestHandler | undefined;
+  readonly phase: Phase;
+  readonly exitStatus: ExitStatus | undefined;
+  readonly nextId: number;
+  readonly tail: string;
+  readonly stdoutPartial: string;
+  readonly stderrPartial: string;
+  readonly termTimer: NodeJS.Timeout | undefined;
+  readonly killTimer: NodeJS.Timeout | undefined;
+};
 type Incoming =
   | { readonly type: 'server-request'; readonly id: AcpId; readonly method: string; readonly params: unknown }
   | { readonly type: 'notification'; readonly method: string; readonly params: unknown }
@@ -68,33 +81,21 @@ export function connectAcp(options: AcpClientOptions): Promise<AcpClient> {
 function spawnChild(options: AcpClientOptions): ChildProcess {
   return spawn(options.command, [...options.args], { cwd: options.cwd, env: options.env, stdio: ['pipe', 'pipe', 'pipe'], detached: false });
 }
-function cell<T>(initial: T) {
-  let current = initial;
-  return {
-    read: () => current,
-    write: (value: T) => {
-      current = value;
-    },
-  };
-}
 function createTransport(child: ChildProcess) {
-  let nextId = 0;
+  // Property writes are forbidden, so the session is one value and each update replaces that binding.
+  let state: TransportState = { pending: new Map(), listeners: new Set(), handler: undefined, phase: 'starting', exitStatus: undefined, nextId: 0, tail: '', stdoutPartial: '', stderrPartial: '', termTimer: undefined, killTimer: undefined };
+  const replace = (next: TransportState) => {
+    state = next;
+  };
   return {
     child,
-    pending: cell<ReadonlyMap<AcpId, PendingCall>>(new Map()),
-    listeners: cell<ReadonlySet<NotifyHandler>>(new Set()),
-    handler: cell<ServerRequestHandler | undefined>(undefined),
-    phase: cell<Phase>('starting'),
-    exitStatus: cell<ExitStatus | undefined>(undefined),
+    read: () => state,
+    replace,
     takeId: () => {
-      nextId += 1;
+      const nextId = state.nextId + 1;
+      replace({ ...state, nextId });
       return nextId;
     },
-    tail: cell(''),
-    stdoutPartial: cell(''),
-    stderrPartial: cell(''),
-    termTimer: cell<NodeJS.Timeout | undefined>(undefined),
-    killTimer: cell<NodeJS.Timeout | undefined>(undefined),
   };
 }
 type Transport = ReturnType<typeof createTransport>;
@@ -103,8 +104,8 @@ function openWhenSpawned(child: ChildProcess, transport: Transport): Promise<Acp
   const client = createClient(transport);
   return new Promise((resolve, reject) => {
     child.on('spawn', () => {
-      if (transport.phase.read() !== 'starting') return;
-      transport.phase.write('open');
+      if (transport.read().phase !== 'starting') return;
+      transport.replace({ ...transport.read(), phase: 'open' });
       resolve(client);
     });
     child.on('error', (error: Error) => onChildError(transport, error, reject));
@@ -112,15 +113,15 @@ function openWhenSpawned(child: ChildProcess, transport: Transport): Promise<Acp
   });
 }
 function onChildError(transport: Transport, error: Error, reject: (reason: Error) => void): void {
-  if (transport.phase.read() !== 'starting') {
+  if (transport.read().phase !== 'starting') {
     failPending(transport, streamFailure(transport, error));
     return;
   }
-  transport.phase.write('closed');
+  transport.replace({ ...transport.read(), phase: 'closed' });
   reject(error);
 }
 function onChildExit(transport: Transport, code: number | null, signal: NodeJS.Signals | null, reject: (reason: Error) => void): void {
-  const starting = transport.phase.read() === 'starting';
+  const starting = transport.read().phase === 'starting';
   finishExit(transport, code, signal);
   if (starting) reject(new Error(exitText(transport)));
 }
@@ -128,13 +129,13 @@ function createClient(transport: Transport): AcpClient {
   return {
     request: (method, params, options) => request(transport, method, params, options),
     notify: (method, params) => notify(transport, method, params),
-    setServerRequestHandler: (handler) => transport.handler.write(handler),
+    setServerRequestHandler: (handler) => transport.replace({ ...transport.read(), handler }),
     onNotification: (handler) => subscribe(transport, handler),
     get stderrTail() {
-      return transport.tail.read();
+      return transport.read().tail;
     },
     get alive() {
-      const phase = transport.phase.read();
+      const phase = transport.read().phase;
       return phase === 'open' || phase === 'closing';
     },
     close: () => closeTransport(transport),
@@ -154,7 +155,7 @@ function call(transport: Transport, method: string, params: unknown, options: Ac
   }
   const id = transport.takeId();
   return new Promise((resolve, reject) => {
-    transport.pending.write(new Map([...transport.pending.read(), [id, arm(transport, id, resolve, reject, options)]]));
+    transport.replace({ ...transport.read(), pending: new Map([...transport.read().pending, [id, arm(transport, id, resolve, reject, options)]]) });
     const body = params === undefined ? { jsonrpc: JSON_RPC, id, method } : { jsonrpc: JSON_RPC, id, method, params };
     try {
       writeMessage(transport, body);
@@ -165,7 +166,7 @@ function call(transport: Transport, method: string, params: unknown, options: Ac
 }
 function unavailable(transport: Transport): Error | undefined {
   const stdin = transport.child.stdin;
-  if (transport.phase.read() === 'open' && stdin !== null && !stdin.destroyed && stdin.writable) return undefined;
+  if (transport.read().phase === 'open' && stdin !== null && !stdin.destroyed && stdin.writable) return undefined;
   return new Error(exitText(transport));
 }
 function arm(transport: Transport, id: AcpId, resolve: (value: unknown) => void, reject: (error: Error) => void, options: AcpRequestOptions | undefined): PendingCall {
@@ -191,39 +192,38 @@ function notify(transport: Transport, method: string, params: unknown): void {
   }
 }
 function subscribe(transport: Transport, handler: NotifyHandler): () => void {
-  transport.listeners.write(new Set([...transport.listeners.read(), handler]));
-  return () => transport.listeners.write(new Set([...transport.listeners.read()].filter((item) => item !== handler)));
+  transport.replace({ ...transport.read(), listeners: new Set([...transport.read().listeners, handler]) });
+  return () => transport.replace({ ...transport.read(), listeners: new Set([...transport.read().listeners].filter((item) => item !== handler)) });
 }
 function closeTransport(transport: Transport): void {
-  const phase = transport.phase.read();
+  const phase = transport.read().phase;
   if (phase === 'closing' || phase === 'closed') return;
-  transport.phase.write('closing');
+  transport.replace({ ...transport.read(), phase: 'closing' });
   withStdin(transport.child, (stdin) => stdin.end());
-  transport.termTimer.write(setTimeout(() => signalChild(transport.child, 'SIGTERM'), CLOSE_GRACE_MS));
-  transport.killTimer.write(setTimeout(() => signalChild(transport.child, 'SIGKILL'), CLOSE_GRACE_MS + KILL_GRACE_MS));
+  transport.replace({ ...transport.read(), termTimer: setTimeout(() => signalChild(transport.child, 'SIGTERM'), CLOSE_GRACE_MS) });
+  transport.replace({ ...transport.read(), killTimer: setTimeout(() => signalChild(transport.child, 'SIGKILL'), CLOSE_GRACE_MS + KILL_GRACE_MS) });
 }
 function finishExit(transport: Transport, code: number | null, signal: NodeJS.Signals | null): void {
-  if (transport.phase.read() === 'closed') return;
-  transport.exitStatus.write({ code, signal });
-  transport.phase.write('closed');
-  clearTimer(transport.termTimer.read());
-  clearTimer(transport.killTimer.read());
-  transport.termTimer.write(undefined);
-  transport.killTimer.write(undefined);
+  const state = transport.read();
+  if (state.phase === 'closed') return;
+  clearTimer(state.termTimer);
+  clearTimer(state.killTimer);
+  transport.replace({ ...state, exitStatus: { code, signal }, phase: 'closed', termTimer: undefined, killTimer: undefined });
   failPending(transport, new Error(exitText(transport)));
 }
 function failPending(transport: Transport, error: Error): void {
-  const pending = transport.pending.read();
-  transport.pending.write(new Map());
+  const pending = transport.read().pending;
+  transport.replace({ ...transport.read(), pending: new Map() });
   for (const pendingCall of pending.values()) {
     disarm(pendingCall);
     pendingCall.reject(error);
   }
 }
 function settle(transport: Transport, id: AcpId, finish: (pendingCall: PendingCall) => void): void {
-  const pendingCall = transport.pending.read().get(id);
+  const state = transport.read();
+  const pendingCall = state.pending.get(id);
   if (pendingCall === undefined) return;
-  transport.pending.write(new Map([...transport.pending.read()].filter(([key]) => key !== id)));
+  transport.replace({ ...state, pending: new Map([...state.pending].filter(([key]) => key !== id)) });
   disarm(pendingCall);
   finish(pendingCall);
 }
@@ -255,15 +255,15 @@ function listenError(stream: Writable | null, onError: (error: Error) => void): 
   stream.on('error', (error: unknown) => onError(error instanceof Error ? error : new Error('ACP stream failed')));
 }
 function onStdoutChunk(transport: Transport, chunk: string): void {
-  const consumed = consumeChunks(transport.stdoutPartial.read(), chunk);
-  transport.stdoutPartial.write(consumed.pending);
+  const consumed = consumeChunks(transport.read().stdoutPartial, chunk);
+  transport.replace({ ...transport.read(), stdoutPartial: consumed.pending });
   for (const line of consumed.lines) acceptLine(transport, line);
 }
 function onStderrChunk(transport: Transport, chunk: string, onStderr: ((line: string) => void) | undefined): void {
-  const nextTail = transport.tail.read() + chunk;
-  transport.tail.write(nextTail.length <= STDERR_TAIL_BYTES ? nextTail : nextTail.slice(-STDERR_TAIL_BYTES));
-  const consumed = consumeChunks(transport.stderrPartial.read(), chunk);
-  transport.stderrPartial.write(consumed.pending);
+  const state = transport.read();
+  const nextTail = state.tail + chunk;
+  const consumed = consumeChunks(state.stderrPartial, chunk);
+  transport.replace({ ...state, tail: nextTail.length <= STDERR_TAIL_BYTES ? nextTail : nextTail.slice(-STDERR_TAIL_BYTES), stderrPartial: consumed.pending });
   for (const line of consumed.lines) emitStderr(onStderr, line);
 }
 function acceptLine(transport: Transport, line: string): void {
@@ -287,7 +287,7 @@ function dispatch(transport: Transport, envelope: Envelope): void {
   }
 }
 function onServerRequest(transport: Transport, id: AcpId, method: string, params: unknown): void {
-  const handler = transport.handler.read();
+  const handler = transport.read().handler;
   if (handler === undefined) {
     writeMessage(transport, { jsonrpc: JSON_RPC, id, error: { code: METHOD_NOT_FOUND, message: `Method not found: ${method}` } });
     return;
@@ -308,7 +308,7 @@ async function answer(transport: Transport, id: AcpId, handler: ServerRequestHan
   }
 }
 function onNotification(transport: Transport, method: string, params: unknown): void {
-  for (const listener of transport.listeners.read()) emitNotification(listener, method, params);
+  for (const listener of transport.read().listeners) emitNotification(listener, method, params);
 }
 function onResponse(transport: Transport, id: AcpId, error: AcpError | undefined, result: unknown): void {
   settle(transport, id, (pendingCall) => {
@@ -382,9 +382,9 @@ function signalChild(child: ChildProcess, signal: NodeJS.Signals): void {
   }
 }
 function exitText(transport: Transport): string {
-  const status = transport.exitStatus.read();
+  const status = transport.read().exitStatus;
   const code = status === undefined ? 'unknown' : String(status.code);
-  return `agy exited with code ${code} signal ${status?.signal ?? 'none'}: ${transport.tail.read()}`;
+  return `agy exited with code ${code} signal ${status?.signal ?? 'none'}: ${transport.read().tail}`;
 }
 function streamFailure(transport: Transport, error: Error): Error {
   return new Error(`${error.message}; ${exitText(transport)}`);

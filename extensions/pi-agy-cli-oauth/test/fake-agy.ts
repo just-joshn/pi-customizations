@@ -133,7 +133,7 @@ function promptToolCall(): void {
         name: 'run_command',
         title: 'Run `ls`',
         kind: 'execute',
-        rawInput: { CommandLine: 'ls -la', Cwd: '/tmp' },
+        rawInput: { CommandLine: 'ls -la', toolSummary: 'List directory contents' },
       },
       options: [
         { optionId: 'allow-once', name: 'Allow once', kind: 'allow_once' },

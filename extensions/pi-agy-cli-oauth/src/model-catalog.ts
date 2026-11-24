@@ -9,23 +9,6 @@ import type { Model, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import { API_ID, DEFAULT_CONTEXT_WINDOW, DEFAULT_MAX_TOKENS, PROCESS_BASE_URL, PROVIDER_ID, SMALL_CONTEXT_WINDOW } from './constants.ts';
 import { EFFORTS, type CatalogEntry, type Discovery, type Effort } from './types.ts';
 
-/** What to ask the CLI for when Pi selects this model at this thinking level. */
-export interface Selection {
-  modelId: string;
-  thoughtLevel?: Effort;
-}
-
-/** `off` and `minimal` have no CLI effort. Every other Pi level uses the same token. */
-const THINKING_LEVEL_EFFORT: ReadonlyMap<string, Effort | null> = new Map([
-  ['off', null],
-  ['minimal', null],
-  ['low', 'low'],
-  ['medium', 'medium'],
-  ['high', 'high'],
-  ['xhigh', 'xhigh'],
-  ['max', 'max'],
-]);
-
 const SUBSCRIPTION_COST = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 
 /** Families whose `usage_update.size` is well below the Gemini window. */
@@ -74,17 +57,6 @@ export const BASELINE_MODELS: readonly Model<typeof API_ID>[] = catalogToModels(
 /** Pi models for one discovery result. */
 export function catalogToModels(discovery: Discovery): readonly Model<typeof API_ID>[] {
   return discovery.models.map(toModel);
-}
-
-/**
- * The CLI rejects `--effort` when the id already ends in an effort
- * (`--model %s conflicts with --effort=%s`), so a suffixed id is sent alone.
- */
-export function resolveSelection(modelId: string, thinkingLevel: string | undefined): Selection {
-  if (baseModelId(modelId) !== modelId) return { modelId };
-  const mapped = thinkingLevel === undefined ? undefined : THINKING_LEVEL_EFFORT.get(thinkingLevel);
-  if (mapped === undefined || mapped === null) return { modelId };
-  return { modelId, thoughtLevel: mapped };
 }
 
 /**

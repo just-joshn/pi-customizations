@@ -76,10 +76,12 @@ These environment variables are optional:
 
 ## How it works, briefly
 
-Each Pi turn opens a fresh ACP session on a warm `agy acp` process, sends Pi's
-whole conversation, and reads the streamed answer. The first tool call the model
-makes ends the turn: the CLI's permission request is rejected, the CLI turn is
-cancelled, and the call is translated into the matching Pi tool for Pi to run.
+Each Pi turn spawns `agy acp`, opens one ACP session, sends Pi's whole
+conversation, and reads the streamed answer. The first tool call the model makes
+ends the turn: the CLI's permission request is rejected, the CLI turn is
+cancelled, and the call is translated into the matching Pi tool for Pi to run. A
+tool the CLI would run without asking for permission ends the turn the same way,
+and one this extension cannot translate is reported rather than dropped.
 
 Model discovery asks the CLI. `agy` lists effort inside the model id, so the
 extension collapses those variants onto one model per family and maps Pi's
