@@ -3,8 +3,9 @@ import { createAssistantMessageEventStream } from '@earendil-works/pi-ai';
 import { z } from 'zod';
 import type { AcpClient } from './acp/client.ts';
 import { connectAcp } from './acp/client.ts';
-import { ACP_METHODS, AUTH_REQUIRED_CODE, CONFIG_MODEL, CONFIG_THOUGHT_LEVEL, type ContentBlock, type PermissionOutcome, type PromptCapabilities, type SessionNewParams } from './acp/protocol.ts';
-import { API_ID, AUTH_RETRIES, AUTH_RETRY_DELAY_MS, CANCEL_USAGE_GRACE_MS, HANDSHAKE_TIMEOUT_MS } from './constants.ts';
+import { requestWithAuthRetry } from './acp/auth-retry.ts';
+import { ACP_METHODS, CONFIG_MODEL, CONFIG_THOUGHT_LEVEL, type ContentBlock, type PermissionOutcome, type PromptCapabilities, type SessionNewParams } from './acp/protocol.ts';
+import { API_ID, CANCEL_USAGE_GRACE_MS, HANDSHAKE_TIMEOUT_MS } from './constants.ts';
 import { envFlagEnabled } from './env.ts';
 import { POLICY_ALLOW_ENV, policyRejection, transportFailure } from './errors.ts';
 import { launchSpec } from './launch.ts';
@@ -64,39 +65,16 @@ function handshake(signal: AbortSignal | undefined): { signal?: AbortSignal; tim
   return signal === undefined ? { timeoutMs: HANDSHAKE_TIMEOUT_MS } : { signal, timeoutMs: HANDSHAKE_TIMEOUT_MS };
 }
 
-function wait(ms: number, signal: AbortSignal | undefined): Promise<void> {
-  if (signal?.aborted === true) return Promise.reject(new Error('The Antigravity turn was cancelled.'));
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => resolve(), ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(new Error('The Antigravity turn was cancelled.'));
-      },
-      { once: true },
-    );
-  });
-}
-
 async function openSession(client: AcpClient, signal: AbortSignal | undefined, instructions: string | undefined): Promise<string> {
   const params: SessionNewParams = {
     cwd: process.cwd(),
     mcpServers: [],
     ...(instructions === undefined ? {} : { _meta: { antigravity: { systemPrompt: { append: instructions } } } }),
   };
-  for (let attempt = 0; attempt <= AUTH_RETRIES; attempt += 1) {
-    try {
-      const result = await client.request(ACP_METHODS.newSession, params, handshake(signal));
-      const parsed = z.object({ sessionId: z.string().min(PROTOCOL_VERSION) }).safeParse(result);
-      if (!parsed.success) throw new Error('Antigravity session/new did not return a session id');
-      return parsed.data.sessionId;
-    } catch (error: unknown) {
-      if (readRpcCode(error) !== AUTH_REQUIRED_CODE || attempt >= AUTH_RETRIES || signal?.aborted === true) throw error;
-      await wait(AUTH_RETRY_DELAY_MS, signal);
-    }
-  }
-  throw new Error('Antigravity session did not start');
+  const result = await requestWithAuthRetry(client, ACP_METHODS.newSession, params, handshake(signal));
+  const parsed = z.object({ sessionId: z.string().min(PROTOCOL_VERSION) }).safeParse(result);
+  if (!parsed.success) throw new Error('Antigravity session/new did not return a session id');
+  return parsed.data.sessionId;
 }
 
 async function selectEffort(client: AcpClient, sessionId: string, meta: TurnMeta, signal: AbortSignal | undefined): Promise<TurnMeta> {
@@ -381,7 +359,7 @@ async function runTurn(stream: AssistantMessageEventStream, model: Model<typeof 
   try {
     if (options?.signal?.aborted === true) throw new Error('The Antigravity turn was cancelled.');
     client = await open(options?.env);
-    const initialized = await client.request(ACP_METHODS.initialize, { protocolVersion: PROTOCOL_VERSION, clientCapabilities: { fs: {}, terminal: false } }, handshake(options?.signal));
+    const initialized = await requestWithAuthRetry(client, ACP_METHODS.initialize, { protocolVersion: PROTOCOL_VERSION, clientCapabilities: { fs: {}, terminal: false } }, handshake(options?.signal));
     // Without the append capability the instructions travel as a leading prompt
     // block rather than being dropped.
     const appendSupported = acceptsSystemPrompt(initialized);

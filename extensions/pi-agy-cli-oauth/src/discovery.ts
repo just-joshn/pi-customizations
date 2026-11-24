@@ -6,8 +6,8 @@
  */
 import { z } from 'zod';
 import { connectAcp, type AcpClient } from './acp/client.ts';
-import { ACP_METHODS, AUTH_REQUIRED_CODE, CONFIG_MODEL, CONFIG_THOUGHT_LEVEL } from './acp/protocol.ts';
-import { AUTH_RETRIES, AUTH_RETRY_DELAY_MS } from './constants.ts';
+import { isAuthRequired, requestWithAuthRetry } from './acp/auth-retry.ts';
+import { ACP_METHODS, CONFIG_MODEL, CONFIG_THOUGHT_LEVEL } from './acp/protocol.ts';
 import { baseModelId } from './model-catalog.ts';
 import { EFFORTS, type CatalogEntry, type Discovery, type Effort } from './types.ts';
 
@@ -126,21 +126,21 @@ async function discoverAt(client: AcpClient, cwd: string, signal: AbortSignal | 
 }
 
 async function readInitialize(client: AcpClient, signal: AbortSignal | undefined): Promise<Initialized> {
-  const result = await authRequest(
+  const result = await requestWithAuthRetry(
     client,
     ACP_METHODS.initialize,
     {
       protocolVersion: ACP_PROTOCOL_VERSION,
       clientCapabilities: { fs: {}, terminal: false },
     },
-    signal,
+    callOptions(signal),
   );
   const parsed = parseResult(INITIALIZE, result, 'initialize');
   return { version: versionOf(parsed.agentInfo?.version), tierName: tierOf(parsed._meta) };
 }
 
 async function openSession(client: AcpClient, cwd: string, signal: AbortSignal | undefined): Promise<OpenedSession> {
-  const result = await authRequest(client, ACP_METHODS.newSession, { cwd, mcpServers: [] }, signal);
+  const result = await requestWithAuthRetry(client, ACP_METHODS.newSession, { cwd, mcpServers: [] }, callOptions(signal));
   const parsed = parseResult(SESSION, result, 'session/new');
   const sessionId = present(parsed.sessionId);
   if (sessionId === undefined) throw new Error('Antigravity CLI did not open a session');
@@ -206,47 +206,8 @@ function knownEfforts(values: readonly string[]): readonly Effort[] {
 }
 
 /** `initialize` and `session/new` both return this code until the keyring read finishes. */
-async function authRequest(client: AcpClient, method: string, params: unknown, signal: AbortSignal | undefined): Promise<unknown> {
-  return retryAuth(client, method, params, signal, AUTH_RETRIES);
-}
-
-async function retryAuth(client: AcpClient, method: string, params: unknown, signal: AbortSignal | undefined, remaining: number): Promise<unknown> {
-  try {
-    return await client.request(method, params, callOptions(signal));
-  } catch (error) {
-    if (!isAuthRequired(error) || remaining === 0) throw error;
-    await delay(AUTH_RETRY_DELAY_MS, signal);
-    return retryAuth(client, method, params, signal, remaining - 1);
-  }
-}
-
 function callOptions(signal: AbortSignal | undefined): { signal?: AbortSignal } {
   return signal === undefined ? {} : { signal };
-}
-
-function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {
-  if (signal?.aborted) return Promise.reject(abortError(signal));
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort);
-      resolve();
-    }, ms);
-    function onAbort(): void {
-      clearTimeout(timer);
-      reject(abortError(signal));
-    }
-    signal?.addEventListener('abort', onAbort, { once: true });
-  });
-}
-
-function abortError(signal: AbortSignal | undefined): Error {
-  if (signal?.reason instanceof Error) return signal.reason;
-  return new Error('Aborted');
-}
-
-function isAuthRequired(error: unknown): boolean {
-  if (readFailure(error)?.code === AUTH_REQUIRED_CODE) return true;
-  return error instanceof Error && error.message === AUTH_REQUIRED_DETAIL;
 }
 
 function failureDetail(error: unknown, command: string): string {

@@ -10,10 +10,12 @@ import { POLICY_ALLOW_ENV } from '../src/errors.ts';
 import { type ConnectAcp, createStream } from '../src/stream.ts';
 
 /** Same values as `SCENARIOS` in `fake-agy.ts`. Importing that module reads stdin and stalls the test runner. */
-const SCENARIOS = { ready: 'ready', toolCall: 'tool-call', parallelToolCalls: 'parallel-tool-calls', policy: 'policy', refusal: 'refusal', slow: 'slow', crash: 'crash' } as const;
+const SCENARIOS = { ready: 'ready', signedOut: 'signed-out', toolCall: 'tool-call', parallelToolCalls: 'parallel-tool-calls', policy: 'policy', refusal: 'refusal', slow: 'slow', crash: 'crash' } as const;
 type Scenario = (typeof SCENARIOS)[keyof typeof SCENARIOS];
 
 const FAKE_AGY = fileURLToPath(new URL('./fake-agy.ts', import.meta.url));
+/** Two retries at the CLI's own delay, plus a process boot. */
+const SIGNED_OUT_TIMEOUT_MS = 30_000;
 const SCENARIO_ENV = 'FAKE_AGY_SCENARIO';
 const bashTool: Tool = { name: 'bash', description: 'Run a command', parameters: { type: 'object' } };
 const readTool: Tool = { name: 'read', description: 'Read a file', parameters: { type: 'object' } };
@@ -173,6 +175,19 @@ it('leaves the policy notice as text when the operator allows it', async () => {
   const { events } = await collect(SCENARIOS.policy, { allowPolicy: true });
   expect(finalMessage(events).stopReason).toBe('stop');
 });
+
+it(
+  'surfaces a signed-out CLI as an auth error after retrying the keyring race',
+  async () => {
+    // The handshake is retried, so a signed-out account costs AUTH_RETRIES waits
+    // before the turn fails. That wait is the cost of telling it apart from the race.
+    const { events } = await collect(SCENARIOS.signedOut);
+    const message = finalMessage(events);
+    expect(events.at(-1)?.type).toBe('error');
+    expect(message.errorMessage).toContain('Authentication required');
+  },
+  SIGNED_OUT_TIMEOUT_MS,
+);
 
 it('reports a model refusal as an error', async () => {
   const { events } = await collect(SCENARIOS.refusal);
