@@ -5,15 +5,27 @@ Pi skills package with:
 - **pstack** (v0.15.46): operational skills, `principle-*` skills, `poteto-mode` playbooks, `poteto-agent`, `comment-sicko`
 - **team kit** (v1.2.0): CI/review/shipping/control/verify skills, `ci-watcher`, `thermo-nuclear-code-quality-review`, and the two always-on engineering rules
 
-The pstack source pin is `d42aff08aa58965d2735c4ead61a9af82b89d0d0`. The package keeps the upstream workflow instructions where they apply and uses Pi's skill commands, subagent tools, and session paths. Automation creation and webhook wakes require a configured provider. Pi core does not supply the upstream editor or webhook service.
+The pstack source pin is `d42aff08aa58965d2735c4ead61a9af82b89d0d0`. `skill-map.json` comes from the same pstack and team-kit content, taken from the published map for `pstack 0.15.46 · Team Kit 1.2.0`. The package keeps the upstream workflow instructions where they apply and uses Pi's skill commands, subagent tools, and session paths. Automation creation and webhook wakes require a configured provider. Pi core does not supply the upstream editor or webhook service.
 
 ## Layout
 
 - `skills/` — pstack + team-kit skills (including `poteto-mode` playbooks/scripts and `pr-review-canvas` assets)
 - `agents/` — `poteto-agent.md`, `comment-sicko.md`, `ci-watcher.md`, `thermo-nuclear-code-quality-review.md`
 - `rules/` — `no-inline-imports.md`, `typescript-exhaustive-switch.md` (paste into `AGENTS.md` / `${PI_CODING_AGENT_DIR:-~/.pi/agent}/AGENTS.md`; Pi has no `.mdc` alwaysApply)
-- `scripts/verify-inventory.mjs` — presence check for the combined inventory
+- `scripts/verify-skill-map.mjs` — checks the package against `skill-map.json`
+- `skill-map.json` — the pstack skill map this package ports
 - `TEAM-KIT-LICENSE` — upstream team-kit MIT license text
+
+## The skill map is the contract
+
+`skill-map.json` names 161 nodes: the pstack and team-kit skills, their playbooks, the subagent lanes, the bundled scripts, and the state that only exists at run time. `npm test` reads that file and requires every node to be one of two things:
+
+- shipped as exactly one artifact, whose path and `name` frontmatter the map decides;
+- declared out of scope in `scripts/verify-skill-map.mjs` with a reason, such as a Cursor CLI feature Pi has no counterpart for or a board written at run time.
+
+The check also fails on an artifact no node claims, on any shipped markdown that names a Cursor path, tool, or UI, and on `poteto-mode` naming a team-kit skill other than `deslop`, `control-ui`, and `control-cli`. Add or drop a node in the map and the check tells you which artifacts must follow. Everything it asserts is measured from the shipped files, so a rename in prose is a failure, not a silent drift. The map ships with the package, so `npm test` works in an installed copy too.
+
+The map decides inventory and structure, not prose. Each node's `what`, `when`, and `how` compress a longer instruction, so where a shipped file goes further than its node, the file is the fuller statement and both agree. A node that names a Cursor-only mechanism is satisfied by the Pi mechanism that does the same job, or by the README declaring that service unavailable.
 
 ## Where Pi loads this after install
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.4
+
+### Changed
+
+- `npm test` now checks the package against `skill-map.json`, the attached 161-node map of pstack and team kit. `scripts/verify-skill-map.mjs` replaces `scripts/verify-inventory.mjs` and drops its hand-maintained skill, playbook, agent, rule and companion lists. Every node is either shipped as the one artifact the map names, or listed with a reason for not shipping. Unclaimed artifacts, a `name` the map does not give, a Cursor host path, tool or UI anywhere in the shipped markdown, and a fourth conditional team-kit dependency in `poteto-mode` all fail the check.
+- Ship `skill-map.json` so `npm test` runs in an installed copy. The map stays byte-identical to the attached file.
+
+### Fixed
+
+- `ketchup` no longer sends the agent to a `/visualize` command, which Pi does not have. It asks for a chart built from the facts instead.
+- The Worktree cleanup playbook no longer reads pinned chats from a sidebar. It asks the user which chats are pinned or active, and treats the session list as the place a chat's name does not appear.
+- `create-skill` verifies cross-skill links and runs the structural cases its sibling playbook already requires.
+
 ## 0.1.3
 
 ### Changed
