@@ -89,7 +89,7 @@ export default defineConfig(
     extends: [tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
-        project: ['extensions/pi-google-oauth-v2/tsconfig.json', 'extensions/pi-pstack-v2/tsconfig.json', 'tsconfig.json'],
+        project: ['extensions/pi-agy-cli-oauth/tsconfig.json', 'extensions/pi-google-oauth-v2/tsconfig.json', 'extensions/pi-pstack-v2/tsconfig.json', 'tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
         onUnsupportedTypeScriptVersion: 'error',
       },

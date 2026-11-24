@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "lib": ["ES2024"] },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "build", "coverage"]
+}

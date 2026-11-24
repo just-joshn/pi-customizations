@@ -7,6 +7,7 @@ Packages for [Pi](https://pi.dev), the coding agent by Earendil Works. Each one 
 | [`@justjoshn/pi-anthropic-oauth-v2`](extensions/pi-anthropic-oauth-v2) | Claude models through a custom Anthropic provider built on `@anthropic-ai/sdk`, with Claude Pro/Max sign-in or an API key. |
 | [`@justjoshn/pi-google-oauth-v2`](extensions/pi-google-oauth-v2) | Gemini models through your Google AI plan, with Google account sign-in and no API key. |
 | [`@justjoshn/pi-spacex-oauth-v2`](extensions/pi-spacex-oauth-v2) | Your X subscription through Grok Build and Cursor sign-ins, plus `/spacex-usage`. |
+| [`@justjoshn/pi-agy-cli-oauth`](extensions/pi-agy-cli-oauth) | Antigravity models through the official `agy` CLI over the Agent Client Protocol, with the CLI's own tool requests relayed to Pi. |
 | [`@justjoshn/pi-pstack-v2`](extensions/pi-pstack-v2) | The pstack workflows and skills, started with `/pstack-mode poteto-mode`. It also adds the `tmux_run` and `tmux_jobs` tools, the `subagent` and `report_findings` tools, and a Gondolin VM that runs Pi's file and shell tools. |
 | [`@justjoshn/pi-pstack-team-kit`](extensions/no-ceilings/pi-pstack-team-kit) | Pi-native pstack 0.15.46 and team kit 1.2.0 skills, principles, playbooks, agents, and rules. Start with `/skill:poteto-mode`; install the companions below for the tools its workflows call. |
 | [`@justjoshn/pi-subagents`](extensions/no-ceilings/pi-subagents) | The `task` and `await_subagent` tools, custom agent discovery, nested tasks, and the `/tasks` overlay. |
