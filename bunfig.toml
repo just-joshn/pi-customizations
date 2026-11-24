@@ -1,4 +1,4 @@
 [fmt]
 printWidth = 240
 singleQuote = true
-ignorePatterns = ["**/*.md", "**/coverage/", "**/bun.lock", ".audit/", ".cocoindex_code/", "extensions/pi-pstack-v2/skills/", "extensions/no-ceilings/pi-pstack-team-kit/skills/"]
+ignorePatterns = ["**/*.md", "**/coverage/", "**/bun.lock", ".audit/", ".cocoindex_code/", "extensions/pi-pstack-v2/skills/", "extensions/no-ceilings/pi-pstack-team-kit/skills/", "extensions/no-ceilings/pi-pstack-team-kit/skill-map.json"]

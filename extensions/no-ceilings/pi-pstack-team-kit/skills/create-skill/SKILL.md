@@ -420,8 +420,8 @@ If you have access to `ask_question`, use it for efficient structured gathering.
 1. Verify the SKILL.md is under 500 lines
 2. Check that the description is specific and includes trigger terms
 3. Ensure consistent terminology throughout
-4. Verify all file references are one level deep
-5. Run `/reload` in an active Pi session. Check startup diagnostics and test discovery and invocation with `/skill:<name>`.
+4. Verify all file references are one level deep, and that every cross-skill link resolves to a skill or file that exists
+5. Run `/reload` in an active Pi session. Check startup diagnostics and test discovery and invocation with `/skill:<name>`, plus one run of each structural case the skill claims to handle: missing input, empty input, and a value outside the stated range.
 
 ---
 
@@ -493,6 +493,8 @@ Before finalizing a skill, verify:
 
 ### Structure
 - [ ] File references are one level deep
+- [ ] Cross-skill links resolve to a skill or file that exists
+- [ ] Structural cases run: missing, empty, and out-of-range input
 - [ ] Progressive disclosure used appropriately
 - [ ] Workflows have clear steps
 - [ ] No time-sensitive information
